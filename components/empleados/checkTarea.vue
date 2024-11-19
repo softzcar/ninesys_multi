@@ -1,0 +1,59 @@
+<template>
+  <div>
+    <b-form-checkbox
+      v-model="checked"
+      @change="postTerminado"
+      name="check-button"
+      switch
+      size="lg"
+    ></b-form-checkbox>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      checked: false,
+    };
+  },
+
+  methods: {
+    async postTerminado() {
+      let checkLocal = true;
+      if (this.checked) {
+        checkLocal = 1;
+      } else {
+        checkLocal = 0;
+      }
+
+      const data = new URLSearchParams();
+      data.set("id_lotes_detalles", this.id_lotes_detalles);
+      data.set("terminado", checkLocal);
+
+      await axios
+        .post(`${this.$config.API}/empleados/tareas`, data)
+        .then((res) => {
+          // this.urlLink = res.data.linkdrive
+        })
+        .catch((err) => {
+          this.$fire({
+            title: "Error",
+            html: `<p>No se guardó la tarea, intente de nuevo</p><p>${err}</p>`,
+            type: "warning",
+          });
+        });
+    },
+  },
+
+  mounted() {
+    if (this.terminado) {
+      this.checked = true;
+    }
+  },
+
+  props: ["id_lotes_detalles", "terminado"],
+};
+</script>
