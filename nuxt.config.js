@@ -105,7 +105,6 @@ export default {
     plugins: [
         // Alerts
         "~/plugins/axios-interceptor.js",
-        "~/plugins/axios-alias.js",
         "~/plugins/sse.js",
         "~/plugins/alerts.js",
         "~/plugins/wizard.js",
@@ -152,6 +151,9 @@ export default {
         retries: 50,
         sendTimeout: 30000,
         timeout: 30000,
+        auth: {
+            id_empresa: 2,
+        },
     },
 
     // PWA module configuration: https://go.nuxtjs.dev/pwa

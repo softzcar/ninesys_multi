@@ -138,7 +138,7 @@ export default {
                 data.set("email", this.form.email)
                 data.set("password", this.form.password)
 
-                await axios
+                await this.$axios
                     .post(`${this.$config.API}/login`, data)
                     .then((res) => {
                         // cargar datos de la empresa aqui con this.getConfigData()
@@ -255,7 +255,7 @@ export default {
 
     async mounted() {
         try {
-            const response = await this.axios.get("/customers")
+            const response = await this.$axios.get(`${this.$config.API}/`)
             console.log("Respuesta recibida:", response)
         } catch (error) {
             console.error("Error al hacer la solicitud:", error)
