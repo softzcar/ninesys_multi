@@ -894,9 +894,9 @@ export default {
             let size = null
             size = parseInt(this.ordenes.length)
             if (size) {
-                this.msg = ""
-            } else {
                 this.msg = "Cargando sus tareas por favor espere..."
+            } else {
+                this.msg = "Usted no tiene ordenes asignadas"
                 // this.msg = "Has terminado todas tus tareas 👍";
             }
 
@@ -947,7 +947,7 @@ export default {
                 this.ButtonDisabled = true
             }
 
-            await axios
+            await this.$axios
                 .post(
                     `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.dataUser.departamento}/${id_lotes_detalles}/${unidades}`
                 )
@@ -983,7 +983,7 @@ export default {
                 this.$store.state.login.dataUser.departamento
             )
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/insumos/rendimiento`, data)
                 .then((res) => {
                     console.log("Rendimienot enviado")
@@ -1221,12 +1221,17 @@ export default {
         },
 
         async getOrdenesAsignadas() {
-            await axios
+            await this.$axios
                 .get(
                     `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}`
                 )
                 .then((resp) => {
                     console.log("respuesta de ordenes asignadas", resp)
+
+                    if (resp.data.ordenes.length === 0) {
+                        this.msg = "Usted no tiene ordenes asignadas"
+                        console.log("Usted no tiene ordenes asignadas")
+                    }
 
                     this.ordenes = resp.data.ordenes
                     this.vinculadas = resp.data.vinculadas
@@ -1234,7 +1239,7 @@ export default {
                 })
         },
 
-        getOrdenesAsignadasSSE() {
+        /* getOrdenesAsignadasSSE() {
             this.msg = "Estamos buscando sus tareas por favor espere.."
             this.sourceEvent.addEventListener("message", (event) => {
                 console.group("SSE Listener (Asignadas)")
@@ -1273,10 +1278,6 @@ export default {
                         console.log("eventData", eventData.length)
                         this.enCurso = eventData.trabajos_en_curso
                     }
-
-                    /* if (eventData.pagos.length) {
-            this.pagos = eventData.pagos[0]
-          } */
                     console.groupEnd()
                 }
             })
@@ -1285,9 +1286,9 @@ export default {
                 console.error("Error in SSE connection:", error)
                 this.source.close() // Cerrar la conexión actual
             })
-        },
+        }, */
 
-        async getOrdenesAsignadasReload() {
+        /* async getOrdenesAsignadasReload() {
             this.msg = "Estamos buscando sus tareas por favor espere.."
             await this.sourceEvent.addEventListener("message", (event) => {
                 console.group("SSE Listener (Reload)")
@@ -1326,9 +1327,6 @@ export default {
                         this.enCurso = eventData.trabajos_en_curso
                     }
 
-                    /* if (eventData.pagos.length) {
-            this.pagos = eventData.pagos[0]
-          } */
                     console.groupEnd()
                 }
             })
@@ -1337,12 +1335,13 @@ export default {
                 console.error("Error in SSE connection:", error)
                 this.source.close() // Cerrar la conexión actual
             })
-        },
-
+        }, */
         async getInsumos() {
-            await axios.get(`${this.$config.API}/insumos`).then((resp) => {
-                this.insumos = resp.data
-            })
+            await this.$axios
+                .get(`${this.$config.API}/insumos`)
+                .then((resp) => {
+                    this.insumos = resp.data
+                })
         },
 
         maquetarPrioridad(prioridad) {
@@ -1369,7 +1368,7 @@ export default {
         },
     },
 
-    fetch() {
+    mounted() {
         // CArgar datos de las ordenes asignadas
         /* this.sourceEvent = new EventSource(
       `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`

@@ -1707,7 +1707,7 @@ export default {
         },
 
         async getOrdenesGuardadas() {
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/ordenes/guardadas`)
                 .then((res) => {
                     console.log("response getOrdenesGuardadas", res.data.items)
@@ -1731,7 +1731,7 @@ export default {
             data.set("tipo", "Orden")
             this.overlay = true
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/orden/guardar`, data)
                 .then((res) => {
                     this.getOrdenesGuardadas()
@@ -1754,7 +1754,7 @@ export default {
             data.set("id", id)
             this.overlay = true
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/ordenes/guardadas/eliminar`, data)
                 .then((res) => {
                     this.getOrdenesGuardadas()
@@ -2413,8 +2413,7 @@ export default {
         },
 
         async getCustomers() {
-            await fetch(`${this.$config.API}/customers`)
-                .then((res) => res.json())
+            await this.$axios(`${this.$config.API}/customers`)
                 .then((res) => {
                     this.customers = res
                     this.loading.show = false
@@ -2491,8 +2490,7 @@ export default {
             }
 
             let ok = false
-            await fetch(url, { method: method })
-                .then((res) => res.json())
+            await this.$axios(url, { method: method })
                 .then((res) => {
                     console.log("respuesta de actualizar - crear cliente", res)
                     // this.form.id = res.id
@@ -2509,7 +2507,7 @@ export default {
                     console.log(err)
                 })
                 .finally(() => {
-                    axios
+                    this.$axios
                         .get(`${this.$config.API}/customers`)
                         .then((responseClientes) => {
                             // Cargar Clientes
@@ -2799,7 +2797,7 @@ export default {
             data.set("tasa_peso", this.peso)
 
             // ENVIAR DATOS AL SERVIDOR PARA CREAR UNA NUEVA ORDEN
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}${this.endpoint}`, data)
                 .then((data) => {
                     console.log(`La orden ${data.orden_nro} ha sido creada`)
@@ -2834,19 +2832,21 @@ export default {
         },
 
         async getProducts() {
-            await axios.get(`${this.$config.API}/products`).then((res) => {
-                this.products = res.data
+            await this.$axios
+                .get(`${this.$config.API}/products`)
+                .then((res) => {
+                    this.products = res.data
 
-                // Cargar Productos
-                this.$store.commit("comerce/setDataProductos", res.data)
+                    // Cargar Productos
+                    this.$store.commit("comerce/setDataProductos", res.data)
 
-                this.formarProductSelect()
-                /* let productsSelect = res.data.map((prod) => {
+                    this.formarProductSelect()
+                    /* let productsSelect = res.data.map((prod) => {
           return `${prod.cod} | ${prod.name}`
         })
 
         this.$store.commit('comerce/setDataProductosSelect', productsSelect) */
-            })
+                })
         },
 
         formarProductSelect() {
@@ -2865,8 +2865,7 @@ export default {
         },
 
         async getProducts_fetch() {
-            await fetch(`${this.$config.API}/products`)
-                .then((res) => res.json())
+            await this.axios(`${this.$config.API}/products`)
                 .then((res) => {
                     this.products = res
                     this.productsSelect = res.map((prod) => {
@@ -3109,7 +3108,7 @@ export default {
         },
 
         async loadDataCustomers() {
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/customers`)
                 .then((responseClientes) => {
                     // Cargar Clientes
@@ -3141,25 +3140,124 @@ export default {
                     })
                 })
                 .finally(() => {
-                    console.log(
-                        "Recargado los clientes y mapeados",
-                        this.$store.state.comerce.customersSelect
+                    console.log("Recargado los clientes y mapeados")
+                })
+        },
+        async loadDataTallas() {
+            await this.$axios
+                .get(`${this.$config.API}/sizes`)
+                .then((responseTallas) => {
+                    // Cargar Tallas
+                    let mySizes = responseTallas.data.data.map((item) => {
+                        return {
+                            value: item.name,
+                            text: item.name,
+                        }
+                    })
+                    this.$store.commit("comerce/setDataTallas", mySizes)
+
+                    console.log("ordenes guardadas", this.ordenesGuardadas)
+                })
+                .catch((err) => {
+                    this.$fire({
+                        type: "error",
+                        title: "Error obteniendo datos de las tallas",
+                        html: err,
+                    })
+                })
+                .finally(() => {
+                    console.log("Tallas recargadas y mapeadas")
+                })
+        },
+        async loadDataTelas() {
+            await this.$axios
+                .get(`${this.$config.API}/telas`)
+                .then((responseTelas) => {
+                    // Cargar Telas
+                    let myTelas = responseTelas.data.data.map((item) => {
+                        return {
+                            value: item.tela,
+                            text: item.tela,
+                        }
+                    })
+
+                    this.$store.commit("comerce/setDataTelas", myTelas)
+                })
+                .catch((err) => {
+                    this.$fire({
+                        type: "error",
+                        title: "Error obteniendo datos de las telas",
+                        html: err,
+                    })
+                })
+                .finally(() => {
+                    console.log("Telas recargadas y mapeadas")
+                })
+        },
+
+        async loadDataProductos() {
+            await this.$axios
+                .get(`${this.$config.API}/products`)
+                .then((responseProductos) => {
+                    // Cargar Productos
+                    let productsSelect = responseProductos.data.map((prod) => {
+                        return `${prod.cod} | ${prod.name}`
+                    })
+                    this.$store.commit(
+                        "comerce/setDataProductos",
+                        responseProductos.data
                     )
+                    this.$store.commit(
+                        "comerce/setDataProductosSelect",
+                        productsSelect
+                    )
+                })
+                .catch((err) => {
+                    this.$fire({
+                        type: "error",
+                        title: "Error obteniendo datos delos productos",
+                        html: err,
+                    })
+                })
+                .finally(() => {
+                    console.log("Productos recargados y mapeados")
+                })
+        },
+        async loadDataCategories() {
+            await this.$axios
+                .get(`${this.$config.API}/categories`)
+                .then((responseCategories) => {
+                    // Cargar categorias
+                    let myCategories = responseCategories.data
+                    this.$store.commit(
+                        "comerce/setDataCategories",
+                        myCategories
+                    )
+                })
+                .catch((err) => {
+                    this.$fire({
+                        type: "error",
+                        title: "Error obteniendo datos de las catagorías",
+                        html: err,
+                    })
+                })
+                .finally(() => {
+                    console.log("Categorias recargadas y mapeadas")
                 })
         },
 
         async loadDataComercializacion() {
-            await axios
+            await this.$axios
                 .all([
-                    axios.get(`${this.$config.API}/customers`),
-                    axios.get(`${this.$config.API}/products`),
-                    axios.get(`${this.$config.API}/categories`),
-                    axios.get(`${this.$config.API}/telas`),
-                    axios.get(`${this.$config.API}/sizes`),
-                    axios.get(`${this.$config.API}/ordenes/guardadas`),
+                    this.$axios(`${this.$config.API}/customers`),
+                    this.$axios(`${this.$config.API}/sizes`),
+                    this.$axios(`${this.$config.API}/telas`),
+                    this.$axios(`${this.$config.API}/products`),
+                    this.$axios(`${this.$config.API}/categories`),
+                    this.$axios(`${this.$config.API}/ordenes/guardadas`),
                 ])
                 .then(
-                    axios.spread(
+                    this.$axios.spread(
                         (
                             responseClientes,
                             responseProductos,
@@ -3216,16 +3314,6 @@ export default {
                             )
                             this.$store.commit("comerce/setDataTallas", mySizes)
 
-                            // Cargar Guardadas
-                            /*this.ordenesGuardadas = responseGuardadas.data.items.map(item => {
-                const parsedForm = JSON.parse(item.form);
-                return { ...item, form: parsedForm };
-              });*/
-                            /*this.ordenesGuardadas = responseGuardadas.data.map(item => {
-                const parsedForm = JSON.parse(item.form);
-                return { ...item, form: parsedForm };
-              });*/
-                            this.getOrdenesGuardadas()
                             console.log(
                                 "ordenes guardadas",
                                 this.ordenesGuardadas
@@ -3253,11 +3341,11 @@ export default {
                 })
                 .catch((err) => {
                     console.log(`Error: ${err}`)
-                    /* this.$fire({
-            type: 'error',
-            title: 'Error obteniendo datos, por favor recargue el módulo ',
-            html: err,
-          }) */
+                    this.$fire({
+                        type: "error",
+                        title: "Error obteniendo datos, por favor recargue el módulo ",
+                        html: err,
+                    })
                     this.loadingMsg =
                         "No se cargaron todos los datos, por favor recargue este módulo"
                     this.mainOverlay = false
@@ -3266,73 +3354,18 @@ export default {
     },
 
     created() {
-        this.loadDataComercializacion()
-        this.getOrdenesGuardadas()
+        // this.loadDataComercializacion()
     },
 
     mounted() {
+        this.loadDataCustomers()
+        this.loadDataTallas()
+        this.loadDataTelas()
+        this.loadDataProductos()
+        this.getOrdenesGuardadas()
         this.$bvModal.hide(this.modal)
+        this.overlay = false
         // this.loadDataComercializacion()
-        /*
-    let myCategories = responseCategories.data
-        this.$store.commit('comerce/setDataCategories', myCategories)
-    */
-        // this.loading.show = true
-        /* this.initLoad().then(() => {
-      this.loading.show = false
-      this.disableButtons = false
-    }) */
-        /*
-    // Cargar telas
-    this.loading.text = 'Cagando telas...'
-
-    this.ozhttp({
-      url: '/telas',
-      method: 'get',
-    }).then(() => {
-      this.myTelas = this.json.data.map((item) => {
-        return {
-          value: item.tela,
-          text: item.tela,
-        }
-      })
-    })
-
-    this.getProducts().then(() => {
-      // Cargar Clientes
-      this.loading.text = 'Cagando clientes...'
-
-      this.ozhttp({
-        url: '/customers',
-        method: 'get',
-      }).then(() => {
-        this.myCustomers = this.json.data
-        this.customersSelect = this.myCustomers.map((client) => {
-          return `${
-            client.id
-          } | ${client.first_name} ${client.last_name} - ${
-            client.phone
-          }`
-        })
-      })
-
-      // Cargar Tallas
-      this.loading.text = 'Cagando tallas...'
-
-      this.ozhttp({
-        url: '/sizes',
-        method: 'get',
-      }).then(() => {
-        this.mySizes = this.json.data.map((item) => {
-          return {
-            value: item.name,
-            text: item.name,
-          }
-        })
-      })
-      console.log('desactivems el loading')
-      this.getCustomers().then(() => (this.loading.show = false))
-    })*/
     },
 
     mixins: [mixins],

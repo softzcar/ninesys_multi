@@ -329,7 +329,7 @@ export default {
                 this.$store.state.login.dataUser.departamento
             )
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/insumos/rendimiento`, data)
                 .then((res) => {
                     console.log("Rendimienot enviado")
@@ -686,7 +686,7 @@ export default {
             data.set("y", this.formImp.colorYellow)
             data.set("k", this.formImp.colorBlack)
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/empleados/tintas`, data)
                 .then((res) => {
                     // this.overlay = false
@@ -705,7 +705,7 @@ export default {
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("desperdicio", this.formEst.input);
 
-      await axios
+      await this.$axios
         .post(`${this.$config.API}/empleados/tintas`, data)
         .then((res) => {
           this.overlay = false;
@@ -730,7 +730,7 @@ export default {
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("desperdicio", this.formEst.input);
 
-      await axios
+      await this.$axios
         .post(`${this.$config.API}/empleados/tintas`, data)
         .then((res) => {
           this.overlay = false;
@@ -797,7 +797,7 @@ export default {
             // data.set("cantidad_inicial", cantidadInsumo.cantidad);
             data.set("cantidad_consumida", cantidadConsumida)
             data.set("tipo", "fin")
-            await axios
+            await this.$axios
                 .post(
                     `${this.$config.API}/inventario-movimientos/empleados/update-insumo`,
                     data
@@ -839,7 +839,7 @@ export default {
                 this.$store.state.login.dataUser.departamento
             )
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/insumos/rendimiento`, data)
                 .then((res) => {
                     console.log("Rendimienot enviado")
@@ -884,7 +884,7 @@ export default {
             this.overlay = true
             this.ButtonDisabled = true
 
-            await axios
+            await this.$axios
                 .post(
                     `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.dataUser.departamento}/${id_lotes_detalles}/${unidades}`
                 )

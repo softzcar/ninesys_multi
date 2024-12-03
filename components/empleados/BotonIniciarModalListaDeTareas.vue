@@ -130,7 +130,7 @@ export default {
                 this.ButtonVariant = 'success'
             }
 
-            await axios
+            await this.$axios
                 .post(
                     `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.dataUser.departamento}/${id_lote_detalles}/${this.item.unidades}`
                 )

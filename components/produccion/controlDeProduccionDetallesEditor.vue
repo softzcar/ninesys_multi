@@ -89,8 +89,8 @@
 </template>
 
 <script>
-import axios from "axios";
-import quillOptions from "~/plugins/nuxt-quill-plugin";
+import axios from "axios"
+import quillOptions from "~/plugins/nuxt-quill-plugin"
 
 export default {
     data() {
@@ -130,32 +130,32 @@ export default {
                     label: "Detalle",
                 },
             ],
-        };
+        }
     },
 
     computed: {
         misProductos() {
-            let prods;
+            let prods
             if (this.esreposicion == "true") {
                 prods = this.productos
                     .filter((el) => el.reposicion_terminada === 0)
-                    .map((el) => ({ ...el, cantidad: el.unidades_reposicion }));
+                    .map((el) => ({ ...el, cantidad: el.unidades_reposicion }))
             } else {
                 prods = this.productos.filter(
                     (el) => el.reposicion_terminada === null
-                );
+                )
             }
-            return prods;
+            return prods
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7);
+            const rand = Math.random().toString(36).substring(2, 7)
 
-            return `modal-${rand}`;
+            return `modal-${rand}`
         },
 
         fields() {
-            let fields;
+            let fields
 
             if (this.esreposicion == "true") {
                 if (this.$store.state.login.dataUser.departamento === "Corte") {
@@ -188,7 +188,7 @@ export default {
                             key: "detalle_reposicion",
                             label: "Detalle",
                         },
-                    ];
+                    ]
                 } else {
                     fields = [
                         {
@@ -219,7 +219,7 @@ export default {
                             key: "detalle_reposicion",
                             label: "Detalle",
                         },
-                    ];
+                    ]
                 }
             } else {
                 if (this.$store.state.login.dataUser.departamento === "Corte") {
@@ -248,7 +248,7 @@ export default {
                             key: "tela",
                             label: "Tela",
                         },
-                    ];
+                    ]
                 } else {
                     fields = [
                         {
@@ -275,48 +275,48 @@ export default {
                             key: "tela",
                             label: "Tela",
                         },
-                    ];
+                    ]
                 }
             }
 
-            return fields;
+            return fields
         },
     },
 
     methods: {
         async postBorrador(borrador) {
-            this.msg = "Guardando...";
-            const data = new URLSearchParams();
-            data.set("id_orden", this.idorden);
+            this.msg = "Guardando..."
+            const data = new URLSearchParams()
+            data.set("id_orden", this.idorden)
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            );
-            data.set("borrador", borrador);
+            )
+            data.set("borrador", borrador)
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/ordenes/borrador`, data)
                 .then((res) => {
-                    this.msg = "Se guardaron sus cambios";
-                    this.$emit("reload");
+                    this.msg = "Se guardaron sus cambios"
+                    this.$emit("reload")
                 })
                 .catch((error) => {
-                    this.msg = "No se pudo guardar su borrador";
-                });
+                    this.msg = "No se pudo guardar su borrador"
+                })
         },
 
         onEditorChange({ editor, html, text }) {
-            console.log("editor change!", editor, html, text);
-            this.postBorrador(html);
-            this.borrador = html;
+            console.log("editor change!", editor, html, text)
+            this.postBorrador(html)
+            this.borrador = html
         },
     },
 
     mounted() {
         if (this.detalle_empleado === null) {
-            this.borrador = this.detalles;
+            this.borrador = this.detalles
         } else {
-            this.borrador = this.detalle_empleado;
+            this.borrador = this.detalle_empleado
         }
     },
 
@@ -330,5 +330,5 @@ export default {
         "esreposicion",
         "en_reposiciones",
     ],
-};
+}
 </script>

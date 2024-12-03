@@ -125,7 +125,7 @@ export default {
         },
 
         async getInfo() {
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/insumos/${this.selected}`)
                 .then((resp) => {
                     this.dataTable.push(resp.data.items[0])
@@ -146,7 +146,7 @@ export default {
 
         async getInsumos() {
             this.overlay = true
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/inventario/${this.catagoriaInsumo}`)
                 .then((resp) => {
                     // this.$store.commit('empleados/setDataInsumos', resp.data)

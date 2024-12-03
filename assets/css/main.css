@@ -1,141 +1,151 @@
 body * {
-  /* font-size: 99.75% !important;   */
-  font-size: 99% !important;  
+    /* font-size: 99.75% !important;   */
+    font-size: 99% !important;
 }
 html {
-  overflow-x: hidden !important;
+    overflow-x: hidden !important;
 }
 
 h1 {
-  font-size: 2.2rem !important;
+    font-size: 2.2rem !important;
 }
 
 h2 {
-  font-size: 1.75rem !important;
+    font-size: 1.75rem !important;
 }
 
 h3 {
-  font-size: 1.4rem !important;
+    font-size: 1.4rem !important;
 }
 
 /* Progress Bar */
 div.progress {
-  background-color: #e9ecef;
-  border-radius: 0.25rem;
-  display: flex;
-  font-size: 0.75rem;
-  height: 32px !important;
-  line-height: 0;
-  overflow: hidden;
-  width: 126px !important;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    display: flex;
+    font-size: 0.75rem;
+    height: 32px !important;
+    line-height: 0;
+    overflow: hidden;
+    width: 126px !important;
 }
 
 pre {
-  background-color:chocolate;
-  padding: 1rem !important;
-  font-size: 0.82rem !important;
-  font-family: monospace;
-  color: white !important;
-  box-shadow: inset;
-  text-align: left !important;
-  width: auto;
-  margin-top: 20px !important;
-  margin-bottom: 20px !important;
-  display: none !important;
+    background-color: chocolate;
+    padding: 1rem !important;
+    font-size: 0.82rem !important;
+    font-family: monospace;
+    color: white !important;
+    box-shadow: inset;
+    text-align: left !important;
+    width: auto;
+    margin-top: 20px !important;
+    margin-bottom: 20px !important;
+    display: none !important;
+}
+
+.force {
+    display: block !important;
 }
 
 img {
-  background: transparent url(https://www.leeparts.com/images/ajax-loader.gif) center no-repeat;
-  background-size: 20%;
+    background: transparent url(https://www.leeparts.com/images/ajax-loader.gif)
+        center no-repeat;
+    background-size: 20%;
 }
 
 em {
-  color: grey;
+    color: grey;
 }
 [info-form] {
-  border-top: 1px solid lightgrey;
-  padding-top: 6px;
-  margin: 38px 0 18px;
-  font-style: italic;
-  color: grey;
+    border-top: 1px solid lightgrey;
+    padding-top: 6px;
+    margin: 38px 0 18px;
+    font-style: italic;
+    color: grey;
 }
 [required] {
-  color: red;
-  font-weight: 800;
+    color: red;
+    font-weight: 800;
+}
+
+.nombre-empresa {
+    font-size: 1.6rem !important;
+    font-weight: bold;
 }
 
 /* NAVIGATION */
 .nav-link {
-  cursor: pointer;
+    cursor: pointer;
 }
 .dropdown-menu {
-  background-color: #17a2b8 !important;
-  border: none !important;
+    background-color: #17a2b8 !important;
+    border: none !important;
 }
-.dropdown-menu .nav-link{
-  padding-left: 1.4rem !important;
+.dropdown-menu .nav-link {
+    padding-left: 1.4rem !important;
 }
 .blue-link {
-  color:#17a2b8;
-  text-transform:lowercase;
-  text-decoration: underline;
-  cursor: pointer;
+    color: #17a2b8;
+    text-transform: lowercase;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 /* WIZARD */
 .vue-form-wizard .wizard-icon-circle .wizard-icon-container {
-  border-radius: 50% !important;
+    border-radius: 50% !important;
 }
 
 .vue-form-wizard.md .wizard-icon-circle {
-  width: 70px;
-  height: 70px;
-  font-size: 24px;
-  border-radius: 50% !important;
-  background-color: #17a2b8 !important;
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+    border-radius: 50% !important;
+    background-color: #17a2b8 !important;
 }
 .vue-form-wizard .wizard-nav-pills > li > a .wizard-icon {
-  color: white !important;
+    color: white !important;
 }
 
 /* Colapsar b-list-goroup del STEP3 del wixar apra emular responsive */
 @media screen and (min-width: 768px) {
-  .custom-collapse .collapse {
-    display: block;
-  }
+    .custom-collapse .collapse {
+        display: block;
+    }
 }
 
 /* Separar botones */
 .floatme {
-  float: left;
-  margin-right: 0.4rem;
-  margin-bottom: 2px;
-  margin-top: 2px;
+    float: left;
+    margin-right: 0.4rem;
+    margin-bottom: 2px;
+    margin-top: 2px;
 }
 .float-badget .badge {
-  float:right !important;
-  position:static;
-  margin: -6px -25px;
+    float: right !important;
+    position: static;
+    margin: -6px -25px;
 }
 
 /* Mobile */
-.mobile > *{
-  font-size: -20px;
+.mobile > * {
+    font-size: -20px;
 }
 /** otros */
 .with_ampm::-webkit-datetime-edit-ampm-field {
-  display: inline;
+    display: inline;
 }
 .capital {
-  text-transform: capitalize;
+    text-transform: capitalize;
 }
 .money-result {
-  background-color: lightgreen;
-  padding: 0.12rem 0.42rem;
+    background-color: lightgreen;
+    padding: 0.12rem 0.42rem;
 }
 
-.linksearch-status{
-  padding: 0.3rem;
-  border: solid 2px;
-  border-color: red;
+.linksearch-status {
+    padding: 0.3rem;
+    border: solid 2px;
+    border-color: red;
 }

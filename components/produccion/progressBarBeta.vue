@@ -377,7 +377,7 @@ export default {
 
     async getPorcentaje() {
       this.overlay = true
-      await axios
+      await this.$axios
         .get(`${this.$config.API}/produccion/progressbar/${this.data.orden}`)
         .then((res) => {
           this.value = res.data.porcentaje
@@ -411,7 +411,7 @@ export default {
     },
 
     async getLotInfo() {
-      await axios
+      await this.$axios
         .get(`${this.$config.API}/lotes/detalles/v2/${this.id}`)
         .then((res) => {
           this.loteInfo = res.data

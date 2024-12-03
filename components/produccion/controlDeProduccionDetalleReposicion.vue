@@ -16,60 +16,60 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "axios"
 
 export default {
     data() {
         return {
             title: `Detallede la reposición`,
             detalleLocal: "",
-        };
+        }
     },
 
     computed: {
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7);
+            const rand = Math.random().toString(36).substring(2, 7)
 
-            return `modal-${rand}`;
+            return `modal-${rand}`
         },
     },
 
     methods: {
         async postBorrador(borrador) {
-            this.msg = "Guardando...";
-            const data = new URLSearchParams();
-            data.set("id_orden", this.idorden);
+            this.msg = "Guardando..."
+            const data = new URLSearchParams()
+            data.set("id_orden", this.idorden)
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            );
-            data.set("borrador", borrador);
+            )
+            data.set("borrador", borrador)
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/ordenes/borrador`, data)
                 .then((res) => {
-                    this.msg = "Se guardaron sus cambios";
+                    this.msg = "Se guardaron sus cambios"
                 })
                 .catch((error) => {
-                    this.msg = "No se pudo guardar su borrador";
-                });
+                    this.msg = "No se pudo guardar su borrador"
+                })
         },
 
         onEditorChange({ editor, html, text }) {
-            console.log("editor change!", editor, html, text);
-            this.postBorrador(html);
-            this.borrador = html;
+            console.log("editor change!", editor, html, text)
+            this.postBorrador(html)
+            this.borrador = html
         },
     },
 
     mounted() {
         if (this.detalle == null) {
-            this.detalleLocal = "No hay detalle de esta reposición";
+            this.detalleLocal = "No hay detalle de esta reposición"
         } else {
-            this.detalleLocal = this.detalle;
+            this.detalleLocal = this.detalle
         }
     },
 
     props: ["detalle"],
-};
+}
 </script>

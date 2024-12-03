@@ -160,7 +160,7 @@ export default {
 
     methods: {
         async getRepositions() {
-            await axios
+            await this.$axios
                 .get(
                     `${this.$config.API}/reposiciones/${this.item.item.Reponer}/${this.item.item.Orden}`
                 )
@@ -229,7 +229,7 @@ export default {
                 this.$store.state.login.dataUser.id_empleado
             )
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/produccion/reposicion`, data)
                 .then((res) => {
                     this.clearForm()

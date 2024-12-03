@@ -174,7 +174,7 @@ export default {
             data.set("cantidad", this.item.unidades)
             data.set("id_ordenes_productos", this.item.id_ordenes_productos)
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/produccion/reposicion/final`, data)
                 .then((res) => {
                     this.overlay = false

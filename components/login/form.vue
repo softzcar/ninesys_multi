@@ -15,7 +15,17 @@
                         class="text-center"
                         align-v="center"
                     >
-                        <h2>ninesys <small>m</small></h2>
+                        <h2>
+                            ninesys
+                            <h4
+                                style="
+                                    font-size: 1.2rem !important;
+                                    color: lightslategray;
+                                "
+                            >
+                                multiuser
+                            </h4>
+                        </h2>
                         <hr />
                         <b-form>
                             <b-form-group
@@ -81,7 +91,13 @@ export default {
         }
     },
     computed: {
-        ...mapState("login", ["access", "dataUser", "dataEmpresa", "dataSys"]),
+        ...mapState("login", [
+            "access",
+            "dataUser",
+            "dataEmpresa",
+            "dataSys",
+            "idEmpresa",
+        ]),
         ...mapState("datasys", ["dataSys"]),
     },
     methods: {
@@ -90,6 +106,7 @@ export default {
             "setDataEmpresa",
             "setDataSys",
             "setAccess",
+            "setIdEmpresa",
         ]),
         ...mapMutations("datasys", ["setDataSys"]),
 
@@ -159,13 +176,17 @@ export default {
                                 res.data.empresa
                             )
                             this.$store.commit(
+                                "login/setIdEmpresa",
+                                res.data.empresa.id
+                            )
+                            this.$store.commit(
                                 "login/setAccess",
                                 res.data.data.access
                             )
                             this.$store.commit("login/setLoading", false)
 
                             // CArgar datos de configuracion del sistema
-                            // this.getConfigData();
+                            this.getConfigData()
 
                             // CARGAR EN EL STATE PARA COMERCIALZIACION
                         } else {
@@ -189,32 +210,6 @@ export default {
                     .finally(() => {
                         this.loading = false
                     })
-
-                /* let conf = {
-          url: '/login',
-          method: 'post',
-          data: data,
-        }
-
-        this.ozhttp(conf)
-          .then(() => {
-            if (this.json.data.access == true) {
-              this.$store.commit('login/setDataUser', this.json.data.res)
-              this.$store.commit('login/setAccess', this.json.data.access)
-              this.setDataUser(this.json.data.res)
-            } else {
-              this.loading = false
-              this.$fire({
-                type: 'error',
-                title: 'Error',
-                html: 'Sus datos son incorrectos, verifiquelos e intente de nuevo.',
-              })
-              this.loading = false
-            }
-          })
-          .then(() => {
-            this.loading = false
-          }) */
             } else {
                 this.loading = false
             }
@@ -222,7 +217,7 @@ export default {
 
         async getConfigData() {
             this.overlay = true
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/config`)
                 .then((res) => {
                     console.log("datos de cnfiguración del sistema", res.data)
@@ -254,12 +249,12 @@ export default {
     },
 
     async mounted() {
-        try {
+        /* try {
             const response = await this.$axios.get(`${this.$config.API}/`)
             console.log("Respuesta recibida:", response)
         } catch (error) {
             console.error("Error al hacer la solicitud:", error)
-        }
+        } */
     },
 
     mixins: [mixin],

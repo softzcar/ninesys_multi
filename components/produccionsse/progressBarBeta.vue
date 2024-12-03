@@ -404,7 +404,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "axios"
 
 export default {
     data() {
@@ -433,21 +433,21 @@ export default {
                 { value: "limpieza", text: "Limpieza" },
                 { value: "revision", text: "Revisión" },
             ],
-        };
+        }
     },
 
     computed: {
         itemsProducts() {
-            return this.loteInfo.orden_productos;
+            return this.loteInfo.orden_productos
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7);
-            return `modal-${rand}`;
+            const rand = Math.random().toString(36).substring(2, 7)
+            return `modal-${rand}`
         },
 
         fieldsProducts() {
-            return this.loteInfo.fields_orden_productos;
+            return this.loteInfo.fields_orden_productos
             // return this.$store.state.produccion.loteDetalles.fields_orden_productos
         },
     },
@@ -455,8 +455,8 @@ export default {
     watch: {
         reload() {
             if (this.reload) {
-                console.log(`Relaod me baby!`);
-                this.reload = false;
+                console.log(`Relaod me baby!`)
+                this.reload = false
             }
         },
     },
@@ -464,10 +464,10 @@ export default {
     methods: {
         // ProgressBAr
         setPaso(val) {
-            this.overlay = true;
-            const data = new URLSearchParams();
-            data.set("paso", val);
-            data.set("id_orden", this.data.orden);
+            this.overlay = true
+            const data = new URLSearchParams()
+            data.set("paso", val)
+            data.set("id_orden", this.data.orden)
 
             axios
                 .post(`${this.$config.API}/produccion/update/paso`, data)
@@ -478,109 +478,109 @@ export default {
                             title: "Error en asignación",
                             html: `El paso '${this.selected}' no está asignado a ningún empeado`,
                         }).then(() => {
-                            this.selected = "sin_asignar";
-                        });
+                            this.selected = "sin_asignar"
+                        })
                     } else {
-                        this.getPorcentaje();
+                        this.getPorcentaje()
                     }
-                    this.overlay = false;
+                    this.overlay = false
                 })
                 .catch((err) => {
                     this.$fire({
                         type: "error",
                         title: "Error",
                         html: `No se pudo actualizar os datos: ${err}`,
-                    });
-                    this.overlay = false;
-                });
+                    })
+                    this.overlay = false
+                })
         },
         pasoActual() {
             switch (this.data.paso) {
                 case "comercializacion":
-                    this.paso = "Comercialización";
-                    break;
+                    this.paso = "Comercialización"
+                    break
 
                 case "jefe_diseno":
-                    this.paso = "Jefe de Diseño";
-                    break;
+                    this.paso = "Jefe de Diseño"
+                    break
 
                 case "diseno":
-                    this.paso = "Diseño";
-                    break;
+                    this.paso = "Diseño"
+                    break
 
                 case "Corte":
-                    this.paso = "Corte";
-                    break;
+                    this.paso = "Corte"
+                    break
 
                 case "Estampado":
-                    this.departamento = "Estampado";
-                    break;
+                    this.departamento = "Estampado"
+                    break
 
                 case "Impresión":
-                    this.departamento = "Impresión";
-                    break;
+                    this.departamento = "Impresión"
+                    break
 
                 case "Confeción":
-                    this.departamento = "Confeción";
-                    break;
+                    this.departamento = "Confeción"
+                    break
 
                 case "Limpieza":
-                    this.departamento = "Limpieza";
-                    break;
+                    this.departamento = "Limpieza"
+                    break
 
                 case "Revisión":
-                    this.departamento = "Revisión";
-                    break;
+                    this.departamento = "Revisión"
+                    break
 
                 default:
-                    this.departamento = this.data.paso;
-                    break;
+                    this.departamento = this.data.paso
+                    break
             }
         },
 
         async getPorcentaje() {
-            this.overlay = true;
-            await axios
+            this.overlay = true
+            await this.$axios
                 .get(
                     `${this.$config.API}/produccion/progressbar/${this.data.orden}`
                 )
                 .then((res) => {
-                    this.value = res.data.porcentaje;
-                    this.paso = res.data.paso;
-                    this.selected = res.data.paso;
-                    this.pasoActual();
-                    this.overlay = false;
+                    this.value = res.data.porcentaje
+                    this.paso = res.data.paso
+                    this.selected = res.data.paso
+                    this.pasoActual()
+                    this.overlay = false
                 })
                 .catch((err) => {
                     console.error(
                         "Error al obtener los datos del servidor para prgressBar",
                         err
-                    );
-                    this.overlay = false;
-                });
+                    )
+                    this.overlay = false
+                })
         },
 
         // Asignacion
         token() {
-            const length = 8;
+            const length = 8
             var a =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split(
                     ""
-                );
-            var b = [];
+                )
+            var b = []
             for (var i = 0; i < length; i++) {
-                var j = (Math.random() * (a.length - 1)).toFixed(0);
-                b[i] = a[j];
+                var j = (Math.random() * (a.length - 1)).toFixed(0)
+                b[i] = a[j]
             }
-            return b.join("");
+            return b.join("")
         },
 
         async getLotInfo() {
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/lotes/detalles/v2/${this.id}`)
                 .then((res) => {
-                    this.loteInfo = res.data;
-                });
+                    this.loteInfo = res.data
+                })
         },
     },
 
@@ -589,23 +589,23 @@ export default {
             .dispatch("produccion/getPorcentaje2", this.data.orden)
             .then(() => {
                 // progressBar
-                this.pasoActual();
+                this.pasoActual()
 
                 // asignacion
                 axios
                     .get(`${this.$config.API}/empleados/produccion/asignacion`)
                     .then((res) => {
-                        this.optionsEmpleados = res.data;
-                        this.getLotInfo().then(() => (this.overlay = false));
-                    });
+                        this.optionsEmpleados = res.data
+                        this.getLotInfo().then(() => (this.overlay = false))
+                    })
 
                 // Comun
-                this.overlay = false;
-            });
+                this.overlay = false
+            })
     },
 
     props: ["data"],
-};
+}
 </script>
 
 <style scoped>

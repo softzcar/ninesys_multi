@@ -77,7 +77,7 @@ export default {
       data.set('estado', this.selected)
       data.set('id', this.data.orden)
       
-      await axios.post(`${this.$config.API}/orden/actualizar-estado`, data).then(res => {
+      await this.$axios.post(`${this.$config.API}/orden/actualizar-estado`, data).then(res => {
         // this.$store.dispatch('comerce/getOrdenesActivas').then(() => (this.overlay = false))
         this.overlay = false
       })

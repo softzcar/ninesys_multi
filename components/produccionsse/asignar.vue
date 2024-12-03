@@ -120,7 +120,7 @@
                                                         lotes_fisicos
                                                     "
                                                     @reload="setReload"
-                                                    :options="optionsEmpleados"
+                                                    :empleados="empleados"
                                                     departamento="Impresión"
                                                 />
                                             </b-col>
@@ -234,7 +234,7 @@
                                                         lotes_fisicos
                                                     "
                                                     @reload="setReload"
-                                                    :options="optionsEmpleados"
+                                                    :empleados="empleados"
                                                     departamento="Estampado"
                                                 />
                                             </b-col>
@@ -342,7 +342,7 @@
                                                         lotes_fisicos
                                                     "
                                                     @reload="setReload"
-                                                    :options="optionsEmpleados"
+                                                    :empleados="empleados"
                                                     departamento="Corte"
                                                 />
                                                 <!-- <produccion-guardar-cantidad
@@ -458,7 +458,7 @@
                                                         lotes_fisicos
                                                     "
                                                     @reload="setReload"
-                                                    :options="optionsEmpleados"
+                                                    :empleados="empleados"
                                                     departamento="Costura"
                                                 />
                                             </b-col>
@@ -567,7 +567,7 @@
                                                     :lotes_fisicos="
                                                         lotes_fisicos
                                                     "
-                                                    :options="optionsEmpleados"
+                                                    :empleados="empleados"
                                                     departamento="Limpieza"
                                                     @reload="setReload"
                                                 />
@@ -677,9 +677,9 @@
                                                     :lotes_fisicos="
                                                         lotes_fisicos
                                                     "
-                                                    :options="optionsEmpleados"
                                                     departamento="Revisión"
                                                     @reload="setReload"
+                                                    :empleados="empleados"
                                                 />
                                             </b-col>
                                         </b-row>
@@ -698,7 +698,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "axios"
 
 export default {
     data() {
@@ -727,13 +727,13 @@ export default {
             loteInfo: this.orden_productos,
             optionsEmpleados: this.asign,
             reload: false,
-        };
+        }
     },
 
     watch: {
         reload() {
             if (this.reload) {
-                this.overlay = true;
+                this.overlay = true
                 // this.getLotInfo().then(() => (this.overlay = false))
             }
         },
@@ -750,7 +750,7 @@ export default {
         )
         return parseInt(element.id_orden) === myId
       }) */
-            return this.orden_productos;
+            return this.orden_productos
         },
 
         fieldsProducts() {
@@ -797,54 +797,54 @@ export default {
                     label: "GC",
                     sortable: false,
                 },
-            ];
+            ]
 
             // return this.$store.state.produccion.loteDetalles.fields_orden_productos
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7);
-            return `modal-${rand}`;
+            const rand = Math.random().toString(36).substring(2, 7)
+            return `modal-${rand}`
         },
     },
 
     methods: {
         async postSwitch(departamento, estado) {
-            const data = new URLSearchParams();
-            let miEstado = null;
+            const data = new URLSearchParams()
+            let miEstado = null
             if (estado) {
-                miEstado = 1;
+                miEstado = 1
             } else {
-                miEstado = 0;
+                miEstado = 0
             }
 
-            data.set("estado", miEstado);
-            data.set("departamento", departamento);
+            data.set("estado", miEstado)
+            data.set("departamento", departamento)
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/config/select-empleados`, data)
                 .then((res) => {
-                    this.getConfigData();
-                });
+                    this.getConfigData()
+                })
         },
 
         getConfigData() {
-            this.overlay = true;
+            this.overlay = true
             axios
                 .get(`${this.$config.API}/config`)
                 .then((res) => {
-                    console.log("datos de cnfiguración del sistema", res.data);
-                    this.$store.commit("datasys/setDataSys", res.data);
-                    const activo = parseInt(res.data.activo);
+                    console.log("datos de cnfiguración del sistema", res.data)
+                    this.$store.commit("datasys/setDataSys", res.data)
+                    const activo = parseInt(res.data.activo)
 
                     if (activo) {
-                        this.acceso = true;
-                        this.msg = "Bienvenido";
-                        this.alertType = "info";
+                        this.acceso = true
+                        this.msg = "Bienvenido"
+                        this.alertType = "info"
                     } else {
-                        this.acceso = false;
-                        this.alertType = "warning";
-                        this.msg = "Su cuenta ha sido suspendida";
+                        this.acceso = false
+                        this.alertType = "warning"
+                        this.msg = "Su cuenta ha sido suspendida"
                     }
                 })
                 .catch((err) => {
@@ -852,85 +852,86 @@ export default {
                         title: "Error",
                         html: `<P>No se recibió la información de la configuración del sistema</p><p>${err}</p>`,
                         type: "warning",
-                    });
+                    })
                 })
                 .finally(() => {
-                    this.overlay = false;
-                });
+                    this.overlay = false
+                })
         },
 
         async updateEmpleadoTodo(item, id_empleado, departamento) {
             // this.overlay = true;
 
-            console.log("item en reasdingar empleado", item);
-            const data = new URLSearchParams();
-            data.set("id_orden", item.id_orden);
-            data.set("id_ordenes_productos", item._id);
-            data.set("id_empleado", id_empleado);
-            data.set("id_woo", item.id_woo);
-            data.set("departamento", departamento);
-            data.set("cantidad", item.cantidad);
-            data.set("cantidad_orden", item.cantidad);
+            console.log("item en reasdingar empleado", item)
+            const data = new URLSearchParams()
+            data.set("id_orden", item.id_orden)
+            data.set("id_ordenes_productos", item._id)
+            data.set("id_empleado", id_empleado)
+            data.set("id_woo", item.id_woo)
+            data.set("departamento", departamento)
+            data.set("cantidad", item.cantidad)
+            data.set("cantidad_orden", item.cantidad)
 
-            console.log("datos a guardar");
-            console.dir(data);
+            console.log("datos a guardar")
+            console.dir(data)
 
-            await axios
+            await this.$axios
                 .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
                 .then((res) => {
-                    this.reloadPorcentaje();
+                    this.$nuxt.$emit("reload")
+                    // this.reloadPorcentaje()
                     // this.overlay = false;
                     // this.$store.dispatch('produccion/getPorcentaje2', this.item.id_orden)
                     // console.log('resultado empleadoAsignar', res.data)
-                });
+                })
         },
 
         asignarTodo(departamento) {
             // validar campo dependiendo del departamento
-            let optVal = null;
+            let optVal = null
             switch (departamento) {
                 case "Impresión":
-                    optVal = this.form.optImpresion;
-                    break;
+                    optVal = this.form.optImpresion
+                    break
 
                 case "Estampado":
-                    optVal = this.form.optEstampado;
-                    break;
+                    optVal = this.form.optEstampado
+                    break
 
                 case "Corte":
-                    optVal = this.form.optCorte;
-                    break;
+                    optVal = this.form.optCorte
+                    break
 
                 case "Costura":
-                    optVal = this.form.optCostura;
-                    break;
+                    optVal = this.form.optCostura
+                    break
 
                 case "Limpieza":
-                    optVal = this.form.optLimpieza;
-                    break;
+                    optVal = this.form.optLimpieza
+                    break
 
                 case "Revisión":
-                    optVal = this.form.optRevision;
-                    break;
+                    optVal = this.form.optRevision
+                    break
 
                 default:
-                    optVal = null;
-                    break;
+                    optVal = null
+                    break
             }
 
             if (optVal != null) {
                 this.itemsProducts.forEach((item) => {
                     // console.log("Asignar tarea:::", item);
-                    this.updateEmpleadoTodo(item, optVal, departamento);
-                });
+                    this.updateEmpleadoTodo(item, optVal, departamento)
+                })
                 // alert("emitamos reload aqui");
-                this.$emit("reload");
+                this.$emit("reload")
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de ${departamento}</p>`,
                     type: "warning",
-                });
+                })
             }
         },
 
@@ -940,20 +941,20 @@ export default {
                 this.form.optImpresion != null
             ) {
                 this.itemsProducts.forEach((item) => {
-                    console.log("Asignar tarea:::", item);
+                    console.log("Asignar tarea:::", item)
                     this.updateEmpleadoTodo(
                         item,
                         this.form.optImpresion,
                         "Impresión"
-                    );
-                });
-                this.$emit("reload");
+                    )
+                })
+                this.$emit("reload")
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Impresíon</p>`,
                     type: "warning",
-                });
+                })
             }
 
             if (
@@ -962,61 +963,61 @@ export default {
             ) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optEstampado}`
-                );
+                )
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Estampado</p>`,
                     type: "warning",
-                });
+                })
             }
 
             if (departamento === "Corte" && this.form.optCorte != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optCorte}`
-                );
+                )
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Corte</p>`,
                     type: "warning",
-                });
+                })
             }
 
             if (departamento === "Costura" && this.form.optCostura != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optCostura}`
-                );
+                )
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Costura</p>`,
                     type: "warning",
-                });
+                })
             }
 
             if (departamento === "Limpieza" && this.form.optLimpieza != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optLimpieza}`
-                );
+                )
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Limpieza</p>`,
                     type: "warning",
-                });
+                })
             }
 
             if (departamento === "Revisión" && this.form.optRevision != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optRevision}`
-                );
+                )
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Revisión</p>`,
                     type: "warning",
-                });
+                })
             } /**/
         },
 
@@ -1028,31 +1029,31 @@ export default {
                         value: empleado._id,
                         text: empleado.nombre,
                         // text: empleado.nombre + " ID  " + empleado._id,
-                    };
-                });
-            options.unshift({ value: null, text: "Seleccione un empleado" });
-            return options;
+                    }
+                })
+            options.unshift({ value: null, text: "Seleccione un empleado" })
+            return options
         },
 
         setReload() {
-            this.$emit("reload");
+            this.$emit("reload")
         },
         token() {
-            const length = 8;
+            const length = 8
             var a =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split(
                     ""
-                );
-            var b = [];
+                )
+            var b = []
             for (var i = 0; i < length; i++) {
-                var j = (Math.random() * (a.length - 1)).toFixed(0);
-                b[i] = a[j];
+                var j = (Math.random() * (a.length - 1)).toFixed(0)
+                b[i] = a[j]
             }
-            return b.join("");
+            return b.join("")
         },
 
         /* async getLotInfo() {
-      await axios
+      await this.$axios
         .get(`${this.$config.API}/lotes/detalles/v2/${this.id}`)
         .then((res) => {
           console.log('LOTEINFO:::', res.data)
@@ -1075,19 +1076,19 @@ export default {
     mounted() {
         this.switches.switchEstampado =
             !!this.$store.state.datasys.dataSys
-                .sys_mostrar_rollo_en_empleado_estampado;
+                .sys_mostrar_rollo_en_empleado_estampado
         this.switches.switchCorte =
             !!this.$store.state.datasys.dataSys
-                .sys_mostrar_rollo_en_empleado_corte;
+                .sys_mostrar_rollo_en_empleado_corte
         this.switches.switchCostura =
             !!this.$store.state.datasys.dataSys
-                .sys_mostrar_insumo_en_empleado_costura;
+                .sys_mostrar_insumo_en_empleado_costura
         this.switches.switchLimpieza =
             !!this.$store.state.datasys.dataSys
-                .sys_mostrar_insumo_en_empleado_limpieza;
+                .sys_mostrar_insumo_en_empleado_limpieza
         this.switches.switchRevision =
             !!this.$store.state.datasys.dataSys
-                .sys_mostrar_insumo_en_empleado_revision;
+                .sys_mostrar_insumo_en_empleado_revision
 
         this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
             // this.getLotInfo().then(() => (this.overlay = false))
@@ -1096,9 +1097,9 @@ export default {
       .then((res) => {
         this.optionsEmpleados = res.data
       }) */
-        });
+        })
     },
-};
+}
 </script>
 
 <style scoped>

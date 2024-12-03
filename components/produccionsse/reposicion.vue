@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "axios"
 
 export default {
     data() {
@@ -84,15 +84,15 @@ export default {
                     Paso: this.item.paso,
                 },
             ],
-        };
+        }
     },
 
     computed: {
         productos() {
             const prods = this.reposicion_ordenes_productos.filter(
                 (el) => el.id_orden == this.item.orden
-            );
-            return prods;
+            )
+            return prods
         },
 
         tablaProductos() {
@@ -105,33 +105,33 @@ export default {
                     Tela: item.tela,
                     Corte: item.corte,
                     Reponer: item._id,
-                };
-            });
+                }
+            })
 
-            return tmp;
+            return tmp
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7);
-            return `modal-${rand}`;
+            const rand = Math.random().toString(36).substring(2, 7)
+            return `modal-${rand}`
         },
     },
 
     methods: {
         async getPasoActual() {
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/lotes/paso-actual/${this.item.orden}`)
                 .then((resp) => {
-                    this.pasoActual = resp.data.paso;
+                    this.pasoActual = resp.data.paso
                     // this.overlay = false
                 })
                 .catch((error) => {
-                    alert("getPasoActual ERROR " + error);
-                });
+                    alert("getPasoActual ERROR " + error)
+                })
         },
 
         /* async getProductos() {
-      await axios
+      await this.$axios
         .get(`${this.$config.API}/productos-asignados/${this.item.orden}`)
         .then((resp) => {
           this.productos = resp.data.data
@@ -150,9 +150,9 @@ export default {
             /* this.getPasoActual().then(() => {
       })
  */
-        });
+        })
     },
-};
+}
 </script>
 
 <style>

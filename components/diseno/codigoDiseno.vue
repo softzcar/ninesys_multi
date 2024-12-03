@@ -9,8 +9,13 @@
                 <b-container>
                     <b-row class="justify-content-md-center">
                         <b-col cols="4">
-                            <b-form-input size="lg" class="mb-3 text-center" type="url" v-model="codigoDiseno"
-                                @change="updateCodigo"></b-form-input>
+                            <b-form-input
+                                size="lg"
+                                class="mb-3 text-center"
+                                type="url"
+                                v-model="codigoDiseno"
+                                @change="updateCodigo"
+                            ></b-form-input>
                         </b-col>
                     </b-row>
                 </b-container>
@@ -20,15 +25,15 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from "axios"
 
 export default {
     data() {
         return {
-            size: 'lg',
-            title: 'Código del diseño',
+            size: "lg",
+            title: "Código del diseño",
             overlay: false,
-            imageWidth: '100%',
+            imageWidth: "100%",
             codigoDiseno: this.item.codigo_diseno,
         }
     },
@@ -43,7 +48,7 @@ export default {
     methods: {
         async getCodigo() {
             this.overlay = true
-            await axios
+            await this.$axios
                 .get(`${this.$config.API}/disenos/codigo/${this.item.id}`)
                 .then((resp) => {
                     this.codigoDiseno = resp.data.codigo_diseno
@@ -54,31 +59,33 @@ export default {
         async updateCodigo() {
             this.overlay = true
             const data = new URLSearchParams()
-            data.set('cod', this.codigoDiseno)
-            data.set('id', this.item.id)
+            data.set("cod", this.codigoDiseno)
+            data.set("id", this.item.id)
 
-            await axios.post(`${this.$config.API}/disenos/codigo`, data).then((res) => {
-                this.overlay = false
-                // this.codigoDiseno = res.data.codigo_diseno
-            })
+            await this.$axios
+                .post(`${this.$config.API}/disenos/codigo`, data)
+                .then((res) => {
+                    this.overlay = false
+                    // this.codigoDiseno = res.data.codigo_diseno
+                })
         },
 
         token() {
             const length = 8
             var a =
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'.split(
-                    ''
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split(
+                    ""
                 )
             var b = []
             for (var i = 0; i < length; i++) {
                 var j = (Math.random() * (a.length - 1)).toFixed(0)
                 b[i] = a[j]
             }
-            return b.join('')
+            return b.join("")
         },
     },
 
-    props: ['item'],
+    props: ["item"],
 
     mounted() {
         // this.getCodigo()
