@@ -6,6 +6,7 @@
                 <b-table
                     ref="table"
                     responsive
+                    stacked
                     small
                     :fields="fieldsGuardadas"
                     :items="ordenesGuardadas"
@@ -54,10 +55,6 @@
                         offset-xl="9"
                     >
                         <h5>Tasas del día</h5>
-                        <pre>
-          form: {{ form.productos }}
-        </pre
-                        >
                         <b-form>
                             <b-form-group label="Peso">
                                 <b-form-input
@@ -476,12 +473,39 @@
                                                         </b-row>
 
                                                         <b-row>
+                                                            <b-col>
+                                                                <h3
+                                                                    style="
+                                                                        margin-top: 2rem;
+                                                                    "
+                                                                >
+                                                                    TOTAL
+                                                                    PRODUCTOS:
+                                                                    {{
+                                                                        totalProductos(
+                                                                            form.productos,
+                                                                            "cantidad"
+                                                                        )
+                                                                    }}
+                                                                </h3>
+                                                            </b-col>
+                                                        </b-row>
+
+                                                        <b-row>
                                                             <b-col
                                                                 lg="12"
                                                                 class="mt-4"
                                                             >
                                                                 <b-table
-                                                                    responsive
+                                                                    :stacked="
+                                                                        isSmallScreen
+                                                                            ? 'md'
+                                                                            : false
+                                                                    "
+                                                                    :responsive="
+                                                                        !isSmallScreen
+                                                                    "
+                                                                    borderless
                                                                     :primary-key="
                                                                         form
                                                                             .productos
@@ -1352,6 +1376,7 @@ import quillOptions from "~/plugins/nuxt-quill-plugin"
 export default {
     data() {
         return {
+            isSmallScreen: false,
             quillOptions,
             endpoint: "/ordenes/nueva/custom", // Opciones: `/ordenes/nueva/custom` - `/ordenes/nueva/sport`
             categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`
@@ -1526,6 +1551,16 @@ export default {
     },
 
     computed: {
+        /* tableClass() {
+            return {
+                "table-stacked": this.isSmallScreen,
+                "table-responsive": !this.isSmallScreen,
+            }
+        }, */
+        isSmallScreen() {
+            return window.innerWidth < 768 // Cambia el valor según el tamaño de pantalla deseado
+        },
+
         modal: function () {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
@@ -1696,6 +1731,14 @@ export default {
     },
 
     methods: {
+        checkScreenSize() {
+            this.isSmallScreen = window.innerWidth < 768 // Cambia el valor según tu necesidad
+        },
+
+        handleResize() {
+            this.checkScreenSize()
+        },
+
         loadFormGuardadas(idArray, idTable) {
             this.form = this.ordenesGuardadas[idArray].form
             console.log("cargar orden:", this.ordenesGuardadas[idArray].form)
@@ -2865,7 +2908,7 @@ export default {
         },
 
         async getProducts_fetch() {
-            await this.axios(`${this.$config.API}/products`)
+            await this.$axios(`${this.$config.API}/products`)
                 .then((res) => {
                     this.products = res
                     this.productsSelect = res.map((prod) => {
@@ -3358,6 +3401,9 @@ export default {
     },
 
     mounted() {
+        this.checkScreenSize()
+        window.addEventListener("resize", this.handleResize)
+
         this.loadDataCustomers()
         this.loadDataTallas()
         this.loadDataTelas()
@@ -3368,11 +3414,23 @@ export default {
         // this.loadDataComercializacion()
     },
 
+    beforeDestroy() {
+        window.removeEventListener("resize", this.handleResize)
+    },
+
     mixins: [mixins],
 }
 </script>
 
 <style scoped>
+.table-stacked {
+    display: block;
+    width: 100%;
+}
+.table-responsive {
+    display: table;
+    width: 100%;
+}
 .label-step {
     font-size: 1.2rem !important;
 }

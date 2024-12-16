@@ -150,10 +150,6 @@
                                             )
                                         }}
                                     </template>
-
-                                    <!-- <template #cell(vinculada)="data">
-                    <admin-detalle-pagos :idorden="data.item._id" />
-                  </template> -->
                                 </b-table>
                             </b-overlay>
                         </b-col>
@@ -183,8 +179,9 @@ export default {
     data() {
         return {
             includedFields: ["orden", "empleado"],
-            fechaConsultaInicio: [],
-            fechaConsultaFin: [],
+            fechaConsultaInicio: '',
+            fechaConsultaFin: '',
+            vendedores: [],
             filter: null,
             perPage: 25,
             currentPage: 1,
@@ -192,7 +189,6 @@ export default {
             overlay: true,
             titulo: "Pagos y Abonos",
             pagos: [],
-            vendedores: [],
             selectedVendedor: 0,
             campos: [
                 {
@@ -311,7 +307,12 @@ export default {
                 .get(`${this.$config.API}/reporte-de-pagos`)
                 .then((resp) => {
                     this.pagos = resp.data.pagos
-                    this.vendedores = resp.data.vendedores
+                    this.vendedores = resp.data.vendedores.map((el) => {
+                        return {
+                            value: el._id,
+                            text: el.nombre,
+                        }
+                    })
                     this.vendedores.unshift({ value: 0, text: "Todos" })
 
                     this.ordenesLength = this.pagos.length

@@ -69,6 +69,7 @@
                                 <ordenes-abono
                                     :idorden="data.item.orden"
                                     :key="data.item.orden"
+                                    :item="data.item"
                                 />
                             </div>
                         </template>

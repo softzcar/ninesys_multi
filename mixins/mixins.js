@@ -13,6 +13,12 @@ export default {
       currentDate.setHours(0, 0, 0, 0)
       return date > currentDate
     }, */
+        totalProductos(items, nombreCampo) {
+            return items.reduce((total, item) => {
+                return total + (parseInt(item[nombreCampo], 10) || 0)
+            }, 0)
+        },
+
         emailCheck(email) {
             // Expresión regular para validar el formato del email según RFC 5322
             const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -22,6 +28,7 @@ export default {
         whatsAppMe(phone, showIcon, msg = "") {
             // Expresión regular para validar el formato de un número de teléfono (sin ceros iniciales y con 7 a 15 dígitos)
 
+            console.log("telefono", phone)
             phone = this.formatPhoneNumber(phone)
 
             if (!phone) {
@@ -277,18 +284,100 @@ export default {
             return moneyString
         },
 
-        async printOrder(id) {
+        /* async printOrder(id) {
+            let mostrar = ""
+
+            if (
+                this.$store.state.login.dataUser.departamento ===
+                    "Administración" ||
+                this.$store.state.login.dataUser.departamento ===
+                    "Comercialización"
+            ) {
+                mostrar = "table-cell"
+            } else {
+                mostrar = "none"
+            }
+
             let divContents = document.getElementById(id).innerHTML
             let winConfig =
                 "height=620, width=400, menubar=no, location=no, resizable=no, scrollbars=no, status=no"
             let a = window.open("", "Orden", winConfig)
             a.document.write("<html>")
             a.document.write(
-                `<style>.hideMe { display: none } .report * { font-family: Arial, Helvetica, sans-serif; } .report { padding: 2rem; } .observaciones { padding: 1.85rem; } .printMe { width: 100%; text-align: right; } .spacer { width: 100%; margin-bottom: 2rem; } .table-main, .table-products { width: 100%; } .table-main tr td, .table-products tr th td { padding: 0.25rem; } .table-products th { font-weight: bold; padding: 0.25rem; border-top: solid 1px rgb(119, 112, 112); border-bottom: solid 1px #000; } .table-products tr td { padding: 0.25rem 0.4rem; } @media print { .table-header * { border: solid 1px #fff; } .printMe { visibility: hidden; } } .table-products { border-bottom: solid 1px #000; } @page { size: letter; } @media screen { } @media print { .noPrint { display: none; } } html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video { margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; color: #000; font-family: Arial, Helvetica, sans-serif; } article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section { display: block; } body { line-height: 1; } h1, h2, h3, h4, h5, h6 { font-weight: bold; } strong { font-weight: bold; } ol, ul { list-style: none; } blockquote, q { quotes: none; } blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; } table { border-collapse: collapse; border-spacing: 0; }</style>`
+                `<style>.hideMe { display: ${mostrar} } .report * { font-family: Arial, Helvetica, sans-serif; } .report { padding: 2rem; } .observaciones { padding: 1.85rem; } .printMe { width: 100%; text-align: right; } .spacer { width: 100%; margin-bottom: 2rem; } .table-main, .table-products { width: 100%; } .table-main tr td, .table-products tr th td { padding: 0.25rem; } .table-products th { font-weight: bold; padding: 0.25rem; border-top: solid 1px rgb(119, 112, 112); border-bottom: solid 1px #000; } .table-products tr td { padding: 0.25rem 0.4rem; } @media print { .table-header * { border: solid 1px #fff; } .printMe { visibility: hidden; } } .table-products { border-bottom: solid 1px #000; } @page { size: letter; } @media screen { } @media print { .noPrint { display: none; } } html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video { margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; color: #000; font-family: Arial, Helvetica, sans-serif; } article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section { display: block; } body { line-height: 1; } h1, h2, h3, h4, h5, h6 { font-weight: bold; } strong { font-weight: bold; } ol, ul { list-style: none; } blockquote, q { quotes: none; } blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; } table { border-collapse: collapse; border-spacing: 0; }</style>`
             )
             a.document.write("<body>")
             a.document.write(divContents)
             a.document.write("</body></style>")
+            a.document.close()
+
+            await new Promise((resolve) => {
+                a.moveBy(-40, -40)
+                a.print()
+                setTimeout(() => resolve("resultado"), 3000)
+            }).finally(() => {
+                a.window.close()
+            })
+
+            return true
+        }, */
+
+        async printOrder(id) {
+            let mostrar = ""
+
+            if (
+                this.$store.state.login.dataUser.departamento ===
+                    "Administración" ||
+                this.$store.state.login.dataUser.departamento ===
+                    "Comercialización"
+            ) {
+                mostrar = "table-cell"
+            } else {
+                mostrar = "none"
+            }
+
+            let divContents = document.getElementById(id).innerHTML
+            let winConfig =
+                "height=620, width=400, menubar=no, location=no, resizable=no, scrollbars=no, status=no"
+            let a = window.open("", "Orden", winConfig)
+            a.document.write("<html>")
+            a.document.write(
+                `<style>
+                    .hideMe { display: ${mostrar} } 
+                    .report * { font-family: Arial, Helvetica, sans-serif; } 
+                    .report { padding: 2rem; } 
+                    .observaciones { padding: 1.85rem; } 
+                    .printMe { width: 100%; text-align: right; } 
+                    .spacer { width: 100%; margin-bottom: 2rem; } 
+                    .table-main, .table-products { width: 100%; } 
+                    .table-main tr td, .table-products tr th td { padding: 0.25rem; } 
+                    .table-products th { font-weight: bold; padding: 0.25rem; border-top: solid 1px rgb(119, 112, 112); border-bottom: solid 1px #000; } 
+                    .table-products tr td { padding: 0.25rem 0.4rem; } 
+                    @media print { 
+                        .table-header * { border: solid 1px #fff; } 
+                        .printMe { visibility: hidden; } 
+                        .izquierda, .derecha { width: 100% !important; display: block; } 
+                        .izquierda { text-align: left !important; } 
+                        .derecha { text-align: right !important; } 
+                    } 
+                    .table-products { border-bottom: solid 1px #000; } 
+                    @page { size: letter; } 
+                    @media screen { } 
+                    @media print { .noPrint { display: none; } } 
+                    html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video { margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; color: #000; font-family: Arial, Helvetica, sans-serif; } 
+                    article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section { display: block; } 
+                    body { line-height: 1; } 
+                    h1, h2, h3, h4, h5, h6 { font-weight: bold; } 
+                    strong { font-weight: bold; } 
+                    ol, ul { list-style: none; } 
+                    blockquote, q { quotes: none; } 
+                    blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; } 
+                    table { border-collapse: collapse; border-spacing: 0; }
+                </style>`
+            )
+            a.document.write("<body>")
+            a.document.write(divContents)
+            a.document.write("</body></html>")
             a.document.close()
 
             await new Promise((resolve) => {

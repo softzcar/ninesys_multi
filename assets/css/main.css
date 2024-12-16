@@ -48,6 +48,14 @@ pre {
     display: block !important;
 }
 
+/* Alinear en reportes */
+.izquierda {
+    text-align: left !important;
+}
+.derecha {
+    text-align: right !important;
+}
+
 img {
     background: transparent url(https://www.leeparts.com/images/ajax-loader.gif)
         center no-repeat;

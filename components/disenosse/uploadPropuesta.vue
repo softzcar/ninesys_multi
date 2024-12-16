@@ -8,7 +8,7 @@
 
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
             <b-overlay :show="overlay" rounded="sm">
-                <pre class="force">{{ $props.item }}</pre>
+                <!-- <pre class="force">{{ tmpImage }}</pre> -->
                 <b-card
                     :title="myTitle"
                     img-alt="Image"
@@ -19,31 +19,11 @@
                     bg-variant="default"
                     text-variant="red"
                 >
-                    <b-card-img-lazy
-                        class="mt-4"
-                        :src="tmpImage"
-                    ></b-card-img-lazy>
-                    <b-alert
-                        class="text-center"
-                        show
-                        style="
-                            text-transform: uppercase;
-                            font-size: 1.2rem;
-                            font-weight: bold;
-                        "
-                        :variant="variantAlert"
-                        >{{ miRevision }}</b-alert
-                    >
-                    <b-form-group
-                        id="input-group-1"
-                        label="Diseño"
-                        label-for="input-1"
-                    >
-                        <!-- <p>
-                            {{ miDetalle }}
-                        </p> -->
-                        <hr />
-                    </b-form-group>
+                    <disenosse-imagesGalery
+                        :images="tmpImage"
+                        showdelete="true"
+                        :idorden="$props.item.id_orden"
+                    />
 
                     <b-card-text v-if="showCard" class="mt-4 mb-4">
                         <!-- Styled -->
@@ -98,7 +78,7 @@ export default {
             newImage: null,
             overlay: false,
             overlayText: "",
-            tmpImage: "",
+            tmpImage: [],
             id_orden: "",
             showCard: true,
             miRevision: "",
@@ -124,7 +104,7 @@ export default {
  */
     computed: {
         myTitle() {
-            return "PROPUESTA " + this.revision
+            return "DISEÑOS PARA LA ORDEN " + this.item.id_orden
         },
 
         modal: function () {
@@ -195,10 +175,12 @@ export default {
                         this.$emit("reload", "true")
                         this.$emit("button", false)
                         this.overlay = false
-                        this.$fire({
-                            title: "Imagen",
-                            html: `<p>${res.data.message}</p>`,
-                            type: "info",
+                        this.getImages().then(() => {
+                            this.$fire({
+                                title: "Imagen",
+                                html: `<p>${res.data.message}</p>`,
+                                type: "info",
+                            })
                         })
                     } else {
                         this.$fire({
@@ -208,7 +190,13 @@ export default {
                         })
                     }
                 })
-                .catch((err) => {})
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>Error procesando la imágen</p><p>${err}/p>`,
+                        type: "error",
+                    })
+                })
                 .finally(() => {
                     this.overlay = false
                 })
@@ -249,6 +237,20 @@ export default {
                 })
         }, */
 
+        async getImages() {
+            this.$axios
+                .get(`${this.$config.API}/disenos/images/${this.item.id_orden}`)
+                .then((res) => {
+                    console.log(`Imágenes encontradas`, res)
+                    // this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`
+                    this.tmpImage = res.data
+                })
+                .catch((err) => {
+                    console.log(`El cdn respondio con un error`, err)
+                    this.tmpImage = [`${this.$config.API}/images/no-image.png`]
+                })
+        },
+
         findImage() {
             let token = this.token()
             console.log("Vamos a buscar la imágen")
@@ -261,14 +263,17 @@ export default {
                     this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`
                 })
                 .catch((err) => {
-                    console.log(`El cdn respondio con un error`, err)
+                    console.error(`El cdn respondio con un error`, err)
                     this.tmpImage = `${this.$config.CDN}/images/no-image.png`
                 })
         },
     },
 
     mounted() {
-        this.overlayText = "Subiendo imágen..."
+        this.overlayText = "Procesando imágen..."
+        this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
+            this.getImages()
+        })
 
         /* this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
       console.log('Modal is about to be shown', bvEvent, modalId)

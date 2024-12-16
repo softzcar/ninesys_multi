@@ -23,8 +23,8 @@ export default {
         LOCAL_IP: `https://api.nineteengreen.com`,
         LOCAL_IP_WOO: `https://api.nineteengreen.com`,
         API: `https://api.nineteengreen.com`,
-        CDN: `https://cdn.nineteencustom.com`,
-        LIVE: `https://live.nineteencustom.com`,
+        CDN: `https://cdn.nineteengreen.com`,
+        LIVE: `https://live.nineteengreen.com`,
         APP_URL: `https://app.nineteengreen.com`,
 
         // NINETEENCUSTOM PRODUCTION

@@ -12,6 +12,13 @@
                     <span class="floatme">
                         <diseno-viewImage :id="this.id" />
                     </span>
+                    <!-- <span class="floatme">
+                        <ordenes-abono
+                        :index="data.index"
+                        :key="data.item.orden"
+                        :idorden="data.item.orden"
+                        />
+                    </span> -->
                 </b-col>
             </b-row>
             <b-row id="reporte">
@@ -114,7 +121,7 @@
                     <div class="spacer"></div>
 
                     <table class="table-products">
-                        <th style="text-align: right">ITEM</th>
+                        <!-- <th style="text-align: right">ITEM</th> -->
                         <th style="text-align: center">SKU</th>
                         <th>PRODUCTO</th>
                         <th style="text-align: right">CANT</th>
@@ -142,13 +149,11 @@
                             TOTAL
                         </th>
 
-                        <template
-                            v-for="(product, index) in resOrden.productos"
-                        >
+                        <template v-for="product in resOrden.productos">
                             <tr class="row-product" :key="product._id">
-                                <td style="text-align: right">
+                                <!-- <td style="text-align: right">
                                     {{ index + 1 }}
-                                </td>
+                                </td> -->
                                 <td style="text-align: center">
                                     {{ product.cod }}
                                 </td>
@@ -194,13 +199,20 @@
                         </template>
                     </table>
 
+                    <div class="izquierda">
+                        <h2>
+                            TOTAL PRODUCTOS:
+                            {{ totalProductos(resOrden.productos, "cantidad") }}
+                        </h2>
+                    </div>
+
                     <div
-                        class="spacer hideMe"
+                        class="spacer hideMe derecha"
                         v-if="
                             dataUser.departamento === 'Comercialización' ||
                             dataUser.departamento === 'Administración'
                         "
-                        style="text-align: right"
+                        style="width: 100% !important"
                     >
                         <h2>
                             ABONO: {{ floatMe(resOrden.orden[0].pago_abono) }}
@@ -229,11 +241,20 @@
                         <div style="text-align: center; margin-top: 40px">
                             <h2>OBSERVACIONES</h2>
                         </div>
+
                         <div class="observaciones">
+                            <disenosse-imagesGalery
+                                :images="tmpImage"
+                                showdelete="false"
+                                :idorden="resOrden.orden[0]._id"
+                            />
+                        </div>
+
+                        <!-- <div class="observaciones">
                             <h3 style="text-transform: uppercase">
                                 TIPO DE DISEÑO: {{ tipoDiseno }}
                             </h3>
-                        </div>
+                        </div> -->
                         <div
                             class="spacer observaciones"
                             v-html="resOrden.orden[0].observaciones"
@@ -254,6 +275,7 @@ import mixin from "~/mixins/mixins.js"
 export default {
     data() {
         return {
+            tmpImage: [],
             overlay: false,
             nextId: 0,
             show: true,
@@ -284,6 +306,21 @@ export default {
 
     methods: {
         ...mapActions("buscar", ["getOrden"]),
+
+        async getImages() {
+            this.$axios
+                .get(
+                    `${this.$config.API}/disenos/images/${this.resOrden.orden[0]._id}`
+                )
+                .then((res) => {
+                    console.log(`Imágenes encontradas`, res)
+                    this.tmpImage = res.data
+                })
+                .catch((err) => {
+                    console.error(`El cdn respondio con un error`, err)
+                    this.tmpImage = [`${this.$config.API}/images/no-image.png`]
+                })
+        },
 
         imprimir() {
             this.printOrder("reporte")
@@ -350,6 +387,7 @@ export default {
 
     props: ["id"],
     mounted() {
+        this.getImages()
         this.overlay = true
         this.getOrden(this.id).then(() => {
             this.overlay = false

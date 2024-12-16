@@ -81,8 +81,8 @@
                 <div class="spacer"></div>
 
                 <table class="table-products">
-                    <th style="text-align: right">ITEM</th>
-                    <th style="text-align: center">SKU</th>
+                    <!-- <th style="text-align: right">ITEM</th> -->
+                    <!-- <th style="text-align: center">SKU</th> -->
                     <th>PRODUCTO</th>
                     <th style="text-align: right">CANT</th>
                     <th style="text-align: center">TALLA</th>
@@ -109,12 +109,12 @@
                         TOTAL
                     </th>
 
-                    <template v-for="(product, index) in form.productos">
+                    <template v-for="product in form.productos">
                         <tr class="row-product" :key="product.cod">
-                            <td style="text-align: right">{{ index + 1 }}</td>
-                            <td style="text-align: center">
+                            <!-- <td style="text-align: right">{{ index + 1 }}</td> -->
+                            <!-- <td style="text-align: center">
                                 {{ product.cod }}
-                            </td>
+                            </td> -->
                             <td>{{ product.producto }}</td>
                             <td style="text-align: right">
                                 {{ product.cantidad }}
@@ -155,13 +155,20 @@
                     </template>
                 </table>
 
+                <div class="izquierda">
+                    <h2>
+                        TOTAL PRODUCTOS:
+                        {{ totalProductos(form.productos, "cantidad") }}
+                    </h2>
+                </div>
+
                 <div
-                    class="spacer hideMe"
+                    class="spacer hideMe derecha"
+                    style="width: 100% !important"
                     v-if="
                         dataUser.departamento === 'Comercialización' ||
                         dataUser.departamento === 'Administración'
                     "
-                    style="text-align: right"
                 >
                     <h2>ABONO: {{ floatMe(form.abono) }}</h2>
                     <h2>DESCUENTOS: {{ floatMe(form.descuento) }}</h2>

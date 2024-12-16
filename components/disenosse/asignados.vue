@@ -54,21 +54,22 @@
                             />
                         </template>
 
-                        <template #cell(revision)="data">
+                        <!-- <template #cell(revision)="data">
                             <disenosse-uploadPropuesta
                                 :revisiones="revisiones"
                                 :item="data.item"
                                 :idorden="data.item.id_orden"
                                 :@reload="reloadDisenos"
-                            />
-                        </template>
-                        <!-- <template #cell(revision)="data">
-                            <disenosse-uploadImageRevision
+                                />
+                            </template> -->
+                        <template #cell(revision)="data">
+                            <disenosse-uploadPropuestaDisenador
                                 :revisiones="revisiones"
                                 :item="data.item"
-                                :@reload="reloadDisenos"
+                                :productos="productos"
+                                @reload="loadDisenos"
                             />
-                        </template> -->
+                        </template>
 
                         <template #cell(id_orden)="data">
                             <ordenes-vinculadas
@@ -80,7 +81,7 @@
                             <disenosse-tallasPersoalizacion
                                 :ajustes="ajustes"
                                 :item="data.item"
-                                :@reload="reloadDisenos"
+                                @reload="loadDisenos"
                             />
                         </template>
                     </b-table>
@@ -109,6 +110,7 @@ export default {
                 msg: "",
             },
             revisiones: [],
+            productos: [],
             ajustes: [],
             placeholder: "Número de orden",
             overlay: true,
@@ -225,7 +227,7 @@ export default {
                     `${this.$config.API}/sse/diseno/${this.$store.state.login.dataUser.id_empleado}`
                 )
                 .then((res) => {
-                    console.log("REspuesta de sse/disenos", res.data)
+                    console.log("Respuesta de sse/disenos", res.data)
                     this.items = res.data.items.reduce((acumulador, objeto) => {
                         const idOrden = objeto.id_orden
                         const objetoExistente = acumulador.find(
@@ -239,6 +241,7 @@ export default {
                         return acumulador
                     }, [])
                     this.revisiones = res.data.revisiones
+                    this.productos = res.data.productos
                     this.ajustes = res.data.ajustes
                     this.overlay = false
                 })

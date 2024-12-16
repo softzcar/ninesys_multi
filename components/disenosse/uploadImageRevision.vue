@@ -61,7 +61,7 @@ export default {
             variantAlert: "secondary",
             newImage: null,
             size: "md",
-            title: "Imágenes del diseño orden > " + this.item.id,
+            title: "Imágenes del diseño orden" + this.item.id,
             overlay: false,
             nextReview: null,
             disableButton: false,
@@ -150,7 +150,7 @@ export default {
                         this.$store.state.login.dataUser._id
                     )
 
-                    axios
+                    this.$axios
                         .post(`${this.$config.API}/revision/nuevo`, data)
                         .then((res) => {
                             this.lastId = res.data.last_id

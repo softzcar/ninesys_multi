@@ -6,31 +6,15 @@
             </b-col>
             <b-col cols="3">
                 <b-form @submit="onSubmit">
-                    <b-form-group
-                        id="input-group-1"
-                        label="Fecha inicio:"
-                        label-for="fecha-1"
-                    >
-                        <b-form-datepicker
-                            id="fecha-1"
-                            v-model="form.fechaConsultaInicio"
-                            class="mb-2"
-                        ></b-form-datepicker>
+                    <b-form-group id="input-group-1" label="Fecha inicio:" label-for="fecha-1">
+                        <b-form-datepicker id="fecha-1" v-model="form.fechaConsultaInicio"
+                            class="mb-2"></b-form-datepicker>
                     </b-form-group>
 
-                    <b-form-group
-                        id="input-group-2"
-                        label="Fecha fin:"
-                        label-for="fecha-2"
-                    >
-                        <b-form-datepicker
-                            v-model="form.fechaConsultaFin"
-                            class="mb-2"
-                        ></b-form-datepicker>
+                    <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
+                        <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
                     </b-form-group>
-                    <b-button type="submit" variant="primary"
-                        >Buscar pagos</b-button
-                    >
+                    <b-button type="submit" variant="primary">Buscar pagos</b-button>
                 </b-form>
             </b-col>
         </b-row>
@@ -39,21 +23,11 @@
                 <h3 class="mb-4">Vendedores</h3>
                 <pre>
          verificar duplicados 
-        </pre
-                >
-                <b-table
-                    responsive
-                    small
-                    striped
-                    :items="pagosResumenVendedores"
-                    :fields="fields"
-                >
+        </pre>
+                <b-table responsive small striped :items="pagosResumenVendedores" :fields="fields">
                     <template #cell(nombre)="data">
-                        <admin-PagosVendedorResumen
-                            :item="data.item"
-                            @reload="reloadMe"
-                            :detalles="filterVendedor(data.item.id_empleado)"
-                        />
+                        <admin-PagosVendedorResumen :item="data.item" @reload="reloadMe"
+                            :detalles="filterVendedor(data.item.id_empleado)" />
                     </template>
 
                     <template #cell(pago)="data">
@@ -68,20 +42,10 @@
             <b-col class="mt-4">
                 <h3 class="mb-4">Empleados</h3>
                 <!-- >{{ pagosResumen }}</pre> -->
-                <b-table
-                    responsive
-                    small
-                    striped
-                    :items="pagosResumen"
-                    :fields="fields"
-                >
+                <b-table responsive small striped :items="pagosResumen" :fields="fields">
                     <template #cell(nombre)="data">
-                        <admin-PagosEmpleadoResumen
-                            :item="data.item"
-                            :products="products"
-                            @reload="reloadMe"
-                            :detalles="filterEmpleado(data.item.id_empleado)"
-                        />
+                        <admin-PagosEmpleadoResumen :item="data.item" :products="products" @reload="reloadMe"
+                            :detalles="filterEmpleado(data.item.id_empleado)" />
                     </template>
 
                     <template #cell(pago)="data">
@@ -96,20 +60,10 @@
         <b-row>
             <b-col class="mt-4">
                 <h3 class="mb-4">Diseñadores</h3>
-                <b-table
-                    responsive
-                    small
-                    striped
-                    :items="pagosResumenDiseno"
-                    :fields="fields"
-                >
+                <b-table responsive small striped :items="pagosResumenDiseno" :fields="fields">
                     <template #cell(nombre)="data">
-                        <admin-PagosDisenioResumen
-                            :item="data.item"
-                            @reload="reloadMe"
-                            :detalles="filterDesigner(data.item.id_empleado)"
-                            :adicionales="pagosTrabajosAdicionales"
-                        />
+                        <admin-PagosDisenioResumen :item="data.item" @reload="reloadMe"
+                            :detalles="filterDesigner(data.item.id_empleado)" :adicionales="pagosTrabajosAdicionales" />
                     </template>
 
                     <template #cell(pago)="data">
@@ -257,20 +211,20 @@ export default {
                         acc.push({
                             id_empleado: curr.id_empleado,
                             nombre: curr.nombre,
-                            id_orden: parseFloat(curr.pago),
+                            id_orden: curr.id_orden,
                             departamento: curr.departamento,
-                            cantidad: parseInt(curr.cantidad),
-                            producto: parseInt(curr.producto),
-                            pago: parseFloat(curr.pago),
+                            cantidad: 1,
+                            producto: curr.producto,
+                            pago: parseFloat(curr.monto_pago),
                         })
                     } else {
-                        acc[index].cantidad += parseInt(curr.cantidad)
-                        acc[index].pago += parseFloat(curr.pago)
+                        acc[index].cantidad += 1
+                        acc[index].pago += parseFloat(curr.monto_pago)
                     }
                     return acc
                 }, [])
                 return result.map((item) => {
-                    item.pago = item.pago.toFixed(2)
+                    item.monto_pago = item.pago.toFixed(2)
                     return item
                 })
             } else {
@@ -360,7 +314,7 @@ export default {
                     this.pagosEmpleados = res.data.data.empleados
                     this.pagosDiseno =
                         res.data.data.this.pagosTrabajosAdicionales =
-                            res.data.data.trabajos_adicionales
+                        res.data.data.trabajos_adicionales
                     // this.urlLink = res.data.linkdrive
                 })
         },

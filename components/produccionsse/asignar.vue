@@ -1075,20 +1075,15 @@ export default {
 
     mounted() {
         this.switches.switchEstampado =
-            !!this.$store.state.datasys.dataSys
-                .sys_mostrar_rollo_en_empleado_estampado
+            this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_estampado
         this.switches.switchCorte =
-            !!this.$store.state.datasys.dataSys
-                .sys_mostrar_rollo_en_empleado_corte
+            this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_corte
         this.switches.switchCostura =
-            !!this.$store.state.datasys.dataSys
-                .sys_mostrar_insumo_en_empleado_costura
+            this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_costura
         this.switches.switchLimpieza =
-            !!this.$store.state.datasys.dataSys
-                .sys_mostrar_insumo_en_empleado_limpieza
+            this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_limpieza
         this.switches.switchRevision =
-            !!this.$store.state.datasys.dataSys
-                .sys_mostrar_insumo_en_empleado_revision
+            this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_revision
 
         this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
             // this.getLotInfo().then(() => (this.overlay = false))

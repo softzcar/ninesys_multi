@@ -5,7 +5,7 @@
                 <b-icon icon="eye"></b-icon>
             </b-button>
 
-            <b-modal :id="modal" :title="title" hide-footer size="lg">
+            <b-modal :id="modal" :title="title" hide-footer size="xl">
                 <b-overlay :show="overlay" spinner-small>
                     <div class="mb-4">
                         <h4>Histórico</h4>
@@ -312,6 +312,6 @@ export default {
             this.getDataAbonos()
         })
     },
-    props: ["idorden"],
+    props: ["idorden", "item"],
 }
 </script>

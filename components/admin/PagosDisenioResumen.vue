@@ -12,16 +12,10 @@
                 <b-container fluid>
                     <b-row>
                         <b-col>
-                            <div
-                                class="floatme"
-                                style="width: 100%; margin-bottom: 20px"
-                            >
+                            <div class="floatme" style="width: 100%; margin-bottom: 20px">
                                 <span>
-                                    <b-button
-                                        @click="pagarEmpleado(item.id_empleado)"
-                                        variant="success"
-                                        >PAGAR {{ pagoTotal }}</b-button
-                                    >
+                                    <b-button @click="pagarEmpleado(item.id_empleado)" variant="success">PAGAR {{
+                                        pagoTotal }}</b-button>
                                 </span>
                                 <!-- <pre>
                   {{ item.id_empleado }}
@@ -31,13 +25,7 @@
                     </b-row>
                     <b-row class="justify-content-md-center">
                         <b-col>
-                            <b-table
-                                responsive
-                                small
-                                striped
-                                :items="detalles"
-                                :fields="fields"
-                            >
+                            <b-table responsive small striped :items="detalles" :fields="fields">
                                 <template #cell(id_orden)="data">
                                     <linkSearch :id="data.item.id_orden" />
                                 </template>
@@ -68,17 +56,21 @@ export default {
                     label: "Orden",
                 },
                 {
+                    key: "id_revision",
+                    label: "Revisión",
+                },
+                {
                     key: "producto",
                     label: "Producto",
                 },
-                {
+                /* {
                     key: "detalle_pago",
                     label: "Tipo",
-                },
+                }, 
                 {
                     key: "cantidad",
                     label: "Cantidad",
-                },
+                },*/
                 {
                     key: "nombre",
                     label: "Empleado",
@@ -89,7 +81,7 @@ export default {
                 },
 
                 {
-                    key: "pago",
+                    key: "monto_pago",
                     label: "Pago",
                 },
             ],
@@ -148,7 +140,7 @@ export default {
     computed: {
         pagoTotal() {
             const total = this.detalles.reduce((acc, curr) => {
-                const pagoDecimal = parseFloat(curr.pago)
+                const pagoDecimal = parseFloat(curr.monto_pago)
                 return acc + pagoDecimal
             }, 0)
 

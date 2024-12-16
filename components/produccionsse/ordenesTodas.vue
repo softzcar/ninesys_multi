@@ -60,7 +60,7 @@
                             />
                         </template>
                         <template #cell(acc)="data">
-                            <div
+                            <!-- <div
                                 style="
                                     float: left;
                                     margin-right: 6px;
@@ -70,7 +70,7 @@
                                 <span
                                     v-html="whatsAppMe(data.item.phone, true)"
                                 ></span>
-                            </div>
+                            </div> -->
                             <div style="float: left; margin-right: 6px">
                                 <diseno-view-image
                                     class="floatme mb-2"
@@ -87,6 +87,8 @@
                                 <ordenes-abono
                                     :idorden="data.item.orden"
                                     :key="data.item.orden"
+                                    :item="filterPago(data.item.orden)"
+                                    @reload="reloadMe()"
                                 />
                             </div>
                         </template>
@@ -105,6 +107,7 @@ import mixin from "~/mixins/mixins.js"
 export default {
     data() {
         return {
+            pagos: [],
             includedFields: ["orden", "cliente"],
             selectedRadio: "todas",
             optionsRadio: [
@@ -183,6 +186,26 @@ export default {
                     this.fields = res.data.fields
                 })
         },
+        async getPagos() {
+            this.overlay = true
+            await this.$axios
+                .get(`${this.$config.API}/reporte-de-pagos`)
+                .then((resp) => {
+                    this.pagos = resp.data.pagos
+                    /* this.vendedores = resp.data.vendedores
+                    this.vendedores.unshift({ value: 0, text: "Todos" })
+
+                    this.ordenesLength = this.pagos.length
+                    console.log("Pagos y abonos cargados", this.pagos)
+                    console.log("Totales", this.totales) */
+                    this.overlay = false
+                })
+        },
+
+        filterPago(idOrden) {
+            return this.pagos.filter((el) => el.orden == idOrden)
+        },
+
         loadOrders() {
             this.overlay = true
             this.getOrdenes().then(() => (this.loading.show = false))
@@ -192,6 +215,13 @@ export default {
             // Trigger pagination to update the number of buttons/pages due to filtering
             this.totalRows = filteredItems.length
             this.currentPage = 1
+        },
+        reloadMe() {
+            this.getOrdenes().then(() => {
+                this.getPagos().then(() => {
+                    this.loading.show = false
+                })
+            })
         },
     },
 
@@ -205,9 +235,8 @@ export default {
         },
     },
 
-    beforeMount() {
-        this.getOrdenes().then(() => (this.loading.show = false))
-        // this.loadOrders()
+    mounted() {
+        this.reloadMe()
     },
 
     mixins: [mixin],

@@ -126,8 +126,8 @@
                         <div class="spacer"></div>
 
                         <table class="table-products">
-                            <th style="text-align: right">ITEM</th>
-                            <th style="text-align: center">SKU</th>
+                            <!-- <th style="text-align: right">ITEM</th> -->
+                            <!-- <th style="text-align: center">SKU</th> -->
                             <th>PRODUCTO</th>
                             <th style="text-align: right">CANT</th>
                             <th style="text-align: center">TALLA</th>
@@ -156,16 +156,14 @@
                                 TOTAL
                             </th>
 
-                            <template
-                                v-for="(product, index) in resOrden.productos"
-                            >
+                            <template v-for="product in resOrden.productos">
                                 <tr class="row-product" :key="product._id">
-                                    <td style="text-align: right">
+                                    <!-- <td style="text-align: right">
                                         {{ index + 1 }}
-                                    </td>
-                                    <td style="text-align: center">
+                                    </td> -->
+                                    <!-- <td style="text-align: center">
                                         {{ product.cod }}
-                                    </td>
+                                    </td> -->
                                     <td>{{ product.name }}</td>
                                     <td style="text-align: right">
                                         {{ product.cantidad }}
@@ -208,13 +206,25 @@
                             </template>
                         </table>
 
+                        <div class="izquierda">
+                            <h2>
+                                TOTAL PRODUCTOS:
+                                {{
+                                    totalProductos(
+                                        resOrden.productos,
+                                        "cantidad"
+                                    )
+                                }}
+                            </h2>
+                        </div>
+
                         <div
-                            class="spacer hideMe"
+                            class="spacer hideMe derecha"
                             v-if="
                                 dataUser.departamento === 'Comercialización' ||
                                 dataUser.departamento === 'Administración'
                             "
-                            style="text-align: right"
+                            style="width: 100% !important"
                         >
                             <h2>
                                 ABONO:
@@ -246,11 +256,20 @@
                             <div style="text-align: center; margin-top: 40px">
                                 <h2>OBSERVACIONES</h2>
                             </div>
+
                             <div class="observaciones">
+                                <disenosse-imagesGalery
+                                    :images="tmpImage"
+                                    showdelete="false"
+                                    :idorden="resOrden.orden[0]._id"
+                                />
+                            </div>
+
+                            <!-- <div class="observaciones">
                                 <h3 style="text-transform: uppercase">
                                     TIPO DE DISEÑO: {{ tipoDiseno }}
                                 </h3>
-                            </div>
+                            </div> -->
                             <div
                                 class="spacer observaciones"
                                 v-html="resOrden.orden[0].observaciones"
@@ -274,6 +293,7 @@ import { isArray } from "util"
 export default {
     data() {
         return {
+            tmpImage: [],
             overlay: true,
             nextId: 0,
             show: true,
@@ -304,6 +324,21 @@ export default {
 
     methods: {
         ...mapActions("buscar", ["getOrden"]),
+
+        async getImages() {
+            this.$axios
+                .get(
+                    `${this.$config.API}/disenos/images/${this.resOrden.orden[0]._id}`
+                )
+                .then((res) => {
+                    console.log(`Imágenes encontradas`, res)
+                    this.tmpImage = res.data
+                })
+                .catch((err) => {
+                    console.error(`El cdn respondio con un error`, err)
+                    this.tmpImage = [`${this.$config.API}/images/no-image.png`]
+                })
+        },
 
         imprimir() {
             this.printOrder("reporte")
@@ -369,6 +404,7 @@ export default {
   }, */
 
     mounted() {
+        this.getImages()
         this.getOrden(this.$route.params.id).then(() => {
             console.log("desactivar overlay")
             this.overlay = false

@@ -241,6 +241,21 @@
                                         Terminados
                                     </span>
                                 </router-link>
+
+                                <router-link
+                                    class="nav-link"
+                                    to="/diseno/aprobacion"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
+                                        Aprobación
+                                    </span>
+                                </router-link>
                             </b-nav-item-dropdown>
 
                             <router-link

@@ -433,8 +433,12 @@ export default {
         async getPorcentaje() {
             this.overlay = true
             await this.$axios
-                .get(`${this.$config.API}/produccion/progressbar/3`)
+                .get(
+                    `${this.$config.API}/produccion/progressbar/${this.items.orden}`
+                )
                 .then((res) => {
+                    console.log("items de /sse/produccion", res.data)
+
                     this.departamento = res.data.departamento
                     this.responseData = res.data
                     this.value = res.data.porcentaje
@@ -478,8 +482,9 @@ export default {
     },
 
     mounted() {
-        this.loadOrdersProduction()
-        this.getPorcentaje()
+        this.loadOrdersProduction().then(() => {
+            // this.getPorcentaje()
+        })
     },
 
     mixins: [mixin],

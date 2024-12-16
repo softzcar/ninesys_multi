@@ -2,6 +2,10 @@
     <div>
         <b-overlay :show="overlay" spinner-small>
             <!-- Infos -->
+            <!-- <pre class="force">
+                {{ dataTablePendiente }}
+             </pre
+            > -->
             <div v-if="ordenesSize < 1">
                 <b-row>
                     <b-col>
@@ -72,7 +76,7 @@
                         >
                         <b-table
                             v-else
-                            fixed
+                            stacked
                             :items="dataTableReposiciones"
                             :fields="filedsLista"
                             :filter-included-fields="includedFields"
@@ -199,7 +203,7 @@
                             <!-- BOTONES EN CURSO -->
                             <b-table
                                 v-else
-                                fixed
+                                stacked
                                 :items="dataTableEnCurso"
                                 :fields="filedsLista"
                                 :filter-included-fields="includedFields"
@@ -323,7 +327,7 @@
 
                             <b-table
                                 v-else
-                                fixed
+                                stacked
                                 :items="dataTablePendiente"
                                 :fields="filedsLista"
                                 :filter-included-fields="includedFields"

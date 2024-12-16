@@ -1,7 +1,5 @@
 <template>
     <div>
-        <pre style="background-color: pink">{{ dataCalc }}</pre>
-
         <div>
             <span class="floatme">
                 <b-button variant="primary" @click="$bvModal.show(modal)">
@@ -32,7 +30,7 @@
         <b-badge variant="success">PAGADO</b-badge>
       </span> -->
 
-            <b-modal :id="modal" :title="title" hide-footer size="lg">
+            <b-modal :id="modal" :title="title" hide-footer size="xl">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container>
                         <b-row>
@@ -90,6 +88,39 @@
                                 >
                                 <h4 class="mt-4">Histórico</h4>
                                 <b-table
+                                    sort-icon-left
+                                    ref="table"
+                                    responsive
+                                    small
+                                    :fields="campos"
+                                    :items="item"
+                                >
+                                    <template #cell(orden)="data">
+                                        <linkSearch
+                                            :key="data.item._id"
+                                            :id="data.item.orden"
+                                        />
+                                    </template>
+
+                                    <template #cell(monto)="data">
+                                        {{ data.item.monto.toFixed(2) }}
+                                    </template>
+
+                                    <template #cell(tasa)="data">
+                                        {{ data.item.tasa.toFixed(2) }}
+                                    </template>
+
+                                    <template #cell(_id)="data">
+                                        {{
+                                            usdConverter(
+                                                data.item.moneda,
+                                                data.item.monto,
+                                                data.item.tasa
+                                            )
+                                        }}
+                                    </template>
+                                </b-table>
+                                <!-- <b-table
                                     ref="table"
                                     responsive
                                     small
@@ -110,7 +141,7 @@
                                             moneyFormatter(data.item.descuento)
                                         }}
                                     </template>
-                                </b-table>
+                                </b-table> -->
 
                                 <h4 class="mt-4">Estado actual</h4>
                                 <b-list-group>
@@ -505,6 +536,55 @@ export default {
                 montoBolivaresTransferencia: 0,
                 detalleBolivaresTransferencia: "",
             },
+            campos: [
+                {
+                    key: "orden",
+                    label: "Orden",
+                    sortable: true,
+                },
+                {
+                    key: "empleado",
+                    label: "Vendedor",
+                    sortable: true,
+                },
+                {
+                    key: "metodo_pago",
+                    label: "Método",
+                    sortable: true,
+                },
+                {
+                    key: "_id",
+                    label: "Total $",
+                },
+                {
+                    key: "detalle",
+                    label: "Detalles",
+                },
+                {
+                    key: "moneda",
+                    label: "Moneda",
+                    sortable: true,
+                },
+                {
+                    key: "monto",
+                    label: "Monto",
+                    sortable: true,
+                },
+                {
+                    key: "tasa",
+                    label: "Tasa",
+                    sortable: true,
+                },
+                {
+                    key: "fecha",
+                    label: "Fecha",
+                    sortable: true,
+                },
+                {
+                    key: "hora",
+                    label: "Hora",
+                },
+            ],
         }
     },
 
@@ -654,6 +734,27 @@ export default {
         },
     },
     methods: {
+        usdConverter(moneda, monto, tasa) {
+            // Validación de datos de entrada
+            if (!isNaN(monto) && !isNaN(tasa)) {
+                let tot
+
+                if (moneda === "Bolívares" || moneda === "Pesos") {
+                    tot = parseFloat(monto) / parseFloat(tasa)
+                } else {
+                    tot = parseFloat(monto)
+                }
+
+                // Validación de NaN y división por cero
+                if (isNaN(tot)) {
+                    return "Error en el cálculo" // O cualquier otro mensaje de error
+                } else {
+                    return tot.toFixed(2)
+                }
+            } else {
+                return "Monto o tasa no válidos"
+            }
+        },
         guardarPeso(val) {
             // this.peso = val
             this.$store.commit("comerce/setPeso", val)
@@ -757,6 +858,7 @@ export default {
                         // this.form.abono = ''
                         this.valueDescuento = 0
                         this.getDataAbonos()
+                        this.$emit("reload")
                     })
                 })
             }
@@ -979,6 +1081,6 @@ export default {
         this.getDataAbonos()
         this.$root.$on("bv::modal::show", (bvEvent, modalId) => {})
     },
-    props: ["idorden"],
+    props: ["idorden", "item", "reload"],
 }
 </script>
