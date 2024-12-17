@@ -8,20 +8,12 @@
                PROPS {{ $props }}
             </pre> -->
             <div class="mb-2">
-                <b-form-select
-                    v-model="emp"
-                    :options="options"
-                    :value="emp"
-                    @change="sendIdEmpleado"
-                ></b-form-select>
+                <b-form-select :disabled="selectDisabled" v-model="emp" :options="options" :value="emp"
+                    @change="sendIdEmpleado"></b-form-select>
             </div>
 
             <div class="mb-4">
-                <b-button
-                    variant="success"
-                    @click="saveChange(idorden, emp)"
-                    size="lg"
-                >
+                <b-button :disabled="selectDisabled" variant="success" @click="saveChange(idorden, emp)" size="lg">
                     Guardar
                 </b-button>
                 <hr class="mt-4" />
@@ -34,11 +26,14 @@
 export default {
     data() {
         return {
+            selectDisabled: true,
             overlay: false,
             emp: null,
             disenosAsignados: [],
         }
     },
+
+
 
     computed: {
         /* productsOptions() {
@@ -102,25 +97,39 @@ export default {
             )
                 .then((res) => {
                     this.$store.dispatch("disenos/getDisenos")
-                    console.log(`Hemos asignado el diseñador`, res)
+                    this.$fire({
+                        title: "Asignado",
+                        html: "El diseñador ha sido asignado correctamente",
+                        type: "success",
+                    }).then(() => {
+                        this.$emit("closemodal")
+                    })
+                    return true
                 })
                 .catch((err) => {
                     this.$store.dispatch("disenos/getDisenos")
-                    alert(`El diseñador nno se ha podido actualizar ${err}`)
-                    console.log(err)
+                    this.$fire({
+                        title: "No asignado",
+                        html: `<p>Ocurrió un error ala signar el diseñaador</p><p>${err}</p>`,
+                        type: "danger",
+                    })
+                    return false
                 })
                 .finally(() => {
                     this.loading = false
-                    console.log(`Terminada la asignación del diseñador`)
-                    return true
                 })
         },
     },
 
     mounted() {
         this.emp = this.item.select
+        if (this.emp === null) {
+            this.selectDisabled = false
+        } else {
+            this.selectDisabled = true
+        }
     },
 
-    props: ["item", "options", "hashtags", "idempleado"],
+    props: ["item", "options", "hashtags", "idempleado", "closemodal"],
 }
 </script>

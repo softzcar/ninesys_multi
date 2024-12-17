@@ -1,15 +1,7 @@
 <template>
     <div>
         <b-overlay :show="overlay" spinner-small>
-            <b-table
-                ref="table"
-                responsive
-                small
-                striped
-                hover
-                :items="datax"
-                :fields="fields"
-            >
+            <b-table ref="table" responsive small striped hover :items="datax" :fields="fields">
                 <template #cell(id)="data">
                     <linkSearch :id="data.item.id" />
                 </template>
@@ -21,27 +13,18 @@
                 <template #cell(check)="data">
                     <div class="text-center">
                         <p v-if="data.item.check != null" class="h1 mt-2">
-                            <b-icon
-                                icon="exclamation-circle-fill"
-                                variant="success"
-                            ></b-icon>
+                            <b-icon icon="exclamation-circle-fill" variant="success"></b-icon>
                         </p>
 
                         <p v-else class="h1 mt-2">
-                            <b-icon
-                                icon="exclamation-circle-fill"
-                                style="color: lightgray"
-                            ></b-icon>
+                            <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
                         </p>
                     </div>
                 </template>
 
                 <template #cell(imagen)="data">
                     <div class="floatme">
-                        <disenosse-uploadPropuesta
-                            :item="data.item"
-                            @reload="loadAll()"
-                        />
+                        <disenosse-uploadPropuesta :item="data.item" @reload="loadAll()" />
                     </div>
                     <div class="floatme">
                         <diseno-viewImage :id="data.item.id" />
@@ -50,11 +33,8 @@
 
                 <template #cell(empleado)="data">
                     <div class="floatme">
-                        <disenosse-asignacionDisenadores
-                            :idorden="data.item.id"
-                            :item="data.item"
-                            :options="empleadosFiltered()"
-                        />
+                        <disenosse-asignacionDisenadores :idorden="data.item.id" :item="data.item"
+                            :options="empleadosFiltered()" />
                     </div>
                 </template>
 
@@ -62,6 +42,9 @@
                     <ordenes-vinculadas :id_orden="data.item.vinculadas" />
                 </template>
             </b-table>
+            <!-- <pre class="force">
+    {{ datax }}
+</pre> -->
         </b-overlay>
     </div>
 </template>

@@ -2,7 +2,7 @@
     <div>
         <b-alert :show="showMsg" :variant="variantMsg" fade>{{
             alertMsg
-        }}</b-alert>
+            }}</b-alert>
         <b-overlay :show="overlay" spinner-small>
             <div v-for="(emp, index) in revisionesPorDisenador" :key="index">
                 <h2>{{ emp.disenador }}</h2>
@@ -263,8 +263,10 @@ export default {
             return misDetalles
         },
 
+        // this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`
+
         generateURL(id_orden, id_diseno, id_revision, id_disenador) {
-            return `${this.$config.CDN}/images/${this.$store.state.login.dataEmpresa.id}/${id_orden}/${id_orden}-${id_revision}-${id_disenador}.png`
+            return `${this.$config.CDN}/images/${this.$store.state.login.dataEmpresa.id}/${id_orden}/${id_orden}-${id_revision}-${id_disenador}.png?_=${this.token()}`
         },
 
         openModal() {

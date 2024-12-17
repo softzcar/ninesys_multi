@@ -13,6 +13,20 @@ export default {
       currentDate.setHours(0, 0, 0, 0)
       return date > currentDate
     }, */
+        evalTF(param) {
+            if (param === 1 || param === "1") {
+                return true
+            } else if (
+                param === 0 ||
+                param === "0" ||
+                param === null ||
+                param === undefined
+            ) {
+                return false
+            } else {
+                return false
+            }
+        },
         totalProductos(items, nombreCampo) {
             return items.reduce((total, item) => {
                 return total + (parseInt(item[nombreCampo], 10) || 0)

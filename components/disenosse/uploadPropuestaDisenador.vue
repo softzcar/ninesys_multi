@@ -2,9 +2,7 @@
     <div>
         <div class="float-badget">
             <b-button variant="primary" @click="$bvModal.show(modal)">
-                <b-badge v-if="showBadge" :variant="variantAlert"
-                    ><b-icon :icon="iconBadge"></b-icon
-                ></b-badge>
+                <b-badge v-if="showBadge" :variant="variantAlert"><b-icon :icon="iconBadge"></b-icon></b-badge>
                 <b-icon icon="cloud-upload"></b-icon>
             </b-button>
         </div>
@@ -15,11 +13,7 @@
                     <b-row>
                         <b-col>
                             <!-- <pre class="force">{{ misRevisiones }}</pre> -->
-                            <b-button
-                                :disabled="disableButton"
-                                @click="addReview()"
-                                variant="success"
-                            >
+                            <b-button :disabled="disableButton" @click="addReview()" variant="success">
                                 <b-icon icon="plus"></b-icon> Nuevo Diseño
                             </b-button>
                         </b-col>
@@ -27,22 +21,10 @@
                 </b-container>
                 <b-row>
                     <b-col>
-                        <b-card-group
-                            v-for="(rev, index) in misRevisiones"
-                            v-bind:key="index"
-                            deck
-                        >
-                            <diseno-uploadPropuesta
-                                :id="item.id"
-                                :revision="rev.revision"
-                                :item="rev"
-                                @reload="reloadData"
-                                @closemodal="hideMe"
-                                :nextReview="nextReview"
-                                :button="enableButton"
-                                :productos="productos"
-                                :idorden="item.id_orden"
-                            />
+                        <b-card-group v-for="(rev, index) in misRevisiones" v-bind:key="index" deck>
+                            <diseno-uploadPropuesta :id="item.id" :revision="rev.revision" :item="rev"
+                                @reload="reloadData" @closemodal="hideMe" :nextReview="nextReview"
+                                :button="enableButton" :productos="productos" :idorden="item.id_orden" />
                         </b-card-group>
                     </b-col>
                 </b-row>
@@ -276,7 +258,8 @@ export default {
 
         // this.misRevisiones = this.item.revision
         this.misRevisiones = this.revisiones.filter(
-            (el) => el.id_orden == this.item.id
+            // (el) => el.id_orden == this.item.id
+            (el) => el.id_orden == this.item.id /* && el.id_revision == this.item.revision */
         )
         this.initComponent()
         this.overlay = false
@@ -290,6 +273,7 @@ export default {
 .card-deck {
     display: block;
 }
+
 .float-button {
     width: 100%;
     float: left;

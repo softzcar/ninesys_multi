@@ -6,42 +6,22 @@
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <!-- <pre class="force" style="background-color: red">
-                form: {{ form }} </pre
-            >
+                item: {{ item }} </pre>
             <pre class="force" style="background-color: blue">
-                $props: {{ $props }}</pre
-            > -->
+                form: {{ form }}</pre> -->
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
-                <b-button
-                    variant="light"
-                    @click="addItem"
-                    aria-label="Agregar Diseñador"
-                >
+                <b-button variant="light" @click="addItem" aria-label="Agregar Diseñador">
                     <b-icon icon="plus-lg"></b-icon>
                 </b-button>
-                <b-table
-                    responsive
-                    :primary-key="form.id"
-                    :fields="campos"
-                    :items="form"
-                    small
-                >
+                <b-table responsive :primary-key="form.id" :fields="campos" :items="form" small>
                     <template #cell(input)="row">
-                        <diseno-reasignacionSelect
-                            :idorden="row.item.idorden"
-                            :options="options"
-                            :item="row.item"
-                            @reload="updateEmpId($event, row.index)"
-                        />
+                        <diseno-reasignacionSelect :idorden="row.item.idorden" :options="options" :item="row.item"
+                            @reload="updateEmpId($event, row.index)" @closemodal="closeModal" />
                     </template>
 
                     <template #cell(id)="row">
-                        <b-button
-                            variant="danger"
-                            @click="removeItem(row.index)"
-                            aria-label="Agregar insumo"
-                        >
+                        <b-button variant="danger" @click="removeItem(row.index)" aria-label="Agregar insumo">
                             <b-icon icon="trash"></b-icon>
                         </b-button>
                     </template>
@@ -98,11 +78,40 @@ export default {
             return id
         }, */
 
-        updateEmpId(id_empleado, index) {
+        closeModal() {
+            this.$bvModal.hide(this.modal)
+        },
+
+        /* updateEmpId(id_empleado, index) {
             console.log("registro anterior", this.form)
             this.form[index].select = id_empleado
             console.log("registro actualizado", this.form)
+        }, */
+
+        updateEmpId(id_empleado, index) {
+            console.log("registro anterior", this.form);
+
+            // Verificar si el id_empleado ya existe en el formulario
+            const idExists = this.form.some((item) => item.select === id_empleado);
+
+            if (idExists) {
+                console.error(`El ID ${id_empleado} ya existe en el formulario.`);
+                // Mostrar mensaje de error al usuario
+                this.$bvToast.toast(`El diseñador ya fué asignado a esta Orden.`, {
+                    title: 'Error',
+                    variant: 'danger',
+                    solid: true
+                });
+
+                // Eliminar el registro del formulario
+                this.form.splice(index, 1);
+                console.log("registro eliminado", this.form);
+            } else {
+                this.form[index].select = id_empleado;
+                console.log("registro actualizado", this.form);
+            }
         },
+
 
         generateRandomId() {
             // Generar un número aleatorio entre 100000 y 9999999
@@ -365,7 +374,7 @@ export default {
     },
 
     mounted() {
-        const myForm = this.$store.state.disenos.disenos.asignados.map((el) => {
+        const myForm = this.$store.state.disenos.disenos.asignados.filter(el => el.id_orden == this.item.id_orden).map((el) => {
             const rand_id = this.generateRandomId()
             return {
                 id: rand_id,
@@ -392,14 +401,17 @@ export default {
     background-color: black;
     color: antiquewhite;
 }
+
 .cyan-label {
     background-color: cyan;
     color: black;
 }
+
 .yellow-label {
     background-color: yellow;
     color: black;
 }
+
 .magenta-label {
     background-color: magenta;
     color: black;
