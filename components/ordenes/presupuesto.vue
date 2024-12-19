@@ -3,21 +3,11 @@
         <!-- modal de ordenes guardadas -->
         <b-modal :id="modal" title="Ordenes guardadas" hide-footer size="lg">
             <div class="mb-4">
-                <b-table
-                    ref="table"
-                    responsive
-                    small
-                    :fields="fieldsGuardadas"
-                    :items="ordenesGuardadas"
-                    class="mb-4"
-                >
+                <b-table ref="table" responsive small :fields="fieldsGuardadas" :items="ordenesGuardadas" class="mb-4">
                     <template #cell(form)="data">
-                        <b-button
-                            variant="link"
-                            @click="
-                                loadFormGuardadas(data.index, data.item._id)
-                            "
-                        >
+                        <b-button variant="link" @click="
+                            loadFormGuardadas(data.index, data.item._id)
+                            ">
                             {{ data.item.form.nombre }}
                             {{ data.item.form.apellido }}
                         </b-button>
@@ -29,10 +19,7 @@
                     </template>
 
                     <template #cell(_id)="data">
-                        <b-button
-                            @click="deleteOrdenGuardada(data.item._id)"
-                            variant="danger"
-                        >
+                        <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger">
                             <b-icon icon="trash"></b-icon>
                         </b-button>
                     </template>
@@ -43,31 +30,14 @@
         <b-overlay :show="mainOverlay" rounded="sm">
             <b-container>
                 <b-row>
-                    <b-col
-                        xs="12"
-                        sm="12"
-                        md="3"
-                        lg="3"
-                        xl="3"
-                        offset-md="9"
-                        offset-lg="9"
-                        offset-xl="9"
-                    >
+                    <b-col xs="12" sm="12" md="3" lg="3" xl="3" offset-md="9" offset-lg="9" offset-xl="9">
                         <h5>Tasas del día</h5>
                         <b-form>
                             <b-form-group label="Peso">
-                                <b-form-input
-                                    type="number"
-                                    v-model="peso"
-                                    @change="guardarPeso"
-                                />
+                                <b-form-input type="number" v-model="peso" @change="guardarPeso" />
                             </b-form-group>
                             <b-form-group label="Dólar">
-                                <b-form-input
-                                    type="number"
-                                    v-model="dolar"
-                                    @change="guardarDolar"
-                                />
+                                <b-form-input type="number" v-model="dolar" @change="guardarDolar" />
                             </b-form-group>
                         </b-form>
                     </b-col>
@@ -99,40 +69,21 @@
                             <!-- Control buttons-->
                             <div class="text-right mb-4">
                                 <b-button-group class="mt-2">
-                                    <b-button
-                                        :disabled="disableButtons"
-                                        @click="prev"
-                                        >Anterior
+                                    <b-button :disabled="disableButtons" @click="prev">Anterior
                                     </b-button>
-                                    <b-button
-                                        :disabled="disableButtons"
-                                        @click="next"
-                                        >{{ nextText }}</b-button
-                                    >
+                                    <b-button :disabled="disableButtons" @click="next">{{ nextText }}</b-button>
                                 </b-button-group>
                             </div>
 
                             <!-- Guardar Presupuesto para terminarlao después -->
                             <b-row>
                                 <b-col>
-                                    <b-button
-                                        @click="guardarPresupuesto"
-                                        class="floatme"
-                                        variant="success"
-                                        >Guardar</b-button
-                                    >
-                                    <b-button
-                                        @click="cargarPresupuesto"
-                                        class="floatme"
-                                        variant="info"
-                                        >Cargar</b-button
-                                    >
-                                    <b-button
-                                        @click="clearForm"
-                                        class="floatme"
-                                        variant="danger"
-                                        >Limpiar formulario</b-button
-                                    >
+                                    <b-button @click="guardarPresupuesto" class="floatme"
+                                        variant="success">Guardar</b-button>
+                                    <b-button @click="cargarPresupuesto" class="floatme"
+                                        variant="info">Cargar</b-button>
+                                    <b-button @click="clearForm" class="floatme" variant="danger">Limpiar
+                                        formulario</b-button>
                                 </b-col>
                             </b-row>
                             <b-row>
@@ -140,55 +91,30 @@
                                     <div>
                                         <!-- Tabs with card integration -->
                                         <b-card class="mt-4" no-body>
-                                            <b-tabs
-                                                v-model="tabIndex"
-                                                @change="preventTabClick"
-                                                small
-                                                card
-                                            >
-                                                <b-tab
-                                                    title="Cliente"
-                                                    title-link-class="h5"
-                                                    :disabled="disable1"
-                                                >
+                                            <b-tabs v-model="tabIndex" @change="preventTabClick" small card>
+                                                <b-tab title="Cliente" title-link-class="h5" :disabled="disable1">
                                                     <div class="wizard-content">
                                                         <h3 class="mb-4">
                                                             Datos del cliente
                                                         </h3>
-                                                        <b-overlay
-                                                            :show="loading.show"
-                                                            rounded
-                                                            opacity="0.6"
-                                                            spinner-small
-                                                            spinner-variant="primary"
-                                                            class="d-inline-block"
-                                                            @hidden="onHidden"
-                                                        >
+                                                        <b-overlay :show="loading.show" rounded opacity="0.6"
+                                                            spinner-small spinner-variant="primary"
+                                                            class="d-inline-block" @hidden="onHidden">
                                                             <b-row>
                                                                 <b-col>
-                                                                    <div
-                                                                        class="buscador"
-                                                                    >
+                                                                    <div class="buscador">
                                                                         <h5>
                                                                             Buscar
                                                                             Cliente
                                                                         </h5>
-                                                                        <vue-typeahead-bootstrap
-                                                                            @hit="
-                                                                                loadForm
-                                                                            "
-                                                                            :data="
-                                                                                $store
-                                                                                    .state
-                                                                                    .comerce
-                                                                                    .customersSelect
-                                                                            "
-                                                                            size="lg"
-                                                                            v-model="
-                                                                                query2
-                                                                            "
-                                                                            placeholder="Nombre o teléfono"
-                                                                        />
+                                                                        <vue-typeahead-bootstrap @hit="loadForm
+                                                                            " :data="$store
+                                                                                .state
+                                                                                .comerce
+                                                                                .customersSelect
+                                                                                " size="lg" v-model="query2
+                                                                                    "
+                                                                            placeholder="Nombre o teléfono" />
                                                                     </div>
                                                                 </b-col>
                                                             </b-row>
@@ -202,9 +128,7 @@
                               </b-row> -->
                                                             <b-row>
                                                                 <b-col lg="12">
-                                                                    <b-form
-                                                                        v-on:submit.prevent
-                                                                    >
+                                                                    <b-form v-on:submit.prevent>
                                                                         <!-- <b-form-group>
                                       <label for="input-fecha"
                                         >Fecha de entega
@@ -219,121 +143,59 @@
                                     </b-form-group> -->
 
                                                                         <b-form-group>
-                                                                            <label
-                                                                                for="input-nombre"
-                                                                                >Nombre
-                                                                                <span
-                                                                                    required
-                                                                                    >*</span
-                                                                                ></label
-                                                                            >
-                                                                            <b-form-input
-                                                                                id="input-nombre"
-                                                                                ref="nombre"
-                                                                                v-model="
-                                                                                    form.nombre
-                                                                                "
-                                                                                type="text"
+                                                                            <label for="input-nombre">Nombre
+                                                                                <span required>*</span></label>
+                                                                            <b-form-input id="input-nombre" ref="nombre"
+                                                                                v-model="form.nombre
+                                                                                    " type="text"
                                                                                 class="mb-2 mr-sm-2 mb-sm-0"
-                                                                                placeholder="Ingrese el nombre"
-                                                                            ></b-form-input>
+                                                                                placeholder="Ingrese el nombre"></b-form-input>
                                                                         </b-form-group>
 
                                                                         <b-form-group>
-                                                                            <label
-                                                                                for="input-apellido"
-                                                                                >Apellido
-                                                                                <span
-                                                                                    required
-                                                                                    >*</span
-                                                                                ></label
-                                                                            >
-                                                                            <b-form-input
-                                                                                id="input-apellido"
-                                                                                v-model="
-                                                                                    form.apellido
-                                                                                "
-                                                                                type="text"
+                                                                            <label for="input-apellido">Apellido
+                                                                                <span required>*</span></label>
+                                                                            <b-form-input id="input-apellido" v-model="form.apellido
+                                                                                " type="text"
                                                                                 class="mb-2 mr-sm-2 mb-sm-0"
-                                                                                placeholder="Ingrese el apellido"
-                                                                            ></b-form-input>
+                                                                                placeholder="Ingrese el apellido"></b-form-input>
                                                                         </b-form-group>
 
                                                                         <b-form-group>
-                                                                            <label
-                                                                                for="input-telefono"
-                                                                                >Teléfono
-                                                                                <span
-                                                                                    required
-                                                                                    >*</span
-                                                                                ></label
-                                                                            >
-                                                                            <b-form-input
-                                                                                id="input-telefono"
-                                                                                v-model="
-                                                                                    form.telefono
-                                                                                "
-                                                                                type="tel"
+                                                                            <label for="input-telefono">Teléfono
+                                                                                <span required>*</span></label>
+                                                                            <b-form-input id="input-telefono" v-model="form.telefono
+                                                                                " type="tel"
                                                                                 class="mb-2 mr-sm-2 mb-sm-0"
-                                                                                placeholder="Ingrese teléfono"
-                                                                            ></b-form-input>
+                                                                                placeholder="Ingrese teléfono"></b-form-input>
                                                                         </b-form-group>
 
                                                                         <b-form-group>
-                                                                            <label
-                                                                                for="input-cedula"
-                                                                                >Cedula</label
-                                                                            >
-                                                                            <b-form-input
-                                                                                id="input-cedula"
-                                                                                v-model="
-                                                                                    form.cedula
-                                                                                "
-                                                                                type="text"
+                                                                            <label for="input-cedula">Cedula</label>
+                                                                            <b-form-input id="input-cedula" v-model="form.cedula
+                                                                                " type="text"
                                                                                 class="mb-2 mr-sm-2 mb-sm-0"
-                                                                                placeholder="Ingrese la Cédula"
-                                                                            ></b-form-input>
+                                                                                placeholder="Ingrese la Cédula"></b-form-input>
                                                                         </b-form-group>
 
                                                                         <b-form-group>
-                                                                            <label
-                                                                                for="input-email"
-                                                                                >Email</label
-                                                                            >
-                                                                            <b-form-input
-                                                                                id="input-email"
-                                                                                v-model="
-                                                                                    form.email
-                                                                                "
-                                                                                type="email"
+                                                                            <label for="input-email">Email</label>
+                                                                            <b-form-input id="input-email" v-model="form.email
+                                                                                " type="email"
                                                                                 class="mb-2 mr-sm-2 mb-sm-0"
-                                                                                placeholder="Ingrese el email"
-                                                                            ></b-form-input>
+                                                                                placeholder="Ingrese el email"></b-form-input>
                                                                         </b-form-group>
 
                                                                         <b-form-group>
-                                                                            <label
-                                                                                for="input-address"
-                                                                                >Dirección</label
-                                                                            >
-                                                                            <b-form-input
-                                                                                id="input-address"
-                                                                                v-model="
-                                                                                    form.direccion
-                                                                                "
-                                                                                type="text"
+                                                                            <label for="input-address">Dirección</label>
+                                                                            <b-form-input id="input-address" v-model="form.direccion
+                                                                                " type="text"
                                                                                 class="mb-2 mr-sm-2 mb-sm-0"
-                                                                                placeholder="Ingrese la dirección"
-                                                                            ></b-form-input>
+                                                                                placeholder="Ingrese la dirección"></b-form-input>
                                                                         </b-form-group>
                                                                     </b-form>
-                                                                    <p
-                                                                        info-form
-                                                                    >
-                                                                        <span
-                                                                            required
-                                                                            >*</span
-                                                                        >
+                                                                    <p info-form>
+                                                                        <span required>*</span>
                                                                         Campos
                                                                         obligatorios
                                                                     </p>
@@ -342,48 +204,34 @@
                                                         </b-overlay>
                                                     </div>
                                                 </b-tab>
-                                                <b-tab
-                                                    title="Productos"
-                                                    title-link-class="h5"
-                                                    :disabled="disable2"
-                                                >
+                                                <b-tab title="Productos" title-link-class="h5" :disabled="disable2">
                                                     <div class="wizard-content">
                                                         <b-row>
                                                             <b-col lg="12">
                                                                 <b-list-group>
-                                                                    <b-list-group-item
-                                                                        >Cédula:
+                                                                    <b-list-group-item>Cédula:
                                                                         {{
                                                                             form.cedula
-                                                                        }}</b-list-group-item
-                                                                    >
-                                                                    <b-list-group-item
-                                                                        >Nombre:
+                                                                        }}</b-list-group-item>
+                                                                    <b-list-group-item>Nombre:
                                                                         {{
                                                                             form.nombre
                                                                         }}
                                                                         {{
                                                                             form.apellido
-                                                                        }}</b-list-group-item
-                                                                    >
-                                                                    <b-list-group-item
-                                                                        >Teléfono:
+                                                                        }}</b-list-group-item>
+                                                                    <b-list-group-item>Teléfono:
                                                                         {{
                                                                             form.telefono
-                                                                        }}</b-list-group-item
-                                                                    >
-                                                                    <b-list-group-item
-                                                                        >Email:
+                                                                        }}</b-list-group-item>
+                                                                    <b-list-group-item>Email:
                                                                         {{
                                                                             form.email
-                                                                        }}</b-list-group-item
-                                                                    >
-                                                                    <b-list-group-item
-                                                                        >Entrega:
+                                                                        }}</b-list-group-item>
+                                                                    <b-list-group-item>Entrega:
                                                                         {{
                                                                             form.fechaEntrega
-                                                                        }}</b-list-group-item
-                                                                    >
+                                                                        }}</b-list-group-item>
                                                                 </b-list-group>
                                                                 <br />
                                                             </b-col>
@@ -391,9 +239,7 @@
 
                                                         <b-row>
                                                             <b-col lg="6">
-                                                                <b-list-group
-                                                                    horizontal
-                                                                >
+                                                                <b-list-group horizontal>
                                                                     <b-list-group-item>
                                                                         <h3>
                                                                             TOTAL
@@ -407,15 +253,9 @@
                                                                     <br />
                                                                 </b-list-group>
                                                                 <b-row>
-                                                                    <b-col
-                                                                        lg="6"
-                                                                        class="mt-4"
-                                                                    >
-                                                                        <products-new
-                                                                            @r="
-                                                                                getResponseNewProduct
-                                                                            "
-                                                                        />
+                                                                    <b-col lg="6" class="mt-4">
+                                                                        <products-new @r="getResponseNewProduct
+                                                                            " />
                                                                     </b-col>
                                                                 </b-row>
                                                                 <br />
@@ -433,224 +273,147 @@
                                   @input="changeCategory"
                                 ></b-form-radio-group> -->
 
-                                                                <vue-typeahead-bootstrap
-                                                                    @hit="
-                                                                        loadProduct
-                                                                    "
-                                                                    :data="
-                                                                        $store
-                                                                            .state
-                                                                            .comerce
-                                                                            .dataProductosSelect
-                                                                    "
-                                                                    v-model="
-                                                                        query
-                                                                    "
-                                                                    placeholder="Seleccione los productos"
-                                                                />
+                                                                <vue-typeahead-bootstrap @hit="loadProduct
+                                                                    " :data="$store
+                                                                        .state
+                                                                        .comerce
+                                                                        .dataProductosSelect
+                                                                        " v-model="query
+                                                                            " placeholder="Seleccione los productos" />
                                                             </b-col>
                                                         </b-row>
 
                                                         <b-row>
-                                                            <b-col
-                                                                lg="12"
-                                                                class="mt-4"
-                                                            >
-                                                                <b-table
-                                                                    responsive
-                                                                    :primary-key="
-                                                                        form
-                                                                            .productos
-                                                                            .item
-                                                                    "
-                                                                    :fields="
-                                                                        campos
-                                                                    "
-                                                                    :items="
-                                                                        form.productos
-                                                                    "
-                                                                    small
-                                                                >
-                                                                    <template
-                                                                        #cell(nombre)="data"
-                                                                    >
-                                                                        <a
-                                                                            :href="`#${data.item.producto}`"
-                                                                            >{{
-                                                                                data
-                                                                                    .item
-                                                                                    .item
-                                                                                    .producto
-                                                                            }}</a
-                                                                        >
+                                                            <b-col lg="12" class="mt-4">
+                                                                <b-table :stacked="isSmallScreen
+                                                                    ? 'md'
+                                                                    : false" :responsive="!isSmallScreen"
+                                                                    borderless striped :primary-key="form
+                                                                        .productos
+                                                                        .item
+                                                                        " :fields="campos
+                                                                        " :items="form.productos
+                                                                            " small>
+                                                                    <template #cell(nombre)="data">
+                                                                        <a :href="`#${data.item.producto}`">{{
+                                                                            data
+                                                                                .item
+                                                                                .item
+                                                                                .producto
+                                                                        }}</a>
                                                                     </template>
 
-                                                                    <template
-                                                                        #cell(item)="data"
-                                                                    >
+                                                                    <template #cell(item)="data">
                                                                         {{
                                                                             data.index +
                                                                             1
                                                                         }}
                                                                     </template>
 
-                                                                    <template
-                                                                        #cell(cantidad)="data"
-                                                                    >
-                                                                        <b-form-input
-                                                                            v-model="
-                                                                                form
-                                                                                    .productos[
-                                                                                    data
-                                                                                        .index
-                                                                                ]
-                                                                                    .cantidad
-                                                                            "
-                                                                            min="0"
-                                                                            :max="
-                                                                                maxDesignLimit(
-                                                                                    data
-                                                                                        .item
-                                                                                        .cod
-                                                                                )
-                                                                            "
-                                                                            type="number"
-                                                                            @change="
-                                                                                montoTotalOrden
-                                                                            "
-                                                                        ></b-form-input>
+                                                                    <template #cell(cantidad)="data">
+                                                                        <b-form-input v-model="form
+                                                                            .productos[
+                                                                            data
+                                                                                .index
+                                                                        ]
+                                                                            .cantidad
+                                                                            " min="0" :max="maxDesignLimit(
+                                                                                data
+                                                                                    .item
+                                                                                    .cod
+                                                                            )
+                                                                                " type="number" @change="montoTotalOrden
+                                                                                    "></b-form-input>
                                                                     </template>
 
-                                                                    <template
-                                                                        #cell(corte)="data"
-                                                                    >
-                                                                        <b-form-select
-                                                                            :disabled="
-                                                                                checkDesignForDiseabled(
-                                                                                    data
-                                                                                        .item
-                                                                                        .cod
-                                                                                )
-                                                                            "
-                                                                            v-model="
-                                                                                form
-                                                                                    .productos[
-                                                                                    data
-                                                                                        .index
-                                                                                ]
-                                                                                    .corte
-                                                                            "
-                                                                            :options="
-                                                                                cortes
-                                                                            "
-                                                                        ></b-form-select>
+                                                                    <template #cell(corte)="data">
+                                                                        <b-form-select :disabled="checkDesignForDiseabled(
+                                                                            data
+                                                                                .item
+                                                                                .cod
+                                                                        )
+                                                                            " v-model="form
+                                                                                .productos[
+                                                                                data
+                                                                                    .index
+                                                                            ]
+                                                                                .corte
+                                                                                " :options="cortes
+                                                                                    "></b-form-select>
                                                                     </template>
 
-                                                                    <template
-                                                                        #cell(talla)="data"
-                                                                    >
-                                                                        <b-form-select
-                                                                            :disabled="
-                                                                                checkDesignForDiseabled(
-                                                                                    data
-                                                                                        .item
-                                                                                        .cod
-                                                                                )
-                                                                            "
-                                                                            v-model="
-                                                                                form
-                                                                                    .productos[
-                                                                                    data
-                                                                                        .index
-                                                                                ]
-                                                                                    .talla
-                                                                            "
-                                                                            :options="
-                                                                                $store
+                                                                    <template #cell(talla)="data">
+                                                                        <b-form-select :disabled="checkDesignForDiseabled(
+                                                                            data
+                                                                                .item
+                                                                                .cod
+                                                                        )
+                                                                            " v-model="form
+                                                                                .productos[
+                                                                                data
+                                                                                    .index
+                                                                            ]
+                                                                                .talla
+                                                                                " :options="$store
                                                                                     .state
                                                                                     .comerce
                                                                                     .dataTallas
-                                                                            "
-                                                                            @change="
-                                                                                recalcularSegunTalla(
-                                                                                    data.index,
-                                                                                    form
-                                                                                        .productos[
-                                                                                        data
-                                                                                            .index
-                                                                                    ]
-                                                                                )
-                                                                            "
-                                                                        ></b-form-select>
+                                                                                    " @change="
+                                                                                        recalcularSegunTalla(
+                                                                                            data.index,
+                                                                                            form
+                                                                                                .productos[
+                                                                                            data
+                                                                                                .index
+                                                                                            ]
+                                                                                        )
+                                                                                        "></b-form-select>
                                                                     </template>
 
-                                                                    <template
-                                                                        #cell(tela)="data"
-                                                                    >
-                                                                        <b-form-select
-                                                                            :disabled="
-                                                                                checkDesignForDiseabled(
+                                                                    <template #cell(tela)="data">
+                                                                        <b-form-select :disabled="checkDesignForDiseabled(
+                                                                            data
+                                                                                .item
+                                                                                .cod
+                                                                        )
+                                                                            " v-model="form
+                                                                                .productos[
+                                                                                data
+                                                                                    .index
+                                                                            ]
+                                                                                .tela
+                                                                                " :options="$store
+                                                                                    .state
+                                                                                    .comerce
+                                                                                    .dataTelas
+                                                                                    "></b-form-select>
+                                                                    </template>
+
+                                                                    <template #cell(acciones)="data">
+                                                                        <div>
+                                                                            <span class="floatme">
+                                                                                <b-button :disabled="checkDesignForDiseabled(
                                                                                     data
                                                                                         .item
                                                                                         .cod
                                                                                 )
-                                                                            "
-                                                                            v-model="
-                                                                                form
-                                                                                    .productos[
-                                                                                    data
-                                                                                        .index
-                                                                                ]
-                                                                                    .tela
-                                                                            "
-                                                                            :options="
-                                                                                $store
-                                                                                    .state
-                                                                                    .comerce
-                                                                                    .dataTelas
-                                                                            "
-                                                                        ></b-form-select>
-                                                                    </template>
-
-                                                                    <template
-                                                                        #cell(acciones)="data"
-                                                                    >
-                                                                        <div>
-                                                                            <span
-                                                                                class="floatme"
-                                                                            >
-                                                                                <b-button
-                                                                                    :disabled="
-                                                                                        checkDesignForDiseabled(
-                                                                                            data
-                                                                                                .item
-                                                                                                .cod
-                                                                                        )
-                                                                                    "
-                                                                                    variant="primary"
-                                                                                    icon="ti-check"
+                                                                                    " variant="primary" icon="ti-check"
                                                                                     @click="
                                                                                         duplicateItem(
                                                                                             data.index,
                                                                                             data.item
                                                                                         )
-                                                                                    "
-                                                                                >
+                                                                                        ">
                                                                                     <b-icon-box-arrow-in-left></b-icon-box-arrow-in-left>
                                                                                 </b-button>
                                                                             </span>
-                                                                            <span
-                                                                                class="floatme"
-                                                                            >
-                                                                                <b-button
-                                                                                    variant="danger"
-                                                                                    icon="ti-check"
-                                                                                    @click="
+                                                                            <span class="floatme">
+                                                                                <b-button variant="danger"
+                                                                                    icon="ti-check" @click="
                                                                                         removeItem(
                                                                                             data.index
                                                                                         )
-                                                                                    "
-                                                                                >
+                                                                                        ">
                                                                                     <b-icon-trash></b-icon-trash>
                                                                                 </b-button>
                                                                             </span>
@@ -660,21 +423,15 @@
                                                             </b-col>
 
                                                             <b-col lg="12">
-                                                                <h3
-                                                                    class="mb-4 mt-4"
-                                                                >
+                                                                <h3 class="mb-4 mt-4">
                                                                     Observaciones
                                                                 </h3>
-                                                                <quill-editor
-                                                                    v-model="
-                                                                        form.obs
-                                                                    "
-                                                                    @change="
+                                                                <quill-editor v-model="form.obs
+                                                                    " @change="
                                                                         onEditorChange(
                                                                             $event
                                                                         )
-                                                                    "
-                                                                ></quill-editor>
+                                                                        "></quill-editor>
                                                             </b-col>
                                                         </b-row>
                                                     </div>
@@ -1021,21 +778,14 @@
                             </b-container>
                           </div>
                         </b-tab> -->
-                                                <b-tab
-                                                    title="Emitir Presupuesto"
-                                                    title-link-class="h5"
-                                                    :disabled="disable3"
-                                                >
+                                                <b-tab title="Emitir Presupuesto" title-link-class="h5"
+                                                    :disabled="disable3">
                                                     <div class="wizard-content">
                                                         <b-row>
                                                             <b-col>
-                                                                <b-alert
-                                                                    style="
+                                                                <b-alert style="
                                                                         padding: 2.4rem;
-                                                                    "
-                                                                    variant="success"
-                                                                    show
-                                                                >
+                                                                    " variant="success" show>
                                                                     <h2>
                                                                         Verifique
                                                                         todos
@@ -1052,22 +802,12 @@
 
                                                         <b-row>
                                                             <b-col>
-                                                                <div
-                                                                    id="reporte"
-                                                                >
-                                                                    <b-overlay
-                                                                        :show="
-                                                                            overlay
-                                                                        "
-                                                                    >
-                                                                        <ordenes-presupuestoPreview
-                                                                            :form="
-                                                                                form
-                                                                            "
-                                                                            :showpreview="
-                                                                                true
-                                                                            "
-                                                                        />
+                                                                <div id="reporte">
+                                                                    <b-overlay :show="overlay
+                                                                        ">
+                                                                        <ordenes-presupuestoPreview :form="form
+                                                                            " :showpreview="true
+                                                                                " />
                                                                     </b-overlay>
                                                                 </div>
                                                             </b-col>
@@ -1086,16 +826,10 @@
                                         <!-- Control buttons-->
                                         <div class="text-right mb-4">
                                             <b-button-group class="mt-2">
-                                                <b-button
-                                                    :disabled="disableButtons"
-                                                    @click="prev"
-                                                    >Anterior
+                                                <b-button :disabled="disableButtons" @click="prev">Anterior
                                                 </b-button>
-                                                <b-button
-                                                    :disabled="disableButtons"
-                                                    @click="next"
-                                                    >{{ nextText }}</b-button
-                                                >
+                                                <b-button :disabled="disableButtons" @click="next">{{ nextText
+                                                    }}</b-button>
                                             </b-button-group>
                                         </div>
                                     </div>
@@ -1109,21 +843,15 @@
             <b-container v-else>
                 <b-row>
                     <b-col>
-                        <b-alert show variant="warning"
-                            >Por favor asigne las tasas del dólar y el
-                            peso</b-alert
-                        >
+                        <b-alert show variant="warning">Por favor asigne las tasas del dólar y el
+                            peso</b-alert>
                     </b-col>
                 </b-row>
             </b-container>
 
             <template #overlay>
                 <div class="text-center">
-                    <b-icon
-                        icon="stopwatch"
-                        font-scale="3"
-                        animation="cylon"
-                    ></b-icon>
+                    <b-icon icon="stopwatch" font-scale="3" animation="cylon"></b-icon>
                     <p id="cancel-label">{{ loadingMsg }}</p>
                 </div>
             </template>
@@ -1139,6 +867,7 @@ import { mapState, mapMutations, mapGetters } from "vuex"
 export default {
     data() {
         return {
+            isSmallScreen: false,
             endpoint: "/presupuesto/nuevo", // Opciones: `/presupuesto/nuevo` - `/presupuesto/nuevo`
             categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`
             categoriaDeLaORdenOptions: [
@@ -2247,7 +1976,6 @@ export default {
 
             let ok = false
             await this.$axios(url, { method: method })
-                .then((res) => res.json())
                 .then((res) => {
                     this.form.id = res.id
                     ok = true
@@ -2262,7 +1990,7 @@ export default {
                     console.log(err)
                 })
                 .finally(() => {
-                    axios
+                    this.$axios
                         .get(`${this.$config.API}/customers`)
                         .then((responseClientes) => {
                             // Cargar Clientes
@@ -2777,8 +2505,8 @@ export default {
                     a[property] < b[property]
                         ? -1
                         : a[property] > b[property]
-                        ? 1
-                        : 0
+                            ? 1
+                            : 0
                 return result * sortOrder
             }
         },
@@ -3028,6 +2756,16 @@ export default {
 </script>
 
 <style scoped>
+.table-stacked {
+    display: block;
+    width: 100%;
+}
+
+.table-responsive {
+    display: table;
+    width: 100%;
+}
+
 .label-step {
     font-size: 1.2rem !important;
 }

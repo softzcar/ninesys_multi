@@ -6,18 +6,14 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div
-                v-if="
-                    dataUser.departamento === 'Comercialización' ||
+            <div v-if="
+                dataUser.departamento === 'Comercialización' ||
+                dataUser.departamento === 'Administración'
+            ">
+                <b-container v-if="
+                    this.dataUser.departamento === 'Comercialización' ||
                     dataUser.departamento === 'Administración'
-                "
-            >
-                <b-container
-                    v-if="
-                        this.dataUser.departamento === 'Comercialización' ||
-                        dataUser.departamento === 'Administración'
-                    "
-                >
+                ">
                     <b-container>
                         <b-row>
                             <b-col>
@@ -25,62 +21,41 @@
                             </b-col>
                         </b-row>
                         <b-row>
-                            <b-col
-                                xs="12"
-                                sm="12"
-                                md="3"
-                                lg="3"
-                                xl="3"
-                                offset-md="9"
-                                offset-lg="9"
-                                offset-xl="9"
-                            >
+                            <b-col xs="12" sm="12" md="3" lg="3" xl="3" offset-md="9" offset-lg="9" offset-xl="9">
                                 <h5>Tasas del día</h5>
                                 <b-form>
                                     <b-form-group label="Peso">
-                                        <b-form-input
-                                            type="number"
-                                            v-model="peso"
-                                            @change="guardarPeso"
-                                        />
+                                        <b-form-input type="number" v-model="peso" @change="guardarPeso" />
                                     </b-form-group>
                                     <b-form-group label="Dólar">
-                                        <b-form-input
-                                            type="number"
-                                            class="mb-4"
-                                            v-model="dolar"
-                                            @change="guardarDolar"
-                                        />
+                                        <b-form-input type="number" class="mb-4" v-model="dolar"
+                                            @change="guardarDolar" />
                                     </b-form-group>
                                 </b-form>
                             </b-col>
                         </b-row>
                     </b-container>
-
+                    <!-- <pre class="force">
+                        {{ $data }}
+                    </pre> -->
                     <div v-if="tasasCargadas">
                         <b-overlay :show="overlay" spinner-small>
                             <b-row>
                                 <b-col>
                                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
                                     <b-list-group class="mb-4">
-                                        <b-list-group-item
-                                            >DOLARES:
+                                        <b-list-group-item>DOLARES:
                                             {{
                                                 caja[0].monto
-                                            }}</b-list-group-item
-                                        >
-                                        <b-list-group-item
-                                            >PESOS:
+                                            }}</b-list-group-item>
+                                        <b-list-group-item>PESOS:
                                             {{
                                                 caja[1]["monto"]
-                                            }}</b-list-group-item
-                                        >
-                                        <b-list-group-item
-                                            >BOLIVARES:
+                                            }}</b-list-group-item>
+                                        <b-list-group-item>BOLIVARES:
                                             {{
                                                 caja[2]["monto"]
-                                            }}</b-list-group-item
-                                        >
+                                            }}</b-list-group-item>
                                     </b-list-group>
                                 </b-col>
                             </b-row>
@@ -88,22 +63,15 @@
                                 <b-col>
                                     <h2 class="mb-4">
                                         TOTAL RETIRO: {{ totalRetiro }}
-                                        <b-button
-                                            size="lg"
-                                            class="ml-4"
-                                            variant="success"
-                                            @click="enviarRetiro"
-                                            >RETIRAR</b-button
-                                        >
+                                        <b-button size="lg" class="ml-4" variant="success"
+                                            @click="enviarRetiro">RETIRAR</b-button>
                                     </h2>
                                 </b-col>
                             </b-row>
                             <b-row>
                                 <b-col>
                                     <h4>Detalle del retiro</h4>
-                                    <b-form-textarea
-                                        v-model="form.detalle"
-                                    ></b-form-textarea>
+                                    <b-form-textarea v-model="form.detalle"></b-form-textarea>
                                 </b-col>
                             </b-row>
                             <b-row>
@@ -119,22 +87,11 @@
 
                                     <b-row align-h="start">
                                         <b-col>
-                                            <b-form-group
-                                                id="input-group-1"
-                                                label="EFECTIVO"
-                                                label-for="input-dolares-efectivo"
-                                                class="pl-2"
-                                            >
-                                                <b-form-input
-                                                    id="input-dolares-efectivo"
-                                                    type="number"
-                                                    step="0.10"
-                                                    min="0"
-                                                    @change="updateMontoRetiro"
-                                                    v-model="
-                                                        form.montoDolaresEfectivo
-                                                    "
-                                                ></b-form-input>
+                                            <b-form-group id="input-group-1" label="EFECTIVO"
+                                                label-for="input-dolares-efectivo" class="pl-2">
+                                                <b-form-input id="input-dolares-efectivo" type="number" step="0.10"
+                                                    min="0" @change="updateMontoRetiro" v-model="form.montoDolaresEfectivo
+                                                        "></b-form-input>
                                             </b-form-group>
                                         </b-col>
                                     </b-row>
@@ -150,22 +107,11 @@
 
                                     <b-row align-h="start">
                                         <b-col>
-                                            <b-form-group
-                                                id="input-group-4"
-                                                label="EFECTIVO"
-                                                label-for="input-dolares-efectivo"
-                                                class="pl-2"
-                                            >
-                                                <b-form-input
-                                                    id="input-pesos-efectivo"
-                                                    type="number"
-                                                    step="0.10"
-                                                    min="0"
-                                                    v-model="
-                                                        form.montoPesosEfectivo
-                                                    "
-                                                    @change="updateMontoRetiro"
-                                                ></b-form-input>
+                                            <b-form-group id="input-group-4" label="EFECTIVO"
+                                                label-for="input-dolares-efectivo" class="pl-2">
+                                                <b-form-input id="input-pesos-efectivo" type="number" step="0.10"
+                                                    min="0" v-model="form.montoPesosEfectivo
+                                                        " @change="updateMontoRetiro"></b-form-input>
                                             </b-form-group>
                                         </b-col>
                                     </b-row>
@@ -180,22 +126,11 @@
                                     </b-row>
                                     <b-row align-h="start">
                                         <b-col>
-                                            <b-form-group
-                                                id="input-group-6"
-                                                label="EFECTIVO"
-                                                label-for="input-bolivares-efectivo "
-                                                class="pl-2"
-                                            >
-                                                <b-form-input
-                                                    id="input-bolivares-efectivo"
-                                                    type="number"
-                                                    step="0.10"
-                                                    min="0"
-                                                    v-model="
-                                                        form.montoBolivaresEfectivo
-                                                    "
-                                                    @change="updateMontoRetiro"
-                                                ></b-form-input>
+                                            <b-form-group id="input-group-6" label="EFECTIVO"
+                                                label-for="input-bolivares-efectivo " class="pl-2">
+                                                <b-form-input id="input-bolivares-efectivo" type="number" step="0.10"
+                                                    min="0" v-model="form.montoBolivaresEfectivo
+                                                        " @change="updateMontoRetiro"></b-form-input>
                                             </b-form-group>
                                         </b-col>
                                     </b-row>
@@ -213,22 +148,10 @@
 
                                     <b-row align-h="start">
                                         <b-col>
-                                            <b-form-group
-                                                label="Fecha de consulta"
-                                            >
-                                                <b-form-datepicker
-                                                    v-model="fechaConsulta"
-                                                    @input="realizarConsulta"
-                                                />
-                                                <b-table
-                                                    striped
-                                                    hover
-                                                    :items="report"
-                                                    :fields="fields"
-                                                >
-                                                    <template
-                                                        #cell(moneda)="data"
-                                                    >
+                                            <b-form-group label="Fecha de consulta">
+                                                <b-form-datepicker v-model="fechaConsulta" @input="realizarConsulta" />
+                                                <b-table striped hover :items="report" :fields="fields">
+                                                    <template #cell(moneda)="data">
                                                         {{ data.item.moneda }}
                                                         {{
                                                             data.item
@@ -236,9 +159,7 @@
                                                         }}
                                                     </template>
 
-                                                    <template
-                                                        #cell(detalle_retiro)="data"
-                                                    >
+                                                    <template #cell(detalle_retiro)="data">
                                                         {{
                                                             data.item
                                                                 .detalle_retiro
@@ -264,10 +185,8 @@
                     </div>
 
                     <div v-else>
-                        <b-alert show variant="warning"
-                            >Por favor asigne las tasas del dólar y el
-                            peso</b-alert
-                        >
+                        <b-alert show variant="warning">Por favor asigne las tasas del dólar y el
+                            peso</b-alert>
                     </div>
                 </b-container>
             </div>
@@ -294,18 +213,18 @@ export default {
             dolar: this.$store.state.comerce.dolar,
             peso: this.$store.state.comerce.peso,
             caja: [
-                { monto: "0", moneda: "Dólares", tasa: "1", dolares: "0" },
+                { monto: 0, moneda: "Dólares", tasa: 1, dolares: 0 },
                 {
-                    monto: "0",
+                    monto: 0,
                     moneda: "Pesos",
                     tasa: this.$store.state.comerce.peso,
-                    dolares: "0",
+                    dolares: 0,
                 },
                 {
-                    monto: "0",
+                    monto: 0,
                     moneda: "Bolívares",
                     tasa: this.$store.state.comerce.dolar,
-                    dolares: "0",
+                    dolares: 0,
                 },
             ],
             form: {
@@ -649,7 +568,7 @@ export default {
 
         async getRetiros(fecha) {
             await this.$axios
-                .get(`${this.$config.API}/retiros/${fecha}`)
+                .get(`${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`)
                 .then((res) => {
                     this.datosReporte = res.data.data.retiros
                     this.caja = res.data.data.caja
@@ -718,7 +637,7 @@ export default {
 
         async getDataReport(fecha) {
             await this.$axios
-                .get(`${this.$config.API}/retiros/${fecha}`)
+                .get(`${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`)
                 .then((res) => {
                     this.report = res.data.data.retiros
                     /* this.report.forEach(item => {
@@ -743,8 +662,8 @@ export default {
 
     mounted() {
         this.fechaConsulta = this.fechaActual()
-        this.getDataReport(this.fechaActual())
-        this.getRetiros()
+        // this.getDataReport(this.fechaConsulta)
+        this.getRetiros(this.fechaConsulta)
     },
 
     mixins: [mixin],

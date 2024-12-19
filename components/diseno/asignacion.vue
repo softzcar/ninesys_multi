@@ -199,15 +199,15 @@ export default {
                     this.overlay = false
 
                     if (
-                        parseInt(this.$store.state.login.dataUser.accesso) > 0
+                        parseInt(this.$store.state.login.dataUser.acceso) === 1
                     ) {
+                        this.datax = this.dataTable.items
+                    } else {
                         this.datax = this.dataTable.items.filter(
                             (item) =>
                                 item.responsable ===
                                 this.$store.state.login.dataUser.id_empleado
                         )
-                    } else {
-                        this.datax = this.dataTable.items
                     }
                 })
             })

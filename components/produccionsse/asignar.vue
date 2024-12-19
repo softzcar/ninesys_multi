@@ -60,7 +60,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -85,8 +85,8 @@
                                                 </ul>
                                                 <hr />
                                                 <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    :lotes_fisicos="lotes_fisicos
-                                                        " @reload="setReload" :empleados="empleados"
+                                                    ref="asignarEmpleado" :lotes_fisicos="lotes_fisicos"
+                                                    @reload="setReload" :empleados="empleados"
                                                     departamento="Impresión" />
                                             </b-col>
                                         </b-row>
@@ -111,10 +111,6 @@
                                                         " variant="success">
                                                         <b-icon icon="check"></b-icon>
                                                     </b-button>
-                                                    SW
-                                                    {{
-                                                        switches.switchEstampado
-                                                    }}
                                                     <b-form-checkbox v-model="switches.switchEstampado
                                                         " @change="
                                                             postSwitch(
@@ -143,7 +139,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -163,9 +159,10 @@
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    :lotes_fisicos="lotes_fisicos" @reload="setReload"
-                                                    :empleados="empleados" departamento="Estampado" />
+                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
+                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos"
+                                                    @reload="setReload" :empleados="empleados"
+                                                    departamento="Estampado" />
                                             </b-col>
                                         </b-row>
                                     </b-tab>
@@ -215,7 +212,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -237,8 +234,8 @@
                                                 <!-- <pre>{{ item }}</pre> -->
                                                 <hr />
                                                 <pre>item {{ item }}</pre>
-                                                <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    :lotes_fisicos="lotes_fisicos
+                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
+                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
                                                         " @reload="setReload" :empleados="empleados"
                                                     departamento="Corte" />
                                                 <!-- <produccion-guardar-cantidad
@@ -298,7 +295,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -318,8 +315,8 @@
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    :lotes_fisicos="lotes_fisicos
+                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
+                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
                                                         " @reload="setReload" :empleados="empleados"
                                                     departamento="Costura" />
                                             </b-col>
@@ -373,7 +370,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -393,8 +390,8 @@
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    :lotes_fisicos="lotes_fisicos
+                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
+                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
                                                         " :empleados="empleados" departamento="Limpieza"
                                                     @reload="setReload" />
                                             </b-col>
@@ -448,7 +445,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -468,8 +465,8 @@
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    :lotes_fisicos="lotes_fisicos
+                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
+                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
                                                         " departamento="Revisión" @reload="setReload"
                                                     :empleados="empleados" />
                                             </b-col>
@@ -519,7 +516,7 @@ export default {
             title: "Asignar",
             loteInfo: this.orden_productos,
             optionsEmpleados: this.asign,
-            reload: false,
+            reload_old: false,
         }
     },
 
@@ -672,6 +669,10 @@ export default {
                 .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
                 .then((res) => {
                     this.$nuxt.$emit("reload")
+
+                    // Llamar al método del componente hijo 
+                    this.$nuxt.$emit("updateEmpleadoTodoCompleted"); // Emitir el evento personalizado
+
                     // this.reloadPorcentaje()
                     // this.overlay = false;
                     // this.$store.dispatch('produccion/getPorcentaje2', this.item.id_orden)

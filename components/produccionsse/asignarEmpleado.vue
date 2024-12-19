@@ -1,60 +1,38 @@
 <template>
     <div>
         <b-overlay :show="overlay" spinner-small>
-            <div
-                v-if="departamento === 'Corte'"
-                class="mb-2 mt-2"
-                variant="info"
-            >
+            <div v-if="departamento === 'Corte'" class="mb-2 mt-2" variant="info">
                 Cantidad en LOTE <strong>{{ loteCantidadExistencia }}</strong>
             </div>
             <pre>
          item: {{ item }}
-        </pre
-            >
+        </pre>
             <b-row>
                 <b-col>
                     <span class="floatme">
+                    </span>
+                    <span class="floatme">
                         <label>Empleado </label>
-                        <b-form-select
-                            v-model="selected"
-                            :options="empleadosSelect"
-                            size="md"
-                            class="mt-3"
-                            :disabled="inputControlsDisabled"
-                            @change="setDepEmpleado"
-                        ></b-form-select>
+                        <b-form-select v-model="selected" :options="empleadosSelect" size="md" class="mt-3"
+                            :disabled="inputControlsDisabled" @change="setDepEmpleado"></b-form-select>
+                        <b-alert v-if="empleadoAsignado" show variant="success"><strong>Empleado
+                                asignado</strong></b-alert>
+                        <b-alert v-else show variant="info"><strong>Empleado por asignar</strong></b-alert>
                     </span>
 
                     <span class="floatme mt-3" v-if="departamento === 'Corte'">
                         <label>Cortar</label>
-                        <b-input
-                            v-model="cantidadCorte"
-                            min="0"
-                            size="md"
-                            style="width: 65px"
-                            type="number"
-                            :disabled="inputControlsDisabled"
-                        />
+                        <b-input v-model="cantidadCorte" min="0" size="md" style="width: 65px" type="number"
+                            :disabled="inputControlsDisabled" />
                     </span>
 
                     <span class="floatme mt-3" v-if="departamento === 'Corte'">
                         <label>Lote ({{ loteCantidadExistencia }})</label>
-                        <b-input
-                            v-model="loteCantidadSolicitada"
-                            min="0"
-                            size="md"
-                            style="width: 65px"
-                            type="number"
-                            :disabled="inputLoteDisabled"
-                        />
+                        <b-input v-model="loteCantidadSolicitada" min="0" size="md" style="width: 65px" type="number"
+                            :disabled="inputLoteDisabled" />
                     </span>
                     <span class="floatme" style="margin-top: 47px">
-                        <b-button
-                            class="mb-4"
-                            variant="success"
-                            @click="changeCantidad"
-                        >
+                        <b-button class="mb-4" variant="success" @click="changeCantidad">
                             <b-icon icon="check"></b-icon>
                         </b-button>
                     </span>
@@ -68,17 +46,6 @@
           </span> -->
                 </b-col>
             </b-row>
-            <div>
-                <b-alert v-if="empleadoAsignado" show variant="danger"
-                    ><strong
-                        >Este tarea ya fué asignada Empleado ID
-                        {{ selected }}</strong
-                    ></b-alert
-                >
-                <b-alert v-else show variant="info"
-                    ><strong>Empleado por asignar</strong></b-alert
-                >
-            </div>
         </b-overlay>
     </div>
 </template>
@@ -268,7 +235,12 @@ export default {
 
             if (ban) {
                 if (this.departamento != "Corte") {
-                    this.updateEmpleado().then(() => (this.overlay = false))
+                    this.updateEmpleado().then(() => {
+                        this.updateEmpleado().then(() => {
+                            this.getEmpleadoAsignado()
+                            this.overlay = false
+                        })
+                    })
                 } else {
                     const data = new URLSearchParams()
                     data.set("cantidad_a_cortar", this.cantidadCorte)
@@ -290,10 +262,10 @@ export default {
                             // this.loteCantidadExistencia = parseInt(res.data.piezas_actuales)
                             console.log("vamos a recargar lotes y porductos")
                             // this.loteCantidadExistencia = this.$emit('reload', true)
-                            this.overlay = false
-                        })
-                        .then(() => {
-                            this.updateEmpleado()
+                            this.updateEmpleado().then(() => {
+                                this.getEmpleadoAsignado()
+                                this.overlay = false
+                            })
                         })
                         .catch((err) => {
                             this.$fire({
@@ -302,10 +274,10 @@ export default {
                                 html: `Error al actaulizar la cantidad del lote: ${err}`,
                             })
                         })
-                        .finally(() => {
-                            this.getEmpleadoAsignado()
-                            this.overlay = false
-                        })
+                    /* .finally(() => {
+                        this.getEmpleadoAsignado()
+                        this.overlay = false
+                    }) */
                 }
             } else {
                 this.$fire({
@@ -354,7 +326,7 @@ export default {
                     const depEmp = res.data.emp_departamento
                     console.log("Data empleado asignado", res.data)
 
-                    if (depEmp === "none") {
+                    if (depEmp === null) {
                         console.log("empleado NO asignado", empleado)
                         this.empleadoAsignado = false
                     } else {
@@ -362,15 +334,6 @@ export default {
                         this.selected = res.data.id_empleado
                         this.empleadoAsignado = true
                     }
-
-                    /*  if (empleado === null) {
-            console.log("empleado NO asignado", empleado);
-            this.empleadoAsignado = false;
-          } else {
-            console.log("empleado asignado", empleado);
-            this.selected = res.data.id_empleado;
-            this.empleadoAsignado = true;
-          } */
                 })
         },
     },
@@ -420,6 +383,13 @@ export default {
         console.log('ERROR!!!!', err)
         this.overlay = false
       }) */
+    },
+
+    created() {
+        this.$nuxt.$on('updateEmpleadoTodoCompleted', this.getEmpleadoAsignado);
+    },
+    beforeDestroy() {
+        this.$nuxt.$off('updateEmpleadoTodoCompleted', this.getEmpleadoAsignado);
     },
 
     mixins: [mixin],

@@ -6,19 +6,15 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div
-                v-if="
-                    dataUser.departamento === 'Comercialización' ||
-                    dataUser.departamento === 'Administración'
-                "
-            >
+            <div v-if="
+                dataUser.departamento === 'Comercialización' ||
+                dataUser.departamento === 'Administración'
+            ">
                 <b-overlay :show="overlay" spinner-small>
-                    <b-container
-                        v-if="
-                            this.dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
-                        "
-                    >
+                    <b-container v-if="
+                        this.dataUser.departamento === 'Comercialización' ||
+                        dataUser.departamento === 'Administración'
+                    ">
                         <b-row>
                             <b-col>
                                 <h1 class="mb-4">{{ titulo }}</h1>
@@ -29,24 +25,16 @@
                             <b-row>
                                 <b-col>
                                     <h3>Fecha Inicio</h3>
-                                    <b-form-datepicker
-                                        class="mb-4"
-                                        v-model="fechaConsultaInicio"
-                                    />
+                                    <b-form-datepicker class="mb-4" v-model="fechaConsultaInicio" />
                                 </b-col>
                                 <b-col>
                                     <h3>Fecha Fin</h3>
-                                    <b-form-datepicker
-                                        class="mb-4"
-                                        v-model="fechaConsultaFin"
-                                    />
+                                    <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
                                 </b-col>
                             </b-row>
                             <b-row>
                                 <b-col class="text-center">
-                                    <b-button type="submit" variant="primary"
-                                        >BUSCAR</b-button
-                                    >
+                                    <b-button type="submit" variant="primary">BUSCAR</b-button>
                                 </b-col>
                             </b-row>
                         </b-form>
@@ -55,13 +43,7 @@
                             <b-col>
                                 <h3 class="mt-4">Efectivo</h3>
 
-                                <b-table
-                                    striped
-                                    small
-                                    :items="dataReport.efectivo"
-                                    :fields="fields"
-                                    foot-clone
-                                >
+                                <b-table striped small :items="dataReport.efectivo" :fields="fields" foot-clone>
                                     <template #cell(moneda)="data">
                                         {{ data.item.moneda }}
                                         {{ data.item.metodo_pago }}
@@ -111,13 +93,7 @@
                             <b-col>
                                 <h3>Retiros</h3>
 
-                                <b-table
-                                    striped
-                                    small
-                                    :items="dataReport.retiros"
-                                    :fields="fields"
-                                    foot-clone
-                                >
+                                <b-table striped small :items="dataReport.retiros" :fields="fields" foot-clone>
                                     <template #cell(moneda)="data">
                                         {{ data.item.moneda }}
                                         {{ data.item.metodo_pago }}
@@ -167,13 +143,11 @@
                             <b-col>
                                 <h4 class="text-right mb-4">
                                     Total Efectivo
-                                    <span class="money-result"
-                                        >$
+                                    <span class="money-result">$
                                         {{
                                             getTotal("efectivo", "num") -
                                             getTotal("retiros", "num")
-                                        }}</span
-                                    >
+                                        }}</span>
                                 </h4>
                             </b-col>
                         </b-row>
@@ -182,13 +156,7 @@
                             <b-col>
                                 <h3>Transferencias</h3>
 
-                                <b-table
-                                    striped
-                                    small
-                                    :items="dataReport.digital"
-                                    :fields="fields"
-                                    foot-clone
-                                >
+                                <b-table striped small :items="dataReport.digital" :fields="fields" foot-clone>
                                     <template #cell(moneda)="data">
                                         {{ data.item.moneda }}
                                         {{ data.item.metodo_pago }}
@@ -239,16 +207,14 @@
                                 <hr />
                                 <h4 class="text-right mb-4 mt-4 pb-4">
                                     Total General
-                                    <span class="money-result"
-                                        >$
+                                    <span class="money-result">$
                                         {{
                                             totalGeneral(
                                                 getTotal("efectivo", "num"),
                                                 getTotal("digital", "num"),
                                                 getTotal("retiros", "num")
                                             )
-                                        }}</span
-                                    >
+                                        }}</span>
                                 </h4>
                             </b-col>
                         </b-row>
@@ -469,7 +435,7 @@ export default {
 
         async getDataReport(fecha) {
             await this.$axios
-                .get(`${this.$config.API}/retiros/${fecha}`)
+                .get(`${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`)
                 .then((res) => {
                     this.retiros = res.data.data
                     /* this.report.forEach(item => {
@@ -504,6 +470,6 @@ export default {
         )
     },
 
-    mounted() {},
+    mounted() { },
 }
 </script>
