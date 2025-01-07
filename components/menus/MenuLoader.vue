@@ -61,11 +61,11 @@
                         {{ $store.state.login.dataEmpresa.nombre }}
                     </p>
                     <div>
-                        <checkConnection
-                            style="float: right; margin-left: 12px"
-                        />
-                        <b-icon icon="person" /> {{ dataUser.nombre }} |
-                        {{ dataUser.departamento }}
+                        <checkConnection style="float: right; margin-left: 12px" />
+                        <div class="user-info">
+                            <b-icon icon="person" /> {{ dataUser.nombre }} |
+                            {{ dataUser.departamento }}
+                        </div>
                     </div>
                 </b-col>
             </b-row>
@@ -88,3 +88,9 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.user-info {
+    padding-top: 8px;
+}
+</style>

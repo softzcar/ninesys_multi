@@ -3,9 +3,9 @@
         <b-button variant="primary" @click="$bvModal.show(modal)">
             <b-icon icon="person-plus"></b-icon>
         </b-button>
-        <pre class="force">
+        <!-- <pre class="force">
             switches {{ switches }}
-        </pre>
+        </pre> -->
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
             <b-overlay :show="overlay" spinner-small>
                 <b-container>
@@ -60,7 +60,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -139,7 +139,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -212,7 +212,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -295,7 +295,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -370,7 +370,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -445,7 +445,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>

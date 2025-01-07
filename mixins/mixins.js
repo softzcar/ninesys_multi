@@ -8,11 +8,23 @@ export default {
         }
     },
     methods: {
-        /* disableFutureDates(date) {
-      const currentDate = new Date()
-      currentDate.setHours(0, 0, 0, 0)
-      return date > currentDate
-    }, */
+        async sendMessageClient(idOrden) {
+            this.overlay = true
+
+            const data = new URLSearchParams()
+            data.set(
+                "departamento",
+                this.$store.state.login.dataUser.departamento
+            )
+            data.set("id_orden", idOrden)
+
+            await this.$axios
+                .post(`${this.$config.API}/send-message-produccion`, data)
+                .then((res) => {
+                    this.overlay = false
+                })
+        },
+
         evalTF(param) {
             if (param === 1 || param === "1") {
                 return true

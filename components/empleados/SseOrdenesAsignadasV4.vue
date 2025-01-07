@@ -9,11 +9,7 @@
             <div v-if="ordenesSize < 1">
                 <b-row>
                     <b-col>
-                        <b-alert
-                            :show="showAlert"
-                            class="text-center"
-                            variant="info"
-                        >
+                        <b-alert :show="showAlert" class="text-center" variant="info">
                             <h3>{{ msg }}</h3>
                         </b-alert>
                     </b-col>
@@ -26,18 +22,11 @@
                     <b-row>
                         <b-col offset-lg="8" offset-xl="8">
                             <b-input-group class="mb-4" size="sm">
-                                <b-form-input
-                                    id="filter-input"
-                                    v-model="filter"
-                                    type="search"
-                                    placeholder="Filtrar Resultados"
-                                ></b-form-input>
+                                <b-form-input id="filter-input" v-model="filter" type="search"
+                                    placeholder="Filtrar Resultados"></b-form-input>
 
                                 <b-input-group-append>
-                                    <b-button
-                                        :disabled="!filter"
-                                        @click="filter = ''"
-                                    >
+                                    <b-button :disabled="!filter" @click="filter = ''">
                                         Limpiar
                                     </b-button>
                                 </b-input-group-append>
@@ -50,11 +39,7 @@
                         <b-col>
                             <b-row class="text-center mb-4">
                                 <b-col>
-                                    <b-button
-                                        variant="success"
-                                        @click="reloadMe"
-                                        >Recargar</b-button
-                                    >
+                                    <b-button variant="success" @click="reloadMe">Recargar</b-button>
                                 </b-col>
                             </b-row>
                         </b-col>
@@ -67,29 +52,14 @@
                             </h3>
                         </b-col>
 
-                        <b-alert
-                            class="text-center"
-                            v-if="dataTableReposiciones.length < 1"
-                            show
-                            variant="info"
-                            >No tienes reposiciones en curso</b-alert
-                        >
-                        <b-table
-                            v-else
-                            stacked
-                            :items="dataTableReposiciones"
-                            :fields="filedsLista"
-                            :filter-included-fields="includedFields"
-                            @filtered="onFiltered"
-                            :filter="filter"
-                        >
+                        <b-alert class="text-center" v-if="dataTableReposiciones.length < 1" show variant="info">No
+                            tienes reposiciones en curso</b-alert>
+                        <b-table v-else stacked :items="dataTableReposiciones" :fields="filedsLista"
+                            :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                             <template #cell(orden)="row">
                                 <div style="width: 164%; float: left">
                                     <span class="floatme">
-                                        <linkSearch
-                                            class="floatme mb-2"
-                                            :id="row.item.orden"
-                                        />
+                                        <linkSearch class="floatme mb-2" :id="row.item.orden" />
                                     </span>
 
                                     <!-- Ver detalles -->
@@ -109,71 +79,42 @@
 
                                     <!-- Terminar -->
                                     <span class="floatme">
-                                        <empleados-SseOrdenesAsignadasModalExtra
-                                            :departamento="
-                                                $store.state.login.dataUser
-                                                    .departamento
-                                            "
-                                            :item="row.item"
-                                            :items="
-                                                filterOrder(
-                                                    row.item.orden,
-                                                    'en curso'
-                                                )
-                                            "
-                                            class="floatme"
-                                            :esreposicion="1"
-                                            :insumosimp="insumosImpresion"
-                                            :insumosest="insumosEstampado"
-                                            :insumoscor="insumosCorte"
-                                            :insumoscos="insumosCostura"
-                                            :insumoslim="insumosLimpieza"
-                                            :insumosrev="insumosRevision"
-                                            tipo="todo"
-                                            :idorden="row.item.orden"
-                                            :id_ordenes_productos="
-                                                row.item.id_ordenes_productos
-                                            "
-                                            @reload="reloadMe()"
-                                        />
+                                        <empleados-SseOrdenesAsignadasModalExtra :departamento="$store.state.login.dataUser
+                                            .departamento
+                                            " :item="row.item" :items="filterOrder(
+                                                row.item.orden,
+                                                'en curso'
+                                            )
+                                                " class="floatme" :esreposicion="1" :insumosimp="insumosImpresion"
+                                            :insumosest="insumosEstampado" :insumoscor="insumosCorte"
+                                            :insumoscos="insumosCostura" :insumoslim="insumosLimpieza"
+                                            :insumosrev="insumosRevision" tipo="todo" :idorden="row.item.orden"
+                                            :id_ordenes_productos="row.item.id_ordenes_productos
+                                                " @reload="reloadMe()" />
                                     </span>
 
                                     <!-- Ver Diseño -->
                                     <span class="floatme">
-                                        <diseno-view-image
-                                            class="floatme mb-2"
-                                            :id="row.item.orden"
-                                        />
+                                        <diseno-view-image class="floatme mb-2" :id="row.item.orden" />
                                     </span>
 
                                     <!-- ProgressBar -->
                                     <span class="floatme" style="width: 160px">
-                                        <empleados-ProgressBarEmpleados
-                                            :idOrden="row.item.orden"
-                                        />
+                                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
                                     </span>
 
                                     <!-- Reposición -->
                                     <span class="floatme">
-                                        <empleados-reposicion
-                                            @reload_this="reloadMe"
-                                            :id_orden="row.item.orden"
-                                        />
+                                        <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" />
                                     </span>
 
                                     <!-- Detalles productos -->
                                     <span class="floatme">
-                                        <produccion-control-de-produccion-detalles-editor
-                                            esreposicion="true"
-                                            :idorden="row.item.orden"
-                                            :detalles="row.item.observaciones"
-                                            :detalle_empleado="
-                                                row.item.detalle_empleado
-                                            "
-                                            :productos="
-                                                productsFilter(row.item.orden)
-                                            "
-                                        />
+                                        <produccion-control-de-produccion-detalles-editor esreposicion="true"
+                                            :idorden="row.item.orden" :detalles="row.item.observaciones"
+                                            :detalle_empleado="row.item.detalle_empleado
+                                                " :productos="productsFilter(row.item.orden)
+                                                    " />
                                     </span>
                                     <!-- Detalle Reposición -->
                                     <!-- <span class="floatme">
@@ -193,118 +134,67 @@
                     <b-row>
                         <b-col>
                             <h3>En Curso {{ dataTableEnCurso.length }}</h3>
-                            <b-alert
-                                class="text-center"
-                                v-if="dataTableEnCurso.length < 1"
-                                show
-                                variant="info"
-                                >No tienes tareas en curso</b-alert
-                            >
+                            <b-alert class="text-center" v-if="dataTableEnCurso.length < 1" show variant="info">No
+                                tienes tareas en
+                                curso</b-alert>
                             <!-- BOTONES EN CURSO -->
-                            <b-table
-                                v-else
-                                stacked
-                                :items="dataTableEnCurso"
-                                :fields="filedsLista"
-                                :filter-included-fields="includedFields"
-                                @filtered="onFiltered"
-                                :filter="filter"
-                            >
+                            <b-table v-else stacked :items="dataTableEnCurso" :fields="filedsLista"
+                                :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                                 <template #cell(orden)="row">
                                     <div style="width: 164%; float: left">
                                         <span class="floatme">
-                                            <linkSearch
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
+                                            <linkSearch class="floatme mb-2" :id="row.item.orden" />
                                         </span>
 
                                         <!-- Terminar -->
                                         <span class="floatme">
-                                            <empleados-SseOrdenesAsignadasModalExtra
-                                                :departamento="
-                                                    $store.state.login.dataUser
-                                                        .departamento
-                                                "
-                                                :item="row.item"
-                                                :items="
-                                                    filterOrder(
-                                                        row.item.orden,
-                                                        'en curso'
-                                                    )
-                                                "
-                                                class="floatme"
-                                                :esreposicion="0"
-                                                :insumosimp="insumosImpresion"
-                                                :insumosest="insumosEstampado"
-                                                :insumoscos="insumosCostura"
-                                                :insumoslim="insumosLimpieza"
-                                                :insumosrev="insumosRevision"
-                                                :insumoscor="insumosCorte"
-                                                tipo="todo"
-                                                :idorden="row.item.orden"
-                                                :id_ordenes_productos="
-                                                    row.item
-                                                        .id_ordenes_productos
-                                                "
-                                                @reload="reloadMe()"
-                                            />
+                                            <empleados-SseOrdenesAsignadasModalExtra :departamento="$store.state.login.dataUser
+                                                .departamento
+                                                " :item="row.item" :items="filterOrder(
+                                                    row.item.orden,
+                                                    'en curso'
+                                                )
+                                                    " class="floatme" :esreposicion="0" :insumosimp="insumosImpresion"
+                                                :insumosest="insumosEstampado" :insumoscos="insumosCostura"
+                                                :insumoslim="insumosLimpieza" :insumosrev="insumosRevision"
+                                                :insumoscor="insumosCorte" tipo="todo" :idorden="row.item.orden"
+                                                :id_ordenes_productos="row.item
+                                                    .id_ordenes_productos
+                                                    " @reload="reloadMe()" />
                                         </span>
 
                                         <!-- Ver Diseño -->
                                         <span class="floatme">
-                                            <diseno-view-image
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
+                                            <diseno-view-image class="floatme mb-2" :id="row.item.orden" />
                                         </span>
 
                                         <!-- ProgressBar -->
-                                        <span
-                                            class="floatme"
-                                            style="width: 160px"
-                                        >
-                                            <empleados-ProgressBarEmpleados
-                                                :idOrden="row.item.orden"
-                                            />
+                                        <span class="floatme" style="width: 160px">
+                                            <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
                                         </span>
 
                                         <!-- Reposición -->
                                         <span class="floatme">
-                                            <empleados-reposicion
-                                                @reload_this="reloadMe"
-                                                :id_orden="row.item.orden"
-                                            />
+                                            <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" />
                                         </span>
 
                                         <!-- Detalles -->
                                         <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor
-                                                esreposicion="false"
-                                                :idorden="row.item.orden"
-                                                :detalles="
-                                                    row.item.observaciones
-                                                "
-                                                :detalle_empleado="
-                                                    row.item.detalle_empleado
-                                                "
-                                                :productos="
-                                                    productsFilter(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
+                                            <produccion-control-de-produccion-detalles-editor esreposicion="false"
+                                                :idorden="row.item.orden" :detalles="row.item.observaciones
+                                                    " :detalle_empleado="row.item.detalle_empleado
+                                                        " :productos="productsFilter(
+                                                            row.item.orden
+                                                        )
+                                                            " />
                                         </span>
 
                                         <!-- Vinculadas -->
                                         <span class="floatme">
-                                            <ordenes-vinculadas-v2
-                                                :ordenes_vinculadas="
-                                                    filterVinculdas(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
+                                            <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(
+                                                row.item.orden
+                                            )
+                                                " />
                                         </span>
                                     </div>
                                 </template>
@@ -317,88 +207,50 @@
                         <b-col>
                             <h3>Pendientes {{ dataTablePendiente.length }}</h3>
 
-                            <b-alert
-                                class="text-center"
-                                v-if="dataTablePendiente.length < 1"
-                                show
-                                variant="info"
-                                >No tienes tareas pendientes</b-alert
-                            >
+                            <b-alert class="text-center" v-if="dataTablePendiente.length < 1" show variant="info">No
+                                tienes tareas
+                                pendientes</b-alert>
 
-                            <b-table
-                                v-else
-                                stacked
-                                :items="dataTablePendiente"
-                                :fields="filedsLista"
-                                :filter-included-fields="includedFields"
-                                @filtered="onFiltered"
-                                :filter="filter"
-                            >
+                            <b-table v-else stacked :items="dataTablePendiente" :fields="filedsLista"
+                                :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                                 <template #cell(orden)="row">
                                     <div style="width: 164%; float: left">
                                         <span class="floatme">
-                                            <linkSearch
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
+                                            <linkSearch class="floatme mb-2" :id="row.item.orden" />
                                         </span>
 
                                         <span class="floatme">
-                                            <b-button
-                                                block
-                                                size="xl"
-                                                variant="info"
-                                                @click="
-                                                    iniciarTodo(row.item.orden)
-                                                "
-                                                >Iniciar Todo
+                                            <b-button block size="xl" variant="info" @click="
+                                                iniciarTodo(row.item.orden)
+                                                ">Iniciar Todo
                                             </b-button>
                                         </span>
 
                                         <span class="floatme">
-                                            <diseno-view-image
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
+                                            <diseno-view-image class="floatme mb-2" :id="row.item.orden" />
                                         </span>
 
-                                        <span
-                                            class="floatme"
-                                            style="width: 160px"
-                                        >
-                                            <empleados-ProgressBarEmpleados
-                                                :idOrden="row.item.orden"
-                                            />
+                                        <span class="floatme" style="width: 160px">
+                                            <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
                                         </span>
 
                                         <!-- Detalles -->
                                         <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor
-                                                esreposicion="false"
-                                                :idorden="row.item.orden"
-                                                :detalles="
-                                                    row.item.observaciones
-                                                "
-                                                :detalle_empleado="
-                                                    row.item.detalle_empleado
-                                                "
-                                                :productos="
-                                                    productsFilter(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
+                                            <produccion-control-de-produccion-detalles-editor esreposicion="false"
+                                                :idorden="row.item.orden" :detalles="row.item.observaciones
+                                                    " :detalle_empleado="row.item.detalle_empleado
+                                                        " :productos="productsFilter(
+                                                            row.item.orden
+                                                        )
+                                                            " />
                                         </span>
 
                                         <!-- Vinculadas -->
                                         <span class="floatme">
-                                            <ordenes-vinculadas-v2
-                                                :ordenes_vinculadas="
-                                                    filterVinculdas(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
+                                            <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(
+                                                row.item.orden
+                                            )
+                                                " />
                                         </span>
                                     </div>
                                 </template>
@@ -993,6 +845,20 @@ export default {
                     console.log("Rendimienot enviado")
                 })
         },
+
+        async sendMessage(idOrden) {
+            this.overlay = true
+
+            const data = new URLSearchParams()
+            data.set('departamento', this.$store.state.login.dataUser.departamento)
+            data.set('id_orden', idOrden)
+
+            await this.$axios.post(`${this.$config.API}/send-message-produccion`, data).then(res => {
+                // this.$store.dispatch('comerce/getOrdenesActivas').then(() => (this.overlay = false))
+                this.overlay = false
+            })
+        },
+
         iniciarTodo(idOrden) {
             console.log("Itmes a iniciar", this.dataTablePendiente)
 
@@ -1011,8 +877,10 @@ export default {
                             "inicio",
                             item.id_lotes_detalles,
                             item.unidades
-                        ).then(() => {})
+                        ).then(() => { })
                     })
+
+                    this.sendMessage(idOrden)
                 })
                 .catch((err) => {
                     console.log(`Error al iniciar la tarea`, err)
@@ -1062,11 +930,11 @@ export default {
                         // Discriminar departamentos
                         if (
                             this.$store.state.login.dataUser.departamento ===
-                                "Impresión" ||
+                            "Impresión" ||
                             this.$store.state.login.dataUser.departamento ===
-                                "Estampado" ||
+                            "Estampado" ||
                             this.$store.state.login.dataUser.departamento ===
-                                "Corte"
+                            "Corte"
                         ) {
                             this.$fire({
                                 html: this.promptHTML,
@@ -1160,8 +1028,8 @@ export default {
                 const nuevoValor = `${nuevoDia
                     .toString()
                     .padStart(2, "0")}-${nuevoMes
-                    .toString()
-                    .padStart(2, "0")}-${nuevoAnio}`
+                        .toString()
+                        .padStart(2, "0")}-${nuevoAnio}`
 
                 return nuevoValor
             }

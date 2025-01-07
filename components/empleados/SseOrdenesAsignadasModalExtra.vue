@@ -2,21 +2,19 @@
     <div>
         <b-button @click="$bvModal.show(modal)" variant="success">{{
             btnText
-        }}</b-button>
+            }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
-                <div
-                    v-if="
-                        departamento === 'Impresión' ||
-                        departamento === 'Estampado' ||
-                        departamento === 'Corte' ||
-                        departamento === 'Costura' ||
-                        departamento === 'Limpieza' ||
-                        departamento === 'Revisión'
-                    "
-                >
+                <div v-if="
+                    departamento === 'Impresión' ||
+                    departamento === 'Estampado' ||
+                    departamento === 'Corte' ||
+                    departamento === 'Costura' ||
+                    departamento === 'Limpieza' ||
+                    departamento === 'Revisión'
+                ">
                     <!-- <pre style="display: block !important">
                     {{ $props.esreposicion }}
                   </pre
@@ -24,50 +22,18 @@
                     <b-form @reset="onReserForm">
                         <div v-if="departamento === 'Impresión'">
                             <!-- Tintas -->
-                            <b-form-group
-                                id="input-group-1"
-                                label="Tintas:"
-                                label-for="input-1"
-                            >
-                                <b-form-input
-                                    id="input-1"
-                                    v-model="formImp.colorCyan"
-                                    placeholder="Cyan"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    class="cyan-label"
-                                ></b-form-input>
+                            <b-form-group id="input-group-1" label="Tintas:" label-for="input-1">
+                                <b-form-input id="input-1" v-model="formImp.colorCyan" placeholder="Cyan" type="number"
+                                    step="0.01" min="0" class="cyan-label"></b-form-input>
 
-                                <b-form-input
-                                    id="input-2"
-                                    v-model="formImp.colorMagenta"
-                                    placeholder="Magenta"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    class="magenta-label"
-                                ></b-form-input>
+                                <b-form-input id="input-2" v-model="formImp.colorMagenta" placeholder="Magenta"
+                                    type="number" step="0.01" min="0" class="magenta-label"></b-form-input>
 
-                                <b-form-input
-                                    id="input-3"
-                                    v-model="formImp.colorYellow"
-                                    placeholder="Yellow"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    class="yellow-label"
-                                ></b-form-input>
+                                <b-form-input id="input-3" v-model="formImp.colorYellow" placeholder="Yellow"
+                                    type="number" step="0.01" min="0" class="yellow-label"></b-form-input>
 
-                                <b-form-input
-                                    id="input-4"
-                                    v-model="formImp.colorBlack"
-                                    placeholder="Black"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    class="black-label"
-                                ></b-form-input>
+                                <b-form-input id="input-4" v-model="formImp.colorBlack" placeholder="Black"
+                                    type="number" step="0.01" min="0" class="black-label"></b-form-input>
                             </b-form-group>
                         </div>
                         <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO -->
@@ -75,63 +41,34 @@
                           {{ insumosimp }}
                          </pre
                         > -->
-                        <p
-                            v-if="
-                                departamento === 'Estampado' ||
-                                departamento === 'Corte'
-                            "
-                        >
+                        <p v-if="
+                            departamento === 'Estampado' ||
+                            departamento === 'Corte'
+                        ">
                             Material utilizado: {{ materialUtilizado }} Metros
                         </p>
 
                         <!-- MUESTRA ROLLOS DE PAPEL SI ESTA EN CONFIGURACION -->
                         <div v-if="showSelect">
-                            <b-button
-                                variant="light"
-                                @click="addItem"
-                                aria-label="Agregar insumo"
-                            >
+                            <b-button variant="light" @click="addItem" aria-label="Agregar insumo">
                                 <b-icon icon="plus-lg"></b-icon>
                             </b-button>
-                            <b-table
-                                responsive
-                                :primary-key="form.id"
-                                :fields="campos"
-                                :items="form"
-                                small
-                            >
+                            <b-table responsive :primary-key="form.id" :fields="campos" :items="form" small>
                                 <template #cell(input)="row">
-                                    <b-form-select
-                                        id="input-6"
-                                        v-model="form[row.index].select"
-                                        :options="selectOptions"
-                                        required
-                                    ></b-form-select>
-                                    <b-form-input
-                                        id="input-7"
-                                        v-model="form[row.index].input"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="Peso"
-                                        required
-                                    ></b-form-input>
+                                    <b-form-select id="input-6" v-model="form[row.index].select"
+                                        :options="selectOptions" required></b-form-select>
+                                    <b-form-input id="input-7" v-model="form[row.index].input" type="number" step="0.01"
+                                        min="0" placeholder="Peso" required></b-form-input>
                                 </template>
 
                                 <template #cell(id)="row">
-                                    <b-button
-                                        variant="danger"
-                                        @click="removeItem(row.index)"
-                                        aria-label="Agregar insumo"
-                                    >
+                                    <b-button variant="danger" @click="removeItem(row.index)"
+                                        aria-label="Agregar insumo">
                                         <b-icon icon="trash"></b-icon>
                                     </b-button>
 
-                                    <b-button
-                                        variant="primary"
-                                        @click="terminarRollo(row.index)"
-                                        aria-label="Agregar insumo"
-                                    >
+                                    <b-button variant="primary" @click="terminarRollo(row.index)"
+                                        aria-label="Agregar insumo">
                                         <b-icon icon="stoplights"></b-icon>
                                     </b-button>
                                 </template>
@@ -140,30 +77,12 @@
 
                         <div v-if="departamento === 'Corte'">
                             <p>Peso del desperdicio en kilos</p>
-                            <b-form-input
-                                id="input-13"
-                                v-model="formCor.input"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                placeholder="Peso desperdicio"
-                                required
-                                class="mb-4"
-                            ></b-form-input>
+                            <b-form-input id="input-13" v-model="formCor.input" type="number" step="0.01" min="0"
+                                placeholder="Peso desperdicio" required class="mb-4"></b-form-input>
                         </div>
 
-                        <b-button
-                            :disbaled="ButtonDisabled"
-                            @click="validateForm()"
-                            variant="primary"
-                            >Enviar</b-button
-                        >
-                        <b-button
-                            :disbaled="ButtonDisabled"
-                            type="reset"
-                            variant="danger"
-                            >Borrar</b-button
-                        >
+                        <b-button :disbaled="ButtonDisabled" @click="validateForm()" variant="primary">Enviar</b-button>
+                        <b-button :disbaled="ButtonDisabled" type="reset" variant="danger">Borrar</b-button>
                     </b-form>
                 </div>
             </b-overlay>
@@ -868,6 +787,7 @@ export default {
                         item.id_lotes_detalles,
                         item.unidades
                     ).then(() => {
+                        // Enviar mensaje al cliente
                         /* this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
                             // console.log('Modal is about to be shown', bvEvent, modal)
                             }); */
@@ -992,14 +912,17 @@ export default {
     background-color: black;
     color: antiquewhite;
 }
+
 .cyan-label {
     background-color: cyan;
     color: black;
 }
+
 .yellow-label {
     background-color: yellow;
     color: black;
 }
+
 .magenta-label {
     background-color: magenta;
     color: black;

@@ -26,6 +26,7 @@ export default {
         CDN: `https://cdn.nineteengreen.com`,
         LIVE: `https://live.nineteengreen.com`,
         APP_URL: `https://app.nineteengreen.com`,
+        WS_API: `http://194.195.86.253:3000`,
 
         // NINETEENCUSTOM PRODUCTION
         /*  LOCAL_IP: `https://api.nineteencustom.com`,
