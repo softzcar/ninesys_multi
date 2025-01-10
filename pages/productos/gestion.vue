@@ -6,36 +6,24 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div
-                v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Producción'
-                "
-            >
+            <div v-if="
+                dataUser.departamento === 'Administración' ||
+                dataUser.departamento === 'Producción'
+            ">
                 <b-overlay :show="overlay" spinner-small>
-                    <b-container
-                        fluid
-                        v-if="
-                            dataUser.departamento === 'Administración' ||
-                            dataUser.departamento === 'Producción'
-                        "
-                    >
+                    <b-container fluid v-if="
+                        dataUser.departamento === 'Administración' ||
+                        dataUser.departamento === 'Producción'
+                    ">
                         <b-row>
                             <!-- <pre>{{ ordenes }}</pre> -->
                             <b-col offset-lg="8" offset-xl="8">
                                 <b-input-group class="mb-4" size="sm">
-                                    <b-form-input
-                                        id="filter-input"
-                                        v-model="filter"
-                                        type="search"
-                                        placeholder="Filtrar Resultados"
-                                    ></b-form-input>
+                                    <b-form-input id="filter-input" v-model="filter" type="search"
+                                        placeholder="Filtrar Resultados"></b-form-input>
 
                                     <b-input-group-append>
-                                        <b-button
-                                            :disabled="!filter"
-                                            @click="filter = ''"
-                                        >
+                                        <b-button :disabled="!filter" @click="filter = ''">
                                             Limpiar
                                         </b-button>
                                     </b-input-group-append>
@@ -47,53 +35,30 @@
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
                                 <!-- <inventario-InsumoNuevo @reload="getProducts" /> -->
-                                <products-new
-                                    class="mb-4"
-                                    @r="getResponseNewProduct"
-                                />
+                                <products-new class="mb-4" @r="getResponseNewProduct" />
                             </b-col>
                         </b-row>
                         <b-row>
                             <b-col>
-                                <b-pagination
-                                    v-model="currentPage"
-                                    :total-rows="totalRows"
-                                    :per-page="perPage"
-                                ></b-pagination>
+                                <b-pagination v-model="currentPage" :total-rows="totalRows"
+                                    :per-page="perPage"></b-pagination>
 
                                 <p class="mt-3">
                                     Página actual: {{ currentPage }}
                                 </p>
 
-                                <b-table
-                                    ref="table"
-                                    small
-                                    striped
-                                    fixed
-                                    hover
-                                    :items="dataTable"
-                                    :fields="fields"
-                                    :per-page="perPage"
-                                    :filter="filter"
-                                    :current-page="currentPage"
-                                    @filtered="onFiltered"
-                                    :filter-included-fields="includedFields"
-                                >
+                                <b-table ref="table" small striped fixed hover :items="dataTable" :fields="fields"
+                                    :per-page="perPage" :filter="filter" :current-page="currentPage"
+                                    @filtered="onFiltered" :filter-included-fields="includedFields">
                                     <template #cell(cod)="data">
                                         <span class="floatme">
-                                            <products-ProductEditar
-                                                :key="data.item.cod"
-                                                @reload="getProducts"
-                                                :data="data.item"
-                                            />
+                                            <products-ProductEditar :key="data.item.cod" @reload="getProducts"
+                                                :data="data.item" />
                                         </span>
                                         <span class="floatme">
-                                            <b-button
-                                                variant="danger"
-                                                v-on:click="
-                                                    deleteProduct(data.item.cod)
-                                                "
-                                                ><b-icon icon="trash"></b-icon>
+                                            <b-button variant="danger" v-on:click="
+                                                deleteProduct(data.item.cod)
+                                                "><b-icon icon="trash"></b-icon>
                                             </b-button>
                                         </span>
                                     </template>
@@ -104,25 +69,15 @@
                                     </template>
 
                                     <template #cell(categories)="data">
-                                        <b-badge
-                                            pill
-                                            variant="info"
-                                            v-for="category in getCategoriesWithLetters(
-                                                data.item.categories
-                                            )"
-                                            :key="category.id"
-                                            class="floatme"
-                                        >
+                                        <b-badge pill variant="info" v-for="category in getCategoriesWithLetters(
+                                            data.item.categories
+                                        )" :key="category.id" class="floatme">
                                             {{ category.name }}
                                         </b-badge>
                                     </template>
                                 </b-table>
                             </b-col>
                         </b-row>
-                        <pre>
-  {{ dataTable }}
-</pre
-                        >
                     </b-container>
                 </b-overlay>
             </div>

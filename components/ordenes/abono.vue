@@ -15,10 +15,7 @@
             <span v-if="moneyFormatter(calculated) != '$0.00'" class="floatme">
                 <strong>Resta:</strong> {{ moneyFormatter(calculated) }}
             </span>
-            <span
-                v-if="moneyFormatter(dataCalc.descuento) != '$0.00'"
-                class="floatme"
-            >
+            <span v-if="moneyFormatter(dataCalc.descuento) != '$0.00'" class="floatme">
                 <strong>Desc: </strong>{{ moneyFormatter(dataCalc.descuento) }}
             </span>
             <!-- <span
@@ -34,32 +31,15 @@
                 <b-overlay :show="overlay" spinner-small>
                     <b-container>
                         <b-row>
-                            <b-col
-                                xs="12"
-                                sm="12"
-                                md="6"
-                                lg="6"
-                                xl="6"
-                                offset-md="6"
-                                offset-lg="6"
-                                offset-xl="6"
-                            >
+                            <b-col xs="12" sm="12" md="6" lg="6" xl="6" offset-md="6" offset-lg="6" offset-xl="6">
                                 <h5>Tasas del día</h5>
                                 <b-form>
                                     <b-form-group label="Peso">
-                                        <b-form-input
-                                            type="number"
-                                            v-model="peso"
-                                            @change="guardarPeso"
-                                        />
+                                        <b-form-input type="number" v-model="peso" @change="guardarPeso" />
                                     </b-form-group>
                                     <b-form-group label="Dólar">
-                                        <b-form-input
-                                            type="number"
-                                            class="mb-4"
-                                            v-model="dolar"
-                                            @change="guardarDolar"
-                                        />
+                                        <b-form-input type="number" class="mb-4" v-model="dolar"
+                                            @change="guardarDolar" />
                                     </b-form-group>
                                 </b-form>
                             </b-col>
@@ -70,36 +50,19 @@
                         <b-row>
                             <b-col class="mb-4">
                                 <p class="mt-4 mb-4">
-                                    <b-alert
-                                        :show="showError"
-                                        variant="danger"
-                                        >{{ errorMsg }}</b-alert
-                                    >
-                                    <b-alert
-                                        :show="showSuccess"
-                                        class="text-center"
-                                        variant="success"
-                                        >{{ successMsg }}</b-alert
-                                    >
+                                    <b-alert :show="showError" variant="danger">{{ errorMsg }}</b-alert>
+                                    <b-alert :show="showSuccess" class="text-center" variant="success">{{ successMsg
+                                        }}</b-alert>
                                 </p>
-                                <pre style="background-color: chocolate">
-                  {{ dataTable.items }}
-                </pre
-                                >
+                                <p>
+                                    <b-button :disabled="inputDisabled" class="mt-4" variant="success" block
+                                        @click="enviarSaldo"><b-icon icon="whatsapp" variant="light" size="sm"></b-icon>
+                                        Enviar saldo al cliente</b-button>
+                                </p>
                                 <h4 class="mt-4">Histórico</h4>
-                                <b-table
-                                    sort-icon-left
-                                    ref="table"
-                                    responsive
-                                    small
-                                    :fields="campos"
-                                    :items="item"
-                                >
+                                <b-table sort-icon-left ref="table" responsive small :fields="campos" :items="item">
                                     <template #cell(orden)="data">
-                                        <linkSearch
-                                            :key="data.item._id"
-                                            :id="data.item.orden"
-                                        />
+                                        <linkSearch :key="data.item._id" :id="data.item.orden" />
                                     </template>
 
                                     <template #cell(monto)="data">
@@ -146,22 +109,18 @@
                                 <h4 class="mt-4">Estado actual</h4>
                                 <b-list-group>
                                     <b-list-group-item>
-                                        <strong>Total orden: </strong
-                                        >{{ moneyFormatter(dataCalc.total) }}
+                                        <strong>Total orden: </strong>{{ moneyFormatter(dataCalc.total) }}
                                     </b-list-group-item>
                                     <b-list-group-item>
-                                        <strong>Abonado: </strong
-                                        >{{ moneyFormatter(dataCalc.abono) }}
+                                        <strong>Abonado: </strong>{{ moneyFormatter(dataCalc.abono) }}
                                     </b-list-group-item>
                                     <b-list-group-item>
-                                        <strong>Descuentos: </strong
-                                        >{{
+                                        <strong>Descuentos: </strong>{{
                                             moneyFormatter(dataCalc.descuento)
                                         }}
                                     </b-list-group-item>
                                     <b-list-group-item>
-                                        <strong>Total: </strong
-                                        >{{
+                                        <strong>Total: </strong>{{
                                             moneyFormatter(
                                                 dataCalc.total_abono_descuento
                                             )
@@ -186,75 +145,40 @@
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-1"
-                                            label="EFECTIVO"
-                                            label-for="input-dolares-efectivo"
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-dolares-efectivo"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                @change="updateMontoAbono"
-                                                v-model="
-                                                    form.montoDolaresEfectivo
-                                                "
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-1" label="EFECTIVO"
+                                            label-for="input-dolares-efectivo" class="pl-2">
+                                            <b-form-input id="input-dolares-efectivo" type="number" step="0.10" min="0"
+                                                @change="updateMontoAbono" v-model="form.montoDolaresEfectivo
+                                                    "></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-2"
-                                            label="ZELLE"
-                                            label-for="input-dolares-zelle"
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-dolares-zelle"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
+                                        <b-form-group id="input-group-2" label="ZELLE" label-for="input-dolares-zelle"
+                                            class="pl-2">
+                                            <b-form-input id="input-dolares-zelle" type="number" step="0.10" min="0"
                                                 @change="updateMontoAbono"
-                                                v-model="form.montoDolaresZelle"
-                                            ></b-form-input>
+                                                v-model="form.montoDolaresZelle"></b-form-input>
                                         </b-form-group>
                                         <b-form-group label="Detalle Zelle">
-                                            <b-form-input
-                                                v-model="form.detalleZelle"
-                                                placeholder="Detalle Zelle"
-                                            ></b-form-input>
+                                            <b-form-input v-model="form.detalleZelle"
+                                                placeholder="Detalle Zelle"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-3"
-                                            label="BANESCO PANAMA"
-                                            label-for="input-dolares-zelle"
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-dolares-zelle"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                @change="updateMontoAbono"
-                                                v-model="
-                                                    form.montoDolaresPanama
-                                                "
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-3" label="BANESCO PANAMA"
+                                            label-for="input-dolares-zelle" class="pl-2">
+                                            <b-form-input id="input-dolares-zelle" type="number" step="0.10" min="0"
+                                                @change="updateMontoAbono" v-model="form.montoDolaresPanama
+                                                    "></b-form-input>
                                         </b-form-group>
                                         <b-form-group label="Detalle Banesco">
-                                            <b-form-input
-                                                v-model="form.detallePanama"
-                                                placeholder="Detalle Banesco"
-                                            ></b-form-input>
+                                            <b-form-input v-model="form.detallePanama"
+                                                placeholder="Detalle Banesco"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
@@ -270,51 +194,25 @@
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-4"
-                                            label="EFECTIVO"
-                                            label-for="input-dolares-efectivo"
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-pesos-efectivo"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                    form.montoPesosEfectivo
-                                                "
-                                                @change="updateMontoAbono"
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-4" label="EFECTIVO"
+                                            label-for="input-dolares-efectivo" class="pl-2">
+                                            <b-form-input id="input-pesos-efectivo" type="number" step="0.10" min="0"
+                                                v-model="form.montoPesosEfectivo
+                                                    " @change="updateMontoAbono"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-5"
-                                            label="TRANSFERENCIA"
-                                            label-for="input-dolares-zelle"
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-pesos-dolares-zelle"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                    form.montoPesosTransferencia
-                                                "
-                                                @change="updateMontoAbono"
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-5" label="TRANSFERENCIA"
+                                            label-for="input-dolares-zelle" class="pl-2">
+                                            <b-form-input id="input-pesos-dolares-zelle" type="number" step="0.10"
+                                                min="0" v-model="form.montoPesosTransferencia
+                                                    " @change="updateMontoAbono"></b-form-input>
                                         </b-form-group>
                                         <b-form-group label="Detalle Pesos">
-                                            <b-form-input
-                                                v-model="
-                                                    form.detallePesosTransferencia
-                                                "
-                                                placeholder="Detalle Pesos"
-                                            ></b-form-input>
+                                            <b-form-input v-model="form.detallePesosTransferencia
+                                                " placeholder="Detalle Pesos"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
@@ -330,104 +228,52 @@
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-6"
-                                            label="PAGO MOVIL"
-                                            label-for="input-bolivares-pagomovil "
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-bolivares-pagomovil"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                    form.montoBolivaresPagomovil
-                                                "
-                                                @change="updateMontoAbono"
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-6" label="PAGO MOVIL"
+                                            label-for="input-bolivares-pagomovil " class="pl-2">
+                                            <b-form-input id="input-bolivares-pagomovil" type="number" step="0.10"
+                                                min="0" v-model="form.montoBolivaresPagomovil
+                                                    " @change="updateMontoAbono"></b-form-input>
                                         </b-form-group>
                                         <b-form-group label="Detalle Pagomovil">
-                                            <b-form-input
-                                                v-model="form.detallePagomovil"
-                                                placeholder="Detalle Pagomovil"
-                                            ></b-form-input>
+                                            <b-form-input v-model="form.detallePagomovil"
+                                                placeholder="Detalle Pagomovil"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-6"
-                                            label="PUNTO"
-                                            label-for="input-bolivares-punto "
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-bolivares-punto"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                    form.montoBolivaresPunto
-                                                "
-                                                @change="updateMontoAbono"
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-6" label="PUNTO"
+                                            label-for="input-bolivares-punto " class="pl-2">
+                                            <b-form-input id="input-bolivares-punto" type="number" step="0.10" min="0"
+                                                v-model="form.montoBolivaresPunto
+                                                    " @change="updateMontoAbono"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-6"
-                                            label="EFECTIVO"
-                                            label-for="input-bolivares-efectivo "
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-bolivares-efectivo"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                    form.montoBolivaresEfectivo
-                                                "
-                                                @change="updateMontoAbono"
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-6" label="EFECTIVO"
+                                            label-for="input-bolivares-efectivo " class="pl-2">
+                                            <b-form-input id="input-bolivares-efectivo" type="number" step="0.10"
+                                                min="0" v-model="form.montoBolivaresEfectivo
+                                                    " @change="updateMontoAbono"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
 
                                 <b-row align-h="start">
                                     <b-col>
-                                        <b-form-group
-                                            id="input-group-6"
-                                            label="TRANSFERENCIA"
-                                            label-for="input-bolivares-transferencia "
-                                            class="pl-2"
-                                        >
-                                            <b-form-input
-                                                id="input-bolivares-transferencia"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                    form.montoBolivaresTransferencia
-                                                "
-                                                @change="updateMontoAbono"
-                                            ></b-form-input>
+                                        <b-form-group id="input-group-6" label="TRANSFERENCIA"
+                                            label-for="input-bolivares-transferencia " class="pl-2">
+                                            <b-form-input id="input-bolivares-transferencia" type="number" step="0.10"
+                                                min="0" v-model="form.montoBolivaresTransferencia
+                                                    " @change="updateMontoAbono"></b-form-input>
                                         </b-form-group>
-                                        <b-form-group
-                                            label="Detalle Transferencia"
-                                        >
-                                            <b-form-input
-                                                v-model="
-                                                    form.detalleBolivaresTransferencia
-                                                "
-                                                placeholder="Detalle Transferencia"
-                                            ></b-form-input>
+                                        <b-form-group label="Detalle Transferencia">
+                                            <b-form-input v-model="form.detalleBolivaresTransferencia
+                                                " placeholder="Detalle Transferencia"></b-form-input>
                                         </b-form-group>
                                     </b-col>
                                 </b-row>
@@ -436,13 +282,11 @@
                             <b-col xl="3" lg="3" md="6" sm="12" class="mb-4">
                                 <b-row>
                                     <b-col>
-                                        <div
-                                            v-if="
-                                                this.$store.state.login.dataUser
-                                                    .departamento ===
-                                                'Administración'
-                                            "
-                                        >
+                                        <div v-if="
+                                            this.$store.state.login.dataUser
+                                                .departamento ===
+                                            'Administración'
+                                        ">
                                             <hr />
                                             <h4>Descuento</h4>
                                         </div>
@@ -451,31 +295,16 @@
                                 <b-row align-h="start">
                                     <!-- <b-form-input min="0" :disabled="inputDisabled" v-model="value" type="number"
                   placeholder="Abono"></b-form-input>-->
-                                    <div
-                                        v-if="
-                                            this.$store.state.login.dataUser
-                                                .departamento ===
-                                            'Administración'
-                                        "
-                                    >
-                                        <b-form-input
-                                            min="0"
-                                            lab
-                                            :disabled="inputDisabled"
-                                            v-model="valueDescuento"
-                                            type="number"
-                                            placeholder="Descuento"
-                                            class="mt-4 mb-4"
-                                        ></b-form-input>
+                                    <div v-if="
+                                        this.$store.state.login.dataUser
+                                            .departamento ===
+                                        'Administración'
+                                    ">
+                                        <b-form-input min="0" lab :disabled="inputDisabled" v-model="valueDescuento"
+                                            type="number" placeholder="Descuento" class="mt-4 mb-4"></b-form-input>
                                     </div>
-                                    <b-button
-                                        :disabled="inputDisabled"
-                                        class="mt-4"
-                                        variant="success"
-                                        block
-                                        @click="hacerAbono"
-                                        >Abonar</b-button
-                                    >
+                                    <b-button :disabled="inputDisabled" class="mt-4" variant="success" block
+                                        @click="hacerAbono">Abonar</b-button>
                                 </b-row>
                             </b-col>
                         </b-row>
@@ -490,10 +319,7 @@
 </template>
 
 <script>
-import axios from "axios"
 import mixin from "~/mixins/mixins.js"
-import { timeout } from "q"
-import { tmpdir } from "os"
 
 export default {
     mixins: [mixin],
@@ -589,6 +415,19 @@ export default {
     },
 
     computed: {
+        msgWhatsAppAbono() {
+            let msg = ''
+            if (parseFloat(this.calculated) <= 0) {
+                msg = `Ha hecho un abono de ${this.form.abono} a la orden ${this.idorden}, ha cancelado el total de su deuda`
+            } else {
+                //Cliente queda debiendo
+                const deuda = parseFloat(this.dataCalc.total) - parseFloat(this.dataCalc.abono)
+
+                msg = `Ha hecho un abono de ${this.form.abono} a la orden ${this.idorden}, le queda un saldo pendiente de ${this.calculated} USD`
+            }
+            return msg
+        },
+
         tasasCargadas() {
             let cargadas = false
             if (this.dolar > 0 && this.peso > 0) {
@@ -724,7 +563,7 @@ export default {
             if (isNaN(resultado)) {
                 resultado = 0
             }
-            return resultado
+            return resultado.toFixed(2)
         },
 
         modal: function () {
@@ -734,6 +573,28 @@ export default {
         },
     },
     methods: {
+        enviarSaldo() {
+            if (parseFloat(this.calculated) === 0) {
+                this.$fire({
+                    title: "El cliente no tiene saldo pendiente",
+                    html: ``,
+                    type: "info",
+                })
+            } else {
+                this.$confirm(
+                    `¿Desea enviar un mensaje de WhatsApp al cliente?`,
+                    `Saldo Pendiente ${this.calculated} USD`,
+                    "question"
+                )
+                    .then(() => {
+                        // this.overlay = true
+                        this.sendMessageClient(this.idorden, 'cobrar', this.calculated)
+                    })
+                    .catch(() => {
+                        return false
+                    })
+            }
+        },
         usdConverter(moneda, monto, tasa) {
             // Validación de datos de entrada
             if (!isNaN(monto) && !isNaN(tasa)) {
@@ -855,7 +716,7 @@ export default {
                     "info"
                 ).then(() => {
                     this.abonar().then(() => {
-                        // this.form.abono = ''
+                        this.sendMessage(this.idorden, this.msgWhatsAppAbono)
                         this.valueDescuento = 0
                         this.getDataAbonos()
                         this.$emit("reload")
@@ -1079,7 +940,7 @@ export default {
     }) */
         this.getData()
         this.getDataAbonos()
-        this.$root.$on("bv::modal::show", (bvEvent, modalId) => {})
+        this.$root.$on("bv::modal::show", (bvEvent, modalId) => { })
     },
     props: ["idorden", "item", "reload"],
 }

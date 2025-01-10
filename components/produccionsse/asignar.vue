@@ -20,6 +20,9 @@
                                     <!-- {{ data.item }} -->
                                 </template>
                             </b-table>
+                            <p>
+                                Cantidad productos {{ orden_productos.length }}
+                            </p>
                         </b-col>
                     </b-row>
                     <b-row>
@@ -60,7 +63,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -139,7 +142,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -212,7 +215,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -295,7 +298,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -370,7 +373,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -445,7 +448,7 @@
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                        }}</strong>
+                                                            }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>

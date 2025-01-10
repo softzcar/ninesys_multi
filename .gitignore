@@ -22,6 +22,9 @@ dist/
 # Static assets generated at build time
 static/
 
+# Notas del programador
+notes/
+
 # Coveralls test coverage
 coverage/
 

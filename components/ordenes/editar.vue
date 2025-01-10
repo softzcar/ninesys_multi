@@ -85,7 +85,7 @@ export default {
                 this.overlay = false
             }).then(() => {
                 if (this.selected === 'terminada') {
-                    alert('Enviar WhatsApp')
+                    this.sendMessageClient(this.data.orden, 'terminar')
                 }
             })
         },

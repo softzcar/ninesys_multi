@@ -8,8 +8,21 @@ export default {
         }
     },
     methods: {
-        async sendMessageClient(idOrden) {
-            this.overlay = true
+        async sendMessage(idOrden, message) {
+            // this.overlay = true
+
+            const data = new URLSearchParams()
+            data.set("id_orden", idOrden)
+            data.set("mensaje", message)
+
+            await this.$axios
+                .post(`${this.$config.API}/send-message`, data)
+                .then((res) => {
+                    // this.overlay = false
+                })
+        },
+        async sendMessageClient(idOrden, tipo = "paso", monto = 0) {
+            // this.overlay = true
 
             const data = new URLSearchParams()
             data.set(
@@ -17,11 +30,13 @@ export default {
                 this.$store.state.login.dataUser.departamento
             )
             data.set("id_orden", idOrden)
+            data.set("tipo", tipo)
+            data.set("monto", monto)
 
             await this.$axios
                 .post(`${this.$config.API}/send-message-produccion`, data)
                 .then((res) => {
-                    this.overlay = false
+                    // this.overlay = false
                 })
         },
 
@@ -420,9 +435,7 @@ export default {
         filterEmpDesign(id_dis) {
             id_dis = parseInt(id_dis)
             // IDs de la categoría diseño en la bade de datos de Woocomerce
-            let disArray = [
-                11, 12, 13, 14, 15, 16, 113, 168, 169, 170, 171, 172, 173,
-            ]
+            let disArray = [91, 92, 93]
 
             // Verificar si el valor de id_dis está en el array
             if (disArray.indexOf(id_dis) !== -1) {
@@ -435,9 +448,7 @@ export default {
         filterDesign(id_dis) {
             id_dis = parseInt(id_dis)
             // IDs de la categoría diseño en la bade de datos de Woocomerce
-            let disArray = [
-                11, 12, 13, 14, 15, 16, 113, 168, 169, 170, 171, 172, 173,
-            ]
+            let disArray = [91, 92, 93]
 
             // Verificar si el valor de id_dis está en el array
             if (disArray.indexOf(id_dis) !== -1) {
@@ -450,9 +461,10 @@ export default {
         validatDesign(id_dis) {
             id_dis = parseInt(id_dis)
             // IDs de la categoría diseño en la bade de datos de Woocomerce
-            let disArray = [
-                11, 12, 13, 14, 15, 16, 113, 168, 169, 170, 171, 172, 173,
-            ]
+            let disArray = [91, 92, 93]
+            /* let disArray = [
+                91, 92, 93,
+            ] */
 
             // Verificar si el valor de id_dis está en el array
             if (disArray.indexOf(id_dis) !== -1) {

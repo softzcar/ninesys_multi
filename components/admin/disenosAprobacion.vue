@@ -2,7 +2,7 @@
     <div>
         <b-alert :show="showMsg" :variant="variantMsg" fade>{{
             alertMsg
-            }}</b-alert>
+        }}</b-alert>
         <b-overlay :show="overlay" spinner-small>
             <div v-for="(emp, index) in revisionesPorDisenador" :key="index">
                 <h2>{{ emp.disenador }}</h2>
@@ -191,6 +191,7 @@ export default {
         },
 
         disenoAprobar(item) {
+            console.log('item de dise~!o a aprobar', item)
             this.$confirm(
                 `¿Desea Arobar el diseño para la Orden Nro ${item.id_diseno} del cliente ${item.cliente}?`,
                 "Aprobar Diseño",

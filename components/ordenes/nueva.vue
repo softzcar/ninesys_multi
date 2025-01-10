@@ -238,15 +238,7 @@
                                                             <b-col lg="6">
                                                                 <b-list-group horizontal>
                                                                     <b-list-group-item>
-                                                                        <h3>
-                                                                            TOTAL
-                                                                            A
-                                                                            PAGAR:
-                                                                            $
-                                                                            {{
-                                                                                form.total
-                                                                            }}
-                                                                        </h3>
+                                                                        <h3>TOTAL A PAGAR: $ {{ form.total }}</h3>
                                                                     </b-list-group-item>
                                                                     <br />
                                                                 </b-list-group>
@@ -349,6 +341,22 @@
                                                                                 .corte
                                                                                 " :options="cortes
                                                                                     "></b-form-select>
+                                                                    </template>
+
+                                                                    <template #cell(precio)="data">
+                                                                        <b-form-select :disabled="checkDesignForDiseabled(
+                                                                            data
+                                                                                .item
+                                                                                .cod
+                                                                        )
+                                                                            " v-model="form
+                                                                                .productos[
+                                                                                data
+                                                                                    .index
+                                                                            ]
+                                                                                .precio
+                                                                                "
+                                                                            :options="loadProductPrices(data.item.cod)"></b-form-select>
                                                                     </template>
 
                                                                     <template #cell(talla)="data">
@@ -1542,10 +1550,10 @@ export default {
                 }
                 // this.form.productos[index].xl = montoXL
                 finlaPrice = (
-                    parseFloat(this.form.productos[index].precioWoo) + montoXL
+                    parseFloat(this.form.productos[index].precio) + montoXL
                 ).toFixed(0)
             } else {
-                finlaPrice = this.form.productos[index].precioWoo
+                finlaPrice = this.form.productos[index].precio
             }
 
             this.form.productos[index].precio = finlaPrice
@@ -2477,6 +2485,17 @@ export default {
             }
         },
 
+        loadProductPrices(idProduct) {
+            const tmpProd = this.$store.state.comerce.dataProductos.find(el => el.cod === idProduct)
+            return tmpProd.prices.map((el) => {
+                return {
+                    value: el.price,
+                    text: `$${el.price} ${el.description}`
+                }
+            })
+            this.montoTotalOrden()
+        },
+
         loadProduct(val) {
             let exploited = val.split("|")
             let count = 0
@@ -2496,7 +2515,7 @@ export default {
                         categoria: this.getCategory(product.categories),
                         diseno: this.checkDesign(product.categories),
                         precio: product.regular_price,
-                        precioWoo: product.regular_price,
+                        // precioWoo: product.regular_price,
                     }
                 })
                 .find((product) => product.cod == exploited[0])
@@ -2535,7 +2554,7 @@ export default {
                 precio: item.precio,
                 categoria: item.categoria,
                 diseno: item.diseno,
-                precioWoo: item.precioWoo,
+                // precioWoo: item.precioWoo,
                 xl: 0,
             }
 

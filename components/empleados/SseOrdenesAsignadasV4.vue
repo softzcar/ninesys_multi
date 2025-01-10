@@ -265,7 +265,6 @@
 
 <script>
 import mixin from "~/mixins/mixins.js"
-import axios from "axios"
 
 // import { log } from 'console'
 export default {
@@ -846,7 +845,7 @@ export default {
                 })
         },
 
-        async sendMessage(idOrden) {
+        /* async sendMessageClient(idOrden) {
             this.overlay = true
 
             const data = new URLSearchParams()
@@ -857,7 +856,7 @@ export default {
                 // this.$store.dispatch('comerce/getOrdenesActivas').then(() => (this.overlay = false))
                 this.overlay = false
             })
-        },
+        }, */
 
         iniciarTodo(idOrden) {
             console.log("Itmes a iniciar", this.dataTablePendiente)
@@ -880,7 +879,7 @@ export default {
                         ).then(() => { })
                     })
 
-                    this.sendMessage(idOrden)
+                    this.sendMessageClient(idOrden)
                 })
                 .catch((err) => {
                     console.log(`Error al iniciar la tarea`, err)
