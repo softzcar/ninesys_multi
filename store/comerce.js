@@ -112,6 +112,31 @@ export const mutations = {
     setDataProductos(state, data) {
         state.dataProductos = data
     },
+
+    addDataProductos(state, data) {
+        const { cod, description, price } = data
+
+        // Buscar el producto con el código especificado
+        const targetProduct = state.dataProductos.find(
+            (item) => item.cod === cod
+        )
+
+        if (targetProduct) {
+            // Verificar si ya existe un precio con la misma descripción
+            const existingPrice = targetProduct.prices.some(
+                (priceItem) => priceItem.description === description
+            )
+
+            if (!existingPrice) {
+                // Si la descripción no existe, agregar un nuevo precio
+                targetProduct.prices.push({ description, price })
+            }
+        } else {
+            // Si el producto con el código especificado no existe en dataProductos
+            console.warn(`Producto con cod ${cod} no encontrado.`)
+        }
+    },
+
     setDataProductosSelect(state, data) {
         state.dataProductosSelect = data
     },

@@ -6,12 +6,10 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div
-                v-if="
-                    dataUser.departamento === 'Comercialización' ||
-                    dataUser.departamento === 'Administración'
-                "
-            >
+            <div v-if="
+                dataUser.departamento === 'Comercialización' ||
+                dataUser.departamento === 'Administración'
+            ">
                 <b-container>
                     <b-row>
                         <b-col>
@@ -21,18 +19,11 @@
                     <b-row>
                         <b-col offset-lg="8" offset-xl="8">
                             <b-input-group class="mb-4" size="sm">
-                                <b-form-input
-                                    id="filter-input"
-                                    v-model="filter"
-                                    type="search"
-                                    placeholder="Filtrar Resultados"
-                                ></b-form-input>
+                                <b-form-input id="filter-input" v-model="filter" type="search"
+                                    placeholder="Filtrar Resultados"></b-form-input>
 
                                 <b-input-group-append>
-                                    <b-button
-                                        :disabled="!filter"
-                                        @click="filter = ''"
-                                    >
+                                    <b-button :disabled="!filter" @click="filter = ''">
                                         Limpiar
                                     </b-button>
                                 </b-input-group-append>
@@ -46,34 +37,21 @@
                                 <b-row>
                                     <b-col>
                                         <h3>Fecha Inicio</h3>
-                                        <b-form-datepicker
-                                            class="mb-4"
-                                            v-model="fechaConsultaInicio"
-                                        />
+                                        <b-form-datepicker class="mb-4" v-model="fechaConsultaInicio" />
                                     </b-col>
                                     <b-col>
                                         <h3>Fecha Fin</h3>
-                                        <b-form-datepicker
-                                            class="mb-4"
-                                            v-model="fechaConsultaFin"
-                                        />
+                                        <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
                                     </b-col>
                                     <b-col>
                                         <h3>Vendedor</h3>
-                                        <b-form-select
-                                            v-model="selectedVendedor"
-                                            :options="vendedores"
-                                        />
+                                        <b-form-select v-model="selectedVendedor" :options="vendedores" />
                                     </b-col>
                                 </b-row>
 
                                 <b-row>
                                     <b-col class="text-center">
-                                        <b-button
-                                            type="submit"
-                                            variant="primary"
-                                            >BUSCAR</b-button
-                                        >
+                                        <b-button type="submit" variant="primary">BUSCAR</b-button>
                                     </b-col>
                                 </b-row>
                             </b-form>
@@ -91,21 +69,15 @@
                     <b-row>
                         <b-col>
                             <b-overlay :show="overlay" spinner-small>
-                                <b-pagination
-                                    v-model="currentPage"
-                                    :total-rows="totalRows"
-                                    :per-page="perPage"
-                                ></b-pagination>
+                                <b-pagination v-model="currentPage" :total-rows="totalRows"
+                                    :per-page="perPage"></b-pagination>
 
                                 <p class="mt-3">
                                     Página actual: {{ currentPage }}
                                 </p>
 
-                                <h4
-                                    v-for="pago in this.totales.porMetodoPago"
-                                    :key="pago.metodoPago"
-                                    class="text-right"
-                                >
+                                <h4 v-for="pago in this.totales.porMetodoPago" :key="pago.metodoPago"
+                                    class="text-right">
                                     {{ pago.metodoPago }}: {{ pago.total }}
                                 </h4>
 
@@ -113,24 +85,11 @@
                                     TOTAL: {{ this.totales.totalGeneral }}
                                 </h3>
 
-                                <b-table
-                                    sort-icon-left
-                                    :per-page="perPage"
-                                    :current-page="currentPage"
-                                    ref="table"
-                                    responsive
-                                    small
-                                    :fields="campos"
-                                    :items="pagos"
-                                    @filtered="onFiltered"
-                                    :filter="filter"
-                                    :filter-included-fields="includedFields"
-                                >
+                                <b-table sort-icon-left :per-page="perPage" :current-page="currentPage" ref="table"
+                                    responsive small :fields="campos" :items="pagos" @filtered="onFiltered"
+                                    :filter="filter" :filter-included-fields="includedFields">
                                     <template #cell(orden)="data">
-                                        <linkSearch
-                                            :key="data.item._id"
-                                            :id="data.item.orden"
-                                        />
+                                        <linkSearch :key="data.item._id" :id="data.item.orden" />
                                     </template>
 
                                     <template #cell(monto)="data">
@@ -162,9 +121,8 @@
             </div>
         </div>
         <pre>
-  PAGOS::: {{ pagos }}
-</pre
-        >
+    PAGOS::: {{ pagos }}
+</pre>
     </div>
 </template>
 
@@ -307,6 +265,9 @@ export default {
                 .get(`${this.$config.API}/reporte-de-pagos`)
                 .then((resp) => {
                     this.pagos = resp.data.pagos
+
+                    // Prevenir recarga de empleados
+                    this.vendedores = []
                     this.vendedores = resp.data.vendedores.map((el) => {
                         return {
                             value: el._id,
@@ -357,7 +318,14 @@ export default {
                 )
                 .then((resp) => {
                     this.pagos = resp.data.pagos
-                    this.vendedores = resp.data.vendedores
+                    /* this.vendedores = resp.data.vendedores
+                    this.vendedores.unshift({ value: 0, text: "Todos" }) */
+                    this.vendedores = resp.data.vendedores.map((el) => {
+                        return {
+                            value: el._id,
+                            text: el.nombre,
+                        }
+                    })
                     this.vendedores.unshift({ value: 0, text: "Todos" })
 
                     this.ordenesLength = this.pagos.length

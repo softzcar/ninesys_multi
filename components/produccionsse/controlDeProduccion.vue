@@ -4,12 +4,8 @@
             <b-row>
                 <b-col offset-lg="8" offset-xl="8">
                     <b-input-group class="mb-4" size="sm">
-                        <b-form-input
-                            id="filter-input"
-                            v-model="filter"
-                            type="search"
-                            placeholder="Filtrar Resultados"
-                        ></b-form-input>
+                        <b-form-input id="filter-input" v-model="filter" type="search"
+                            placeholder="Filtrar Resultados"></b-form-input>
 
                         <b-input-group-append>
                             <b-button :disabled="!filter" @click="filter = ''">
@@ -23,22 +19,13 @@
             <b-row>
                 <b-col>
                     <h3>Reposiciones pendientes</h3>
-                    <b-table
-                        responsive
-                        :items="reposiciones_solicitadas"
-                        :fields="fields_reposiciones"
-                        :filter-included-fields="includedFields"
-                        @reload="loadOrdersProduction"
-                        headless
-                    >
+                    <b-table responsive :items="reposiciones_solicitadas" :fields="fields_reposiciones"
+                        :filter-included-fields="includedFields" @reload="loadOrdersProduction" headless>
                         <template #cell(id_orden)="data">
                             <!-- <link-search :id="data.item.orden" /> -->
                             <div style="margin-top: 15px">
-                                <produccionsse-reposicionesPendientes
-                                    :empleados="empleados"
-                                    :item="data.item"
-                                    :key="data.index"
-                                />
+                                <produccionsse-reposicionesPendientes :empleados="empleados" :item="data.item"
+                                    :key="data.index" />
                             </div>
                         </template>
                     </b-table>
@@ -47,68 +34,39 @@
 
             <b-row>
                 <b-col>
-                    <b-pagination
-                        v-model="currentPage"
-                        :total-rows="totalRows"
-                        :per-page="perPage"
-                    ></b-pagination>
+                    <b-pagination v-model="currentPage" :total-rows="totalRows" :per-page="perPage"></b-pagination>
 
                     <p class="mt-3">Página actual: {{ currentPage }}</p>
-                    <b-table
-                        responsive
-                        :per-page="perPage"
-                        :current-page="currentPage"
-                        :fields="fields"
-                        :items="items"
-                        :key-field="'orden'"
-                        @filtered="onFiltered"
-                        :filter="filter"
-                    >
+                    <b-table responsive :per-page="perPage" :current-page="currentPage" :fields="fields" :items="items"
+                        :key-field="'orden'" @filtered="onFiltered" :filter="filter">
                         <template #cell(orden)="data">
                             <!-- <link-search :id="data.item.orden" /> -->
                             <div style="margin-top: 15px">
-                                <link-search
-                                    :id="data.value"
-                                    :key="data.item._id"
-                                />
+                                <link-search :id="data.value" :key="data.item._id" />
                             </div>
                         </template>
 
                         <template #cell(inicio)="data">
                             <!-- {{ formatDate(data.item.inicio) }} -->
                             <div style="margin-top: 32px">
-                                {{ data.item.inicio }}
+                                {{ formatDate(data.item.inicio) }}
                             </div>
                         </template>
 
                         <template #cell(estatus_revision)="data">
                             <!-- {{ formatDate(data.item.inicio) }} -->
-                            <p
-                                v-if="data.item.estatus_revision === 'Aprobado'"
-                                class="h1 mt-2"
-                            >
+                            <p v-if="data.item.estatus_revision === 'Aprobado'" class="h1 mt-2">
                                 <b-button variant="outline-light">
-                                    <b-icon
-                                        icon="exclamation-circle-fill"
-                                        variant="success"
-                                        @click="
-                                            showDesigner(data.item.disenador)
-                                        "
-                                        :key="data.item._id"
-                                    ></b-icon>
+                                    <b-icon icon="exclamation-circle-fill" variant="success" @click="
+                                        showDesigner(data.item.disenador)
+                                        " :key="data.item._id"></b-icon>
                                 </b-button>
                             </p>
 
                             <p v-else class="h1 mt-2">
-                                <b-button
-                                    variant="outline-light"
-                                    @click="showDesigner(data.item.disenador)"
-                                    :key="data.item._id"
-                                >
-                                    <b-icon
-                                        icon="exclamation-circle-fill"
-                                        style="color: lightgray"
-                                    ></b-icon>
+                                <b-button variant="outline-light" @click="showDesigner(data.item.disenador)"
+                                    :key="data.item._id">
+                                    <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
                                 </b-button>
                             </p>
                         </template>
@@ -119,9 +77,15 @@
                             </div>
                         </template>
 
+                        <template #cell(unidades)="data">
+                            <div style="margin-top: 32px; text-align: center;">
+                                {{ data.item.unidades }}
+                            </div>
+                        </template>
+
                         <template #cell(entrega)="data">
                             <div style="margin-top: 32px">
-                                {{ data.item.entrega }}
+                                {{ formatDate(data.item.entrega) }}
                             </div>
                         </template>
 
@@ -129,67 +93,41 @@
                             <div style="margin-top: 32px">
                                 <span class="capital">{{
                                     data.item.estatus
-                                }}</span>
+                                    }}</span>
                             </div>
                         </template>
 
                         <template #cell(paso)="data">
                             <span class="floatme">
-                                <produccionsse-progress-bar
-                                    :pasos="pasos"
-                                    :asignacion="asignacion"
-                                    :empleados="empleados"
-                                    :depart="pActivo(data.item.orden)"
-                                    :item="data.item"
-                                    :orden_productos="
-                                        filterOrdenProductos(data.item.orden)
-                                    "
-                                    :reposicion_ordenes_productos="
-                                        reposicion_ordenes_productos
-                                    "
-                                    :lote_detalles="
-                                        filterLoteDetalles(data.item.orden)
-                                    "
-                                    :lotes_fisicos="lotes_fisicos"
-                                    :key="data.item._id"
-                                    @reload="loadOrdersProduction"
-                                />
+                                <produccionsse-progress-bar :pasos="pasos" :asignacion="asignacion"
+                                    :empleados="empleados" :depart="pActivo(data.item.orden)" :item="data.item"
+                                    :orden_productos="filterOrdenProductos(data.item.orden)
+                                        " :reposicion_ordenes_productos="reposicion_ordenes_productos
+                                            " :lote_detalles="filterLoteDetalles(data.item.orden)
+                                                " :lotes_fisicos="lotes_fisicos" :key="data.item._id"
+                                    @reload="loadOrdersProduction" />
                             </span>
                         </template>
 
                         <template #cell(detalles)="data">
                             <div style="margin-top: 32px">
-                                <produccion-control-de-produccion-detalles-editor
-                                    :idorden="data.item.orden"
-                                    :item="data.item"
-                                    :detalles="data.item.detalles"
-                                    :detalle_empleado="
-                                        data.item.detalle_empleado
-                                    "
-                                    :key="data.item._id"
-                                    :productos="productsFilter(data.item.orden)"
-                                />
+                                <produccion-control-de-produccion-detalles-editor :idorden="data.item.orden"
+                                    :item="data.item" :detalles="data.item.detalles" :detalle_empleado="data.item.detalle_empleado
+                                        " :key="data.item._id" :productos="productsFilter(data.item.orden)" />
                             </div>
                         </template>
 
                         <template #cell(vinculada)="data">
                             <span class="floatme">
-                                <ordenes-vinculadas
-                                    :vinculadas="
-                                        filterVinculadas(data.item.acciones)
-                                    "
-                                    :key="data.item._id"
-                                />
+                                <ordenes-vinculadas :vinculadas="filterVinculadas(data.item.acciones)
+                                    " :key="data.item._id" />
                             </span>
                         </template>
 
                         <template #cell(acciones)="data">
                             <div style="margin-top: 15px">
                                 <span class="floatme">
-                                    <ordenes-editar
-                                        :data="data.item"
-                                        :key="data.item._id"
-                                    />
+                                    <ordenes-editar :data="data.item" :key="data.item._id" />
                                 </span>
                                 <span class="floatme">
                                     <!-- <diseno-view-image :id="data.item.acciones" /> -->
@@ -256,6 +194,11 @@ export default {
                 {
                     key: "cliente",
                     label: "Cliente",
+                },
+                {
+                    key: "unidades",
+                    label: "Unidades",
+                    thClass: "text-center"
                 },
                 {
                     key: "paso",

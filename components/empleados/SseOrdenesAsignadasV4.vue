@@ -148,9 +148,9 @@
 
                                         <!-- Terminar -->
                                         <span class="floatme">
-                                            <empleados-SseOrdenesAsignadasModalExtra :departamento="$store.state.login.dataUser
-                                                .departamento
-                                                " :item="row.item" :items="filterOrder(
+                                            <empleados-SseOrdenesAsignadasModalExtra
+                                                :departamento="$store.state.login.dataUser.departamento"
+                                                :item="row.item" :items="filterOrder(
                                                     row.item.orden,
                                                     'en curso'
                                                 )

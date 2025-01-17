@@ -105,9 +105,12 @@ export default {
             return buttonWS
         },
 
-        formatPhoneNumber(phone) {
+        formatPhoneNumber(phoneSrc) {
+            let phone = phoneSrc
             if (phone === null) {
                 return false
+            } else {
+                phone = String(phoneSrc)
             }
 
             // Eliminar caracteres no numéricos

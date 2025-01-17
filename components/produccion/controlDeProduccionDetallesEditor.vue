@@ -18,9 +18,7 @@
                         </div>
 
                         <div class="floatme">
-                            <b-button v-b-toggle.collapse-1 variant="primary"
-                                >Ver original</b-button
-                            >
+                            <b-button v-b-toggle.collapse-1 variant="primary">Ver original</b-button>
                             <b-collapse id="collapse-1" class="mt-2">
                                 <b-card>
                                     <div v-html="detalles"></div>
@@ -29,35 +27,19 @@
                         </div>
 
                         <div class="floatme">
-                            <b-button v-b-toggle.collapse-2 variant="primary"
-                                >Productos</b-button
-                            >
+                            <b-button v-b-toggle.collapse-2 variant="primary">Productos</b-button>
                             <!-- {{ $props }} -->
                             <b-collapse id="collapse-2" class="mt-2">
                                 <b-card>
-                                    <b-table
-                                        striped
-                                        hover
-                                        :fields="fields"
-                                        :items="misProductos"
-                                    >
+                                    <b-table striped hover :fields="fields" :items="misProductos">
                                         <template #cell(terminado)="row">
-                                            <empleados-check-tarea
-                                                :id_lotes_detalles="
-                                                    row.item.id_lotes_detalles
-                                                "
-                                                :terminado="row.item.terminado"
-                                            />
+                                            <empleados-check-tarea :id_lotes_detalles="row.item.id_lotes_detalles
+                                                " :terminado="row.item.terminado" />
                                         </template>
 
-                                        <template
-                                            #cell(detalle_reposicion)="row"
-                                        >
-                                            <produccion-control-de-produccion-detalle-reposicion
-                                                :detalle="
-                                                    row.item.detalle_reposicion
-                                                "
-                                            />
+                                        <template #cell(detalle_reposicion)="row">
+                                            <produccion-control-de-produccion-detalle-reposicion :detalle="row.item.detalle_reposicion
+                                                " />
                                         </template>
                                     </b-table>
                                 </b-card>
@@ -76,11 +58,8 @@
 
                 <b-row class="mt-4">
                     <b-col>
-                        <quill-editor
-                            v-model="borrador"
-                            @change="onEditorChange($event)"
-                            :options="quillOptions"
-                        ></quill-editor>
+                        <quill-editor v-model="borrador" @change="onEditorChange($event)"
+                            :options="quillOptions"></quill-editor>
                     </b-col>
                 </b-row>
             </b-modal>
@@ -146,6 +125,30 @@ export default {
                 )
             }
             return prods
+        },
+
+        misProductos_filto_chatgpt_por_probar() {
+            let prods;
+            if (this.esreposicion === "true") {
+                prods = this.productos
+                    .filter(el => el.reposicion_terminada === 0)
+                    .map(el => ({ ...el, cantidad: el.unidades_reposicion }));
+            } else {
+                prods = this.productos.filter(el => el.reposicion_terminada === null);
+            }
+
+            // Eliminar duplicados basado en el campo 'id' (puedes ajustar el campo según tu estructura de datos)
+            const uniqueProds = [];
+            const seenIds = new Set();
+
+            for (const prod of prods) {
+                if (!seenIds.has(prod.id)) {
+                    seenIds.add(prod.id);
+                    uniqueProds.push(prod);
+                }
+            }
+
+            return uniqueProds;
         },
 
         modal: function () {

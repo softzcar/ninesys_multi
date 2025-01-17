@@ -284,6 +284,7 @@
                                                             </b-col>
                                                         </b-row>
 
+
                                                         <b-row>
                                                             <b-col lg="12" class="mt-4">
                                                                 <b-table :stacked="isSmallScreen
@@ -344,19 +345,15 @@
                                                                     </template>
 
                                                                     <template #cell(precio)="data">
-                                                                        <b-form-select :disabled="checkDesignForDiseabled(
+                                                                        <b-form-select v-model="form
+                                                                            .productos[
                                                                             data
-                                                                                .item
-                                                                                .cod
-                                                                        )
-                                                                            " v-model="form
-                                                                                .productos[
-                                                                                data
-                                                                                    .index
-                                                                            ]
-                                                                                .precio
-                                                                                "
-                                                                            :options="loadProductPrices(data.item.cod)"></b-form-select>
+                                                                                .index
+                                                                        ]
+                                                                            .precio
+                                                                            " @change="montoTotalOrden"
+                                                                            :options="loadProductPrices(data.item.cod, null)">
+                                                                        </b-form-select>
                                                                     </template>
 
                                                                     <template #cell(talla)="data">
@@ -382,7 +379,8 @@
                                                                                                 .productos[
                                                                                             data
                                                                                                 .index
-                                                                                            ]
+                                                                                            ],
+                                                                                            data.item.cod
                                                                                         )
                                                                                         "></b-form-select>
                                                                     </template>
@@ -1252,6 +1250,21 @@ export default {
     },
 
     methods: {
+        checkPrices() {
+            let checking = this.form.productos.filter(
+                (el) => el.precio === 0)
+
+            if (checking.length) {
+                return false
+            } else {
+                return true
+            }
+        },
+
+        updateTotal(item) {
+            console.log('updateTotal', item)
+        },
+
         checkScreenSize() {
             this.isSmallScreen = window.innerWidth < 768 // Cambia el valor según tu necesidad
         },
@@ -1389,7 +1402,7 @@ export default {
         maxDesignLimit(cod) {
             let limit
             if (this.validatDesign(cod)) {
-                limit = 1
+                limit = 1000 // CAntida máxima de diseÑos por item de la orden
             } else {
                 limit = 1000
             }
@@ -1536,25 +1549,52 @@ export default {
             this.query2 = ""
         },
 
-        recalcularSegunTalla(index, item) {
+        recalcularSegunTalla(index, item, idProd) {
             // verificar si la talla es XL
             let miTalla = item.talla.split("XL")
             let montoXL = 0
             let finlaPrice = 0
 
             if (miTalla.length === 2) {
-                if (!miTalla[1]) {
-                    montoXL = 1 // Un dolar adiconal por la talla XL
+                // Verificar precio seleccionado
+                if (item.precio <= 0) {
+                    this.$fire({
+                        title: "Precio",
+                        html: `<p>Debe seleccionar el precio antes de seleccionar una talla Extra Grande</p>`,
+                        type: "info",
+                    }).then(() => {
+                        this.form.productos[index].talla = null
+                    })
                 } else {
-                    montoXL = parseInt(miTalla[1])
+                    if (!miTalla[1]) {
+                        montoXL = 1 // Un dolar adiconal por la talla XL
+                    } else {
+                        montoXL = parseInt(miTalla[1])
+                    }
+                    // this.form.productos[index].xl = montoXL
+                    finlaPrice = (
+                        parseFloat(this.form.productos[index].precio) + montoXL
+                    ).toFixed(0)
+
+                    // Añadir precio a $store.state.comerce.dataProductos
+                    const addVal = {
+                        cod: idProd,
+                        price: finlaPrice,
+                        description: `Precio ${item.talla}`
+                    }
+
+                    this.$store.commit(
+                        "comerce/addDataProductos",
+                        addVal
+                    )
+
+                    this.loadProductPrices(idProd, addVal)
                 }
-                // this.form.productos[index].xl = montoXL
-                finlaPrice = (
-                    parseFloat(this.form.productos[index].precio) + montoXL
-                ).toFixed(0)
+
             } else {
                 finlaPrice = this.form.productos[index].precio
             }
+
 
             this.form.productos[index].precio = finlaPrice
             this.montoTotalOrden()
@@ -1734,6 +1774,7 @@ export default {
                 ceroPrice = true
             }
 
+
             let checkingTallaTela = this.checkTallasTelas()
 
             if (
@@ -1743,6 +1784,11 @@ export default {
             ) {
                 let errors = ""
                 ok = false
+
+                if (!this.checkPrices()) {
+                    errors =
+                        errors + `<p>Debe asignar el precio de todos los productos</p>`
+                }
 
                 if (!checkingTallaTela)
                     errors =
@@ -2485,15 +2531,23 @@ export default {
             }
         },
 
-        loadProductPrices(idProduct) {
+        loadProductPrices(idProduct, newItem) {
             const tmpProd = this.$store.state.comerce.dataProductos.find(el => el.cod === idProduct)
-            return tmpProd.prices.map((el) => {
+            let options = tmpProd.prices.map((el) => {
                 return {
                     value: el.price,
                     text: `$${el.price} ${el.description}`
                 }
             })
+
+            if (newItem != null) {
+                console.log('insertar el precio XL(n) en ', newItem)
+                options.unshift(newItem)
+            }
+
             this.montoTotalOrden()
+            console.log('options precios producto', options)
+            return options
         },
 
         loadProduct(val) {

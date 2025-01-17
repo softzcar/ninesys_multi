@@ -4,59 +4,31 @@
             <b-col cols="12" class="mb-4 d-flex justify-content-center">
                 <div class="image-container">
                     <div @click="zoomImage(images[0])" class="clickable-image">
-                        <b-img-lazy
-                            :src="imgesUrls[0]"
-                            fluid
-                            class="image-zoom"
-                        ></b-img-lazy>
+                        <b-img-lazy :src="imgesUrls[0]" fluid class="image-zoom"></b-img-lazy>
                     </div>
-                    <button
-                        v-if="shouldShowDelete()"
-                        class="btn btn-danger btn-sm delete-btn"
-                        @click="confirmDelete(images[0], 0)"
-                    >
+                    <button v-if="shouldShowDelete()" class="btn btn-danger btn-sm delete-btn"
+                        @click="confirmDelete(images[0], 0)">
                         X
                     </button>
                 </div>
             </b-col>
         </b-row>
         <b-row v-else>
-            <b-col
-                v-for="(image, index) in imgesUrls"
-                :key="index"
-                cols="12"
-                md="6"
-                class="mb-4 d-flex justify-content-center"
-            >
+            <b-col v-for="(image, index) in imgesUrls" :key="index" cols="12" md="6"
+                class="mb-4 d-flex justify-content-center">
                 <div class="image-container">
                     <div @click="zoomImage(image)" class="clickable-image">
-                        <b-img-lazy
-                            :src="image"
-                            fluid
-                            class="image-zoom"
-                        ></b-img-lazy>
+                        <b-img-lazy :src="image" fluid class="image-zoom"></b-img-lazy>
                     </div>
-                    <button
-                        v-if="shouldShowDelete()"
-                        class="btn btn-danger btn-sm delete-btn"
-                        @click="confirmDelete(image, index)"
-                    >
+                    <button v-if="shouldShowDelete()" class="btn btn-danger btn-sm delete-btn"
+                        @click="confirmDelete(image, index)">
                         X
                     </button>
                 </div>
             </b-col>
         </b-row>
-        <b-modal
-            id="zoom-modal"
-            centered
-            size="xl"
-            hide-footer
-            ref="zoomModal"
-            class="zoom-modal"
-        >
-            <div
-                class="d-flex justify-content-center align-items-center zoom-modal-content"
-            >
+        <b-modal id="zoom-modal" centered size="xl" hide-footer ref="zoomModal" class="zoom-modal">
+            <div class="d-flex justify-content-center align-items-center zoom-modal-content">
                 <b-img :src="zoomedImage" fluid class="zoomed-image"></b-img>
             </div>
         </b-modal>
@@ -90,7 +62,10 @@ export default {
             let myImages = []
             if (this.images.length) {
                 myImages = this.images.map((image) => {
-                    return `${this.$config.API}/${image}`
+                    let token = this.token()
+                    // return `${this.$config.API}/${image}` + "&_=" + token
+                    // return `${this.$config.API}/${image}`
+                    return `${this.$config.API}/${image}?&_=${token}`
                 })
             }
             return myImages
@@ -100,6 +75,20 @@ export default {
         this.checkNoImage()
     },
     methods: {
+        token() {
+            const length = 8
+            var a =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split(
+                    ""
+                )
+            var b = []
+            for (var i = 0; i < length; i++) {
+                var j = (Math.random() * (a.length - 1)).toFixed(0)
+                b[i] = a[j]
+            }
+            return b.join("")
+        },
+
         async deleteImageFromServer(url) {
             this.overlay = true
             // EXTRAER NOMBRE DE LA IMAGEN A ELIMINAR
@@ -157,7 +146,7 @@ export default {
             this.images.splice(index, 1)
         },
         zoomImage(image) {
-            this.zoomedImage = `${this.$config.API}/${image}`
+            this.zoomedImage = `${this.$config.API}/${image}?&_=${this.token()}`
             console.log("Zoomed Image:", this.zoomedImage) // Log para verificar el valor de zoomedImage
             this.$refs.zoomModal.show()
         },
@@ -178,25 +167,31 @@ export default {
 .image-container {
     position: relative;
 }
+
 .delete-btn {
     position: absolute;
     top: 10px;
     right: 10px;
     z-index: 1;
 }
+
 .image-zoom {
     cursor: pointer;
 }
+
 .clickable-image {
     cursor: pointer;
 }
+
 .zoom-modal-content {
-    height: 80vh; /* Ajusta esto si es necesario */
+    height: 80vh;
+    /* Ajusta esto si es necesario */
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 .zoomed-image {
     max-height: 100%;
     max-width: 100%;

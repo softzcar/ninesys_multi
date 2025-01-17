@@ -3,6 +3,15 @@
         <b-button variant="warning" @click="$bvModal.show(modal)">
             <b-icon icon="skip-backward-fill"></b-icon>
         </b-button>
+        <b-button variant="warning" @click="$bvModal.show(modal2)">
+            <b-icon icon="eye"></b-icon>
+        </b-button>
+
+        <b-modal :size="size" :title="title" :id="modal2" hide-footer>
+            <p v-for="(producto, index) in filterDetallesReposicion" :key="index">
+                {{ producto }}
+            </p>
+        </b-modal>
 
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
             <b-container>
@@ -12,29 +21,22 @@
                         <b-card-group deck>
                             <b-card header="Datos de la orden">
                                 <b-list-group>
-                                    <span
-                                        ><strong>Orden:</strong>
-                                        {{ id_orden }}</span
-                                    >
+                                    <span><strong>Orden:</strong>
+                                        {{ id_orden }}</span>
                                 </b-list-group>
                                 <b-list-group>
-                                    <span
-                                        ><strong>Cliente:</strong>
-                                        {{ item.cliente }}</span
-                                    >
+                                    <span><strong>Cliente:</strong>
+                                        {{ item.cliente }}</span>
                                 </b-list-group>
                                 <b-list-group>
                                     <span>
                                         <strong>Paso actual:</strong>
-                                        <span
-                                            style="
+                                        <span style="
                                                 text-transform: uppercase;
                                                 background-color: #fff3cd;
                                                 font-weight: 700;
                                                 padding: 4px;
-                                            "
-                                            >{{ item.paso }}</span
-                                        >
+                                            ">{{ item.paso }}</span>
                                     </span>
                                 </b-list-group>
                             </b-card>
@@ -46,10 +48,8 @@
                         <b-table hover :items="tablaProductos">
                             <template #cell(Reponer)="data">
                                 <!-- {{ data }} -->
-                                <empleados-reposicion-form-empleados
-                                    :item="data"
-                                    @reload_this="reloadTareasAsignadas"
-                                />
+                                <empleados-reposicion-form-empleados :item="data"
+                                    @reload_this="reloadTareasAsignadas" />
                             </template>
                         </b-table>
                     </b-col>
@@ -70,10 +70,17 @@ export default {
             productos: [],
             item: {},
             showError: false,
+            dataReposicion: []
         }
     },
 
     computed: {
+        filterDetallesReposicion() {
+            return this.dataReposicion.map((el) => {
+                return `${el.unidades} ${el.producto}, detalle: ${el.detalle_supervisor}`
+            })
+        },
+
         tablaProductos() {
             return this.productos.map((item) => ({
                 Orden: item.id_orden,
@@ -90,6 +97,10 @@ export default {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
         },
+        modal2() {
+            const rand = Math.random().toString(36).substring(2, 7)
+            return `modal-${rand}`
+        },
     },
 
     methods: {
@@ -102,6 +113,7 @@ export default {
                     console.log("test mounted", resp.data)
                     this.productos = resp.data.reposicion_ordenes_productos
                     this.item = resp.data.item // Asegúrate de que item siempre sea un objeto
+                    this.dataReposicion = resp.data.item.detalles_reposicion.filter((el) => el.id_empleado == this.$store.state.login.dataUser.id_empleado)
                 })
         },
 

@@ -32,6 +32,22 @@ export const mutations = {
     setOrden(state, value) {
         state.orden = value
     },
+    clearOrden(state) {
+        state.orden = [
+            {
+                _id: "0",
+                status: "",
+                cliente_nombre: "",
+                cliente_cedula: "",
+                fecha_inicio: "",
+                fecha_entrega: "",
+                observaciones: "",
+                pago_total: "0",
+                pago_abono: "0",
+                pago_descuento: "0",
+            },
+        ]
+    },
 }
 
 export const getters = {

@@ -4,9 +4,7 @@
             <b-row>
                 <b-col class="mb-4">
                     <span class="floatme" style="margin-right: 0.8rem">
-                        <b-button variant="primary" @click="imprimir"
-                            >Imprimir</b-button
-                        >
+                        <b-button variant="primary" @click="imprimir">Imprimir</b-button>
                     </span>
 
                     <span class="floatme">
@@ -38,8 +36,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>CLIENTE: </strong
-                                            >{{ resOrden.customer.nombre }}
+                                            <strong>CLIENTE: </strong>{{ resOrden.customer.nombre }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -68,8 +65,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>INICIO: </strong
-                                            >{{
+                                            <strong>INICIO: </strong>{{
                                                 makeDate(
                                                     resOrden.orden[0]
                                                         .fecha_inicio
@@ -79,8 +75,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>ENTREGA: </strong
-                                            >{{
+                                            <strong>ENTREGA: </strong>{{
                                                 makeDate(
                                                     resOrden.orden[0]
                                                         .fecha_entrega
@@ -90,14 +85,12 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>CI | RIF: </strong
-                                            >{{ resOrden.customer.cedula }}
+                                            <strong>CI | RIF: </strong>{{ resOrden.customer.cedula }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>TELEFONO: </strong
-                                            >{{ resOrden.customer.telefono }}
+                                            <strong>TELEFONO: </strong>{{ resOrden.customer.telefono }}
                                         </td>
                                     </tr>
                                 </table>
@@ -115,30 +108,20 @@
                         <th style="text-align: center">TALLA</th>
                         <th>CORTE</th>
                         <th>TELA</th>
-                        <th
-                            class="hideMe"
-                            v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
-                            "
-                            style="text-align: right"
-                        >
+                        <th class="hideMe" v-if="
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Administración'
+                        " style="text-align: right">
                             PRECIO
                         </th>
-                        <th
-                            class="hideMe"
-                            v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
-                            "
-                            style="text-align: right"
-                        >
+                        <th class="hideMe" v-if="
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Administración'
+                        " style="text-align: right">
                             TOTAL
                         </th>
 
-                        <template
-                            v-for="(product, index) in resOrden.productos"
-                        >
+                        <template v-for="(product, index) in resOrden.productos">
                             <tr class="row-product" :key="product._id">
                                 <td style="text-align: right">
                                     {{ index + 1 }}
@@ -155,28 +138,20 @@
                                 </td>
                                 <td>{{ product.corte }}</td>
                                 <td>{{ product.tela }}</td>
-                                <td
-                                    class="hideMe"
-                                    v-if="
-                                        dataUser.departamento ===
-                                            'Comercialización' ||
-                                        dataUser.departamento ===
-                                            'Administración'
-                                    "
-                                    style="text-align: right"
-                                >
+                                <td class="hideMe" v-if="
+                                    dataUser.departamento ===
+                                    'Comercialización' ||
+                                    dataUser.departamento ===
+                                    'Administración'
+                                " style="text-align: right">
                                     {{ product.precio }}
                                 </td>
-                                <td
-                                    class="hideMe"
-                                    v-if="
-                                        dataUser.departamento ===
-                                            'Comercialización' ||
-                                        dataUser.departamento ===
-                                            'Administración'
-                                    "
-                                    style="text-align: right"
-                                >
+                                <td class="hideMe" v-if="
+                                    dataUser.departamento ===
+                                    'Comercialización' ||
+                                    dataUser.departamento ===
+                                    'Administración'
+                                " style="text-align: right">
                                     {{
                                         (
                                             parseFloat(product.precio) *
@@ -188,14 +163,10 @@
                         </template>
                     </table>
 
-                    <div
-                        class="spacer hideMe"
-                        v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
-                        "
-                        style="text-align: right"
-                    >
+                    <div class="spacer hideMe" v-if="
+                        dataUser.departamento === 'Comercialización' ||
+                        dataUser.departamento === 'Administración'
+                    " style="text-align: right">
                         <h2>
                             ABONO: {{ floatMe(resOrden.orden[0].pago_abono) }}
                         </h2>
@@ -208,8 +179,8 @@
                             {{
                                 parseFloat(
                                     montoTotalOrden(form.productos) -
-                                        resOrden.orden[0].pago_descuento -
-                                        resOrden.orden[0].pago_abono
+                                    resOrden.orden[0].pago_descuento -
+                                    resOrden.orden[0].pago_abono
                                 ).toFixed(2)
                             }}
                         </h2>
@@ -228,10 +199,7 @@
                                 TIPO DE DISEÑO: {{ tipoDiseno }}
                             </h3>
                         </div>
-                        <div
-                            class="spacer observaciones"
-                            v-html="resOrden.orden[0].observaciones"
-                        ></div>
+                        <div class="spacer observaciones" v-html="resOrden.orden[0].observaciones"></div>
                     </div>
                 </b-col>
             </b-row>
@@ -326,6 +294,7 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/buscar/${this.id}`)
                 .then((resp) => {
+                    this.$store.commit("buscar/clearOrden")
                     this.$store.commit("buscar/setOrden", resp.data)
                 })
                 .catch((err) => {

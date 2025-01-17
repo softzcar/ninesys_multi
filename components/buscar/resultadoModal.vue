@@ -4,9 +4,7 @@
             <b-row>
                 <b-col class="mb-4">
                     <span class="floatme" style="margin-right: 0.8rem">
-                        <b-button variant="primary" @click="imprimir"
-                            >Imprimir</b-button
-                        >
+                        <b-button variant="primary" @click="imprimir">Imprimir</b-button>
                     </span>
 
                     <span class="floatme">
@@ -45,8 +43,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>CLIENTE: </strong
-                                            >{{ resOrden.customer.nombre }}
+                                            <strong>CLIENTE: </strong>{{ resOrden.customer.nombre }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -81,8 +78,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>INICIO: </strong
-                                            >{{
+                                            <strong>INICIO: </strong>{{
                                                 makeDate(
                                                     resOrden.orden[0]
                                                         .fecha_inicio
@@ -92,8 +88,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>ENTREGA: </strong
-                                            >{{
+                                            <strong>ENTREGA: </strong>{{
                                                 makeDate(
                                                     resOrden.orden[0]
                                                         .fecha_entrega
@@ -103,14 +98,12 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>CI | RIF: </strong
-                                            >{{ resOrden.customer.cedula }}
+                                            <strong>CI | RIF: </strong>{{ resOrden.customer.cedula }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <strong>TELEFONO: </strong
-                                            >{{ resOrden.customer.telefono }}
+                                            <strong>TELEFONO: </strong>{{ resOrden.customer.telefono }}
                                         </td>
                                     </tr>
                                 </table>
@@ -128,24 +121,16 @@
                         <th style="text-align: center">TALLA</th>
                         <th>CORTE</th>
                         <th>TELA</th>
-                        <th
-                            class="hideMe"
-                            v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
-                            "
-                            style="text-align: right"
-                        >
+                        <th class="hideMe" v-if="
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Administración'
+                        " style="text-align: right">
                             PRECIO
                         </th>
-                        <th
-                            class="hideMe"
-                            v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
-                            "
-                            style="text-align: right"
-                        >
+                        <th class="hideMe" v-if="
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Administración'
+                        " style="text-align: right">
                             TOTAL
                         </th>
 
@@ -166,28 +151,20 @@
                                 </td>
                                 <td>{{ product.corte }}</td>
                                 <td>{{ product.tela }}</td>
-                                <td
-                                    class="hideMe"
-                                    v-if="
-                                        dataUser.departamento ===
-                                            'Comercialización' ||
-                                        dataUser.departamento ===
-                                            'Administración'
-                                    "
-                                    style="text-align: right"
-                                >
+                                <td class="hideMe" v-if="
+                                    dataUser.departamento ===
+                                    'Comercialización' ||
+                                    dataUser.departamento ===
+                                    'Administración'
+                                " style="text-align: right">
                                     {{ product.precio }}
                                 </td>
-                                <td
-                                    class="hideMe"
-                                    v-if="
-                                        dataUser.departamento ===
-                                            'Comercialización' ||
-                                        dataUser.departamento ===
-                                            'Administración'
-                                    "
-                                    style="text-align: right"
-                                >
+                                <td class="hideMe" v-if="
+                                    dataUser.departamento ===
+                                    'Comercialización' ||
+                                    dataUser.departamento ===
+                                    'Administración'
+                                " style="text-align: right">
                                     {{
                                         (
                                             parseFloat(product.precio) *
@@ -206,14 +183,10 @@
                         </h2>
                     </div>
 
-                    <div
-                        class="spacer hideMe derecha"
-                        v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
-                        "
-                        style="width: 100% !important"
-                    >
+                    <div class="spacer hideMe derecha" v-if="
+                        dataUser.departamento === 'Comercialización' ||
+                        dataUser.departamento === 'Administración'
+                    " style="width: 100% !important">
                         <h2>
                             ABONO: {{ floatMe(resOrden.orden[0].pago_abono) }}
                         </h2>
@@ -226,8 +199,8 @@
                             {{
                                 parseFloat(
                                     montoTotalOrden(form.productos) -
-                                        resOrden.orden[0].pago_descuento -
-                                        resOrden.orden[0].pago_abono
+                                    resOrden.orden[0].pago_descuento -
+                                    resOrden.orden[0].pago_abono
                                 ).toFixed(2)
                             }}
                         </h2>
@@ -243,11 +216,8 @@
                         </div>
 
                         <div class="observaciones">
-                            <disenosse-imagesGalery
-                                :images="tmpImage"
-                                showdelete="false"
-                                :idorden="resOrden.orden[0]._id"
-                            />
+                            <disenosse-imagesGalery :images="tmpImage" showdelete="false"
+                                :idorden="resOrden.orden[0]._id" />
                         </div>
 
                         <!-- <div class="observaciones">
@@ -255,10 +225,7 @@
                                 TIPO DE DISEÑO: {{ tipoDiseno }}
                             </h3>
                         </div> -->
-                        <div
-                            class="spacer observaciones"
-                            v-html="resOrden.orden[0].observaciones"
-                        ></div>
+                        <div class="spacer observaciones" v-html="resOrden.orden[0].observaciones"></div>
                     </div>
                 </b-col>
             </b-row>
@@ -307,10 +274,10 @@ export default {
     methods: {
         ...mapActions("buscar", ["getOrden"]),
 
-        async getImages() {
+        async getImages(idOrderImg) {
             this.$axios
                 .get(
-                    `${this.$config.API}/disenos/images/${this.resOrden.orden[0]._id}`
+                    `${this.$config.API}/disenos/images/${idOrderImg}`
                 )
                 .then((res) => {
                     console.log(`Imágenes encontradas`, res)
@@ -369,6 +336,9 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/buscar/${this.id}`)
                 .then((resp) => {
+                    this.this.tmpImage = []
+                    this.getImages(this.id)
+                    this.$store.commit("buscar/clearOrden")
                     this.$store.commit("buscar/setOrden", resp.data)
                 })
                 .catch((err) => {
@@ -387,8 +357,8 @@ export default {
 
     props: ["id"],
     mounted() {
-        this.getImages()
         this.overlay = true
+        this.getImages(this.id)
         this.getOrden(this.id).then(() => {
             this.overlay = false
         })

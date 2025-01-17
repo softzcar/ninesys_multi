@@ -86,6 +86,8 @@
                     </b-form>
                 </div>
             </b-overlay>
+            {{ $props }}
+            </pre>
         </b-modal>
     </div>
 </template>

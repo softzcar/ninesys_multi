@@ -8,34 +8,16 @@
 
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
             <b-overlay :show="overlay" rounded="sm">
-                <!-- <pre class="force">{{ tmpImage }}</pre> -->
-                <b-card
-                    :title="myTitle"
-                    img-alt="Image"
-                    tag="article"
-                    style="max-width: 100% !important"
-                    class="m-4 p-3 text-center"
-                    img-bottom
-                    bg-variant="default"
-                    text-variant="red"
-                >
-                    <disenosse-imagesGalery
-                        :images="tmpImage"
-                        showdelete="true"
-                        :idorden="$props.item.id_orden"
-                    />
+                <b-card :title="myTitle" img-alt="Image" tag="article" style="max-width: 100% !important"
+                    class="m-4 p-3 text-center" img-bottom bg-variant="default" text-variant="red">
+                    <disenosse-imagesGalery :images="tmpImage" showdelete="true" :idorden="$props.item.id_orden" />
 
                     <b-card-text v-if="showCard" class="mt-4 mb-4">
                         <!-- Styled -->
                         <div class="mt-4 pt-3">
-                            <b-form-file
-                                :disabled="disableForm"
-                                v-model="newImage"
-                                :state="Boolean(newImage)"
+                            <b-form-file :disabled="disableForm" v-model="newImage" :state="Boolean(newImage)"
                                 placeholder="Escoja o arrastre un archivo aquí..."
-                                drop-placeholder="Arrasre la propuesta aquí..."
-                                @input="postImage()"
-                            ></b-form-file>
+                                drop-placeholder="Arrasre la propuesta aquí..." @input="postImage()"></b-form-file>
                         </div>
 
                         <!-- <div class="mt-4 mb-4 text-center">
@@ -171,16 +153,22 @@ export default {
                 .then((res) => {
                     if (res.data.status === "success") {
                         // this.getEstatus()
-                        this.tmpImage = res.data.url + "?_=" + this.token()
-                        this.$emit("reload", "true")
+                        // this.tmpImage = res.data.url + "?_=" + this.token()
+                        // this.tmpImage = res.data.url
+                        // this.$emit("reload")
                         this.$emit("button", false)
-                        this.overlay = false
+
+                        /* this.$fire({
+                            title: "Imagen",
+                            html: `<p>${res.data.message}</p>`,
+                            type: "info",
+                        }).then(() => this.overlay = false) */
                         this.getImages().then(() => {
                             this.$fire({
                                 title: "Imagen",
                                 html: `<p>${res.data.message}</p>`,
                                 type: "info",
-                            })
+                            }).then(() => this.overlay = false)
                         })
                     } else {
                         this.$fire({

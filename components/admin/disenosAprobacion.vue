@@ -2,7 +2,7 @@
     <div>
         <b-alert :show="showMsg" :variant="variantMsg" fade>{{
             alertMsg
-        }}</b-alert>
+            }}</b-alert>
         <b-overlay :show="overlay" spinner-small>
             <div v-for="(emp, index) in revisionesPorDisenador" :key="index">
                 <h2>{{ emp.disenador }}</h2>
@@ -70,12 +70,6 @@
                     </b-card>
                 </b-card-group>
                 <hr />
-                <!-- <pre class="force">
-                    {{ revisionesPorDisenador }}
-                </pre>
-                <pre class="force">
-                    {{ revsionesTodas }}
-                </pre> -->
             </div>
         </b-overlay>
 

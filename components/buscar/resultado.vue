@@ -5,9 +5,7 @@
                 <b-row>
                     <b-col class="mb-4">
                         <span class="floatme" style="margin-right: 0.8rem">
-                            <b-button variant="primary" @click="imprimir"
-                                >Imprimir</b-button
-                            >
+                            <b-button variant="primary" @click="imprimir">Imprimir</b-button>
                         </span>
                         <span class="floatme">
                             <diseno-viewImage :id="this.$route.params.id" />
@@ -39,8 +37,7 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <strong>CLIENTE: </strong
-                                                >{{ resOrden.customer.nombre }}
+                                                <strong>CLIENTE: </strong>{{ resOrden.customer.nombre }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -77,8 +74,7 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <strong>INICIO: </strong
-                                                >{{
+                                                <strong>INICIO: </strong>{{
                                                     makeDate(
                                                         resOrden.orden[0]
                                                             .fecha_inicio
@@ -88,8 +84,7 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <strong>ENTREGA: </strong
-                                                >{{
+                                                <strong>ENTREGA: </strong>{{
                                                     makeDate(
                                                         resOrden.orden[0]
                                                             .fecha_entrega
@@ -99,22 +94,17 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <strong>CI | RIF: </strong
-                                                >{{ resOrden.customer.cedula }}
+                                                <strong>CI | RIF: </strong>{{ resOrden.customer.cedula }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>
-                                                <strong>TELEFONO: </strong
-                                                ><span
-                                                    v-html="
-                                                        whatsAppMe(
-                                                            resOrden.customer
-                                                                .telefono,
-                                                            false
-                                                        )
-                                                    "
-                                                ></span>
+                                                <strong>TELEFONO: </strong><span v-html="whatsAppMe(
+                                                    resOrden.customer
+                                                        .telefono,
+                                                    false
+                                                )
+                                                    "></span>
                                                 <!-- {{ whatsAppMe(resOrden.customer.telefono) }} -->
                                             </td>
                                         </tr>
@@ -133,26 +123,18 @@
                             <th style="text-align: center">TALLA</th>
                             <th>CORTE</th>
                             <th>TELA</th>
-                            <th
-                                class="hideMe"
-                                v-if="
-                                    dataUser.departamento ===
-                                        'Comercialización' ||
-                                    dataUser.departamento === 'Administración'
-                                "
-                                style="text-align: right"
-                            >
+                            <th class="hideMe" v-if="
+                                dataUser.departamento ===
+                                'Comercialización' ||
+                                dataUser.departamento === 'Administración'
+                            " style="text-align: right">
                                 PRECIO
                             </th>
-                            <th
-                                class="hideMe"
-                                v-if="
-                                    dataUser.departamento ===
-                                        'Comercialización' ||
-                                    dataUser.departamento === 'Administración'
-                                "
-                                style="text-align: right"
-                            >
+                            <th class="hideMe" v-if="
+                                dataUser.departamento ===
+                                'Comercialización' ||
+                                dataUser.departamento === 'Administración'
+                            " style="text-align: right">
                                 TOTAL
                             </th>
 
@@ -173,28 +155,20 @@
                                     </td>
                                     <td>{{ product.corte }}</td>
                                     <td>{{ product.tela }}</td>
-                                    <td
-                                        class="hideMe"
-                                        v-if="
-                                            dataUser.departamento ===
-                                                'Comercialización' ||
-                                            dataUser.departamento ===
-                                                'Administración'
-                                        "
-                                        style="text-align: right"
-                                    >
+                                    <td class="hideMe" v-if="
+                                        dataUser.departamento ===
+                                        'Comercialización' ||
+                                        dataUser.departamento ===
+                                        'Administración'
+                                    " style="text-align: right">
                                         {{ product.precio }}
                                     </td>
-                                    <td
-                                        class="hideMe"
-                                        v-if="
-                                            dataUser.departamento ===
-                                                'Comercialización' ||
-                                            dataUser.departamento ===
-                                                'Administración'
-                                        "
-                                        style="text-align: right"
-                                    >
+                                    <td class="hideMe" v-if="
+                                        dataUser.departamento ===
+                                        'Comercialización' ||
+                                        dataUser.departamento ===
+                                        'Administración'
+                                    " style="text-align: right">
                                         {{
                                             (
                                                 parseFloat(product.precio) *
@@ -218,14 +192,10 @@
                             </h2>
                         </div>
 
-                        <div
-                            class="spacer hideMe derecha"
-                            v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
-                            "
-                            style="width: 100% !important"
-                        >
+                        <div class="spacer hideMe derecha" v-if="
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Administración'
+                        " style="width: 100% !important">
                             <h2>
                                 ABONO:
                                 {{ floatMe(resOrden.orden[0].pago_abono) }}
@@ -239,8 +209,8 @@
                                 {{
                                     parseFloat(
                                         montoTotalOrden(form.productos) -
-                                            resOrden.orden[0].pago_descuento -
-                                            resOrden.orden[0].pago_abono
+                                        resOrden.orden[0].pago_descuento -
+                                        resOrden.orden[0].pago_abono
                                     ).toFixed(2)
                                 }}
                             </h2>
@@ -258,11 +228,8 @@
                             </div>
 
                             <div class="observaciones">
-                                <disenosse-imagesGalery
-                                    :images="tmpImage"
-                                    showdelete="false"
-                                    :idorden="resOrden.orden[0]._id"
-                                />
+                                <disenosse-imagesGalery :images="tmpImage" showdelete="false"
+                                    :idorden="resOrden.orden[0]._id" />
                             </div>
 
                             <!-- <div class="observaciones">
@@ -270,10 +237,7 @@
                                     TIPO DE DISEÑO: {{ tipoDiseno }}
                                 </h3>
                             </div> -->
-                            <div
-                                class="spacer observaciones"
-                                v-html="resOrden.orden[0].observaciones"
-                            ></div>
+                            <div class="spacer observaciones" v-html="resOrden.orden[0].observaciones"></div>
                         </div>
                     </b-col>
                 </b-row>
@@ -325,10 +289,10 @@ export default {
     methods: {
         ...mapActions("buscar", ["getOrden"]),
 
-        async getImages() {
+        async getImages(idOrderImg) {
             this.$axios
                 .get(
-                    `${this.$config.API}/disenos/images/${this.resOrden.orden[0]._id}`
+                    `${this.$config.API}/disenos/images/${idOrderImg}`
                 )
                 .then((res) => {
                     console.log(`Imágenes encontradas`, res)
@@ -387,6 +351,9 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/buscar/${this.$route.params.id}`)
                 .then((resp) => {
+                    this.this.tmpImage = []
+                    this.getImages(this.$route.params.id)
+                    this.$store.commit("buscar/clearOrden")
                     this.$store.commit("buscar/setOrden", resp.data)
                 })
                 .catch((err) => {
@@ -402,9 +369,8 @@ export default {
     /* async asyncData({ params, $http }) {
     const post = await this.getOrdenNow()
   }, */
-
     mounted() {
-        this.getImages()
+        this.getImages(this.$route.params.id)
         this.getOrden(this.$route.params.id).then(() => {
             console.log("desactivar overlay")
             this.overlay = false
@@ -648,9 +614,11 @@ table {
     border-collapse: collapse;
     border-spacing: 0;
 }
+
 .table-wrapper {
     overflow-x: auto;
 }
+
 .table-header {
     width: 100%;
 }
