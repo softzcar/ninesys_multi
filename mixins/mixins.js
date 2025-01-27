@@ -105,7 +105,28 @@ export default {
             return buttonWS
         },
 
-        formatPhoneNumber(phoneSrc) {
+        formatPhoneNumber(phone) {
+            // Convertir a string si el parámetro es un número
+            phone = String(phone)
+
+            // Eliminar caracteres no numéricos
+            let cleaned = phone.replace(/[^\d]/g, "")
+
+            // Validar si el número comienza con '04' y reemplazarlo por '584'
+            if (cleaned.startsWith("04")) {
+                cleaned = "584" + cleaned.substring(2)
+            }
+
+            // Verificar que el número sea válido (debe tener entre 10 y 15 dígitos)
+            if (cleaned.length < 10 || cleaned.length > 15) {
+                return null // Retorna null si no es un número válido
+            }
+
+            // Retornar el número formateado para WhatsApp
+            return cleaned
+        },
+
+        /* formatPhoneNumber(phoneSrc) {
             let phone = phoneSrc
             if (phone === null) {
                 return false
@@ -129,7 +150,7 @@ export default {
 
             // return { formatted: cleaned, message: '' };
             return cleaned
-        },
+        }, */
         disableFutureDates(date) {
             return date > this.currentDate
         },

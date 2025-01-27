@@ -1,97 +1,43 @@
 <template>
     <div>
-        <b-button id="show-btn" @click="$bvModal.show('bv-modal-example')"
-            >Nuevo Producto</b-button
-        >
+        <b-button id="show-btn" @click="$bvModal.show('bv-modal-example')">Nuevo Producto</b-button>
 
         <b-modal id="bv-modal-example" hide-footer>
             <template #modal-title> Crear Nuevo Producto </template>
             <b-overlay :show="overlay" spinner-small>
                 <b-form @submit="onSubmit" @reset="onReset" v-if="show">
-                    <b-form-group
-                        id="input-group-1"
-                        label="Producto:"
-                        label-for="input-product"
-                    >
-                        <b-form-input
-                            id="input-product"
-                            v-model="form.product"
-                            type="text"
-                            placeholder="Nombre del producto"
-                            required
-                        ></b-form-input>
+                    <b-form-group id="input-group-1" label="Producto:" label-for="input-product">
+                        <b-form-input id="input-product" v-model="form.product" type="text"
+                            placeholder="Nombre del producto" required></b-form-input>
                     </b-form-group>
 
-                    <b-form-group
-                        v-if="$store.state.login.dataUser.acceso"
-                        id="input-group-2"
-                        label="SKU:"
-                        label-for="input-sku"
-                    >
-                        <b-form-input
-                            id="input-sku"
-                            v-model="form.sku"
-                            type="text"
-                            placeholder="SKU del producto"
-                            required
-                        ></b-form-input>
+                    <b-form-group v-if="$store.state.login.dataUser.acceso" id="input-group-2" label="SKU:"
+                        label-for="input-sku">
+                        <b-form-input id="input-sku" v-model="form.sku" type="text" placeholder="SKU del producto"
+                            required></b-form-input>
                     </b-form-group>
 
-                    <b-form-group
-                        id="input-group-3"
-                        label="Precio:"
-                        label-for="input-price"
-                    >
-                        <b-form-input
-                            id="input-price"
-                            step="0.1"
-                            v-model="form.price"
-                            type="number"
-                            placeholder="Precio del producto"
-                            required
-                        ></b-form-input>
-                        <b-alert :show="showPriceError" variant="danger"
-                            >Asigne un precio al producto</b-alert
-                        >
+                    <b-form-group id="input-group-5" label="Categoría:" label-for="select-category">
+                        <b-form-select requred id="select-category" v-model="form.category" :options="catagoriesSelect"
+                            size="sm" class="mt-3"></b-form-select>
+                        <b-alert :show="showPriceError" variant="danger">Seleccione una categoría</b-alert>
                     </b-form-group>
 
-                    <b-form-group
-                        v-if="$store.state.login.dataUser.acceso"
-                        id="input-group-4"
-                        label="Unidades:"
-                        label-for="input-unidades"
-                    >
-                        <b-form-input
-                            id="input-unidades"
-                            v-model="form.unidades"
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="Unidades del producto"
-                            required
-                        ></b-form-input>
+                    <b-form-group id="input-group-3" label-for="input-price">
+                        <admin-AsignacionDePrecios class="floatme" :precios="form.prices"
+                            @reload="updatePrices($event)" />
+                        <admin-AsignacionDeAtributos class="floatme" :attributescat="attributescat"
+                            :attributesval="attributesval" @reload="updateAttributes($event)" />
                     </b-form-group>
 
-                    <b-form-group
-                        id="input-group-5"
-                        label="Categoría:"
-                        label-for="select-category"
-                    >
-                        <b-form-select
-                            id="select-category"
-                            v-model="form.category"
-                            :options="catagoriesSelect"
-                            size="sm"
-                            class="mt-3"
-                            @change="updateCategory"
-                        ></b-form-select>
-                        <b-alert :show="showPriceError" variant="danger"
-                            >Seleccione una categoría</b-alert
-                        >
-                    </b-form-group>
+                    <b-list-group>
+                        <b-list-group-item v-for="(item, index) in form.prices" :key="index">
+                            {{ item.price }} - {{ item.descripcion }}
+                        </b-list-group-item>
+                    </b-list-group>
 
-                    <b-button type="submit" variant="primary">Guardar</b-button>
                     <!-- <b-button type="reset" variant="danger">Reset</b-button> -->
+                    <b-button type="submit" variant="success">Guardar</b-button>
                 </b-form>
             </b-overlay>
             <!-- <pre>
@@ -107,7 +53,7 @@
 </template>
 
 <script>
-import axios from "axios"
+import { log } from 'console';
 
 export default {
     data() {
@@ -119,8 +65,8 @@ export default {
                 category: null,
                 product: "",
                 sku: null,
-                price: 0.0,
-                unidades: 0,
+                prices: [],
+                attributes: [],
             },
         }
     },
@@ -165,8 +111,11 @@ export default {
     },
 
     methods: {
-        updateCategory(val) {
-            console.log("category selected", this.form.category)
+        updatePrices(newPrices) {
+            this.form.prices = newPrices
+        },
+        updateAttributes(newAttributes) {
+            this.form.attributes = newAttributes
         },
 
         onSubmit(event) {
@@ -179,7 +128,7 @@ export default {
                 msg = msg + "<p>Asige un nombre</p>"
             }
 
-            if (!this.form.price) {
+            if (!this.form.prices.length === 0) {
                 ban = false
                 msg = msg + "<p>Asige un precio</p>"
             }
@@ -206,8 +155,8 @@ export default {
                         category: null,
                         product: "",
                         sku: null,
-                        price: 0.0,
-                        unidades: 0,
+                        prices: [],
+                        attributes: [],
                     }
                     this.$bvModal.hide("bv-modal-example")
                 })
@@ -216,12 +165,12 @@ export default {
 
         async postProduct() {
             this.overlay = true
+            console.log('VAmos a enviar etos datos para nuevo producto', this.form)
             const data = new URLSearchParams()
             data.set("product", this.form.product)
-            data.set("price", this.form.price)
+            data.set("prices", JSON.stringify(this.form.prices))
             data.set("category", this.form.category)
             data.set("sku", this.form.sku)
-            data.set("unidades", this.form.unidades)
 
             await this.$axios
                 .post(
@@ -237,8 +186,7 @@ export default {
                         category: null,
                         product: "",
                         sku: null,
-                        price: 0.0,
-                        unidades: 0,
+                        prices: [],
                     }
                     // this.urlLink = res.data.linkdrive
                 })
@@ -269,6 +217,6 @@ export default {
         },
     },
 
-    props: ["reload"],
+    props: ["attributesval", "attributescat", "reload"],
 }
 </script>

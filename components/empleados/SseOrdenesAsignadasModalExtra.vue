@@ -2,7 +2,7 @@
     <div>
         <b-button @click="$bvModal.show(modal)" variant="success">{{
             btnText
-            }}</b-button>
+        }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <b-overlay :show="overlay" spinner-small>
@@ -55,8 +55,11 @@
                             </b-button>
                             <b-table responsive :primary-key="form.id" :fields="campos" :items="form" small>
                                 <template #cell(input)="row">
-                                    <b-form-select id="input-6" v-model="form[row.index].select"
-                                        :options="selectOptions" required></b-form-select>
+                                    <vue-typeahead-bootstrap @hit="loadInsumos(row.index)" :data="dataSearchInsumo"
+                                        size="lg" v-model="form[row.index].select" placeholder="Buscar Insumo" />
+
+                                    <!-- <b-form-select id="input-6" v-model="form[row.index].select"
+                                        :options="selectOptions" required></b-form-select> -->
                                     <b-form-input id="input-7" v-model="form[row.index].input" type="number" step="0.01"
                                         min="0" placeholder="Peso" required></b-form-input>
                                 </template>
@@ -86,18 +89,15 @@
                     </b-form>
                 </div>
             </b-overlay>
-            {{ $props }}
-            </pre>
         </b-modal>
     </div>
 </template>
 
 <script>
-import axios from "axios"
-
 export default {
     data() {
         return {
+            queryInsumo: '',
             title: `Datos Extra ${this.departamento}`,
             overlay: false,
             btnText: "Terminar",
@@ -133,6 +133,28 @@ export default {
             return `modal-${rand}`
         },
 
+        dataSearchInsumo() {
+            let tmpArray = []
+
+            if (this.departamento === "Impresión") {
+                tmpArray = this.insumosimp
+            } else if (this.departamento === "Estampado") {
+                tmpArray = this.insumosest
+            } else if (this.departamento === "Corte") {
+                tmpArray = this.insumosest
+            } else if (this.departamento === "Costura") {
+                tmpArray = this.insumoscos
+            } else if (this.departamento === "Limpieza") {
+                tmpArray = this.insumoslim
+            } else if (this.departamento === "Revisión") {
+                tmpArray = this.insumosrev
+            }
+
+            return tmpArray.map((el) => {
+                return `${el._id} | ${el.insumo}`
+            })
+        },
+
         selectOptions() {
             let myOptions = []
             if (this.departamento === "Impresión") {
@@ -161,6 +183,25 @@ export default {
     },
 
     methods: {
+        loadInsumos(index) {
+            let myID = this.form[index].select.split(" | ")
+            console.log("ID Insumo seleccionado", myID[0])
+            this.form[index].select = parseInt(myID)
+            console.log('ID LISTO', this.form[index].select)
+            console.log('form', this.form)
+            /* const dataLength = this.form[index].select.trim().length
+            // console.log('queryInsumo length', dataLength)
+            if (!dataLength) {
+                alert('Programar SELECCIONAR EL INSUMO')
+            } else {
+                let myID = this.queryInsumo.split(" | ")
+                console.log("myID", myID[0])
+                const customer = this.$store.state.comerce.dataCustomers.find(
+                    (el) => el.id == myID[0]
+                )
+            } */
+        },
+
         generateRandomId() {
             let id
             do {

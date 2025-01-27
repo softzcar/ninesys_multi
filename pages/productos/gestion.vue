@@ -16,7 +16,6 @@
                         dataUser.departamento === 'Producción'
                     ">
                         <b-row>
-                            <!-- <pre>{{ ordenes }}</pre> -->
                             <b-col offset-lg="8" offset-xl="8">
                                 <b-input-group class="mb-4" size="sm">
                                     <b-form-input id="filter-input" v-model="filter" type="search"
@@ -35,7 +34,8 @@
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
                                 <!-- <inventario-InsumoNuevo @reload="getProducts" /> -->
-                                <products-new class="mb-4" @r="getResponseNewProduct" />
+                                <products-new :attributescat="prductAttributes" :attributesval="prductAttributesValues"
+                                    class="mb-4" @r="getResponseNewProduct" />
                             </b-col>
                         </b-row>
                         <b-row>
@@ -87,11 +87,12 @@
 
 <script>
 import { mapState } from "vuex"
-import axios from "axios"
 
 export default {
     data() {
         return {
+            prductAttributes: [],
+            prductAttributesValues: [],
             includedFields: ["cod", "name"],
             perPage: 20,
             currentPage: 1,
@@ -228,10 +229,21 @@ export default {
                     this.overlay = false
                 })
         },
+
+        async getProductsAttributes() {
+            await this.$axios
+                .get(`${this.$config.API}/products-attributes`)
+                .then((resp) => {
+                    this.prductAttributes = resp.data.products_attributes
+                    this.prductAttributesValues = resp.data.products_attributes_values
+                    this.overlay = false
+                })
+        },
     },
 
     mounted() {
         this.getCategorias()
+        this.getProductsAttributes()
         this.getProducts().then(() => {
             console.log(
                 `vamos a crear los datos de los clientes con`,

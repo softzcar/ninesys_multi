@@ -11,7 +11,7 @@ export default function ({ $axios, store }) {
         // Configura los encabezados
         config.headers["Accept"] = "application/json"
 
-        console.log("Request Config:", config)
+        // console.log("Request Config:", config)
         return config
     })
 

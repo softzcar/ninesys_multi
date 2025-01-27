@@ -3,101 +3,43 @@
         <b-overlay :show="overlay" spinner-small>
             <b-container>
                 <b-row>
-                    <b-col>
-                        <h2 class="mb-4">Reporte de asistencias</h2>
-                    </b-col>
-                </b-row>
-                <b-row>
-                    <b-col
-                        xs="12"
-                        sm="12"
-                        md="6"
-                        lg="4"
-                        xl="4"
-                        offset-md="6"
-                        offset-lg="8"
-                        offset-xl="8"
-                    >
-                        <b-form @submit="onSubmit">
-                            <b-form-group
-                                id="input-group-1"
-                                label="Fecha inicio:"
-                                label-for="fecha-1"
-                            >
-                                <b-form-datepicker
-                                    id="fecha-1"
-                                    v-model="form.fechaConsultaInicio"
-                                    class="mb-2"
-                                ></b-form-datepicker>
-                                <!-- <pre>{{ form.fechaConsultaInicio }}</pre> -->
+                    <b-col xs="12" sm="12" md="6" lg="4" xl="4" offset-md="6" offset-lg="8" offset-xl="8">
+                        <b-form>
+                            <!-- <b-form-group id="input-group-1" label="Fecha inicio:" label-for="fecha-1">
+                                <b-form-datepicker id="fecha-1" v-model="form.fechaConsultaInicio"
+                                    class="mb-2"></b-form-datepicker>
                             </b-form-group>
 
-                            <b-form-group
-                                id="input-group-2"
-                                label="Fecha fin:"
-                                label-for="fecha-2"
-                            >
-                                <b-form-datepicker
-                                    v-model="form.fechaConsultaFin"
-                                    class="mb-2"
-                                ></b-form-datepicker>
-                            </b-form-group>
-                            <b-button
-                                class="mb-4"
-                                type="submit"
-                                variant="primary"
-                                >Buscar Asistencias
-                            </b-button>
+                            <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
+                                <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
+                            </b-form-group> -->
+                            <b-form-select class="mb-4" @change="buscarReposiciones" :disabled="overlay"
+                                v-model="estatusOrden" :options="optStatus" :value="estatusOrden"></b-form-select>
+                            <!-- <b-button @click="buscarReposiciones" :disabled="overlay" class="mb-4 mt-2" type="submit"
+                                variant="primary">Buscar Reposiciones
+                            </b-button> -->
                         </b-form>
                     </b-col>
                 </b-row>
+
                 <b-row>
                     <b-col>
-                        <h3 class="mt-4">
-                            Reporte Resumen del
-                            {{ formatDate(form.fechaConsultaInicio) }} al
-                            {{ formatDate(form.fechaConsultaFin) }}
-                        </h3>
-                        <b-table
-                            striped
-                            :fields="fields_resumen"
-                            :items="itemsResumen"
-                            class="mb-4"
-                        >
-                            <template #cell(acciones)="data">
-                                <admin-asistenciasReporteDetalles
-                                    :data_empleado="
-                                        filterDataEmpleado(
-                                            data.item.id_empleado
-                                        )
-                                    "
-                                />
+                        <!-- <pre class="force">
+                            <h3>Datos del reporte</h3>
+                            {{ dataReporte }}
+                        </pre> -->
+                        <b-table striped :fields="fields" :items="dataReporte" class="mb-4">
+                            <template #cell(id_orden)="data">
+                                <linkSearch :id="data.item.id_orden" />
                             </template>
-                        </b-table>
-                    </b-col>
-                </b-row>
-                <b-row>
-                    <b-col>
-                        <h3 class="mt-4">
-                            Reporte Detallado del
-                            {{ formatDate(form.fechaConsultaInicio) }} al
-                            {{ formatDate(form.fechaConsultaFin) }}
-                        </h3>
-                        <b-table
-                            striped
-                            :fields="fields_detallado"
-                            :items="itemsDetallado"
-                        >
-                            <!-- <template #cell(categories)="data">
-            <b-badge
-                  v-for="(prod, index) in showCategories(data.item.categories)"
-                  :key="index"
-                  pill
-                  variant="info"
-                  class="mr-1 mb-1 p-2"
-                  >{{ prod }}</b-badge
-                >
-              </template> -->
+
+                            <template #cell(material_consumido)="data">
+                                {{ data.item.material_consumido }} {{ data.item.unidad }}
+                            </template>
+
+                            <template #cell(fecha_creacion)="data">
+                                {{ data.item.fecha_creacion }} {{ data.item.hora_creacion }}
+                            </template>
                         </b-table>
                     </b-col>
                 </b-row>
@@ -107,7 +49,6 @@
 </template>
 
 <script>
-import axios from "axios"
 import mixin from "~/mixins/mixins.js"
 import { DateTime } from "luxon"
 
@@ -118,6 +59,14 @@ export default {
 
     data() {
         return {
+            dataReporte: [],
+            optStatus: [
+                { value: 'activa', text: 'Activas, en espera, pausadas y terminadas' },
+                { value: 'cancelada', text: 'Canceladas' },
+                { value: 'entregada', text: 'Entregadas' },
+                { value: 'todas', text: 'Todas' },
+            ],
+            estatusOrden: 'activa',
             form: {
                 fechaConsultaInicio: "",
                 fechaConsultaFin: "",
@@ -127,6 +76,49 @@ export default {
             fields_detallado: null,
             itemsResumen: null,
             itemsDetallado: null,
+            fields: [
+                {
+                    key: 'id_orden',
+                    label: 'Orden',
+                },
+                {
+                    key: 'id_reposicion',
+                    label: 'Reposición',
+                },
+                {
+                    key: 'producto',
+                    label: 'Producto',
+                },
+                {
+                    key: 'unidades',
+                    label: 'Unidades',
+                },
+                {
+                    key: 'talla',
+                    label: 'Talla',
+                },
+                {
+                    key: 'tela',
+                    label: 'Tela',
+                },
+                {
+                    key: 'material_consumido',
+                    label: 'Consumido',
+                },
+                {
+                    key: 'empleado_emisor',
+                    label: 'Emisor',
+                },
+                {
+                    key: 'empleado_asignado',
+                    label: 'Asignado',
+                },
+                {
+                    key: 'fecha_creacion',
+                    label: 'Fecha',
+                    sortable: true,
+                },
+            ],
         }
     },
 
@@ -153,8 +145,8 @@ export default {
             return date.toFormat("dd/LL/yyyy")
         },
 
-        onSubmit(event) {
-            event.preventDefault()
+        buscarReposiciones() {
+            this.overlay = true
             const fechaConsultaInicio = this.form.fechaConsultaInicio
             const fechaConsultaFin = this.form.fechaConsultaFin
 
@@ -175,20 +167,32 @@ export default {
                 })
                 return
             }
-            this.getAsistencias()
+            this.getReposiciones()
         },
 
-        async getAsistencias() {
+        async getReposiciones(estatus = null, fechaInicio = null, fechaFin = null) {
             this.overlay = true
+
+            let URLRep = ''
+
+            if (estatus === null) {
+                // Solcitamos las  reposiciones de las oredenes activas
+                URLRep = `${this.$config.API}/reposiciones-reporte/${this.estatusOrden}`
+            } else if (estatus !== null && fechaInicio === null && fechaFin === null) {
+                // Solicitamos las reposiciones con el estatus indicado
+                URLRep = `${this.$config.API}/reposiciones-reporte/${estatus}`
+            }
+
             await this.$axios
                 .get(
-                    `${this.$config.API}/asistencias/reporte/resumen/${this.form.fechaConsultaInicio}/${this.form.fechaConsultaFin}`
+                    URLRep
                 )
                 .then((res) => {
-                    this.fields_resumen = res.data.fields_resumen
+                    this.dataReporte = res.data
+                    /* this.fields_resumen = res.data.fields_resumen
                     this.fields_detallado = res.data.fields_detallado
                     this.itemsResumen = res.data.resumen
-                    this.itemsDetallado = res.data.detallado
+                    this.itemsDetallado = res.data.detallado */
                 })
                 .catch((err) => {
                     this.$fire({
@@ -209,9 +213,7 @@ export default {
     },
 
     mounted() {
-        this.getAsistencias()
+        this.getReposiciones()
     },
 }
 </script>
-
-<style lang="scss" scoped></style>

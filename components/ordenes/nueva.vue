@@ -900,8 +900,8 @@ export default {
             endpoint: "/ordenes/nueva/custom", // Opciones: `/ordenes/nueva/custom` - `/ordenes/nueva/sport`
             categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`
             categoriaDeLaORdenOptions: [
-                { text: "Custom", value: "custom" },
-                { text: "Sport", value: "sport" },
+                { text: "Fábrica", value: "custom" },
+                { text: "Tienda", value: "sport" },
             ],
             opcionesDePago: [
                 { value: "Dólares", text: "Dólares" },

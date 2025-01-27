@@ -18,6 +18,10 @@ h3 {
     font-size: 1.4rem !important;
 }
 
+.swal2-input {
+    pointer-events: unset !important;
+}
+
 /* Progress Bar */
 div.progress {
     background-color: #e9ecef;

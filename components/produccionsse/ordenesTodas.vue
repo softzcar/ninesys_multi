@@ -4,25 +4,14 @@
         <b-container fluid>
             <b-row>
                 <b-col class="mb-4">
-                    <b-form-radio-group
-                        id="btn-radios-2"
-                        v-model="selectedRadio"
-                        :options="optionsRadio"
-                        button-variant="outline-primary"
-                        size="lg"
-                        name="radio-btn-outline"
-                        @input="showResultRadio()"
-                        buttons
-                    ></b-form-radio-group>
+                    <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
+                        button-variant="outline-primary" size="lg" name="radio-btn-outline" @input="showResultRadio()"
+                        buttons></b-form-radio-group>
                 </b-col>
                 <b-col offset-lg="8" offset-xl="8">
                     <b-input-group class="mb-4" size="sm">
-                        <b-form-input
-                            id="filter-input"
-                            v-model="filter"
-                            type="search"
-                            placeholder="Filtrar Resultados"
-                        ></b-form-input>
+                        <b-form-input id="filter-input" v-model="filter" type="search"
+                            placeholder="Filtrar Resultados"></b-form-input>
 
                         <b-input-group-append>
                             <b-button :disabled="!filter" @click="filter = ''">
@@ -35,29 +24,16 @@
 
             <b-row>
                 <b-col>
-                    <b-pagination
-                        v-model="currentPage"
-                        :total-rows="totalRows"
-                        :per-page="perPage"
-                    ></b-pagination>
+                    <b-pagination v-model="currentPage" :total-rows="totalRows" :per-page="perPage"></b-pagination>
 
                     <p class="mt-3">Página actual: {{ currentPage }}</p>
                     <!-- <b-pagination-nav :link-gen="linkGen" :number-of-pages="10" use-router></b-pagination-nav> -->
 
-                    <b-table
-                        :items="ordenesTabla"
-                        :per-page="perPage"
-                        :current-page="currentPage"
-                        @filtered="onFiltered"
-                        :fields="fields"
-                        :filter="filter"
-                        :filter-included-fields="includedFields"
-                    >
+                    <b-table :items="ordenesTabla" :per-page="perPage" :current-page="currentPage"
+                        @filtered="onFiltered" :fields="fields" :filter="filter"
+                        :filter-included-fields="includedFields">
                         <template #cell(orden)="data">
-                            <linkSearch
-                                :id="data.item.orden"
-                                key="data.item.orden"
-                            />
+                            <linkSearch :id="data.item.orden" key="data.item.orden" />
                         </template>
                         <template #cell(acc)="data">
                             <!-- <div
@@ -72,24 +48,14 @@
                                 ></span>
                             </div> -->
                             <div style="float: left; margin-right: 6px">
-                                <diseno-view-image
-                                    class="floatme mb-2"
-                                    :id="data.item.orden"
-                                />
+                                <diseno-view-image class="floatme mb-2" :id="data.item.orden" />
                             </div>
                             <div style="float: left; margin-right: 6px">
-                                <ordenes-editar
-                                    :data="data.item"
-                                    :key="data.item.orden"
-                                />
+                                <ordenes-editar :data="data.item" :key="data.item.orden" />
                             </div>
                             <div style="float: left; margin-right: 6px">
-                                <ordenes-abono
-                                    :idorden="data.item.orden"
-                                    :key="data.item.orden"
-                                    :item="filterPago(data.item.orden)"
-                                    @reload="reloadMe()"
-                                />
+                                <ordenes-abono :idorden="data.item.orden" :key="data.item.orden"
+                                    :item="filterPago(data.item.orden)" @reload="reloadMe()" />
                             </div>
                         </template>
                     </b-table>
@@ -108,7 +74,7 @@ export default {
     data() {
         return {
             pagos: [],
-            includedFields: ["orden", "cliente"],
+            includedFields: ["orden", "cliente_nombre"],
             selectedRadio: "todas",
             optionsRadio: [
                 { text: "Todas", value: "todas" },
