@@ -11,28 +11,15 @@
   </div> -->
     <div>
         <!-- <b-button @click="$bvModal.show(modal)" :variant="ButtonVariant">{{ -->
-        <pre>
-        {{ item }}
-      </pre
-        >
         <b-button @click="flujoDeTrabajo(item)" :variant="ButtonVariant">{{
             ButtonText
-        }}</b-button>
+            }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="xl">
-            <pre>
-        {{ $props }}
-    </pre
-            >
             <b-overlay :show="overlay" spinner-small>
-                <b-alert
-                    class="text-center pt-4"
-                    v-if="
-                        dataTable2.length === 0 && item.progreso === 'en curso'
-                    "
-                    show
-                    variant="danger"
-                >
+                <b-alert class="text-center pt-4" v-if="
+                    dataTable2.length === 0 && item.progreso === 'en curso'
+                " show variant="danger">
                     <h3 class="alert-heading">No ha seleccionado las telas</h3>
                     <p>
                         Seleccione los rollos de tela que utilizó antes de
@@ -44,27 +31,14 @@
                     <h3 class="text-center">
                         Llene los datos de el peso de las piezas
                     </h3>
-                    <b-table
-                        class="mb-4"
-                        :fields="fields"
-                        striped
-                        :items="dataTable2"
-                    >
+                    <b-table class="mb-4" :fields="fields" striped :items="dataTable2">
                         <template #cell(cantidad)="data">
-                            <empleados-BotonTerminarModalInput
-                                :item="data.item"
-                                :itemfather="itemfather"
-                                :index="data.index"
-                                @reload="reloadMe"
-                            />
+                            <empleados-BotonTerminarModalInput :item="data.item" :itemfather="itemfather"
+                                :index="data.index" @reload="reloadMe" />
                         </template>
                     </b-table>
                     <div class="text-center mt-4 mb-4">
-                        <b-button
-                            :variant="ButtonVariant"
-                            @click="terminarTrabajo(item)"
-                            >{{ ButtonText }}</b-button
-                        >
+                        <b-button :variant="ButtonVariant" @click="terminarTrabajo(item)">{{ ButtonText }}</b-button>
                         <!-- <b-button :variant="ButtonVariant">{{ ButtonText }}</b-button> -->
                     </div>
                 </div>

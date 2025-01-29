@@ -13,43 +13,25 @@
         </pre> -->
 
                 <b-list-group class="mb-4">
-                    <b-list-group-item
-                        ><strong>Orden</strong>
-                        {{ item.id_orden }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Enviada por</strong>
-                        {{ item.empleado }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Fecha y Hora</strong> {{ item.fecha }},
-                        {{ item.hora }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Detalle</strong>
-                        {{ item.detalle_emisor }}</b-list-group-item
-                    >
+                    <b-list-group-item><strong>Orden</strong>
+                        {{ item.id_orden }}</b-list-group-item>
+                    <b-list-group-item><strong>Enviada por</strong>
+                        {{ item.empleado }}</b-list-group-item>
+                    <b-list-group-item><strong>Fecha y Hora</strong> {{ item.fecha }},
+                        {{ item.hora }}</b-list-group-item>
+                    <b-list-group-item><strong>Detalle</strong>
+                        {{ item.detalle_emisor }}</b-list-group-item>
                     <b-list-group-item> </b-list-group-item>
-                    <b-list-group-item
-                        ><strong>Producto</strong>
-                        {{ item.producto }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Unidades</strong>
-                        {{ item.unidades }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Talla</strong>
-                        {{ item.talla }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Corte</strong>
-                        {{ item.corte }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                        ><strong>Tela</strong>
-                        {{ item.tela }}</b-list-group-item
-                    >
+                    <b-list-group-item><strong>Producto</strong>
+                        {{ item.producto }}</b-list-group-item>
+                    <b-list-group-item><strong>Unidades</strong>
+                        {{ item.unidades }}</b-list-group-item>
+                    <b-list-group-item><strong>Talla</strong>
+                        {{ item.talla }}</b-list-group-item>
+                    <b-list-group-item><strong>Corte</strong>
+                        {{ item.corte }}</b-list-group-item>
+                    <b-list-group-item><strong>Tela</strong>
+                        {{ item.tela }}</b-list-group-item>
                 </b-list-group>
 
                 <b-form @submit="onSubmit">
@@ -70,45 +52,21 @@
             </b-form-input>
           </b-form-group> -->
 
-                    <b-form-group
-                        id="input-group-2"
-                        label="Empleado:"
-                        label-for="select-empleado"
-                        description="Empleado involucrado en la reposición."
-                    >
-                        <b-form-select
-                            id="select-empleado"
-                            v-model="form.emp"
-                            :options="selectEmpleados"
-                            :value="form.emp"
-                            size="sm"
-                            style="width: 45%"
-                        ></b-form-select>
+                    <b-form-group id="input-group-2" label="Empleado:" label-for="select-empleado"
+                        description="Empleado involucrado en la reposición.">
+                        <b-form-select id="select-empleado" v-model="form.emp" :options="selectEmpleados"
+                            :value="form.emp" size="sm" style="width: 45%"></b-form-select>
                     </b-form-group>
-                    <b-form-group
-                        id="input-group-2"
-                        label="Detalle:"
-                        label-for="input-2"
-                        description="Describa el detalle de la reposición."
-                    >
-                        <b-form-textarea
-                            id="textarea"
-                            v-model="form.detalle"
-                            no-auto-shrink
-                            size="sm"
-                            no-resize
-                            rows="3"
-                            max-rows="20"
-                        >
+                    <b-form-group id="input-group-2" label="Detalle:" label-for="input-2"
+                        description="Describa el detalle de la reposición.">
+                        <b-form-textarea id="textarea" v-model="form.detalle" no-auto-shrink size="sm" no-resize
+                            rows="3" max-rows="20">
                         </b-form-textarea>
                     </b-form-group>
 
                     <b-button type="submit" variant="primary">Aceptar</b-button>
-                    <b-button @click="validarRechazo" variant="danger"
-                        >Rechazar</b-button
-                    >
+                    <b-button @click="validarRechazo" variant="danger">Rechazar</b-button>
                 </b-form>
-                item::: {{ item }}
             </b-overlay>
         </b-modal>
     </div>

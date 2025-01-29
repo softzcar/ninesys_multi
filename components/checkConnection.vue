@@ -90,7 +90,7 @@ export default {
                 height: 300,
             },
             pollingInterval: null, // Variable para almacenar el intervalo
-            shortInterval: 5000, // Intervalo corto (5 segundos)
+            shortInterval: 300000, // Intervalo corto (5 segundos) 'Temporalmente en 3 minutos mientras el desarrollo'
             longInterval: 30000, // Intervalo largo (30 segundos)
         }
     },

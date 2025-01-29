@@ -6,19 +6,17 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div
-                v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Empleado' ||
-                    dataUser.departamento === 'Corte' ||
-                    dataUser.departamento === 'Impresión' ||
-                    dataUser.departamento === 'Estampado' ||
-                    dataUser.departamento === 'Costura' ||
-                    dataUser.departamento === 'Limpieza' ||
-                    dataUser.departamento === 'Revisión' ||
-                    dataUser.departamento === 'Diseño'
-                "
-            >
+            <div v-if="
+                dataUser.departamento === 'Administración' ||
+                dataUser.departamento === 'Empleado' ||
+                dataUser.departamento === 'Corte' ||
+                dataUser.departamento === 'Impresión' ||
+                dataUser.departamento === 'Estampado' ||
+                dataUser.departamento === 'Costura' ||
+                dataUser.departamento === 'Limpieza' ||
+                dataUser.departamento === 'Revisión' ||
+                dataUser.departamento === 'Diseño'
+            ">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container fluid>
                         <b-row>
@@ -29,27 +27,17 @@
                         </b-row>
                         <b-row>
                             <b-col>
-                                <b-table
-                                    responsive
-                                    :fields="dataTable.fields"
-                                    :items="dataTable.items"
-                                >
+                                <b-table responsive :fields="dataTable.fields" :items="dataTable.items">
                                     <template #cell(acciones)="data">
                                         <span class="floatme">
-                                            <AdminEmpleadoEditar
-                                                :item="data.item"
-                                                @reload="getEmpleados"
-                                            />
+                                            <AdminEmpleadoEditar :item="data.item" @reload="getEmpleados" />
                                         </span>
                                         <span class="floatme">
-                                            <b-button
-                                                variant="danger"
-                                                v-on:click="
-                                                    deleteEmpleado(
-                                                        data.item._id
-                                                    )
-                                                "
-                                            >
+                                            <b-button variant="danger" v-on:click="
+                                                deleteEmpleado(
+                                                    data.item._id
+                                                )
+                                                ">
                                                 <b-icon icon="trash"></b-icon>
                                             </b-button>
                                         </span>
@@ -61,7 +49,9 @@
                 </b-overlay>
             </div>
 
-            <div v-else><accessDenied /></div>
+            <div v-else>
+                <accessDenied />
+            </div>
         </div>
     </div>
 </template>
@@ -96,19 +86,43 @@ export default {
             this.$confirm(
                 `¿Desea Elimiar el empleado ${id_emp} ?`,
                 "Eliminar Empleado",
-                "warning"
+                "question"
             )
                 .then(() => {
                     this.overlay = true
                     const data = new URLSearchParams()
                     data.set("id", id_emp)
 
-                    axios
+                    this.$axios
                         .post(`${this.$config.API}/empleados/eliminar`, data)
                         .then((res) => {
-                            this.getEmpleados().then(
-                                () => (this.overlay = false)
-                            )
+                            let msgDat
+                            if (parseInt(res.data.asignaciones) === 0) {
+                                msgDat = {
+                                    icon: 'success',
+                                    msg: 'El empleado ha sido eliminado'
+                                }
+                                this.getEmpleados()
+                            } else {
+                                msgDat = {
+                                    icon: 'warning',
+                                    msg: 'El empleado tiene registros de tareas realizadas previamente y no se puede eliminar'
+                                }
+                            }
+
+                            this.$fire({
+                                title: "Eliminar Empleado",
+                                html: `<p>${msgDat.msg}</p>`,
+                                type: msgDat.icon,
+                            })
+                        }).catch((err) => {
+                            this.$fire({
+                                title: "Eliminar Empleado",
+                                html: `<p>Ocurrió un error al eliminar el empleado</p><p>${err}</p>`,
+                                type: "danger",
+                            })
+                        }).finally(() => {
+                            this.overlay = false
                         })
                 })
                 .catch((err) => {

@@ -6,9 +6,9 @@
 
         <b-modal :id="modal" :title="title" hide-footer size="md">
             <b-overlay :show="overlay" spinner-small>
-                <pre class="force">
+                <!-- <pre class="force">
                     {{ form }}
-                </pre>
+                </pre> -->
                 <!-- Formulario de Impresión -->
                 <b-button variant="light" @click="addItem" aria-label="Agregar Atributo">
                     <b-icon icon="plus-lg"></b-icon>

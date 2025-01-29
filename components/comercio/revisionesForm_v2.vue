@@ -2,42 +2,20 @@
     <div>
         <b-overlay :show="overlay" rounded="sm">
             <b-container>
-                <pre>
-                this.item.id_orden:{{ this.item.id_orden }}
-            </pre
-                >
                 <b-row :id="item.id_orden">
                     <b-col>
-                        <b-card
-                            :title="item.cliente"
-                            :header="title"
-                            header-text-variant="white"
-                            header-tag="header"
-                            header-bg-variant="dark"
-                            no-body
-                            style="max-width: 100% !important"
-                            class="overflow-hidden"
-                        >
+                        <b-card :title="item.cliente" :header="title" header-text-variant="white" header-tag="header"
+                            header-bg-variant="dark" no-body style="max-width: 100% !important" class="overflow-hidden">
                             <b-row no-gutters>
                                 <b-col md="6">
-                                    <b-card-img-lazy
-                                        class="mt-4"
-                                        :src="tmpImage"
-                                        loading="lazy"
-                                    ></b-card-img-lazy>
+                                    <b-card-img-lazy class="mt-4" :src="tmpImage" loading="lazy"></b-card-img-lazy>
                                     <b-row>
                                         <b-col>
-                                            <b-alert
-                                                class="text-center"
-                                                show
-                                                style="
+                                            <b-alert class="text-center" show style="
                                                     text-transform: uppercase;
                                                     font-size: 1.2rem;
                                                     font-weight: bold;
-                                                "
-                                                :variant="variantAlert"
-                                                >{{ item.estatus }}</b-alert
-                                            >
+                                                " :variant="variantAlert">{{ item.estatus }}</b-alert>
                                         </b-col>
                                     </b-row>
                                 </b-col>
@@ -55,46 +33,28 @@
                       </b-row> -->
                                             <b-row class="mb-2">
                                                 <b-col>
-                                                    <b-button
-                                                        @click="
-                                                            aprobarPropuesta()
-                                                        "
-                                                        variant="success"
-                                                        ><b-icon-check></b-icon-check>
-                                                        Aprobar</b-button
-                                                    >
+                                                    <b-button @click="
+                                                        aprobarPropuesta()
+                                                        " variant="success"><b-icon-check></b-icon-check>
+                                                        Aprobar</b-button>
                                                 </b-col>
                                             </b-row>
                                             <b-row class="mb-2">
                                                 <b-col>
-                                                    <b-button
-                                                        variant="warning"
-                                                        @click="
-                                                            rechazarPropuesta()
-                                                        "
-                                                        ><b-icon-skip-backward-fill></b-icon-skip-backward-fill>
-                                                        Rechazar</b-button
-                                                    >
+                                                    <b-button variant="warning" @click="
+                                                        rechazarPropuesta()
+                                                        "><b-icon-skip-backward-fill></b-icon-skip-backward-fill>
+                                                        Rechazar</b-button>
                                                 </b-col>
                                             </b-row>
 
                                             <b-row>
                                                 <b-col>
-                                                    <b-form-group
-                                                        id="input-group-1"
-                                                        label="Detalle:"
+                                                    <b-form-group id="input-group-1" label="Detalle:"
                                                         label-for="input-1"
-                                                        description="Describa los cambios del diseño."
-                                                    >
-                                                        <b-form-textarea
-                                                            id="textarea"
-                                                            v-model="detalles"
-                                                            no-auto-shrink
-                                                            size="sm"
-                                                            no-resize
-                                                            rows="3"
-                                                            max-rows="20"
-                                                        >
+                                                        description="Describa los cambios del diseño.">
+                                                        <b-form-textarea id="textarea" v-model="detalles" no-auto-shrink
+                                                            size="sm" no-resize rows="3" max-rows="20">
                                                         </b-form-textarea>
                                                     </b-form-group>
                                                 </b-col>
@@ -230,7 +190,7 @@ export default {
                 .then((res) => {
                     this.$emit("reload", true)
                 })
-                .catch((err) => {})
+                .catch((err) => { })
         },
 
         copyLink() {

@@ -13,9 +13,9 @@
                         <b-table striped :fields="fields" :items="data_empleado"></b-table>
                     </b-col>
                 </b-row>
-                <pre>
+                <!-- <pre>
             {{ data_empleado }}
-        </pre>
+        </pre> -->
             </b-modal>
         </b-overlay>
     </div>

@@ -12,11 +12,6 @@
                         {{ formatTimestampDate(data.item.moment) }}
                     </template>
                 </b-table>
-                <pre>
-            item: {{ curritem }}
-            dataTable: {{ dataTable }}
-        </pre
-                >
             </b-overlay>
         </b-modal>
     </div>

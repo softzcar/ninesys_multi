@@ -14,33 +14,43 @@
         </b-modal>
 
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
-            <b-container>
+            <b-container fluid class="p-3" style="width: 100%;">
                 <!-- {{ $data.productos }} -->
                 <b-row>
-                    <b-col xl="6" lg="6" md="6" sm="12">
-                        <b-card-group deck>
-                            <b-card header="Datos de la orden">
-                                <b-list-group>
-                                    <span><strong>Orden:</strong>
-                                        {{ id_orden }}</span>
-                                </b-list-group>
-                                <b-list-group>
-                                    <span><strong>Cliente:</strong>
-                                        {{ item.cliente }}</span>
-                                </b-list-group>
-                                <b-list-group>
-                                    <span>
-                                        <strong>Paso actual:</strong>
-                                        <span style="
-                                                text-transform: uppercase;
-                                                background-color: #fff3cd;
-                                                font-weight: 700;
-                                                padding: 4px;
-                                            ">{{ item.paso }}</span>
+                    <b-col>
+                        <h3>Datos de la orden</h3>
+                        <b-list-group style="width: 100% !important;">
+                            <b-list-group-item>
+                                <span><strong>Orden:</strong>
+                                    {{ id_orden }}</span>
+                            </b-list-group-item>
+
+                            <b-list-group-item>
+                                <span><strong>Cliente:</strong>
+                                    {{ item.cliente }}
+                                </span>
+                            </b-list-group-item>
+                            <b-list-group-item>
+                                <span>
+                                    <strong>Paso actual:</strong>
+                                    <span style="
+                                            text-transform: uppercase;
+                                            background-color: #fff3cd;
+                                            font-weight: 700;
+                                            padding: 4px;
+                                        ">
+                                        {{ item.paso }}
                                     </span>
-                                </b-list-group>
-                            </b-card>
-                        </b-card-group>
+                                </span>
+                            </b-list-group-item>
+                            <b-list-group-item>
+                                <b-button class="mt-2" size="sm" v-b-toggle.collapse-1 variant="light">Ver
+                                    Detalles</b-button>
+                                <b-collapse id="collapse-1" class="mt-2">
+                                    <span v-html="item.detalles"></span>
+                                </b-collapse>
+                            </b-list-group-item>
+                        </b-list-group>
                     </b-col>
                 </b-row>
                 <b-row>
@@ -68,7 +78,22 @@ export default {
             title: "Reposición de piezas",
             overlay: false,
             productos: [],
-            item: {},
+            item: {
+                orden: "",
+                vinculada: "",
+                cliente: "",
+                prioridad: "0",
+                paso: "",
+                detalle_supervisor: null,
+                detalle_emisor: null,
+                inicio: "",
+                entrega: "",
+                detalles: "",
+                acciones: "",
+                estatus: "",
+                id_diseno: null,
+                disenador: ""
+            },
             showError: false,
             dataReposicion: []
         }
@@ -112,7 +137,7 @@ export default {
                 .then((resp) => {
                     console.log("test mounted", resp.data)
                     this.productos = resp.data.reposicion_ordenes_productos
-                    this.item = resp.data.item // Asegúrate de que item siempre sea un objeto
+                    this.item = resp.data.item.data // Asegúrate de que item siempre sea un objeto
                     this.dataReposicion = resp.data.item.detalles_reposicion.filter((el) => el.id_empleado == this.$store.state.login.dataUser.id_empleado)
                 })
         },
@@ -121,9 +146,11 @@ export default {
             return false
         },
     },
+    beforeMount() {
+        this.getReposicionData()
+    },
 
     mounted() {
-        this.getReposicionData()
     },
 
     props: ["id_orden", "reload_this"],

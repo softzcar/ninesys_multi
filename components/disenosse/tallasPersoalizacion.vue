@@ -6,45 +6,22 @@
 
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
             <b-overlay :show="overlay" spinner-small>
-                <pre>
-          {{ $props.item }}
-        </pre
-                >
                 <b-container>
                     <b-row>
                         <b-col>
                             <b-form @submit="onSubmit">
-                                <b-form-group
-                                    id="input-group-1"
-                                    label="Ajustes:"
-                                    label-for="input-ajustes"
-                                >
-                                    <b-form-input
-                                        id="input-ajustes"
-                                        v-model="form.ajustes"
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                    ></b-form-input>
+                                <b-form-group id="input-group-1" label="Ajustes:" label-for="input-ajustes">
+                                    <b-form-input id="input-ajustes" v-model="form.ajustes" type="number" min="0"
+                                        step="1"></b-form-input>
                                 </b-form-group>
 
-                                <b-form-group
-                                    id="input-group-2"
-                                    label="Personalizaciones:"
-                                    label-for="input-personalizaciones"
-                                >
-                                    <b-form-input
-                                        id="input-personalizaciones"
-                                        v-model="form.personalizaciones"
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                    ></b-form-input>
+                                <b-form-group id="input-group-2" label="Personalizaciones:"
+                                    label-for="input-personalizaciones">
+                                    <b-form-input id="input-personalizaciones" v-model="form.personalizaciones"
+                                        type="number" min="0" step="1"></b-form-input>
                                 </b-form-group>
 
-                                <b-button type="submit" variant="primary"
-                                    >Guardar</b-button
-                                >
+                                <b-button type="submit" variant="primary">Guardar</b-button>
                             </b-form>
                         </b-col>
                     </b-row>

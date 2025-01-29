@@ -22,96 +22,48 @@
                                         required
                                     ></b-form-input>
                                 </b-form-group> -->
-
-                                <b-form-group
-                                    id="input-group-4"
-                                    label="Email:"
-                                    label-for="input-email"
-                                >
-                                    <b-form-input
-                                        id="input-email"
-                                        v-model="form.email"
-                                        placeholder="Ingrese el email"
-                                        type="email"
-                                        required
-                                    >
+                                <b-form-group id="input-group-3" label="Nombre:" label-for="input-name">
+                                    <b-form-input id="input-name" v-model="form.nombre" placeholder="Ingrese el nombre"
+                                        required>
                                     </b-form-input>
                                 </b-form-group>
 
-                                <b-form-group
-                                    id="input-group-3"
-                                    label="Nombre:"
-                                    label-for="input-name"
-                                >
-                                    <b-form-input
-                                        id="input-name"
-                                        v-model="form.nombre"
-                                        placeholder="Ingrese el nombre"
-                                        required
-                                    >
+                                <b-form-group id="input-group-4" label="Email:" label-for="input-email">
+                                    <b-form-input id="input-email" v-model="form.email" placeholder="Ingrese el email"
+                                        type="email" required>
                                     </b-form-input>
                                 </b-form-group>
 
-                                <b-form-group
-                                    id="input-group-2"
-                                    label="Contraseña:"
-                                    label-for="input-password"
-                                >
-                                    <b-form-input
-                                        id="input-password"
-                                        v-model="form.password"
-                                        placeholder="Ingrese la contraseña"
-                                        type="password"
-                                        required
-                                    ></b-form-input>
+
+                                <b-form-group id="input-group-2" label="Contraseña:" label-for="input-password">
+                                    <b-form-input id="input-password" v-model="form.password"
+                                        placeholder="Ingrese la contraseña" type="password" required></b-form-input>
                                 </b-form-group>
 
-                                <b-form-group
-                                    id="input-group-5"
-                                    label="Comisión:"
-                                    label-for="input-comision"
-                                >
-                                    <b-form-input
-                                        id="input-comision"
-                                        v-model="form.comision"
-                                        placeholder="Ingrese % de comision"
-                                        required
-                                    >
+                                <b-form-group id="input-group-5" label="Comisión fija:" label-for="input-comision">
+                                    <b-form-input id="input-comision" v-model="form.comision"
+                                        placeholder="Ingrese % de comision" type="number" step="0.01" min="0" required>
                                     </b-form-input>
                                 </b-form-group>
 
-                                <b-form-group
-                                    id="input-group-6"
-                                    label="Tipo de acceso:"
-                                    label-for="input-access"
-                                >
-                                    <b-form-select
-                                        id="input-access"
-                                        v-model="form.acceso"
-                                        :options="accessOptions"
-                                        required
-                                    >
+                                <b-form-group id="input-group-8" label="Tipo de comisión:" label-for="input-access">
+                                    <b-form-select id="input-access" v-model="form.comsionTipo"
+                                        :options="comisionOptions" required>
                                     </b-form-select>
                                 </b-form-group>
 
-                                <b-form-group
-                                    id="input-group-7"
-                                    label="Departamento:"
-                                    label-for="input-departament"
-                                >
-                                    <b-form-select
-                                        id="input-departament"
-                                        v-model="form.departamento"
-                                        :options="departamentOptions"
-                                        required
-                                    ></b-form-select>
+                                <b-form-group id="input-group-6" label="Tipo de acceso:" label-for="input-access">
+                                    <b-form-select id="input-access" v-model="form.acceso" :options="accessOptions"
+                                        required>
+                                    </b-form-select>
                                 </b-form-group>
-                                <b-button type="submit" variant="primary"
-                                    >Guardar</b-button
-                                >
-                                <b-button @click="resetForm" variant="danger"
-                                    >Limpiar</b-button
-                                >
+
+                                <b-form-group id="input-group-7" label="Departamento:" label-for="input-departament">
+                                    <b-form-select id="input-departament" v-model="form.departamento"
+                                        :options="departamentOptions" required></b-form-select>
+                                </b-form-group>
+                                <b-button type="submit" variant="primary">Guardar</b-button>
+                                <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                             </b-form>
                         </b-col>
                     </b-row>
@@ -132,11 +84,17 @@ export default {
                 nombre: "",
                 email: "",
                 acceso: null,
+                comision: 0,
+                comsionTipo: 'variable',
                 departamento: "",
             },
             accessOptions: [
                 { value: 0, text: "Empleado" },
                 { value: 1, text: "Administrador" },
+            ],
+            comisionOptions: [
+                { value: 'variable', text: "Variable" },
+                { value: 'fija', text: "Fija" },
             ],
             departamentOptions: this.$config.DEPARTAMENT_OPTIONS,
             size: "md",
@@ -162,6 +120,7 @@ export default {
                 email: "",
                 acceso: null,
                 comision: 0,
+                comsionTipo: 'variable',
                 departamento: "",
             }
             this.overlay = false
@@ -175,6 +134,8 @@ export default {
             data.set("email", this.form.email)
             data.set("nombre", this.form.nombre)
             data.set("password", this.form.password)
+            data.set("comision", this.form.comision)
+            data.set("comsion_tipo", this.form.comsionTipo)
             data.set("username", this.form.username)
 
             await this.$axios
@@ -192,9 +153,10 @@ export default {
         onReset(event) {
             event.preventDefault()
             // Reset our form values
-            this.form.username = ""
+            /* this.form.username = ""
             this.form.password = ""
-            this.form.name = ""
+            this.form.name = "" */
+            this.resetForm()
             // Trick to reset/clear native browser form validation state
             this.show = false
             this.$nextTick(() => {

@@ -12,16 +12,10 @@
                 <b-container fluid>
                     <b-row>
                         <b-col>
-                            <div
-                                class="floatme"
-                                style="width: 100%; margin-bottom: 20px"
-                            >
+                            <div class="floatme" style="width: 100%; margin-bottom: 20px">
                                 <span>
-                                    <b-button
-                                        @click="pagarEmpleado(item.id_empleado)"
-                                        variant="success"
-                                        >PAGAR {{ item.pago }}</b-button
-                                    >
+                                    <b-button @click="pagarEmpleado(item.id_empleado)" variant="success">PAGAR {{
+                                        item.pago }}</b-button>
                                 </span>
                             </div>
                         </b-col>
@@ -29,19 +23,9 @@
                     <b-row class="justify-content-md-center">
                         <b-col>
                             <!-- <pre>{{ detalles }}</pre> -->
-                            <b-table
-                                responsive
-                                small
-                                striped
-                                :items="detalles"
-                                :fields="fields"
-                            >
+                            <b-table responsive small striped :items="detalles" :fields="fields">
                                 <template #cell(pago)="data">
                                     $ {{ formatNumber(data.item.pago) }}
-                                    <pre>
-                    {{ data.itemvnet }}
-                  </pre
-                                    >
                                 </template>
 
                                 <!-- <template #cell(pago)="data">
@@ -52,14 +36,8 @@
                                     ${{ data.item.pago }}
                                 </template>
                                 <template #cell(id_orden)="data">
-                                    <linkSearch
-                                        class="floatme"
-                                        :id="data.item.id_orden"
-                                    />
-                                    <diseno-viewImage
-                                        class="floatme"
-                                        :id="data.item.id_orden"
-                                    />
+                                    <linkSearch class="floatme" :id="data.item.id_orden" />
+                                    <diseno-viewImage class="floatme" :id="data.item.id_orden" />
                                 </template>
                             </b-table>
                         </b-col>
@@ -97,14 +75,24 @@ export default {
                     label: "Vendedor",
                 },
                 {
-                    key: "pago",
-                    label: "Monto Pagado",
+                    key: "comision_tipo",
+                    label: "Tipo",
+                },
+                {
+                    key: "comision",
+                    label: "Comisión",
+                },
+                {
+                    key: "monto_abonado",
+                    label: "Monto",
                     thClass: "text-right",
                     tdClass: "text-right",
                 },
                 {
-                    key: "tipo_de_pago",
-                    label: "Detalle",
+                    key: "pago",
+                    label: "Monto Pagado",
+                    thClass: "text-right",
+                    tdClass: "text-right",
                 },
                 {
                     key: "fecha_de_pago",

@@ -203,10 +203,34 @@ export default {
                     this.$axios
                         .delete(`${this.$config.API}/products/${id}`)
                         .then((res) => {
-                            this.getProducts().then(
-                                () => (this.overlay = false)
-                            )
+                            let msgDat
+                            if (parseInt(res.data.cantidad_prod) === 0) {
+                                msgDat = {
+                                    icon: 'success',
+                                    msg: 'El producto ha sido eliminado',
+                                }
+                                this.getProducts()
+                            } else {
+                                msgDat = {
+                                    icon: 'warning',
+                                    msg: 'El producto tiene ordenes asociadas a él y no se puede eliminar',
+                                }
+                            }
+
+                            this.$fire({
+                                title: "Eliminar Producto",
+                                html: `<p>${msgDat.msg}</p>`,
+                                type: msgDat.icon,
+                            })
+
+                        }).catch((err) => {
+                            this.$fire({
+                                title: "Eliminar Producto",
+                                html: `<p>Ocurrió un error al eliminar el productos</p><p>${err}</p>`,
+                                type: msgDat.icon,
+                            })
                         })
+                        .finally(() => this.overlay = false)
                 })
                 .catch((err) => {
                     console.log("CATCH!!!", err)

@@ -2,13 +2,9 @@
     <div>
         <b-button @click="flujoDeTrabajo(item)" :variant="ButtonVariant">{{
             ButtonText
-        }}</b-button>
+            }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="xl">
-            <pre> dataTable2 {{ dataTable2 }}</pre>
-            <pre style="background-color:blueviolet;">
-                {{ $props.item }}
-            </pre>
             <b-overlay :show="overlay" spinner-small>
                 <b-alert class="text-center pt-4" v-if="
                     this.$store.state.login.dataUser.departamento === 'Impresión' &&
@@ -55,7 +51,7 @@
                     <div class="text-center mt-4 mb-4">
                         <b-button :variant="ButtonVariant" @click="iniciarTrabajo(item)">{{
                             ButtonText
-                        }}</b-button>
+                            }}</b-button>
                     </div>
                 </div>
             </b-overlay>

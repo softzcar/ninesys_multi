@@ -10,7 +10,7 @@
                 </b-col>
             </b-row>
             <!-- EL BUSCADOR INTERCAMBIA LA COLUMNA DE ACCIONES ↓ -->
-            <b-row v-if="this.$store.state.login.dataUser.departamento === 'Administración'">
+            <b-row>
                 <b-col offset-lg="8" offset-xl="8">
                     <b-input-group class="mb-4" size="sm">
                         <b-form-input id="filter-input" v-model="filter" type="search"
@@ -37,8 +37,8 @@
                                 <h3>Fecha Fin</h3>
                                 <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
                             </b-col>
-                            <b-col>
-                                <h3>Vendedor {{ selectedVendedor }}</h3>
+                            <b-col v-if="this.$store.state.login.dataUser.departamento === 'Administración'">
+                                <h3>Vendedor</h3>
                                 <!-- <pre class="force">
                                     {{ vendedores }}
                                 </pre> -->
@@ -115,13 +115,13 @@
 </template>
 
 <script>
-import axios from "axios"
-import { mapState, mapActions, mapGetters } from "vuex"
+import { mapState, mapActions } from "vuex"
 import mixin from "~/mixins/mixins.js"
 
 export default {
     data() {
         return {
+            ordenesLength: 0,
             dataTable: [],
             ordenesActivas: [],
             fechaConsultaInicio: "",
@@ -199,6 +199,7 @@ export default {
                     this.dataTable = res.data.items
                     this.fields = res.data.fields
                     this.ordenesActivas = res.data.items
+                    this.ordenesLength = this.ordenesActivas.length
                 })
         },
 

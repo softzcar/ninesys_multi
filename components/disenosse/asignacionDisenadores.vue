@@ -5,10 +5,6 @@
         </b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
-            <!-- <pre class="force" style="background-color: red">
-                item: {{ item }} </pre>
-            <pre class="force" style="background-color: blue">
-                form: {{ form }}</pre> -->
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
                 <b-button variant="light" @click="addItem" aria-label="Agregar Diseñador">

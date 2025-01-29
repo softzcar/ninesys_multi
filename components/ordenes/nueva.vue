@@ -1051,6 +1051,7 @@ export default {
                 { key: "talla", label: "talla", tdClass: "min-width" },
                 { key: "corte", label: "corte" },
                 { key: "tela", label: "tela" },
+                { key: "color", label: "color" },
                 { key: "acciones", label: "acciones" },
             ],
             fieldsGuardadas: [
@@ -2412,11 +2413,13 @@ export default {
                 .then((data) => {
                     console.log(`La orden ${data.orden_nro} ha sido creada`)
                     console.dir(data)
+                    this.clearForm({
+                        form: true,
+                    })
 
                     this.$confirm("¿Desea imprimir la orden?").then(() => {
                         this.printOrder("reporte").then(() => {
                             this.clearForm({
-                                form: true,
                                 formPrint: true,
                             })
                         })
@@ -2429,7 +2432,13 @@ export default {
                         type: "warning",
                     })
                 })
-                .finally(() => (this.overlay = false))
+                .finally(() => {
+                    this.clearForm({
+                        form: true,
+                        formPrint: true,
+                    })
+                    this.overlay = false
+                })
         },
 
         clearStep1() {
@@ -2563,8 +2572,8 @@ export default {
                         cantidad: 0,
                         tela: null,
                         corte: "No aplica",
-                        tela: null,
                         talla: null,
+                        colores: [],
                         xl: 0,
                         categoria: this.getCategory(product.categories),
                         diseno: this.checkDesign(product.categories),
@@ -2604,6 +2613,7 @@ export default {
                 cantidad: item.cantidad,
                 talla: item.talla,
                 tela: item.tela,
+                colores: [],
                 corte: item.corte,
                 precio: item.precio,
                 categoria: item.categoria,
@@ -2987,6 +2997,11 @@ export default {
     },
 
     mounted() {
+        this.clearForm({
+            form: true,
+            formPrint: true,
+        })
+
         this.checkScreenSize()
         window.addEventListener("resize", this.handleResize)
 

@@ -8,23 +8,16 @@
         </a>
         <pre>
       {{ products }}
-    </pre
-        >
+    </pre>
         <b-modal :size="size" :title="title" :id="modal" hide-footer>
             <b-overlay :show="overlay" spinner-small>
                 <b-container fluid>
                     <b-row>
                         <b-col>
-                            <div
-                                class="floatme"
-                                style="width: 100%; margin-bottom: 20px"
-                            >
+                            <div class="floatme" style="width: 100%; margin-bottom: 20px">
                                 <span>
-                                    <b-button
-                                        @click="pagarEmpleado(item.id_empleado)"
-                                        variant="success"
-                                        >PAGAR {{ pagoTotal }}</b-button
-                                    >
+                                    <b-button @click="pagarEmpleado(item.id_empleado)" variant="success">PAGAR {{
+                                        pagoTotal }}</b-button>
                                     <!-- {{ item.pago }} -->
                                 </span>
                             </div>
@@ -32,42 +25,24 @@
                     </b-row>
                     <b-row class="justify-content-md-center">
                         <b-col>
-                            <b-table
-                                responsive
-                                small
-                                striped
-                                :items="detalles"
-                                :fields="fields"
-                            >
+                            <b-table responsive small striped :items="detalles" :fields="fields">
                                 <template #cell(orden)="data">
                                     <linkSearch :id="data.item.orden" />
                                 </template>
                                 <template #cell(porcentaje)="data">
-                                    <admin-ComisionesProductosInput
-                                        :item="data.item"
-                                        :idprod="
-                                            filterProd(data.item.id_woo, 'cod')
-                                        "
-                                        :attributes="
-                                            filterProd(
-                                                data.item.id_woo,
-                                                'attributes'
-                                            )
-                                        "
-                                        :categories="
-                                            filterProd(
+                                    <admin-ComisionesProductosInput :item="data.item" :idprod="filterProd(data.item.id_woo, 'cod')
+                                        " :attributes="filterProd(
+                                            data.item.id_woo,
+                                            'attributes'
+                                        )
+                                            " :categories="filterProd(
                                                 data.item.id_woo,
                                                 'categories'
                                             )
-                                        "
-                                        @reload="reloadMe"
-                                        :lock="data.item.fecha_pago"
-                                        :departamento="data.item.departamento"
-                                        :comisionEmp="data.item.comision"
-                                    />
+                                                " @reload="reloadMe" :lock="data.item.fecha_pago"
+                                        :departamento="data.item.departamento" :comisionEmp="data.item.comision" />
                                 </template>
                             </b-table>
-                            <pre>{{ detalles }}</pre>
                         </b-col>
                     </b-row>
                 </b-container>
@@ -119,8 +94,8 @@ export default {
                     label: "Semana",
                 },
                 {
-                    key: "fecha",
-                    label: "Fecha",
+                    key: "comision_tipo",
+                    label: "Tipo",
                 },
                 {
                     key: "cantidad",
@@ -128,11 +103,17 @@ export default {
                 },
                 {
                     key: "porcentaje",
-                    label: "Porcentaje",
+                    label: "Comisión",
                 },
                 {
                     key: "pago",
                     label: "Pago",
+                    thClass: "text-right",
+                    tdClass: "text-right",
+                },
+                {
+                    key: "fecha",
+                    label: "Fecha",
                 },
             ],
         }

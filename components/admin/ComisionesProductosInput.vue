@@ -1,21 +1,9 @@
 <template>
     <div>
-        <pre>
-      {{ $props }}
-    </pre
-        >
         <b-overlay :show="overlay" spinner-small>
             <div v-if="item.departamento === 'Costura'">
-                <b-form-input
-                    :id="idInput"
-                    style="width: 100px"
-                    type="number"
-                    min="0"
-                    step="0.10"
-                    v-model="comision"
-                    @change="guardarComision"
-                    :disabled="inputDisabled"
-                />
+                <b-form-input :id="idInput" style="width: 100px" type="number" min="0" step="0.10" v-model="comision"
+                    @change="guardarComision" :disabled="inputDisabled" />
             </div>
 
             <div v-else>{{ item.comision }}</div>

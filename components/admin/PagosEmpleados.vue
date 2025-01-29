@@ -21,9 +21,6 @@
         <b-row>
             <b-col class="mt-4">
                 <h3 class="mb-4">Vendedores</h3>
-                <pre>
-         verificar duplicados 
-        </pre>
                 <b-table responsive small striped :items="pagosResumenVendedores" :fields="fields">
                     <template #cell(nombre)="data">
                         <admin-PagosVendedorResumen :item="data.item" @reload="reloadMe"
