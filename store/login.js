@@ -1,6 +1,7 @@
 export const state = () => ({
     dataUser: [],
     dataEmpresa: [],
+    departamentos: [],
     idEmpresa: 0,
     access: false,
     loading: true,
@@ -13,6 +14,9 @@ export const mutations = {
     },
     setDataEmpresa(state, data) {
         state.dataEmpresa = data
+    },
+    setDepartamentos(state, data) {
+        state.departamentos = data
     },
     setDataUser(state, data) {
         state.dataUser = data
@@ -38,5 +42,22 @@ export const mutations = {
 export const actions = {
     getLoading({ commit }, data) {
         commit("loading", data)
+    },
+}
+export const getters = {
+    getDepartamentosSelect(state) {
+        let tmpOptions = state.departamentos.map((el) => {
+            return {
+                value: el._id,
+                text: `${el.departamento}`,
+            }
+        })
+
+        tmpOptions.unshift({
+            value: null,
+            text: "Seleccione un departamento",
+        })
+
+        return tmpOptions
     },
 }
