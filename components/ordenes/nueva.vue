@@ -1853,7 +1853,7 @@ export default {
             ).then(() => {
                 this.overlay = true
                 this.disableButtons = true
-                this.finishOrder().then(() => {
+                this.finishOrder()/* .then(() => {
                     this.$confirm(
                         "¿Desea imprimir una copia de la orden orden?",
                         "Imprimir",
@@ -1879,7 +1879,7 @@ export default {
                             this.overlay = false
                             this.disableButtons = false
                         })
-                })
+                }) */
             })
 
             return true
@@ -2410,33 +2410,67 @@ export default {
             // ENVIAR DATOS AL SERVIDOR PARA CREAR UNA NUEVA ORDEN
             await this.$axios
                 .post(`${this.$config.API}${this.endpoint}`, data)
-                .then((data) => {
-                    console.log(`La orden ${data.orden_nro} ha sido creada`)
-                    console.dir(data)
-                    this.clearForm({
-                        form: true,
-                    })
-
-                    this.$confirm("¿Desea imprimir la orden?").then(() => {
-                        this.printOrder("reporte").then(() => {
-                            this.clearForm({
-                                formPrint: true,
-                            })
+                .then((res) => {
+                    console.log('res.data de crear orden', res.data)
+                    if (res.data.response.status === 'error') {
+                        this.disableButtons = false
+                        this.$fire({
+                            title: "Error",
+                            html: `<p>Ocurrió un error al crear la orden</p> <p>${res.data.response.message}</p>`,
+                            type: "error",
                         })
-                    })
+                    } else {
+                        console.log(`La orden ${data.orden_nro} ha sido creada`)
+                        console.dir(data)
+                        this.clearForm({
+                            form: true,
+                        })
+
+                        this.$confirm(
+                            "¿Desea imprimir una copia de la orden orden?",
+                            "Imprimir",
+                            "info"
+                        )
+                            .then(() => {
+                                this.printOrder("reporte").then(() => {
+                                    this.clearForm({
+                                        form: true,
+                                        formPrint: true,
+                                    })
+                                })
+                            })
+                            .catch(() => {
+                                this.overlay = false
+                                this.disableButtons = false
+                                this.clearForm({
+                                    form: true,
+                                    formPrint: true,
+                                })
+                            })
+                            .then(() => {
+                                this.overlay = false
+                                this.disableButtons = false
+                            })
+
+                        /* this.$confirm("¿Desea imprimir la orden?").then(() => {
+                            this.printOrder("reporte").then(() => {
+                                this.clearForm({
+                                    formPrint: true,
+                                })
+                            })
+                        }) */
+                    }
+
                 })
                 .catch((error) => {
                     this.$fire({
                         title: "Error",
-                        html: `<p>Ocurrió un error al crear la roden: ${error}</p>`,
-                        type: "warning",
+                        html: `<p>Ocurrió un error al crear la orden</p> <p>${error}</p>`,
+                        type: "error",
                     })
+                    this.disableButtons = false
                 })
                 .finally(() => {
-                    this.clearForm({
-                        form: true,
-                        formPrint: true,
-                    })
                     this.overlay = false
                 })
         },

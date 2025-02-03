@@ -1,18 +1,18 @@
 <template>
-  <div></div>
+    <div></div>
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState } from 'vuex'
 
 export default {
-  computed: {
-    ...mapState('login', ['access']),
-  },
+    computed: {
+        ...mapState('login', ['access']),
+    },
 
-  mounted() {
-    this.$store.commit('login/setAccess', false)
-    window.location.assign('/')
-  },
+    mounted() {
+        this.$store.commit('login/setAccess', false)
+        window.location.assign('/')
+    },
 }
 </script>

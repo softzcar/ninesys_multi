@@ -8,6 +8,23 @@ export default {
         }
     },
     methods: {
+        checkResponse(jsonRes) {
+            const jsonData = jsonRes.data
+            console.log("jsonData.response.status", jsonData.response.status)
+            if (jsonData.response.status === "error") {
+                this.$fire({
+                    title: "Error",
+                    html: `<p>Ocurrió un error al ejecutar su solicitud</p><p>${
+                        jsonData.response.message || "Error desconocido"
+                    }</p>`,
+                    type: "error",
+                })
+                return false
+            } else {
+                return true
+            }
+        },
+
         async sendMessage(idOrden, message) {
             // this.overlay = true
 

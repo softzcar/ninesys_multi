@@ -9,14 +9,8 @@
                 <b-overlay :show="overlay" spinner-small>
                     <div class="mb-4">
                         <h4>Histórico</h4>
-                        <b-table
-                            ref="table"
-                            responsive
-                            small
-                            :items="dataTable.items"
-                            :fields="dataTable.fields"
-                            class="mb-4"
-                        >
+                        <b-table ref="table" responsive small :items="dataTable.items" :fields="dataTable.fields"
+                            class="mb-4">
                             <template #cell(moment)="data">
                                 {{ formatTimestamp(data.item.moment) }}
                             </template>
@@ -33,12 +27,10 @@
                         <h4 class="mt-4">Estado actual</h4>
                         <b-list-group>
                             <b-list-group-item>
-                                <strong>Total orden: </strong
-                                >{{ moneyFormatter(dataCalc.total) }}
+                                <strong>Total orden: </strong>{{ moneyFormatter(dataCalc.total) }}
                             </b-list-group-item>
                             <b-list-group-item>
-                                <strong>Monto abonado anterior: </strong
-                                >{{ moneyFormatter(dataCalc.abono) }}
+                                <strong>Monto abonado anterior: </strong>{{ moneyFormatter(dataCalc.abono) }}
                             </b-list-group-item>
                             <b-list-group-item>
                                 <strong>Resta:</strong>
@@ -49,10 +41,10 @@
                     <div class="mt-4">
                         <b-alert :show="showError" variant="danger">{{
                             errorMsg
-                        }}</b-alert>
+                            }}</b-alert>
                         <b-alert :show="showSuccess" variant="success">{{
                             successMsg
-                        }}</b-alert>
+                            }}</b-alert>
                     </div>
                     <!-- <div class="mb-4">
             <h4 class="mt-4">Asigne el abono y descuento</h4>

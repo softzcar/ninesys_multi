@@ -30,41 +30,73 @@
                                 <!-- <inventario-InsumoNuevo @reload="getProducts" /> -->
                                 <!-- <products-new :attributescat="prductAttributes" :attributesval="prductAttributesValues"
                                     class="mb-4" @r="getResponseNewProduct" /> -->
-                                <p>Incluir componente para crar unevo departamento aqui, badaso en el componente
-                                    `products-new`</p>
+                                <admin-departamentosNew @reload="getDepartamentos()" />
                             </b-col>
                         </b-row>
-                        <b-row>
+                        <b-row v-if="departamentosOrd.length > 0">
+                            <b-col md="12">
+                                <b-row>
+                                    <b-col>
+                                        <h3>Arrastre para ordenar los departamentos</h3>
+                                        <draggable v-model="departamentosOrd" @end="actualizarOrden" tag="ul"
+                                            class="list-group">
+                                            <b-list-group-item style="cursor: grab;"
+                                                v-for="(departamento, index) in departamentosOrd" :key="index"
+                                                class="pb-3 drag-handle d-flex align-items-left">
+
+                                                <span class="mt-4" style="padding-top:4px">☰</span>
+                                                <h5 class="mt-4">
+                                                    <b-badge class="ml-4 mr-2" variant="primary">{{
+                                                        departamento.orden_proceso }}</b-badge>
+                                                </h5>
+                                                <span class="mt-4" style="width:80%;">{{ departamento.departamento
+                                                    }}</span>
+
+                                                <span class="mt-3">
+                                                    <admin-departamentosEdit :key="departamento._id"
+                                                        :item="departamento" @reload="getDepartamentos()" />
+                                                </span>
+                                                <span class="ml-2 mt-3">
+                                                    <b-button size="sm" class="mb-4" variant="danger">
+                                                        <b-icon icon="trash"></b-icon>
+                                                    </b-button>
+                                                </span>
+
+                                            </b-list-group-item>
+                                        </draggable>
+                                    </b-col>
+                                    <b-col>
+                                        <h3>Departamentos fijos</h3>
+                                        <b-list-group class="list-group">
+                                            <b-list-group-item v-for="(departamento, index) in departamentosOrdAdm"
+                                                :key="index" class="pb-3 drag-handle d-flex align-items-left">
+
+                                                <span class="mt-4" style="width:80%;">{{ departamento.departamento
+                                                    }}</span>
+
+                                                <span class="mt-3">
+                                                    <admin-departamentosEdit :key="departamento._id"
+                                                        :item="departamento" @reload="getDepartamentos()" />
+                                                </span>
+                                                <span class="ml-2 mt-3">
+                                                    <b-button size="sm" class="mb-4" variant="danger">
+                                                        <b-icon icon="trash"></b-icon>
+                                                    </b-button>
+                                                </span>
+
+                                            </b-list-group-item>
+                                        </b-list-group>
+                                    </b-col>
+                                </b-row>
+                            </b-col>
+                        </b-row>
+
+                        <b-row v-else>
                             <b-col>
-                                <b-pagination v-model="currentPage" :total-rows="totalRows"
-                                    :per-page="perPage"></b-pagination>
-
-                                <p class="mt-3">
-                                    Página actual: {{ currentPage }}
-                                </p>
-                                <!-- <pre class="force">
-                                    dep {{ departamentos }}
-                                </pre> -->
-
-                                <b-table v-if="departamentos.length > 0" ref="table" small striped fixed
-                                    :items="departamentos" :fields="fields" :per-page="perPage" :filter="filter"
-                                    :current-page="currentPage" @filtered="onFiltered"
-                                    :filter-included-fields="includedFields">
-                                    <template #cell(orden_proceso)="data">
-                                        <admin-departamentosInputOrden @reload="getDepartamentos" :item="data.item" />
-                                        <!-- <b-form-group id="input-group-8" label="Tipo de comisión:"
-                                            label-for="select-orden-proceso">
-                                            <b-form-select id="select-orden-proceso" v-model="tmpOptionSelect"
-                                                :options="getDepartamentosSelect" :value="data.item.prden_proceso"
-                                                required>
-                                            </b-form-select>
-                                        </b-form-group> -->
-                                    </template>
-                                </b-table>
-
-                                <b-alert v-else variant="info" show>
+                                <b-alert variant="info" show>
                                     <p>No se encontraron departamentos</p>
                                 </b-alert>
+
                             </b-col>
                         </b-row>
                     </b-container>
@@ -76,10 +108,14 @@
 
 <script>
 import { mapState, mapGetters } from "vuex"
+import draggable from "vuedraggable";
 
 export default {
+    components: { draggable },
+
     data() {
         return {
+            departamentosOrd: [],
             inputDisabled: false,
             perPage: 20,
             currentPage: 1,
@@ -113,29 +149,60 @@ export default {
     },
 
     computed: {
-        totalRows() {
-            return parseInt(this.productsLength) + 1
-        },
-
         ...mapState("login", ["dataUser", "access", "departamentos"]),
         ...mapGetters("login", ["getDepartamentosSelect"]),
-        myTable() {
-            return this.items
-        },
     },
 
     methods: {
-        onFiltered(filteredItems) {
-            // Trigger pagination to update the number of buttons/pages due to filtering
-            this.totalRows = filteredItems.length
-            this.currentPage = 1
+        async updateDepartamentos(dep) {
+            // this.overlay = true
+            const data = new URLSearchParams()
+            data.set("orden_proceso", dep.orden_proceso)
+            data.set("id_departamento", dep._id)
+
+            await this.$axios
+                .post(`${this.$config.API}/departamentos/orden-paso`, data)
+                .then((res) => {
+                    console.log('respuesta de actualizar departamento', res)
+                    /* this.form.splice(index, 1)
+                    this.$fire({
+                        title: "Departamento",
+                        html: `<p>La asiganción fué eliminada</p>`,
+                        type: "success",
+                    }) */
+                })
+                .catch((err) => {
+                    this.departamentosOrd = this.departamentos
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>NO se actualizaron el departamento ${dep.departamento}</p><p>${err}</p>`,
+                        type: "danger",
+                    })
+                })
+                .finally(() => {
+                    // this.overlay = false
+                })
         },
 
-        getResponseNewProduct(res) {
-            this.loading.show = true
-            this.getProducts().then(() => {
-                this.loading.show = false
-            })
+        async actualizarOrden() {
+            // Crear un array con el nuevo orden
+            const nuevosOrdenes = this.departamentosOrd.map((dep, index) => ({
+                _id: dep._id,
+                departamento: dep.departamento,
+                orden_proceso: index + 1
+            }));
+
+            try {
+                this.departamentosOrd = nuevosOrdenes
+
+                this.departamentosOrd.forEach((el) => {
+                    this.updateDepartamentos(el)
+                })
+
+                this.getDepartamentos()
+            } catch (error) {
+                console.error("Error al actualizar orden:", error);
+            }
         },
 
         async getDepartamentos() {
@@ -143,7 +210,11 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/departamentos`)
                 .then((res) => {
+                    this.departamentosOrd = []
                     this.$store.commit("login/setDepartamentos", res.data)
+                    this.departamentosOrd = res.data.filter(el => el.asignar_numero_de_paso == 1)
+                    this.departamentosOrdAdm = res.data.filter(el => el.asignar_numero_de_paso == 0)
+                    // this.departamentosOrd = res.data
                 })
                 .catch((err) => {
                     this.$fire({
