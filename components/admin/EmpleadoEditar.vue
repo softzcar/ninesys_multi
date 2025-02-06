@@ -58,16 +58,21 @@
                                     </b-form-select>
                                 </b-form-group>
 
-                                <b-form-group id="input-group-7" label="Departamento:" label-for="input-departament">
-                                    <b-form-select id="input-departament" v-model="form.departamento"
-                                        :options="departamentOptions" required></b-form-select>
+                                <b-form-group stacked label="Seleccione los departamentos:"
+                                    v-slot="{ ariaDescribedby }">
+                                    <b-form-checkbox-group id="checkbox-group-1" v-model="form.departamentos"
+                                        :options="depOptions" :aria-describedby="ariaDescribedby"
+                                        name="options-1"></b-form-checkbox-group>
                                 </b-form-group>
                                 <b-button type="submit" variant="primary">Guardar</b-button>
-                                <!-- <b-button @click="resetForm" variant="danger">Limpiar</b-button> -->
+                                <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                             </b-form>
                         </b-col>
                     </b-row>
                 </b-container>
+                <pre class="force">
+                    $props {{ form.departamentos }}
+                </pre>
             </b-overlay>
         </b-modal>
     </div>
@@ -85,7 +90,7 @@ export default {
                 comision: 0,
                 comsionTipo: 'variable',
                 acceso: null,
-                departamento: "",
+                departamentos: [],
             },
             accessOptions: [
                 { value: 0, text: "Empleado" },
@@ -95,7 +100,7 @@ export default {
                 { value: 'variable', text: "Variable" },
                 { value: 'fija', text: "Fija" },
             ],
-            departamentOptions: this.$config.DEPARTAMENT_OPTIONS,
+            departamentOptions: this.depOptions,
             size: "md",
             title: "Editar Empleado",
             overlay: false,
@@ -106,6 +111,16 @@ export default {
         modal: function () {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
+        },
+
+        depOptions() {
+            let options = this.departamentos.map((el) => {
+                return {
+                    value: el._id,
+                    text: el.departamento
+                }
+            })
+            return options
         },
     },
 
@@ -119,7 +134,7 @@ export default {
                 comision: 0,
                 comsionTipo: 'variable',
                 acceso: null,
-                departamento: "",
+                departamentos: [],
             }
             this.overlay = false
         },
@@ -129,7 +144,7 @@ export default {
             const data = new URLSearchParams()
             data.set("_id", this.item._id)
             data.set("acceso", this.form.acceso)
-            data.set("departamento", this.form.departamento)
+            data.set("departamentos", this.form.departamentos)
             data.set("email", this.form.email)
             data.set("nombre", this.form.nombre)
             data.set("password", this.form.password)
@@ -174,10 +189,10 @@ export default {
             acceso: this.item.acceso,
             comision: this.item.comision,
             comsionTipo: this.item.comision_tipo,
-            departamento: this.item.departamento,
+            departamentos: this.item.departamentos,
         }
     },
 
-    props: ["item"],
+    props: ["item", "departamentos"],
 }
 </script>

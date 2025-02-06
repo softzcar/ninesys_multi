@@ -10,58 +10,29 @@
 
             <b-row class="text-center vh-100" align-v="center">
                 <b-col align-v="center">
-                    <b-card
-                        style="max-width: 20rem"
-                        class="text-center"
-                        align-v="center"
-                    >
+                    <b-card style="max-width: 20rem" class="text-center" align-v="center">
                         <h2>
                             ninesys
-                            <h4
-                                style="
+                            <h4 style="
                                     font-size: 1.2rem !important;
                                     color: lightslategray;
-                                "
-                            >
+                                ">
                                 multiuser
                             </h4>
                         </h2>
                         <hr />
                         <b-form>
-                            <b-form-group
-                                id="input-group-1"
-                                label="Usuario:"
-                                label-for="email"
-                            >
-                                <b-form-input
-                                    id="email"
-                                    v-model="form.email"
-                                    type="email"
-                                    placeholder="Ingrese su email"
-                                    required
-                                ></b-form-input>
+                            <b-form-group id="input-group-1" label="Usuario:" label-for="email">
+                                <b-form-input id="email" v-model="form.email" type="email"
+                                    placeholder="Ingrese su email" required></b-form-input>
                             </b-form-group>
 
-                            <b-form-group
-                                id="input-group-2"
-                                label="Clave:"
-                                label-for="password"
-                            >
-                                <b-form-input
-                                    id="password"
-                                    v-model="form.password"
-                                    type="password"
-                                    placeholder="Ingrese su clave"
-                                    required
-                                ></b-form-input>
+                            <b-form-group id="input-group-2" label="Clave:" label-for="password">
+                                <b-form-input id="password" v-model="form.password" type="password"
+                                    placeholder="Ingrese su clave" required></b-form-input>
                             </b-form-group>
 
-                            <b-button
-                                type="submit"
-                                variant="primary"
-                                @click="letMeIn($event)"
-                                >Entrar</b-button
-                            >
+                            <b-button type="submit" variant="primary" @click="letMeIn($event)">Entrar</b-button>
                         </b-form>
                         <!-- <b-button type="reset" variant="danger">Reset</b-button> -->
                     </b-card>
@@ -74,7 +45,6 @@
 <script>
 import { mapState, mapMutations } from "vuex"
 import mixin from "~/mixins/mixins.js"
-import axios from "axios"
 
 export default {
     data() {
@@ -83,7 +53,7 @@ export default {
             msg: "Inicializando...",
             alertType: "light",
             acceso: false,
-            loadingText: "Validadndo sus datos, por favor espere...",
+            loadingText: "Verificando sus datos, por favor espere...",
             form: {
                 email: "",
                 password: "",
@@ -107,6 +77,7 @@ export default {
             "setDataSys",
             "setAccess",
             "setIdEmpresa",
+            "setModulos",
         ]),
         ...mapMutations("datasys", ["setDataSys"]),
 
@@ -179,6 +150,15 @@ export default {
                                 "login/setIdEmpresa",
                                 res.data.empresa.id
                             )
+                            console.log('MI EMPLEADO ES', res.data.empleado[0])
+                            this.$store.commit(
+                                "login/setEmpleado",
+                                res.data.empleado[0]
+                            )
+                            this.$store.commit(
+                                "login/setModulos",
+                                res.data.modulos
+                            )
                             this.$store.commit(
                                 "login/setAccess",
                                 res.data.data.access
@@ -194,7 +174,7 @@ export default {
                             this.$fire({
                                 type: "warning",
                                 title: "Datos incorrectos",
-                                html: "Verifiquelos e intente de nuevo.",
+                                html: "Verifique sus datos e intente de nuevo.",
                             })
                             this.loading = false
                         }
@@ -263,8 +243,11 @@ export default {
 
 <style scoped>
 .card {
-    margin: 0 auto; /* Added */
-    float: none; /* Added */
-    margin-bottom: 10px; /* Added */
+    margin: 0 auto;
+    /* Added */
+    float: none;
+    /* Added */
+    margin-bottom: 10px;
+    /* Added */
 }
 </style>

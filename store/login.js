@@ -2,6 +2,8 @@ export const state = () => ({
     dataUser: [],
     dataEmpresa: [],
     departamentos: [],
+    modulos: [],
+    empleado: [0, 23],
     idEmpresa: 0,
     access: false,
     loading: true,
@@ -9,8 +11,14 @@ export const state = () => ({
 })
 
 export const mutations = {
+    setEmpleado(state, data) {
+        state.empleado = data
+    },
     setIdEmpresa(state, data) {
         state.idEmpresa = data
+    },
+    setModulos(state, data) {
+        state.modulos = data
     },
     setDataEmpresa(state, data) {
         state.dataEmpresa = data
@@ -45,6 +53,31 @@ export const actions = {
     },
 }
 export const getters = {
+    getModulosSelect(state) {
+        let modTmp = state.modulos.map((mod) => {
+            return {
+                value: mod._id,
+                text: mod.modulo,
+            }
+        })
+
+        modTmp.unshift({
+            value: null,
+            text: "Seleccione un módulo",
+        })
+
+        return modTmp
+    },
+
+    getDepartamentosEmpleadoSelect(state) {
+        return state.empleado.departamentos.map((el) => {
+            return {
+                value: el.id,
+                text: el.nombre,
+            }
+        })
+    },
+
     getDepartamentosSelect(state) {
         let tmpOptions = state.departamentos.map((el) => {
             return {

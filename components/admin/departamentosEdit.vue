@@ -5,7 +5,7 @@
 
         <b-modal :id="modal" :title="title" @hidden="onModalHidden" hide-footer size="md">
             <b-overlay :show="overlay" spinner-small>
-                <div>
+                <!-- <div>
                     <span class="floatme">
                         <b-form-input style="width: 250px" type="text" v-model="newDep" :disabled="overlay" />
                     </span>
@@ -20,26 +20,52 @@
                     <b-button class="floatme" @click="guardarOrdenDepartamento()" variant="success" :disabled="overlay">
                         <b-icon icon="check-lg"></b-icon>
                     </b-button>
-                </div>
+                </div> -->
+                <b-form>
+                    <b-form-group id="input-group-1" label="Nombre del departamento:" label-for="input-1">
+                        <b-form-input style="width: 250px" type="text" v-model="newDep" :disabled="overlay" />
+                    </b-form-group>
+                    <b-form-group id="input-group-2" label="Asignar número de paso:"
+                        description="Indica si este departamento forma parte de el orden de la cadena de producción"
+                        label-for="input-1">
+                        <b-form-checkbox id="checkbox-1" v-model="asiganr_numero_de_paso" name="checkbox-1" value="1"
+                            unchecked-value="0">
+                        </b-form-checkbox>
+                    </b-form-group>
+
+                    <b-form-group id="input-group-3" label="Seleccione un módulo" label-for="select-atributo"
+                        description="Seleccione el módulo vinculado al departamento.">
+                        <b-form-select id="select-modulo" :disabled="overlay" v-model="modulo"
+                            :options="getModulosSelect" :value="modulo" class="floatme"></b-form-select>
+                    </b-form-group>
+
+                    <b-button class="floatme" @click="guardarOrdenDepartamento()" variant="success" :disabled="overlay">
+                        <b-icon icon="check-lg"></b-icon>
+                    </b-button>
+                </b-form>
             </b-overlay>
         </b-modal>
-        <!-- mmm -->
 
     </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex"
+
 export default {
     data() {
         return {
             title: 'Editar Departamento',
             overlay: false,
             newDep: '',
+            modulo: null,
             asiganr_numero_de_paso: 0
         }
     },
 
     computed: {
+        ...mapGetters("login", ["getModulosSelect"]),
+
         modal: function () {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
@@ -61,6 +87,11 @@ export default {
                 ok = false
                 msg += '<p>Debe indicar el nuevo nombre del departamento</p>'
                 icon = 'info'
+            }
+
+            if (this.modulo === null) {
+                ok = false
+                msg += "<p>Debe indicar el módulo asociado al depaartamento</p>"
             }
 
             if (!ok) {
@@ -107,6 +138,8 @@ export default {
 
     mounted() {
         this.newDep = this.item.departamento
+        this.modulo = this.item.id_modulo
+        this.asiganr_numero_de_paso = this.item.asignar_numero_de_paso
     },
 
     props: ['item', 'reload']

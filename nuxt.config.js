@@ -8,24 +8,16 @@ export default {
 
     // Should hold all env variables that are public as these will be exposed on the frontend.
     publicRuntimeConfig: {
-        // NINETEENCUSTOM API2 (MERGE DATABASES )
-        /* LOCAL_IP: `https://ntapi.appz.one`,
-    LOCAL_IP_WOO: `https://ntapi.appz.one`,
-    API: `https://ntapi.appz.one`,
-    CDN: `https://ntcdn.appz.one`,
-    LIVE: `https://live.appz.one`,
-    APP_URL: `https://ntapp.appz.one`, */
-
         // NINETEENCUSTOM 2
         /* LOCAL_IP: `https://api2.nineteencustom.com`,
     LOCAL_IP_WOO: `https://api2.nineteencustom.com`,
     API: `https://api2.nineteencustom.com`, */
-        LOCAL_IP: `https://api.nineteengreen.com`,
-        LOCAL_IP_WOO: `https://api.nineteengreen.com`,
-        API: `https://api.nineteengreen.com`,
+        LOCAL_IP: `https://api2.nineteengreen.com`,
+        LOCAL_IP_WOO: `https://api2.nineteengreen.com`,
+        API: `https://api2.nineteengreen.com`,
         CDN: `https://cdn.nineteengreen.com`,
         LIVE: `https://live.nineteengreen.com`,
-        APP_URL: `https://app.nineteengreen.com`,
+        APP_URL: `https://app.nineteencustom.com`,
         WS_API: `http://194.195.86.253:3000`,
 
         // NINETEENCUSTOM PRODUCTION
@@ -35,13 +27,6 @@ export default {
      CDN: `https://cdn.nineteencustom.com`,
      LIVE: `https://live.nineteencustom.com`,
      APP_URL: `https://app.nineteengreen.com`, */
-
-        // NINETEENGREEN
-        /* LOCAL_IP: `https://api.nineteengreen.com`,
-    LOCAL_IP_WOO: `https://api.nineteengreen.com`,
-    API: `https://api.nineteengreen.com`,
-    CDN: `https://cdn.nineteencustom.com`,
-    LIVE: `https://live.nineteencustom.com`, */
 
         // Datos Empresa
         EMPRESA: {
@@ -87,6 +72,10 @@ export default {
             { name: "format-detection", content: "telephone=no" },
         ],
         link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+    },
+
+    router: {
+        middleware: ["auth"],
     },
 
     // Global CSS: https://go.nuxtjs.dev/config-css

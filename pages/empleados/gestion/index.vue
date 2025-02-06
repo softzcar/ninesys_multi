@@ -22,15 +22,23 @@
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <AdminEmpleadoNuevo @reload="getEmpleados" />
+                                <AdminEmpleadoNuevo :departamentos="departamentos" @reload="loadData" />
                             </b-col>
                         </b-row>
                         <b-row>
                             <b-col>
                                 <b-table responsive :fields="dataTable.fields" :items="dataTable.items">
+                                    <template #cell(departamentos)="data">
+                                        <!-- {{ data.item.departamentos }} -->
+                                        <div v-for="dep in data.item.departamentos" :key="dep.id">
+                                            {{ dep.nombre }}
+                                        </div>
+                                    </template>
+
                                     <template #cell(acciones)="data">
                                         <span class="floatme">
-                                            <AdminEmpleadoEditar :item="data.item" @reload="getEmpleados" />
+                                            <AdminEmpleadoEditar :departamentos="departamentos" :item="data.item"
+                                                @reload="loadData" />
                                         </span>
                                         <span class="floatme">
                                             <b-button variant="danger" v-on:click="
@@ -58,8 +66,6 @@
 
 <script>
 import { mapState } from "vuex"
-import axios from "axios"
-import { urlToHttpOptions } from "http"
 
 export default {
     data() {
@@ -67,12 +73,37 @@ export default {
             titulo: "Gestión de Empleados",
             overlay: true,
             dataTable: [],
+            departamentos: [],
         }
     },
     computed: {
         ...mapState("login", ["dataUser", "access"]),
     },
     methods: {
+        async loadData() {
+            await Promise.all([this.getDepartamentos(), this.getEmpleados()]);
+        }
+        ,
+        async getDepartamentos() {
+            this.overlay = true
+            await this.$axios
+                .get(`${this.$config.API}/departamentos`)
+                .then((res) => {
+                    this.departamentos = res.data
+                    this.$store.commit("login/setDepartamentos", res.data)
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error cargando los departamentos",
+                        html: `<p>${err}</p>`,
+                        type: "warning",
+                    })
+                })
+                .finally(() => {
+                    this.overlay = false
+                })
+        },
+
         async getEmpleados() {
             await this.$axios
                 .get(`${this.$config.API}/empleados`)
@@ -132,7 +163,7 @@ export default {
         },
     },
     mounted() {
-        this.getEmpleados().then(() => {
+        this.loadData().then(() => {
             console.log("data", this.dataTable)
             this.overlay = false
         })

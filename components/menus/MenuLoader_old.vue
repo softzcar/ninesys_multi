@@ -1,27 +1,14 @@
 <template>
     <div>
-        <div class="p-6 text-center">
-            <h1 class="text-2xl font-bold mb-4">Cargar Componentes Dinámicamente</h1>
-
-            <div class="flex justify-center space-x-4 mb-6">
-                <button @click="showComponent('menus/menuAdmin')"
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg">Open
-                    Admin</button>
-                <button @click="showComponent('menus/menuEmpleado')"
-                    class="px-4 py-2 bg-green-500 text-white rounded-lg">Open Empleados</button>
-            </div>
-
-            <!-- Renderiza dinámicamente el componente -->
-            <component :is="asyncComponent" v-if="currentComponent" />
-        </div>
-
-
-
-        <!-- <b-container style="padding: 0px" class="mb-4" fluid>
+        <b-container style="padding: 0px" class="mb-4" fluid>
             <b-row>
                 <b-col v-if="dataUser.departamento === 'Comercialización'">
                     <menus-menuComercializacion />
                 </b-col>
+
+                <!-- <b-col v-if="dataUser.departamento === 'Jefe de diseño'">
+                    <menus-menuJefeDiseno />
+                </b-col> -->
 
                 <b-col v-if="dataUser.departamento === 'Diseño'">
                     <menus-menuDisenador />
@@ -59,9 +46,9 @@
                     <menus-menuEmpleado />
                 </b-col>
 
-                <b-col v-if="dataUser.departamento === 'Revisión'">
-                    <menus-menu-revision />
-                </b-col>
+                <!-- <b-col v-if="dataUser.departamento === 'Revisión'">
+          <menus-menu-revision />
+        </b-col> -->
 
                 <b-col v-if="dataUser.departamento === 'Administración'">
                     <menus-menu-admin />
@@ -77,15 +64,8 @@
                         <checkConnection style="float: right; margin-left: 12px" />
                         <div class="user-info">
                             <b-icon icon="person" /> {{ dataUser.nombre }} |dataUser
-                            <div v-if="getDepartamentosEmpleadoSelect.length > 1" class="mt-3">
-                                <b-button-group size="sm">
-                                    <b-button @click="loadModule(departamento.value)"
-                                        v-for="(departamento, index) in getDepartamentosEmpleadoSelect" :key="index"
-                                        variant="info">{{ departamento.text }}</b-button>
-                                </b-button-group>
-                            </div>
-
-
+                            <!-- {{ dataUser.departamento }} -->
+                            {{ getDepartamentosEmpleadoSelect }}
                         </div>
                     </div>
                 </b-col>
@@ -93,9 +73,12 @@
             <b-row>
                 <b-col class="mr-4 text-right">
                     <buscar-BarraDeBusqueda />
+                    <div class="force">
+                        ::: {{ empleado.departamentos }}
+                    </div>
                 </b-col>
             </b-row>
-        </b-container> -->
+        </b-container>
     </div>
 </template>
 
@@ -103,27 +86,9 @@
 import { mapState, mapGetters } from "vuex"
 
 export default {
-    data() {
-        return {
-            currentComponent: null
-        }
-    },
     computed: {
-        asyncComponent() {
-            if (!this.currentComponent) return null
-            return () => import(`@/components/${this.currentComponent}.vue`)
-        },
         ...mapState("login", ["access", "dataUser", "empleado"]),
         ...mapGetters("login", ["getDepartamentosEmpleadoSelect"]),
-    },
-
-    methods: {
-        showComponent(component) {
-            this.currentComponent = component
-        },
-        loadModule(id) {
-            alert(`Cargar Módulo ID ${id}`)
-        },
     },
 }
 </script>
