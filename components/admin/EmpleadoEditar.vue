@@ -70,9 +70,6 @@
                         </b-col>
                     </b-row>
                 </b-container>
-                <pre class="force">
-                    $props {{ form.departamentos }}
-                </pre>
             </b-overlay>
         </b-modal>
     </div>
@@ -181,6 +178,9 @@ export default {
     },
 
     mounted() {
+        const myDeps = this.item.departamentos.map((el) => {
+            return el.id
+        })
         this.form = {
             username: this.item.username,
             password: this.item.password,
@@ -189,7 +189,8 @@ export default {
             acceso: this.item.acceso,
             comision: this.item.comision,
             comsionTipo: this.item.comision_tipo,
-            departamentos: this.item.departamentos,
+            // departamentos: this.item.departamentos,
+            departamentos: myDeps,
         }
     },
 

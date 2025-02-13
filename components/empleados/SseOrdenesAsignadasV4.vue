@@ -441,7 +441,7 @@ export default {
 
         dataTableEnCurso() {
             let enCurso = []
-            if (this.$store.state.login.dataUser.departamento === "Impresión") {
+            if (this.$store.state.login.currentDepartament === "Impresión") {
                 //
                 enCurso = this.ordenes
                     .filter(
@@ -482,7 +482,7 @@ export default {
                         return acc
                     }, [])
             } else if (
-                this.$store.state.login.dataUser.departamento === "Estampado"
+                this.$store.state.login.currentDepartament === "Estampado"
             ) {
                 enCurso = this.ordenes
                     .filter(
@@ -522,7 +522,7 @@ export default {
                     }, [])
                 // opciones para corte
             } else if (
-                this.$store.state.login.dataUser.departamento === "Corte"
+                this.$store.state.login.currentDepartament === "Corte"
             ) {
                 enCurso = this.ordenes
                     .filter(
@@ -805,7 +805,7 @@ export default {
 
             await this.$axios
                 .post(
-                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.dataUser.departamento}/${id_lotes_detalles}/${unidades}`
+                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartament}/${id_lotes_detalles}/${unidades}`
                 )
                 .then((resp) => {
                     console.log("emitimos aqui...")
@@ -836,7 +836,7 @@ export default {
             )
             data.set(
                 "departamento",
-                this.$store.state.login.dataUser.departamento
+                this.$store.state.login.currentDepartament
             )
 
             await this.$axios
@@ -850,7 +850,7 @@ export default {
             this.overlay = true
 
             const data = new URLSearchParams()
-            data.set('departamento', this.$store.state.login.dataUser.departamento)
+            data.set('departamento', this.$store.state.login.currentDepartament)
             data.set('id_orden', idOrden)
 
             await this.$axios.post(`${this.$config.API}/send-message-produccion`, data).then(res => {
@@ -897,14 +897,14 @@ export default {
             /**
              * Checar aqui si vamos a termiar todo e individual también okok!
              */
-            if (this.$store.state.login.dataUser.departamento === "Impresión") {
+            if (this.$store.state.login.currentDepartament === "Impresión") {
                 alert("Solicitar números de rollos de papel")
             } else if (
-                this.$store.state.login.dataUser.departamento === "Estampado"
+                this.$store.state.login.currentDepartament === "Estampado"
             ) {
                 alert("Solicitar datos de Estampado")
             } else if (
-                this.$store.state.login.dataUser.departamento === "Corte"
+                this.$store.state.login.currentDepartament === "Corte"
             ) {
                 alert("Solicitar datos de Corte")
             } else {
@@ -929,11 +929,11 @@ export default {
                     if (showForm) {
                         // Discriminar departamentos
                         if (
-                            this.$store.state.login.dataUser.departamento ===
+                            this.$store.state.login.currentDepartament ===
                             "Impresión" ||
-                            this.$store.state.login.dataUser.departamento ===
+                            this.$store.state.login.currentDepartament ===
                             "Estampado" ||
-                            this.$store.state.login.dataUser.departamento ===
+                            this.$store.state.login.currentDepartament ===
                             "Corte"
                         ) {
                             this.$fire({
@@ -1095,7 +1095,7 @@ export default {
         async getOrdenesAsignadas() {
             await this.$axios
                 .get(
-                    `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}`
+                    `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}`
                 )
                 .then((resp) => {
                     console.log("respuesta de ordenes asignadas", resp)
@@ -1247,16 +1247,16 @@ export default {
     ); */
 
         this.getOrdenesAsignadas()
-        if (this.$store.state.login.dataUser.departamento === "Impresión") {
+        if (this.$store.state.login.currentDepartament === "Impresión") {
             this.promptHTML = "<h2>Ingrese la cantidad en metros</h2>"
             this.prompInputType = "number"
             // Cargar Insumos
         } else if (
-            this.$store.state.login.dataUser.departamento === "Estampado"
+            this.$store.state.login.currentDepartament === "Estampado"
         ) {
             this.promptHTML = "<h2>Ingrese el número de rollo</h2>"
             this.prompInputType = "number"
-        } else if (this.$store.state.login.dataUser.departamento === "Corte") {
+        } else if (this.$store.state.login.currentDepartament === "Corte") {
             this.promptHTML =
                 "<h2>Ingrese el peso del desperdicio en Gramos</h2>"
             this.prompInputType = "number"

@@ -100,8 +100,8 @@
                         <template #cell(paso)="data">
                             <span class="floatme">
                                 <produccionsse-progress-bar :pasos="pasos" :asignacion="asignacion"
-                                    :empleados="empleados" :depart="pActivo(data.item.orden)" :item="data.item"
-                                    :orden_productos="filterOrdenProductos(data.item.orden)
+                                    :empleados="empleados" :por_asignar="por_asignar" :depart="pActivo(data.item.orden)"
+                                    :item="data.item" :orden_productos="filterOrdenProductos(data.item.orden)
                                         " :reposicion_ordenes_productos="reposicion_ordenes_productos
                                             " :lote_detalles="filterLoteDetalles(data.item.orden)
                                                 " :lotes_fisicos="lotes_fisicos" :key="data.item._id"
@@ -163,6 +163,7 @@ export default {
             items: [],
             pactivos: [],
             vinculadas: [],
+            por_asignar: [],
             products: [],
             asignacion: [],
             orden_productos: [],
@@ -293,6 +294,7 @@ export default {
                     this.items = res.data.items
                     this.ordenesLength = parseInt(res.data.items.length) + 1
                     this.pactivos = res.data.pactivos
+                    this.por_asignar = res.data.por_asignar
                     this.vinculadas = res.data.vinculadas
                     this.products = res.data.productos
                     this.reposiciones_solicitadas =

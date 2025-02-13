@@ -104,11 +104,11 @@
                                 </router-link>
                             </b-nav-item-dropdown>
 
-                            <router-link class="nav-link" to="/logout" custom v-slot="{ navigate }">
+                            <!-- <router-link class="nav-link" to="/logout" custom v-slot="{ navigate }">
                                 <span @click="navigate" @keypress.enter="navigate" role="link">
                                     Salir
                                 </span>
-                            </router-link>
+                            </router-link> -->
                         </b-navbar-nav>
 
                         <!-- Right aligned nav items -->

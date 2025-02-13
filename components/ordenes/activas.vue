@@ -126,6 +126,7 @@ export default {
             ordenesActivas: [],
             fechaConsultaInicio: "",
             fechaConsultaFin: "",
+            fileds: [],
             selectedVendedor: 0,
             vendedores: [],
             pagos: [],

@@ -20,9 +20,9 @@
                 </div>
 
                 <div class="floatme margin-buttons-bar">
-                    <produccionsse-asignar :asign="asignacion" :empleados="empleados" :por_asignar="por_asignar"
-                        :id="item.orden" :orden_productos="orden_productos" reloadtest="Reload test!!!"
-                        :lote_detalles="lote_detalles" :lotes_fisicos="lotes_fisicos" @reload="reloadOrders" />
+                    <produccionsse-asignar :asign="asignacion" :empleados="empleados" :id="item.orden"
+                        :orden_productos="orden_productos" reloadtest="Reload test!!!" :lote_detalles="lote_detalles"
+                        :lotes_fisicos="lotes_fisicos" @reload="reloadOrders" />
                 </div>
                 <div class="floatme margin-buttons-bar">
                     <produccionsse-reposicion :departamento="this.$store.state.login.dataUser.departamento
@@ -292,7 +292,6 @@ export default {
         "item",
         "depart",
         "asignacion",
-        "por_asignar",
         "empleados",
         "pasos",
         "orden_productos",

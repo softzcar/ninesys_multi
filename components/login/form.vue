@@ -143,6 +143,10 @@ export default {
                                 res.data.data
                             )
                             this.$store.commit(
+                                "login/setDepartamentos",
+                                res.data.departamentos
+                            )
+                            this.$store.commit(
                                 "login/setDataEmpresa",
                                 res.data.empresa
                             )

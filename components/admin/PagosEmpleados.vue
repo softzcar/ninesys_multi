@@ -78,8 +78,6 @@
 </template>
 
 <script>
-import axios from "axios"
-
 export default {
     data() {
         return {
@@ -106,6 +104,10 @@ export default {
                     label: "Departamento",
                 },
                 {
+                    key: "fecha_pago",
+                    label: "Fecha Pago",
+                },
+                {
                     key: "pago",
                     label: "Total Pago",
                     tdClass: "text-right pr-5",
@@ -129,6 +131,10 @@ export default {
                 {
                     key: "cantidad",
                     label: "Cantidad",
+                },
+                {
+                    key: "fecha_pago",
+                    label: "Fecha Pago",
                 },
                 {
                     key: "pago",

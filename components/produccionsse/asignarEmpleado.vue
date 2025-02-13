@@ -4,8 +4,8 @@
             <div v-if="departamento === 'Corte'" class="mb-2 mt-2" variant="info">
                 Cantidad en LOTE <strong>{{ loteCantidadExistencia }}</strong>
             </div>
-            <pre>
-         item: {{ item }}
+            <pre class="force" style="background-color:brown">
+         empleado asigando: {{ departamento }}
         </pre>
             <b-row>
                 <b-col>
@@ -13,7 +13,7 @@
                     </span>
                     <span class="floatme">
                         <label>Empleado </label>
-                        <b-form-select v-model="selected" :options="empleadosSelect" size="md" class="mt-3"
+                        <b-form-select v-model="selected" :options="select_options" size="md" class="mt-3"
                             :disabled="inputControlsDisabled" @change="setDepEmpleado"></b-form-select>
                         <b-alert v-if="empleadoAsignado" show variant="success"><strong>Empleado
                                 asignado</strong></b-alert>
@@ -51,7 +51,6 @@
 </template>
 
 <script>
-import axios from "axios"
 import mixin from "~/mixins/mixins.js"
 
 export default {
@@ -61,6 +60,7 @@ export default {
             selected: null,
             depEmpleado: null,
             cantidadCorte: 0,
+            nombreDepartamento: '',
             loteCantidadSolicitada: 0,
             lotesFisicos: [],
             inputLoteDisabled: true,
@@ -128,15 +128,15 @@ export default {
             return exist[0]
         },
  */
-        empleadosSelect() {
-            let opt = this.empleados
-                .filter((item) => item.departamento === this.departamento)
-                .map((item) => {
-                    return { value: item._id, text: item.nombre }
-                })
-            opt.unshift({ value: null, text: "" })
-            return opt
-        },
+        /*  empleadosSelect() {
+             let opt = this.empleados
+                 .filter((item) => item.departamento === this.departamento)
+                 .map((item) => {
+                     return { value: item._id, text: item.nombre }
+                 })
+             opt.unshift({ value: null, text: "" })
+             return opt
+         }, */
     },
 
     methods: {
@@ -293,14 +293,13 @@ export default {
         },
 
         async updateEmpleado() {
-            // this.overlay = true
-            console.log("item en reasdingar empleado", this.item)
             const data = new URLSearchParams()
             data.set("id_orden", this.item.id_orden)
             data.set("id_ordenes_productos", this.item._id)
             data.set("id_empleado", this.selected)
             data.set("id_woo", this.item.id_woo)
-            data.set("departamento", this.departamento)
+            data.set("id_departamento", this.departamento)
+            data.set("departamento", this.nombreDepartamento)
             data.set("cantidad", this.cantidadCorte)
             data.set("cantidad_orden", this.item.cantidad)
 
@@ -339,6 +338,10 @@ export default {
     },
 
     mounted() {
+        this.nombreDepartamento = this.$store.state.login.departamentos.filter(el => el._id === this.departamento).map((el) => {
+            return el.departamento
+        })
+
         if (this.item.piezas_actuales === null) {
             this.loteCantidadExistencia = 0
         } else {
@@ -395,9 +398,12 @@ export default {
     mixins: [mixin],
 
     props: [
+        "select_options",
+        "id_empleado",
         "item",
         "reload",
         "empleados",
+        "por_asignar",
         "departamento",
         "options",
         "lote",

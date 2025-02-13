@@ -20,6 +20,10 @@
                                         pagoTotal }}</b-button>
                                     <!-- {{ item.pago }} -->
                                 </span>
+
+                                <span style="font-size:1.4rem; font-weight:bold; padding: 12px;">
+                                    Total piezas {{ obtenerTotales(detalles) }}
+                                </span>
                             </div>
                         </b-col>
                     </b-row>
@@ -120,6 +124,31 @@ export default {
     },
 
     methods: {
+        obtenerTotales(pagos) {
+            // Verificar que el parámetro sea un array
+            if (!Array.isArray(pagos)) {
+                throw new Error("El parámetro debe ser un array de objetos.");
+            }
+
+            let sumatoriaCantidad = 0; // Para almacenar la suma de las cantidades
+
+            // Recorrer cada objeto en el array
+            pagos.forEach((pago) => {
+                // Convertir el campo "cantidad" de string a entero
+                const cantidad = parseInt(pago.cantidad, 10);
+
+                // Verificar que la conversión sea válida
+                if (isNaN(cantidad)) {
+                    throw new Error(`El campo "cantidad" no es un número válido en el objeto: ${JSON.stringify(pago)}`);
+                }
+
+                // Sumar la cantidad a la sumatoria
+                sumatoriaCantidad += cantidad;
+            });
+
+            // Retornar el resultado en un objeto JSON
+            return sumatoriaCantidad
+        },
         reloadMe() {
             this.$emit("reload")
         },

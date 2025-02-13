@@ -1,4 +1,7 @@
 export const state = () => ({
+    currentComponent: null,
+    currentDepartament: "",
+    currentDepartamentId: null,
     dataUser: [],
     dataEmpresa: [],
     departamentos: [],
@@ -11,8 +14,20 @@ export const state = () => ({
 })
 
 export const mutations = {
+    scurrentDepartamentId(state, data) {
+        state.currentDepartamentId = data
+    },
+    scurrentDepartament(state, data) {
+        state.currentDepartament = data
+    },
+    setCurrentComponent(state, data) {
+        state.currentComponent = data
+    },
     setEmpleado(state, data) {
         state.empleado = data
+    },
+    setCurrentComponent(state, data) {
+        state.currentComponent = data
     },
     setIdEmpresa(state, data) {
         state.idEmpresa = data
@@ -58,6 +73,7 @@ export const getters = {
             return {
                 value: mod._id,
                 text: mod.modulo,
+                modulo: mod.modulo,
             }
         })
 
@@ -74,6 +90,7 @@ export const getters = {
             return {
                 value: el.id,
                 text: el.nombre,
+                modulo: el.modulo,
             }
         })
     },

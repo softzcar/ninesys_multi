@@ -2,25 +2,25 @@
     <div>
         <b-button @click="$bvModal.show(modal)" variant="success">{{
             btnText
-        }}</b-button>
+            }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
                 <div v-if="
-                    departamento === 'Impresión' ||
-                    departamento === 'Estampado' ||
-                    departamento === 'Corte' ||
-                    departamento === 'Costura' ||
-                    departamento === 'Limpieza' ||
-                    departamento === 'Revisión'
+                    $store.state.login.currentDepartament === 'Impresión' ||
+                    $store.state.login.currentDepartament === 'Estampado' ||
+                    $store.state.login.currentDepartament === 'Corte' ||
+                    $store.state.login.currentDepartament === 'Costura' ||
+                    $store.state.login.currentDepartament === 'Limpieza' ||
+                    $store.state.login.currentDepartament === 'Revisión'
                 ">
                     <!-- <pre style="display: block !important">
                     {{ $props.esreposicion }}
                   </pre
                     > -->
                     <b-form @reset="onReserForm">
-                        <div v-if="departamento === 'Impresión'">
+                        <div v-if="$store.state.login.currentDepartament === 'Impresión'">
                             <!-- Tintas -->
                             <b-form-group id="input-group-1" label="Tintas:" label-for="input-1">
                                 <b-form-input id="input-1" v-model="formImp.colorCyan" placeholder="Cyan" type="number"
@@ -42,8 +42,8 @@
                          </pre
                         > -->
                         <p v-if="
-                            departamento === 'Estampado' ||
-                            departamento === 'Corte'
+                            $store.state.login.currentDepartament === 'Estampado' ||
+                            $store.state.login.currentDepartament === 'Corte'
                         ">
                             Material utilizado: {{ materialUtilizado }} Metros
                         </p>
@@ -78,7 +78,7 @@
                             </b-table>
                         </div>
 
-                        <div v-if="departamento === 'Corte'">
+                        <div v-if="$store.state.login.currentDepartament === 'Corte'">
                             <p>Peso del desperdicio en kilos</p>
                             <b-form-input id="input-13" v-model="formCor.input" type="number" step="0.01" min="0"
                                 placeholder="Peso desperdicio" required class="mb-4"></b-form-input>
@@ -98,7 +98,7 @@ export default {
     data() {
         return {
             queryInsumo: '',
-            title: `Datos Extra ${this.departamento}`,
+            title: `Datos Extra ${this.$store.state.login.currentDepartament}`,
             overlay: false,
             btnText: "Terminar",
             ButtonDisabled: false,
@@ -136,17 +136,17 @@ export default {
         dataSearchInsumo() {
             let tmpArray = []
 
-            if (this.departamento === "Impresión") {
+            if (this.$store.state.login.currentDepartament === "Impresión") {
                 tmpArray = this.insumosimp
-            } else if (this.departamento === "Estampado") {
+            } else if (this.$store.state.login.currentDepartament === "Estampado") {
                 tmpArray = this.insumosest
-            } else if (this.departamento === "Corte") {
+            } else if (this.$store.state.login.currentDepartament === "Corte") {
                 tmpArray = this.insumosest
-            } else if (this.departamento === "Costura") {
+            } else if (this.$store.state.login.currentDepartament === "Costura") {
                 tmpArray = this.insumoscos
-            } else if (this.departamento === "Limpieza") {
+            } else if (this.$store.state.login.currentDepartament === "Limpieza") {
                 tmpArray = this.insumoslim
-            } else if (this.departamento === "Revisión") {
+            } else if (this.$store.state.login.currentDepartament === "Revisión") {
                 tmpArray = this.insumosrev
             }
 
@@ -157,17 +157,17 @@ export default {
 
         selectOptions() {
             let myOptions = []
-            if (this.departamento === "Impresión") {
+            if (this.$store.state.login.currentDepartament === "Impresión") {
                 myOptions = this.insumosimp
-            } else if (this.departamento === "Estampado") {
+            } else if (this.$store.state.login.currentDepartament === "Estampado") {
                 myOptions = this.insumosest
-            } else if (this.departamento === "Corte") {
+            } else if (this.$store.state.login.currentDepartament === "Corte") {
                 myOptions = this.insumosest
-            } else if (this.departamento === "Costura") {
+            } else if (this.$store.state.login.currentDepartament === "Costura") {
                 myOptions = this.insumoscos
-            } else if (this.departamento === "Limpieza") {
+            } else if (this.$store.state.login.currentDepartament === "Limpieza") {
                 myOptions = this.insumoslim
-            } else if (this.departamento === "Revisión") {
+            } else if (this.$store.state.login.currentDepartament === "Revisión") {
                 myOptions = this.insumosrev
             }
 
@@ -212,7 +212,7 @@ export default {
         },
 
         addItem() {
-            // const dep = this.$store.state.login.dataUser.departamento
+            // const dep = this.$store.state.login.currentDepartament
             const obj = {
                 id: this.generateRandomId(),
                 select: null,
@@ -267,13 +267,13 @@ export default {
         },
 
         /* terminaMe() {
-            if (this.departamento === "Impresión") {
+            if (this.$store.state.login.currentDepartament === "Impresión") {
                 this.validateImp();
-            } else if (this.departamento === "Estampado") {
+            } else if (this.$store.state.login.currentDepartament === "Estampado") {
                 this.validateEst();
-            } else if (this.departamento === "Corte") {
+            } else if (this.$store.state.login.currentDepartament === "Corte") {
                 this.validateCor();
-            } else if (this.departamento === "Costura") {
+            } else if (this.$store.state.login.currentDepartament === "Costura") {
                 this.validateCor();
             }
         }, */
@@ -288,7 +288,7 @@ export default {
             )
             data.set(
                 "departamento",
-                this.$store.state.login.dataUser.departamento
+                this.$store.state.login.currentDepartament
             )
 
             await this.$axios
@@ -400,7 +400,7 @@ export default {
             if (this.showSelect) {
                 let msg = ""
 
-                if (this.departamento === "Impresión") {
+                if (this.$store.state.login.currentDepartament === "Impresión") {
                     if (
                         parseFloat(this.formImp.colorCyan) <= 0 ||
                         this.formImp.colorCyan.trim() === ""
@@ -435,7 +435,7 @@ export default {
                     }
                 }
 
-                if (this.departamento === "Corte") {
+                if (this.$store.state.login.currentDepartament === "Corte") {
                     // VALIDAR DESPERDICIO
                     if (this.formCor.input === 0) {
                         ok = false
@@ -470,11 +470,11 @@ export default {
 
                     // ok = false;
                 } else {
-                    if (this.departamento === "Impresión") {
+                    if (this.$store.state.login.currentDepartament === "Impresión") {
                         this.postImp()
                     }
 
-                    if (this.departamento === "Corte") {
+                    if (this.$store.state.login.currentDepartament === "Corte") {
                         // Enviar desperdicio
                         this.rendimiento(this.formCor.input, this.idorden)
                     }
@@ -719,12 +719,12 @@ export default {
             // Buscar cantidad actual del insumo
             console.log("Entramos a postInventarioMovimientos")
             let cantidadInsumo
-            if (this.$store.state.login.dataUser.departamento === "Impresión") {
+            if (this.$store.state.login.currentDepartament === "Impresión") {
                 cantidadInsumo = this.insumosimp.filter(
                     (item) => item._id == idProducto
                 )
             } else if (
-                this.$store.state.login.dataUser.departamento === "Estampado"
+                this.$store.state.login.currentDepartament === "Estampado"
             ) {
                 console.log("enviemos datos de estampado")
                 cantidadInsumo = this.insumosest.filter(
@@ -732,7 +732,7 @@ export default {
                 )
             } // (else if...) Continuar con los otros departamentos aqui.
             else if (
-                this.$store.state.login.dataUser.departamento === "Corte"
+                this.$store.state.login.currentDepartament === "Corte"
             ) {
                 cantidadInsumo = this.insumoscor.filter(
                     (item) => item._id == idProducto
@@ -750,7 +750,7 @@ export default {
             )
             data.set(
                 "departamento",
-                this.$store.state.login.dataUser.departamento
+                this.$store.state.login.currentDepartament
             )
             data.set("id_insumo", idInsumo)
             data.set("id_ordenes_productos", this.id_ordenes_productos)
@@ -798,7 +798,7 @@ export default {
             )
             data.set(
                 "departamento",
-                this.$store.state.login.dataUser.departamento
+                this.$store.state.login.currentDepartament
             )
 
             await this.$axios
@@ -849,7 +849,7 @@ export default {
 
             await this.$axios
                 .post(
-                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.dataUser.departamento}/${id_lotes_detalles}/${unidades}`
+                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartament}/${id_lotes_detalles}/${unidades}`
                 )
                 .then((resp) => {
                     console.log("emitimos aqui...")
@@ -875,13 +875,13 @@ export default {
 
     mounted() {
         if (this.tipo === "todo") this.btnText = `Terminar Todo`
-        this.departamento = this.$store.state.login.dataUser.departamento
+        this.departamento = this.$store.state.login.currentDepartament
 
-        if (this.$store.state.login.dataUser.departamento === "Impresión") {
+        if (this.$store.state.login.currentDepartament === "Impresión") {
             this.showSelect = true
         } else {
             //  VEERIFICAR DEPARTAMENTOS
-            const dep = this.$store.state.login.dataUser.departamento
+            const dep = this.$store.state.login.currentDepartament
 
             const showEstampado =
                 this.$store.state.datasys.dataSys
