@@ -13,13 +13,10 @@
                     <b-row>
                         <b-col>
                             <div class="floatme" style="width: 100%; margin-bottom: 20px">
-                                <span>
-                                    <b-button @click="pagarEmpleado(item.id_empleado)" variant="success">PAGAR {{
+                                <span v-if="showbutton != 'false'">
+                                    <b-button @click=" pagarEmpleado(item.id_empleado)" variant="success">PAGAR {{
                                         pagoTotal }}</b-button>
                                 </span>
-                                <!-- <pre>
-                  {{ item.id_empleado }}
-                </pre> -->
                             </div>
                         </b-col>
                     </b-row>
@@ -164,7 +161,7 @@ export default {
         },
     },
 
-    props: ["id_empleado", "detalles", "reload", "item", "adicionales"],
+    props: ["id_empleado", "detalles", "reload", "item", "adicionales", "showbutton"],
 }
 </script>
 

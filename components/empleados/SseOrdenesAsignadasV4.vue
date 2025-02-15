@@ -88,8 +88,8 @@
                                                 :insumosest="insumosEstampado" :insumoscor="insumosCorte"
                                                 :insumoscos="insumosCostura" :insumoslim="insumosLimpieza"
                                                 :insumosrev="insumosRevision" tipo="todo" :idorden="row.item.orden"
-                                                :id_ordenes_productos="row.item.id_ordenes_productos
-                                                    " @reload="reloadMe()" />
+                                                :id_ordenes_productos="row.item.id_ordenes_productos"
+                                                @reload="reloadMe" />
                                         </span>
 
                                         <!-- Ver Diseño -->
@@ -449,7 +449,8 @@ export default {
                             (el.progreso === "en curso" ||
                                 el.progreso === "terminada") &&
                             el.en_tintas === 0 &&
-                            el.en_reposiciones === 0
+                            el.en_reposiciones === 0 /* &&
+                            (el.fecha_inicio != null && el.fecha_terminado == null) */
                     ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
                     .map((el) => {
                         return {
@@ -486,12 +487,15 @@ export default {
             ) {
                 enCurso = this.ordenes
                     .filter(
+                        (el) => el.progreso === 'en curso'
+                    ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
+                    /* .filter(
                         (el) =>
                             (el.progreso === "en curso" ||
                                 el.progreso === "terminada") &&
                             el.en_inv_mov === 0 &&
-                            el.en_reposiciones === 0
-                    ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
+                            el.en_reposiciones === 0 && el.fecha_inicio != null
+                    ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos` */
                     .map((el) => {
                         return {
                             // ...el, // Incluimos todas las propiedades originales del objeto "el"
@@ -528,7 +532,6 @@ export default {
                     .filter(
                         (el) =>
                             el.progreso === "en curso" &&
-                            el.en_inv_mov === 0 &&
                             el.en_reposiciones === 0
                     ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
                     .map((el) => {
@@ -565,7 +568,7 @@ export default {
                         (el) =>
                             el.progreso === "en curso" &&
                             el.en_inv_mov === 0 &&
-                            el.en_reposiciones === 0
+                            el.en_reposiciones === 0 && el.fecha_inicio != null
                     ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
                     .map((el) => {
                         return {
@@ -607,8 +610,7 @@ export default {
                     // .filter((el) => el.fecha_inicio === null)
                     .filter(
                         (el) =>
-                            el.progreso === "por iniciar" &&
-                            el.en_reposiciones === 0
+                            el.progreso === "por iniciar"
                     )
                     .map((el) => {
                         return {
@@ -872,6 +874,9 @@ export default {
                         (el) => el.id_orden == idOrden
                     )
 
+                    console.log('OrdenesPorIniciar', OrdenesPorIniciar);
+
+
                     OrdenesPorIniciar.forEach((item) => {
                         this.registrarEstado(
                             "inicio",
@@ -880,6 +885,7 @@ export default {
                         ).then(() => { })
                     })
 
+                    this.reloadMe()
                     this.sendMessageClient(idOrden)
                 })
                 .catch((err) => {
@@ -887,8 +893,8 @@ export default {
                     return false
                 })
                 .finally(() => {
-                    // this.reloadMe();
-                    this.getOrdenesAsignadas()
+                    this.reloadMe();
+                    // this.getOrdenesAsignadas()
                     this.overlay = false
                 })
         },
@@ -1105,6 +1111,7 @@ export default {
                         console.log("Usted no tiene ordenes asignadas")
                     }
 
+                    this.ordenes = []
                     this.ordenes = resp.data.ordenes
                     this.vinculadas = resp.data.vinculadas
                     this.productos = resp.data.productos

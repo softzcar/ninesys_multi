@@ -1,12 +1,6 @@
 <template>
     <div>
         <b-overlay :show="overlay" spinner-small>
-            <!-- <pre class="force">
-               DATA {{ $data }}
-            </pre>
-            <pre class="force">
-               PROPS {{ $props }}
-            </pre> -->
             <div class="mb-2">
                 <b-form-select :disabled="selectDisabled" v-model="emp" :options="options" :value="emp"
                     @change="sendIdEmpleado"></b-form-select>

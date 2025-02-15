@@ -165,17 +165,17 @@
                   Reporte general de invetario
                 </b-dropdown-item> -->
 
-                                <router-link class="nav-link" to="/inventario/reportes/semana" custom
+                                <!-- <router-link class="nav-link" to="/inventario/reportes/semana" custom
                                     v-slot="{ navigate }">
                                     <span @click="navigate" @keypress.enter="navigate" role="link">
                                         Reporte por semana
                                     </span>
-                                </router-link>
+                                </router-link> -->
 
                                 <router-link class="nav-link" to="/inventario/reportes/orden" custom
                                     v-slot="{ navigate }">
                                     <span @click="navigate" @keypress.enter="navigate" role="link">
-                                        Reporte por orden
+                                        Reporte de insumos consumidos por orden
                                     </span>
                                 </router-link>
 
@@ -284,6 +284,12 @@
                                 v-slot="{ navigate }">
                                 <span @click="navigate" @keypress.enter="navigate" role="link">
                                     Planilla De Pagos
+                                </span>
+                            </router-link>
+                            <router-link class="nav-link" to="/empleados/historico-de-pagos" custom
+                                v-slot="{ navigate }">
+                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                                    Histórico De Pagos
                                 </span>
                             </router-link>
                             <!-- <router-link class="nav-link" to="/logout" custom v-slot="{ navigate }">

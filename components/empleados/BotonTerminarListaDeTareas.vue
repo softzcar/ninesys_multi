@@ -1,19 +1,9 @@
 <template>
-    <!-- <div>
-    <pre style="background-color: lightgreen; color: darkgreen !important">
-        {{ item }}
-    </pre>
-    <b-overlay :show="overlay" spinner-small>
-      <b-button :variant="ButtonVariant" @click="flujoDeTrabajo(item)">{{
-        ButtonText
-      }}</b-button>
-    </b-overlay>
-  </div> -->
     <div>
         <!-- <b-button @click="$bvModal.show(modal)" :variant="ButtonVariant">{{ -->
         <b-button @click="flujoDeTrabajo(item)" :variant="ButtonVariant">{{
             ButtonText
-            }}</b-button>
+        }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="xl">
             <b-overlay :show="overlay" spinner-small>

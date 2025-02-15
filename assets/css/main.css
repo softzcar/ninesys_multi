@@ -52,6 +52,12 @@ pre {
     display: block !important;
 }
 
+.total-table {
+    padding-right: 48px;
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
 /* Alinear en reportes */
 .izquierda {
     text-align: left !important;

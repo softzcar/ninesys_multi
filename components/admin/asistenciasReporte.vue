@@ -8,45 +8,18 @@
                     </b-col>
                 </b-row>
                 <b-row>
-                    <b-col
-                        xs="12"
-                        sm="12"
-                        md="6"
-                        lg="4"
-                        xl="4"
-                        offset-md="6"
-                        offset-lg="8"
-                        offset-xl="8"
-                    >
+                    <b-col xs="12" sm="12" md="6" lg="4" xl="4" offset-md="6" offset-lg="8" offset-xl="8">
                         <b-form @submit="onSubmit">
-                            <b-form-group
-                                id="input-group-1"
-                                label="Fecha inicio:"
-                                label-for="fecha-1"
-                            >
-                                <b-form-datepicker
-                                    id="fecha-1"
-                                    v-model="form.fechaConsultaInicio"
-                                    class="mb-2"
-                                ></b-form-datepicker>
+                            <b-form-group id="input-group-1" label="Fecha inicio:" label-for="fecha-1">
+                                <b-form-datepicker id="fecha-1" v-model="form.fechaConsultaInicio"
+                                    class="mb-2"></b-form-datepicker>
                                 <!-- <pre>{{ form.fechaConsultaInicio }}</pre> -->
                             </b-form-group>
 
-                            <b-form-group
-                                id="input-group-2"
-                                label="Fecha fin:"
-                                label-for="fecha-2"
-                            >
-                                <b-form-datepicker
-                                    v-model="form.fechaConsultaFin"
-                                    class="mb-2"
-                                ></b-form-datepicker>
+                            <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
+                                <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
                             </b-form-group>
-                            <b-button
-                                class="mb-4"
-                                type="submit"
-                                variant="primary"
-                                >Buscar Asistencias
+                            <b-button class="mb-4" type="submit" variant="primary">Buscar Asistencias
                             </b-button>
                         </b-form>
                     </b-col>
@@ -58,20 +31,12 @@
                             {{ formatDate(form.fechaConsultaInicio) }} al
                             {{ formatDate(form.fechaConsultaFin) }}
                         </h3>
-                        <b-table
-                            striped
-                            :fields="fields_resumen"
-                            :items="itemsResumen"
-                            class="mb-4"
-                        >
+                        <b-table striped :fields="fields_resumen" :items="itemsResumen" class="mb-4">
                             <template #cell(acciones)="data">
-                                <admin-asistenciasReporteDetalles
-                                    :data_empleado="
-                                        filterDataEmpleado(
-                                            data.item.id_empleado
-                                        )
-                                    "
-                                />
+                                <admin-asistenciasReporteDetalles :data_empleado="filterDataEmpleado(
+                                    data.item.id_empleado
+                                )
+                                    " />
                             </template>
                         </b-table>
                     </b-col>
@@ -83,11 +48,7 @@
                             {{ formatDate(form.fechaConsultaInicio) }} al
                             {{ formatDate(form.fechaConsultaFin) }}
                         </h3>
-                        <b-table
-                            striped
-                            :fields="fields_detallado"
-                            :items="itemsDetallado"
-                        >
+                        <b-table striped :fields="fields_detallado" :items="itemsDetallado">
                             <!-- <template #cell(categories)="data">
             <b-badge
                   v-for="(prod, index) in showCategories(data.item.categories)"

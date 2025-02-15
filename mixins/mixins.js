@@ -295,35 +295,45 @@ export default {
         },
 
         formatTimestampDate(timestamp) {
-            const fecha = new Date(timestamp)
-            const dia = fecha.getDate().toString().padStart(2, "0")
-            const mes = (fecha.getMonth() + 1).toString().padStart(2, "0") // Se suma 1 porque los meses comienzan en 0 (enero)
-            const año = fecha.getFullYear()
+            if (timestamp != null) {
+                const fecha = new Date(timestamp)
+                const dia = fecha.getDate().toString().padStart(2, "0")
+                const mes = (fecha.getMonth() + 1).toString().padStart(2, "0") // Se suma 1 porque los meses comienzan en 0 (enero)
+                const año = fecha.getFullYear()
+    
+                return `${dia}/${mes}/${año}`
+            } else {
+                return ''
+            }
 
-            return `${dia}/${mes}/${año}`
         },
 
         formatDate(date) {
             // Verificar sila fewhca tiene formato antiguo
-            let check = date.split("-")
-            if (check.length === 1) {
-                return date
+            if (date != null) {
+                let check = date.split("-")
+                if (check.length === 1) {
+                    return date
+                }
+    
+                let f
+                if (!date) {
+                    let tmp = new Date()
+                    f =
+                        tmp.getDate() +
+                        "/" +
+                        (tmp.getMonth() + 1) +
+                        "/" +
+                        tmp.getFullYear()
+                } else {
+                    let tmp = date.split("-")
+                    f = `${tmp[2]}/${tmp[1]}/${tmp[0]}`
+                }
+                return f
+            } else {
+                return false
             }
 
-            let f
-            if (!date) {
-                let tmp = new Date()
-                f =
-                    tmp.getDate() +
-                    "/" +
-                    (tmp.getMonth() + 1) +
-                    "/" +
-                    tmp.getFullYear()
-            } else {
-                let tmp = date.split("-")
-                f = `${tmp[2]}/${tmp[1]}/${tmp[0]}`
-            }
-            return f
         },
 
         token() {

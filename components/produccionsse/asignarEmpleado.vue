@@ -4,7 +4,7 @@
             <div v-if="departamento === 'Corte'" class="mb-2 mt-2" variant="info">
                 Cantidad en LOTE <strong>{{ loteCantidadExistencia }}</strong>
             </div>
-            <pre class="force" style="background-color:brown">
+            <pre class="forcex" style="background-color:brown">
          empleado asigando: {{ departamento }}
         </pre>
             <b-row>

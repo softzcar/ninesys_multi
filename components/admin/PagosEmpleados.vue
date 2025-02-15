@@ -18,8 +18,15 @@
                 </b-form>
             </b-col>
         </b-row>
+
         <b-row>
             <b-col class="mt-4">
+                <b-row>
+                    <b-col class="mt-4">
+                        <h3>TOTAL GENERAL {{ totalCancelado.totalGeneral }}</h3>
+                    </b-col>
+                </b-row>
+
                 <h3 class="mb-4">Vendedores</h3>
                 <b-table responsive small striped :items="pagosResumenVendedores" :fields="fields">
                     <template #cell(nombre)="data">
@@ -33,12 +40,12 @@
                         </div>
                     </template>
                 </b-table>
+                <p class="text-right total-table">TOTAL ${{ totalCancelado.totalVendedores }}</p>
             </b-col>
         </b-row>
         <b-row>
             <b-col class="mt-4">
                 <h3 class="mb-4">Empleados</h3>
-                <!-- >{{ pagosResumen }}</pre> -->
                 <b-table responsive small striped :items="pagosResumen" :fields="fields">
                     <template #cell(nombre)="data">
                         <admin-PagosEmpleadoResumen :item="data.item" :products="products" @reload="reloadMe"
@@ -51,6 +58,7 @@
                         </div>
                     </template>
                 </b-table>
+                <p class="text-right total-table">TOTAL ${{ totalCancelado.totalEmpleados }}</p>
             </b-col>
         </b-row>
 
@@ -69,11 +77,8 @@
                         </div>
                     </template>
                 </b-table>
-                <!-- > {{ pagosResumenDiseno }} <hr> {{ pagos.data }} </pre> -->
             </b-col>
         </b-row>
-
-        <!-- >pagosTrabajosAdicionales::: {{ pagosTrabajosAdicionales }}</pre> -->
     </b-overlay>
 </template>
 
@@ -81,6 +86,9 @@
 export default {
     data() {
         return {
+            dataEmpleados: null,
+            dataVendedores: null,
+            totalCancelado: 0,
             form: {
                 fechaConsultaInicio: "",
                 fechaConsultaFin: "",
@@ -237,6 +245,43 @@ export default {
     },
 
     methods: {
+        totalPagos(empleados, vendedores, otrosTipos) {
+            console.log('totalPagos() vendedores', vendedores);
+            console.log('totalPagos() empleados', empleados);
+
+            const sumarPagos = (arr) => arr.reduce((total, item) => total + (parseFloat(item.pago) || 0), 0);
+
+            const totales = {
+                totalGeneral: 0,
+                totalVendedores: 0,
+                totalEmpleados: 0,
+                totalOtros: 0 // Agregar más tipos de empleados aquí si es necesario
+            };
+
+            if (vendedores && Array.isArray(vendedores)) {
+                totales.totalVendedores = sumarPagos(vendedores);
+                totales.totalGeneral += totales.totalVendedores;
+            }
+
+            if (empleados && Array.isArray(empleados)) {
+                totales.totalEmpleados = sumarPagos(empleados);
+                totales.totalGeneral += totales.totalEmpleados;
+            }
+
+            if (otrosTipos && Array.isArray(otrosTipos)) {
+                totales.totalOtros = sumarPagos(otrosTipos);
+                totales.totalGeneral += totales.totalOtros;
+            }
+
+            // Redondear a 2 decimales
+            totales.totalGeneral = totales.totalGeneral.toFixed(2);
+            totales.totalVendedores = totales.totalVendedores.toFixed(2);
+            totales.totalEmpleados = totales.totalEmpleados.toFixed(2);
+            totales.totalOtros = totales.totalOtros.toFixed(2);
+
+            return totales;
+        },
+
         onSubmit(event) {
             event.preventDefault()
             const fechaConsultaInicio = this.form.fechaConsultaInicio
@@ -259,12 +304,16 @@ export default {
                 })
                 return
             }
-            this.getFilteredData()
+            this.getPagos().then(() => {
+                this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores)
+            })
         },
 
         reloadPagos() {
             if (this.form.fecha_inicio === "") {
-                this.getPagos()
+                this.getPagos().then(() => {
+                    this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores)
+                })
             }
         },
 
@@ -273,6 +322,9 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/pagos/semana/vendedores`)
                 .then((res) => {
+                    console.log('Respuesta de pagos de vendedores', res.data.data.vendedores);
+
+                    this.dataVendedores = res.data.data.vendedores
                     this.pagos = res.data
                     this.pagosVendedores = res.data.data.vendedores
                     // this.overlay = false
@@ -283,7 +335,9 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/pagos/semana/empleados`)
                 .then((res) => {
+                    console.log('Respuesta de pagos de empleados', res.data.data.empleados);
                     this.pagos = res.data
+                    this.dataEmpleados = res.data.data.empleados
                     this.pagosEmpleados = res.data.data.empleados
                     // this.overlay = false
                 })
@@ -301,7 +355,8 @@ export default {
                 })
         },
 
-        async getFilteredData() {
+        // ESTAMOS USANDO AL FUNCION getPagos() EN LUGAR DE getFilteredData() PARA TRAER LOS PAGOS INDIVIDUALMENTE
+        /* async getFilteredData() {
             this.overlay = true
             const data = new URLSearchParams()
             data.set("fecha_inicio", this.form.fechaConsultaInicio)
@@ -320,7 +375,7 @@ export default {
                         res.data.data.trabajos_adicionales
                     // this.urlLink = res.data.linkdrive
                 })
-        },
+        }, */
 
         async realizarPagoAEmpleado() {
             this.overlay = true
@@ -351,14 +406,14 @@ export default {
             categories: el.categories,
           }
         })
-      if (myProd.length === 0) {
+        if (myProd.length === 0) {
         myProd.push({
           cod: 0,
           attributes: [],
           categories: [],
         })
-      }
-      console.log('filterProd', myProd) */
+        }
+        console.log('filterProd', myProd) */
             let myProd = this.products.filter(
                 (el) => el.cod === parseInt(id_woo)
             )
@@ -367,17 +422,40 @@ export default {
         },
 
         async getPagos() {
-            await this.getPagosVendedores()
-            await this.getPagosEmpleados()
-            await this.getPagosDisenadores()
-            await this.getAttributes()
+            try {
+                // Ejecutar las funciones asíncronas en paralelo
+                await Promise.all([
+                    this.getPagosVendedores(),
+                    this.getPagosEmpleados(),
+                    // this.getPagosDisenadores(),
+                    this.getAttributes()
+                ]);
+
+                // Calcular el total de pagos después de que todas las promesas se resuelvan
+                this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores);
+                console.log(`totalCandelado`, this.totalCancelado);
+
+
+                // Si necesitas ejecutar algo después de que getPagos termine
+                // alert('HOLA'); // Esto se ejecutará después de que todo esté listo
+            } catch (error) {
+                console.error("Error en getPagos:", error);
+                this.$fire({
+                    title: "Pagos",
+                    html: `<p>Error al cargar datos</p><p>${error}</p>`,
+                    type: "error",
+                })
+            }
         },
 
         reloadMe() {
             this.overlay = true
             this.pagos = []
             this.getAttributes().then(() => {
-                this.getPagos().then(() => (this.overlay = false))
+                this.getPagos().then(() => {
+                    this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores)
+                    this.overlay = false
+                })
             })
         },
 
@@ -414,7 +492,13 @@ export default {
     },
 
     mounted() {
-        this.getPagos().then(() => (this.overlay = false))
+        this.getPagos().then(() => {
+            // console.log('VAMOS A EJECUTAR totalPagos');
+
+            // this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores)
+            // console.log('RESULTADO totalPagos', this.totalCancelado);
+            this.overlay = true
+        })
     },
 }
 </script>

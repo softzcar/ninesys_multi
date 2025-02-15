@@ -2,7 +2,7 @@
     <div>
         <b-button @click="$bvModal.show(modal)" variant="success">{{
             btnText
-            }}</b-button>
+        }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <b-overlay :show="overlay" spinner-small>
@@ -11,6 +11,7 @@
                     $store.state.login.currentDepartament === 'Impresión' ||
                     $store.state.login.currentDepartament === 'Estampado' ||
                     $store.state.login.currentDepartament === 'Corte' ||
+                    $store.state.login.currentDepartament === 'Corte de papel' ||
                     $store.state.login.currentDepartament === 'Costura' ||
                     $store.state.login.currentDepartament === 'Limpieza' ||
                     $store.state.login.currentDepartament === 'Revisión'
@@ -43,7 +44,8 @@
                         > -->
                         <p v-if="
                             $store.state.login.currentDepartament === 'Estampado' ||
-                            $store.state.login.currentDepartament === 'Corte'
+                            $store.state.login.currentDepartament === 'Corte' ||
+                            $store.state.login.currentDepartament === 'Corte papel'
                         ">
                             Material utilizado: {{ materialUtilizado }} Metros
                         </p>
@@ -874,8 +876,9 @@ export default {
     },
 
     mounted() {
+        this.clearForms()
         if (this.tipo === "todo") this.btnText = `Terminar Todo`
-        this.departamento = this.$store.state.login.currentDepartament
+        // this.departamento = this.$store.state.login.currentDepartament
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
             this.showSelect = true

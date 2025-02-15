@@ -4,109 +4,44 @@
             <b-icon icon="pencil"></b-icon>
         </b-button>
 
-        <b-modal
-            :size="size"
-            :title="title"
-            :id="modal"
-            cancel-disabled
-            ok-disabled
-            footerClass="d-none"
-        >
+        <b-modal :size="size" :title="title" :id="modal" cancel-disabled ok-disabled footerClass="d-none">
             <b-container>
                 <b-row>
                     <b-col>
                         <p>
                             <b-overlay :show="overlay" spinner-small>
-                                <pre>
-                  {{ form }}
-                </pre
-                                >
                                 <b-form @submit="onSubmit" @reset="onReset">
-                                    <b-form-group
-                                        id="input-group-1"
-                                        label="Nombres:"
-                                        label-for="input-first_name"
-                                    >
-                                        <b-form-input
-                                            id="input-first_name"
-                                            v-model="form.first_name"
-                                            placeholder="Nombres"
-                                            required
-                                        ></b-form-input>
+                                    <b-form-group id="input-group-1" label="Nombres:" label-for="input-first_name">
+                                        <b-form-input id="input-first_name" v-model="form.first_name"
+                                            placeholder="Nombres" required></b-form-input>
                                     </b-form-group>
 
-                                    <b-form-group
-                                        id="input-group-2"
-                                        label="Apellidos:"
-                                        label-for="input-last_name"
-                                    >
-                                        <b-form-input
-                                            id="input-last_name"
-                                            v-model="form.last_name"
-                                            placeholder="Apellidos"
-                                            required
-                                        ></b-form-input>
+                                    <b-form-group id="input-group-2" label="Apellidos:" label-for="input-last_name">
+                                        <b-form-input id="input-last_name" v-model="form.last_name"
+                                            placeholder="Apellidos" required></b-form-input>
                                     </b-form-group>
 
-                                    <b-form-group
-                                        id="input-group-3"
-                                        label="Cédula:"
-                                        label-for="input-cedula"
-                                    >
-                                        <b-form-input
-                                            id="input-cedula"
-                                            v-model="form.cedula"
-                                            placeholder="Apellidos"
-                                            required
-                                        ></b-form-input>
+                                    <b-form-group id="input-group-3" label="Cédula:" label-for="input-cedula">
+                                        <b-form-input id="input-cedula" v-model="form.cedula" placeholder="Apellidos"
+                                            required></b-form-input>
                                     </b-form-group>
 
-                                    <b-form-group
-                                        id="input-group-4"
-                                        label="Teléfono:"
-                                        label-for="input-phone"
-                                    >
-                                        <b-form-input
-                                            id="input-phone"
-                                            v-model="form.phone"
-                                            placeholder="Teléfono"
-                                            required
-                                        ></b-form-input>
+                                    <b-form-group id="input-group-4" label="Teléfono:" label-for="input-phone">
+                                        <b-form-input id="input-phone" v-model="form.phone" placeholder="Teléfono"
+                                            required></b-form-input>
                                     </b-form-group>
 
-                                    <b-form-group
-                                        id="input-group-5"
-                                        label="Email:"
-                                        label-for="input-email"
-                                    >
-                                        <b-form-input
-                                            id="input-email"
-                                            v-model="form.email"
-                                            placeholder="Email"
-                                            required
-                                        ></b-form-input>
+                                    <b-form-group id="input-group-5" label="Email:" label-for="input-email">
+                                        <b-form-input id="input-email" v-model="form.email" placeholder="Email"
+                                            required></b-form-input>
                                     </b-form-group>
 
-                                    <b-form-group
-                                        id="input-group-6"
-                                        label="Dirección:"
-                                        label-for="input-address"
-                                    >
-                                        <b-form-input
-                                            id="input-address"
-                                            v-model="form.address"
-                                            placeholder="Apellidos"
-                                            required
-                                        ></b-form-input>
+                                    <b-form-group id="input-group-6" label="Dirección:" label-for="input-address">
+                                        <b-form-input id="input-address" v-model="form.address" placeholder="Apellidos"
+                                            required></b-form-input>
                                     </b-form-group>
-                                    <b-button type="submit" variant="primary"
-                                        >Guardar</b-button
-                                    >
-                                    <b-button
-                                        @click="resetForm"
-                                        variant="danger"
-                                        >Limpiar</b-button
-                                    >
+                                    <b-button type="submit" variant="primary">Guardar</b-button>
+                                    <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                                 </b-form>
                             </b-overlay>
                         </p>

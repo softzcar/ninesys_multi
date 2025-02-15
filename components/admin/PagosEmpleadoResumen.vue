@@ -15,7 +15,7 @@
                     <b-row>
                         <b-col>
                             <div class="floatme" style="width: 100%; margin-bottom: 20px">
-                                <span>
+                                <span v-if="showbutton != 'false'">
                                     <b-button @click="pagarEmpleado(item.id_empleado)" variant="success">PAGAR {{
                                         pagoTotal }}</b-button>
                                     <!-- {{ item.pago }} -->
@@ -59,8 +59,6 @@
 </template>
 
 <script>
-import axios from "axios"
-import { log } from "console"
 export default {
     data() {
         return {
@@ -222,7 +220,7 @@ export default {
         },
     },
 
-    props: ["item", "detalles", "products", "reload"],
+    props: ["item", "detalles", "products", "reload", "showbutton"],
 }
 </script>
 
