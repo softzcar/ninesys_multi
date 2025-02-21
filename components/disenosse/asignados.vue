@@ -4,9 +4,7 @@
         <b-overlay :show="overlay" spinner-small>
             <b-row v-if="error.show" class="mt-4">
                 <b-col>
-                    <b-alert show variant="danger"
-                        >Danger Alert: {{ error.msg }}</b-alert
-                    >
+                    <b-alert show variant="danger">Danger Alert: {{ error.msg }}</b-alert>
                 </b-col>
             </b-row>
 
@@ -34,24 +32,17 @@
                         </template>
 
                         <template #cell(phone)="data">
-                            <div
-                                style="
+                            <div style="
                                     float: left;
                                     margin-right: 6px;
                                     margin-top: 6px;
-                                "
-                            >
-                                <span
-                                    v-html="whatsAppMe(data.item.phone, true)"
-                                ></span>
+                                ">
+                                <span v-html="whatsAppMe(data.item.phone, true)"></span>
                             </div>
                         </template>
 
                         <template #cell(linkdrive)="data">
-                            <disenosse-linkDrive
-                                :linkdrive="data.item.linkdrive"
-                                :item="data.item"
-                            />
+                            <disenosse-linkDrive :linkdrive="data.item.linkdrive" :item="data.item" />
                         </template>
 
                         <!-- <template #cell(revision)="data">
@@ -64,25 +55,17 @@
                             </template> -->
                         <template #cell(revision)="data">
                             <disenosse-uploadPropuestaDisenador
-                                :revisiones="revisiones"
-                                :item="data.item"
-                                :productos="productos"
-                                @reload="loadDisenos"
-                            />
+                                :revisiones="revisiones.filter(el => parseInt(el.id_diseno) === data.item.id_diseno)"
+                                :item="data.item" :productos="productos" @reload="loadDisenos" />
                         </template>
 
                         <template #cell(id_orden)="data">
-                            <ordenes-vinculadas
-                                :id_orden="data.item.id_orden"
-                            />
+                            <ordenes-vinculadas :id_orden="data.item.id_orden" />
                         </template>
 
                         <template #cell(tallas_y_personalizacion)="data">
-                            <disenosse-tallasPersoalizacion
-                                :ajustes="ajustes"
-                                :item="data.item"
-                                @reload="loadDisenos"
-                            />
+                            <disenosse-tallasPersoalizacion :ajustes="ajustes" :item="data.item"
+                                @reload="loadDisenos" />
                         </template>
                     </b-table>
                 </b-col>

@@ -109,7 +109,7 @@
                                                                             Cliente
                                                                         </h5>
                                                                         <vue-typeahead-bootstrap @hit="loadForm
-                                                                            " :data="$store
+                                                                        " :data="$store
                                                                                 .state
                                                                                 .comerce
                                                                                 .customersSelect
@@ -122,7 +122,7 @@
                                                             <b-row>
                                                                 <b-col lg="12">
                                                                     <produccion-vincularOrden @reload="reloadVinculo
-                                                                        " />
+                                                                    " />
                                                                     <hr class="my-4 pb-4" />
                                                                 </b-col>
                                                             </b-row>
@@ -245,7 +245,7 @@
                                                                 <b-row>
                                                                     <b-col lg="6" class="mt-4">
                                                                         <products-new @r="getResponseNewProduct
-                                                                            " />
+                                                                        " />
                                                                     </b-col>
                                                                 </b-row>
                                                                 <br />
@@ -255,10 +255,10 @@
                                                                         " button-variant="outline-primary" size="lg"
                                                                     name="radio-btn-outline" buttons class="mb-4"
                                                                     @input="changeCategory
-                                                                        "></b-form-radio-group>
+                                                                    "></b-form-radio-group>
 
                                                                 <vue-typeahead-bootstrap @hit="loadProduct
-                                                                    " :data="$store
+                                                                " :data="$store
                                                                         .state
                                                                         .comerce
                                                                         .dataProductosSelect
@@ -325,7 +325,7 @@
                                                                                     .cod
                                                                             )
                                                                                 " type="number" @change="montoTotalOrden
-                                                                                    "></b-form-input>
+                                                                                "></b-form-input>
                                                                     </template>
 
                                                                     <template #cell(corte)="data">
@@ -549,7 +549,7 @@
                                                                                     id="input-dolares-efectivo"
                                                                                     type="number" step="0.10" min="0"
                                                                                     @change="updateMontoAbono
-                                                                                        " v-model="form.montoDolaresEfectivo
+                                                                                    " v-model="form.montoDolaresEfectivo
                                                                                             "></b-form-input>
                                                                             </b-form-group>
                                                                             <hr />
@@ -564,7 +564,7 @@
                                                                                 <b-form-input id="input-dolares-zelle"
                                                                                     type="number" step="0.10" min="0"
                                                                                     @change="updateMontoAbono
-                                                                                        " v-model="form.montoDolaresZelle
+                                                                                    " v-model="form.montoDolaresZelle
                                                                                             "></b-form-input>
                                                                             </b-form-group>
                                                                             <b-form-input v-model="form.montoDolaresZelleDetalle
@@ -583,7 +583,7 @@
                                                                                 <b-form-input id="input-dolares-zelle"
                                                                                     type="number" step="0.10" min="0"
                                                                                     @change="updateMontoAbono
-                                                                                        " v-model="form.montoDolaresPanama
+                                                                                    " v-model="form.montoDolaresPanama
                                                                                             "></b-form-input>
                                                                             </b-form-group>
                                                                             <b-form-input v-model="form.montoDolaresPanamaDetalle
@@ -616,7 +616,7 @@
                                                                                     type="number" step="0.10" min="0"
                                                                                     v-model="form.montoPesosEfectivo
                                                                                         " @change="updateMontoAbono
-                                                                                            "></b-form-input>
+                                                                                        "></b-form-input>
                                                                             </b-form-group>
                                                                             <hr />
                                                                         </b-col>
@@ -632,7 +632,7 @@
                                                                                     type="number" step="0.10" min="0"
                                                                                     v-model="form.montoPesosTransferencia
                                                                                         " @change="updateMontoAbono
-                                                                                            "></b-form-input>
+                                                                                        "></b-form-input>
                                                                             </b-form-group>
                                                                             <b-form-input v-model="form.montoPesosTransferenciaDetalle
                                                                                 "
@@ -665,7 +665,7 @@
                                                                                     type="number" step="0.10" min="0"
                                                                                     v-model="form.montoBolivaresEfectivo
                                                                                         " @change="updateMontoAbono
-                                                                                            "></b-form-input>
+                                                                                        "></b-form-input>
                                                                             </b-form-group>
                                                                             <hr />
                                                                         </b-col>
@@ -682,7 +682,7 @@
                                                                                     type="number" step="0.10" min="0"
                                                                                     v-model="form.montoBolivaresPagomovil
                                                                                         " @change="updateMontoAbono
-                                                                                            "></b-form-input>
+                                                                                        "></b-form-input>
                                                                             </b-form-group>
                                                                             <b-form-input v-model="form.montoBolivaresPagomovilDetalle
                                                                                 "
@@ -702,7 +702,7 @@
                                                                                     type="number" step="0.10" min="0"
                                                                                     v-model="form.montoBolivaresTransferencia
                                                                                         " @change="updateMontoAbono
-                                                                                            "></b-form-input>
+                                                                                        "></b-form-input>
                                                                             </b-form-group>
                                                                             <b-form-input v-model="form.montoBolivaresTransferenciaDetalle
                                                                                 "
@@ -721,7 +721,7 @@
                                                                                     type="number" step="0.10" min="0"
                                                                                     v-model="form.montoBolivaresPunto
                                                                                         " @change="updateMontoAbono
-                                                                                            "></b-form-input>
+                                                                                        "></b-form-input>
                                                                             </b-form-group>
                                                                         </b-col>
                                                                     </b-row>
@@ -856,7 +856,7 @@
                                                 <b-button :disabled="disableButtons" @click="prev">Anterior
                                                 </b-button>
                                                 <b-button :disabled="disableButtons" @click="next">{{ nextText
-                                                    }}</b-button>
+                                                }}</b-button>
                                             </b-button-group>
                                         </div>
                                     </div>
@@ -2406,6 +2406,8 @@ export default {
             )
             data.set("tasa_dolar", this.dolar)
             data.set("tasa_peso", this.peso)
+
+            consoi.log('data para crear nueva orden', data)
 
             // ENVIAR DATOS AL SERVIDOR PARA CREAR UNA NUEVA ORDEN
             await this.$axios

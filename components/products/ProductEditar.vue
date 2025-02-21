@@ -15,9 +15,9 @@
             </p> -->
                         <p>
                             <b-overlay :show="overlay" spinner-small>
-                                <pre class="force">
+                                <!-- <pre class="force">
                                     {{ data }}
-                                </pre>
+                                </pre> -->
                                 <b-form @submit="onSubmit" @reset="onReset">
                                     <b-form-group id="input-group-1" label="Producto:" label-for="input-product">
                                         <b-form-input id="input-product" v-model="form.product" type="text"

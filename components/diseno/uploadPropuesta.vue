@@ -16,17 +16,17 @@
                 <hr />
             </b-form-group>
 
-            <b-card-text v-if="showCard" class="mt-4 mb-4">
-                <b-form-group id="input-group-6" label="Tipo de diseño:" label-for="select-diseno">
+            <b-card-text v-if="showCard && checkImageUrl(tmpImage)" class="mt-4 mb-4">
+                <b-form-group id="input-group-2" label="Tipo de diseño:" label-for="select-diseno">
                     <b-form-select id="select-diseno" v-model="tipoDiseno" :options="disenoOptions" required>
                     </b-form-select>
                 </b-form-group>
 
                 <!-- Styled -->
                 <div class="mt-4 pt-3">
-                    <b-form-group id="input-group-6" label="Imagen" label-for="input-imagen">
-                        <b-form-file id="input-imagen" :disabled="disableForm" v-model="newImage"
-                            :state="Boolean(newImage)" placeholder="Escoja o arrastre un archivo aquí..."
+                    <b-form-group id="input-group-3" label="Imagen" :label-for="inputId">
+                        <b-form-file :id="inputId" :disabled="disableForm" v-model="newImage" :state="Boolean(newImage)"
+                            placeholder="Escoja o arrastre un archivo aquí..."
                             drop-placeholder="Arrasre la propuesta aquí..."></b-form-file>
                     </b-form-group>
                 </div>
@@ -82,9 +82,19 @@ export default {
             }
             if (val === "Esperando Respuesta") this.variantAlert = "info"
         },
+
+        item(val) {
+            if (val.id_product === null) {
+                this.tmpImage = `${this.$config.CDN}/images/no-image.png`
+            }
+        },
     },
 
     computed: {
+        inputId() {
+            return `input-imagen-${this.id}`
+        },
+
         myTitle() {
             return "PROPUESTA " + this.revision
         },
@@ -111,15 +121,19 @@ export default {
         },
     },
 
-    watch: {
-        item(val) {
-            if (val.id_product === null) {
-                this.tmpImage = `${this.$config.CDN}/images/no-image.png`
+    methods: {
+        checkImageUrl(url) {
+            const splitUrl = url.split('?')
+            if (splitUrl[0] != 'https://cdn.nineteengreen.com/images/no-image.png') {
+                return false
+            } else {
+                return true
             }
         },
-    },
 
-    methods: {
+        hideMe() {
+            this.$bvModal.hide(this.modal)
+        },
         /* async getEstatus() {
             await this.$axios
                 .get(

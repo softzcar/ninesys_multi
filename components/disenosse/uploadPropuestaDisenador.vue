@@ -12,7 +12,7 @@
                 <b-container class="mb-4">
                     <b-row>
                         <b-col>
-                            <!-- <pre class="force">{{ misRevisiones }}</pre> -->
+                            <!-- <pre class="force">{{ item }} <hr>{{ misRevisiones }}</pre> -->
                             <b-button :disabled="disableButton" @click="addReview()" variant="success">
                                 <b-icon icon="plus"></b-icon> Nuevo Diseño
                             </b-button>
@@ -22,7 +22,7 @@
                 <b-row>
                     <b-col>
                         <b-card-group v-for="(rev, index) in misRevisiones" v-bind:key="index" deck>
-                            <diseno-uploadPropuesta :id="item.id" :revision="rev.revision" :item="rev"
+                            <diseno-uploadPropuesta :key="index" :id="item.id" :revision="rev.revision" :item="rev"
                                 @reload="reloadData" @closemodal="hideMe" :nextReview="nextReview"
                                 :button="enableButton" :productos="productos" :idorden="item.id_orden" />
                         </b-card-group>
@@ -46,10 +46,8 @@ export default {
             overlay: false,
             nextReview: null,
             disableButton: false,
-            // TABS
             tabs: [],
             tabCounter: 0,
-            misRevisiones: [],
             banReload: false,
         }
     },
@@ -83,21 +81,17 @@ export default {
     },
 
     computed: {
+        misRevisiones() {
+            if (this.revisiones.length > 0) {
+                return this.revisiones.filter(el => parseInt(el.id_orden) === this.item.id_orden)
+            } else {
+                return []
+            }
+        },
+
         buttonTitle() {
             return "Revisión " + this.nextReview
         },
-
-        /* nextReview() {
-        let last = this.misRevisiones
-          .map((el) => {
-            let rev = parseInt(el.revision)
-            return rev
-          })
-          .reduce(function (a, b) {
-            return Math.max(a, b)
-          }, 0)
-        return last + 1
-      }, */
 
         modal: function () {
             const rand = Math.random().toString(36).substring(2, 7)
@@ -117,8 +111,8 @@ export default {
 
         reloadData() {
             this.overlay = true
-            // this.misRevisiones = []
-            this.getRevisiones().then(() => (this.overlay = false))
+            // this.getRevisiones().then(() => (this.overlay = false))
+            // this.$emit("reload", true)
             this.$emit("reload", true)
             this.overlay = false
         },
@@ -140,20 +134,13 @@ export default {
                     this.$axios
                         .post(`${this.$config.API}/revision/nuevo`, data)
                         .then((res) => {
+                            this.disableButton = true
                             this.lastId = res.data.last_id
                             this.id_orden = res.data
-                            // this.misRevisiones = res.data.new_data
-                            this.getRevisiones().then(() => {
-                                this.$emit("reload", true)
-                            })
-                            /* this.getRevisiones().then(() => {
-                            }) */
-                            // this.initComponent()
-                            /* this.getRevisiones().then(() =>
-                                this.$emit("reload", true)
-                            ) */
+                            this.$emit("reload", true)
                         })
                         .catch((err) => {
+                            this.disableButton = false
                             this.$fire({
                                 title: "Error",
                                 html: `<p>La revisión no se creó.</p><p>${err}</p>`,
@@ -164,8 +151,6 @@ export default {
                         })
                         .finally(() => {
                             this.overlay = false
-                            this.disableButton = false
-                            this.misRevisiones = this.revisiones
                         })
                 })
                 .catch(() => {
@@ -202,9 +187,9 @@ export default {
             return b.join("")
         },
 
-        initComponent() {
+        /* initComponent() {
             if (this.misRevisiones.length > 0) {
-                console.log(`'revision SI tiena datos'`, this.misRevisiones)
+                console.log(`'revision Si tiena datos'`, this.misRevisiones)
                 for (
                     let index = 0;
                     index < this.misRevisiones.length;
@@ -219,9 +204,9 @@ export default {
                     this.misRevisiones
                 )
             }
-        },
+        }, */
 
-        async getRevisiones() {
+        /* async getRevisiones() {
             await this.$axios
                 // .get(`${this.$config.API}/revision/diseno/${this.item.id}`)
                 .get(
@@ -231,7 +216,7 @@ export default {
                     console.log(`revision/diseno/${this.item.id}`, res.data)
                     this.misRevisiones = res.data
                 })
-        },
+        }, */
     },
 
     mounted() {
@@ -256,12 +241,7 @@ export default {
             this.variantAlert = "info"
         }
 
-        // this.misRevisiones = this.item.revision
-        this.misRevisiones = this.revisiones.filter(
-            // (el) => el.id_orden == this.item.id
-            (el) => el.id_orden == this.item.id /* && el.id_revision == this.item.revision */
-        )
-        this.initComponent()
+        // this.initComponent()
         this.overlay = false
     },
 

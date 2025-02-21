@@ -2,7 +2,7 @@
     <div>
         <b-button @click="$bvModal.show(modal)" variant="success">{{
             btnText
-        }}</b-button>
+            }}</b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <b-overlay :show="overlay" spinner-small>

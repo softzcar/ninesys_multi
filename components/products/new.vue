@@ -4,6 +4,9 @@
 
         <b-modal id="bv-modal-example" hide-footer>
             <template #modal-title> Crear Nuevo Producto </template>
+            <!-- <pre class="force">
+    form::: {{ form }}
+</pre> -->
             <b-overlay :show="overlay" spinner-small>
                 <b-form @submit="onSubmit" @reset="onReset" v-if="show">
                     <b-form-group id="input-group-1" label="Producto:" label-for="input-product">

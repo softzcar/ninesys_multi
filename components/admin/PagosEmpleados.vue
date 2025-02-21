@@ -349,8 +349,9 @@ export default {
                 .then((res) => {
                     this.pagos = res.data
                     this.pagosDiseno = res.data.data.diseno
-                    this.pagosTrabajosAdicionales =
-                        res.data.data.trabajos_adicionales
+                    // TODO Reprogramar pagos adicionales pendiente de hacer
+                    /* this.pagosTrabajosAdicionales =
+                        res.data.data.trabajos_adicionales */
                     // this.overlay = false
                 })
         },
@@ -427,7 +428,7 @@ export default {
                 await Promise.all([
                     this.getPagosVendedores(),
                     this.getPagosEmpleados(),
-                    // this.getPagosDisenadores(),
+                    this.getPagosDisenadores(),
                     this.getAttributes()
                 ]);
 

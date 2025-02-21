@@ -57,13 +57,13 @@
 
                                                 <b-row>
                                                     <b-col v-for="(
-                                                    item, index
+item, index
                                                 ) in itemsProducts" :key="index" cols="6">
                                                         <ul>
                                                             <li>
                                                                 <strong>{{
                                                                     item.name
-                                                                }}</strong>
+                                                                    }}</strong>
                                                             </li>
                                                             <li>
                                                                 <strong>Corte:</strong>
@@ -101,11 +101,11 @@
                                     </div>
                                 </b-tabs>
                             </b-card>
-                            <pre class="force">
+                            <!-- <pre class="force">
             {{ tabsDeps[0] }}
             <hr>
             {{ itemsProducts }}
-        </pre>
+        </pre> -->
 
                             <hr />
                             <!-- <b-card no-body>
