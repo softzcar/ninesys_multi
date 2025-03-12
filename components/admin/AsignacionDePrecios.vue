@@ -7,19 +7,36 @@
         <b-modal :id="modal" :title="title" hide-footer size="md">
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
-                <b-button variant="light" @click="addItem" aria-label="Agregar Precio">
+                <b-button
+                    variant="light"
+                    @click="addItem"
+                    aria-label="Agregar Precio"
+                >
                     <b-icon icon="plus-lg"></b-icon>
                 </b-button>
-                <b-table responsive :primary-key="generateRandomId()" :fields="campos" :items="form" small>
+                <b-table
+                    responsive
+                    :primary-key="generateRandomId()"
+                    :fields="campos"
+                    :items="form"
+                    small
+                >
                     <template #cell(input)="row">
-                        <admin-AsignacionDePreciosForm @reload="removeItemAndSave($event)" :item="row.item"
-                            :index="row.index" />
+                        <admin-AsignacionDePreciosForm
+                            @reload="removeItemAndSave($event)"
+                            :item="row.item"
+                            :index="row.index"
+                        />
                         <!-- <diseno-reasignacionSelect :idorden="row.item.idorden" :options="options" :item="row.item"
                             @reload="updateEmpId($event, row.index)" @closemodal="closeModal" /> -->
                     </template>
 
                     <template #cell(id)="row">
-                        <b-button variant="danger" @click="removeItem(row.index)" aria-label="Agregar insumo">
+                        <b-button
+                            variant="danger"
+                            @click="removeItem(row.index)"
+                            aria-label="Agregar insumo"
+                        >
                             <b-icon icon="trash"></b-icon>
                         </b-button>
                     </template>
@@ -56,7 +73,7 @@ export default {
                 { key: "input", label: "" },
                 { key: "id", label: "" },
             ],
-        }
+        };
     },
 
     /* watch: {
@@ -67,8 +84,8 @@ export default {
 
     computed: {
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7)
-            return `modal-${rand}`
+            const rand = Math.random().toString(36).substring(2, 7);
+            return `modal-${rand}`;
         },
     },
 
@@ -85,13 +102,15 @@ export default {
         isValidArrayOfObjects(variable) {
             return (
                 Array.isArray(variable) && // Es un array
-                variable.length > 0 &&    // No está vacío
-                variable.every(item => typeof item === 'object' && item !== null) // Todos son objetos
+                variable.length > 0 && // No está vacío
+                variable.every(
+                    (item) => typeof item === "object" && item !== null
+                ) // Todos son objetos
             );
         },
 
         closeModal() {
-            this.$bvModal.hide(this.modal)
+            this.$bvModal.hide(this.modal);
         },
 
         /* updateEmpId(id_empleado, index) {
@@ -104,16 +123,23 @@ export default {
             console.log("registro anterior", this.form);
 
             // Verificar si el id_empleado ya existe en el formulario
-            const idExists = this.form.some((item) => item.select === id_empleado);
+            const idExists = this.form.some(
+                (item) => item.select === id_empleado
+            );
 
             if (idExists) {
-                console.error(`El ID ${id_empleado} ya existe en el formulario.`);
+                console.error(
+                    `El ID ${id_empleado} ya existe en el formulario.`
+                );
                 // Mostrar mensaje de error al usuario
-                this.$bvToast.toast(`El diseñador ya fué asignado a esta Orden.`, {
-                    title: 'Error',
-                    variant: 'danger',
-                    solid: true
-                });
+                this.$bvToast.toast(
+                    `El diseñador ya fué asignado a esta Orden.`,
+                    {
+                        title: "Error",
+                        variant: "danger",
+                        solid: true,
+                    }
+                );
 
                 // Eliminar el registro del formulario
                 this.form.splice(index, 1);
@@ -124,66 +150,69 @@ export default {
             }
         },
 
-
         generateRandomId() {
             // Generar un número aleatorio entre 100000 y 9999999
-            const myKey = Math.floor(Math.random() * (9999999 - 100000 + 1)) + 100000
-            return myKey.toString()
+            const myKey =
+                Math.floor(Math.random() * (9999999 - 100000 + 1)) + 100000;
+            return myKey.toString();
         },
 
         addItem() {
             // const dep = this.$store.state.login.dataUser.departamento
-            const random_id = this.generateRandomId()
+            const random_id = this.generateRandomId();
             const obj = {
                 id: random_id,
                 price: 0,
-                descripcion: ''
-            }
-            this.form.push(obj)
+                descripcion: "",
+            };
+            this.form.push(obj);
         },
 
         async deleteDisenador(index) {
-            this.overlay = true
-            const data = new URLSearchParams()
-            data.set("id_diseno", this.item.id_diseno)
-            data.set("id_orden", this.item.id_orden)
-            data.set("id_empleado", this.item.empleado)
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id_diseno", this.item.id_diseno);
+            data.set("id_orden", this.item.id_orden);
+            data.set("id_empleado", this.item.empleado);
 
             await this.$axios
                 .post(`${this.$config.API}/disenador-asignado`, data)
                 .then((res) => {
-                    console.log("Respuesta de delete disenador", res)
-                    this.form.splice(index, 1)
+                    console.log("Respuesta de delete disenador", res);
+                    this.form.splice(index, 1);
                     this.$fire({
                         title: "Diseñador",
                         html: `<p>La asiganción fué eliminada</p>`,
                         type: "success",
-                    })
+                    });
                 })
                 .catch((err) => {
                     this.$fire({
                         title: "Error",
                         html: `<p>No se eliminó el registro</p><p>${err}</p>`,
                         type: "warning",
-                    })
+                    });
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
 
         removeItemAndSave(obj) {
-            console.log('form -> prices', this.form)
-            console.log('request prices new product', obj)
-            const producto = this.form.find(item => item.id === obj.id)
+            console.log("form -> prices", this.form);
+            console.log("request prices new product", obj);
+            const producto = this.form.find((item) => item.id === obj.id);
             if (producto) {
                 producto.price = obj.price;
                 producto.descripcion = obj.descripcion;
                 console.log("Formulario actualizado:", this.form);
                 console.log("Producto actualizado:", producto);
-                this.$emit("reload", this.form)
+                this.$emit("reload", this.form);
             } else {
-                console.log("Producto con el ID especificado no encontrado.", producto);
+                console.log(
+                    "Producto con el ID especificado no encontrado.",
+                    producto
+                );
             }
 
             /* this.form[obj.id].price = obj.price
@@ -221,8 +250,8 @@ export default {
         }, */
 
         removeItem(index) {
-            this.form.splice(index, 1)
-            // 
+            this.form.splice(index, 1);
+            //
             /* if (this.form[index].id != null) {
                 this.$confirm(
                     `Va a eliminar la asignación de un diseñador, esta acción cancellará todo registro de asignación de pagos para esta tarea.`,
@@ -237,92 +266,93 @@ export default {
         },
 
         clearForms() {
-            this.form = []
+            this.form = [];
             this.formImp = {
                 colorCyan: "",
                 colorMagenta: "",
                 colorYellow: "",
                 colorBlack: "",
-            }
+            };
 
             this.formEst = {
                 input: 0,
-            }
+            };
 
             this.formCor = {
                 input: 0,
-            }
+            };
         },
 
         onReserForm(event) {
-            event.preventDefault()
-            this.clearForms()
+            event.preventDefault();
+            this.clearForms();
         },
 
         validateForm() {
-            let ok = true
+            let ok = true;
             if (this.showSelect) {
-                let msg = ""
+                let msg = "";
 
                 if (this.departamento === "Impresión") {
                     if (
                         parseFloat(this.formImp.colorCyan) <= 0 ||
                         this.formImp.colorCyan.trim() === ""
                     ) {
-                        ok = false
-                        msg = msg + "<p>Ingrese la cantidad de tinta Cyan</p>"
+                        ok = false;
+                        msg = msg + "<p>Ingrese la cantidad de tinta Cyan</p>";
                     }
 
                     if (
                         parseFloat(this.formImp.colorMagenta) <= 0 ||
                         this.formImp.colorMagenta.trim() === ""
                     ) {
-                        ok = false
+                        ok = false;
                         msg =
-                            msg + "<p>Ingrese la cantidad de tinta Magenta</p>"
+                            msg + "<p>Ingrese la cantidad de tinta Magenta</p>";
                     }
 
                     if (
                         parseFloat(this.formImp.colorYellow) <= 0 ||
                         this.formImp.colorYellow.trim() === ""
                     ) {
-                        ok = false
-                        msg = msg + "<p>Ingrese la cantidad de tinta Yellow</p>"
+                        ok = false;
+                        msg =
+                            msg + "<p>Ingrese la cantidad de tinta Yellow</p>";
                     }
 
                     if (
                         this.formImp.colorBlack.trim() === "" ||
                         parseFloat(this.formImp.colorBlack) <= 0
                     ) {
-                        ok = false
-                        msg = msg + "<p>Ingrese la cantidad de tinta Black</p>"
+                        ok = false;
+                        msg = msg + "<p>Ingrese la cantidad de tinta Black</p>";
                     }
                 }
 
                 if (this.departamento === "Corte") {
                     // VALIDAR DESPERDICIO
                     if (this.formCor.input === 0) {
-                        ok = false
-                        msg = msg + "<p>Ingrese el peso del desperdicio</p>"
+                        ok = false;
+                        msg = msg + "<p>Ingrese el peso del desperdicio</p>";
                     }
                 }
 
                 if (this.form.length === 0) {
-                    ok = false
-                    msg = msg + "<p>Debe asignar al menos un insumo</p>"
+                    ok = false;
+                    msg = msg + "<p>Debe asignar al menos un insumo</p>";
                 }
 
-                const formTmp = this.form
+                const formTmp = this.form;
 
                 const errors = formTmp.find(
                     (el) => el.input === 0 || el.select === null
-                )
+                );
 
                 if (errors) {
-                    ok = false
+                    ok = false;
                     msg =
                         msg +
-                        "<p>Debe llenar todos los campos del formulario</p>"
+                        "<p>Debe llenar todos los campos del formulario</p>";
                 }
 
                 if (!ok) {
@@ -330,90 +360,90 @@ export default {
                         type: "info",
                         title: "Datos requeridos",
                         html: msg,
-                    })
+                    });
 
                     // ok = false;
                 } else {
                     if (this.departamento === "Impresión") {
-                        this.postImp()
+                        this.postImp();
                     }
 
                     if (this.departamento === "Corte") {
                         // Enviar desperdicio
-                        this.rendimiento(this.formCor.input, this.idorden)
+                        this.rendimiento(this.formCor.input, this.idorden);
                     }
-                    this.terminarTodo()
+                    this.terminarTodo();
                 }
             } else {
                 // Enviar solo el formulario aqui
-                this.terminarTodo()
+                this.terminarTodo();
             }
 
-            return ok
+            return ok;
         },
 
         async postImp() {
             // this.overlay = true
-            const data = new URLSearchParams()
-            data.set("id_orden", this.idorden)
+            const data = new URLSearchParams();
+            data.set("id_orden", this.idorden);
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            )
-            data.set("c", this.formImp.colorCyan)
-            data.set("m", this.formImp.colorMagenta)
-            data.set("y", this.formImp.colorYellow)
-            data.set("k", this.formImp.colorBlack)
+            );
+            data.set("c", this.formImp.colorCyan);
+            data.set("m", this.formImp.colorMagenta);
+            data.set("y", this.formImp.colorYellow);
+            data.set("k", this.formImp.colorBlack);
 
             await this.$axios
                 .post(`${this.$config.API}/empleados/tintas`, data)
                 .then((res) => {
                     // this.overlay = false
                     // this.clearForms();
-                    this.$emit("reload", this.form)
+                    this.$emit("reload", this.form);
                     // this.urlLink = res.data.linkdrive
-                })
+                });
 
             // this.terminarTodo()
         },
 
         async postForm() {
-            const data = new URLSearchParams()
-            data.set("id_orden", idOrden)
+            const data = new URLSearchParams();
+            data.set("id_orden", idOrden);
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            )
-            data.set("terminar", 1)
+            );
+            data.set("terminar", 1);
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            )
+            );
             data.set(
                 "departamento",
                 this.$store.state.login.dataUser.departamento
-            )
+            );
 
             await this.$axios
                 .post(`${this.$config.API}/insumos/rendimiento`, data)
                 .then((res) => {
-                    console.log("Rendimienot enviado")
+                    console.log("Rendimienot enviado");
                     // this.resetForm()
                     // this.$bvModal.hide(this.modal)
-                })
+                });
         },
 
         terminarTodo() {
             this.form.forEach((el) => {
-                console.log("Enviamos elemento del formulario", el)
+                console.log("Enviamos elemento del formulario", el);
 
                 this.postInventarioMovimientos(
                     // this.formImp.inputImp1,
                     el.input,
                     el.select,
                     this.item.id_woo
-                )
-            })
+                );
+            });
 
             if (this.items.length) {
                 this.items.forEach((item) => {
@@ -426,21 +456,21 @@ export default {
                         /* this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
                             // console.log('Modal is about to be shown', bvEvent, modal)
                             }); */
-                    })
-                })
+                    });
+                });
             }
             // this.clearForms()
-            this.$emit("reload")
-            this.$bvModal.hide(this.modal)
+            this.$emit("reload");
+            this.$bvModal.hide(this.modal);
         },
     },
 
     mounted() {
-        this.form = this.precios
+        this.form = this.precios;
     },
 
     props: ["precios", "reload"],
-}
+};
 </script>
 
 <style scoped>

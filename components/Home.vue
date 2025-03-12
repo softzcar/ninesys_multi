@@ -55,17 +55,17 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
+import { mapState } from "vuex";
 
 export default {
     data() {
         return {
             response: [],
             m: null,
-        }
+        };
     },
     computed: {
         ...mapState("login", ["access", "dataUser"]),
     },
-}
+};
 </script>

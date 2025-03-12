@@ -50,7 +50,7 @@
                                                         departamento.orden_proceso }}</b-badge>
                                                 </h5>
                                                 <span class="mt-4" style="width:80%;">{{ departamento.departamento
-                                                    }}</span>
+                                                }}</span>
 
                                                 <span class="mt-3">
                                                     <admin-departamentosEdit :key="departamento._id"
@@ -72,7 +72,7 @@
                                                 :key="index" class="pb-3 drag-handle d-flex align-items-left">
 
                                                 <span class="mt-4" style="width:80%;">{{ departamento.departamento
-                                                    }}</span>
+                                                }}</span>
 
                                                 <span class="mt-3">
                                                     <admin-departamentosEdit :key="departamento._id"

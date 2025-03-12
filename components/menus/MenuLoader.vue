@@ -11,8 +11,6 @@
 
         </div> -->
 
-
-
         <b-container style="padding: 0px" class="mb-4" fluid>
             <b-row>
                 <b-col>
@@ -72,21 +70,46 @@
                 <b-col class="mt-3 mb-3 mr-4 pt-2">
                     <b-row>
                         <b-col>
-                            <div class="text-right nombre-empresa"><span class="tit-departament">{{ currentDepartament
-                                    }}</span> {{ $store.state.login.dataEmpresa.nombre }} </div>
+                            <div class="text-right nombre-empresa">
+                                <span class="tit-departament">{{
+                                    currentDepartament
+                                }}</span>
+                                {{ $store.state.login.dataEmpresa.nombre }}
+                            </div>
                             <div class="text-right">
-                                <checkConnection style="float: right; margin-left: 12px" />
+                                <checkConnection
+                                    style="float: right; margin-left: 12px"
+                                />
                                 <div class="user-info">
-                                    <b-icon icon="person" /> {{ dataUser.nombre }} |dataUser
+                                    <b-icon icon="person" />
+                                    {{ dataUser.nombre }} |
+                                    {{ dataUser.departamento }}
                                     <!-- <div class="mt-3"> -->
                                     <div class="mt-3">
                                         <b-button-group size="sm">
                                             <b-button
-                                                @click="showComponent(departamento.modulo, departamento.text, departamento.value)"
-                                                v-for="(departamento, index) in getDepartamentosEmpleadoSelect"
-                                                :key="index" variant="info">{{ departamento.text }}</b-button>
+                                                @click="
+                                                    showComponent(
+                                                        departamento.modulo,
+                                                        departamento.text,
+                                                        departamento.value
+                                                    )
+                                                "
+                                                v-for="(
+                                                    departamento, index
+                                                ) in getDepartamentosEmpleadoSelect"
+                                                :key="index"
+                                                variant="info"
+                                                >{{
+                                                    departamento.text
+                                                }}</b-button
+                                            >
 
-                                            <b-button variant="info" @click="goOut()">Salir</b-button>
+                                            <b-button
+                                                variant="info"
+                                                @click="goOut()"
+                                                >Salir</b-button
+                                            >
                                         </b-button-group>
                                     </div>
                                 </div>
@@ -99,7 +122,9 @@
                 <b-col>
                     <div v-if="getDepartamentosEmpleadoSelect.length === 0">
                         <b-alert variant="warning" show>
-                            <h4 class="text-center alert-heading">No se encontraron modulos asignados</h4>
+                            <h4 class="text-center alert-heading">
+                                No se encontraron modulos asignados
+                            </h4>
                         </b-alert>
                     </div>
                 </b-col>
@@ -114,31 +139,33 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from "vuex"
+import { mapState, mapGetters } from "vuex";
 
 export default {
     computed: {
         asyncComponent() {
-            if (!this.currentComponent) return null
-            return () => import(`@/components/${this.currentComponent}.vue`)
+            if (!this.currentComponent) return null;
+            return () => import(`@/components/${this.currentComponent}.vue`);
         },
-        ...mapState("login", ["access", "dataUser", "empleado", "currentDepartament", "currentComponent"]),
+        ...mapState("login", [
+            "access",
+            "dataUser",
+            "empleado",
+            "currentDepartament",
+            "currentComponent",
+        ]),
         ...mapGetters("login", ["getDepartamentosEmpleadoSelect"]),
     },
 
     methods: {
         goOut() {
-            this.$confirm(
-                `¿Desea Salir del sistema?`,
-                "Salir",
-                "question"
-            )
+            this.$confirm(`¿Desea Salir del sistema?`, "Salir", "question")
                 .then(() => {
-                    this.$router.push(`/logout`)
+                    this.$router.push(`/logout`);
                 })
                 .catch(() => {
-                    return false
-                })
+                    return false;
+                });
         },
 
         showComponent(component, departamento, id_departamento) {
@@ -149,35 +176,49 @@ export default {
                     type: "info",
                 })
             } else */
-            if (this.currentComponent != null && this.currentDepartament != departamento) {
+            if (
+                this.currentComponent != null &&
+                this.currentDepartament != departamento
+            ) {
                 this.$confirm(
                     `¿Desea cargar el módulo ${departamento}?`,
                     "Cargar Módulo",
                     "question"
-                )
-                    .then(() => {
-                        console.log('mostrart menu', component)
-                        this.$store.commit("login/scurrentDepartamentId", id_departamento)
-                        this.$store.commit("login/scurrentDepartament", departamento)
-                        this.$store.commit("login/setCurrentComponent", component)
-                        this.$router.push("/");
-                    })
+                ).then(() => {
+                    console.log("mostrart menu", component);
+                    this.$store.commit(
+                        "login/scurrentDepartamentId",
+                        id_departamento
+                    );
+                    this.$store.commit(
+                        "login/scurrentDepartament",
+                        departamento
+                    );
+                    this.$store.commit("login/setCurrentComponent", component);
+                    this.$router.push("/");
+                });
             } else {
-                console.log('mostrart menu', component)
-                this.$store.commit("login/scurrentDepartamentId", id_departamento)
-                this.$store.commit("login/scurrentDepartament", departamento)
-                this.$store.commit("login/setCurrentComponent", component)
+                console.log("mostrart menu", component);
+                this.$store.commit(
+                    "login/scurrentDepartamentId",
+                    id_departamento
+                );
+                this.$store.commit("login/scurrentDepartament", departamento);
+                this.$store.commit("login/setCurrentComponent", component);
             }
-
         },
     },
 
     mounted() {
         if (this.getDepartamentosEmpleadoSelect.length === 1) {
-            this.showComponent(this.getDepartamentosEmpleadoSelect[0].modulo, this.getDepartamentosEmpleadoSelect[0].text, this.getDepartamentosEmpleadoSelect[0].value)
+            this.showComponent(
+                this.getDepartamentosEmpleadoSelect[0].modulo,
+                this.getDepartamentosEmpleadoSelect[0].text,
+                this.getDepartamentosEmpleadoSelect[0].value
+            );
         }
     },
-}
+};
 </script>
 
 <style scoped>

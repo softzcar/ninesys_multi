@@ -18,7 +18,7 @@ h3 {
     font-size: 1.4rem !important;
 }
 
-.swal2-input {
+.swal2-container input {
     pointer-events: unset !important;
 }
 

@@ -1,10 +1,13 @@
 <template>
     <div>
-        <b-alert v-if="status === 'terminado'" show variant="success">TERMINADA</b-alert>
+        <b-alert v-if="status === 'terminado'" show variant="success"
+            >TERMINADA</b-alert
+        >
         <b-overlay :show="overlay" spinner-small>
             <div>
                 <div class="floatme">
-                    <span class="capital"><strong> {{ this.item.paso }}</strong>
+                    <span class="capital"
+                        ><strong> {{ this.item.paso }}</strong>
                     </span>
                     <b-progress :max="max" variant="success">
                         <b-progress-bar class="my-bar" :value="miPorcentaje">
@@ -20,14 +23,30 @@
                 </div>
 
                 <div class="floatme margin-buttons-bar">
-                    <produccionsse-asignar :asign="asignacion" :empleados="empleados" :por_asignar="por_asignar"
-                        :id="item.orden" :orden_productos="orden_productos" reloadtest="Reload test!!!"
-                        :lote_detalles="lote_detalles" :lotes_fisicos="lotes_fisicos" @reload="reloadOrders" />
+                    <produccionsse-asignar
+                        :asign="asignacion"
+                        :empleados="empleados"
+                        :por_asignar="por_asignar"
+                        :id="item.orden"
+                        :orden_productos="orden_productos"
+                        reloadtest="Reload test!!!"
+                        :lote_detalles="lote_detalles"
+                        :lotes_fisicos="lotes_fisicos"
+                        @reload="reloadOrders"
+                    />
                 </div>
                 <div class="floatme margin-buttons-bar">
-                    <produccionsse-reposicion :departamento="this.$store.state.login.dataUser.departamento
-                        " @reload="reloadOrders" :empleados="empleados" :reposicion_ordenes_productos="reposicion_ordenes_productos
-                            " :item="item" />
+                    <produccionsse-reposicion
+                        :departamento="
+                            this.$store.state.login.dataUser.departamento
+                        "
+                        @reload="reloadOrders"
+                        :empleados="empleados"
+                        :reposicion_ordenes_productos="
+                            reposicion_ordenes_productos
+                        "
+                        :item="item"
+                    />
                 </div>
             </div>
         </b-overlay>
@@ -35,7 +54,7 @@
 </template>
 
 <script>
-import axios from "axios"
+import axios from "axios";
 
 export default {
     data() {
@@ -49,74 +68,74 @@ export default {
             value: 0,
             max: 100,
             selected: this.$store.state.produccion.dataPorcentaje.paso,
-        }
+        };
     },
 
     computed: {
         // paso() {},
 
         miPorcentaje() {
-            let porcentaje
+            let porcentaje;
 
             if (this.item.paso === "producción") {
-                porcentaje = 0
+                porcentaje = 0;
             } else {
-                let paso
+                let paso;
 
                 switch (this.item.paso) {
                     case "Impresión":
-                        paso = 1
-                        break
+                        paso = 1;
+                        break;
 
                     case "Estampado":
-                        paso = 2
-                        break
+                        paso = 2;
+                        break;
 
                     case "Corte":
-                        paso = 3
-                        break
+                        paso = 3;
+                        break;
 
                     case "Costura":
-                        paso = 4
-                        break
+                        paso = 4;
+                        break;
 
                     case "Limpieza":
-                        paso = 5
-                        break
+                        paso = 5;
+                        break;
 
                     case "Revisión":
-                        paso = 6
-                        break
+                        paso = 6;
+                        break;
 
                     default:
-                        paso = 1
-                        break
+                        paso = 1;
+                        break;
                 }
-                porcentaje = parseInt((paso * 100) / 6)
+                porcentaje = parseInt((paso * 100) / 6);
             }
 
-            return porcentaje
+            return porcentaje;
         },
     },
 
     methods: {
         reloadOrders() {
-            this.$emit("reload")
+            this.$emit("reload");
         },
 
         filterPaso(id_orden) {
-            return id_orden
+            return id_orden;
         },
 
         clickedSomething(val) {
-            console.log(`clickedSomething`, val)
+            console.log(`clickedSomething`, val);
         },
 
         setPaso(val) {
-            this.overlay = true
-            const data = new URLSearchParams()
-            data.set("paso", val)
-            data.set("id_orden", this.item.orden)
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("paso", val);
+            data.set("id_orden", this.item.orden);
 
             axios
                 .post(`${this.$config.API}/produccion/update/paso`, data)
@@ -128,72 +147,72 @@ export default {
                                 title: "Error en asignación",
                                 html: `El paso '${this.selected}' no está asignado a ningún empeado`,
                             }).then(() => {
-                                this.selected = "sin_asignar"
-                            })
+                                this.selected = "sin_asignar";
+                            });
                         } else {
-                            this.value = 0
+                            this.value = 0;
                         }
                     } else {
-                        this.getPorcentaje()
+                        this.getPorcentaje();
                     }
-                    this.overlay = false
+                    this.overlay = false;
                 })
                 .catch((err) => {
                     this.$fire({
                         type: "error",
                         title: "Error",
                         html: `No se pudo actualizar os datos: ${err}`,
-                    })
-                    this.overlay = false
-                })
+                    });
+                    this.overlay = false;
+                });
         },
 
         pasoActual() {
             switch (this.item.paso) {
                 case "comercializacion":
-                    this.paso = "Comercialización"
-                    break
+                    this.paso = "Comercialización";
+                    break;
 
                 case "jefe_diseno":
-                    this.paso = "Jefe de Diseño"
-                    break
+                    this.paso = "Jefe de Diseño";
+                    break;
 
                 case "diseno":
-                    this.paso = "Diseño"
-                    break
+                    this.paso = "Diseño";
+                    break;
 
                 case "Corte":
-                    this.paso = "Corte"
-                    break
+                    this.paso = "Corte";
+                    break;
 
                 case "Impresión":
-                    this.departamento = "Impresión"
-                    break
+                    this.departamento = "Impresión";
+                    break;
 
                 case "Estampado":
-                    this.departamento = "Estampado"
-                    break
+                    this.departamento = "Estampado";
+                    break;
 
                 case "Costura":
-                    this.departamento = "Costura"
-                    break
+                    this.departamento = "Costura";
+                    break;
 
                 case "Limpieza":
-                    this.departamento = "Limpieza"
-                    break
+                    this.departamento = "Limpieza";
+                    break;
 
                 case "Revisión":
-                    this.departamento = "Revisión"
-                    break
+                    this.departamento = "Revisión";
+                    break;
 
                 default:
-                    this.departamento = this.item.paso
-                    break
+                    this.departamento = this.item.paso;
+                    break;
             }
         },
 
         reloadData() {
-            this.$emit("reload")
+            this.$emit("reload");
         },
 
         async getPorcentaje() {
@@ -202,37 +221,37 @@ export default {
                 const response = await this.$axios
                     .get(`${this.$config.API}/`)
                     .then((res) => {
-                        console.log("prueba de progressbar", res.data)
-                    })
-                console.log("Response:", response.data)
+                        console.log("prueba de progressbar", res.data);
+                    });
+                console.log("Response:", response.data);
             } catch {
                 this.$fire({
                     title: "Error",
                     html: `<p>Error en pruaba para prgressBar</p><p>${err}</p>`,
                     type: "warning",
-                })
-                console.error("Error en prueba para prgressBar", err)
+                });
+                console.error("Error en prueba para prgressBar", err);
             }
         },
 
         async getPorcentaje_OLD() {
-            this.overlay = true
+            this.overlay = true;
             await this.$axios
                 .get(`${this.$config.API}/`)
                 .then((res) => {
-                    console.log("prueba de progressbar", res.data)
+                    console.log("prueba de progressbar", res.data);
                 })
                 .catch((err) => {
                     this.$fire({
                         title: "Error",
                         html: `<p>Error en pruaba para prgressBar</p><p>${err}</p>`,
                         type: "warning",
-                    })
-                    console.error("Error en prueba para prgressBar", err)
+                    });
+                    console.error("Error en prueba para prgressBar", err);
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
         /* async getPorcentaje() {
             this.overlay = true
@@ -276,13 +295,13 @@ export default {
     },
 
     mounted() {
-        this.overlay = false
+        this.overlay = false;
         this.$store
             .dispatch("produccion/getPorcentaje2", this.item.orden)
             .then(() => {
-                this.pasoActual()
-                this.overlay = false
-            })
+                this.pasoActual();
+                this.overlay = false;
+            });
         /*  this.getPorcentaje().then(() => {
        let x = this.$store.state.produccion.dataPorcentaje
      }) */
@@ -301,7 +320,7 @@ export default {
         "reposicion_ordenes_productos",
         "reload",
     ],
-}
+};
 </script>
 
 <style scoped>

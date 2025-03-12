@@ -12,11 +12,21 @@
                     <b-row>
                         <b-col>
                             <h5>Asignación de insumos Lote {{ id }}</h5>
-                            <b-table ref="table" responsive small striped :size="size" :items="orden_productos"
-                                :fields="fieldsProducts">
+                            <b-table
+                                ref="table"
+                                responsive
+                                small
+                                striped
+                                :size="size"
+                                :items="orden_productos"
+                                :fields="fieldsProducts"
+                            >
                                 <template #cell(_id)="data">
-                                    <produccion-guardar-cantidad :cantidadLote="data.item.cantidad_lote"
-                                        :id="data.item._id" @reload="setReload" />
+                                    <produccion-guardar-cantidad
+                                        :cantidadLote="data.item.cantidad_lote"
+                                        :id="data.item._id"
+                                        @reload="setReload"
+                                    />
                                     <!-- {{ data.item }} -->
                                 </template>
                             </b-table>
@@ -36,37 +46,71 @@
                                         <b-row>
                                             <b-col>
                                                 <h3>
-                                                    Asignación General Impresión ???
+                                                    Asignación General Impresión
+                                                    ???
                                                 </h3>
-                                                <pre class="force">
+                                                <!-- <pre class="force">
                                 {{ empleados }}
-                            </pre>
+                            </pre> -->
                                                 <b-form inline>
-                                                    <b-form-select id="select-emp1" class="mr-2" v-model="form.optImpresion
-                                                        " :options="filterOptiosnEmp(
-                                                            'Impresión'
-                                                        )
-                                                            " required></b-form-select>
-                                                    <b-button @click="
-                                                        asignarTodo(
-                                                            'Impresión'
-                                                        )
-                                                        " variant="success">
-                                                        <b-icon icon="check"></b-icon>
+                                                    <b-form-select
+                                                        id="select-emp1"
+                                                        class="mr-2"
+                                                        v-model="
+                                                            form.optImpresion
+                                                        "
+                                                        :options="
+                                                            filterOptiosnEmp(
+                                                                'Impresión'
+                                                            )
+                                                        "
+                                                        required
+                                                    ></b-form-select>
+                                                    <b-button
+                                                        @click="
+                                                            asignarTodo(
+                                                                'Impresión'
+                                                            )
+                                                        "
+                                                        variant="success"
+                                                    >
+                                                        <b-icon
+                                                            icon="check"
+                                                        ></b-icon>
                                                     </b-button>
+                                                    <b-form-checkbox
+                                                        v-model="
+                                                            switches.switchImpresion
+                                                        "
+                                                        @change="
+                                                            postSwitch(
+                                                                'Corte',
+                                                                switches.switchImpresion
+                                                            )
+                                                        "
+                                                        calss="mt-2"
+                                                        switch
+                                                        size="lg"
+                                                        >Habilitar selección de
+                                                        insumos</b-form-checkbox
+                                                    >
                                                 </b-form>
                                                 <hr />
                                             </b-col>
                                         </b-row>
                                         <b-row>
-                                            <b-col v-for="(
+                                            <b-col
+                                                v-for="(
                                                     item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                ) in itemsProducts"
+                                                :key="index"
+                                                cols="6"
+                                            >
                                                 <ul>
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -81,19 +125,30 @@
                                                         {{ item.talla }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" :lote="lote_detalles"
-                                                    ref="asignarEmpleado" :lotes_fisicos="lotes_fisicos"
-                                                    @reload="setReload" :empleados="empleados"
-                                                    departamento="Impresión" />
+                                                <produccionsse-asignar-empleado
+                                                    :item="item"
+                                                    :lote="lote_detalles"
+                                                    ref="asignarEmpleado"
+                                                    :lotes_fisicos="
+                                                        lotes_fisicos
+                                                    "
+                                                    @reload="setReload"
+                                                    :empleados="empleados"
+                                                    departamento="Impresión"
+                                                />
                                             </b-col>
                                         </b-row>
                                     </b-tab>
@@ -105,31 +160,54 @@
                                                     Asignación General Estampado
                                                 </h3>
                                                 <b-form inline>
-                                                    <b-form-select id="select-emp1" class="mr-2" v-model="form.optEstampado
-                                                        " :options="filterOptiosnEmp(
-                                                            'Estampado'
-                                                        )
-                                                            " required></b-form-select>
-                                                    <b-button @click="
-                                                        asignarTodo(
-                                                            'Estampado'
-                                                        )
-                                                        " variant="success">
-                                                        <b-icon icon="check"></b-icon>
+                                                    <b-form-select
+                                                        id="select-emp1"
+                                                        class="mr-2"
+                                                        v-model="
+                                                            form.optEstampado
+                                                        "
+                                                        :options="
+                                                            filterOptiosnEmp(
+                                                                'Estampado'
+                                                            )
+                                                        "
+                                                        required
+                                                    ></b-form-select>
+                                                    <b-button
+                                                        @click="
+                                                            asignarTodo(
+                                                                'Estampado'
+                                                            )
+                                                        "
+                                                        variant="success"
+                                                    >
+                                                        <b-icon
+                                                            icon="check"
+                                                        ></b-icon>
                                                     </b-button>
-                                                    <b-form-checkbox v-model="switches.switchEstampado
-                                                        " @change="
+                                                    <b-form-checkbox
+                                                        v-model="
+                                                            switches.switchEstampado
+                                                        "
+                                                        @change="
                                                             postSwitch(
                                                                 'Estampado',
                                                                 switches.switchEstampado
                                                             )
-                                                            " calss="mt-2" switch size="lg">Habilitar selección de
-                                                        insumos</b-form-checkbox>
+                                                        "
+                                                        calss="mt-2"
+                                                        switch
+                                                        size="lg"
+                                                        >Habilitar selección de
+                                                        insumos</b-form-checkbox
+                                                    >
                                                 </b-form>
-                                                <p v-if="
-                                                    form.optImpresion !=
-                                                    null
-                                                ">
+                                                <p
+                                                    v-if="
+                                                        form.optImpresion !=
+                                                        null
+                                                    "
+                                                >
                                                     Asignar
                                                     {{ form.optImpresion }} a
                                                     todas las tareas
@@ -138,14 +216,18 @@
                                             </b-col>
                                         </b-row>
                                         <b-row>
-                                            <b-col v-for="(
+                                            <b-col
+                                                v-for="(
                                                     item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                ) in itemsProducts"
+                                                :key="index"
+                                                cols="6"
+                                            >
                                                 <ul>
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -160,15 +242,24 @@
                                                         {{ item.talla }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
-                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos"
-                                                    @reload="setReload" :empleados="empleados"
-                                                    departamento="Estampado" />
+                                                <produccionsse-asignar-empleado
+                                                    :item="item"
+                                                    ref="asignarEmpleado"
+                                                    :lote="lote_detalles"
+                                                    :lotes_fisicos="
+                                                        lotes_fisicos
+                                                    "
+                                                    @reload="setReload"
+                                                    :empleados="empleados"
+                                                    departamento="Estampado"
+                                                />
                                             </b-col>
                                         </b-row>
                                     </b-tab>
@@ -180,29 +271,50 @@
                                                     Asignación General Corte
                                                 </h3>
                                                 <b-form inline>
-                                                    <b-form-select id="select-emp1" class="mr-2" v-model="form.optCorte"
-                                                        :options="filterOptiosnEmp(
-                                                            'Corte'
-                                                        )
-                                                            " required></b-form-select>
-                                                    <b-button @click="
-                                                        asignarTodo('Corte')
-                                                        " variant="success">
-                                                        <b-icon icon="check"></b-icon>
+                                                    <b-form-select
+                                                        id="select-emp1"
+                                                        class="mr-2"
+                                                        v-model="form.optCorte"
+                                                        :options="
+                                                            filterOptiosnEmp(
+                                                                'Corte'
+                                                            )
+                                                        "
+                                                        required
+                                                    ></b-form-select>
+                                                    <b-button
+                                                        @click="
+                                                            asignarTodo('Corte')
+                                                        "
+                                                        variant="success"
+                                                    >
+                                                        <b-icon
+                                                            icon="check"
+                                                        ></b-icon>
                                                     </b-button>
-                                                    <b-form-checkbox v-model="switches.switchCorte
-                                                        " @change="
+                                                    <b-form-checkbox
+                                                        v-model="
+                                                            switches.switchCorte
+                                                        "
+                                                        @change="
                                                             postSwitch(
                                                                 'Corte',
                                                                 switches.switchCorte
                                                             )
-                                                            " calss="mt-2" switch size="lg">Habilitar selección de
-                                                        insumos</b-form-checkbox>
+                                                        "
+                                                        calss="mt-2"
+                                                        switch
+                                                        size="lg"
+                                                        >Habilitar selección de
+                                                        insumos</b-form-checkbox
+                                                    >
                                                 </b-form>
-                                                <p v-if="
-                                                    form.optImpresion !=
-                                                    null
-                                                ">
+                                                <p
+                                                    v-if="
+                                                        form.optImpresion !=
+                                                        null
+                                                    "
+                                                >
                                                     ASignar
                                                     {{ form.optImpresion }} a
                                                     todas las tareas
@@ -211,14 +323,18 @@
                                             </b-col>
                                         </b-row>
                                         <b-row>
-                                            <b-col v-for="(
+                                            <b-col
+                                                v-for="(
                                                     item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                ) in itemsProducts"
+                                                :key="index"
+                                                cols="6"
+                                            >
                                                 <ul>
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -233,17 +349,26 @@
                                                         {{ item.talla }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                 </ul>
                                                 <!-- <pre>{{ item }}</pre> -->
                                                 <hr />
                                                 <pre>item {{ item }}</pre>
-                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
-                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
-                                                        " @reload="setReload" :empleados="empleados"
-                                                    departamento="Corte" />
+                                                <produccionsse-asignar-empleado
+                                                    :item="item"
+                                                    ref="asignarEmpleado"
+                                                    :lote="lote_detalles"
+                                                    :lotes_fisicos="
+                                                        lotes_fisicos
+                                                    "
+                                                    @reload="setReload"
+                                                    :empleados="empleados"
+                                                    departamento="Corte"
+                                                />
                                                 <!-- <produccion-guardar-cantidad
                           :cantidadLote="item.cantidad_lote"
                           :id="item._id"
@@ -261,31 +386,54 @@
                                                     Asignación General Costura
                                                 </h3>
                                                 <b-form inline>
-                                                    <b-form-select id="select-emp1" class="mr-2" v-model="form.optCostura
-                                                        " :options="filterOptiosnEmp(
-                                                            'Costura'
-                                                        )
-                                                            " required></b-form-select>
-                                                    <b-button @click="
-                                                        asignarTodo(
-                                                            'Costura'
-                                                        )
-                                                        " variant="success">
-                                                        <b-icon icon="check"></b-icon>
+                                                    <b-form-select
+                                                        id="select-emp1"
+                                                        class="mr-2"
+                                                        v-model="
+                                                            form.optCostura
+                                                        "
+                                                        :options="
+                                                            filterOptiosnEmp(
+                                                                'Costura'
+                                                            )
+                                                        "
+                                                        required
+                                                    ></b-form-select>
+                                                    <b-button
+                                                        @click="
+                                                            asignarTodo(
+                                                                'Costura'
+                                                            )
+                                                        "
+                                                        variant="success"
+                                                    >
+                                                        <b-icon
+                                                            icon="check"
+                                                        ></b-icon>
                                                     </b-button>
-                                                    <b-form-checkbox v-model="switches.switchCostura
-                                                        " @change="
+                                                    <b-form-checkbox
+                                                        v-model="
+                                                            switches.switchCostura
+                                                        "
+                                                        @change="
                                                             postSwitch(
                                                                 'Costura',
                                                                 switches.switchCostura
                                                             )
-                                                            " calss="mt-2" switch size="lg">Habilitar selección de
-                                                        insumos</b-form-checkbox>
+                                                        "
+                                                        calss="mt-2"
+                                                        switch
+                                                        size="lg"
+                                                        >Habilitar selección de
+                                                        insumos</b-form-checkbox
+                                                    >
                                                 </b-form>
-                                                <p v-if="
-                                                    form.optImpresion !=
-                                                    null
-                                                ">
+                                                <p
+                                                    v-if="
+                                                        form.optImpresion !=
+                                                        null
+                                                    "
+                                                >
                                                     ASignar
                                                     {{ form.optImpresion }} a
                                                     todas las tareas
@@ -294,14 +442,18 @@
                                             </b-col>
                                         </b-row>
                                         <b-row>
-                                            <b-col v-for="(
+                                            <b-col
+                                                v-for="(
                                                     item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                ) in itemsProducts"
+                                                :key="index"
+                                                cols="6"
+                                            >
                                                 <ul>
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -316,15 +468,24 @@
                                                         {{ item.talla }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
-                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
-                                                        " @reload="setReload" :empleados="empleados"
-                                                    departamento="Costura" />
+                                                <produccionsse-asignar-empleado
+                                                    :item="item"
+                                                    ref="asignarEmpleado"
+                                                    :lote="lote_detalles"
+                                                    :lotes_fisicos="
+                                                        lotes_fisicos
+                                                    "
+                                                    @reload="setReload"
+                                                    :empleados="empleados"
+                                                    departamento="Costura"
+                                                />
                                             </b-col>
                                         </b-row>
                                     </b-tab>
@@ -336,31 +497,54 @@
                                                     Asignación General Limpieza
                                                 </h3>
                                                 <b-form inline>
-                                                    <b-form-select id="select-emp1" class="mr-2" v-model="form.optLimpieza
-                                                        " :options="filterOptiosnEmp(
-                                                            'Limpieza'
-                                                        )
-                                                            " required></b-form-select>
-                                                    <b-button @click="
-                                                        asignarTodo(
-                                                            'Limpieza'
-                                                        )
-                                                        " variant="success">
-                                                        <b-icon icon="check"></b-icon>
+                                                    <b-form-select
+                                                        id="select-emp1"
+                                                        class="mr-2"
+                                                        v-model="
+                                                            form.optLimpieza
+                                                        "
+                                                        :options="
+                                                            filterOptiosnEmp(
+                                                                'Limpieza'
+                                                            )
+                                                        "
+                                                        required
+                                                    ></b-form-select>
+                                                    <b-button
+                                                        @click="
+                                                            asignarTodo(
+                                                                'Limpieza'
+                                                            )
+                                                        "
+                                                        variant="success"
+                                                    >
+                                                        <b-icon
+                                                            icon="check"
+                                                        ></b-icon>
                                                     </b-button>
-                                                    <b-form-checkbox v-model="switches.switchLimpieza
-                                                        " @change="
+                                                    <b-form-checkbox
+                                                        v-model="
+                                                            switches.switchLimpieza
+                                                        "
+                                                        @change="
                                                             postSwitch(
                                                                 'Limpieza',
                                                                 switches.switchLimpieza
                                                             )
-                                                            " calss="mt-2" switch size="lg">Habilitar selección de
-                                                        insumos</b-form-checkbox>
+                                                        "
+                                                        calss="mt-2"
+                                                        switch
+                                                        size="lg"
+                                                        >Habilitar selección de
+                                                        insumos</b-form-checkbox
+                                                    >
                                                 </b-form>
-                                                <p v-if="
-                                                    form.optImpresion !=
-                                                    null
-                                                ">
+                                                <p
+                                                    v-if="
+                                                        form.optImpresion !=
+                                                        null
+                                                    "
+                                                >
                                                     ASignar
                                                     {{ form.optImpresion }} a
                                                     todas las tareas
@@ -369,14 +553,18 @@
                                             </b-col>
                                         </b-row>
                                         <b-row>
-                                            <b-col v-for="(
+                                            <b-col
+                                                v-for="(
                                                     item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                ) in itemsProducts"
+                                                :key="index"
+                                                cols="6"
+                                            >
                                                 <ul>
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -391,15 +579,24 @@
                                                         {{ item.talla }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
-                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
-                                                        " :empleados="empleados" departamento="Limpieza"
-                                                    @reload="setReload" />
+                                                <produccionsse-asignar-empleado
+                                                    :item="item"
+                                                    ref="asignarEmpleado"
+                                                    :lote="lote_detalles"
+                                                    :lotes_fisicos="
+                                                        lotes_fisicos
+                                                    "
+                                                    :empleados="empleados"
+                                                    departamento="Limpieza"
+                                                    @reload="setReload"
+                                                />
                                             </b-col>
                                         </b-row>
                                     </b-tab>
@@ -411,31 +608,54 @@
                                                     Asignación General Revisión
                                                 </h3>
                                                 <b-form inline>
-                                                    <b-form-select id="select-emp1" class="mr-2" v-model="form.optRevision
-                                                        " :options="filterOptiosnEmp(
-                                                            'Revisión'
-                                                        )
-                                                            " required></b-form-select>
-                                                    <b-button @click="
-                                                        asignarTodo(
-                                                            'Revisión'
-                                                        )
-                                                        " variant="success">
-                                                        <b-icon icon="check"></b-icon>
+                                                    <b-form-select
+                                                        id="select-emp1"
+                                                        class="mr-2"
+                                                        v-model="
+                                                            form.optRevision
+                                                        "
+                                                        :options="
+                                                            filterOptiosnEmp(
+                                                                'Revisión'
+                                                            )
+                                                        "
+                                                        required
+                                                    ></b-form-select>
+                                                    <b-button
+                                                        @click="
+                                                            asignarTodo(
+                                                                'Revisión'
+                                                            )
+                                                        "
+                                                        variant="success"
+                                                    >
+                                                        <b-icon
+                                                            icon="check"
+                                                        ></b-icon>
                                                     </b-button>
-                                                    <b-form-checkbox v-model="switches.switchRevision
-                                                        " @change="
+                                                    <b-form-checkbox
+                                                        v-model="
+                                                            switches.switchRevision
+                                                        "
+                                                        @change="
                                                             postSwitch(
                                                                 'Revisión',
                                                                 switches.switchRevision
                                                             )
-                                                            " calss="mt-2" switch size="lg">Habilitar selección de
-                                                        insumos</b-form-checkbox>
+                                                        "
+                                                        calss="mt-2"
+                                                        switch
+                                                        size="lg"
+                                                        >Habilitar selección de
+                                                        insumos</b-form-checkbox
+                                                    >
                                                 </b-form>
-                                                <p v-if="
-                                                    form.optImpresion !=
-                                                    null
-                                                ">
+                                                <p
+                                                    v-if="
+                                                        form.optImpresion !=
+                                                        null
+                                                    "
+                                                >
                                                     ASignar
                                                     {{ form.optImpresion }} a
                                                     todas las tareas
@@ -444,14 +664,18 @@
                                             </b-col>
                                         </b-row>
                                         <b-row>
-                                            <b-col v-for="(
+                                            <b-col
+                                                v-for="(
                                                     item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                ) in itemsProducts"
+                                                :key="index"
+                                                cols="6"
+                                            >
                                                 <ul>
                                                     <li>
                                                         <strong>{{
                                                             item.name
-                                                            }}</strong>
+                                                        }}</strong>
                                                     </li>
                                                     <li>
                                                         <strong>Corte:</strong>
@@ -466,15 +690,24 @@
                                                         {{ item.talla }}
                                                     </li>
                                                     <li>
-                                                        <strong>Cantidad:</strong>
+                                                        <strong
+                                                            >Cantidad:</strong
+                                                        >
                                                         {{ item.cantidad }}
                                                     </li>
                                                 </ul>
                                                 <hr />
-                                                <produccionsse-asignar-empleado :item="item" ref="asignarEmpleado"
-                                                    :lote="lote_detalles" :lotes_fisicos="lotes_fisicos
-                                                        " departamento="Revisión" @reload="setReload"
-                                                    :empleados="empleados" />
+                                                <produccionsse-asignar-empleado
+                                                    :item="item"
+                                                    ref="asignarEmpleado"
+                                                    :lote="lote_detalles"
+                                                    :lotes_fisicos="
+                                                        lotes_fisicos
+                                                    "
+                                                    departamento="Revisión"
+                                                    @reload="setReload"
+                                                    :empleados="empleados"
+                                                />
                                             </b-col>
                                         </b-row>
                                     </b-tab>
@@ -492,7 +725,7 @@
 </template>
 
 <script>
-import mixin from "~/mixins/mixins.js"
+import mixin from "~/mixins/mixins.js";
 
 export default {
     mixins: [mixin],
@@ -523,13 +756,13 @@ export default {
             loteInfo: this.orden_productos,
             optionsEmpleados: this.asign,
             reload_old: false,
-        }
+        };
     },
 
     watch: {
         reload() {
             if (this.reload) {
-                this.overlay = true
+                this.overlay = true;
                 // this.getLotInfo().then(() => (this.overlay = false))
             }
         },
@@ -546,7 +779,7 @@ export default {
         )
         return parseInt(element.id_orden) === myId
       }) */
-            return this.orden_productos
+            return this.orden_productos;
         },
 
         fieldsProducts() {
@@ -593,54 +826,54 @@ export default {
                     label: "GC",
                     sortable: false,
                 },
-            ]
+            ];
 
             // return this.$store.state.produccion.loteDetalles.fields_orden_productos
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7)
-            return `modal-${rand}`
+            const rand = Math.random().toString(36).substring(2, 7);
+            return `modal-${rand}`;
         },
     },
 
     methods: {
         async postSwitch(departamento, estado) {
-            const data = new URLSearchParams()
-            let miEstado = null
+            const data = new URLSearchParams();
+            let miEstado = null;
             if (estado) {
-                miEstado = 1
+                miEstado = 1;
             } else {
-                miEstado = 0
+                miEstado = 0;
             }
 
-            data.set("estado", miEstado)
-            data.set("departamento", departamento)
+            data.set("estado", miEstado);
+            data.set("departamento", departamento);
 
             await this.$axios
                 .post(`${this.$config.API}/config/select-empleados`, data)
                 .then((res) => {
-                    this.getConfigData()
-                })
+                    this.getConfigData();
+                });
         },
 
         async getConfigData() {
-            this.overlay = true
+            this.overlay = true;
             await this.$axios
                 .get(`${this.$config.API}/config`)
                 .then((res) => {
-                    console.log("datos de cnfiguración del sistema", res.data)
-                    this.$store.commit("datasys/setDataSys", res.data)
-                    const activo = parseInt(res.data.activo)
+                    console.log("datos de cnfiguración del sistema", res.data);
+                    this.$store.commit("datasys/setDataSys", res.data);
+                    const activo = parseInt(res.data.activo);
 
                     if (activo) {
-                        this.acceso = true
-                        this.msg = "Bienvenido"
-                        this.alertType = "info"
+                        this.acceso = true;
+                        this.msg = "Bienvenido";
+                        this.alertType = "info";
                     } else {
-                        this.acceso = false
-                        this.alertType = "warning"
-                        this.msg = "Su cuenta ha sido suspendida"
+                        this.acceso = false;
+                        this.alertType = "warning";
+                        this.msg = "Su cuenta ha sido suspendida";
                     }
                 })
                 .catch((err) => {
@@ -648,90 +881,90 @@ export default {
                         title: "Error",
                         html: `<P>No se recibió la información de la configuración del sistema</p><p>${err}</p>`,
                         type: "warning",
-                    })
+                    });
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
 
         async updateEmpleadoTodo(item, id_empleado, departamento) {
             // this.overlay = true;
 
-            console.log("item en reasdingar empleado", item)
-            const data = new URLSearchParams()
-            data.set("id_orden", item.id_orden)
-            data.set("id_ordenes_productos", item._id)
-            data.set("id_empleado", id_empleado)
-            data.set("id_woo", item.id_woo)
-            data.set("departamento", departamento)
-            data.set("cantidad", item.cantidad)
-            data.set("cantidad_orden", item.cantidad)
+            console.log("item en reasdingar empleado", item);
+            const data = new URLSearchParams();
+            data.set("id_orden", item.id_orden);
+            data.set("id_ordenes_productos", item._id);
+            data.set("id_empleado", id_empleado);
+            data.set("id_woo", item.id_woo);
+            data.set("departamento", departamento);
+            data.set("cantidad", item.cantidad);
+            data.set("cantidad_orden", item.cantidad);
 
-            console.log("datos a guardar")
-            console.dir(data)
+            console.log("datos a guardar");
+            console.dir(data);
 
             await this.$axios
                 .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
                 .then((res) => {
-                    this.$nuxt.$emit("reload")
+                    this.$nuxt.$emit("reload");
 
-                    // Llamar al método del componente hijo 
+                    // Llamar al método del componente hijo
                     this.$nuxt.$emit("updateEmpleadoTodoCompleted"); // Emitir el evento personalizado
 
                     // this.reloadPorcentaje()
                     // this.overlay = false;
                     // this.$store.dispatch('produccion/getPorcentaje2', this.item.id_orden)
                     // console.log('resultado empleadoAsignar', res.data)
-                })
+                });
         },
 
         asignarTodo(departamento) {
             // validar campo dependiendo del departamento
-            let optVal = null
+            let optVal = null;
             switch (departamento) {
                 case "Impresión":
-                    optVal = this.form.optImpresion
-                    break
+                    optVal = this.form.optImpresion;
+                    break;
 
                 case "Estampado":
-                    optVal = this.form.optEstampado
-                    break
+                    optVal = this.form.optEstampado;
+                    break;
 
                 case "Corte":
-                    optVal = this.form.optCorte
-                    break
+                    optVal = this.form.optCorte;
+                    break;
 
                 case "Costura":
-                    optVal = this.form.optCostura
-                    break
+                    optVal = this.form.optCostura;
+                    break;
 
                 case "Limpieza":
-                    optVal = this.form.optLimpieza
-                    break
+                    optVal = this.form.optLimpieza;
+                    break;
 
                 case "Revisión":
-                    optVal = this.form.optRevision
-                    break
+                    optVal = this.form.optRevision;
+                    break;
 
                 default:
-                    optVal = null
-                    break
+                    optVal = null;
+                    break;
             }
 
             if (optVal != null) {
                 this.itemsProducts.forEach((item) => {
                     // console.log("Asignar tarea:::", item);
-                    this.updateEmpleadoTodo(item, optVal, departamento)
-                })
+                    this.updateEmpleadoTodo(item, optVal, departamento);
+                });
                 // alert("emitamos reload aqui");
-                this.$emit("reload")
+                this.$emit("reload");
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de ${departamento}</p>`,
                     type: "warning",
-                })
+                });
             }
         },
 
@@ -741,20 +974,20 @@ export default {
                 this.form.optImpresion != null
             ) {
                 this.itemsProducts.forEach((item) => {
-                    console.log("Asignar tarea:::", item)
+                    console.log("Asignar tarea:::", item);
                     this.updateEmpleadoTodo(
                         item,
                         this.form.optImpresion,
                         "Impresión"
-                    )
-                })
-                this.$emit("reload")
+                    );
+                });
+                this.$emit("reload");
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Impresíon</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (
@@ -763,61 +996,61 @@ export default {
             ) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optEstampado}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Estampado</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Corte" && this.form.optCorte != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optCorte}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Corte</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Costura" && this.form.optCostura != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optCostura}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Costura</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Limpieza" && this.form.optLimpieza != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optLimpieza}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Limpieza</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Revisión" && this.form.optRevision != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optRevision}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Revisión</p>`,
                     type: "warning",
-                })
+                });
             } /**/
         },
 
@@ -829,27 +1062,27 @@ export default {
                         value: empleado._id,
                         text: empleado.nombre,
                         // text: empleado.nombre + " ID  " + empleado._id,
-                    }
-                })
-            options.unshift({ value: null, text: "Seleccione un empleado" })
-            return options
+                    };
+                });
+            options.unshift({ value: null, text: "Seleccione un empleado" });
+            return options;
         },
 
         setReload() {
-            this.$emit("reload")
+            this.$emit("reload");
         },
         token() {
-            const length = 8
+            const length = 8;
             var a =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split(
                     ""
-                )
-            var b = []
+                );
+            var b = [];
             for (var i = 0; i < length; i++) {
-                var j = (Math.random() * (a.length - 1)).toFixed(0)
-                b[i] = a[j]
+                var j = (Math.random() * (a.length - 1)).toFixed(0);
+                b[i] = a[j];
             }
-            return b.join("")
+            return b.join("");
         },
 
         /* async getLotInfo() {
@@ -874,11 +1107,26 @@ export default {
     ],
 
     mounted() {
-        this.switches.switchEstampado = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_estampado)
-        this.switches.switchCorte = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_corte)
-        this.switches.switchCostura = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_costura)
-        this.switches.switchLimpieza = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_limpieza)
-        this.switches.switchRevision = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_revision)
+        this.switches.switchEstampado = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_rollo_en_empleado_estampado
+        );
+        this.switches.switchCorte = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_rollo_en_empleado_corte
+        );
+        this.switches.switchCostura = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_insumo_en_empleado_costura
+        );
+        this.switches.switchLimpieza = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_insumo_en_empleado_limpieza
+        );
+        this.switches.switchRevision = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_insumo_en_empleado_revision
+        );
 
         this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
             // this.getLotInfo().then(() => (this.overlay = false))
@@ -887,9 +1135,9 @@ export default {
       .then((res) => {
         this.optionsEmpleados = res.data
       }) */
-        })
+        });
     },
-}
+};
 </script>
 
 <style scoped>

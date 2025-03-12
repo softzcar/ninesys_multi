@@ -12,11 +12,21 @@
                     <b-row>
                         <b-col>
                             <h5>Asignación de insumos Lote {{ id }}</h5>
-                            <b-table ref="table" responsive small striped :size="size" :items="orden_productos"
-                                :fields="fieldsProducts">
+                            <b-table
+                                ref="table"
+                                responsive
+                                small
+                                striped
+                                :size="size"
+                                :items="orden_productos"
+                                :fields="fieldsProducts"
+                            >
                                 <template #cell(_id)="data">
-                                    <produccion-guardar-cantidad :cantidadLote="data.item.cantidad_lote"
-                                        :id="data.item._id" @reload="setReload" />
+                                    <produccion-guardar-cantidad
+                                        :cantidadLote="data.item.cantidad_lote"
+                                        :id="data.item._id"
+                                        @reload="setReload"
+                                    />
                                     <!-- {{ data.item }} -->
                                 </template>
                             </b-table>
@@ -32,68 +42,152 @@
                             </h5>
                             <b-card no-body>
                                 <b-tabs card>
-                                    <div v-for="(dep, index) in tabsDeps" :key="index">
+                                    <div
+                                        v-for="(dep, index) in tabsDeps"
+                                        :key="index"
+                                    >
                                         <b-tab :title="dep.departamento">
                                             <b-card-text>
                                                 <b-row>
                                                     <b-col>
                                                         <h3>
-                                                            Asignación General {{ dep.departamento }}
+                                                            Asignación General
+                                                            {{
+                                                                dep.departamento
+                                                            }}
                                                         </h3>
 
                                                         <b-form inline>
-                                                            <b-form-select :id="'select-emp-' + dep._id" class="mr-2"
-                                                                v-model="form[dep._id]
-                                                                    " :options="filterOptiosnEmp(dep._id)
-                                                                        " required></b-form-select>
-                                                            <b-button @click="
-                                                                asignarTodo(dep._id)
-                                                                " variant="success">
-                                                                <b-icon icon="check"></b-icon>
+                                                            <b-form-select
+                                                                :id="
+                                                                    'select-emp-' +
+                                                                    dep._id
+                                                                "
+                                                                class="mr-2"
+                                                                v-model="
+                                                                    form[
+                                                                        dep._id
+                                                                    ]
+                                                                "
+                                                                :options="
+                                                                    filterOptiosnEmp(
+                                                                        dep._id
+                                                                    )
+                                                                "
+                                                                required
+                                                            ></b-form-select>
+                                                            <b-button
+                                                                @click="
+                                                                    asignarTodo(
+                                                                        dep._id
+                                                                    )
+                                                                "
+                                                                variant="success"
+                                                            >
+                                                                <b-icon
+                                                                    icon="check"
+                                                                ></b-icon>
                                                             </b-button>
+
+                                                            <!-- <b-form-checkbox
+                                                                v-model="
+                                                                    switches.switchEstampado
+                                                                "
+                                                                @change="
+                                                                    postSwitch(
+                                                                        'Estampado',
+                                                                        switches.switchEstampado
+                                                                    )
+                                                                "
+                                                                calss="mt-2"
+                                                                switch
+                                                                size="lg"
+                                                                >Habilitar
+                                                                selección de
+                                                                insumos</b-form-checkbox
+                                                            > -->
                                                         </b-form>
                                                     </b-col>
                                                 </b-row>
 
                                                 <b-row>
-                                                    <b-col v-for="(
-item, index
-                                                ) in itemsProducts" :key="index" cols="6">
+                                                    <b-col
+                                                        v-for="(
+                                                            item, index
+                                                        ) in itemsProducts"
+                                                        :key="index"
+                                                        cols="6"
+                                                    >
                                                         <ul>
                                                             <li>
                                                                 <strong>{{
                                                                     item.name
-                                                                    }}</strong>
+                                                                }}</strong>
                                                             </li>
                                                             <li>
-                                                                <strong>Corte:</strong>
+                                                                <strong
+                                                                    >Corte:</strong
+                                                                >
                                                                 {{ item.corte }}
                                                             </li>
                                                             <li>
-                                                                <strong>Tela:</strong>
+                                                                <strong
+                                                                    >Tela:</strong
+                                                                >
                                                                 {{ item.tela }}
                                                             </li>
                                                             <li>
-                                                                <strong>Talla:</strong>
+                                                                <strong
+                                                                    >Talla:</strong
+                                                                >
                                                                 {{ item.talla }}
                                                             </li>
                                                             <li>
-                                                                <strong>Cantidad:</strong>
-                                                                {{ item.cantidad }}
+                                                                <strong
+                                                                    >Cantidad:</strong
+                                                                >
+                                                                {{
+                                                                    item.cantidad
+                                                                }}
                                                             </li>
                                                             <li>
-                                                                <strong>Cantidad:</strong>
-                                                                {{ item.cantidad }}
+                                                                <strong
+                                                                    >Cantidad:</strong
+                                                                >
+                                                                {{
+                                                                    item.cantidad
+                                                                }}
                                                             </li>
                                                         </ul>
                                                         <hr />
-                                                        <produccionsse-asignar-empleado :item="item"
-                                                            :lote="lote_detalles" ref="asignarEmpleado"
-                                                            :por_asignar="por_asignar" :lotes_fisicos="lotes_fisicos"
-                                                            @reload="setReload" :empleados="empleados"
-                                                            :departamento="dep._id"
-                                                            :select_options="filterOptiosnEmp(dep._id)"
-                                                            :id_empleado="form[dep._id]" />
+                                                        <produccionsse-asignar-empleado
+                                                            :item="item"
+                                                            :lote="
+                                                                lote_detalles
+                                                            "
+                                                            ref="asignarEmpleado"
+                                                            :por_asignar="
+                                                                por_asignar
+                                                            "
+                                                            :lotes_fisicos="
+                                                                lotes_fisicos
+                                                            "
+                                                            @reload="setReload"
+                                                            :empleados="
+                                                                empleados
+                                                            "
+                                                            :departamento="
+                                                                dep._id
+                                                            "
+                                                            :select_options="
+                                                                filterOptiosnEmp(
+                                                                    dep._id
+                                                                )
+                                                            "
+                                                            :id_empleado="
+                                                                form[dep._id]
+                                                            "
+                                                        />
                                                     </b-col>
                                                 </b-row>
                                             </b-card-text>
@@ -174,7 +268,8 @@ item, index
                                     </b-tab>
 
                                     <b-tab :title="`Estampado`">
-                                        <b-row>
+                                        <b-row>Corte
+Corte
                                             <b-col>
                                                 <h3>
                                                     Asignación General Estampado
@@ -560,7 +655,7 @@ item, index
 </template>
 
 <script>
-import mixin from "~/mixins/mixins.js"
+import mixin from "~/mixins/mixins.js";
 
 export default {
     mixins: [mixin],
@@ -584,13 +679,13 @@ export default {
             loteInfo: this.orden_productos,
             optionsEmpleados: this.asign,
             reload_old: false,
-        }
+        };
     },
 
     watch: {
         reload() {
             if (this.reload) {
-                this.overlay = true
+                this.overlay = true;
                 // this.getLotInfo().then(() => (this.overlay = false))
             }
         },
@@ -598,7 +693,9 @@ export default {
 
     computed: {
         tabsDeps() {
-            return this.$store.state.login.departamentos.filter(dep => dep.asignar_numero_de_paso > 0).sort((a, b) => a.orden_proceso - b.orden_proceso);
+            return this.$store.state.login.departamentos
+                .filter((dep) => dep.asignar_numero_de_paso > 0)
+                .sort((a, b) => a.orden_proceso - b.orden_proceso);
         },
 
         itemsProducts() {
@@ -611,7 +708,7 @@ export default {
         )
         return parseInt(element.id_orden) === myId
       }) */
-            return this.orden_productos
+            return this.orden_productos;
         },
 
         fieldsProducts() {
@@ -658,54 +755,54 @@ export default {
                     label: "GC",
                     sortable: false,
                 },
-            ]
+            ];
 
             // return this.$store.state.produccion.loteDetalles.fields_orden_productos
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7)
-            return `modal-${rand}`
+            const rand = Math.random().toString(36).substring(2, 7);
+            return `modal-${rand}`;
         },
     },
 
     methods: {
         async postSwitch(departamento, estado) {
-            const data = new URLSearchParams()
-            let miEstado = null
+            const data = new URLSearchParams();
+            let miEstado = null;
             if (estado) {
-                miEstado = 1
+                miEstado = 1;
             } else {
-                miEstado = 0
+                miEstado = 0;
             }
 
-            data.set("estado", miEstado)
-            data.set("departamento", departamento)
+            data.set("estado", miEstado);
+            data.set("departamento", departamento);
 
             await this.$axios
                 .post(`${this.$config.API}/config/select-empleados`, data)
                 .then((res) => {
-                    this.getConfigData()
-                })
+                    this.getConfigData();
+                });
         },
 
         async getConfigData() {
-            this.overlay = true
+            this.overlay = true;
             await this.$axios
                 .get(`${this.$config.API}/config`)
                 .then((res) => {
-                    console.log("datos de cnfiguración del sistema", res.data)
-                    this.$store.commit("datasys/setDataSys", res.data)
-                    const activo = parseInt(res.data.activo)
+                    console.log("datos de cnfiguración del sistema", res.data);
+                    this.$store.commit("datasys/setDataSys", res.data);
+                    const activo = parseInt(res.data.activo);
 
                     if (activo) {
-                        this.acceso = true
-                        this.msg = "Bienvenido"
-                        this.alertType = "info"
+                        this.acceso = true;
+                        this.msg = "Bienvenido";
+                        this.alertType = "info";
                     } else {
-                        this.acceso = false
-                        this.alertType = "warning"
-                        this.msg = "Su cuenta ha sido suspendida"
+                        this.acceso = false;
+                        this.alertType = "warning";
+                        this.msg = "Su cuenta ha sido suspendida";
                     }
                 })
                 .catch((err) => {
@@ -713,50 +810,52 @@ export default {
                         title: "Error",
                         html: `<P>No se recibió la información de la configuración del sistema</p><p>${err}</p>`,
                         type: "warning",
-                    })
+                    });
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
 
         async updateEmpleadoTodo(item, id_empleado, id_departamento) {
             // this.overlay = true;
-            const nombrDep = this.$store.state.login.departamentos.filter(el => el._id === id_departamento).map((el) => {
-                return el.departamento
-            })
+            const nombrDep = this.$store.state.login.departamentos
+                .filter((el) => el._id === id_departamento)
+                .map((el) => {
+                    return el.departamento;
+                });
 
-            console.log("item en reasdingar empleado", item)
-            const data = new URLSearchParams()
-            data.set("id_orden", item.id_orden)
-            data.set("id_ordenes_productos", item._id)
-            data.set("id_empleado", id_empleado)
-            data.set("id_woo", item.id_woo)
-            data.set("id_departamento", id_departamento)
-            data.set("departamento", nombrDep)
-            data.set("cantidad", item.cantidad)
-            data.set("cantidad_orden", item.cantidad)
+            console.log("item en reasdingar empleado", item);
+            const data = new URLSearchParams();
+            data.set("id_orden", item.id_orden);
+            data.set("id_ordenes_productos", item._id);
+            data.set("id_empleado", id_empleado);
+            data.set("id_woo", item.id_woo);
+            data.set("id_departamento", id_departamento);
+            data.set("departamento", nombrDep);
+            data.set("cantidad", item.cantidad);
+            data.set("cantidad_orden", item.cantidad);
 
-            console.log("datos a guardar", data)
+            console.log("datos a guardar", data);
 
             await this.$axios
                 .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
                 .then((res) => {
-                    this.$nuxt.$emit("reload")
+                    this.$nuxt.$emit("reload");
 
-                    // Llamar al método del componente hijo 
+                    // Llamar al método del componente hijo
                     this.$nuxt.$emit("updateEmpleadoTodoCompleted"); // Emitir el evento personalizado
 
                     // this.reloadPorcentaje()
                     // this.overlay = false;
                     // this.$store.dispatch('produccion/getPorcentaje2', this.item.id_orden)
                     // console.log('resultado empleadoAsignar', res.data)
-                })
+                });
         },
 
         asignarTodo(id_dep) {
-            console.log('id_dep', id_dep);
-            console.log('id_dep form', this.form);
+            console.log("id_dep", id_dep);
+            console.log("id_dep form", this.form);
 
             // Verificar si la propiedad existe en this.form
             if (this.form.hasOwnProperty(id_dep)) {
@@ -771,14 +870,18 @@ export default {
                         title: "Asignar Empleado",
                         html: `<p>Seleccione un empleado</p>`,
                         type: "warning",
-                    })
+                    });
                 } else {
                     this.itemsProducts.forEach((item) => {
                         // console.log("Asignar tarea:::", item);
-                        this.updateEmpleadoTodo(item, valorDepartamento, id_dep)
-                    })
+                        this.updateEmpleadoTodo(
+                            item,
+                            valorDepartamento,
+                            id_dep
+                        );
+                    });
                     // alert("emitamos reload aqui");
-                    this.$emit("reload")
+                    this.$emit("reload");
                 }
             } else {
                 // console.error(`La propiedad ${id_dep} no existe en this.form.`);
@@ -786,9 +889,8 @@ export default {
                     title: "Asignar Empleado",
                     html: `<p>El departamento ID ${id_dep} no existe</p>`,
                     type: "error",
-                })
+                });
             }
-
 
             /* if (!optVal || optVal != null) {
                 this.itemsProducts.forEach((item) => {
@@ -860,20 +962,20 @@ export default {
                 this.form.optImpresion != null
             ) {
                 this.itemsProducts.forEach((item) => {
-                    console.log("Asignar tarea:::", item)
+                    console.log("Asignar tarea:::", item);
                     this.updateEmpleadoTodo(
                         item,
                         this.form.optImpresion,
                         "Impresión"
-                    )
-                })
-                this.$emit("reload")
+                    );
+                });
+                this.$emit("reload");
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Impresíon</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (
@@ -882,77 +984,79 @@ export default {
             ) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optEstampado}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Estampado</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Corte" && this.form.optCorte != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optCorte}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Corte</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Costura" && this.form.optCostura != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optCostura}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Costura</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Limpieza" && this.form.optLimpieza != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optLimpieza}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Limpieza</p>`,
                     type: "warning",
-                })
+                });
             }
 
             if (departamento === "Revisión" && this.form.optRevision != null) {
                 alert(
                     `Asignemos todas las tareas al empleado ID ${this.form.optRevision}`
-                )
+                );
             } else {
                 this.$fire({
                     title: "Dato requerido",
                     html: `<p>Seleccione un empleado para la asignación de Revisión</p>`,
                     type: "warning",
-                })
+                });
             } /**/
         },
 
         filterOptiosnEmp(id_departamento) {
             let options = this.empleados
-                .filter((el) => el.departamentos.some(dep => dep.id === id_departamento))
+                .filter((el) =>
+                    el.departamentos.some((dep) => dep.id === id_departamento)
+                )
                 .map((empleado) => {
                     return {
                         value: empleado._id,
                         text: empleado.nombre,
                         // text: empleado.nombre + " ID " + empleado._id,
-                    }
-                })
+                    };
+                });
 
-            options.unshift({ value: null, text: "Seleccione un empleado" })
-            return options
+            options.unshift({ value: null, text: "Seleccione un empleado" });
+            return options;
         },
 
         /* full_filterOptiosnEmp(id_departamento) {
@@ -970,20 +1074,20 @@ export default {
         }, */
 
         setReload() {
-            this.$emit("reload")
+            this.$emit("reload");
         },
         token() {
-            const length = 8
+            const length = 8;
             var a =
                 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split(
                     ""
-                )
-            var b = []
+                );
+            var b = [];
             for (var i = 0; i < length; i++) {
-                var j = (Math.random() * (a.length - 1)).toFixed(0)
-                b[i] = a[j]
+                var j = (Math.random() * (a.length - 1)).toFixed(0);
+                b[i] = a[j];
             }
-            return b.join("")
+            return b.join("");
         },
 
         /* async getLotInfo() {
@@ -1016,18 +1120,35 @@ export default {
             }
         }) */
 
-        const tabsDeps = this.$store.state.login.departamentos.filter(el => el.asignar_numero_de_paso === 1);
+        const tabsDeps = this.$store.state.login.departamentos.filter(
+            (el) => el.asignar_numero_de_paso === 1
+        );
 
         // Inicializa las propiedades dinámicas en form
         tabsDeps.forEach((dep) => {
             this.$set(this.form, dep._id, null); // Inicializa con null o un valor por defecto
         });
 
-        this.switches.switchEstampado = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_estampado)
-        this.switches.switchCorte = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_corte)
-        this.switches.switchCostura = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_costura)
-        this.switches.switchLimpieza = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_limpieza)
-        this.switches.switchRevision = this.evalTF(this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_revision)
+        this.switches.switchEstampado = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_rollo_en_empleado_estampado
+        );
+        this.switches.switchCorte = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_rollo_en_empleado_corte
+        );
+        this.switches.switchCostura = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_insumo_en_empleado_costura
+        );
+        this.switches.switchLimpieza = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_insumo_en_empleado_limpieza
+        );
+        this.switches.switchRevision = this.evalTF(
+            this.$store.state.datasys.dataSys
+                .sys_mostrar_insumo_en_empleado_revision
+        );
 
         this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
             // this.getLotInfo().then(() => (this.overlay = false))
@@ -1036,9 +1157,9 @@ export default {
       .then((res) => {
         this.optionsEmpleados = res.data
       }) */
-        })
+        });
     },
-}
+};
 </script>
 
 <style scoped>
