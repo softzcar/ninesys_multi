@@ -1,7 +1,7 @@
 <template>
     <div>
         <h3>Ordenes en curso</h3>
-        <b-list-group horizontal="xl">
+        <!-- <b-list-group horizontal="xl">
             <b-list-group>
                 <strong>Orden</strong>
             </b-list-group>
@@ -35,7 +35,7 @@
             <b-list-group>
                 <strong> Acciones </strong>
             </b-list-group>
-        </b-list-group>
+        </b-list-group> -->
 
         <draggable v-model="items" @end="afterDrag" tag="ul" class="list-group">
             <b-list-group
@@ -163,6 +163,46 @@
                 <b-list-group-item>
                     <div>
                         <ordenes-editar :data="el" :key="el.orden" />
+                    </div>
+                </b-list-group-item>
+            </b-list-group>
+        </draggable>
+
+        <h3>Reposiciones pendientes DRAGGABLE</h3>
+
+        <draggable
+            v-model="reposiciones_solicitadas"
+            @end="afterDragRep"
+            tag="ul"
+            class="list-group"
+        >
+            <b-list-group
+                style="width: 100%"
+                v-for="(el, index) in reposiciones_solicitadas"
+                :key="index"
+                horizontal="xl"
+            >
+                <b-list-group-item
+                    style="cursor: grab"
+                    class="pb-3 drag-handle d-flex align-items-left"
+                >
+                    <span
+                        style="
+                            padding-top: 4px;
+                            padding-right: 8px;
+                            padding-top: 12px;
+                        "
+                        >☰</span
+                    >
+                </b-list-group-item>
+
+                <b-list-group-item>
+                    <div style="margin-top: 15px">
+                        <produccionsse-reposicionesPendientes
+                            :empleados="empleados"
+                            :item="el"
+                            :key="index"
+                        />
                     </div>
                 </b-list-group-item>
             </b-list-group>
@@ -475,7 +515,106 @@ export default {
 
     methods: {
         afterDrag(evt) {
-            console.log("Draggable context", evt);
+            const nuevosOrdenes = this.items.map((dep, index) => ({
+                orden: dep.orden,
+                orden_fila: index + 1,
+            }));
+
+            try {
+                this.items = nuevosOrdenes;
+
+                this.items.forEach((el) => {
+                    this.updateFilaOren(el.orden, el.orden_fila);
+                    // console.log(`XXX orden ${el.orden} fila ${el.orden_fila}`);
+                });
+            } catch (error) {
+                console.error("Error al actualizar orden:", error);
+            }
+            // console.log("Draggable context", evt);
+        },
+
+        afterDragRep(evt) {
+            const nuevasReposiciones = this.reposiciones_solicitadas.map(
+                (dep, index) => ({
+                    id_reposicion: dep.id_reposicion,
+                    id_orden: dep.id_orden,
+                    id_ordenes_productos: dep.id_ordenes_productos,
+                    empleado: dep.empleado,
+                    detalle_emisor: dep.detalle_emisor,
+                    fecha: dep.fecha,
+                    hora: dep.hora,
+                    producto: dep.producto,
+                    unidades: dep.unidades,
+                    talla: dep.talla,
+                    corte: dep.corte,
+                    tela: dep.tela,
+                    orden_fila: index + 1,
+                })
+            );
+
+            try {
+                this.reposiciones_solicitadas = nuevasReposiciones;
+
+                this.reposiciones_solicitadas.forEach((el) => {
+                    this.updateFilaReposicion(el.id_reposicion, el.orden_fila);
+                    // console.log(`XXX orden ${el.orden} fila ${el.orden_fila}`);
+                });
+            } catch (error) {
+                console.error("Error al actualizar orden:", error);
+            }
+            // console.log("Draggable context", evt);
+        },
+
+        async updateFilaOren(idOrden, ordenFila) {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id_orden", idOrden);
+            data.set("orden_fila", ordenFila);
+
+            await this.$axios
+                .post(`${this.$config.API}/ordenes/actualizar-fila`, data)
+                .then((res) => {
+                    console.log(
+                        "orden de fila de produccion actualizado",
+                        res.data
+                    );
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>No se eliminó el registro</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
+        async updateFilaReposicion(idOrden, ordenFila) {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id_orden", idOrden);
+            data.set("orden_fila", ordenFila);
+
+            await this.$axios
+                .post(`${this.$config.API}/ordenes/actualizar-fila`, data)
+                .then((res) => {
+                    console.log(
+                        "orden de fila de produccion actualizado",
+                        res.data
+                    );
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>No se eliminó el registro</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
         },
 
         productsFilter(id) {

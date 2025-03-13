@@ -96,9 +96,9 @@
                     </b-col>
                 </b-row>
             </b-container>
-            <pre class="force" style="background-color: blue">
+            <!-- <pre class="force" style="background-color: blue">
                 {{ insumosAsignados }}
-            </pre>
+            </pre> -->
         </b-overlay>
     </div>
 </template>
@@ -303,43 +303,10 @@ export default {
                     this.overlay = false;
                 });
         },
-        /* compareNames(a, b) {
-            const nameA = a.name.toUpperCase()
-            const nameB = b.name.toUpperCase()
-    
-            let comparison = 0
-            if (nameA > nameB) {
-                comparison = 1
-            } else if (nameA < nameB) {
-                comparison = -1
-            }
-            return comparison
-        }, */
-
-        /* showCategories(dat) {
-            const filtered = dat.map((el) => {
-                return el.name
-            })
-            return filtered
-        }, */
-
-        /* async getAttributes() {
-            await this.$axios
-                .get(`${this.$config.API}/atributos/comisiones`)
-                .then((res) => {
-                    this.products = res.data.data
-                })
-        }, */
     },
 
     mounted() {
-        /**
-         * TODO TRAER EN LOAD DATA LOS INSUMOS QUE A HAN SIDO ASIGNADOS A PRODUCTOS
-         */
         this.loadData();
-        // this.getProducts().then(() => this.productsTable = this.products)
-        // this.getDepartamentos()
-        // this.getAttributes().then(() => (this.overlay = false))
     },
 };
 </script>

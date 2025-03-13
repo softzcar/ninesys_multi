@@ -76,6 +76,12 @@
                 </b-button>
             </b-form>
 
+            <!-- <pre class="force" style="background-color: red">
+                {{ clacTimeProduction }}
+                <hr>
+                {{ $props }}
+            </pre> -->
+
             <b-modal
                 :id="modal"
                 ref="modalCaptura"
@@ -213,11 +219,6 @@ export default {
             if (this.unidadDeMedida === null) {
                 ok = false;
                 msg += `<p>Indique la unidad de medida del insumo</p>`;
-            }
-
-            if (!this.validarFormatoHHMM(this.tiempoFormateado)) {
-                ok = false;
-                msg += `<p>Ingrese el formato de tiempo en HH:MM (Horas y munutos) ${this.tiempoFormateado}</p>`;
             }
 
             if (!ok) {

@@ -21,6 +21,8 @@
                 </template>
             </b-form-input>
 
+            <!-- {{ clacTimeProduction() }} -->
+
             <b-button @click="saveTime" class="ml-2" variant="success">
                 <b-icon icon="check-lg"></b-icon>
             </b-button>
@@ -195,6 +197,31 @@ export default {
     },
 
     methods: {
+        clacTimeProduction() {
+            const idProd = this.idprod;
+            const idDep = this.iddep;
+
+            // 1. Filtrar los registros y sumar los tiempos
+            const totalSegundos = this.tiemposprod
+                .filter(
+                    (el) =>
+                        el.id_product === idProd && el.id_departamento === idDep
+                )
+                .reduce((total, el) => total + parseInt(el.tiempo), 0);
+
+            return totalSegundos;
+
+            // 2. Convertir segundos a HH:MM
+            const horas = Math.floor(totalSegundos / 3600);
+            const minutos = Math.floor((totalSegundos % 3600) / 60);
+
+            // 3. Formatear la respuesta
+            const horasFormateadas = String(horas).padStart(2, "0");
+            const minutosFormateados = String(minutos).padStart(2, "0");
+
+            return `${horasFormateadas}:${minutosFormateados}`;
+        },
+
         async updateTiempo() {
             this.overlay = true;
             const data = new URLSearchParams();
@@ -293,16 +320,19 @@ export default {
 
     mounted() {
         this.addItem(this.item._id);
-        this.reloadMe();
+        this.tiempo = this.clacTimeProduction();
+        // this.tiempo = this.tiemposprod[0].tiempo;
+        // this.reloadMe();
     },
 
     props: [
-        "item",
+        "idprod",
+        "iddep",
         "reload",
         "selectinsumos",
         "insumosasignados",
         "tiemposprod",
-        "idprod",
+        "item",
     ],
 };
 </script>

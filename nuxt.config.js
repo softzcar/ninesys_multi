@@ -8,10 +8,7 @@ export default {
 
     // Should hold all env variables that are public as these will be exposed on the frontend.
     publicRuntimeConfig: {
-        // NINETEENCUSTOM 2
-        /* LOCAL_IP: `https://api2.nineteencustom.com`,
-    LOCAL_IP_WOO: `https://api2.nineteencustom.com`,
-    API: `https://api2.nineteencustom.com`, */
+        // DESARROLLO
         LOCAL_IP: `https://api2.nineteengreen.com`,
         LOCAL_IP_WOO: `https://api2.nineteengreen.com`,
         API: `https://api2.nineteengreen.com`,
@@ -19,7 +16,16 @@ export default {
         LIVE: `https://live.nineteengreen.com`,
         APP_URL: `https://app.nineteencustom.com`,
         WS_API: `http://194.195.86.253:3000`,
-
+        
+        // PRODUCCION
+        /* LOCAL_IP: `https://api.nineteencustom.com`,
+        LOCAL_IP_WOO: `https://api.nineteencustom.com`,
+        API: `https://api.nineteencustom.com`,
+        CDN: `https://cdn.nineteengreen.com`,
+        LIVE: `https://live.nineteengreen.com`,
+        APP_URL: `https://app.nineteencustom.com`,
+        WS_API: `http://194.195.86.253:3000`,
+ */
         // NINETEENCUSTOM PRODUCTION
         /*  LOCAL_IP: `https://api.nineteencustom.com`,
      LOCAL_IP_WOO: `https://api.nineteencustom.com`,

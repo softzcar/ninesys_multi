@@ -26,18 +26,19 @@
                                 :form="form"
                                 :item="dep"
                                 :idprod="item.cod"
+                                :iddep="dep._id"
                                 :tiemposprod="tiemposprod"
                                 :insumosasignados="filteredInsumos[dep._id]"
                                 :selectinsumos="selectinsumos"
                                 @reload="loadDataTab(dep._id)"
                             />
-                            <pre class="force" style="background-color: red">
+                            <!-- <pre class="force" style="background-color: red">
                                     filterInsumosAsignados(1)::: {{
                                         filterInsumosAsignados('1')
                                     }}
                                     <hr>
                                     {{ insumosasignados }}
-                                </pre>
+                                </pre> -->
                         </div>
                     </b-tab>
                 </b-tabs>
