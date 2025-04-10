@@ -57,8 +57,49 @@
                                                             }}
                                                         </h3>
 
+                                                        <produccionsse-asignar-empleado-multi
+                                                            :item="dep"
+                                                            :idorden="id"
+                                                            :emp_asignados="
+                                                                filterAsigandos(
+                                                                    dep._id,
+                                                                    id
+                                                                )
+                                                            "
+                                                            :products="
+                                                                filterProducts(
+                                                                    id
+                                                                )
+                                                            "
+                                                            :options="
+                                                                filterOptiosnEmp(
+                                                                    dep._id
+                                                                )
+                                                            "
+                                                        />
+
+                                                        <!-- <template
+                                                                #cell(_id)="data"
+                                                            >
+                                                                <produccion-guardar-cantidad
+                                                                    :cantidadLote="
+                                                                        data
+                                                                            .item
+                                                                            .cantidad_lote
+                                                                    "
+                                                                    :id="
+                                                                        data
+                                                                            .item
+                                                                            ._id
+                                                                    "
+                                                                    @reload="
+                                                                        setReload
+                                                                    "
+                                                                />
+                                                            </template> -->
+
                                                         <b-form inline>
-                                                            <b-form-select
+                                                            <!-- <b-form-select
                                                                 :id="
                                                                     'select-emp-' +
                                                                     dep._id
@@ -87,9 +128,9 @@
                                                                 <b-icon
                                                                     icon="check"
                                                                 ></b-icon>
-                                                            </b-button>
+                                                            </b-button> -->
 
-                                                            <!-- <b-form-checkbox
+                                                            <b-form-checkbox
                                                                 v-model="
                                                                     switches.switchEstampado
                                                                 "
@@ -105,12 +146,12 @@
                                                                 >Habilitar
                                                                 selección de
                                                                 insumos</b-form-checkbox
-                                                            > -->
+                                                            >
                                                         </b-form>
                                                     </b-col>
                                                 </b-row>
 
-                                                <b-row>
+                                                <!-- <b-row>
                                                     <b-col
                                                         v-for="(
                                                             item, index
@@ -189,7 +230,7 @@
                                                             "
                                                         />
                                                     </b-col>
-                                                </b-row>
+                                                </b-row> -->
                                             </b-card-text>
                                         </b-tab>
                                     </div>
@@ -517,7 +558,7 @@ Corte
                                                                 'Limpieza',
                                                                 switches.switchLimpieza
                                                             )
-                                                            " calss="mt-2" switch size="lg">Habilitar selección de
+                                                            " calss="mt-2" switcempAsigandosh size="lg">Habilitar selección de
                                                         insumos</b-form-checkbox>
                                                 </b-form>
                                                 <p v-if="
@@ -662,6 +703,7 @@ export default {
 
     data() {
         return {
+            asignados: [],
             switches: {
                 switchImpresion: true,
                 switchEstampado: true,
@@ -696,6 +738,10 @@ export default {
             return this.$store.state.login.departamentos
                 .filter((dep) => dep.asignar_numero_de_paso > 0)
                 .sort((a, b) => a.orden_proceso - b.orden_proceso);
+        },
+
+        empAsigandos() {
+            return this.emp_asignados;
         },
 
         itemsProducts() {
@@ -767,6 +813,12 @@ export default {
     },
 
     methods: {
+        filterAsigandos(id_dep, id_orden) {
+            return this.emp_asignados.filter(
+                (el) => el.id_departamento == id_dep && el.id_orden == id_orden
+            );
+        },
+
         async postSwitch(departamento, estado) {
             const data = new URLSearchParams();
             let miEstado = null;
@@ -1042,6 +1094,10 @@ export default {
             } /**/
         },
 
+        filterProducts(idorden) {
+            return this.itemsProducts.filter((el) => el.id_orden == idorden);
+        },
+
         filterOptiosnEmp(id_departamento) {
             let options = this.empleados
                 .filter((el) =>
@@ -1105,6 +1161,8 @@ export default {
         "id",
         "orden_productos",
         "por_asignar",
+        "comisiones",
+        "emp_asignados",
         "lote_detalles",
         "lotes_fisicos",
         "empleados",

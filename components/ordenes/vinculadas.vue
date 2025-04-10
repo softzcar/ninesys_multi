@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="vinculadas.length">
+        <!-- <div v-if="vinculadas.length">
             <div
                 class="link_vinculada"
                 v-for="(orden, index) in vinculadas"
@@ -14,7 +14,7 @@
             <b-button disabled variant="outline-secondary">
                 <b-icon icon="x-circle"></b-icon>
             </b-button>
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -37,10 +37,12 @@ export default {
     }, */
     },
     mounted() {
-        if (typeof this.vinculadas === "string") {
-            this.vinculadas = this.vinculadas
-                .split(",")
-                .map((item) => item.trim());
+        if (this.vinculadas) {
+            /* if (typeof this.vinculadas === "string") {
+                this.vinculadas = this.vinculadas
+                    .split(",")
+                    .map((item) => item.trim());
+            } */
         }
     },
     props: ["vinculadas"],

@@ -86,7 +86,7 @@
                                     {{ dataUser.departamento }}
                                     <!-- <div class="mt-3"> -->
                                     <div class="mt-3">
-                                        <b-button-group size="sm">
+                                        <b-button-group size="lg">
                                             <b-button
                                                 @click="
                                                     showComponent(
@@ -185,7 +185,6 @@ export default {
                     "Cargar Módulo",
                     "question"
                 ).then(() => {
-                    console.log("mostrart menu", component);
                     this.$store.commit(
                         "login/scurrentDepartamentId",
                         id_departamento
@@ -198,7 +197,6 @@ export default {
                     this.$router.push("/");
                 });
             } else {
-                console.log("mostrart menu", component);
                 this.$store.commit(
                     "login/scurrentDepartamentId",
                     id_departamento

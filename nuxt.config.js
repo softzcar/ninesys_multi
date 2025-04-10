@@ -9,14 +9,21 @@ export default {
     // Should hold all env variables that are public as these will be exposed on the frontend.
     publicRuntimeConfig: {
         // DESARROLLO
-        LOCAL_IP: `https://api2.nineteengreen.com`,
-        LOCAL_IP_WOO: `https://api2.nineteengreen.com`,
-        API: `https://api2.nineteengreen.com`,
+        LOCAL_IP: `https://apidev.nineteengreen.com`,
+        LOCAL_IP_WOO: `https://apidev.nineteengreen.com`,
+        API: `https://apidev.nineteengreen.com`,
         CDN: `https://cdn.nineteengreen.com`,
         LIVE: `https://live.nineteengreen.com`,
         APP_URL: `https://app.nineteencustom.com`,
         WS_API: `http://194.195.86.253:3000`,
-        
+        HORARIO: {
+            horaInicioManana: 8.5,  // 8:30 AM
+            horaFinManana: 12,     // 12:00 PM
+            horaInicioTarde: 13,   // 1:00 PM
+            horaFinTarde: 17.5,    // 5:30 PM
+            diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
+        },
+
         // PRODUCCION
         /* LOCAL_IP: `https://api.nineteencustom.com`,
         LOCAL_IP_WOO: `https://api.nineteencustom.com`,
@@ -101,7 +108,8 @@ export default {
     plugins: [
         // Alerts
         "~/plugins/axios-interceptor.js",
-        "~/plugins/sse.js",
+        // "~/plugins/sse.js",
+        // "~/plugins/websocket.js",
         "~/plugins/alerts.js",
         "~/plugins/wizard.js",
         "~/plugins/typehead.js",
@@ -164,6 +172,7 @@ export default {
 
     // Build Configuration: https://go.nuxtjs.dev/config-build
     build: {
+        transpile: ['date-fns'],
         extractCSS: true,
         splitChunks: {
             layouts: true,

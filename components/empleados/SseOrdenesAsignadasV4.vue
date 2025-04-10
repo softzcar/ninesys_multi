@@ -1,17 +1,26 @@
 <template>
     <div>
         <b-overlay :show="overlay" spinner-small>
-            <!-- Infos -->
-            <!-- <pre class="force">
-                {{ dataTablePendiente }}
-             </pre
-            > -->
             <div v-if="ordenesSize < 1">
                 <b-row>
                     <b-col>
-                        <b-alert :show="showAlert" class="text-center" variant="info">
+                        <b-alert
+                            :show="showAlert"
+                            class="text-center"
+                            variant="info"
+                        >
                             <h3>{{ msg }}</h3>
                         </b-alert>
+                    </b-col>
+                </b-row>
+
+                <!-- Eficiencia -->
+                <b-row>
+                    <b-col>
+                        <empleados-RendimientoGeneral
+                            :ordenes="ordenes"
+                            :pausas="pausas"
+                        />
                     </b-col>
                 </b-row>
             </div>
@@ -22,11 +31,18 @@
                     <b-row>
                         <b-col offset-lg="8" offset-xl="8">
                             <b-input-group class="mb-4" size="sm">
-                                <b-form-input id="filter-input" v-model="filter" type="search"
-                                    placeholder="Filtrar Resultados"></b-form-input>
+                                <b-form-input
+                                    id="filter-input"
+                                    v-model="filter"
+                                    type="search"
+                                    placeholder="Filtrar Resultados"
+                                ></b-form-input>
 
                                 <b-input-group-append>
-                                    <b-button :disabled="!filter" @click="filter = ''">
+                                    <b-button
+                                        :disabled="!filter"
+                                        @click="filter = ''"
+                                    >
                                         Limpiar
                                     </b-button>
                                 </b-input-group-append>
@@ -39,26 +55,58 @@
                         <b-col>
                             <b-row class="text-center mb-4">
                                 <b-col>
-                                    <b-button variant="success" @click="reloadMe">Recargar</b-button>
+                                    <b-button
+                                        variant="success"
+                                        @click="reloadMe"
+                                        >Recargar</b-button
+                                    >
                                 </b-col>
                             </b-row>
                         </b-col>
                     </b-row>
 
+                    <!-- Eficiencia -->
+                    <b-row>
+                        <b-col>
+                            <empleados-RendimientoGeneral
+                                :ordenes="ordenes"
+                                :pausas="pausas"
+                            />
+                        </b-col>
+                    </b-row>
+
+                    <!-- Reposiciones -->
                     <b-row>
                         <b-col>
                             <h3>
                                 Reposiciones {{ dataTableReposiciones.length }}
                             </h3>
 
-                            <b-alert class="text-center" v-if="dataTableReposiciones.length < 1" show variant="info">
-                                No tienes reposiciones en curso</b-alert>
-                            <b-table v-else stacked :items="dataTableReposiciones" :fields="filedsLista"
-                                :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                            <b-alert
+                                class="text-center"
+                                v-if="dataTableReposiciones.length < 1"
+                                show
+                                variant="info"
+                            >
+                                No tienes reposiciones en curso</b-alert
+                            >
+                            <!-- TABLA DE REPOSICIONES -->
+                            <b-table
+                                v-else
+                                stacked
+                                :items="dataTableReposiciones"
+                                :fields="filedsLista"
+                                :filter-included-fields="includedFields"
+                                @filtered="onFiltered"
+                                :filter="filter"
+                            >
                                 <template #cell(orden)="row">
                                     <div style="width: 164%; float: left">
                                         <span class="floatme">
-                                            <linkSearch class="floatme mb-2" :id="row.item.orden" />
+                                            <linkSearch
+                                                class="floatme mb-2"
+                                                :id="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Ver detalles -->
@@ -78,42 +126,86 @@
 
                                         <!-- Terminar -->
                                         <span class="floatme">
-                                            <empleados-SseOrdenesAsignadasModalExtra :departamento="$store.state.login.dataUser
-                                                .departamento
-                                                " :item="row.item" :items="filterOrder(
-                                                    row.item.orden,
-                                                    'en curso'
-                                                )
-                                                    " class="floatme" :esreposicion="1" :insumosimp="insumosImpresion"
-                                                :insumosest="insumosEstampado" :insumoscor="insumosCorte"
-                                                :insumoscos="insumosCostura" :insumoslim="insumosLimpieza"
-                                                :insumosrev="insumosRevision" tipo="todo" :idorden="row.item.orden"
-                                                :id_ordenes_productos="row.item.id_ordenes_productos"
-                                                @reload="reloadMe" />
+                                            <empleados-SseOrdenesAsignadasModalExtra
+                                                :pausas="pausas"
+                                                :departamento="
+                                                    $store.state.login.dataUser
+                                                        .departamento
+                                                "
+                                                :item="row.item"
+                                                :items="
+                                                    filterOrder(
+                                                        row.item.orden,
+                                                        'en curso'
+                                                    )
+                                                "
+                                                class="floatme"
+                                                :esreposicion="1"
+                                                :idlotesdetalles="
+                                                    row.item.id_lotes_detalles
+                                                "
+                                                :insumosimp="insumosImpresion"
+                                                :insumosest="insumosEstampado"
+                                                :insumoscor="insumosCorte"
+                                                :insumoscos="insumosCostura"
+                                                :insumoslim="insumosLimpieza"
+                                                :insumosrev="insumosRevision"
+                                                tipo="todo"
+                                                :idorden="row.item.orden"
+                                                :id_ordenes_productos="
+                                                    row.item
+                                                        .id_ordenes_productos
+                                                "
+                                                @reload="reloadMe"
+                                                @registrarestado="
+                                                    registrarEstado
+                                                "
+                                            />
                                         </span>
 
                                         <!-- Ver Diseño -->
                                         <span class="floatme">
-                                            <diseno-view-image class="floatme mb-2" :id="row.item.orden" />
+                                            <diseno-view-image
+                                                class="floatme mb-2"
+                                                :id="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- ProgressBar -->
-                                        <span class="floatme" style="width: 160px">
-                                            <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
+                                        <span
+                                            class="floatme"
+                                            style="width: 160px"
+                                        >
+                                            <empleados-ProgressBarEmpleados
+                                                :idOrden="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Reposición -->
                                         <span class="floatme">
-                                            <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" />
+                                            <empleados-reposicion
+                                                @reload_this="reloadMe"
+                                                :id_orden="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Detalles productos -->
                                         <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor esreposicion="true"
-                                                :idorden="row.item.orden" :detalles="row.item.observaciones"
-                                                :detalle_empleado="row.item.detalle_empleado
-                                                    " :productos="productsFilter(row.item.orden)
-                                                        " />
+                                            <produccion-control-de-produccion-detalles-editor
+                                                esreposicion="true"
+                                                :idorden="row.item.orden"
+                                                :detalles="
+                                                    row.item.observaciones
+                                                "
+                                                :detalle_empleado="
+                                                    row.item.detalle_empleado
+                                                "
+                                                :productos="
+                                                    productsFilter(
+                                                        row.item.orden
+                                                    )
+                                                "
+                                            />
                                         </span>
                                         <!-- Detalle Reposición -->
                                         <!-- <span class="floatme">
@@ -129,73 +221,125 @@
                                 <!-- Lista de productos -->
                             </b-table>
                         </b-col>
-
                     </b-row>
 
+                    <!-- En curso -->
                     <b-row>
                         <b-col>
                             <h3>En Curso {{ dataTableEnCurso.length }}</h3>
-                            <b-alert class="text-center" v-if="dataTableEnCurso.length < 1" show variant="info">No
-                                tienes tareas en
-                                curso</b-alert>
+                            <b-alert
+                                class="text-center"
+                                v-if="dataTableEnCurso.length < 1"
+                                show
+                                variant="info"
+                                >No tienes tareas en curso</b-alert
+                            >
                             <!-- BOTONES EN CURSO -->
-                            <b-table v-else stacked :items="dataTableEnCurso" :fields="filedsLista"
-                                :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                            <b-table
+                                v-else
+                                stacked
+                                :items="dataTableEnCurso"
+                                :fields="filedsLista"
+                                :filter-included-fields="includedFields"
+                                @filtered="onFiltered"
+                                :filter="filter"
+                            >
                                 <template #cell(orden)="row">
                                     <div style="width: 164%; float: left">
                                         <span class="floatme">
-                                            <linkSearch class="floatme mb-2" :id="row.item.orden" />
+                                            <linkSearch
+                                                class="floatme mb-2"
+                                                :id="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Terminar -->
                                         <span class="floatme">
                                             <empleados-SseOrdenesAsignadasModalExtra
-                                                :departamento="$store.state.login.dataUser.departamento"
-                                                :item="row.item" :items="filterOrder(
-                                                    row.item.orden,
-                                                    'en curso'
-                                                )
-                                                    " class="floatme" :esreposicion="0" :insumosimp="insumosImpresion"
-                                                :insumosest="insumosEstampado" :insumoscos="insumosCostura"
-                                                :insumoslim="insumosLimpieza" :insumosrev="insumosRevision"
-                                                :insumoscor="insumosCorte" tipo="todo" :idorden="row.item.orden"
-                                                :id_ordenes_productos="row.item
-                                                    .id_ordenes_productos
-                                                    " @reload="reloadMe()" />
+                                                :pausas="pausas"
+                                                :departamento="
+                                                    $store.state.login.dataUser
+                                                        .departamento
+                                                "
+                                                :item="row.item"
+                                                :items="
+                                                    filterOrder(
+                                                        row.item.orden,
+                                                        'en curso'
+                                                    )
+                                                "
+                                                class="floatme"
+                                                :esreposicion="0"
+                                                :insumosimp="insumosImpresion"
+                                                :insumosest="insumosEstampado"
+                                                :insumoscos="insumosCostura"
+                                                :insumoslim="insumosLimpieza"
+                                                :insumosrev="insumosRevision"
+                                                :insumoscor="insumosCorte"
+                                                tipo="todo"
+                                                :idorden="row.item.orden"
+                                                :id_ordenes_productos="
+                                                    row.item
+                                                        .id_ordenes_productos
+                                                "
+                                                @reload="reloadMe()"
+                                            />
                                         </span>
 
                                         <!-- Ver Diseño -->
                                         <span class="floatme">
-                                            <diseno-view-image class="floatme mb-2" :id="row.item.orden" />
+                                            <diseno-view-image
+                                                class="floatme mb-2"
+                                                :id="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- ProgressBar -->
-                                        <span class="floatme" style="width: 160px">
-                                            <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
+                                        <span
+                                            class="floatme"
+                                            style="width: 160px"
+                                        >
+                                            <empleados-ProgressBarEmpleados
+                                                :idOrden="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Reposición -->
                                         <span class="floatme">
-                                            <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" />
+                                            <empleados-reposicion
+                                                @reload_this="reloadMe"
+                                                :id_orden="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Detalles -->
                                         <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor esreposicion="false"
-                                                :idorden="row.item.orden" :detalles="row.item.observaciones
-                                                    " :detalle_empleado="row.item.detalle_empleado
-                                                        " :productos="productsFilter(
-                                                            row.item.orden
-                                                        )
-                                                            " />
+                                            <produccion-control-de-produccion-detalles-editor
+                                                esreposicion="false"
+                                                :idorden="row.item.orden"
+                                                :detalles="
+                                                    row.item.observaciones
+                                                "
+                                                :detalle_empleado="
+                                                    row.item.detalle_empleado
+                                                "
+                                                :productos="
+                                                    productsFilter(
+                                                        row.item.orden
+                                                    )
+                                                "
+                                            />
                                         </span>
 
                                         <!-- Vinculadas -->
                                         <span class="floatme">
-                                            <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(
-                                                row.item.orden
-                                            )
-                                                " />
+                                            <ordenes-vinculadas-v2
+                                                :ordenes_vinculadas="
+                                                    filterVinculdas(
+                                                        row.item.orden
+                                                    )
+                                                "
+                                            />
                                         </span>
                                     </div>
                                 </template>
@@ -208,50 +352,92 @@
                         <b-col>
                             <h3>Pendientes {{ dataTablePendiente.length }}</h3>
 
-                            <b-alert class="text-center" v-if="dataTablePendiente.length < 1" show variant="info">No
-                                tienes tareas
-                                pendientes</b-alert>
+                            <b-alert
+                                class="text-center"
+                                v-if="dataTablePendiente.length < 1"
+                                show
+                                variant="info"
+                                >No tienes tareas pendientes</b-alert
+                            >
 
-                            <b-table v-else stacked :items="dataTablePendiente" :fields="filedsLista"
-                                :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                            <b-table
+                                v-else
+                                stacked
+                                :items="dataTablePendiente"
+                                :fields="filedsLista"
+                                :filter-included-fields="includedFields"
+                                @filtered="onFiltered"
+                                :filter="filter"
+                            >
                                 <template #cell(orden)="row">
                                     <div style="width: 164%; float: left">
                                         <span class="floatme">
-                                            <linkSearch class="floatme mb-2" :id="row.item.orden" />
+                                            <linkSearch
+                                                class="floatme mb-2"
+                                                :id="row.item.orden"
+                                            />
                                         </span>
 
                                         <span class="floatme">
-                                            <b-button block size="xl" variant="info" @click="
-                                                iniciarTodo(row.item.orden)
-                                                ">Iniciar Todo
+                                            <b-button
+                                                block
+                                                size="xl"
+                                                variant="info"
+                                                @click="
+                                                    iniciarTodo(
+                                                        row.item.orden,
+                                                        row.item.unidades,
+                                                        row.item.id_orden
+                                                    )
+                                                "
+                                                >Iniciar Todo
                                             </b-button>
                                         </span>
 
                                         <span class="floatme">
-                                            <diseno-view-image class="floatme mb-2" :id="row.item.orden" />
+                                            <diseno-view-image
+                                                class="floatme mb-2"
+                                                :id="row.item.orden"
+                                            />
                                         </span>
 
-                                        <span class="floatme" style="width: 160px">
-                                            <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
+                                        <span
+                                            class="floatme"
+                                            style="width: 160px"
+                                        >
+                                            <empleados-ProgressBarEmpleados
+                                                :idOrden="row.item.orden"
+                                            />
                                         </span>
 
                                         <!-- Detalles -->
                                         <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor esreposicion="false"
-                                                :idorden="row.item.orden" :detalles="row.item.observaciones
-                                                    " :detalle_empleado="row.item.detalle_empleado
-                                                        " :productos="productsFilter(
-                                                            row.item.orden
-                                                        )
-                                                            " />
+                                            <produccion-control-de-produccion-detalles-editor
+                                                esreposicion="false"
+                                                :idorden="row.item.orden"
+                                                :detalles="
+                                                    row.item.observaciones
+                                                "
+                                                :detalle_empleado="
+                                                    row.item.detalle_empleado
+                                                "
+                                                :productos="
+                                                    productsFilter(
+                                                        row.item.orden
+                                                    )
+                                                "
+                                            />
                                         </span>
 
                                         <!-- Vinculadas -->
                                         <span class="floatme">
-                                            <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(
-                                                row.item.orden
-                                            )
-                                                " />
+                                            <ordenes-vinculadas-v2
+                                                :ordenes_vinculadas="
+                                                    filterVinculdas(
+                                                        row.item.orden
+                                                    )
+                                                "
+                                            />
                                         </span>
                                     </div>
                                 </template>
@@ -265,7 +451,7 @@
 </template>
 
 <script>
-import mixin from "~/mixins/mixins.js"
+import mixin from "~/mixins/mixins.js";
 
 // import { log } from 'console'
 export default {
@@ -286,6 +472,7 @@ export default {
             ordenes: [],
             vinculadas: [],
             productos: [],
+            pausas: [],
             insumos: [],
             pagos: [],
             overlay: false,
@@ -375,7 +562,7 @@ export default {
                     label: ".",
                 },
             ],
-        }
+        };
     },
 
     mixins: [mixin],
@@ -383,10 +570,10 @@ export default {
     watch: {
         reload(val) {
             // const p = this.dataOrdenEnCurso.push('val')
-            this.dataOrdenEnCurso = [{ data: "hola" }]
+            this.dataOrdenEnCurso = [{ data: "hola" }];
 
-            console.log("cargar informacion en el cuadro informativo", p)
-            return true
+            console.log("cargar informacion en el cuadro informativo", p);
+            return true;
         },
     },
 
@@ -394,53 +581,53 @@ export default {
         insumosImpresion() {
             let options = this.insumos.filter(
                 (item) => item.departamento === "Impresión"
-            )
-            options.concat({ value: 0, text: "Seleccion insumo" })
-            return options
+            );
+            options.concat({ value: 0, text: "Seleccion insumo" });
+            return options;
         },
 
         insumosEstampado() {
             let options = this.insumos.filter(
                 (item) => item.departamento === "Telas"
-            )
-            options.concat({ value: 0, text: "Seleccion insumo" })
-            return options
+            );
+            options.concat({ value: 0, text: "Seleccion insumo" });
+            return options;
         },
 
         insumosCostura() {
             let options = this.insumos.filter(
                 (item) => item.departamento === "Costura"
-            )
-            options.concat({ value: 0, text: "Seleccion insumo" })
-            return options
+            );
+            options.concat({ value: 0, text: "Seleccion insumo" });
+            return options;
         },
 
         insumosRevision() {
             let options = this.insumos.filter(
                 (item) => item.departamento === "Producción"
-            )
-            options.concat({ value: 0, text: "Seleccion insumo" })
-            return options
+            );
+            options.concat({ value: 0, text: "Seleccion insumo" });
+            return options;
         },
 
         insumosLimpieza() {
             let options = this.insumos.filter(
                 (item) => item.departamento === "Producción"
-            )
-            options.concat({ value: 0, text: "Seleccion insumo" })
-            return options
+            );
+            options.concat({ value: 0, text: "Seleccion insumo" });
+            return options;
         },
 
         insumosCorte() {
             let options = this.insumos.filter(
                 (item) => item.departamento === "Telas"
-            )
-            options.concat({ value: 0, text: "Seleccion insumo" })
-            return options
+            );
+            options.concat({ value: 0, text: "Seleccion insumo" });
+            return options;
         },
 
         dataTableEnCurso() {
-            let enCurso = []
+            let enCurso = [];
             if (this.$store.state.login.currentDepartament === "Impresión") {
                 //
                 enCurso = this.ordenes
@@ -457,11 +644,14 @@ export default {
                             // ...el, // Incluimos todas las propiedades originales del objeto "el"
                             esreposicion: false,
                             en_reposiciones: el.en_reposiciones,
+                            id_orden: el.id_orden,
                             extra: el.extra,
                             orden: el.id_orden, // Sobreescribimos la propiedad "orden"
                             urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
                             entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
                             id_lotes_detalles: el.id_lotes_detalles,
+                            lotes_detalles_empleados_asignados:
+                                el.lotes_detalles_empleados_asignados,
                             unidades: el.unidades,
                             id_woo: el.id_woo,
                             en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
@@ -470,7 +660,7 @@ export default {
                             valor_final: el.valor_final,
                             observaciones: el.observaciones,
                             detalle_empleado: el.detalle_empleado,
-                        }
+                        };
                     })
                     .reduce((acc, item) => {
                         // console.log('item to push', item)
@@ -478,17 +668,15 @@ export default {
                             acc.filter((row) => row.orden === item.orden)
                                 .length === 0
                         ) {
-                            acc.push(item)
+                            acc.push(item);
                         }
-                        return acc
-                    }, [])
+                        return acc;
+                    }, []);
             } else if (
                 this.$store.state.login.currentDepartament === "Estampado"
             ) {
                 enCurso = this.ordenes
-                    .filter(
-                        (el) => el.progreso === 'en curso'
-                    ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
+                    .filter((el) => el.progreso === "en curso") // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
                     /* .filter(
                         (el) =>
                             (el.progreso === "en curso" ||
@@ -512,7 +700,7 @@ export default {
                             valor_final: el.valor_final,
                             observaciones: el.observaciones,
                             detalle_empleado: el.detalle_empleado,
-                        }
+                        };
                     })
                     .reduce((acc, item) => {
                         // console.log('item to push', item)
@@ -520,14 +708,12 @@ export default {
                             acc.filter((row) => row.orden === item.orden)
                                 .length === 0
                         ) {
-                            acc.push(item)
+                            acc.push(item);
                         }
-                        return acc
-                    }, [])
+                        return acc;
+                    }, []);
                 // opciones para corte
-            } else if (
-                this.$store.state.login.currentDepartament === "Corte"
-            ) {
+            } else if (this.$store.state.login.currentDepartament === "Corte") {
                 enCurso = this.ordenes
                     .filter(
                         (el) =>
@@ -550,7 +736,7 @@ export default {
                             en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
                             observaciones: el.observaciones,
                             detalle_empleado: el.detalle_empleado,
-                        }
+                        };
                     })
                     .reduce((acc, item) => {
                         // console.log('item to push', item)
@@ -558,17 +744,18 @@ export default {
                             acc.filter((row) => row.orden === item.orden)
                                 .length === 0
                         ) {
-                            acc.push(item)
+                            acc.push(item);
                         }
-                        return acc
-                    }, [])
+                        return acc;
+                    }, []);
             } else {
                 enCurso = this.ordenes
                     .filter(
                         (el) =>
                             el.progreso === "en curso" &&
                             el.en_inv_mov === 0 &&
-                            el.en_reposiciones === 0 && el.fecha_inicio != null
+                            el.en_reposiciones === 0 &&
+                            el.fecha_inicio != null
                     ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
                     .map((el) => {
                         return {
@@ -586,7 +773,7 @@ export default {
                             en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
                             observaciones: el.observaciones,
                             detalle_empleado: el.detalle_empleado,
-                        }
+                        };
                     })
                     .reduce((acc, item) => {
                         // console.log('item to push', item)
@@ -594,27 +781,24 @@ export default {
                             acc.filter((row) => row.orden === item.orden)
                                 .length === 0
                         ) {
-                            acc.push(item)
+                            acc.push(item);
                         }
-                        return acc
-                    }, [])
+                        return acc;
+                    }, []);
             }
 
-            console.log("dataTableEnCurso", enCurso)
-            return enCurso
+            return enCurso;
         },
 
         dataTablePendiente() {
             return (
                 this.ordenes
                     // .filter((el) => el.fecha_inicio === null)
-                    .filter(
-                        (el) =>
-                            el.progreso === "por iniciar"
-                    )
+                    .filter((el) => el.progreso === "por iniciar")
                     .map((el) => {
                         return {
                             // ...el,
+                            id_orden: el.id_orden,
                             esreposicion: false,
                             en_reposiciones: el.en_reposiciones,
                             orden: el.id_orden,
@@ -624,7 +808,7 @@ export default {
                             unidades: el.unidades,
                             observaciones: el.observaciones,
                             detalle_empleado: el.detalle_empleado,
-                        }
+                        };
                     })
                     .reduce((acc, item) => {
                         // console.log('item to push', item)
@@ -633,11 +817,11 @@ export default {
                             acc.filter((row) => row.orden === item.orden)
                                 .length === 0
                         ) {
-                            acc.push(item)
+                            acc.push(item);
                         }
-                        return acc
+                        return acc;
                     }, [])
-            )
+            );
         },
 
         dataTableReposiciones() {
@@ -660,7 +844,7 @@ export default {
                             detalle_empleado: el.detalle_empleado,
                             detalle_reposicion: el.detalle_reposicion,
                             id_ordenes_productos: el.id_ordenes_productos,
-                        }
+                        };
                     })
                     .reduce((acc, item) => {
                         // console.log('item to push', item)
@@ -669,25 +853,25 @@ export default {
                             acc.filter((row) => row.orden === item.orden)
                                 .length === 0
                         ) {
-                            acc.push(item)
+                            acc.push(item);
                         }
-                        return acc
+                        return acc;
                     }, [])
-            )
+            );
         },
 
         ordersListPendiente() {
             if (!Array.isArray(this.pagos)) {
-                this.pagos = []
+                this.pagos = [];
             }
 
             let tmp = this.ordenes
                 .map((item) => {
-                    let txtVariant
+                    let txtVariant;
                     if (parseInt(item.prioridad)) {
-                        txtVariant = "danger"
+                        txtVariant = "danger";
                     } else {
-                        txtVariant = "success"
+                        txtVariant = "success";
                     }
                     return {
                         orden: item.id_orden,
@@ -696,7 +880,7 @@ export default {
                         inicio: item.fecha_inicio,
                         terminado: item.fecha_terminado,
                         urgent: this.checkPrioridad(item.prioridad),
-                    }
+                    };
                 })
                 .reduce((acc, item) => {
                     // console.log('item to push', item)
@@ -705,25 +889,25 @@ export default {
                         acc.filter((row) => row.orden === item.orden).length ===
                         0
                     ) {
-                        acc.push(item)
+                        acc.push(item);
                     }
-                    return acc
-                }, [])
-            return tmp
+                    return acc;
+                }, []);
+            return tmp;
         },
 
         ordersListEnCurso() {
             if (!Array.isArray(this.pagos)) {
-                this.pagos = []
+                this.pagos = [];
             }
 
             let tmp = this.ordenes
                 .map((item) => {
-                    let txtVariant
+                    let txtVariant;
                     if (parseInt(item.prioridad)) {
-                        txtVariant = "danger"
+                        txtVariant = "danger";
                     } else {
-                        txtVariant = "success"
+                        txtVariant = "success";
                     }
                     return {
                         orden: item.id_orden,
@@ -732,7 +916,7 @@ export default {
                         terminado: item.fecha_terminado,
                         inicio: item.fecha_inicio,
                         urgent: this.checkPrioridad(item.prioridad),
-                    }
+                    };
                 })
                 .reduce((acc, item) => {
                     // console.log('item to push', item)
@@ -741,77 +925,115 @@ export default {
                         acc.filter((row) => row.orden === item.orden).length ===
                         0
                     ) {
-                        acc.push(item)
+                        acc.push(item);
                     }
-                    return acc
-                }, [])
-            return tmp
+                    return acc;
+                }, []);
+            return tmp;
         },
 
         ordenesSize() {
-            let size = null
-            size = parseInt(this.ordenes.length)
-            if (size) {
-                this.msg = "Cargando sus tareas por favor espere..."
+            // let size = 0;
+            let size = parseInt(this.ordenes.length);
+            if (size < 1) {
+                this.msg = "Usted no tiene ordenes asignadas";
             } else {
-                this.msg = "Usted no tiene ordenes asignadas"
                 // this.msg = "Has terminado todas tus tareas 👍";
             }
 
-            return size
+            return size;
         },
     },
 
     methods: {
         filterVinculdas(id_orden) {
-            return this.vinculadas.filter((el) => el.id_father === id_orden)
+            return this.vinculadas.filter((el) => el.id_father === id_orden);
         },
 
         onFiltered(filteredItems) {
             // Trigger pagination to update the number of buttons/pages due to filtering
-            this.totalRows = filteredItems.length
-            this.currentPage = 1
+            this.totalRows = filteredItems.length;
+            this.currentPage = 1;
         },
 
         productsFilter_old(id) {
-            return this.productos.filter((el) => el.id_orden == id)
+            return this.productos.filter((el) => el.id_orden == id);
         },
 
         productsFilter(id) {
-            const seen = new Set()
+            const seen = new Set();
             return this.productos.filter((el) => {
-                const key = JSON.stringify(el)
+                const key = JSON.stringify(el);
                 if (seen.has(key)) {
-                    return false
+                    return false;
                 } else {
-                    seen.add(key)
-                    return el.id_orden == id
+                    seen.add(key);
+                    return el.id_orden == id;
                 }
-            })
+            });
         },
 
         setStatusButton(status, urgent) {
             if (urgent === "0") {
-                return status
+                return status;
             } else {
-                return "danger"
+                return "danger";
             }
         },
 
-        async registrarEstado(tipo, id_lotes_detalles, unidades) {
+        async registrarEstado(tipo, id_orden, unidades) {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set(
+                "id_empleado",
+                this.$store.state.login.dataUser.id_empleado
+            );
+            data.set(
+                "id_departamento",
+                this.$store.state.login.currentDepartamentId
+            );
+            data.set("id_orden", id_orden);
+            // data.set("id_lotes_detalles", this.item.id_lotes_detalles);
+            data.set("tipo", tipo);
+            data.set("unidades", unidades);
+            data.set(
+                "departamento",
+                this.$store.state.login.currentDepartament
+            );
+
+            await this.$axios
+                .post(`${this.$config.API}/registrar-paso-empleado`, data)
+                .then((res) => {
+                    console.log("emitimos aqui...");
+                    // this.$emit('reload', 'true')
+                    this.overlay = false;
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>No se pudo registrar la acción</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
+        async registrarEstado_old(tipo, id_lotes_detalles, unidades) {
             // tipos: inicio, fin
-            this.overlay = true
+            this.overlay = true;
             if (this.ButtonText === "INICIAR TAREA") {
-                this.ButtonDisabled = true
+                this.ButtonDisabled = true;
             }
 
             await this.$axios
                 .post(
-                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartament}/${id_lotes_detalles}/${unidades}`
+                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartamentId}/${id_lotes_detalles}/${unidades}`
                 )
                 .then((resp) => {
-                    console.log("emitimos aqui...")
-                    this.overlay = false
+                    console.log("emitimos aqui...");
+                    this.overlay = false;
                     // this.$emit('reload', 'true')
                 })
                 .catch((err) => {
@@ -819,33 +1041,33 @@ export default {
                         title: "Error registrando la accion",
                         html: `<p>Por favor intetelo de nuevo</p><p>${err}</p>`,
                         type: "warning",
-                    })
+                    });
                 })
                 .finally(() => {
                     if (tipo === "fin") {
-                        this.$emit("reload")
+                        this.$emit("reload");
                     }
-                })
+                });
         },
 
         async rendimiento(valor, idOrden) {
-            const data = new URLSearchParams()
-            data.set("id_orden", idOrden)
-            data.set("valor", valor)
+            const data = new URLSearchParams();
+            data.set("id_orden", idOrden);
+            data.set("valor", valor);
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            )
+            );
             data.set(
                 "departamento",
                 this.$store.state.login.currentDepartament
-            )
+            );
 
             await this.$axios
                 .post(`${this.$config.API}/insumos/rendimiento`, data)
                 .then((res) => {
-                    console.log("Rendimienot enviado")
-                })
+                    console.log("Rendimienot enviado");
+                });
         },
 
         /* async sendMessageClient(idOrden) {
@@ -861,8 +1083,39 @@ export default {
             })
         }, */
 
-        iniciarTodo(idOrden) {
-            console.log("Itmes a iniciar", this.dataTablePendiente)
+        iniciarTodo(idOrden, unidades) {
+            this.$confirm(
+                ``,
+                `¿Desea inicar todas las tareas de la Orden ${idOrden}?`,
+                "question"
+            )
+                .then(() => {
+                    /* const OrdenesPorIniciar = this.ordenes.filter(
+                        (el) => el.id_orden == idOrden
+                    );
+
+                    console.log("OrdenesPorIniciar", OrdenesPorIniciar); */
+
+                    this.registrarEstado("inicio", idOrden, unidades).then(
+                        () => {
+                            this.reloadMe();
+                            this.sendMessageClient(idOrden);
+                        }
+                    );
+                })
+                .catch((err) => {
+                    console.log(`Error al iniciar la tarea`, err);
+                    return false;
+                })
+                .finally(() => {
+                    this.reloadMe();
+                    // this.getOrdenesAsignadas()
+                    this.overlay = false;
+                });
+        },
+
+        /* iniciarTodo(idOrden) {
+            console.log("Itmes a iniciar", this.dataTablePendiente);
 
             this.$confirm(
                 ``,
@@ -872,49 +1125,46 @@ export default {
                 .then(() => {
                     const OrdenesPorIniciar = this.ordenes.filter(
                         (el) => el.id_orden == idOrden
-                    )
+                    );
 
-                    console.log('OrdenesPorIniciar', OrdenesPorIniciar);
-
+                    console.log("OrdenesPorIniciar", OrdenesPorIniciar);
 
                     OrdenesPorIniciar.forEach((item) => {
                         this.registrarEstado(
                             "inicio",
                             item.id_lotes_detalles,
                             item.unidades
-                        ).then(() => { })
-                    })
+                        ).then(() => {});
+                    });
 
-                    this.reloadMe()
-                    this.sendMessageClient(idOrden)
+                    this.reloadMe();
+                    this.sendMessageClient(idOrden);
                 })
                 .catch((err) => {
-                    console.log(`Error al iniciar la tarea`, err)
-                    return false
+                    console.log(`Error al iniciar la tarea`, err);
+                    return false;
                 })
                 .finally(() => {
                     this.reloadMe();
                     // this.getOrdenesAsignadas()
-                    this.overlay = false
-                })
-        },
+                    this.overlay = false;
+                });
+        }, */
 
         checkTerminar(idOrden, items) {
             /**
              * Checar aqui si vamos a termiar todo e individual también okok!
              */
             if (this.$store.state.login.currentDepartament === "Impresión") {
-                alert("Solicitar números de rollos de papel")
+                alert("Solicitar números de rollos de papel");
             } else if (
                 this.$store.state.login.currentDepartament === "Estampado"
             ) {
-                alert("Solicitar datos de Estampado")
-            } else if (
-                this.$store.state.login.currentDepartament === "Corte"
-            ) {
-                alert("Solicitar datos de Corte")
+                alert("Solicitar datos de Estampado");
+            } else if (this.$store.state.login.currentDepartament === "Corte") {
+                alert("Solicitar datos de Corte");
             } else {
-                alert("No preguntar nada, empleado normal")
+                alert("No preguntar nada, empleado normal");
             }
         },
 
@@ -929,18 +1179,18 @@ export default {
                     const showForm = parseInt(
                         this.$store.state.datasys.dataSys
                             .sys_mostrar_detalle_terminar_indicidual
-                    )
-                    console.log("showForm", showForm)
+                    );
+                    console.log("showForm", showForm);
 
                     if (showForm) {
                         // Discriminar departamentos
                         if (
                             this.$store.state.login.currentDepartament ===
-                            "Impresión" ||
+                                "Impresión" ||
                             this.$store.state.login.currentDepartament ===
-                            "Estampado" ||
+                                "Estampado" ||
                             this.$store.state.login.currentDepartament ===
-                            "Corte"
+                                "Corte"
                         ) {
                             this.$fire({
                                 html: this.promptHTML,
@@ -950,7 +1200,7 @@ export default {
                                 showCancelButton: true,
                                 inputValidator: (value) => {
                                     if (!value) {
-                                        alert("Debe ingresar un valor")
+                                        alert("Debe ingresar un valor");
                                     } else {
                                         this.rendimiento(value, idOrden).then(
                                             () => {
@@ -959,28 +1209,28 @@ export default {
                                                     item.id_lotes_detalles,
                                                     item.unidades
                                                 ).then(() => {
-                                                    this.reloadMe()
-                                                })
+                                                    this.reloadMe();
+                                                });
                                                 /* items.forEach((item) => {
                         // enviar
                       }) */
                                             }
-                                        )
+                                        );
                                     }
                                 },
-                            })
+                            });
                         } else {
                             console.log(
                                 "iteem para terminar tarea individual",
                                 item
-                            )
+                            );
                             this.registrarEstado(
                                 "fin",
                                 item.id_lotes_detalles,
                                 item.unidades
                             ).then(() => {
-                                this.reloadMe()
-                            })
+                                this.reloadMe();
+                            });
                             /* items.forEach((item) => {
                 // enviar
               }) */
@@ -991,76 +1241,76 @@ export default {
                             item.id_lotes_detalles,
                             item.unidades
                         ).then(() => {
-                            this.reloadMe()
-                        })
+                            this.reloadMe();
+                        });
                     }
                 })
                 .catch((err) => {
-                    return false
+                    return false;
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
 
         getDataTable(data) {
-            this.dataInsumos = data
+            this.dataInsumos = data;
         },
 
         compararFecha(fecha) {
             // Obtener la fecha actual
-            const fechaActual = new Date()
+            const fechaActual = new Date();
 
             // Dividir la fecha ingresada en día, mes y año
-            const [dia, mes, anio] = fecha.split("-")
+            const [dia, mes, anio] = fecha.split("-");
 
             // Crear un objeto de fecha con la fecha ingresada
-            const fechaIngresada = new Date(anio, mes - 1, dia)
+            const fechaIngresada = new Date(anio, mes - 1, dia);
 
             // Comparar las fechas
             if (fechaIngresada <= fechaActual) {
                 // La fecha es igual o menor a la fecha actual, retornar el mismo valor
-                return fecha
+                return fecha;
             } else {
                 // Restar un día a la fecha ingresada
-                fechaIngresada.setDate(fechaIngresada.getDate() - 1)
+                fechaIngresada.setDate(fechaIngresada.getDate() - 1);
 
                 // Obtener el nuevo día, mes y año
-                const nuevoDia = fechaIngresada.getDate()
-                const nuevoMes = fechaIngresada.getMonth() + 1
-                const nuevoAnio = fechaIngresada.getFullYear()
+                const nuevoDia = fechaIngresada.getDate();
+                const nuevoMes = fechaIngresada.getMonth() + 1;
+                const nuevoAnio = fechaIngresada.getFullYear();
 
                 // Formatear el nuevo valor de la fecha
                 const nuevoValor = `${nuevoDia
                     .toString()
                     .padStart(2, "0")}-${nuevoMes
-                        .toString()
-                        .padStart(2, "0")}-${nuevoAnio}`
+                    .toString()
+                    .padStart(2, "0")}-${nuevoAnio}`;
 
-                return nuevoValor
+                return nuevoValor;
             }
         },
 
         checkPrioridad(val) {
-            const prioridad = parseInt(val)
-            let variant = ""
+            const prioridad = parseInt(val);
+            let variant = "";
             if (prioridad) {
-                variant = "danger"
+                variant = "danger";
             } else {
-                variant = "info"
+                variant = "info";
             }
-            return variant
+            return variant;
         },
 
         createArray(obj) {
-            const arr = []
-            arr.push(obj)
-            console.log(" creata array", arr)
-            return arr
+            const arr = [];
+            arr.push(obj);
+            console.log(" creata array", arr);
+            return arr;
         },
 
         filterOrder(id_orden, tipo) {
-            let products
+            let products;
             if (tipo === "en curso") {
                 // Discriminar ordenes de Impresión
                 if (this.departamento === "Impresión") {
@@ -1069,7 +1319,7 @@ export default {
                             item.id_orden === id_orden &&
                             item.progreso === tipo &&
                             item.en_tintas === 0
-                    )
+                    );
                 } /* else if (this.departamento === 'Estampado') {
           // Discriminar estampado
         } else if (this.departamento === 'Corte') {
@@ -1078,24 +1328,21 @@ export default {
                     products = this.ordenes.filter(
                         (item) =>
                             item.id_orden === id_orden && item.progreso === tipo
-                    )
+                    );
                 }
             } else if (tipo === "todo") {
                 products = this.ordenes.filter(
                     (item) =>
                         item.id_orden === id_orden && !item.fecha_inicio != null
-                )
+                );
             } else {
                 products = this.ordenes.filter(
                     (item) =>
                         item.id_orden === id_orden && item.progreso === tipo
-                )
+                );
             }
-            console.log("Todos ordenes", this.ordenes)
 
-            console.log(`Productos filtrados tipo ${tipo}`, products)
-
-            return products
+            return products;
         },
 
         async getOrdenesAsignadas() {
@@ -1104,18 +1351,17 @@ export default {
                     `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}`
                 )
                 .then((resp) => {
-                    console.log("respuesta de ordenes asignadas", resp)
-
                     if (resp.data.ordenes.length === 0) {
-                        this.msg = "Usted no tiene ordenes asignadas"
-                        console.log("Usted no tiene ordenes asignadas")
+                        this.msg = "Usted no tiene ordenes asignadas";
+                        console.log("Usted no tiene ordenes asignadas");
                     }
 
-                    this.ordenes = []
-                    this.ordenes = resp.data.ordenes
-                    this.vinculadas = resp.data.vinculadas
-                    this.productos = resp.data.productos
-                })
+                    this.ordenes = [];
+                    this.ordenes = resp.data.ordenes;
+                    this.vinculadas = resp.data.vinculadas;
+                    this.productos = resp.data.productos;
+                    this.pausas = resp.data.pausas;
+                });
         },
 
         /* getOrdenesAsignadasSSE() {
@@ -1219,30 +1465,30 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/insumos`)
                 .then((resp) => {
-                    this.insumos = resp.data
-                })
+                    this.insumos = resp.data;
+                });
         },
 
         maquetarPrioridad(prioridad) {
-            const pri = parseInt(prioridad)
-            let text = ""
+            const pri = parseInt(prioridad);
+            let text = "";
 
             if (!pri) {
-                text = ""
-                this.fields[0].variant = "info"
+                text = "";
+                this.fields[0].variant = "info";
             } else {
-                text = ""
-                this.fields[0].variant = "danger"
+                text = "";
+                this.fields[0].variant = "danger";
             }
 
-            return text
+            return text;
         },
 
         reloadMe() {
-            this.getInsumos()
-            this.getOrdenesAsignadas()
+            this.getInsumos();
+            this.getOrdenesAsignadas();
             if (this.ordenes != this.items) {
-                this.msg = "Tiene nuevas ordenes asignadas"
+                this.msg = "Tiene nuevas ordenes asignadas";
             }
         },
     },
@@ -1253,24 +1499,24 @@ export default {
       `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`
     ); */
 
-        this.getOrdenesAsignadas()
+        this.getOrdenesAsignadas().then(() => {
+            // console.log("Pausas en  V4", this.pausas);
+        });
         if (this.$store.state.login.currentDepartament === "Impresión") {
-            this.promptHTML = "<h2>Ingrese la cantidad en metros</h2>"
-            this.prompInputType = "number"
+            this.promptHTML = "<h2>Ingrese la cantidad en metros</h2>";
+            this.prompInputType = "number";
             // Cargar Insumos
-        } else if (
-            this.$store.state.login.currentDepartament === "Estampado"
-        ) {
-            this.promptHTML = "<h2>Ingrese el número de rollo</h2>"
-            this.prompInputType = "number"
+        } else if (this.$store.state.login.currentDepartament === "Estampado") {
+            this.promptHTML = "<h2>Ingrese el número de rollo</h2>";
+            this.prompInputType = "number";
         } else if (this.$store.state.login.currentDepartament === "Corte") {
             this.promptHTML =
-                "<h2>Ingrese el peso del desperdicio en Gramos</h2>"
-            this.prompInputType = "number"
+                "<h2>Ingrese el peso del desperdicio en Gramos</h2>";
+            this.prompInputType = "number";
         }
-        this.getInsumos()
+        this.getInsumos();
     },
 
     props: ["emp", "updatedata"],
-}
+};
 </script>

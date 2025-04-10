@@ -7,10 +7,6 @@
             </b-button>
 
             <b-modal :id="modal" :title="title" size="lg" ok-only>
-                <!-- <pre style="display: block !important">
-          {{ $props }}
-        </pre
-                > -->
                 <b-row class="mt-2">
                     <b-col>
                         <div class="floatme">
@@ -18,28 +14,46 @@
                         </div>
 
                         <div class="floatme">
-                            <b-button v-b-toggle.collapse-1 variant="primary">Ver original</b-button>
+                            <b-button v-b-toggle.collapse-1 variant="primary"
+                                >Ver original</b-button
+                            >
                             <b-collapse id="collapse-1" class="mt-2">
                                 <b-card>
-                                    <div v-html="detalles"></div>
+                                    <div v-html="detalles_orden"></div>
                                 </b-card>
                             </b-collapse>
                         </div>
 
                         <div class="floatme">
-                            <b-button v-b-toggle.collapse-2 variant="primary">Productos</b-button>
+                            <b-button v-b-toggle.collapse-2 variant="primary"
+                                >Productos</b-button
+                            >
                             <!-- {{ $props }} -->
                             <b-collapse id="collapse-2" class="mt-2">
                                 <b-card>
-                                    <b-table striped hover :fields="fields" :items="misProductos">
+                                    <b-table
+                                        striped
+                                        hover
+                                        :fields="fields"
+                                        :items="misProductos"
+                                    >
                                         <template #cell(terminado)="row">
-                                            <empleados-check-tarea :id_lotes_detalles="row.item.id_lotes_detalles
-                                                " :terminado="row.item.terminado" />
+                                            <empleados-check-tarea
+                                                :id_lotes_detalles="
+                                                    row.item.id_lotes_detalles
+                                                "
+                                                :terminado="row.item.terminado"
+                                            />
                                         </template>
 
-                                        <template #cell(detalle_reposicion)="row">
-                                            <produccion-control-de-produccion-detalle-reposicion :detalle="row.item.detalle_reposicion
-                                                " />
+                                        <template
+                                            #cell(detalle_reposicion)="row"
+                                        >
+                                            <produccion-control-de-produccion-detalle-reposicion
+                                                :detalle="
+                                                    row.item.detalle_reposicion
+                                                "
+                                            />
                                         </template>
                                     </b-table>
                                 </b-card>
@@ -58,8 +72,11 @@
 
                 <b-row class="mt-4">
                     <b-col>
-                        <quill-editor v-model="borrador" @change="onEditorChange($event)"
-                            :options="quillOptions"></quill-editor>
+                        <quill-editor
+                            v-model="borrador"
+                            @change="onEditorChange($event)"
+                            :options="quillOptions"
+                        ></quill-editor>
                     </b-col>
                 </b-row>
             </b-modal>
@@ -68,8 +85,9 @@
 </template>
 
 <script>
-import axios from "axios"
-import quillOptions from "~/plugins/nuxt-quill-plugin"
+import axios from "axios";
+import { group, log } from "console";
+import quillOptions from "~/plugins/nuxt-quill-plugin";
 
 export default {
     data() {
@@ -77,6 +95,8 @@ export default {
             title: `Detalles de la orden ${this.idorden}`,
             quillOptions,
             msg: "",
+            detalles_orden: "",
+            detalles_empleado: "",
             borrador: "",
             html2: "",
             fields_static: [
@@ -109,32 +129,34 @@ export default {
                     label: "Detalle",
                 },
             ],
-        }
+        };
     },
 
     computed: {
         misProductos() {
-            let prods
+            let prods;
             if (this.esreposicion == "true") {
                 prods = this.productos
                     .filter((el) => el.reposicion_terminada === 0)
-                    .map((el) => ({ ...el, cantidad: el.unidades_reposicion }))
+                    .map((el) => ({ ...el, cantidad: el.unidades_reposicion }));
             } else {
                 prods = this.productos.filter(
                     (el) => el.reposicion_terminada === null
-                )
+                );
             }
-            return prods
+            return prods;
         },
 
         misProductos_filto_chatgpt_por_probar() {
             let prods;
             if (this.esreposicion === "true") {
                 prods = this.productos
-                    .filter(el => el.reposicion_terminada === 0)
-                    .map(el => ({ ...el, cantidad: el.unidades_reposicion }));
+                    .filter((el) => el.reposicion_terminada === 0)
+                    .map((el) => ({ ...el, cantidad: el.unidades_reposicion }));
             } else {
-                prods = this.productos.filter(el => el.reposicion_terminada === null);
+                prods = this.productos.filter(
+                    (el) => el.reposicion_terminada === null
+                );
             }
 
             // Eliminar duplicados basado en el campo 'id' (puedes ajustar el campo según tu estructura de datos)
@@ -152,13 +174,13 @@ export default {
         },
 
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7)
+            const rand = Math.random().toString(36).substring(2, 7);
 
-            return `modal-${rand}`
+            return `modal-${rand}`;
         },
 
         fields() {
-            let fields
+            let fields;
 
             if (this.esreposicion == "true") {
                 if (this.$store.state.login.dataUser.departamento === "Corte") {
@@ -191,7 +213,7 @@ export default {
                             key: "detalle_reposicion",
                             label: "Detalle",
                         },
-                    ]
+                    ];
                 } else {
                     fields = [
                         {
@@ -222,7 +244,7 @@ export default {
                             key: "detalle_reposicion",
                             label: "Detalle",
                         },
-                    ]
+                    ];
                 }
             } else {
                 if (this.$store.state.login.dataUser.departamento === "Corte") {
@@ -251,7 +273,7 @@ export default {
                             key: "tela",
                             label: "Tela",
                         },
-                    ]
+                    ];
                 } else {
                     fields = [
                         {
@@ -278,60 +300,100 @@ export default {
                             key: "tela",
                             label: "Tela",
                         },
-                    ]
+                    ];
                 }
             }
 
-            return fields
+            return fields;
         },
     },
 
     methods: {
+        async getObservaciones() {
+            this.overlay = true;
+            await this.$axios
+                .get(
+                    `${this.$config.API}/ordenes/observaciones/${this.idorden}/${this.$store.state.login.dataUser.id_empleado}/${this.$store.state.login.currentDepartamentId}`
+                )
+                .then((res) => {
+                    console.log(
+                        "resultado de buscar las observaciones del empleado",
+                        res.data
+                    );
+
+                    this.detalles_orden = res.data[0].observaciones_ordenes;
+                    this.borrador = res.data[0].observaciones_empleado;
+
+                    console.group("obs");
+                    console.log("Observaciones orden", this.detalles_orden);
+                    console.log("Observaciones empleado", this.borrador);
+                    console.groupEnd("obs");
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<P>No se obtuivieron las observaciones</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
         async postBorrador(borrador) {
-            this.msg = "Guardando..."
-            const data = new URLSearchParams()
-            data.set("id_orden", this.idorden)
+            this.msg = "Guardando...";
+            const data = new URLSearchParams();
+            data.set("id_orden", this.idorden);
             data.set(
                 "id_empleado",
                 this.$store.state.login.dataUser.id_empleado
-            )
-            data.set("borrador", borrador)
+            );
+            data.set(
+                "id_departamento",
+                this.$store.state.login.currentDepartamentId
+            );
+            data.set("borrador", borrador);
 
             await this.$axios
                 .post(`${this.$config.API}/ordenes/borrador`, data)
                 .then((res) => {
-                    this.msg = "Se guardaron sus cambios"
-                    this.$emit("reload")
+                    this.msg = "Se guardaron sus cambios";
+                    this.$emit("reload");
                 })
                 .catch((error) => {
-                    this.msg = "No se pudo guardar su borrador"
-                })
+                    this.msg = "No se pudo guardar su borrador";
+                });
         },
 
         onEditorChange({ editor, html, text }) {
-            console.log("editor change!", editor, html, text)
-            this.postBorrador(html)
-            this.borrador = html
+            console.log("editor change!", editor, html, text);
+            this.postBorrador(html);
+            this.borrador = html;
         },
     },
 
     mounted() {
+        this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
+            if (modalId === this.modal) {
+                this.getObservaciones();
+            }
+        });
+
         if (this.detalle_empleado === null) {
-            this.borrador = this.detalles
+            this.borrador = this.detalles_orden;
         } else {
-            this.borrador = this.detalle_empleado
+            this.borrador = this.detalle_empleado;
         }
     },
 
     props: [
         "idorden",
         "item",
-        "detalles",
-        "detalle_empleado",
         "productos",
         "reload",
         "esreposicion",
         "en_reposiciones",
     ],
-}
+};
 </script>

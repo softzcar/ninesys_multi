@@ -13,8 +13,12 @@
             <b-row>
                 <b-col offset-lg="8" offset-xl="8">
                     <b-input-group class="mb-4" size="sm">
-                        <b-form-input id="filter-input" v-model="filter" type="search"
-                            placeholder="Filtrar Resultados"></b-form-input>
+                        <b-form-input
+                            id="filter-input"
+                            v-model="filter"
+                            type="search"
+                            placeholder="Filtrar Resultados"
+                        ></b-form-input>
 
                         <b-input-group-append>
                             <b-button :disabled="!filter" @click="filter = ''">
@@ -31,25 +35,41 @@
                         <b-row>
                             <b-col>
                                 <h3>Fecha Inicio</h3>
-                                <b-form-datepicker class="mb-4" v-model="fechaConsultaInicio" />
+                                <b-form-datepicker
+                                    class="mb-4"
+                                    v-model="fechaConsultaInicio"
+                                />
                             </b-col>
                             <b-col>
                                 <h3>Fecha Fin</h3>
-                                <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
+                                <b-form-datepicker
+                                    class="mb-4"
+                                    v-model="fechaConsultaFin"
+                                />
                             </b-col>
-                            <b-col v-if="this.$store.state.login.dataUser.departamento === 'Administración'">
+                            <b-col
+                                v-if="
+                                    this.$store.state.login.dataUser
+                                        .departamento === 'Administración'
+                                "
+                            >
                                 <h3>Vendedor</h3>
                                 <!-- <pre class="force">
                                     {{ vendedores }}
                                 </pre> -->
-                                <b-form-select v-model="selectedVendedor" :options="vendedores"
-                                    @change="filterVendedor($event)" />
+                                <b-form-select
+                                    v-model="selectedVendedor"
+                                    :options="vendedores"
+                                    @change="filterVendedor($event)"
+                                />
                             </b-col>
                         </b-row>
 
                         <b-row>
                             <b-col class="text-center">
-                                <b-button type="submit" variant="primary">BUSCAR</b-button>
+                                <b-button type="submit" variant="primary"
+                                    >BUSCAR</b-button
+                                >
                             </b-col>
                         </b-row>
                     </b-form>
@@ -58,12 +78,27 @@
 
             <b-row>
                 <b-col>
-                    <b-pagination v-model="currentPage" :total-rows="totalRows" :per-page="perPage"></b-pagination>
+                    <b-pagination
+                        v-model="currentPage"
+                        :total-rows="totalRows"
+                        :per-page="perPage"
+                    ></b-pagination>
 
                     <p class="mt-3">Página actual: {{ currentPage }}</p>
-                    <b-table :per-page="perPage" :current-page="currentPage" ref="table" responsive small striped hover
-                        :items="dataTable" :fields="fields" @filtered="onFiltered" :filter="filter"
-                        :filter-included-fields="includedFields">
+                    <b-table
+                        :per-page="perPage"
+                        :current-page="currentPage"
+                        ref="table"
+                        responsive
+                        small
+                        striped
+                        hover
+                        :items="dataTable"
+                        :fields="fields"
+                        @filtered="onFiltered"
+                        :filter="filter"
+                        :filter-included-fields="includedFields"
+                    >
                         <template #cell(orden)="data">
                             <!-- <linkSearch :key="data.index" :index="data.index" :id="data.item.orden" /> -->
                             <linkSearch :id="data.item.orden" />
@@ -78,7 +113,8 @@
                         </template>
 
                         <template #cell(id_father)="data">
-                            <ordenes-vinculadas :key="data.item.orden" :id_orden="data.item.id_father" />
+                            <!-- <ordenes-vinculadas :key="data.item.orden" :id_orden="data.item.id_father" /> -->
+                            {{ data.item.id_father }}, {{ data.item.orden }}
                         </template>
 
                         <template #cell(acc)="data">
@@ -94,14 +130,26 @@
                                 ></span>
                             </div> -->
                             <div style="float: left; margin-right: 6px">
-                                <diseno-view-image :index="data.index" class="floatme mb-2" :id="data.item.orden" />
+                                <diseno-view-image
+                                    :index="data.index"
+                                    class="floatme mb-2"
+                                    :id="data.item.orden"
+                                />
                             </div>
                             <div style="float: left; margin-right: 6px">
-                                <ordenes-editar :index="data.index" :key="data.item.orden" :data="data.item" />
+                                <ordenes-editar
+                                    :index="data.index"
+                                    :key="data.item.orden"
+                                    :data="data.item"
+                                />
                             </div>
                             <div style="float: left; margin-right: 6px">
-                                <ordenes-abono :index="data.index" :key="data.item.orden" :idorden="data.item.orden"
-                                    :item="filterPago(data.item.orden)" />
+                                <ordenes-abono
+                                    :index="data.index"
+                                    :key="data.item.orden"
+                                    :idorden="data.item.orden"
+                                    :item="filterPago(data.item.orden)"
+                                />
                             </div>
                         </template>
                     </b-table>
@@ -115,8 +163,8 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex"
-import mixin from "~/mixins/mixins.js"
+import { mapState, mapActions } from "vuex";
+import mixin from "~/mixins/mixins.js";
 
 export default {
     data() {
@@ -138,22 +186,22 @@ export default {
                 show: true,
                 text: "Cargando ordenes activas...",
             },
-        }
+        };
     },
 
     methods: {
         ...mapActions("comerce", ["getOrdenesActivas"]),
 
         filterVendedor(event) {
-            console.log("dataTAble", this.dataTable)
-            console.log("event", event)
+            console.log("dataTAble", this.dataTable);
+            console.log("event", event);
             this.dataTable = this.ordenesActivas.filter(
                 (el) => el.id_vendedor == event
-            )
+            );
         },
 
         onSubmit(event) {
-            event.preventDefault()
+            event.preventDefault();
             /*  const fechaInicio = this.fechaConsultaInicio
             const fechaFin = this.fechaConsultaFin
             console.log("inicio", fechaInicio)
@@ -176,83 +224,83 @@ export default {
                 })
                 return
             } */
-            this.realizarConsulta()
+            this.realizarConsulta();
         },
 
         realizarConsulta() {
-            const inicio = new Date(this.fechaConsultaInicio)
-            const fin = new Date(this.fechaConsultaFin)
+            const inicio = new Date(this.fechaConsultaInicio);
+            const fin = new Date(this.fechaConsultaFin);
             this.dataTable = this.ordenesActivas.filter((item) => {
-                const fechaInicio = new Date(item.fecha_inicio)
-                const fechaEntrega = new Date(item.fecha_entrega)
+                const fechaInicio = new Date(item.fecha_inicio);
+                const fechaEntrega = new Date(item.fecha_entrega);
                 return (
                     (fechaInicio >= inicio && fechaInicio <= fin) ||
                     (fechaEntrega >= inicio && fechaEntrega <= fin) ||
                     (fechaInicio <= inicio && fechaEntrega >= fin)
-                )
-            })
+                );
+            });
         },
 
         async getOrdenesActivas(id_empleado) {
             await this.$axios
                 .get(`${this.$config.API}/table/ordenes-activas/${id_empleado}`)
                 .then((res) => {
-                    this.dataTable = res.data.items
-                    this.fields = res.data.fields
-                    this.ordenesActivas = res.data.items
-                    this.ordenesLength = this.ordenesActivas.length
-                })
+                    this.dataTable = res.data.items;
+                    this.fields = res.data.fields;
+                    this.ordenesActivas = res.data.items;
+                    this.ordenesLength = this.ordenesActivas.length;
+                });
         },
 
         async getPagos() {
-            this.overlay = true
+            this.overlay = true;
             await this.$axios
                 .get(`${this.$config.API}/reporte-de-pagos`)
                 .then((resp) => {
-                    this.pagos = resp.data.pagos
+                    this.pagos = resp.data.pagos;
                     this.vendedores = resp.data.vendedores.map((el) => {
                         return {
                             value: el._id,
                             text: el.nombre,
-                        }
-                    })
-                    this.vendedores.unshift({ value: 0, text: "Todos" })
+                        };
+                    });
+                    this.vendedores.unshift({ value: 0, text: "Todos" });
                     /* 
                     this.ordenesLength = this.pagos.length
                     console.log("Pagos y abonos cargados", this.pagos)
                     console.log("Totales", this.totales) */
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
 
         filterPago(idOrden) {
-            return this.pagos.filter((el) => el.orden == idOrden)
+            return this.pagos.filter((el) => el.orden == idOrden);
         },
 
         onFiltered(filteredItems) {
             // Trigger pagination to update the number of buttons/pages due to filtering
-            this.totalRows = filteredItems.length
-            this.currentPage = 1
+            this.totalRows = filteredItems.length;
+            this.currentPage = 1;
         },
 
         reloadMe() {
-            this.overlay = true
+            this.overlay = true;
             this.getOrdenesActivas(this.dataUser.id_empleado).then(() => {
                 this.getPagos().then(() => {
-                    this.loading.show = false
-                    this.overlay = false
-                })
-            })
+                    this.loading.show = false;
+                    this.overlay = false;
+                });
+            });
         },
     },
 
     computed: {
         totalRows() {
-            return parseInt(this.ordenesLength) + 1
+            return parseInt(this.ordenesLength) + 1;
         },
 
         misOrdenes() {
-            return this.ordenesActivas
+            return this.ordenesActivas;
         },
         // ...mapState("comerce", ["ordenesLength", "hola"]),
         // ...mapGetters("comerce", ["dynOrdenesActivas"]),
@@ -260,9 +308,9 @@ export default {
     },
 
     mounted() {
-        this.reloadMe()
+        this.reloadMe();
     },
 
     mixins: [mixin],
-}
+};
 </script>

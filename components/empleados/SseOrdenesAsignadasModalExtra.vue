@@ -1,8 +1,23 @@
 <template>
     <div>
-        <b-button @click="$bvModal.show(modal)" variant="success">{{
-            btnText
-        }}</b-button>
+        <span class="floatme">
+            <b-button
+                @click="$bvModal.show(modal)"
+                variant="success"
+                :disabled="ButtonDisabled"
+                >{{ btnText }}</b-button
+            >
+        </span>
+
+        <!-- Pausas -->
+        <span class="floatme">
+            <empleados-pausasEmpleados
+                :pausas="filterPausa(item.id_orden)"
+                :item="$props.item"
+                @reload="reloadMe"
+                @disBtnTodo="disBtnTodo"
+            />
+        </span>
 
         <b-modal :id="modal" :title="title" hide-footer size="sm">
             <b-overlay :show="overlay" spinner-small>
@@ -82,7 +97,7 @@
                           {{ insumosimp }}
                          </pre
                         > -->
-                    <p
+                    <div
                         v-if="
                             $store.state.login.currentDepartament ===
                                 'Estampado' ||
@@ -92,9 +107,9 @@
                         "
                     >
                         Material utilizado: {{ materialUtilizado }} Metros
-                    </p>
+                    </div>
 
-                    <!-- MUESTRA ROLLOS DE PAPEL SI ESTA EN CONFIGURACION -->
+                    <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
                     <div v-if="showSelect">
                         <b-button
                             variant="light"
@@ -170,7 +185,8 @@
 
                     <b-button
                         :disbaled="ButtonDisabled"
-                        @click="validateForm()"
+                        @click="validateForm"
+                        ButtonDisabled
                         variant="primary"
                         >Enviar</b-button
                     >
@@ -293,6 +309,22 @@ export default {
     },
 
     methods: {
+        reloadMe() {
+            this.$emit("reload", "true");
+        },
+
+        disBtnTodo(action) {
+            if (action) {
+                this.ButtonDisabled = true;
+            } else {
+                this.ButtonDisabled = false;
+            }
+        },
+
+        filterPausa(idOrden) {
+            return this.pausas.filter((el) => el.id_orden == idOrden);
+        },
+
         loadInsumos(index) {
             let myID = this.form[index].select.split(" | ");
             console.log("ID Insumo seleccionado", myID[0]);
@@ -438,78 +470,6 @@ export default {
         },
 
         // VALIDACIÓN DE FORMULARIOS
-        validateImp() {
-            let ok = true;
-            let msg = "";
-
-            if (this.form.length === 0) {
-                ok = false;
-                msg = msg + "<p>Debe asignar al menos un rollo de papel</p>";
-            }
-
-            if (
-                parseFloat(this.formImp.colorCyan) <= 0 ||
-                this.formImp.colorCyan.trim() === ""
-            ) {
-                ok = false;
-                msg = msg + "<p>Ingrese la cantidad de tinta Cyan</p>";
-            }
-
-            if (
-                parseFloat(this.formImp.colorMagenta) <= 0 ||
-                this.formImp.colorMagenta.trim() === ""
-            ) {
-                ok = false;
-                msg = msg + "<p>Ingrese la cantidad de tinta Magenta</p>";
-            }
-
-            if (
-                parseFloat(this.formImp.colorYellow) <= 0 ||
-                this.formImp.colorYellow.trim() === ""
-            ) {
-                ok = false;
-                msg = msg + "<p>Ingrese la cantidad de tinta Yellow</p>";
-            }
-
-            if (
-                this.formImp.colorBlack.trim() === "" ||
-                parseFloat(this.formImp.colorBlack) <= 0
-            ) {
-                ok = false;
-                msg = msg + "<p>Ingrese la cantidad de tinta Black</p>";
-            }
-
-            const formTmp = this.form;
-
-            const errors = formTmp.find(
-                (el) => el.input === 0 || el.select === null
-            );
-
-            if (errors) {
-                ok = false;
-                msg =
-                    msg + "<p>Debe llenar todos los campos del formulario</p>";
-            }
-
-            if (!ok) {
-                this.$fire({
-                    type: "info",
-                    title: "Datos requeridos",
-                    html: msg,
-                });
-
-                ok = false;
-            } else {
-                this.postImp();
-                if (this.tipo === "todo") {
-                    this.terminarTodo();
-                } else {
-                    // this.terminarIndividual()
-                }
-            }
-            return ok;
-        },
-
         validateForm() {
             let ok = true;
             if (this.showSelect) {
@@ -610,153 +570,6 @@ export default {
 
             return ok;
         },
-
-        validateEst() {
-            let ok = true;
-            let msg = "";
-
-            // VERIFICAR SI ESTÁ ACTIVADO EL FORMULARIO PARA ESTAMPADO
-            if (
-                this.$store.state.datasys.dataSys
-                    .sys_mostrar_rollo_en_empleado_estampado
-            ) {
-                const formTmp = this.form;
-
-                if (this.form.length === 0) {
-                    ok = false;
-                    msg = msg + "<p>Debe asignar al menos un rollo de tela</p>";
-                }
-
-                const errors = formTmp.find(
-                    (el) => el.input === 0 || el.select === null
-                );
-
-                if (errors) {
-                    ok = false;
-                    msg =
-                        msg +
-                        "<p>Debe llenar todos los campos del formulario</p>";
-                }
-            } else {
-                this.terminarTodo();
-            }
-
-            if (!ok) {
-                this.$fire({
-                    type: "info",
-                    title: "Datos requeridos",
-                    html: msg,
-                });
-
-                ok = false;
-            } else {
-                this.postEst();
-                if (this.tipo === "todo") {
-                    this.terminarTodo();
-                }
-            }
-
-            return ok;
-        },
-
-        validateCos() {
-            let ok = true;
-            let msg = "";
-
-            // VERIFICAR SI ESTÁ ACTIVADO EL FORMULARIO PARA ESTAMPADO
-            if (
-                this.$store.state.datasys.dataSys
-                    .sys_mostrar_insumo_en_empleado_costura
-            ) {
-                const formTmp = this.form;
-
-                if (this.form.length === 0) {
-                    ok = false;
-                    msg = msg + "<p>Debe asignar al menos un rollo de tela</p>";
-                }
-
-                const errors = formTmp.find(
-                    (el) => el.input === 0 || el.select === null
-                );
-
-                if (errors) {
-                    ok = false;
-                    msg =
-                        msg +
-                        "<p>Debe llenar todos los campos del formulario</p>";
-                }
-            } else {
-                this.terminarTodo();
-            }
-
-            if (!ok) {
-                this.$fire({
-                    type: "info",
-                    title: "Datos requeridos",
-                    html: msg,
-                });
-
-                ok = false;
-            } else {
-                this.postEst();
-                if (this.tipo === "todo") {
-                    this.terminarTodo();
-                }
-            }
-
-            return ok;
-        },
-
-        /* validateEst_old() {
-      console.log("Formulario Estampado", this.formEst);
-
-      let ok = true;
-      let msg = "";
-
-      if (this.formEst.selectedEst1 < 1) {
-        ok = false;
-        msg = msg + "<p>Seleccione el primer Rollo de tela</p>";
-      }
-
-      if (this.formEst.inputEst1 <= 0) {
-        ok = false;
-        msg =
-          msg + "<p>Ingrese los metros utilizados del primer rollo de tela</p>";
-      }
-
-      if (this.formEst.inputEst2 > 0 || this.formEst.selectedEst2 != null) {
-        if (this.formEst.selectedEst2 === null) {
-          ok = false;
-          msg = msg + "<p>Seleccione el segundo rollo de tela</p>";
-        }
-
-        if (this.formEst.inputEst2 === 0) {
-          ok = false;
-          msg =
-            msg +
-            "<p>Ingrese los metros utilizados del segundo rollo de tela</p>";
-        }
-      }
-
-      if (!ok) {
-        this.$fire({
-          type: "info",
-          title: "Datos requeridos",
-          html: msg,
-        });
-        // ok = FontFaceSetLoadEvent
-        ok = false;
-      } else {
-        // this.postEst();
-        console.log("tipo de envio", this.tipo);
-        if (this.tipo === "todo") {
-          this.terminarTodo();
-        } else {
-          // this.terminarIndividual()
-        }
-      }
-      return ok;
-    }, */
 
         async postImp() {
             // this.overlay = true
@@ -931,7 +744,47 @@ export default {
                 });
         },
 
+        async registrarEstado(tipo, id_orden, unidades) {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set(
+                "id_empleado",
+                this.$store.state.login.dataUser.id_empleado
+            );
+            data.set(
+                "id_departamento",
+                this.$store.state.login.currentDepartamentId
+            );
+            data.set("id_lotes_detalles", this.idlotesdetalles);
+            data.set("id_orden", id_orden);
+            data.set("tipo", tipo);
+            data.set("unidades", unidades);
+            data.set(
+                "departamento",
+                this.$store.state.login.currentDepartament
+            );
+
+            await this.$axios
+                .post(`${this.$config.API}/registrar-paso-empleado`, data)
+                .then((res) => {
+                    console.log("emitimos aqui...");
+                    // this.$emit('reload', 'true')
+                    this.overlay = false;
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>No se pudo registrar la acción</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
         terminarTodo() {
+            this.registrarEstado("fin", this.idorden, 0);
             this.form.forEach((el) => {
                 console.log("Enviamos elemento del formulario", el);
 
@@ -944,33 +797,46 @@ export default {
             });
 
             if (this.items.length) {
-                this.items.forEach((item) => {
+                // this.registrarEstado("fin", this.idorden, 0).then(() => {
+                // Enviar mensaje al cliente
+                // this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
+                //     // console.log('Modal is about to be shown', bvEvent, modal)
+                //     });
+                // });
+                /* this.$emit(
+                    "registrarestado",
+                    "fin",
+                    this.idorden,
+                    this.item.unidades
+                ); */
+                /* this.items.forEach((item) => {
                     // enviar estado
+
                     this.registrarEstado(
                         "fin",
-                        item.id_lotes_detalles,
+                        this.idorden,
                         item.unidades
                     ).then(() => {
                         // Enviar mensaje al cliente
-                        /* this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
-                            // console.log('Modal is about to be shown', bvEvent, modal)
-                            }); */
+                        // this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
+                        //     // console.log('Modal is about to be shown', bvEvent, modal)
+                        //     });
                     });
-                });
+                }); */
             }
             // this.clearForms()
             this.$emit("reload");
             this.$bvModal.hide(this.modal);
         },
 
-        async registrarEstado(tipo, id_lotes_detalles, unidades) {
+        /* async registrarEstado_old(tipo, id_lotes_detalles, unidades) {
             // tipos: inicio, fin
             this.overlay = true;
             this.ButtonDisabled = true;
 
             await this.$axios
                 .post(
-                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartament}/${id_lotes_detalles}/${unidades}`
+                    `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartamentId}/${id_lotes_detalles}/${unidades}`
                 )
                 .then((resp) => {
                     console.log("emitimos aqui...");
@@ -991,7 +857,7 @@ export default {
                         this.$emit("reload");
                     }
                 });
-        },
+        }, */
     },
 
     mounted() {
@@ -1050,6 +916,8 @@ export default {
     props: [
         "item",
         "items",
+        "pausas",
+        "idlotesdetalles",
         "tipo",
         "departamento",
         "esreposicion",
@@ -1062,6 +930,7 @@ export default {
         "idorden",
         "id_ordenes_productos",
         "reload",
+        "registrarestado",
     ],
 };
 </script>

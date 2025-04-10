@@ -159,15 +159,22 @@ export default {
         },
 
         async findImage() {
-            this.$axios
-                .get(`${this.$config.API}/disenos/images/${this.id}`)
-                .then((res) => {
-                    this.imageUrl = `${this.$config.API}/${res.data[0]}`;
-                })
-                .catch((err) => {
-                    console.error(`El cdn respondio con un error`, err);
-                    this.imageUrl = [`${this.$config.API}/images/no-image.png`];
-                });
+            if (this.id_diseno && this.revision) {
+                let token = this.token();
+
+                await this.$axios
+                    .get(
+                        `${this.$config.CDN}/?id_orden=${this.id}&id_diseno=${this.id_diseno}&review=${this.revision}`
+                    )
+                    .then((res) => {
+                        console.log(`El cdn respondio con una imagen`, res);
+                        this.imageUrl = `${this.$config.CDN}/${res.data.url}?_=${token}`;
+                    })
+                    .catch((err) => {
+                        console.log(`El cdn respondio con un error`, err);
+                        this.imageUrl = `${this.$config.CDN}/images/no-image.png`;
+                    });
+            }
         },
 
         token() {
@@ -191,9 +198,10 @@ export default {
         this.overlay = true;
         this.titulo = `Imagen de la orden ${this.id}`;
         this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-            this.findImage().then(() => {
-                this.overlay = false;
-            });
+            this.overlay = true;
+            this.url = `${this.$config.APP_URL}/clientes/aprobacion/${this.id}`;
+            this.msgAprobacion = `Ingrese en el link para aprobar el diseño ${this.url}`;
+            this.verificarAprobacion();
         });
     },
 };

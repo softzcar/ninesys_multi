@@ -20,13 +20,9 @@
                 "
             >
                 <b-overlay :show="overlay" spinner-small>
-                    <b-container
-                        v-if="dataUser.departamento != 'Corte_old'"
-                        fluid
-                    >
+                    <b-container fluid>
                         <b-row>
                             <b-col>
-                                <!-- <h3>aqui estoy</h3> -->
                                 <h3 class="mb-4 mt-4 text-center">
                                     {{ titulo }}
                                 </h3>
@@ -36,72 +32,6 @@
                                 />
                             </b-col>
                         </b-row>
-                        <!-- <b-row>
-              <b-col>
-                <b-table
-                  responsive
-                  :fields="dataTable.fields"
-                  :items="dataTable.items"
-                >
-                  <template #cell(acciones)="data">
-                    <span class="floatme">
-                      <AdminEmpleadoEditar
-                        :item="data.item"
-                        @reload="getEmpleados"
-                      />
-                    </span>
-                    <span class="floatme">
-                      <b-button
-                        variant="danger"
-                        v-on:click="deleteEmpleado(data.item._id)"
-                      >
-                        <b-icon icon="trash"></b-icon>
-                      </b-button>
-                    </span>
-                  </template>
-                </b-table>
-              </b-col>
-            </b-row> -->
-                    </b-container>
-                    <b-container v-else fluid>
-                        <b-row>
-                            <b-col>
-                                <!-- <h3>aqui estoy</h3> -->
-                                <h3 class="mb-4 mt-4 text-center">
-                                    {{ titulo }}
-                                </h3>
-                                <empleados-SseOrdenesAsignadas
-                                    :updatedata="updateData()"
-                                    :emp="dataUser.id_empleado"
-                                />
-                            </b-col>
-                        </b-row>
-                        <!-- <b-row>
-              <b-col>
-                <b-table
-                  responsive
-                  :fields="dataTable.fields"
-                  :items="dataTable.items"
-                >
-                  <template #cell(acciones)="data">
-                    <span class="floatme">
-                      <AdminEmpleadoEditar
-                        :item="data.item"
-                        @reload="getEmpleados"
-                      />
-                    </span>
-                    <span class="floatme">
-                      <b-button
-                        variant="danger"
-                        v-on:click="deleteEmpleado(data.item._id)"
-                      >
-                        <b-icon icon="trash"></b-icon>
-                      </b-button>
-                    </span>
-                  </template>
-                </b-table>
-              </b-col>
-            </b-row> -->
                     </b-container>
                 </b-overlay>
             </div>
@@ -114,8 +44,8 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
-import axios from "axios"
+import { mapState } from "vuex";
+import axios from "axios";
 
 export default {
     data() {
@@ -124,7 +54,7 @@ export default {
             overlay: true,
             dataTable: [],
             tareaEnCurso: null,
-        }
+        };
     },
     computed: {
         ...mapState("login", ["dataUser", "access"]),
@@ -134,15 +64,15 @@ export default {
             console.log(
                 "Vamos a actualizar los datos en la vista de tareas activas aqui",
                 data
-            )
+            );
         },
         async getEmpleados() {
             await this.$axios
                 .get(`${this.$config.API}/empleados`)
                 .then((resp) => {
-                    this.dataTable = resp.data
-                    this.overlay = false
-                })
+                    this.dataTable = resp.data;
+                    this.overlay = false;
+                });
         },
 
         deleteEmpleado(id_emp) {
@@ -152,31 +82,30 @@ export default {
                 "warning"
             )
                 .then(() => {
-                    this.overlay = true
-                    const data = new URLSearchParams()
-                    data.set("id", id_emp)
+                    this.overlay = true;
+                    const data = new URLSearchParams();
+                    data.set("id", id_emp);
 
                     axios
                         .post(`${this.$config.API}/empleados/eliminar`, data)
                         .then((res) => {
                             this.getEmpleados().then(
                                 () => (this.overlay = false)
-                            )
-                        })
+                            );
+                        });
                 })
                 .catch((err) => {
-                    console.log("CATCH!!!", err)
-                    return false
-                })
+                    console.log("CATCH!!!", err);
+                    return false;
+                });
         },
     },
     mounted() {
-        this.overlay = false
+        this.overlay = false;
         // this.SSEConnect(`empleados/ordenes-asignadas/${this.dataUser.id_empleado}`);
         this.getEmpleados().then(() => {
-            console.log("data", this.dataTable)
-            this.overlay = false
-        })
+            this.overlay = false;
+        });
     },
-}
+};
 </script>

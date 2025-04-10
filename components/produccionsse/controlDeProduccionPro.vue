@@ -1,42 +1,6 @@
 <template>
     <div>
         <h3>Ordenes en curso</h3>
-        <!-- <b-list-group horizontal="xl">
-            <b-list-group>
-                <strong>Orden</strong>
-            </b-list-group>
-            <b-list-group>
-                <strong>DiseÑo</strong>
-            </b-list-group>
-            <b-list-group style="min-width: 20%; max-width: 20%">
-                <strong>Cliente</strong>
-            </b-list-group>
-            <b-list-group>
-                <strong>Unidades</strong>
-            </b-list-group>
-            <b-list-group style="min-width: 20%; max-width: 20%">
-                <strong>Progreso</strong>
-            </b-list-group>
-            <b-list-group>
-                <strong>Inicio</strong>
-            </b-list-group>
-            <b-list-group>
-                <strong> Entrega </strong>
-            </b-list-group>
-            <b-list-group>
-                <strong> Vinculada </strong>
-            </b-list-group>
-            <b-list-group style="min-width: 7%; max-width: 7%">
-                <strong>Estatus</strong>
-            </b-list-group>
-            <b-list-group>
-                <strong> Detalles </strong>
-            </b-list-group>
-            <b-list-group>
-                <strong> Acciones </strong>
-            </b-list-group>
-        </b-list-group> -->
-
         <draggable v-model="items" @end="afterDrag" tag="ul" class="list-group">
             <b-list-group
                 style="width: 100%"
@@ -105,15 +69,16 @@
                         <produccionsse-progress-bar
                             :pasos="pasos"
                             :asignacion="asignacion"
+                            :emp_asignados="empleadosAsignados"
                             :empleados="empleados"
                             :por_asignar="por_asignar"
-                            :depart="pActivo(el.rden)"
+                            :depart="pActivo(el.orden)"
                             :item="el"
-                            :orden_productos="filterOrdenProductos(el.rden)"
+                            :orden_productos="filterOrdenProductos(el.orden)"
                             :reposicion_ordenes_productos="
                                 reposicion_ordenes_productos
                             "
-                            :lote_detalles="filterLoteDetalles(el.rden)"
+                            :lote_detalles="filterLoteDetalles(el.orden)"
                             :lotes_fisicos="lotes_fisicos"
                             :key="el.orden"
                             @reload="loadOrdersProduction"
@@ -350,8 +315,10 @@
                         <template #cell(paso)="data">
                             <span class="floatme">
                                 <produccionsse-progress-bar
+                                    v-if="empleadosAsignados"
                                     :pasos="pasos"
                                     :asignacion="asignacion"
+                                    :emp_asignados="empleadosAsignados"
                                     :empleados="empleados"
                                     :por_asignar="por_asignar"
                                     :depart="pActivo(data.item.orden)"
@@ -446,6 +413,7 @@ export default {
             por_asignar: [],
             products: [],
             asignacion: [],
+            empleadosAsignados: [],
             orden_productos: [],
             reposicion_ordenes_productos: [],
             lote_detalles: [],
@@ -525,7 +493,6 @@ export default {
 
                 this.items.forEach((el) => {
                     this.updateFilaOren(el.orden, el.orden_fila);
-                    // console.log(`XXX orden ${el.orden} fila ${el.orden_fila}`);
                 });
             } catch (error) {
                 console.error("Error al actualizar orden:", error);
@@ -557,7 +524,6 @@ export default {
 
                 this.reposiciones_solicitadas.forEach((el) => {
                     this.updateFilaReposicion(el.id_reposicion, el.orden_fila);
-                    // console.log(`XXX orden ${el.orden} fila ${el.orden_fila}`);
                 });
             } catch (error) {
                 console.error("Error al actualizar orden:", error);
@@ -673,11 +639,11 @@ export default {
             await this.$axios
                 .get(`${this.$config.API}/sse/produccion`)
                 .then((res) => {
-                    console.log(`Respuesta de /sse/produccion`, res.data);
                     this.items = res.data.items;
+                    this.empleadosAsignados = res.data.emp_asignados;
+                    this.por_asignar = res.data.por_asignar;
                     this.ordenesLength = parseInt(res.data.items.length) + 1;
                     this.pactivos = res.data.pactivos;
-                    this.por_asignar = res.data.por_asignar;
                     this.vinculadas = res.data.vinculadas;
                     this.products = res.data.productos;
                     this.reposiciones_solicitadas =
@@ -690,7 +656,6 @@ export default {
                     this.lote_detalles = res.data.lote_detalles;
                     this.lotes_fisicos = res.data.lotes_fisicos;
                     this.pasos = res.data.pasos;
-                    // console.log(`ITEMS`, this.items)
                 })
                 .catch((err) => {
                     this.$fire({
@@ -703,56 +668,6 @@ export default {
                     this.overlay = false;
                 });
         },
-
-        /* loadOrdersProduction_SSE() {
-            this.source = new EventSource(`${this.$config.API}/sse/produccion`)
-
-            this.source.addEventListener("message", (event) => {
-                const eventData = JSON.parse(event.data)
-                const eventType = event.type
-
-                if (eventType === "keep") {
-                    // this.events.push(eventData)
-                    console.log("keep", eventData)
-                } else {
-                    if (eventType === "chat") {
-                        this.events.push(eventData)
-                    }
-
-                    if (eventType === "message") {
-                        this.items = eventData.items
-                        console.log(
-                            "todos los items de Control de produccion",
-                            this.items
-                        )
-                        this.ordenesLength =
-                            parseInt(eventData.items.length) + 1
-
-                        this.events = eventData
-                        this.pactivos = eventData.pactivos
-                        this.vinculadas = eventData.vinculadas
-                        this.products = eventData.productos
-                        this.reposiciones_solicitadas =
-                            eventData.reposiciones_solicitadas
-                        this.asignacion = eventData.asignacion
-                        this.empleados = eventData.empleados
-                        this.orden_productos = eventData.orden_productos
-                        this.reposicion_ordenes_productos =
-                            eventData.reposicion_ordenes_productos
-                        this.lote_detalles = eventData.lote_detalles
-                        this.lotes_fisicos = eventData.lotes_fisicos
-                        this.pasos = eventData.pasos
-                        this.overlay = false
-                    }
-                }
-            })
-
-            this.source.addEventListener("error", (error) => {
-                console.error("Error in SSE connection:", error)
-                // alert(error)
-                this.source.close() // Cerrar la conexión actual
-            })
-        }, */
 
         connectToServer() {
             this.loadOrdersProduction();
@@ -804,9 +719,6 @@ export default {
         totalRows() {
             return parseInt(this.ordenesLength) + 1;
         },
-        /* itemsNoDesign() {
-      const filtered = this.items.filter(el => )
-    }, */
     },
 
     mounted() {

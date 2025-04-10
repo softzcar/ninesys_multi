@@ -7,29 +7,85 @@
 
                     <b-collapse id="nav-collapse" is-nav>
                         <b-navbar-nav>
-                            <router-link class="nav-link" to="/" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     <b-icon-house-fill></b-icon-house-fill>
                                 </span>
                             </router-link>
 
-                            <router-link class="nav-link" to="/empleados/dashboard" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/empleados/dashboard"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Ordenes Asignadas
                                 </span>
                             </router-link>
 
-                            <div v-if="$store.state.login.dataUser.departamento === 'Corte'">
-                                <router-link class="nav-link" to="/empleados/resumen" custom v-slot="{ navigate }">
-                                    <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <div
+                                v-if="
+                                    $store.state.login.dataUser.departamento ===
+                                    'Corte'
+                                "
+                            >
+                                <router-link
+                                    class="nav-link"
+                                    to="/empleados/resumen"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
                                         Resumen
                                     </span>
                                 </router-link>
                             </div>
 
-                            <router-link class="nav-link" to="/empleados/pagos" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/empleados/pagos"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Relación de Trabajos
+                                </span>
+                            </router-link>
+
+                            <router-link
+                                class="nav-link"
+                                to="/empleados/ws"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
+                                    Websocket
                                 </span>
                             </router-link>
 
@@ -59,18 +115,18 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import buscar from '~/components/buscar/BarraDeBusqueda.vue'
+import { mapState } from "vuex";
+import buscar from "~/components/buscar/BarraDeBusqueda.vue";
 
 export default {
     computed: {
-        ...mapState('login', ['dataUser']),
+        ...mapState("login", ["dataUser"]),
     },
     components: {
         buscar,
     },
-    props: ['user', 'departamento'],
-}
+    props: ["user", "departamento"],
+};
 </script>
 
 <style scoped>

@@ -26,6 +26,7 @@
                     <produccionsse-asignar
                         :asign="asignacion"
                         :empleados="empleados"
+                        :emp_asignados="emp_asignados"
                         :por_asignar="por_asignar"
                         :id="item.orden"
                         :orden_productos="orden_productos"
@@ -72,7 +73,9 @@ export default {
     },
 
     computed: {
-        // paso() {},
+        asignados() {
+            return this.empleados_asignados;
+        },
 
         miPorcentaje() {
             let porcentaje;
@@ -311,6 +314,7 @@ export default {
         "item",
         "depart",
         "asignacion",
+        "emp_asignados",
         "por_asignar",
         "empleados",
         "pasos",

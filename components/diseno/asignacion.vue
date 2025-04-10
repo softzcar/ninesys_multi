@@ -1,7 +1,15 @@
 <template>
     <div>
         <b-overlay :show="overlay" spinner-small>
-            <b-table ref="table" responsive small striped hover :items="datax" :fields="fields">
+            <b-table
+                ref="table"
+                responsive
+                small
+                striped
+                hover
+                :items="datax"
+                :fields="fields"
+            >
                 <template #cell(id)="data">
                     <linkSearch :id="data.item.id" />
                 </template>
@@ -13,18 +21,27 @@
                 <template #cell(check)="data">
                     <div class="text-center">
                         <p v-if="data.item.check != null" class="h1 mt-2">
-                            <b-icon icon="exclamation-circle-fill" variant="success"></b-icon>
+                            <b-icon
+                                icon="exclamation-circle-fill"
+                                variant="success"
+                            ></b-icon>
                         </p>
 
                         <p v-else class="h1 mt-2">
-                            <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
+                            <b-icon
+                                icon="exclamation-circle-fill"
+                                style="color: lightgray"
+                            ></b-icon>
                         </p>
                     </div>
                 </template>
 
                 <template #cell(imagen)="data">
                     <div class="floatme">
-                        <disenosse-uploadPropuesta :item="data.item" @reload="loadAll()" />
+                        <disenosse-uploadPropuesta
+                            :item="data.item"
+                            @reload="loadAll()"
+                        />
                     </div>
                     <div class="floatme">
                         <diseno-viewImage :id="data.item.id" />
@@ -33,14 +50,17 @@
 
                 <template #cell(empleado)="data">
                     <div class="floatme">
-                        <disenosse-asignacionDisenadores :idorden="data.item.id" :item="data.item"
-                            :options="empleadosFiltered()" />
+                        <disenosse-asignacionDisenadores
+                            :idorden="data.item.id"
+                            :item="data.item"
+                            :options="empleadosFiltered()"
+                        />
                     </div>
                 </template>
 
-                <template #cell(vinculadas)="data">
+                <!-- <template #cell(vinculadas)="data">
                     <ordenes-vinculadas :id_orden="data.item.vinculadas" />
-                </template>
+                </template> -->
             </b-table>
             <!-- <pre class="force">
     {{ datax }}
@@ -90,27 +110,27 @@ export default {
                     key: "empleado",
                     label: "Empleado",
                 },
-                {
+                /* {
                     key: "vinculadas",
                     label: "Vinculadas",
-                },
+                }, */
                 {
                     key: "imagen",
                     label: "Imagen",
                 },
             ],
-        }
+        };
     },
 
     computed: {
         dataTable() {
-            return this.$store.state.disenos.disenos
+            return this.$store.state.disenos.disenos;
         },
     },
 
     methods: {
         empleadosFiltered() {
-            let options = []
+            let options = [];
             options = this.$store.state.disenos.empleados
                 .filter((el) => el.departamento === "Diseño")
                 .map((el) => {
@@ -118,20 +138,20 @@ export default {
                     return {
                         value: el.id_usuario,
                         text: `${el.nombre}`,
-                    }
-                })
+                    };
+                });
 
             options.unshift({
                 value: null,
                 text: "Seleccione un diseñador",
-            })
-            return options
+            });
+            return options;
         },
         ordenesFiltered(id_orden) {
             // return this.$store.state.disenos.disenos.items
             return this.$store.state.disenos.disenos.items.filter(
                 (el) => el.id_orden == id_orden && el.empleado != "0"
-            )
+            );
             /* .map((el) => {
                     const rand_id = this.generateRandomId()
                     return {
@@ -145,25 +165,25 @@ export default {
 
         generateRandomId() {
             // Generar un número aleatorio entre 100000 y 9999999
-            return Math.floor(Math.random() * (9999999 - 100000 + 1)) + 100000
+            return Math.floor(Math.random() * (9999999 - 100000 + 1)) + 100000;
         },
 
         terminado(val) {
-            let res
+            let res;
             if (val === "0") {
-                res = "No"
+                res = "No";
             } else {
-                res = "Si"
+                res = "Si";
             }
-            return res
+            return res;
         },
 
         async getEmpleados() {
             await this.$axios
                 .get(`${this.$config.API}/empleados`)
                 .then((res) => {
-                    this.empleados = res.data.items
-                })
+                    this.empleados = res.data.items;
+                });
         },
 
         filterOrdenesAsignadas(id_orden) {
@@ -173,8 +193,8 @@ export default {
                     return {
                         value: el.empleado,
                         text: el.nombre_empleado,
-                    }
-                })
+                    };
+                });
         },
 
         loadAll() {
@@ -190,32 +210,34 @@ export default {
                             return {
                                 value: el.id_usuario,
                                 text: el.nombre,
-                            }
-                        })
+                            };
+                        });
                     this.optionsSelect = tmpOptions.concat({
                         value: 0,
                         text: "Sin asignar",
-                    })
-                    this.overlay = false
+                    });
+                    this.overlay = false;
 
                     if (
                         parseInt(this.$store.state.login.dataUser.acceso) === 1
                     ) {
-                        this.datax = this.dataTable.items
+                        this.datax = this.dataTable.items;
                     } else {
                         this.datax = this.dataTable.items.filter(
                             (item) =>
                                 item.responsable ===
                                 this.$store.state.login.dataUser.id_empleado
-                        )
+                        );
                     }
-                })
-            })
+
+                    console.log("items de diseÑo", this.datax);
+                });
+            });
         },
     },
 
     mounted() {
-        this.loadAll()
+        this.loadAll();
     },
-}
+};
 </script>

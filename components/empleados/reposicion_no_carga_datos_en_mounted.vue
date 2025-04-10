@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import axios from "axios"
+import axios from "axios";
 
 export default {
     data() {
@@ -76,7 +76,7 @@ export default {
             productos: [],
             item: {},
             showError: false,
-        }
+        };
     },
 
     computed: {
@@ -89,24 +89,24 @@ export default {
                 Tela: item.tela,
                 Corte: item.corte,
                 Reponer: item._id,
-            }))
+            }));
         },
 
         modal() {
-            return `modal-${this.id_orden}`
+            return `modal-${this.id_orden}`;
         },
     },
 
     methods: {
         reloadTareasAsignadas() {
-            return null
+            return null;
         },
         async getReposicionData() {
             await this.$axios
                 .get(`${this.$config.API}/insumos`)
                 .then((resp) => {
-                    console.log("test mounted", resp.data)
-                })
+                    // console.log("test mounted", resp.data)
+                });
         },
 
         async getReposicionData00() {
@@ -115,26 +115,26 @@ export default {
                     `${this.$config.API}/empleados/reposicion/${this.id_orden}`
                 )
                 .then((resp) => {
-                    this.productos = resp.data.reposicion_ordenes_productos
-                    this.item = resp.data.item
+                    this.productos = resp.data.reposicion_ordenes_productos;
+                    this.item = resp.data.item;
                 })
                 .catch((err) => {
                     this.$fire({
                         title: "Error",
                         html: `<p>No se cargaron los datos de la reposición</p><p>${err}</p>`,
                         type: "warning",
-                    })
+                    });
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
     },
 
     mounted() {
-        this.getReposicionData()
+        this.getReposicionData();
     },
 
     props: ["id_orden", "reload_this"],
-}
+};
 </script>

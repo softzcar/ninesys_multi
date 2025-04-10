@@ -16,8 +16,7 @@ reporte por producto
 poner cantidad total gastada (valor final menos inicial)
 agregar uso de papel en modulo de impresion
 agregar uso de tinta general no por numero de orden. (registro de fecha)(total de productos impresos en ese rango de fecha)
-agregar rendimiento de tela por kilo (1 kg rinde 4 metros) (editar insumo para pode
-r agregar el rendimiento)
+agregar rendimiento de tela por kilo (1 kg rinde 4 metros) (editar insumo para poder agregar el rendimiento)
 Buen dia agregar esto a pendientes urgentes :
 (ordenes en curso y todas las ordenes)Poder Ver solo órdenes pendientes de pago (no mostrar las pagadas) (un boton donde se seleccione ver ordenes pendientes de deuda)
 Cuando se hacen abonos y tiene un decimal no se puede hacer el pago
