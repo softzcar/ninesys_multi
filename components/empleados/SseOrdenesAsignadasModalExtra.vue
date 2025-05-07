@@ -198,6 +198,7 @@
                     >
                 </b-form>
                 <!-- </div> -->
+                <!-- <pre class="force">{{ form }}</pre> -->
             </b-overlay>
         </b-modal>
     </div>
@@ -562,10 +563,12 @@ export default {
                         this.rendimiento(this.formCor.input, this.idorden);
                     }
                     this.terminarTodo();
+                    this.$emit("reload");
                 }
             } else {
                 // Enviar solo el formulario aqui
                 this.terminarTodo();
+                this.$emit("reload");
             }
 
             return ok;
@@ -768,7 +771,7 @@ export default {
                 .post(`${this.$config.API}/registrar-paso-empleado`, data)
                 .then((res) => {
                     console.log("emitimos aqui...");
-                    // this.$emit('reload', 'true')
+                    this.$emit("reload", "true");
                     this.overlay = false;
                 })
                 .catch((err) => {
@@ -827,6 +830,7 @@ export default {
             // this.clearForms()
             this.$emit("reload");
             this.$bvModal.hide(this.modal);
+            // this.clearForms();
         },
 
         /* async registrarEstado_old(tipo, id_lotes_detalles, unidades) {

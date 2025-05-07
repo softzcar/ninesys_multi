@@ -78,370 +78,432 @@
                     <!-- Reposiciones -->
                     <b-row>
                         <b-col>
-                            <h3>
-                                Reposiciones {{ dataTableReposiciones.length }}
-                            </h3>
-
-                            <b-alert
-                                class="text-center"
-                                v-if="dataTableReposiciones.length < 1"
-                                show
-                                variant="info"
+                            <b-card
+                                class="mb-4"
+                                :header="
+                                    contarItems(dataTableReposiciones.length)
+                                "
                             >
-                                No tienes reposiciones en curso</b-alert
-                            >
-                            <!-- TABLA DE REPOSICIONES -->
-                            <b-table
-                                v-else
-                                stacked
-                                :items="dataTableReposiciones"
-                                :fields="filedsLista"
-                                :filter-included-fields="includedFields"
-                                @filtered="onFiltered"
-                                :filter="filter"
-                            >
-                                <template #cell(orden)="row">
-                                    <div style="width: 164%; float: left">
-                                        <span class="floatme">
-                                            <linkSearch
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
-                                        </span>
+                                <h3>Reposiciones</h3>
 
-                                        <!-- Ver detalles -->
-                                        <!-- <span class="floatme">
-                                            <b-button
-                                            :variant="setStatusButton('secondary', row.item.urgent)"
-                                            block
-                                            size="xl"
-                                            style="padding: 6px 20px 0 20px"
-                                            @click="row.toggleDetails"
-                                            >
-                                            <h4>
-                                                <b-icon icon="caret-down-fill"></b-icon>
-                                            </h4>
-                                            </b-button>
-                                        </span> -->
+                                <b-alert
+                                    class="text-center"
+                                    v-if="dataTableReposiciones.length < 1"
+                                    show
+                                    variant="info"
+                                >
+                                    No tienes reposiciones en curso</b-alert
+                                >
+                                <!-- TABLA DE REPOSICIONES -->
+                                <b-table
+                                    v-else
+                                    stacked
+                                    :items="dataTableReposiciones"
+                                    :fields="filedsLista"
+                                    :filter-included-fields="includedFields"
+                                    @filtered="onFiltered"
+                                    :filter="filter"
+                                >
+                                    <template #cell(orden)="row">
+                                        <div style="width: 164%; float: left">
+                                            <span class="floatme">
+                                                <linkSearch
+                                                    class="floatme mb-2"
+                                                    :id="row.item.orden"
+                                                />
+                                            </span>
 
-                                        <!-- Terminar -->
-                                        <span class="floatme">
-                                            <empleados-SseOrdenesAsignadasModalExtra
-                                                :pausas="pausas"
-                                                :departamento="
-                                                    $store.state.login.dataUser
-                                                        .departamento
-                                                "
-                                                :item="row.item"
-                                                :items="
-                                                    filterOrder(
-                                                        row.item.orden,
-                                                        'en curso'
-                                                    )
-                                                "
+                                            <!-- Ver detalles -->
+                                            <!-- <span class="floatme">
+                                                <b-button
+                                                :variant="setStatusButton('secondary', row.item.urgent)"
+                                                block
+                                                size="xl"
+                                                style="padding: 6px 20px 0 20px"
+                                                @click="row.toggleDetails"
+                                                >
+                                                <h4>
+                                                    <b-icon icon="caret-down-fill"></b-icon>
+                                                </h4>
+                                                </b-button>
+                                            </span> -->
+
+                                            <!-- Terminar -->
+                                            <span class="floatme">
+                                                <empleados-SseOrdenesAsignadasModalExtra
+                                                    :pausas="pausas"
+                                                    :departamento="
+                                                        $store.state.login
+                                                            .dataUser
+                                                            .departamento
+                                                    "
+                                                    :item="row.item"
+                                                    :items="
+                                                        filterOrder(
+                                                            row.item.orden,
+                                                            'en curso'
+                                                        )
+                                                    "
+                                                    class="floatme"
+                                                    :esreposicion="1"
+                                                    :idlotesdetalles="
+                                                        row.item
+                                                            .id_lotes_detalles
+                                                    "
+                                                    :insumosimp="
+                                                        insumosImpresion
+                                                    "
+                                                    :insumosest="
+                                                        insumosEstampado
+                                                    "
+                                                    :insumoscor="insumosCorte"
+                                                    :insumoscos="insumosCostura"
+                                                    :insumoslim="
+                                                        insumosLimpieza
+                                                    "
+                                                    :insumosrev="
+                                                        insumosRevision
+                                                    "
+                                                    tipo="todo"
+                                                    :idorden="row.item.orden"
+                                                    :id_ordenes_productos="
+                                                        row.item
+                                                            .id_ordenes_productos
+                                                    "
+                                                    @reload="reloadMe"
+                                                    @registrarestado="
+                                                        registrarEstado
+                                                    "
+                                                />
+                                            </span>
+
+                                            <!-- Ver Diseño -->
+                                            <span class="floatme">
+                                                <diseno-view-image
+                                                    class="floatme mb-2"
+                                                    :id="row.item.orden"
+                                                />
+                                            </span>
+
+                                            <!-- ProgressBar -->
+                                            <span
                                                 class="floatme"
-                                                :esreposicion="1"
-                                                :idlotesdetalles="
-                                                    row.item.id_lotes_detalles
-                                                "
-                                                :insumosimp="insumosImpresion"
-                                                :insumosest="insumosEstampado"
-                                                :insumoscor="insumosCorte"
-                                                :insumoscos="insumosCostura"
-                                                :insumoslim="insumosLimpieza"
-                                                :insumosrev="insumosRevision"
-                                                tipo="todo"
-                                                :idorden="row.item.orden"
-                                                :id_ordenes_productos="
-                                                    row.item
-                                                        .id_ordenes_productos
-                                                "
-                                                @reload="reloadMe"
-                                                @registrarestado="
-                                                    registrarEstado
-                                                "
-                                            />
-                                        </span>
+                                                style="width: 160px"
+                                            >
+                                                <empleados-ProgressBarEmpleados
+                                                    :idOrden="row.item.orden"
+                                                />
+                                            </span>
 
-                                        <!-- Ver Diseño -->
-                                        <span class="floatme">
-                                            <diseno-view-image
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
-                                        </span>
+                                            <!-- Reposición -->
+                                            <span class="floatme">
+                                                <empleados-reposicion
+                                                    @reload_this="reloadMe"
+                                                    :id_orden="row.item.orden"
+                                                />
+                                            </span>
 
-                                        <!-- ProgressBar -->
-                                        <span
-                                            class="floatme"
-                                            style="width: 160px"
-                                        >
-                                            <empleados-ProgressBarEmpleados
-                                                :idOrden="row.item.orden"
-                                            />
-                                        </span>
+                                            <!-- Detalles productos -->
+                                            <span class="floatme">
+                                                <produccion-control-de-produccion-detalles-editor
+                                                    esreposicion="true"
+                                                    :idorden="row.item.orden"
+                                                    :detalles="
+                                                        row.item.observaciones
+                                                    "
+                                                    :detalle_empleado="
+                                                        row.item
+                                                            .detalle_empleado
+                                                    "
+                                                    :productos="
+                                                        productsFilter(
+                                                            row.item.orden
+                                                        )
+                                                    "
+                                                />
+                                            </span>
 
-                                        <!-- Reposición -->
-                                        <span class="floatme">
-                                            <empleados-reposicion
-                                                @reload_this="reloadMe"
-                                                :id_orden="row.item.orden"
-                                            />
-                                        </span>
-
-                                        <!-- Detalles productos -->
-                                        <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor
-                                                esreposicion="true"
-                                                :idorden="row.item.orden"
-                                                :detalles="
-                                                    row.item.observaciones
-                                                "
-                                                :detalle_empleado="
-                                                    row.item.detalle_empleado
-                                                "
-                                                :productos="
-                                                    productsFilter(
+                                            <span
+                                                v-html="
+                                                    filterFechaEstimada(
                                                         row.item.orden
                                                     )
                                                 "
+                                                class="floatme"
+                                            ></span>
+                                            <!-- Detalle Reposición -->
+                                            <!-- <span class="floatme">
+                                            <produccion-control-de-produccion-detalle-reposicion
+                                                :detalle="
+                                                    row.item.detalle_reposicion
+                                                "
                                             />
-                                        </span>
-                                        <!-- Detalle Reposición -->
-                                        <!-- <span class="floatme">
-                                        <produccion-control-de-produccion-detalle-reposicion
-                                            :detalle="
-                                                row.item.detalle_reposicion
-                                            "
-                                        />
-                                    </span> -->
-                                    </div>
-                                </template>
+                                        </span> -->
+                                        </div>
+                                    </template>
 
-                                <!-- Lista de productos -->
-                            </b-table>
+                                    <!-- Lista de productos -->
+                                </b-table>
+                            </b-card>
                         </b-col>
                     </b-row>
 
                     <!-- En curso -->
                     <b-row>
                         <b-col>
-                            <h3>En Curso {{ dataTableEnCurso.length }}</h3>
-                            <b-alert
-                                class="text-center"
-                                v-if="dataTableEnCurso.length < 1"
-                                show
-                                variant="info"
-                                >No tienes tareas en curso</b-alert
+                            <b-card
+                                class="mb-4"
+                                :header="contarItems(dataTableEnCurso.length)"
                             >
-                            <!-- BOTONES EN CURSO -->
-                            <b-table
-                                v-else
-                                stacked
-                                :items="dataTableEnCurso"
-                                :fields="filedsLista"
-                                :filter-included-fields="includedFields"
-                                @filtered="onFiltered"
-                                :filter="filter"
-                            >
-                                <template #cell(orden)="row">
-                                    <div style="width: 164%; float: left">
-                                        <span class="floatme">
-                                            <linkSearch
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
-                                        </span>
+                                <h3>En Curso</h3>
+                                <b-alert
+                                    class="text-center"
+                                    v-if="dataTableEnCurso.length < 1"
+                                    show
+                                    variant="info"
+                                    >No tienes tareas en curso</b-alert
+                                >
+                                <!-- BOTONES EN CURSO -->
+                                <b-table
+                                    v-else
+                                    stacked
+                                    :items="dataTableEnCurso"
+                                    :fields="filedsLista"
+                                    :filter-included-fields="includedFields"
+                                    @filtered="onFiltered"
+                                    :filter="filter"
+                                >
+                                    <template #cell(orden)="row">
+                                        <div style="width: 164%; float: left">
+                                            <span class="floatme">
+                                                <linkSearch
+                                                    class="floatme mb-2"
+                                                    :id="row.item.orden"
+                                                />
+                                            </span>
 
-                                        <!-- Terminar -->
-                                        <span class="floatme">
-                                            <empleados-SseOrdenesAsignadasModalExtra
-                                                :pausas="pausas"
-                                                :departamento="
-                                                    $store.state.login.dataUser
-                                                        .departamento
-                                                "
-                                                :item="row.item"
-                                                :items="
-                                                    filterOrder(
-                                                        row.item.orden,
-                                                        'en curso'
+                                            <!-- Terminar -->
+                                            <span class="floatme">
+                                                <empleados-SseOrdenesAsignadasModalExtra
+                                                    :pausas="pausas"
+                                                    :departamento="
+                                                        $store.state.login
+                                                            .dataUser
+                                                            .departamento
+                                                    "
+                                                    :item="row.item"
+                                                    :items="
+                                                        filterOrder(
+                                                            row.item.orden,
+                                                            'en curso'
+                                                        )
+                                                    "
+                                                    class="floatme"
+                                                    :esreposicion="0"
+                                                    :insumosimp="
+                                                        insumosImpresion
+                                                    "
+                                                    :insumosest="
+                                                        insumosEstampado
+                                                    "
+                                                    :insumoscos="insumosCostura"
+                                                    :insumoslim="
+                                                        insumosLimpieza
+                                                    "
+                                                    :insumosrev="
+                                                        insumosRevision
+                                                    "
+                                                    :insumoscor="insumosCorte"
+                                                    tipo="todo"
+                                                    :idorden="row.item.orden"
+                                                    :id_ordenes_productos="
+                                                        row.item
+                                                            .id_ordenes_productos
+                                                    "
+                                                    @reload="reloadMe()"
+                                                />
+                                            </span>
+
+                                            <!-- Ver Diseño -->
+                                            <span class="floatme">
+                                                <diseno-view-image
+                                                    class="floatme mb-2"
+                                                    :id="row.item.orden"
+                                                />
+                                            </span>
+
+                                            <!-- ProgressBar -->
+                                            <span
+                                                class="floatme"
+                                                style="width: 160px"
+                                            >
+                                                <empleados-ProgressBarEmpleados
+                                                    :idOrden="row.item.orden"
+                                                />
+                                            </span>
+
+                                            <!-- Reposición -->
+                                            <span class="floatme">
+                                                <empleados-reposicion
+                                                    @reload_this="reloadMe"
+                                                    :id_orden="row.item.orden"
+                                                />
+                                            </span>
+
+                                            <!-- Detalles -->
+                                            <span class="floatme">
+                                                <produccion-control-de-produccion-detalles-editor
+                                                    esreposicion="false"
+                                                    :idorden="row.item.orden"
+                                                    :detalles="
+                                                        row.item.observaciones
+                                                    "
+                                                    :detalle_empleado="
+                                                        row.item
+                                                            .detalle_empleado
+                                                    "
+                                                    :productos="
+                                                        productsFilter(
+                                                            row.item.orden
+                                                        )
+                                                    "
+                                                />
+                                            </span>
+
+                                            <!-- Vinculadas -->
+                                            <span class="floatme">
+                                                <ordenes-vinculadas-v2
+                                                    :ordenes_vinculadas="
+                                                        filterVinculdas(
+                                                            row.item.orden
+                                                        )
+                                                    "
+                                                />
+                                            </span>
+
+                                            <span
+                                                v-html="
+                                                    filterFechaEstimada(
+                                                        row.item.orden
                                                     )
                                                 "
                                                 class="floatme"
-                                                :esreposicion="0"
-                                                :insumosimp="insumosImpresion"
-                                                :insumosest="insumosEstampado"
-                                                :insumoscos="insumosCostura"
-                                                :insumoslim="insumosLimpieza"
-                                                :insumosrev="insumosRevision"
-                                                :insumoscor="insumosCorte"
-                                                tipo="todo"
-                                                :idorden="row.item.orden"
-                                                :id_ordenes_productos="
-                                                    row.item
-                                                        .id_ordenes_productos
-                                                "
-                                                @reload="reloadMe()"
-                                            />
-                                        </span>
-
-                                        <!-- Ver Diseño -->
-                                        <span class="floatme">
-                                            <diseno-view-image
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
-                                        </span>
-
-                                        <!-- ProgressBar -->
-                                        <span
-                                            class="floatme"
-                                            style="width: 160px"
-                                        >
-                                            <empleados-ProgressBarEmpleados
-                                                :idOrden="row.item.orden"
-                                            />
-                                        </span>
-
-                                        <!-- Reposición -->
-                                        <span class="floatme">
-                                            <empleados-reposicion
-                                                @reload_this="reloadMe"
-                                                :id_orden="row.item.orden"
-                                            />
-                                        </span>
-
-                                        <!-- Detalles -->
-                                        <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor
-                                                esreposicion="false"
-                                                :idorden="row.item.orden"
-                                                :detalles="
-                                                    row.item.observaciones
-                                                "
-                                                :detalle_empleado="
-                                                    row.item.detalle_empleado
-                                                "
-                                                :productos="
-                                                    productsFilter(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
-                                        </span>
-
-                                        <!-- Vinculadas -->
-                                        <span class="floatme">
-                                            <ordenes-vinculadas-v2
-                                                :ordenes_vinculadas="
-                                                    filterVinculdas(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
-                                        </span>
-                                    </div>
-                                </template>
-                            </b-table>
+                                            ></span>
+                                        </div>
+                                    </template>
+                                </b-table>
+                            </b-card>
                         </b-col>
                     </b-row>
 
                     <!-- ORDENES PENDIENTES -->
                     <b-row>
                         <b-col>
-                            <h3>Pendientes {{ dataTablePendiente.length }}</h3>
-
-                            <b-alert
-                                class="text-center"
-                                v-if="dataTablePendiente.length < 1"
-                                show
-                                variant="info"
-                                >No tienes tareas pendientes</b-alert
+                            <b-card
+                                :header="contarItems(dataTablePendiente.length)"
                             >
+                                <h3>Pendientes</h3>
 
-                            <b-table
-                                v-else
-                                stacked
-                                :items="dataTablePendiente"
-                                :fields="filedsLista"
-                                :filter-included-fields="includedFields"
-                                @filtered="onFiltered"
-                                :filter="filter"
-                            >
-                                <template #cell(orden)="row">
-                                    <div style="width: 164%; float: left">
-                                        <span class="floatme">
-                                            <linkSearch
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
-                                        </span>
+                                <b-alert
+                                    class="text-center"
+                                    v-if="dataTablePendiente.length < 1"
+                                    show
+                                    variant="info"
+                                    >No tienes tareas pendientes</b-alert
+                                >
 
-                                        <span class="floatme">
-                                            <b-button
-                                                block
-                                                size="xl"
-                                                variant="info"
-                                                @click="
-                                                    iniciarTodo(
-                                                        row.item.orden,
-                                                        row.item.unidades,
-                                                        row.item.id_orden
-                                                    )
-                                                "
-                                                >Iniciar Todo
-                                            </b-button>
-                                        </span>
+                                <b-table
+                                    v-else
+                                    stacked
+                                    :items="dataTablePendiente"
+                                    :fields="filedsLista"
+                                    :filter-included-fields="includedFields"
+                                    @filtered="onFiltered"
+                                    :filter="filter"
+                                >
+                                    <template #cell(orden)="row">
+                                        <div style="width: 164%; float: left">
+                                            <span class="floatme">
+                                                <linkSearch
+                                                    class="floatme mb-2"
+                                                    :id="row.item.orden"
+                                                />
+                                            </span>
 
-                                        <span class="floatme">
-                                            <diseno-view-image
-                                                class="floatme mb-2"
-                                                :id="row.item.orden"
-                                            />
-                                        </span>
+                                            <span class="floatme">
+                                                <b-button
+                                                    block
+                                                    size="xl"
+                                                    variant="info"
+                                                    @click="
+                                                        iniciarTodo(
+                                                            row.item.orden,
+                                                            row.item.unidades
+                                                        )
+                                                    "
+                                                    >Iniciar Todo
+                                                </b-button>
+                                            </span>
 
-                                        <span
-                                            class="floatme"
-                                            style="width: 160px"
-                                        >
-                                            <empleados-ProgressBarEmpleados
-                                                :idOrden="row.item.orden"
-                                            />
-                                        </span>
+                                            <span class="floatme">
+                                                <diseno-view-image
+                                                    class="floatme mb-2"
+                                                    :id="row.item.orden"
+                                                />
+                                            </span>
 
-                                        <!-- Detalles -->
-                                        <span class="floatme">
-                                            <produccion-control-de-produccion-detalles-editor
-                                                esreposicion="false"
-                                                :idorden="row.item.orden"
-                                                :detalles="
-                                                    row.item.observaciones
-                                                "
-                                                :detalle_empleado="
-                                                    row.item.detalle_empleado
-                                                "
-                                                :productos="
-                                                    productsFilter(
+                                            <span
+                                                class="floatme"
+                                                style="width: 160px"
+                                            >
+                                                <empleados-ProgressBarEmpleados
+                                                    :idOrden="row.item.orden"
+                                                />
+                                            </span>
+
+                                            <!-- Detalles -->
+                                            <span class="floatme">
+                                                <produccion-control-de-produccion-detalles-editor
+                                                    esreposicion="false"
+                                                    :idorden="row.item.orden"
+                                                    :detalles="
+                                                        row.item.observaciones
+                                                    "
+                                                    :detalle_empleado="
+                                                        row.item
+                                                            .detalle_empleado
+                                                    "
+                                                    :productos="
+                                                        productsFilter(
+                                                            row.item.orden
+                                                        )
+                                                    "
+                                                />
+                                            </span>
+
+                                            <!-- Vinculadas -->
+                                            <span class="floatme">
+                                                <ordenes-vinculadas-v2
+                                                    :ordenes_vinculadas="
+                                                        filterVinculdas(
+                                                            row.item.orden
+                                                        )
+                                                    "
+                                                />
+                                            </span>
+
+                                            <span
+                                                v-html="
+                                                    filterFechaEstimada(
                                                         row.item.orden
                                                     )
                                                 "
-                                            />
-                                        </span>
-
-                                        <!-- Vinculadas -->
-                                        <span class="floatme">
-                                            <ordenes-vinculadas-v2
-                                                :ordenes_vinculadas="
-                                                    filterVinculdas(
-                                                        row.item.orden
-                                                    )
-                                                "
-                                            />
-                                        </span>
-                                    </div>
-                                </template>
-                            </b-table>
+                                                class="floatme"
+                                            ></span>
+                                        </div>
+                                    </template>
+                                </b-table>
+                            </b-card>
                         </b-col>
                     </b-row>
                 </b-container>
@@ -452,6 +514,7 @@
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import mixin2 from "~/mixins/mixin-proyeccion-entrega.js";
 
 // import { log } from 'console'
 export default {
@@ -466,6 +529,8 @@ export default {
             msg: "Estamos buscando sus tareas por favor espere...",
             enCurso: null,
             dataInsumos: [],
+            fechas: [],
+            fechasResult: [],
             departamento: "",
             dataOrdenEnCurso: [],
             showAlert: true,
@@ -565,7 +630,7 @@ export default {
         };
     },
 
-    mixins: [mixin],
+    mixins: [mixin, mixin2],
 
     watch: {
         reload(val) {
@@ -946,6 +1011,24 @@ export default {
     },
 
     methods: {
+        filterFechaEstimada(idOrden) {
+            const filtrado = this.fechasResult.filter(
+                (el) => el.id_orden == idOrden
+            );
+            // return this.fechasResult;
+
+            if (
+                filtrado[0].fecha_estimada_finalizacion_orden_formateada !=
+                undefined
+            ) {
+                return `<p>Fecha estimada de entrega</p><p style="margin-top:-16px">${filtrado[0].fecha_estimada_finalizacion_orden_formateada}</p>`;
+            } else {
+                return `<p>Fecha estimada de entrega</p><p style="margin-top:-16px">&nbsp;</p>`;
+            }
+        },
+        contarItems(cantidad) {
+            return `Total ${cantidad}`;
+        },
         filterVinculdas(id_orden) {
             return this.vinculadas.filter((el) => el.id_father === id_orden);
         },
@@ -1353,7 +1436,6 @@ export default {
                 .then((resp) => {
                     if (resp.data.ordenes.length === 0) {
                         this.msg = "Usted no tiene ordenes asignadas";
-                        console.log("Usted no tiene ordenes asignadas");
                     }
 
                     this.ordenes = [];
@@ -1361,6 +1443,25 @@ export default {
                     this.vinculadas = resp.data.vinculadas;
                     this.productos = resp.data.productos;
                     this.pausas = resp.data.pausas;
+                });
+        },
+
+        async getOrdenesFechas() {
+            this.overlay = true;
+            await this.$axios
+                .get(`${this.$config.API}/ordenes/proyeccion-entrega`)
+                .then((res) => {
+                    this.fechas = res.data;
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<P>No se recibieron las fechas</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
                 });
         },
 
@@ -1487,6 +1588,12 @@ export default {
         reloadMe() {
             this.getInsumos();
             this.getOrdenesAsignadas();
+            this.getOrdenesFechas().then(() => {
+                this.fechasResult = this.procesarDatosOrdenesParaMostrar(
+                    this.fechas,
+                    this.$store.state.login.dataEmpresa.horario_laboral
+                );
+            });
             if (this.ordenes != this.items) {
                 this.msg = "Tiene nuevas ordenes asignadas";
             }
@@ -1498,6 +1605,12 @@ export default {
         /* this.sourceEvent = new EventSource(
       `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`
     ); */
+        this.getOrdenesFechas().then(() => {
+            this.fechasResult = this.procesarDatosOrdenesParaMostrar(
+                this.fechas,
+                this.$store.state.login.dataEmpresa.horario_laboral
+            );
+        });
 
         this.getOrdenesAsignadas().then(() => {
             // console.log("Pausas en  V4", this.pausas);

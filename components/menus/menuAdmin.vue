@@ -120,6 +120,21 @@
                                 </router-link>
                             </b-nav-item-dropdown>
 
+                            <router-link
+                                class="nav-link"
+                                to="/ordenes-fechas-entrega"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
+                                    Ordenes fechas de entrega
+                                </span>
+                            </router-link>
+
                             <b-nav-item-dropdown text="Caja" right>
                                 <router-link
                                     class="nav-link"

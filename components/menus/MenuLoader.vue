@@ -76,42 +76,56 @@
                                 }}</span>
                                 {{ $store.state.login.dataEmpresa.nombre }}
                             </div>
-                            <div class="text-right">
-                                <checkConnection
-                                    style="float: right; margin-left: 12px"
-                                />
-                                <div class="user-info">
-                                    <b-icon icon="person" />
-                                    {{ dataUser.nombre }} |
-                                    {{ dataUser.departamento }}
-                                    <!-- <div class="mt-3"> -->
-                                    <div class="mt-3">
-                                        <b-button-group size="lg">
-                                            <b-button
-                                                @click="
-                                                    showComponent(
-                                                        departamento.modulo,
-                                                        departamento.text,
-                                                        departamento.value
-                                                    )
-                                                "
-                                                v-for="(
-                                                    departamento, index
-                                                ) in getDepartamentosEmpleadoSelect"
-                                                :key="index"
-                                                variant="info"
-                                                >{{
-                                                    departamento.text
-                                                }}</b-button
-                                            >
+                            <div
+                                v-if="
+                                    $store.state.login.currentDepartament ===
+                                    'Administración'
+                                "
+                            >
+                                <div class="text-right">
+                                    <checkConnection
+                                        style="float: right; margin-left: 12px"
+                                    />
+                                </div>
+                            </div>
 
-                                            <b-button
-                                                variant="info"
-                                                @click="goOut()"
-                                                >Salir</b-button
-                                            >
-                                        </b-button-group>
-                                    </div>
+                            <div v-else>
+                                <div class="text-right">
+                                    <admin-WsSendMsgCustomInterno
+                                        style="float: right; margin-left: 12px"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="user-info text-right">
+                                <b-icon icon="person" />
+                                {{ dataUser.nombre }} |
+                                {{ dataUser.departamento }}
+                                <!-- <div class="mt-3"> -->
+                                <div class="mt-3">
+                                    <b-button-group size="lg">
+                                        <b-button
+                                            @click="
+                                                showComponent(
+                                                    departamento.modulo,
+                                                    departamento.text,
+                                                    departamento.value
+                                                )
+                                            "
+                                            v-for="(
+                                                departamento, index
+                                            ) in getDepartamentosEmpleadoSelect"
+                                            :key="index"
+                                            variant="info"
+                                            >{{ departamento.text }}</b-button
+                                        >
+
+                                        <b-button
+                                            variant="info"
+                                            @click="goOut()"
+                                            >Salir</b-button
+                                        >
+                                    </b-button-group>
                                 </div>
                             </div>
                         </b-col>

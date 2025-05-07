@@ -15,7 +15,8 @@ export default {
         CDN: `https://cdn.nineteengreen.com`,
         LIVE: `https://live.nineteengreen.com`,
         APP_URL: `https://app.nineteencustom.com`,
-        WS_API: `http://194.195.86.253:3000`,
+        WS_API: `http://194.195.86.253:3000`, // Produccion
+        // WS_API: `http://localhost:3000`, // Desarrollo
         HORARIO: {
             horaInicioManana: 8.5,  // 8:30 AM
             horaFinManana: 12,     // 12:00 PM

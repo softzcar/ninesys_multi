@@ -11,26 +11,77 @@
                                 <b-icon-house-fill></b-icon-house-fill>
                             </b-nav-item>
 
-                            <router-link class="nav-link" to="/test" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/test"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Control de Producción
                                 </span>
                             </router-link>
 
-                            <router-link class="nav-link" to="/produccion/ordenes-activas" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/produccion/ordenes-activas"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Ordenes Activas
                                 </span>
                             </router-link>
 
-                            <router-link class="nav-link" to="/produccion/cortar" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/ordenes-fechas-entrega"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
+                                    Ordenes fechas de entrega
+                                </span>
+                            </router-link>
+
+                            <router-link
+                                class="nav-link"
+                                to="/produccion/cortar"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Cortar
                                 </span>
                             </router-link>
 
-                            <router-link class="nav-link" to="/produccion/lotes" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/produccion/lotes"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Lotes
                                 </span>
                             </router-link>
@@ -46,42 +97,94 @@
                 </span>
               </router-link> -->
 
-                            <router-link class="nav-link" to="/asistencias" custom v-slot="{ navigate }">
-                                <span @click="navigate" @keypress.enter="navigate" role="link">
+                            <router-link
+                                class="nav-link"
+                                to="/asistencias"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
                                     Asistencias
                                 </span>
                             </router-link>
 
                             <b-nav-item-dropdown text="Inventario" right>
-                                <router-link class="nav-link" to="/inventario/gestion" custom v-slot="{ navigate }">
-                                    <span @click="navigate" @keypress.enter="navigate" role="link">
+                                <router-link
+                                    class="nav-link"
+                                    to="/inventario/gestion"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
                                         Gestión de inventario
                                     </span>
                                 </router-link>
                                 <hr />
-                                <router-link class="nav-link" to="/inventario/reportes/orden" custom
-                                    v-slot="{ navigate }">
-                                    <span @click="navigate" @keypress.enter="navigate" role="link">
+                                <router-link
+                                    class="nav-link"
+                                    to="/inventario/reportes/orden"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
                                         Reporte por orden
                                     </span>
                                 </router-link>
 
-                                <router-link class="nav-link" to="/inventario/reportes/insumo" custom
-                                    v-slot="{ navigate }">
-                                    <span @click="navigate" @keypress.enter="navigate" role="link">
+                                <router-link
+                                    class="nav-link"
+                                    to="/inventario/reportes/insumo"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
                                         Reporte por insumo
                                     </span>
                                 </router-link>
-                                <router-link class="nav-link" to="/inventario/reportes/producto" custom
-                                    v-slot="{ navigate }">
-                                    <span @click="navigate" @keypress.enter="navigate" role="link">
+                                <router-link
+                                    class="nav-link"
+                                    to="/inventario/reportes/producto"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
                                         Reporte por producto
                                     </span>
                                 </router-link>
 
-                                <router-link class="nav-link" to="/inventario/reportes/empleado" custom
-                                    v-slot="{ navigate }">
-                                    <span por empleadon @click="navigate" @keypress.enter="navigate" role="link">
+                                <router-link
+                                    class="nav-link"
+                                    to="/inventario/reportes/empleado"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        por
+                                        empleadon
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
                                         Reporte
                                     </span>
                                 </router-link>
@@ -111,18 +214,18 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import buscar from '~/components/buscar/BarraDeBusqueda.vue'
+import { mapState } from "vuex";
+import buscar from "~/components/buscar/BarraDeBusqueda.vue";
 
 export default {
     computed: {
-        ...mapState('login', ['dataUser']),
+        ...mapState("login", ["dataUser"]),
     },
     components: {
         buscar,
     },
-    props: ['user', 'departamento'],
-}
+    props: ["user", "departamento"],
+};
 </script>
 
 <style scoped>

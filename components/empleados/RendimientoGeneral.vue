@@ -29,7 +29,7 @@ export default {
     watch: {
         ordenes(val) {
             if (val.length > 0) {
-                this.totalEficiencia();
+                this.liveEficiencia();
             }
         },
     },
@@ -46,7 +46,7 @@ export default {
 
         totalEficiencia() {
             if (this.ordenes.length === 0) {
-                this.text = `???`;
+                this.text = ``;
                 this.variant = "light";
             } else {
                 if (this.tiempoTrabajoMs.porcentajeEficienciaGlobal < 50) {
@@ -67,7 +67,7 @@ export default {
                     porcentaje = 0;
                 }
 
-                this.text = `Tienes un ${porcentaje}% de Eficiencia`;
+                this.text = `Eficiencia ${porcentaje}%`;
                 console.log("texto eficiencia", this.text);
             }
         },
@@ -83,11 +83,11 @@ export default {
 
         this.totalEficiencia();
 
-        const intervaloId = setInterval(this.liveEficiencia, 5000);
+        /* const intervaloId = setInterval(this.liveEficiencia, 5000);
         setTimeout(() => {
             clearInterval(intervaloId);
             console.log("Temporizador detenido después de 30 segundos.");
-        }, 30000000);
+        }, 30000000); */
     },
 
     props: ["ordenes", "pausas"],

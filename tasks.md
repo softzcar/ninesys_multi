@@ -1,3 +1,11 @@
+# DIARIO
+- [X] Arregrlar pagos de empleados ne la planilla
+- [ ] Reset de formaulaios en el modulo de empleados
+- [ ] Estimar tiempos de producción basado en los datos de las ordenes
+
+******************************************************************************
+
+
 
 # MENSAJE ORIGINAL
 

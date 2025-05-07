@@ -14,15 +14,92 @@ export default {
             if (jsonData.response.status === "error") {
                 this.$fire({
                     title: "Error",
-                    html: `<p>Ocurrió un error al ejecutar su solicitud</p><p>${
-                        jsonData.response.message || "Error desconocido"
-                    }</p>`,
+                    html: `<p>Ocurrió un error al ejecutar su solicitud</p><p>${jsonData.response.message || "Error desconocido"
+                        }</p>`,
                     type: "error",
                 })
                 return false
             } else {
                 return true
             }
+        },
+
+        async sendMsgCustom(idOrden, tipo, idDep = 0, message = '') {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id_orden", idOrden);
+            data.set("tipo", tipo);
+            data.set("message", message);
+            data.set("id_departamento", idDep);
+
+            console.log('mensaje a aenviar', message);
+            
+
+            await this.$axios
+                .post(`${this.$config.API}/ws/build-message`, data)
+                .then((res) => {
+                    if (res.data.result_msg.error) {
+                        this.$fire({
+                            title: "No se pudo enviar el mensaje",
+                            html: `<p>${res.data.result_msg.error}</p>`,
+                            type: "error",
+                        });
+                    } else {
+                        this.$fire({
+                            title: "El mensaje ha sido enviado",
+                            html: `<p></p>`,
+                            type: "success",
+                        });
+                    }
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>No se pudo enviar el mensaje</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
+        async sendMsgCustomIneterno(idOrden, idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id_orden", idOrden);
+            data.set("id_destino", idEmpleadoDestino);
+            data.set("id_remitente", idEmpleadoRemitente);
+            data.set("id_departamento", idDep);
+            data.set("message", message);
+
+            await this.$axios
+                .post(`${this.$config.API}/ws/build-message/interno`, data)
+                .then((res) => {
+                    if (res.data.result_msg.error) {
+                        this.$fire({
+                            title: "No se pudo enviar el mensaje",
+                            html: `<p>${res.data.result_msg.error}</p>`,
+                            type: "error",
+                        });
+                    } else {
+                        this.$fire({
+                            title: "El mensaje ha sido enviado",
+                            html: `<p></p>`,
+                            type: "success",
+                        });
+                    }
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<p>No se pudo enviar el mensaje</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
         },
 
         async sendMessage(idOrden, message) {
@@ -49,6 +126,7 @@ export default {
             data.set("id_orden", idOrden)
             data.set("tipo", tipo)
             data.set("monto", monto)
+            data.set("id_departamento_empelado", this.$store.state.login.currentDepartamentId)
 
             await this.$axios
                 .post(`${this.$config.API}/send-message-produccion`, data)
@@ -115,9 +193,8 @@ export default {
             }
 
             // Enlace sencillo para WhatsApp
-            buttonWS = `<a aria-label="Enviar WhatsApp" href="https://wa.me/${
-                phone + msg
-            }" target="_blank" class="text-center">${linkText}</a>`
+            buttonWS = `<a aria-label="Enviar WhatsApp" href="https://wa.me/${phone + msg
+                }" target="_blank" class="text-center">${linkText}</a>`
 
             return buttonWS
         },
@@ -300,7 +377,7 @@ export default {
                 const dia = fecha.getDate().toString().padStart(2, "0")
                 const mes = (fecha.getMonth() + 1).toString().padStart(2, "0") // Se suma 1 porque los meses comienzan en 0 (enero)
                 const año = fecha.getFullYear()
-    
+
                 return `${dia}/${mes}/${año}`
             } else {
                 return ''
@@ -315,7 +392,7 @@ export default {
                 if (check.length === 1) {
                     return date
                 }
-    
+
                 let f
                 if (!date) {
                     let tmp = new Date()
@@ -419,9 +496,9 @@ export default {
 
             if (
                 this.$store.state.login.dataUser.departamento ===
-                    "Administración" ||
+                "Administración" ||
                 this.$store.state.login.dataUser.departamento ===
-                    "Comercialización"
+                "Comercialización"
             ) {
                 mostrar = "table-cell"
             } else {

@@ -8,9 +8,9 @@
             <menus-MenuLoader />
             <div v-if="dataUser.departamento === 'Administración'">
                 <b-overlay :show="overlay" spinner-small>
-                    <pre class="force" style="background-color: darkslategrey">
+                    <!-- <pre class="force" style="background-color: darkslategrey">
                         {{ departamentosOrd }}
-                    </pre>
+                    </pre> -->
                     <b-container fluid>
                         <b-row>
                             <b-col offset-lg="8" offset-xl="8">
@@ -99,15 +99,27 @@
                                                     />
                                                 </span>
                                                 <span class="ml-2 mt-3">
-                                                    <b-button
+                                                    <admin-departamentosDelete
+                                                        @reload="
+                                                            getDepartamentos()
+                                                        "
+                                                        :iddep="
+                                                            departamento._id
+                                                        "
+                                                        :key="departamento._id"
+                                                        :nombre="
+                                                            departamento.departamento
+                                                        "
+                                                    />
+                                                    <!-- <b-button
                                                         size="sm"
                                                         class="mb-4"
                                                         variant="danger"
                                                     >
                                                         <b-icon
                                                             icon="trash"
-                                                        ></b-icon>
-                                                    </b-button>
+                                                        ></b-icon> 
+                                                    </b-button>-->
                                                 </span>
                                             </b-list-group-item>
                                         </draggable>

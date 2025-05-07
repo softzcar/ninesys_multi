@@ -33,11 +33,7 @@
 
                         <b-row v-if="showControl">
                             <b-col style="text-center">
-                                <b-progress
-                                    :max="max"
-                                    variant="success"
-                                    style="width: 100% !important"
-                                >
+                                <b-progress :max="max" variant="success">
                                     <b-progress-bar :value="value">
                                         <span
                                             ><strong
@@ -80,8 +76,8 @@
 </template>
 
 <script>
-import axios from "axios"
-import { log } from "console"
+import axios from "axios";
+import { log } from "console";
 
 export default {
     data() {
@@ -98,126 +94,126 @@ export default {
             departamento: "Departamento",
             value: 0,
             max: 100,
-        }
+        };
     },
     methods: {
         async getPorcentaje() {
-            this.overlay = true
+            this.overlay = true;
             await this.$axios
                 .get(
                     `${this.$config.API}/produccion/progressbar/${this.idOrden}`
                 )
                 .then((res) => {
-                    this.departamento = res.data.departamento
-                    this.responseData = res.data
-                    this.value = res.data.porcentaje
-                    this.paso = res.data.paso
-                    this.status = res.data.status
-                    this.pasoActual()
-                    this.overlay = false
-                    this.showControl = true
-                    this.msg = ``
+                    this.departamento = res.data.departamento;
+                    this.responseData = res.data;
+                    this.value = res.data.porcentaje;
+                    this.paso = res.data.paso;
+                    this.status = res.data.status;
+                    this.pasoActual();
+                    this.overlay = false;
+                    this.showControl = true;
+                    this.msg = ``;
                 })
                 .catch((err) => {
-                    this.msg = `La información de la orden ${this.idOrden} no está disponible`
+                    this.msg = `La información de la orden ${this.idOrden} no está disponible`;
                     console.error(
                         "Error al obtener los datos del servidor para prgressBar",
                         err
-                    )
+                    );
                 })
                 .finally(() => {
-                    this.overlay = false
-                })
+                    this.overlay = false;
+                });
         },
 
         pasoActual() {
             switch (this.paso) {
                 case "producción":
-                    this.departamento = "Producción"
-                    this.msgPaso = `En este momento tu pedido de encuentra en diseño gráfico, o en cola para comenzar la siguiente etapa del proceso.`
-                    break
+                    this.departamento = "Producción";
+                    this.msgPaso = `En este momento tu pedido de encuentra en diseño gráfico, o en cola para comenzar la siguiente etapa del proceso.`;
+                    break;
 
                 case "Corte":
-                    this.departamento = "Corte de patronaje"
-                    this.msgPaso = `La tela se corta según los patrones diseñados para la prenda. Los patrones se hacen a partir de la talla del cliente, y se tienen en cuenta los tipos de tela, y especificaciones del cliente.`
-                    break
+                    this.departamento = "Corte de patronaje";
+                    this.msgPaso = `La tela se corta según los patrones diseñados para la prenda. Los patrones se hacen a partir de la talla del cliente, y se tienen en cuenta los tipos de tela, y especificaciones del cliente.`;
+                    break;
 
                 case "Impresión":
-                    this.departamento = "Impresión"
-                    this.msgPaso = `El diseño se imprime en papel con tintas especiales. Las tintas se pueden imprimir de diferentes maneras, como con serigrafía, sublimación o impresión digital.`
-                    break
+                    this.departamento = "Impresión";
+                    this.msgPaso = `El diseño se imprime en papel con tintas especiales. Las tintas se pueden imprimir de diferentes maneras, como con serigrafía, sublimación o impresión digital.`;
+                    break;
 
                 case "Estampado":
-                    this.departamento = "Estampado"
-                    this.msgPaso = `El papel impreso se coloca sobre la tela cortada y se aplica calor con una calandra especial. El calor hace que las tintas se transfieran a la tela.`
-                    break
+                    this.departamento = "Estampado";
+                    this.msgPaso = `El papel impreso se coloca sobre la tela cortada y se aplica calor con una calandra especial. El calor hace que las tintas se transfieran a la tela.`;
+                    break;
 
                 case "Costura":
-                    this.departamento = "Confección de la prenda"
-                    this.msgPaso = `Las piezas de tela se unen para formar la prenda. Las prendas se cosen con máquinas especiales, y se utilizan diferentes tipos de puntadas para asegurar una costura fuerte y duradera.`
-                    break
+                    this.departamento = "Confección de la prenda";
+                    this.msgPaso = `Las piezas de tela se unen para formar la prenda. Las prendas se cosen con máquinas especiales, y se utilizan diferentes tipos de puntadas para asegurar una costura fuerte y duradera.`;
+                    break;
 
                 case "Limpieza":
-                    this.departamento = "Cortar los hilos sobrantes"
-                    this.msgPaso = `Una vez que la prenda está cosida, se cortan los hilos sobrantes con tijeras o con una máquina cortadora de hilos.`
-                    break
+                    this.departamento = "Cortar los hilos sobrantes";
+                    this.msgPaso = `Una vez que la prenda está cosida, se cortan los hilos sobrantes con tijeras o con una máquina cortadora de hilos.`;
+                    break;
 
                 case "Revisión":
-                    this.departamento = "Revisión y control de calidad"
-                    this.msgPaso = `La prenda se revisa cuidadosamente para comprobar que no tiene defectos. Si la prenda está en buenas condiciones, se empaqueta y se envía a la tienda donde se te notifcará que ya puedes pasar a retirar tu pedido.`
-                    break
+                    this.departamento = "Revisión y control de calidad";
+                    this.msgPaso = `La prenda se revisa cuidadosamente para comprobar que no tiene defectos. Si la prenda está en buenas condiciones, se empaqueta y se envía a la tienda donde se te notifcará que ya puedes pasar a retirar tu pedido.`;
+                    break;
 
                 default:
-                    this.departamento = this.item.paso
-                    this.msgPaso = `Su pedido está en proceso. (${this.departamento})`
-                    break
+                    this.departamento = this.item.paso;
+                    this.msgPaso = `Su pedido está en proceso. (${this.departamento})`;
+                    break;
             }
         },
 
         randomValue() {
-            this.value = Math.random() * this.max
+            this.value = Math.random() * this.max;
         },
         cleanAll() {
-            this.departamento = ""
-            this.responseData = null
-            this.overlay = false
-            this.idOrden = null
-            this.paso = ""
-            this.status = ""
-            this.msg = "Indique el número de la orden"
-            this.msgPaso = ""
-            this.departamento = "Departamento"
-            this.value = 0
-            this.showControl = false
+            this.departamento = "";
+            this.responseData = null;
+            this.overlay = false;
+            this.idOrden = null;
+            this.paso = "";
+            this.status = "";
+            this.msg = "Indique el número de la orden";
+            this.msgPaso = "";
+            this.departamento = "Departamento";
+            this.value = 0;
+            this.showControl = false;
 
             this.$nextTick(() => {
-                this.$refs.inputOrden.focus()
-            })
+                this.$refs.inputOrden.focus();
+            });
         },
         checkEnterKey(event) {
             if (event.key === "Enter") {
                 // Ejecuta la función handleInput
-                this.handleInput()
+                this.handleInput();
             }
         },
         handleInput() {
             // Aquí puedes realizar las acciones necesarias con this.inputValue
-            this.overlay = true
-            this.msg = `Buscando orden número ${this.idOrden}`
-            this.getPorcentaje()
+            this.overlay = true;
+            this.msg = `Buscando orden número ${this.idOrden}`;
+            this.getPorcentaje();
         },
     },
 
     beforeMount() {
         if (this.$route.params.progreso != undefined) {
-            this.idOrden = this.$route.params.progreso
-            this.getPorcentaje()
+            this.idOrden = this.$route.params.progreso;
+            this.getPorcentaje();
         }
-        console.log("this.$route.params.progreso", this.$route.params.progreso)
+        console.log("this.$route.params.progreso", this.$route.params.progreso);
     },
 
     mounted() {},
-}
+};
 </script>
 
 <style scoped>
