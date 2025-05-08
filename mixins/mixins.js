@@ -64,22 +64,24 @@ export default {
                 });
         },
 
-        async sendMsgCustomIneterno(idOrden, idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
+        async sendMsgCustomIneterno(idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
             this.overlay = true;
             const data = new URLSearchParams();
-            data.set("id_orden", idOrden);
             data.set("id_destino", idEmpleadoDestino);
             data.set("id_remitente", idEmpleadoRemitente);
             data.set("id_departamento", idDep);
             data.set("message", message);
+            data.set("nombre_empleado", this.$store.state.login.dataUser.nombre);
 
             await this.$axios
                 .post(`${this.$config.API}/ws/build-message/interno`, data)
                 .then((res) => {
-                    if (res.data.result_msg.error) {
+                    console.log('respuesta de envío de mensaje interno', res);
+                    if (!res.data.node_api_response.success) {
+                        
                         this.$fire({
                             title: "No se pudo enviar el mensaje",
-                            html: `<p>${res.data.result_msg.error}</p>`,
+                            html: `<p>${res.data.node_api_response.error}</p>`,
                             type: "error",
                         });
                     } else {
@@ -91,6 +93,8 @@ export default {
                     }
                 })
                 .catch((err) => {
+                    console.log('Error al enviar mensaje interno', err);
+                    
                     this.$fire({
                         title: "Error",
                         html: `<p>No se pudo enviar el mensaje</p><p>${err}</p>`,

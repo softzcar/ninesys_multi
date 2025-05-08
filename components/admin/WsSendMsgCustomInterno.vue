@@ -21,13 +21,11 @@
 
             <b-modal :id="modal" :title="title" hide-footer size="lg">
                 <b-overlay :show="overlay" spinner-small>
-                    <div class="text-center mb-4 mt-2">
-                        <b-button
-                            @click="validateMsg(idorden)"
-                            variant="success"
+                    <!-- <div class="text-center mb-4 mt-2">
+                        <b-button @click="validateMsg()" variant="success"
                             >Eviar Mensaje</b-button
                         >
-                    </div>
+                    </div> -->
 
                     <b-form>
                         <b-form-group
@@ -55,8 +53,8 @@
 
                             <div class="text-right mt-2">
                                 <b-button
-                                    variant="primary"
-                                    size="sm"
+                                    variant="success"
+                                    size="xl"
                                     @click="validateMsg"
                                     :disabled="overlay"
                                 >
@@ -136,11 +134,10 @@ export default {
                 });
             } else {
                 this.sendMsgCustomIneterno(
-                    idorden,
-                    destinatario,
+                    this.destinatario,
                     this.$store.state.login.dataUser.id_empleado,
                     this.$store.state.login.currentDepartamentId,
-                    mensaje
+                    this.mensaje
                 );
             }
         },
@@ -153,7 +150,5 @@ export default {
             }
         });
     },
-
-    props: ["idorden"],
 };
 </script>
