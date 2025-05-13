@@ -89,6 +89,21 @@
                                 </span>
                             </router-link>
 
+                            <router-link
+                                class="nav-link"
+                                to="/empleados/eficiencia-insumos"
+                                custom
+                                v-slot="{ navigate }"
+                            >
+                                <span
+                                    @click="navigate"
+                                    @keypress.enter="navigate"
+                                    role="link"
+                                >
+                                    Test Eficiencia de Insumos
+                                </span>
+                            </router-link>
+
                             <!-- <router-link
                 class="nav-link"
                 to="/logout"
