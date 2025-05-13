@@ -19,6 +19,7 @@ export const mutations = {
     },
     scurrentDepartament(state, data) {
         state.currentDepartament = data
+        state.dataUser.departamento = data
     },
     setCurrentComponent(state, data) {
         state.currentComponent = data

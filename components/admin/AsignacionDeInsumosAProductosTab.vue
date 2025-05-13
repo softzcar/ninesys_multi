@@ -1,10 +1,10 @@
 <template>
     <div>
+        <h3>Tiempo</h3>
         <b-form-group
             id="input-group-4"
-            label="Tiempo"
             label-for="input-tiempo"
-            description="Indique el tiempo de producción para este departamento en formato HH:MM"
+            description="Indique el tiempo em minutos, por ejemplo 3.3 equivale a tres minutos y medio"
         >
         </b-form-group>
         <b-form inline>
@@ -28,6 +28,8 @@
             </b-button>
         </b-form>
 
+        <h3 class="mt-4">Insumos Asignados</h3>
+
         <b-table
             class="mt-4"
             striped
@@ -36,7 +38,7 @@
             :items="filterInsumos"
         >
             <template #cell(tiempo)="data">
-                {{ segundosAFormatoHHMM(data.item.tiempo) }}
+                {{ SegundosAMinutos(data.item.tiempo) }}
             </template>
 
             <template #cell(cantidad)="data">
@@ -96,9 +98,10 @@
                 </b-button>
             </template>
         </b-table>
-        <pre class="force">
-            $props::: {{ $props }}
-        </pre>
+
+        <!-- <pre class="force">
+            insumosasignados::: {{ insumosasignados }}
+        </pre> -->
     </div>
 </template>
 
@@ -164,7 +167,7 @@ export default {
         tiempoEnSegundos() {
             return this.tiempo;
         },
-        tiempoFormateado: {
+        /* tiempoFormateado: {
             get() {
                 if (this.tiempo === null) {
                     return "";
@@ -182,7 +185,56 @@ export default {
                     this.tiempo = null;
                 }
             },
+        }, */
+
+        tiempoFormateado: {
+            get() {
+                // Si tiempo es null, inválido o negativo, retorna vacío
+                if (
+                    this.tiempo === null ||
+                    typeof this.tiempo !== "number" ||
+                    this.tiempo < 0
+                ) {
+                    return "";
+                }
+                // Calcula el total de minutos dividiendo los segundos por 60
+                const totalMinutos = this.tiempo / 60;
+
+                // Formatea a un número fijo de decimales (ej. 1 decimal)
+                // Puedes ajustar el número en toFixed() si necesitas más o menos precisión (ej. toFixed(2) para 1.50)
+                return totalMinutos.toFixed(1); // Retorna como string "1.5"
+                // Si prefieres retornar un número en lugar de string (aunque los inputs suelen trabajar mejor con strings):
+                // return parseFloat(totalMinutos.toFixed(1));
+            },
+            set(valor) {
+                // Limpia espacios y verifica si el input es vacío para resetearsegundosAFormatoHHMM
+                const valorLimpio =
+                    typeof valor === "string" ? valor.trim() : valor;
+                if (
+                    valorLimpio === "" ||
+                    valorLimpio === null ||
+                    valorLimpio === undefined
+                ) {
+                    this.tiempo = null;
+                    return;
+                }
+
+                // Intenta convertir el valor ingresado (que esperamos sean minutos decimales) a un número flotante
+                const minutosIngresados = parseFloat(valorLimpio);
+
+                // Verifica si la conversión fue exitosa y si el número no es negativo
+                if (!isNaN(minutosIngresados) && minutosIngresados >= 0) {
+                    // Convierte los minutos ingresados a segundos (minutos * 60)
+                    // Redondea al segundo más cercano para almacenar un entero
+                    this.tiempo = Math.round(minutosIngresados * 60);
+                } else {
+                    // Si el valor ingresado no es un número válido o es negativo,
+                    // establece tiempo a null (o podrías mantener el valor anterior o mostrar un error)
+                    this.tiempo = null;
+                }
+            },
         },
+
         filterInsumos() {
             if (!this.item || !this.insumosasignados) {
                 return []; // Retornar un array vacío si item o insumosasignados no están disponibles
@@ -232,6 +284,7 @@ export default {
             await this.$axios
                 .post(`${this.$config.API}/tiempos-de-produccion`, data)
                 .then((res) => {
+                    SegundosAMinutos;
                     this.$emit("reload");
                     this.$fire({
                         title: "Tiempo",
@@ -304,17 +357,23 @@ export default {
             this.form.push(obj);
         },
 
-        segundosAFormatoHHMM(segundos) {
+        SegundosAMinutos(segundos) {
+            if (parseInt(segundos) === 0) {
+                return 0;
+            }
+
+            const minutos = segundos / 60;
+
+            return minutos.toFixed(1) + ` min`;
+
             // Calcular horas y minutos
-            const horas = Math.floor(segundos / 3600);
-            const minutos = Math.floor((segundos % 3600) / 60);
+            /* const horas = Math.floor(segundos / 3600);
+            const minutos = Math.floor((segundos % 3600) / 60); */
 
             // Formatear horas y minutos
-            const horasFormateadas = String(horas).padStart(2, "0");
-            const minutosFormateados = String(minutos).padStart(2, "0");
 
             // Devolver la respuesta en formato HH:MM
-            return `${horasFormateadas}:${minutosFormateados}`;
+            // return `${horasFormateadas}:${minutosFormateados}`;
         },
     },
 

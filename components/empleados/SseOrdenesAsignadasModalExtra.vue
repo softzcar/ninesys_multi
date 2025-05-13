@@ -106,7 +106,11 @@
                                 'Corte papel'
                         "
                     >
-                        Material utilizado: {{ materialUtilizado }} Metros
+                        <p>
+                            Material utilizado: {{ materialUtilizado }} Metros
+                        </p>
+
+                        <p>Rendimiento: {{ resultadoRendimiento }}</p>
                     </div>
 
                     <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
@@ -198,7 +202,7 @@
                     >
                 </b-form>
                 <!-- </div> -->
-                <!-- <pre class="force">{{ form }}</pre> -->
+                <pre class="force">{{ form }}</pre>
             </b-overlay>
         </b-modal>
     </div>
@@ -214,6 +218,8 @@ export default {
             btnText: "Terminar",
             ButtonDisabled: false,
             form: [],
+            insumos: [],
+            resultadoRendimiento: null,
             showSelect: false,
             formEst: {
                 input: 0,
@@ -249,24 +255,30 @@ export default {
 
             if (this.$store.state.login.currentDepartament === "Impresión") {
                 tmpArray = this.insumosimp;
+                this.insumos = this.insumosimp;
             } else if (
                 this.$store.state.login.currentDepartament === "Estampado"
             ) {
                 tmpArray = this.insumosest;
+                this.insumos = this.insumosest;
             } else if (this.$store.state.login.currentDepartament === "Corte") {
                 tmpArray = this.insumosest;
+                this.insumos = this.insumosest;
             } else if (
                 this.$store.state.login.currentDepartament === "Costura"
             ) {
                 tmpArray = this.insumoscos;
+                this.insumos = this.insumoscos;
             } else if (
                 this.$store.state.login.currentDepartament === "Limpieza"
             ) {
                 tmpArray = this.insumoslim;
+                this.insumos = this.insumoslim;
             } else if (
                 this.$store.state.login.currentDepartament === "Revisión"
             ) {
                 tmpArray = this.insumosrev;
+                this.insumos = this.insumosrev;
             }
 
             return tmpArray.map((el) => {
@@ -329,20 +341,22 @@ export default {
         loadInsumos(index) {
             let myID = this.form[index].select.split(" | ");
             console.log("ID Insumo seleccionado", myID[0]);
-            this.form[index].select = parseInt(myID);
+            // this.form[index].select = parseInt(myID);
+            this.form[index].select = myID[0].toString();
             console.log("ID LISTO", this.form[index].select);
             console.log("form", this.form);
-            /* const dataLength = this.form[index].select.trim().length
-            // console.log('queryInsumo length', dataLength)
-            if (!dataLength) {
-                alert('Programar SELECCIONAR EL INSUMO')
-            } else {
-                let myID = this.queryInsumo.split(" | ")
-                console.log("myID", myID[0])
-                const customer = this.$store.state.comerce.dataCustomers.find(
-                    (el) => el.id == myID[0]
-                )
-            } */
+
+            // CALCULAR EL RENDIMIENTO DEL MATERIAL
+            const itemFiltrado = this.insumos.filter(
+                (el) => el._id == this.form[index].select
+            );
+
+            this.resultadoRendimiento = `Calcular y comparar rendimiento del manterial aqui con un consumo de matarial ID ${this.form[index].select} de ${this.materialUtilizado} metros, con una rendimienot de ... ${itemFiltrado[0].rendimiento}`;
+
+            console.log(
+                `Calcular y comparar rendimiento del manterial aqui con un consumo de matarial ID ${this.form[index].select} de ${this.materialUtilizado} metros, con una rendimienot de ... ${itemFiltrado[0].rendimiento}`,
+                itemFiltrado
+            );
         },
 
         generateRandomId() {

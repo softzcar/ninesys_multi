@@ -8,7 +8,7 @@
             <b-overlay :show="overlay" spinner-small>
                 <h3 class="mb-4 mt-4 pb-2">Producto: {{ item.name }}</h3>
 
-                <b-tabs content-class="mt-3" lazy>
+                <b-tabs content-class="mt-3">
                     <b-tab
                         :title="dep.departamento"
                         v-for="(dep, index) in filterDeps"
@@ -70,6 +70,9 @@ export default {
         modal: function () {
             const rand = Math.random().toString(36).substring(2, 7);
             return `modal-${rand}`;
+            return this.departamentos.filter(
+                (dep) => dep.asignar_numero_de_paso > 0
+            );
         },
     },
 
@@ -121,12 +124,26 @@ export default {
     },
 
     mounted() {
+        this.$root.$on("bv::modal::show", (bvEvent, modal) => {
+            if (modal === this.modal) {
+                const tmpDep = this.filterDeps[0];
+                this.loadDataTab(tmpDep._id);
+                // PREPARAR FORMULARIO
+                this.filterDeps.forEach((dep) => {
+                    this.form[dep._id] = [];
+                });
+
+                this.showDom = true;
+            }
+        });
+    },
+    /* mounted() {
         this.filterInsumosAsignados(this.item._id);
         // PREPARAR FORMULARIO
         this.filterDeps.forEach((dep) => {
             this.form[dep._id] = [];
         });
-    },
+    }, */
 
     props: [
         "insumosasignados",
