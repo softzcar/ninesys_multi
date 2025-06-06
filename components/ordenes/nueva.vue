@@ -2200,9 +2200,9 @@ export default {
         step1() {
             let ok = true;
             let msg = "";
-            let emailExist = this.emailExist(this.form.email);
+            let phoneExist = this.phoneExist(this.form.email);
 
-            console.log(`emailExist`, emailExist);
+            console.log(`phoneExist`, phoneExist);
 
             if (!this.form.telefono.trim()) {
                 ok = false;
@@ -2225,12 +2225,15 @@ export default {
                     msg + "<p>La fecha de entrega es un campo obligatorio</p>";
             }
 
-            if (!this.validarEmail(this.form.email)) {
+            if (
+                !this.validarEmail(this.form.email) &&
+                this.form.email.trim() != ""
+            ) {
                 ok = false;
                 msg = "El email que introdujo no es válido: " + this.form.email;
-            } else if (emailExist.exist) {
+            } else if (phoneExist.exist) {
                 ok = false;
-                msg = msg + emailExist.msg;
+                msg = msg + phoneExist.msg;
             }
 
             if (!ok) {
@@ -2687,70 +2690,40 @@ export default {
             return email;
         },
 
-        emailExist(email) {
+        phoneExist(telefono) {
             let result = { exist: false, msg: "" };
 
-            if (this.form.email.trim().length) {
-                if (this.form.cedula.trim().length) {
-                    let clienteData = this.myCustomers.filter(
-                        (item) => item.cedula === this.form.cedula.trim()
+            if (this.form.telefono.trim().length) {
+                let clienteData = this.myCustomers.filter(
+                    (item) => item.phone === this.form.telefono.trim()
+                );
+                console.log("clientData", clienteData);
+                // Verificar exzistencia delcliente
+                if (!clienteData.length) {
+                    result.exist = false;
+                } else {
+                    // Buscar telefono en las registros
+                    let emailData = this.myCustomers.find(
+                        (item) => item.phone === this.form.telefono.trim()
                     );
-                    console.log("clientData", clienteData);
-                    // Verificar exzistencia delcliente
-                    if (!clienteData.length) {
-                        result.exist = false;
-                    } else {
-                        // Buscar email en las registros
-                        let emailData = this.myCustomers.find(
-                            (item) => item.email === this.form.email.trim()
-                        );
 
-                        if (
-                            clienteData.cedula != emailData.cedula &&
-                            this.form.cedula != emailData.cedula
-                        ) {
-                            result.exist = true;
-                            result.msg = `El email ${this.form.email} ya esta registrado al usuario ${emailData.first_name}`;
-                        }
-
-                        console.log(
-                            "Hemos encontrado el cliente ",
-                            clienteData
-                        );
-                        console.log("Hemos encontrado el email ", emailData);
+                    if (
+                        (clienteData.cedula != emailData.cedula &&
+                            this.form.cedula != emailData.cedula) ||
+                        emailData.cedula != undefined
+                    ) {
+                        result.exist = true;
+                        result.msg = `El telefono ${this.form.telefono} ya esta registrado al usuario ${emailData.first_name}`;
                     }
+
+                    console.log("Hemos encontrado el cliente ", clienteData);
+                    console.log("Hemos encontrado el telefono ", emailData);
                 }
             } else {
-                result.msg = "<p>No ha ingresado un email</p>";
+                result.msg = "<p>No ha ingresado un telefono</p>";
             }
 
             return result;
-
-            /* if (this.form.email.trim().length) { // Se ha ingresado un email
-        // Verificar si es un cliente nuevo
-        let foundCedula = this.myCustomers.filter(
-          (item) => item.cedula === this.form.cedula
-        )
-
-        console.log(`FoundCedula ::: `, foundCedula.length)
-        console.log(`Registro ::: `, foundCedula[0])
-        if (foundCedula.length && foundCedula[0].email != this.form.email) { // el cliente ya existe,
-        }
-
-        // VErificamos si el cliente ya ha sido creado o no
-
-        if (email.trim() === '') {
-          result = false
-        } else {
-          let exist = this.myCustomers.filter((item) => {
-            return item.email === email
-          })
-          if (exist) result = true
-        }
-      } else {
-        console.log('no prodceamos elemail porque no hay cedula para comparar')
-      }
- */
         },
 
         clearForm(obj) {
@@ -3351,7 +3324,7 @@ export default {
                     // Cargar Tallas
                     let mySizes = responseTallas.data.data.map((item) => {
                         return {
-                            value: item.name,
+                            value: item._id,
                             text: item.name,
                         };
                     });
@@ -3508,7 +3481,7 @@ export default {
                             let mySizes = responseTallas.data.data.map(
                                 (item) => {
                                     return {
-                                        value: item.name,
+                                        value: item._id,
                                         text: item.name,
                                     };
                                 }

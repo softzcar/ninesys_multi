@@ -6,7 +6,7 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div v-if="dataUser.departamento === 'Administración'">
+            <div v-if="accessModule.accessData.id_modulo === 1">
                 <b-container>
                     <b-row>
                         <b-col>
@@ -26,8 +26,12 @@
 
 <script>
 import { mapState } from "vuex"
+import mixin from "~/mixins/mixin-login.js";
+
 
 export default {
+    mixins: [mixin],
+
     data() {
         return {
             titulo: "Aprobación de  Diseños",

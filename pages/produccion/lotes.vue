@@ -8,8 +8,8 @@
             <menus-MenuLoader />
             <div
                 v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Producción'
+                    accessModule.accessData.id_modulo === 1 ||
+                    accessModule.accessData.id_modulo === 5
                 "
             >
                 <b-overlay :show="overlay" spinner-small>
@@ -81,9 +81,11 @@
 <script>
 import { mapState } from "vuex"
 import axios from "axios"
-import { urlToHttpOptions } from "http"
+import mixin from "~/mixins/mixin-login.js";
 
 export default {
+    mixins: [mixin],
+
     data() {
         return {
             titulo: "Gestión de Lotes",

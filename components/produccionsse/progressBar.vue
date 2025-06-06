@@ -123,7 +123,9 @@ export default {
 
     methods: {
         reloadOrders() {
-            this.$emit("reload");
+            console.log('emit desde progressBar');
+            
+            this.$emit("reload", true);
         },
 
         filterPaso(id_orden) {

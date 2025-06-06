@@ -284,7 +284,7 @@ export default {
             await this.$axios
                 .post(`${this.$config.API}/tiempos-de-produccion`, data)
                 .then((res) => {
-                    SegundosAMinutos;
+                    this.SegundosAMinutos;
                     this.$emit("reload");
                     this.$fire({
                         title: "Tiempo",

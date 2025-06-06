@@ -7,15 +7,11 @@
         <div v-else>
             <menus-MenuLoader />
             <div v-if="
-                dataUser.departamento === 'Administración' ||
-                dataUser.departamento === 'Empleado' ||
-                dataUser.departamento === 'Corte' ||
-                dataUser.departamento === 'Impresión' ||
-                dataUser.departamento === 'Estampado' ||
-                dataUser.departamento === 'Costura' ||
-                dataUser.departamento === 'Limpieza' ||
-                dataUser.departamento === 'Revisión' ||
-                dataUser.departamento === 'Diseño'
+                accessModule.accessData.id_modulo === 1 ||
+                accessModule.accessData.id_modulo === 3 ||
+                accessModule.accessData.id_modulo === 4 ||
+                accessModule.accessData.id_modulo === 6 
+                
             ">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container fluid>
@@ -66,8 +62,11 @@
 
 <script>
 import { mapState } from "vuex"
+import mixin from "~/mixins/mixin-login.js";
 
 export default {
+    mixins: [mixin],
+
     data() {
         return {
             titulo: "Gestión de Empleados",

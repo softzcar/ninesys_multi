@@ -11,7 +11,7 @@
                     <b-button
                         @click="$bvModal.show(modal)"
                         id="add-insumo"
-                        variant="primary"
+                        variant="info"
                         class="mt-4"
                     >
                         <b-icon icon="plus-lg" size="sm"></b-icon> Nuevo insumo

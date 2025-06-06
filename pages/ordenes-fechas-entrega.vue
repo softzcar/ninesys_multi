@@ -12,7 +12,7 @@
                         <h2 class="mb-4">Detalles de Órdenes</h2>
                         <b-tabs>
                             <b-tab
-                                v-for="orden in procesarDatosOrdenesParaMostrar(
+                                v-for="orden in proyectarEntregaConCola(
                                     fechas,
                                     $store.state.login.dataEmpresa
                                         .horario_laboral
@@ -76,7 +76,7 @@
                                 </p>
                                 <!-- <p class="card-text">
                                         <strong>Productos:</strong>
-                                        <pre class="force">{{ procesarDatosOrdenesParaMostrar(fechas, $store.state.login.dataEmpresa.horario_laboral) }}</pre>
+                                        <pre class="force">{{ proyectarEntregaConCola(fechas, $store.state.login.dataEmpresa.horario_laboral) }}</pre>
                                     </p> -->
                             </b-tab>
                         </b-tabs>

@@ -8,8 +8,8 @@
       <menus-MenuLoader />
       <div
         v-if="
-          dataUser.departamento === 'Administración' ||
-          dataUser.departamento === 'Producción'
+          accessModule.accessData.id_modulo === 1 ||
+          accessModule.accessData.id_modulo === 5
         "
       >
         <admin-asistenciasReporte />
@@ -22,8 +22,12 @@
 
 <script>
 import { mapState } from 'vuex'
+import mixin from "~/mixins/mixin-login.js";
+
 
 export default {
+    mixins: [mixin],
+
   data() {
     return {
       titulo: 'Reporte De Asistencias',

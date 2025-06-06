@@ -81,22 +81,40 @@
                             :lote_detalles="filterLoteDetalles(el.orden)"
                             :lotes_fisicos="lotes_fisicos"
                             :key="el.orden"
-                            @reload="loadOrdersProduction"
+                            @reload="initTiemposDeProduccion"
                         />
                     </div>
                 </b-list-group-item>
 
                 <b-list-group-item>
                     <div style="margin-top: 32px">
-                        Fecha estimada con semaforo
+                        <progreso-tiempo-semaforo
+                            :key="el.orden"
+                            :ordenesTodas="fechas"
+                            :ordenesProyectadas="ordenesProyectadas"
+                            :obj="
+                                ordenesProyectadas.filter(
+                                    (item) => item.id_orden == el.orden
+                                )
+                            "
+                        />
+
+                        <!-- <span>
+                            semaforo:
+                            {{
+                                ordenesProyectadas.filter(
+                                    (item) => item.id_orden == el.orden
+                                )
+                            }}
+                        </span> -->
                     </div>
                 </b-list-group-item>
 
-                <b-list-group-item>
+                <!-- <b-list-group-item>
                     <div style="margin-top: 32px">
                         {{ formatDate(el.entrega) }}
                     </div>
-                </b-list-group-item>
+                </b-list-group-item> -->
                 <b-list-group-item style="min-width: 5%; max-width: 5%">
                     <div class="floatme">
                         <ordenes-vinculadas
@@ -133,7 +151,7 @@
             </b-list-group>
         </draggable>
 
-        <h3>Reposiciones pendientes DRAGGABLE</h3>
+        <h3 class="mt-4">Reposiciones pendientes DRAGGABLE</h3>
 
         <draggable
             v-model="reposiciones_solicitadas"
@@ -193,7 +211,7 @@
                 </b-col>
             </b-row>
 
-            <b-row>
+            <!-- <b-row>
                 <b-col>
                     <h3>Reposiciones pendientes PRO</h3>
                     <b-table
@@ -201,11 +219,10 @@
                         :items="reposiciones_solicitadas"
                         :fields="fields_reposiciones"
                         :filter-included-fields="includedFields"
-                        @reload="loadOrdersProduction"
+                        @reload="initTiemposDeProduccion"
                         headless
                     >
                         <template #cell(id_orden)="data">
-                            <!-- <link-search :id="data.item.orden" /> -->
                             <div style="margin-top: 15px">
                                 <produccionsse-reposicionesPendientes
                                     :empleados="empleados"
@@ -238,7 +255,6 @@
                         :filter="filter"
                     >
                         <template #cell(orden)="data">
-                            <!-- <link-search :id="data.item.orden" /> -->
                             <div style="margin-top: 15px">
                                 <link-search
                                     :id="data.value"
@@ -248,14 +264,12 @@
                         </template>
 
                         <template #cell(inicio)="data">
-                            <!-- {{ formatDate(data.item.inicio) }} -->
                             <div style="margin-top: 32px">
                                 {{ formatDate(data.item.inicio) }}
                             </div>
                         </template>
 
                         <template #cell(estatus_revision)="data">
-                            <!-- {{ formatDate(data.item.inicio) }} -->
                             <p
                                 v-if="data.item.estatus_revision === 'Aprobado'"
                                 class="h1 mt-2"
@@ -287,112 +301,92 @@
                         </template>
 
                         <template #cell(cliente)="data">
-                            <div style="margin-top: 32px">
-                                {{ data.item.cliente }}
-                            </div>
-                        </template>
+    <div style="margin-top: 32px">
+        {{ data.item.cliente }}
+    </div>
+</template>
 
                         <template #cell(unidades)="data">
-                            <div style="margin-top: 32px; text-align: center">
-                                {{ data.item.unidades }}
-                            </div>
-                        </template>
+    <div style="margin-top: 32px; text-align: center">
+        {{ data.item.unidades }}
+    </div>
+</template>
 
                         <template #cell(entrega)="data">
-                            <div style="margin-top: 32px">
-                                {{ formatDate(data.item.entrega) }}
-                            </div>
-                        </template>
+    <div style="margin-top: 32px">
+        {{ formatDate(data.item.entrega) }}
+    </div>
+</template>
 
                         <template #cell(estatus)="data">
-                            <div style="margin-top: 32px">
-                                <span class="capital">{{
-                                    data.item.estatus
-                                }}</span>
-                            </div>
-                        </template>
+    <div style="margin-top: 32px">
+        <span class="capital">{{ data.item.estatus }}</span>
+    </div>
+</template>
 
                         <template #cell(paso)="data">
-                            <span class="floatme">
-                                <produccionsse-progress-bar
-                                    v-if="empleadosAsignados"
-                                    :pasos="pasos"
-                                    :asignacion="asignacion"
-                                    :emp_asignados="empleadosAsignados"
-                                    :empleados="empleados"
-                                    :por_asignar="por_asignar"
-                                    :depart="pActivo(data.item.orden)"
-                                    :item="data.item"
-                                    :orden_productos="
-                                        filterOrdenProductos(data.item.orden)
-                                    "
-                                    :reposicion_ordenes_productos="
-                                        reposicion_ordenes_productos
-                                    "
-                                    :lote_detalles="
-                                        filterLoteDetalles(data.item.orden)
-                                    "
-                                    :lotes_fisicos="lotes_fisicos"
-                                    :key="data.item._id"
-                                    @reload="loadOrdersProduction"
-                                />
-                            </span>
-                        </template>
+    <span class="floatme">
+        <produccionsse-progress-bar
+            v-if="empleadosAsignados"
+            :pasos="pasos"
+            :asignacion="asignacion"
+            :emp_asignados="empleadosAsignados"
+            :empleados="empleados"
+            :por_asignar="por_asignar"
+            :depart="pActivo(data.item.orden)"
+            :item="data.item"
+            :orden_productos="filterOrdenProductos(data.item.orden)"
+            :reposicion_ordenes_productos="reposicion_ordenes_productos"
+            :lote_detalles="filterLoteDetalles(data.item.orden)"
+            :lotes_fisicos="lotes_fisicos"
+            :key="data.item._id"
+            @reload="initTiemposDeProduccion"
+        />
+    </span>
+</template>
 
                         <template #cell(detalles)="data">
-                            <div style="margin-top: 32px">
-                                <produccion-control-de-produccion-detalles-editor
-                                    :idorden="data.item.orden"
-                                    :item="data.item"
-                                    :detalles="data.item.detalles"
-                                    :detalle_empleado="
-                                        data.item.detalle_empleado
-                                    "
-                                    :key="data.item._id"
-                                    :productos="productsFilter(data.item.orden)"
-                                />
-                            </div>
-                        </template>
+    <div style="margin-top: 32px">
+        <produccion-control-de-produccion-detalles-editor
+            :idorden="data.item.orden"
+            :item="data.item"
+            :detalles="data.item.detalles"
+            :detalle_empleado="data.item.detalle_empleado"
+            :key="data.item._id"
+            :productos="productsFilter(data.item.orden)"
+        />
+    </div>
+</template>
 
                         <template #cell(vinculada)="data">
-                            <span class="floatme">
-                                <ordenes-vinculadas
-                                    :vinculadas="
-                                        filterVinculadas(data.item.acciones)
-                                    "
-                                    :key="data.item._id"
-                                />
-                            </span>
-                        </template>
+    <span class="floatme">
+        <ordenes-vinculadas
+            :vinculadas="filterVinculadas(data.item.acciones)"
+            :key="data.item._id"
+        />
+    </span>
+</template>
 
                         <template #cell(acciones)="data">
-                            <div style="margin-top: 15px">
-                                <span class="floatme">
-                                    <ordenes-editar
-                                        :data="data.item"
-                                        :key="data.item._id"
-                                    />
-                                </span>
-                                <span class="floatme">
-                                    <!-- <diseno-view-image :id="data.item.acciones" /> -->
-                                </span>
-
-                                <span class="floatme">
-                                    <!-- <produccion-terminar :id="data.item.acciones" /> -->
-                                </span>
-                            </div>
-                        </template>
+    <div style="margin-top: 15px">
+        <span class="floatme">
+            <ordenes-editar :data="data.item" :key="data.item._id" />
+        </span>
+        <span class="floatme"> </span>
+    </div>
+</template>
                     </b-table>
 
                     <p class="mt-3">Página actual: {{ currentPage }}</p>
                 </b-col>
-            </b-row>
+            </b-row> -->
         </b-overlay>
     </div>
 </template>
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import mixin2 from "~/mixins/mixin-proyeccion-entrega.js";
 import draggable from "vuedraggable";
 
 export default {
@@ -401,6 +395,9 @@ export default {
     },
     data() {
         return {
+            ordenesProyectadas: [],
+            fechasResultSemaforo: null,
+            fechas: [],
             includedFields: ["orden", "cliente"],
             perPage: 25,
             currentPage: 1,
@@ -482,13 +479,81 @@ export default {
     },
 
     methods: {
+        initTiemposDeProduccion() {
+            console.log('Vamos a cargar los tiempos de procduccion');
+            
+            // Tiempos de producción
+            this.getOrdenesFechas().then(() => {
+                this.ordenesProyectadas = this.proyectarEntregaConCola(
+                    this.fechas,
+                    this.$store.state.login.dataEmpresa.horario_laboral
+                );
+                console.log('Resultados de ordenes proyectadas\n', this.ordenesProyectadas);
+                
+                
+                console.log("COMPONENT: Órdenes proyectadas recibidas:", JSON.parse(JSON.stringify(this.ordenesProyectadas)));
+                console.log("fechasResultSemaforo", this.ordenesProyectadas);
+
+                this.loadOrdersProduction().then(() => {
+                    // this.getPorcentaje()
+                });
+
+            });
+        },
+
+        async getOrdenesFechas() {
+            this.overlay = true;
+            await this.$axios
+                .get(`${this.$config.API}/ordenes/proyeccion-entrega`)
+                .then((res) => {
+                    this.fechas = res.data;
+                    console.log("Fechas recibidas", this.fechas);
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<P>No se recibieron las fechas</p><p>${err}</p>`,
+                        type: "warning",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
         afterDrag(evt) {
+            console.log('supuestametne recargado...???');
+            
             const nuevosOrdenes = this.items.map((dep, index) => ({
                 orden: dep.orden,
                 orden_fila: index + 1,
             }));
 
             try {
+                this.getOrdenesFechas().then(() => {
+            this.loadOrdersProduction().then(() => {
+                // this.getPorcentaje()
+            });
+                console.log("verificcion de fechas", this.fechas);
+                console.log(
+                    "verificcion de horario",
+                    this.$store.state.login.dataEmpresa.horario_laboral
+                );
+
+            this.initTiemposDeProduccion()
+
+
+                /* this.ordenesProyectadas = this.proyectarEntregaConCola(
+                    this.fechas,
+                    this.$store.state.login.dataEmpresa.horario_laboral
+                );
+
+                console.log("COMPONENT: Órdenes proyectadas recibidas:", JSON.parse(JSON.stringify(this.ordenesProyectadas)));
+
+                console.log("fechasResultSemaforo", this.ordenesProyectadas); */
+            });
+    
+
                 this.items = nuevosOrdenes;
 
                 this.items.forEach((el) => {
@@ -539,7 +604,7 @@ export default {
 
             await this.$axios
                 .post(`${this.$config.API}/ordenes/actualizar-fila`, data)
-                .then((res) => {
+                .then((res) => {                    
                     console.log(
                         "orden de fila de produccion actualizado",
                         res.data
@@ -722,12 +787,10 @@ export default {
     },
 
     mounted() {
-        this.loadOrdersProduction().then(() => {
-            // this.getPorcentaje()
-        });
+        this.initTiemposDeProduccion()
     },
 
-    mixins: [mixin],
+    mixins: [mixin, mixin2],
 };
 </script>
 

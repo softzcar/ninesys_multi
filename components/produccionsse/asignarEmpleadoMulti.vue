@@ -281,6 +281,9 @@ export default {
                         empleado.comision,
                         index
                     );
+                    console.log('vamos a emitir relad desde asignarEmpleadoMulti');
+                    
+                    this.$emit("reload");
                 });
             }
         },
@@ -340,7 +343,7 @@ export default {
                 .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
                 .then((res) => {
                     this.$fire({
-                        title: "El porcentaje se ha actualizado",
+                        title: "Asignación correcta",
                         html: `<p></p>`,
                         type: "success",
                     });
@@ -441,7 +444,7 @@ export default {
         });
     },
 
-    props: ["options", "idorden", "emp_asignados", "products", "item"],
+    props: ["options", "idorden", "emp_asignados", "products", "item", "reload"],
 };
 </script>
 

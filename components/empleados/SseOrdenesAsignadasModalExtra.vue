@@ -19,7 +19,7 @@
             />
         </span>
 
-        <b-modal :id="modal" :title="title" hide-footer size="sm">
+        <b-modal :id="modal" :title="title" hide-footer size="lg">
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
                 <!-- <div
@@ -106,11 +106,42 @@
                                 'Corte papel'
                         "
                     >
-                        <p>
-                            Material utilizado: {{ materialUtilizado }} Metros
+                        <!-- <p>
+                            <strong>Papel Utilizado:</strong>
+                            {{ papelUtilizado }} Metros
                         </p>
 
-                        <p>Rendimiento: {{ eficienciaCalculada }}</p>
+                        <p>
+                            <strong>Material Estimado:</strong>
+                            {{ eficienciaEstimada }} Metros
+                        </p>
+
+                        <p>
+                            <strong>Material Utilizado:</strong>
+                            {{ materialUtilizado }} Metros
+                        </p>
+
+                        <p
+                            v-html="
+                                calcularPorcentajeDiferenciaTela(
+                                    eficienciaEstimada
+                                )
+                            "
+                        ></p> -->
+
+                        <p>
+                            <!-- <pre class="force">
+                                    {{ eficienciaDetalles }}
+                                </pre> -->
+                            <empleados-materialesLista
+                                :items="eficienciaDetalles"
+                                :idorden="idorden"
+                                :datainsumos="dataInsumosFiltrado"
+                                :papel="papelUtilizado"
+                                :eficiencia_estimada="eficienciaEstimada"
+                                :form="form"
+                            />
+                        </p>
                     </div>
 
                     <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
@@ -130,6 +161,17 @@
                             small
                         >
                             <template #cell(input)="row">
+                                <!-- Eficiencia de Insumo -->
+                                <empleados-eficienciaInsumos
+                                    class="mt-4 mb-4"
+                                    :idorden="idorden"
+                                    :idinsumo="getId(form[row.index].select)"
+                                    :datainsumos="getCatalogosUnicos"
+                                    @update_catalogo="
+                                        updateCatalogo(row.index, $event)
+                                    "
+                                />
+
                                 <vue-typeahead-bootstrap
                                     @hit="loadInsumos(row.index)"
                                     :data="dataSearchInsumo"
@@ -148,43 +190,49 @@
                                     min="0"
                                     placeholder="Peso"
                                     required
+                                    class="mt-2 mb-4"
                                 ></b-form-input>
+
+                                <div
+                                    v-if="
+                                        $store.state.login
+                                            .currentDepartament === 'Corte'
+                                    "
+                                >
+                                    <p>Peso del desperdicio en kilos</p>
+                                    <b-form-input
+                                        id="input-13"
+                                        v-model="form[row.index].desperdicio"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="Peso desperdicio"
+                                        required
+                                        class="mb-2"
+                                    ></b-form-input>
+                                </div>
                             </template>
 
                             <template #cell(id)="row">
-                                <b-button
-                                    variant="danger"
-                                    @click="removeItem(row.index)"
-                                    aria-label="Agregar insumo"
-                                >
-                                    <b-icon icon="trash"></b-icon>
-                                </b-button>
+                                <div class="mt-4 mb-4 pt-2">
+                                    <b-button
+                                        variant="danger"
+                                        @click="removeItem(row.index)"
+                                        aria-label="Agregar insumo"
+                                    >
+                                        <b-icon icon="trash"></b-icon>
+                                    </b-button>
 
-                                <b-button
-                                    variant="primary"
-                                    @click="terminarRollo(row.index)"
-                                    aria-label="Agregar insumo"
-                                >
-                                    <b-icon icon="stoplights"></b-icon>
-                                </b-button>
+                                    <b-button
+                                        variant="primary"
+                                        @click="terminarRollo(row.index)"
+                                        aria-label="Agregar insumo"
+                                    >
+                                        <b-icon icon="stoplights"></b-icon>
+                                    </b-button>
+                                </div>
                             </template>
                         </b-table>
-                    </div>
-
-                    <div
-                        v-if="$store.state.login.currentDepartament === 'Corte'"
-                    >
-                        <p>Peso del desperdicio en kilos</p>
-                        <b-form-input
-                            id="input-13"
-                            v-model="formCor.input"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="Peso desperdicio"
-                            required
-                            class="mb-4"
-                        ></b-form-input>
                     </div>
 
                     <b-button
@@ -202,7 +250,6 @@
                     >
                 </b-form>
                 <!-- </div> -->
-                <pre class="force">{{ form }}</pre>
             </b-overlay>
         </b-modal>
     </div>
@@ -221,6 +268,11 @@ export default {
             ButtonDisabled: false,
             form: [],
             insumos: [],
+            dataInsumos: [],
+            eficienciaEstimada: 0,
+            // materialUtilizado: 0,
+            fields: {},
+            eficienciaDetalles: [],
             resultadoRendimiento: null,
             showSelect: false,
             formEst: {
@@ -246,7 +298,58 @@ export default {
     },
 
     computed: {
+        dataInsumosFiltrado() {
+            // return this.$store.state.login.currentDepartamentId;
+            return this.dataInsumos.filter(
+                (el) =>
+                    el.id_departamento ==
+                    this.$store.state.login.currentDepartamentId
+            );
+        },
+
+        getCatalogosUnicos() {
+            if (
+                !this.dataInsumosFiltrado ||
+                this.dataInsumosFiltrado.length === 0
+            ) {
+                return [];
+            }
+
+            // 1. Usar Map para extraer solo las propiedades necesarias
+            const catalogosMapeados = this.dataInsumosFiltrado.map((item) => ({
+                id_catalogo_insumos_productos:
+                    item.id_catalogo_insumos_productos,
+                catalogo: item.catalogo,
+            }));
+
+            // 2. Usar un Set para eliminar duplicados de forma eficiente
+            // Convertimos cada objeto a una cadena JSON para que Set pueda detectarlo como único
+            const catalogosUnicosString = new Set(
+                catalogosMapeados.map((obj) => JSON.stringify(obj))
+            );
+
+            // 3. Convertir las cadenas JSON de vuelta a objetos
+            const catalogosUnicos = Array.from(catalogosUnicosString).map(
+                (str) => JSON.parse(str)
+            );
+
+            return catalogosUnicos;
+        },
+
         materialUtilizado() {
+            if (!this.form || this.form.length === 0) {
+                return "0.00";
+            }
+
+            const total = this.form.reduce((acumulador, objeto) => {
+                // Asegurarse de que objeto.input sea un número antes de sumar
+                const valorInput = parseFloat(objeto.input);
+                return acumulador + (isNaN(valorInput) ? 0 : valorInput);
+            }, 0);
+
+            return total.toFixed(2);
+        },
+        papelUtilizado() {
             return (this.item.valor_inicial - this.item.valor_final).toFixed(2);
         },
 
@@ -331,6 +434,12 @@ export default {
             this.$emit("reload", "true");
         },
 
+        updateCatalogo(index, idCat) {
+            this.form[index].idCatalogo = idCat;
+        },
+
+        // calculoPorcentaje() {},dataInsumosFiltrado
+
         disBtnTodo(action) {
             if (action) {
                 this.ButtonDisabled = true;
@@ -341,6 +450,15 @@ export default {
 
         filterPausa(idOrden) {
             return this.pausas.filter((el) => el.id_orden == idOrden);
+        },
+
+        getId(value) {
+            if (value) {
+                let myID = value.split(" | ");
+                return parseInt(myID[0]);
+            } else {
+                return 0;
+            }
         },
 
         loadInsumos(index) {
@@ -356,18 +474,6 @@ export default {
                 this.idorden,
                 this.$store.state.login.currentDepartamentId
             ).then(() => this.calcular());
-
-            // CALCULAR EL RENDIMIENTO DEL MATERIAL
-            /* const itemFiltrado = this.insumos.filter(
-                (el) => el._id == this.form[index].select
-            );
-
-            this.resultadoRendimiento = `Calcular y comparar rendimiento del manterial aqui con un consumo de matarial ID ${this.form[index].select} de ${this.materialUtilizado} metros, con una rendimienot de ... ${itemFiltrado[0].rendimiento}`;
-
-            console.log(
-                `Calcular y comparar rendimiento del manterial aqui con un consumo de matarial ID ${this.form[index].select} de ${this.materialUtilizado} metros, con una rendimienot de ... ${itemFiltrado[0].rendimiento}`,
-                itemFiltrado
-            ); */
         },
 
         generateRandomId() {
@@ -386,6 +492,8 @@ export default {
                 id: this.generateRandomId(),
                 select: null,
                 input: 0.0,
+                idCatalogo: null,
+                desperdicio: 0,
             };
             this.form.push(obj);
         },
@@ -541,7 +649,11 @@ export default {
 
                 if (this.$store.state.login.currentDepartament === "Corte") {
                     // VALIDAR DESPERDICIO
-                    if (this.formCor.input === 0) {
+                    const errDesperdicio = this.form.find(
+                        (el) => el.desperdicio === 0
+                    );
+
+                    if (errDesperdicio) {
                         ok = false;
                         msg = msg + "<p>Ingrese el peso del desperdicio</p>";
                     }
@@ -555,14 +667,17 @@ export default {
                 const formTmp = this.form;
 
                 const errors = formTmp.find(
-                    (el) => el.input === 0 || el.select === null
+                    (el) =>
+                        el.input === 0 ||
+                        el.select === null ||
+                        el.idCatalogo === null
                 );
 
                 if (errors) {
                     ok = false;
                     msg =
                         msg +
-                        "<p>Debe llenar todos los campos del formulario</p>";
+                        "<p>Debe seleccionar el tipo de insumo y llenar todos los campos del formulario.</p>";
                 }
 
                 if (!ok) {
@@ -581,12 +696,12 @@ export default {
                         this.postImp();
                     }
 
-                    if (
+                    /* if (
                         this.$store.state.login.currentDepartament === "Corte"
                     ) {
                         // Enviar desperdicio
                         this.rendimiento(this.formCor.input, this.idorden);
-                    }
+                    } */
                     this.terminarTodo();
                     this.$emit("reload");
                 }
@@ -677,11 +792,12 @@ export default {
         async postInventarioMovimientos(
             cantidadConsumida,
             idInsumo,
-            idProducto
+            idCatalogo,
+            idProducto,
+            desperdicio
         ) {
             // this.overlay = true;
             // Buscar cantidad actual del insumo
-            console.log("Entramos a postInventarioMovimientos");
             let cantidadInsumo;
             if (this.$store.state.login.currentDepartament === "Impresión") {
                 cantidadInsumo = this.insumosimp.filter(
@@ -700,9 +816,6 @@ export default {
                     (item) => item._id == idProducto
                 );
             }
-            /* console.log("producto filtrado para obtener la cantidad", cantidadInsumo);
-      console.log("cantidad inicial", cantidadInsumo);
-      console.log("cantidad final", cantidadConsumida); */
 
             const data = new URLSearchParams();
             data.set("id_orden", this.idorden);
@@ -719,6 +832,7 @@ export default {
                 this.$store.state.login.currentDepartament
             );
             data.set("id_insumo", idInsumo);
+            data.set("id_catalogo", idCatalogo);
             data.set("id_ordenes_productos", this.id_ordenes_productos);
             data.set("es_reposicion", parseInt(this.esreposicion));
             data.set("id_producto", this.item.id_woo);
@@ -729,6 +843,8 @@ export default {
             // data.set("cantidad_inicial", cantidadInsumo.cantidad);
             data.set("cantidad_consumida", cantidadConsumida);
             data.set("tipo", "fin");
+            data.set("valor", desperdicio);
+
             await this.$axios
                 .post(
                     `${this.$config.API}/inventario-movimientos/empleados/update-insumo`,
@@ -828,7 +944,9 @@ export default {
                     // this.formImp.inputImp1,
                     el.input,
                     el.select,
-                    this.item.id_woo
+                    el.idCatalogo,
+                    this.item.id_woo,
+                    el.desperdicio
                 );
             });
 
@@ -937,6 +1055,32 @@ export default {
                     this.$fire({
                         title: "Error",
                         html: `<P>No se cargaron los datos correctamente</p><p>${err}</p>`,
+                        type: "error",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
+        },
+
+        async getEficienciaEstimada() {
+            this.overlay = true;
+            await this.$axios
+                .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`)
+                .then((res) => {
+                    this.eficienciaDetalles = res.data.detalles;
+                    this.dataInsumos = res.data.insumos_asignados;
+                    this.eficienciaEstimada =
+                        res.data.total_eficiencia[0].eficiencia_estimada;
+                    console.log(
+                        "insumos_Asigandos_Eficiencia",
+                        this.dataInsumos
+                    );
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Error",
+                        html: `<P>No se cargaron los datos correctamente</p><p>${err}</p>`,
                         type: "warning",
                     });
                 })
@@ -948,6 +1092,13 @@ export default {
 
     mounted() {
         this.clearForms();
+
+        this.$root.$on("bv::modal::show", (bvEvent, modal) => {
+            if (modal === this.modal) {
+                this.getEficienciaEstimada();
+            }
+        });
+
         if (this.tipo === "todo") this.btnText = `Terminar Todo`;
         // this.departamento = this.$store.state.login.currentDepartament
 

@@ -6,25 +6,31 @@
 
         <div v-else>
             <menus-MenuLoader />
+            <!-- <div v-else>
+                        <menus-MenuLoader />
 
-            <div
-                v-if="
-                    dataUser.departamento === 'Comercialización' ||
-                    dataUser.departamento === 'Jefe de diseño' ||
-                    dataUser.departamento === 'Diseño' ||
-                    dataUser.departamento === 'Producción' ||
-                    dataUser.departamento === 'Empleado' ||
-                    dataUser.departamento === 'Corte' ||
-                    dataUser.departamento === 'Impresión' ||
-                    dataUser.departamento === 'Estampado' ||
-                    dataUser.departamento === 'Costura' ||
-                    dataUser.departamento === 'Limpieza' ||
-                    dataUser.departamento === 'Revisión' ||
-                    dataUser.departamento === 'Administración'
-                "
-            >
+                <div
+                    v-if="
+                        dataUser.departamento === 'Comercialización' ||
+                        dataUser.departamento === 'Jefe de diseño' ||
+                        dataUser.departamento === 'Diseño' ||
+                        dataUser.departamento === 'Producción' ||
+                        dataUser.departamento === 'Empleado' ||
+                        dataUser.departamento === 'Corte' ||
+                        dataUser.departamento === 'Impresión' ||
+                        dataUser.departamento === 'Estampado' ||
+                        dataUser.departamento === 'Costura' ||
+                        dataUser.departamento === 'Limpieza' ||
+                        dataUser.departamento === 'Revisión' ||
+                        dataUser.departamento === 'montar tallas' ||
+                        dataUser.departamento === 'Administración'
+                    "
+                > -->
+            <div v-if="accessModule.access || accessModule.access === null">
+                
+                <!-- Si es comercialización -->
                 <b-container
-                    v-if="dataUser.departamento === 'Comercialización'"
+                    v-if="accessModule.accessData.id_modulo === 2"
                 >
                     <b-row>
                         <b-col>
@@ -41,13 +47,14 @@
                     >
                         <b-col>
                             <h1>ninesys 4.0</h1>
-                            <em>Sistema de contro de procesos</em>
+                            <em>CONTROL DE PROCESOS</em>
                         </b-col>
                     </b-row>
                 </b-container>
             </div>
 
             <div v-else>
+                <h3>Dennied en Home.vue</h3>
                 <accessDenied />
             </div>
         </div>
@@ -56,8 +63,10 @@
 
 <script>
 import { mapState } from "vuex";
+import mixin from "~/mixins/mixin-login.js";
 
 export default {
+    mixins: [mixin],
     data() {
         return {
             response: [],

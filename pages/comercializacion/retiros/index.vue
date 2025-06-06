@@ -7,13 +7,10 @@
         <div v-else>
             <menus-MenuLoader />
             <div v-if="
-                dataUser.departamento === 'Comercialización' ||
-                dataUser.departamento === 'Administración'
+                accessModule.accessData.id_modulo === 2 ||
+                accessModule.accessData.id_modulo === 1
             ">
-                <b-container v-if="
-                    this.dataUser.departamento === 'Comercialización' ||
-                    dataUser.departamento === 'Administración'
-                ">
+                <b-container>
                     <b-container>
                         <b-row>
                             <b-col>
@@ -200,8 +197,9 @@
 
 <script>
 import mixin from "~/mixins/mixins.js"
+import mixinLogin from "~/mixins/mixin-login.js";
 import { mapState } from "vuex"
-import axios from "axios"
+
 
 export default {
     data() {
@@ -666,6 +664,6 @@ export default {
         this.getRetiros(this.fechaConsulta)
     },
 
-    mixins: [mixin],
+    mixins: [mixin, mixinLogin],
 }
 </script>

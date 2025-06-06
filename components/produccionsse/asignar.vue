@@ -59,6 +59,7 @@
 
                                                         <produccionsse-asignar-empleado-multi
                                                             :item="dep"
+                                                            @reload="setReload"
                                                             :idorden="id"
                                                             :emp_asignados="
                                                                 filterAsigandos(
@@ -696,6 +697,7 @@ Corte
 </template>
 
 <script>
+import { log } from 'console';
 import mixin from "~/mixins/mixins.js";
 
 export default {
@@ -893,10 +895,11 @@ export default {
             await this.$axios
                 .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
                 .then((res) => {
-                    this.$nuxt.$emit("reload");
+                    // this.$nuxt.$emit("reload");
+                    this.$emit("reload");
 
                     // Llamar al método del componente hijo
-                    this.$nuxt.$emit("updateEmpleadoTodoCompleted"); // Emitir el evento personalizado
+                    // this.$nuxt.$emit("updateEmpleadoTodoCompleted"); // Emitir el evento personalizado
 
                     // this.reloadPorcentaje()
                     // this.overlay = false;
@@ -933,7 +936,7 @@ export default {
                         );
                     });
                     // alert("emitamos reload aqui");
-                    this.$emit("reload");
+                    this.$emit("reload", true);
                 }
             } else {
                 // console.error(`La propiedad ${id_dep} no existe en this.form.`);
@@ -1130,7 +1133,9 @@ export default {
         }, */
 
         setReload() {
-            this.$emit("reload");
+            console.log('relaod desde asignar.vue');
+            
+            this.$emit("reload", true);
         },
         token() {
             const length = 8;

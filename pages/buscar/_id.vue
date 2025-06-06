@@ -6,7 +6,6 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <!-- <div v-if="access"> -->
       <b-container>
         <b-row>
           <b-col>
@@ -14,11 +13,6 @@
           </b-col>
         </b-row>
       </b-container>
-      <!-- </div>
-
-      <div v-else>
-        <accessDenied />
-      </div> -->
     </div>
   </div>
 </template>

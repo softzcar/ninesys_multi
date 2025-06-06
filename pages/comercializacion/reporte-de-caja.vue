@@ -7,13 +7,13 @@
         <div v-else>
             <menus-MenuLoader />
             <div v-if="
-                dataUser.departamento === 'Comercialización' ||
-                dataUser.departamento === 'Administración'
+                accessModule.accessData.id_modulo === 2 ||
+                accessModule.accessData.id_modulo === 1
             ">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container v-if="
-                        this.dataUser.departamento === 'Comercialización' ||
-                        dataUser.departamento === 'Administración'
+                        this.accessModule.accessData.id_modulo === 2 ||
+                        accessModule.accessData.id_modulo === 1
                     ">
                         <b-row>
                             <b-col>
@@ -235,12 +235,12 @@
 
 <script>
 import { mapState } from "vuex"
-import axios from "axios"
 import mixin from "~/mixins/mixins.js"
-import { isNull } from "util"
+import mixinLogin from "~/mixins/mixin-login.js";
+
 
 export default {
-    mixins: [mixin],
+    mixins: [mixin, mixinLogin],
 
     data() {
         return {

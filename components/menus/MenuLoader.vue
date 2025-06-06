@@ -16,6 +16,8 @@
                 <b-col>
                     <component :is="asyncComponent" v-if="currentComponent" />
                 </b-col>
+            <pre class="force">{{ accessModule }} </pre>
+
 
                 <!-- <b-col v-if="dataUser.departamento === 'Comercialización'">
                     <menus-menuComercializacion />
@@ -154,8 +156,10 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
+import mixin from "~/mixins/mixin-login.js";
 
 export default {
+    mixins: [mixin],
     computed: {
         asyncComponent() {
             if (!this.currentComponent) return null;
