@@ -92,25 +92,10 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div style="width: 164%; float: left">
+                    <div style="width: 164%; float: right">
                       <span class="floatme">
                         <linkSearch class="floatme mb-2" :id="row.item.orden" />
                       </span>
-
-                      <!-- Ver detalles -->
-                      <!-- <span class="floatme">
-                                                <b-button
-                                                :variant="setStatusButton('secondary', row.item.urgent)"
-                                                block
-                                                size="xl"
-                                                style="padding: 6px 20px 0 20px"
-                                                @click="row.toggleDetails"
-                                                >
-                                                <h4>
-                                                    <b-icon icon="caret-down-fill"></b-icon>
-                                                </h4>
-                                                </b-button>
-                                            </span> -->
 
                       <!-- Terminar -->
                       <span class="floatme">
@@ -171,19 +156,6 @@
                           :productos="productsFilter(row.item.orden)"
                         />
                       </span>
-
-                      <!-- <span
-                        v-html="filterFechaEstimada(row.item.orden)"
-                        class="floatme"
-                      ></span> -->
-                      <!-- Detalle Reposición -->
-                      <!-- <span class="floatme">
-                                            <produccion-control-de-produccion-detalle-reposicion
-                                                :detalle="
-                                                    row.item.detalle_reposicion
-                                                "
-                                            />
-                                        </span> -->
                     </div>
                   </template>
 
@@ -290,17 +262,21 @@
                       </span>
 
                       <span class="floatme">
-                        <p>Fecha estimada de entrega</p>
-
-                        <pre class="force" style="margin-top: -16px">
-                          {{ fechasResult[0] }}
-                        </pre>
+                        <b-alert
+                          :variant="filterFechaEstimada(row.item.orden).variant"
+                          show
+                        >
+                          <h4 class="alert-heading">
+                            {{
+                              filterFechaEstimada(row.item.orden).variant_text
+                            }}
+                            {{
+                              filterFechaEstimada(row.item.orden)
+                                .fecha_estimada_fin_formateada
+                            }}
+                          </h4>
+                        </b-alert>
                       </span>
-
-                      <!-- <span
-                        v-html="filterFechaEstimada(row.item.orden)"
-                        class="floatme"
-                      ></span> -->
                     </div>
                   </template>
                 </b-table>
@@ -332,7 +308,7 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div style="width: 164%; float: left">
+                    <div style="width: 164%; float: right">
                       <span class="floatme">
                         <linkSearch class="floatme mb-2" :id="row.item.orden" />
                       </span>
@@ -381,22 +357,20 @@
                       </span>
 
                       <span class="floatme">
-                        <!-- <progreso-tiempo-empleado
-                          :fechasResult="fechasResult"
-                          :estimada="
-                            fechasResult[0].fecha_estimada_entrega_formateada
-                          "
-                          :inicio="fechasResult[0].fecha_inicio_formateada"
-                          :filtro="filterFechaEstimada(row.item.orden)"
-                        /> -->
-                      </span>
-
-                      <span class="floatme">
-                        <p>Fecha estimada de entrega</p>
-
-                        <p style="margin-top: -16px">
-                          {{ fechasResult[0].fecha_inicio_formateada }}
-                        </p>
+                        <b-alert
+                          :variant="filterFechaEstimada(row.item.orden).variant"
+                          show
+                        >
+                          <h4 class="alert-heading">
+                            {{
+                              filterFechaEstimada(row.item.orden).variant_text
+                            }}
+                            {{
+                              filterFechaEstimada(row.item.orden)
+                                .fecha_estimada_fin_formateada
+                            }}
+                          </h4>
+                        </b-alert>
                       </span>
                     </div>
                   </template>
@@ -413,6 +387,7 @@
 <script>
 import mixin from "~/mixins/mixins.js";
 import mixin2 from "~/mixins/mixin-proyeccion-entrega.js";
+import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js";
 
 // import { log } from 'console'
 export default {
@@ -528,7 +503,7 @@ export default {
     };
   },
 
-  mixins: [mixin, mixin2],
+  mixins: [mixin, mixin2, procesamientoOrdenesMixin],
 
   watch: {
     reload(val) {
@@ -649,6 +624,8 @@ export default {
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
               entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
               id_lotes_detalles: el.id_lotes_detalles,
+              lotes_detalles_empleados_asignados:
+                el.lotes_detalles_empleados_asignados,
               unidades: el.unidades,
               id_woo: el.id_woo,
               en_tintas: el.en_tintas, // Verificar si ya tiene registro en la tabal tintas
@@ -680,6 +657,8 @@ export default {
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
               entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
               id_lotes_detalles: el.id_lotes_detalles,
+              lotes_detalles_empleados_asignados:
+                el.lotes_detalles_empleados_asignados,
               unidades: el.unidades,
               id_woo: el.id_woo,
               valor_inicial: el.valor_inicial,
@@ -714,6 +693,8 @@ export default {
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
               entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
               id_lotes_detalles: el.id_lotes_detalles,
+              lotes_detalles_empleados_asignados:
+                el.lotes_detalles_empleados_asignados,
               unidades: el.unidades,
               id_woo: el.id_woo,
               valor_inicial: el.valor_inicial,
@@ -884,16 +865,25 @@ export default {
       //   return false;
       const filtrado = this.fechasResult.filter((el) => el.id_orden == idOrden);
       console.log("fechas filtradas", filtrado);
-      // return this.fechasResult;
 
-      if (
-        filtrado &&
-        filtrado.length > 0 &&
-        filtrado[0].fecha_estimada_entrega_formateada === undefined
-      ) {
-        return `<p>Fecha estimada de entrega</p><p style="margin-top:-16px">&nbsp;</p>`;
+      if (filtrado.length) {
+        // Buscar la fecha del departemento
+        const fechaEstimada = filtrado[0].tareas
+          .filter(
+            (el) =>
+              el.id_departamento ===
+              this.$store.state.login.currentDepartamentId
+          )
+          .map((el) => {
+            return {
+              fecha_estimada_fin_formateada: el.fecha_estimada_fin_formateada,
+              variant: el.variant,
+              variant_text: el.variant_text,
+            };
+          });
+        return fechaEstimada[0];
       } else {
-        return `<p>Fecha estimada de entrega</p><p style="margin-top:-16px">${filtrado[0].fecha_estimada_entrega_formateada}</p>`;
+        return "NO hay registros";
       }
     },
     contarItems(cantidad) {
@@ -1049,43 +1039,6 @@ export default {
           this.overlay = false;
         });
     },
-
-    /* iniciarTodo(idOrden) {
-            console.log("Itmes a iniciar", this.dataTablePendiente);
-
-            this.$confirm(
-                ``,
-                `¿Desea inicar todas las tareas de la Orden ${idOrden}?`,
-                "question"
-            )
-                .then(() => {
-                    const OrdenesPorIniciar = this.ordenes.filter(
-                        (el) => el.id_orden == idOrden
-                    );
-
-                    console.log("OrdenesPorIniciar", OrdenesPorIniciar);
-
-                    OrdenesPorIniciar.forEach((item) => {
-                        this.registrarEstado(
-                            "inicio",
-                            item.id_lotes_detalles,
-                            item.unidades
-                        ).then(() => {});
-                    });
-
-                    this.reloadMe();
-                    this.sendMessageClient(idOrden);
-                })
-                .catch((err) => {
-                    console.log(`Error al iniciar la tarea`, err);
-                    return false;
-                })
-                .finally(() => {
-                    this.reloadMe();
-                    // this.getOrdenesAsignadas()
-                    this.overlay = false;
-                });
-        }, */
 
     checkTerminar(idOrden, items) {
       /**
@@ -1425,11 +1378,14 @@ export default {
       this.getInsumos();
       this.getOrdenesAsignadas();
       this.getOrdenesFechas().then(() => {
-        this.fechasResult = this.proyectarEntregaConCola(
+        this.fechasResult = this.generarPlanProduccionCompleto(
           this.fechas,
           this.$store.state.login.dataEmpresa.horario_laboral
         );
       });
+
+      console.log("fechasResult", this.fechasResult);
+
       if (this.ordenes != this.items) {
         this.msg = "Tiene nuevas ordenes asignadas";
       }
@@ -1440,12 +1396,13 @@ export default {
     // CArgar datos de las ordenes asignadas
     /* this.sourceEvent = new EventSource(
       `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`
-    ); */
+      ); */
     this.getOrdenesFechas().then(() => {
-      this.fechasResult = this.proyectarEntregaConCola(
+      this.fechasResult = this.generarPlanProduccionCompleto(
         this.fechas,
         this.$store.state.login.dataEmpresa.horario_laboral
       );
+      console.log("fechasResult", this.fechasResult);
     });
 
     this.getOrdenesAsignadas().then(() => {
