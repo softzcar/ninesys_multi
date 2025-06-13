@@ -1,6 +1,10 @@
 <template>
   <div>
     <b-overlay :show="overlay" spinner-small>
+      <!-- <pre class="force">
+              XXX {{ ordenes }}
+          </pre
+      > -->
       <div v-if="ordenesSize < 1">
         <b-row>
           <b-col>
@@ -318,11 +322,20 @@
                           block
                           size="xl"
                           variant="info"
+                          :disabled="
+                            verificarOrdenProceso(row.item.orden_proceso)
+                          "
                           @click="
                             iniciarTodo(row.item.orden, row.item.unidades)
                           "
-                          >Iniciar Todo
+                          >Iniciar Todo (Orden Proceso
+                          {{ row.item.orden_proceso }})
                         </b-button>
+                        <!-- <pre class="force">
+                            {{ row.item }}
+                            <hr>
+                            {{ordenes}}
+                        </pre> -->
                       </span>
 
                       <span class="floatme">
@@ -394,6 +407,7 @@ export default {
   data() {
     return {
       // sourceEvent: null, // Variable para inicializar eventSource y utilizarla poseteriormente en la sfunciones para obtener la informacion de las ordenes asignadas
+      disIniciar: false,
       filter: null,
       includedFields: ["orden"],
       promptHTML: "HTML PROMPT!!!",
@@ -516,6 +530,14 @@ export default {
   },
 
   computed: {
+    ordenProceso() {
+      if (this.$store.getters["login/getDepartamentosOrdenProceso"]) {
+        return this.$store.getters["login/getDepartamentosOrdenProceso"][0];
+      } else {
+        return 0;
+      }
+    },
+
     insumosImpresion() {
       let options = this.insumos.filter(
         (item) => item.departamento === "Impresión"
@@ -733,6 +755,7 @@ export default {
               entrega: el.fecha_entrega,
               id_lotes_detalles: el.id_lotes_detalles,
               unidades: el.unidades,
+              orden_proceso: el.orden_proceso,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
             };
@@ -861,6 +884,14 @@ export default {
   },
 
   methods: {
+    verificarOrdenProceso(idOrdenProceso) {
+      if (idOrdenProceso === this.$store.state.login.currentOrdenProceso) {
+        return false;
+      } else {
+        return true;
+      }
+    },
+
     filterFechaEstimada(idOrden) {
       //   return false;
       const filtrado = this.fechasResult.filter((el) => el.id_orden == idOrden);

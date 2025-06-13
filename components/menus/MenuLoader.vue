@@ -105,7 +105,8 @@
                         showComponent(
                           departamento.modulo,
                           departamento.text,
-                          departamento.value
+                          departamento.value,
+                          departamento.orden_proceso
                         )
                       "
                       v-for="(
@@ -176,7 +177,12 @@ export default {
         });
     },
 
-    showComponent(component, departamento, id_departamento) {
+    showComponent(
+      component,
+      departamento,
+      id_departamento,
+      orden_proceso = null
+    ) {
       /* if (departamento == this.currentDepartament) {
                 this.$fire({
                     title: `Usted ya se encuentra el em módulo ${departamento}`,
@@ -194,12 +200,14 @@ export default {
           "question"
         ).then(() => {
           this.$store.commit("login/scurrentDepartamentId", id_departamento);
+          this.$store.commit("login/setCurrentOrdenProceso", orden_proceso);
           this.$store.commit("login/scurrentDepartament", departamento);
           this.$store.commit("login/setCurrentComponent", component);
           this.$router.push("/");
         });
       } else {
         this.$store.commit("login/scurrentDepartamentId", id_departamento);
+        this.$store.commit("login/setCurrentOrdenProceso", orden_proceso);
         this.$store.commit("login/scurrentDepartament", departamento);
         this.$store.commit("login/setCurrentComponent", component);
       }

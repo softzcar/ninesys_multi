@@ -60,8 +60,7 @@ export default {
   mixins: [mixin],
   data() {
     return {
-      variant: "secondary",
-      btnText: "PAUSA",
+      btnText: "PAUSAR",
       hayPausas: false,
       disableMe: false,
       form: {
@@ -155,6 +154,7 @@ export default {
       await this.$axios
         .post(`${this.$config.API}/pausas`, data)
         .then((res) => {
+          this.btnText = "PAUSAR";
           this.$emit("disBtnTodo", false);
 
           this.hayPausas = true;
@@ -188,12 +188,31 @@ export default {
 
   mounted() {
     if (this.pausas.length) {
-      this.hayPausas = true;
-      this.variant = "success";
-      this.$emit("disBtnTodo", true);
+      // Validar pausa de empleado
+      const pausasAsignadas = this.pausas.filter(
+        (el) =>
+          el.id_departamento === this.$store.state.login.currentDepartamentId &&
+          el.id_empleado === this.$store.state.login.dataUser.id_empleado
+      );
+
+      console.log(
+        `hay pausas para la orden ${this.item.orden}`,
+        pausasAsignadas
+      );
+
+      if (pausasAsignadas.length) {
+        this.hayPausas = false;
+        this.btnText = "REANUDAR";
+        this.$emit("disBtnTodo", true);
+      } else {
+        this.hayPausas = true;
+        this.disableMe = true;
+        this.btnText = "PAUSADA";
+        this.$emit("disBtnTodo", true);
+      }
     } else {
       this.hayPausas = false;
-      this.variant = "seconcdary";
+      this.btnText = "PAUSAR";
       this.$emit("disBtnTodo", false);
     }
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
@@ -203,6 +222,13 @@ export default {
     });
   },
 
-  props: ["item", "pausas", "pausasRaw", "reload", "disBtnTodo"],
+  props: [
+    "item",
+    "pausas",
+    "pausasRaw",
+    "reload",
+    "disBtnTodo",
+    "status_orden",
+  ],
 };
 </script>
