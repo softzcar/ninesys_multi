@@ -48,6 +48,14 @@ pre {
     display: none !important;
 }
 
+.list-group-draggable {
+    width: 100% !important;   
+}
+.list-group-draggable-item {
+    width: inherit !important;
+    min-width: 10% !important;
+}
+
 .force {
     display: block !important;
 }

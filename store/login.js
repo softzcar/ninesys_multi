@@ -3,6 +3,7 @@ export const state = () => ({
     currentDepartament: "",
     currentDepartamentId: null,
     currentOrdenProceso: null,
+    currentMinOrdenProcesoId: null,
     dataUser: [],
     dataEmpresa: [],
     departamentos: [],
@@ -25,8 +26,15 @@ export const mutations = {
     setCurrentComponent(state, data) {
         state.currentComponent = data
     },
+    setCurrentMinOrdenProcesoId(state, data) {
+        state.currentComponent = data
+    },
     setCurrentOrdenProceso(state, data) {
-        state.currentOrdenProceso = data
+        if (data === null) {
+            state.currentOrdenProceso = 1
+        } else {
+            state.currentOrdenProceso = data
+        }
     },
     setEmpleado(state, data) {
         state.empleado = data
@@ -93,11 +101,14 @@ export const getters = {
 
     getDepartamentosEmpleadoSelect(state) {
         return state.empleado.departamentos.map((el) => {
+            console.log('getDepartamentosEmpleadoSelect', el);
+            
             return {
                 value: el.id,
                 text: el.nombre,
                 modulo: el.modulo,
                 orden_proceso: el.orden_proceso,
+                orden_proceso_min: el.orden_proceso_min,
             }
         })
     },

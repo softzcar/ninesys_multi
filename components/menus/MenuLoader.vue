@@ -1,3 +1,4 @@
+
 <template>
   <div>
     <!-- <div class="p-6 text-center">
@@ -106,7 +107,8 @@
                           departamento.modulo,
                           departamento.text,
                           departamento.value,
-                          departamento.orden_proceso
+                          departamento.orden_proceso,
+                          currentMinOrdenProcesoId //
                         )
                       "
                       v-for="(
@@ -162,6 +164,7 @@ export default {
       "empleado",
       "currentDepartament",
       "currentComponent",
+      "currentMinOrdenProcesoId",
     ]),
     ...mapGetters("login", ["getDepartamentosEmpleadoSelect"]),
   },
@@ -181,15 +184,15 @@ export default {
       component,
       departamento,
       id_departamento,
-      orden_proceso = null
+      orden_proceso,
+      orden_proceso_min
     ) {
-      /* if (departamento == this.currentDepartament) {
-                this.$fire({
-                    title: `Usted ya se encuentra el em módulo ${departamento}`,
-                    html: ``,
-                    type: "info",
-                })
-            } else */
+      let verifyOrdenProceso = null;
+      if (orden_proceso === null) {
+        verifyOrdenProceso = orden_proceso_min;
+      } else {
+        verifyOrdenProceso = orden_proceso;
+      }
       if (
         this.currentComponent != null &&
         this.currentDepartament != departamento
@@ -200,14 +203,25 @@ export default {
           "question"
         ).then(() => {
           this.$store.commit("login/scurrentDepartamentId", id_departamento);
-          this.$store.commit("login/setCurrentOrdenProceso", orden_proceso);
+          this.$store.commit(
+            "login/setCurrentOrdenProceso",
+            verifyOrdenProceso
+          );
+          this.$store.commit(
+            "login/setCurrentMinOrdenProcesoId",
+            orden_proceso_min
+          );
           this.$store.commit("login/scurrentDepartament", departamento);
           this.$store.commit("login/setCurrentComponent", component);
           this.$router.push("/");
         });
       } else {
         this.$store.commit("login/scurrentDepartamentId", id_departamento);
-        this.$store.commit("login/setCurrentOrdenProceso", orden_proceso);
+        this.$store.commit("login/setCurrentOrdenProceso", verifyOrdenProceso);
+        this.$store.commit(
+          "login/setCurrentMinOrdenProcesoId",
+          orden_proceso_min
+        );
         this.$store.commit("login/scurrentDepartament", departamento);
         this.$store.commit("login/setCurrentComponent", component);
       }
@@ -215,13 +229,19 @@ export default {
   },
 
   mounted() {
-    if (this.getDepartamentosEmpleadoSelect.length === 1) {
+    // VAlidar unicamente si es el modulo de empleados
+    /* if (
+      this.getDepartamentosEmpleadoSelect.length === 1
+    ) {
       this.showComponent(
         this.getDepartamentosEmpleadoSelect[0].modulo,
         this.getDepartamentosEmpleadoSelect[0].text,
-        this.getDepartamentosEmpleadoSelect[0].value
+        this.getDepartamentosEmpleadoSelect[0].value,
+        this.getDepartamentosEmpleadoSelect[0].value,
+        this.getDepartamentosEmpleadoSelect[0].orden_proceso,
+        this.getDepartamentosEmpleadoSelect[0].orden_proceso_min
       );
-    }
+    } */
   },
 };
 </script>

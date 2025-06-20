@@ -21,6 +21,10 @@
     </span>
 
     <b-modal :id="modal" :title="title" hide-footer size="lg">
+      <pre class="force">
+        item: {{ item }}
+        </pre
+      >
       <b-overlay :show="overlay" spinner-small>
         <!-- Formulario de Impresión -->
         <!-- <div
@@ -245,6 +249,7 @@ export default {
   mixins: [eficienciaInsumoMixin],
   data() {
     return {
+      esReposicion: null,
       queryInsumo: "",
       title: `Datos Extra ${this.$store.state.login.currentDepartament}`,
       overlay: false,
@@ -764,7 +769,7 @@ export default {
       data.set("id_insumo", idInsumo);
       data.set("id_catalogo", idCatalogo);
       data.set("id_ordenes_productos", this.id_ordenes_productos);
-      data.set("es_reposicion", parseInt(this.esreposicion));
+      data.set("es_reposicion", this.esReposicion);
       data.set("id_producto", this.item.id_woo);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
       // data.set("cantidad_inicial", cantidadInsumo.cantidad);
@@ -822,8 +827,11 @@ export default {
       data.set("id_lotes_detalles", this.idlotesdetalles);
       data.set("id_orden", id_orden);
       data.set("tipo", tipo);
+      data.set("es_reposicion", this.esReposicion);
+      data.set("id_reposicion", this.item.id_reposicion);
       data.set("unidades", unidades);
       data.set("departamento", this.$store.state.login.currentDepartament);
+      data.set("orden_proceso", this.$store.state.login.currentOrdenProceso);
 
       await this.$axios
         .post(`${this.$config.API}/registrar-paso-empleado`, data)
@@ -995,6 +1003,7 @@ export default {
   },
 
   mounted() {
+    this.esReposicion = parseInt(this.esreposicion);
     this.clearForms();
 
     this.$root.$on("bv::modal::show", (bvEvent, modal) => {
@@ -1070,7 +1079,6 @@ export default {
     "idorden",
     "id_ordenes_productos",
     "reload",
-    "registrarestado",
   ],
 };
 </script>

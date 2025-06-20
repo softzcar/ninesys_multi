@@ -96,7 +96,7 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div style="width: 164%; float: right">
+                    <div>
                       <span class="floatme">
                         <linkSearch class="floatme mb-2" :id="row.item.orden" />
                       </span>
@@ -123,7 +123,6 @@
                           :idorden="row.item.orden"
                           :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe"
-                          @registrarestado="registrarEstado"
                         />
                       </span>
 
@@ -147,6 +146,7 @@
                         <empleados-reposicion
                           @reload_this="reloadMe"
                           :id_orden="row.item.orden"
+                          :itemRep="row.item"
                         />
                       </span>
 
@@ -195,7 +195,7 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div style="width: 164%; float: right">
+                    <div>
                       <span class="floatme">
                         <linkSearch class="floatme mb-2" :id="row.item.orden" />
                       </span>
@@ -244,6 +244,7 @@
                         <empleados-reposicion
                           @reload_this="reloadMe"
                           :id_orden="row.item.orden"
+                          :itemRep="row.item"
                         />
                       </span>
 
@@ -312,7 +313,7 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div style="width: 164%; float: right">
+                    <div>
                       <span class="floatme">
                         <linkSearch class="floatme mb-2" :id="row.item.orden" />
                       </span>
@@ -323,19 +324,16 @@
                           size="xl"
                           variant="info"
                           :disabled="
-                            verificarOrdenProceso(row.item.orden_proceso)
+                            verificarOrdenProceso(
+                              row.item.orden_proceso,
+                              row.item.orden_proceso_min
+                            )
                           "
                           @click="
                             iniciarTodo(row.item.orden, row.item.unidades)
                           "
-                          >Iniciar Todo (Orden Proceso
-                          {{ row.item.orden_proceso }})
+                          >Iniciar Todo
                         </b-button>
-                        <!-- <pre class="force">
-                            {{ row.item }}
-                            <hr>
-                            {{ordenes}}
-                        </pre> -->
                       </span>
 
                       <span class="floatme">
@@ -422,6 +420,7 @@ export default {
       dataOrdenEnCurso: [],
       showAlert: true,
       ordenes: [],
+      reposiciones: [],
       vinculadas: [],
       productos: [],
       pausas: [],
@@ -432,7 +431,7 @@ export default {
       filedsLista: [
         {
           key: "orden",
-          label: "orden",
+          label: "",
           variant: "",
         },
       ],
@@ -756,6 +755,8 @@ export default {
               id_lotes_detalles: el.id_lotes_detalles,
               unidades: el.unidades,
               orden_proceso: el.orden_proceso,
+              orden_proceso_departamento: el.orden_proceso_departamento,
+              orden_proceso_min: el.orden_proceso_min,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
             };
@@ -773,34 +774,34 @@ export default {
 
     dataTableReposiciones() {
       return (
-        this.ordenes
+        this.reposiciones
           // .filter((el) => el.fecha_inicio === null)
-          .filter((el) => el.en_reposiciones === 1)
+          //   .filter((el) => el.en_reposiciones === 1)
           .map((el) => {
             return {
-              // ...el,
+              ...el,
               esreposicion: true,
-              en_reposiciones: el.en_reposiciones,
+              en_reposiciones: 1,
               orden: el.id_orden,
-              id_woo: el.id_woo,
+              id_woo: el.id_producto,
               urgent: el.prioridad,
               entrega: el.fecha_entrega,
-              id_lotes_detalles: el.id_lotes_detalles,
+              // id_lotes_detalles: el.id_lotes_detalles,
               unidades: el.unidades,
-              observaciones: el.observaciones,
+              //   observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
               detalle_reposicion: el.detalle_reposicion,
               id_ordenes_productos: el.id_ordenes_productos,
             };
           })
-          .reduce((acc, item) => {
+        /* .reduce((acc, item) => {
             // console.log('item to push', item)
 
             if (acc.filter((row) => row.orden === item.orden).length === 0) {
               acc.push(item);
             }
             return acc;
-          }, [])
+          }, []) */
       );
     },
 
@@ -884,8 +885,16 @@ export default {
   },
 
   methods: {
-    verificarOrdenProceso(idOrdenProceso) {
-      if (idOrdenProceso === this.$store.state.login.currentOrdenProceso) {
+    verificarOrdenProceso(idOrdenProceso, min) {
+      let IdVerificado = null;
+
+      if (idOrdenProceso === null) {
+        IdVerificado = min;
+      } else {
+        IdVerificado = idOrdenProceso;
+      }
+
+      if (IdVerificado === this.$store.state.login.currentOrdenProceso) {
         return false;
       } else {
         return true;
@@ -955,7 +964,7 @@ export default {
       }
     },
 
-    async registrarEstado(tipo, id_orden, unidades) {
+    async registrarEstado(tipo, id_orden, unidades, es_reposicion = false) {
       this.overlay = true;
       const data = new URLSearchParams();
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
@@ -963,8 +972,10 @@ export default {
       data.set("id_orden", id_orden);
       // data.set("id_lotes_detalles", this.item.id_lotes_detalles);
       data.set("tipo", tipo);
+      data.set("es_reposicion", es_reposicion);
       data.set("unidades", unidades);
       data.set("departamento", this.$store.state.login.currentDepartament);
+      data.set("orden_proceso", this.$store.state.login.currentOrdenProceso);
 
       await this.$axios
         .post(`${this.$config.API}/registrar-paso-empleado`, data)
@@ -982,36 +993,6 @@ export default {
         })
         .finally(() => {
           this.overlay = false;
-        });
-    },
-
-    async registrarEstado_old(tipo, id_lotes_detalles, unidades) {
-      // tipos: inicio, fin
-      this.overlay = true;
-      if (this.ButtonText === "INICIAR TAREA") {
-        this.ButtonDisabled = true;
-      }
-
-      await this.$axios
-        .post(
-          `${this.$config.API}/empleados/registrar-paso/${tipo}/${this.$store.state.login.currentDepartamentId}/${id_lotes_detalles}/${unidades}`
-        )
-        .then((resp) => {
-          console.log("emitimos aqui...");
-          this.overlay = false;
-          // this.$emit('reload', 'true')
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Error registrando la accion",
-            html: `<p>Por favor intetelo de nuevo</p><p>${err}</p>`,
-            type: "warning",
-          });
-        })
-        .finally(() => {
-          if (tipo === "fin") {
-            this.$emit("reload");
-          }
         });
     },
 
@@ -1084,83 +1065,6 @@ export default {
       } else {
         alert("No preguntar nada, empleado normal");
       }
-    },
-
-    terminarIndividual(idOrden, item) {
-      this.$confirm(
-        ``,
-        `¿Desea terminar ésta tarea? Orden ${idOrden}`,
-        "question"
-      )
-        .then(() => {
-          // Verificar parametro en configuración del ssitema
-          const showForm = parseInt(
-            this.$store.state.datasys.dataSys
-              .sys_mostrar_detalle_terminar_indicidual
-          );
-          console.log("showForm", showForm);
-
-          if (showForm) {
-            // Discriminar departamentos
-            if (
-              this.$store.state.login.currentDepartament === "Impresión" ||
-              this.$store.state.login.currentDepartament === "Estampado" ||
-              this.$store.state.login.currentDepartament === "Corte"
-            ) {
-              this.$fire({
-                html: this.promptHTML,
-                input: this.prompInputType,
-                min: 0,
-                step: 1,
-                showCancelButton: true,
-                inputValidator: (value) => {
-                  if (!value) {
-                    alert("Debe ingresar un valor");
-                  } else {
-                    this.rendimiento(value, idOrden).then(() => {
-                      this.registrarEstado(
-                        "fin",
-                        item.id_lotes_detalles,
-                        item.unidades
-                      ).then(() => {
-                        this.reloadMe();
-                      });
-                      /* items.forEach((item) => {
-                        // enviar
-                      }) */
-                    });
-                  }
-                },
-              });
-            } else {
-              console.log("iteem para terminar tarea individual", item);
-              this.registrarEstado(
-                "fin",
-                item.id_lotes_detalles,
-                item.unidades
-              ).then(() => {
-                this.reloadMe();
-              });
-              /* items.forEach((item) => {
-                // enviar
-              }) */
-            }
-          } else {
-            this.registrarEstado(
-              "fin",
-              item.id_lotes_detalles,
-              item.unidades
-            ).then(() => {
-              this.reloadMe();
-            });
-          }
-        })
-        .catch((err) => {
-          return false;
-        })
-        .finally(() => {
-          this.overlay = false;
-        });
     },
 
     getDataTable(data) {
@@ -1253,7 +1157,7 @@ export default {
     async getOrdenesAsignadas() {
       await this.$axios
         .get(
-          `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}`
+          `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}/${this.$store.state.login.currentOrdenProceso}`
         )
         .then((resp) => {
           if (resp.data.ordenes.length === 0) {
@@ -1262,6 +1166,7 @@ export default {
 
           this.ordenes = [];
           this.ordenes = resp.data.ordenes;
+          this.reposiciones = resp.data.reposiciones;
           this.vinculadas = resp.data.vinculadas;
           this.productos = resp.data.productos;
           this.pausas = resp.data.pausas;
