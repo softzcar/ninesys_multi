@@ -1,8 +1,5 @@
 <template>
   <div>
-    <!-- <pre style="background-color: pink">
-      {{ item }}
-    </pre> -->
     <b-overlay :overlay="overlay" spinner-small>
       <div v-if="hideMe" class="floatme">
         <b-button :variant="myVariant" @click="$bvModal.show(modal)">

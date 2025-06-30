@@ -21,10 +21,6 @@
     </span>
 
     <b-modal :id="modal" :title="title" hide-footer size="lg">
-      <pre class="force">
-        item: {{ item }}
-        </pre
-      >
       <b-overlay :show="overlay" spinner-small>
         <!-- Formulario de Impresión -->
         <!-- <div
@@ -39,10 +35,6 @@
                         $store.state.login.currentDepartament === 'Revisión'
                     "
                 > -->
-        <!-- <pre style="display: block !important">
-                    {{ $props.esreposicion }}
-                  </pre
-                    > -->
         <b-form @reset="onReserForm">
           <div v-if="$store.state.login.currentDepartament === 'Impresión'">
             <!-- Tintas -->
@@ -93,10 +85,6 @@
             </b-form-group>
           </div>
           <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO -->
-          <!-- <pre style="display: block !important">
-                          {{ insumosimp }}
-                         </pre
-                        > -->
           <div
             v-if="
               $store.state.login.currentDepartament === 'Estampado' ||
@@ -128,9 +116,6 @@
                         ></p> -->
 
             <p>
-              <!-- <pre class="force">
-                                    {{ eficienciaDetalles }}
-                                </pre> -->
               <empleados-materialesLista
                 :items="eficienciaDetalles"
                 :idorden="idorden"
@@ -237,6 +222,9 @@
             >Borrar</b-button
           >
         </b-form>
+        <pre class="force">
+            {{ $props.item }}
+        </pre>
         <!-- </div> -->
       </b-overlay>
     </b-modal>
@@ -832,6 +820,12 @@ export default {
       data.set("unidades", unidades);
       data.set("departamento", this.$store.state.login.currentDepartament);
       data.set("orden_proceso", this.$store.state.login.currentOrdenProceso);
+
+      if (this.item.esreposicion) {
+        data.set("id_reposicion", this.item.id_reposicion);
+      } else {
+        data.set("id_reposicion", null);
+      }
 
       await this.$axios
         .post(`${this.$config.API}/registrar-paso-empleado`, data)

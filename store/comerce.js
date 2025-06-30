@@ -1,12 +1,12 @@
-import axios from "axios"
+// import axios from "axios"
 
 export const state = () => ({
     ordenesActivas: [{ msg: "Aqui las ordenes activas" }],
     ordenesSemana: [],
     ordenNuevaTelas: [],
-    dolar: 0,
+    dolar: 110,
     ordenesLength: 0,
-    peso: 0,
+    peso: 4000,
     dataProductos: [],
     dataProductosSelect: [],
     dataCustomers: [],

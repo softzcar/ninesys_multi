@@ -47,7 +47,7 @@
                   id="input-group-1"
                   label="Cantidad:"
                   label-for="input-1"
-                  description="Cantidad de piezas a reponer. kkk"
+                  description="Cantidad de piezas a reponer."
                 >
                   <b-form-input
                     style="width: 90px"
@@ -196,7 +196,7 @@ export default {
         });
       } else {
         this.$fire({
-          type: "error",
+          type: "info",
           title: "Se requeiren datos",
           html: msg,
         });
@@ -248,7 +248,7 @@ export default {
           this.$fire({
             title: "Error en la reposición",
             html: `<p>${err}</p>`,
-            type: "danger",
+            type: "error",
           });
         })
         .finally(() => {

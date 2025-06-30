@@ -8,9 +8,6 @@
     <b-modal :id="modal" :title="title" hide-footer size="lg">
       <b-overlay :show="overlay" spinner-small>
         <!-- <buscar-resultadoModal :id="id" /> -->
-        <!-- <pre style="display: block !important">
-             Hola {{ item }}
-        </pre> -->
 
         <b-list-group class="mb-4">
           <b-list-group-item
@@ -120,9 +117,6 @@
           <b-button type="submit" variant="primary">Aceptar</b-button>
           <b-button @click="validarRechazo" variant="danger">Rechazar</b-button>
         </b-form>
-        <pre class="">
-            {{ selectedEmployeeDepartments }}
-        </pre>
       </b-overlay>
     </b-modal>
   </div>

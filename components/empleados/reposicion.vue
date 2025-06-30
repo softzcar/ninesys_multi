@@ -1,19 +1,30 @@
 <template>
   <div>
-    <b-button variant="warning" @click="$bvModal.show(modal)">
+    <b-button
+      :disabled="disableBtns.backward"
+      variant="warning"
+      @click="$bvModal.show(modal)"
+    >
       <b-icon icon="skip-backward-fill"></b-icon>
     </b-button>
-    <b-button variant="warning" @click="$bvModal.show(modal2)">
+    <b-button
+      :disabled="disableBtns.eye"
+      variant="warning"
+      @click="$bvModal.show(modal2)"
+    >
       <b-icon icon="eye"></b-icon>
     </b-button>
 
-    <b-modal :size="size" :title="title" :id="modal" hide-footer>
-      <p v-for="(producto, index) in filterDetallesReposicion" :key="index">
-        <!-- {{ producto }} -->
+    <b-modal :size="size" :title="title" :id="modal2" hide-footer>
+      <p>
+        {{ filterDetallesReposicion }}
       </p>
+      <pre class="force">
+        {{ $props }}
+      </pre>
     </b-modal>
 
-    <b-modal :size="size" :title="title" :id="modal2" hide-footer>
+    <b-modal :size="size" :title="title" :id="modal" hide-footer>
       <b-container fluid class="p-3" style="width: 100%">
         <b-row>
           <b-col>
@@ -85,6 +96,10 @@ export default {
       title: "Reposición de piezas",
       overlay: false,
       productos: [],
+      disableBtns: {
+        backward: false,
+        eye: false,
+      },
       item: {
         orden: "",
         vinculada: "",
@@ -108,24 +123,36 @@ export default {
 
   computed: {
     filterDetallesReposicion() {
-      return this.dataReposicion.map((el) => {
-        return `${el.unidades} ${el.producto}, detalle: ${el.detalle_supervisor}`;
-      });
+      return `${this.itemRep.unidades} ${this.itemRep.nombre_producto}, detalle: ${this.itemRep.detalle_empleado}`;
     },
 
     tablaProductos() {
-      let myItem = [];
+      /* let myItem = [];
 
       myItem[0] = {
         Orden: this.itemRep.id_orden,
-        Producto: this.itemRep.nombre_producto,
+        Producto: this.itemRep.producto,
         Talla: this.itemRep.talla,
         Cantidad: this.itemRep.unidades,
         Tela: this.itemRep.tela,
         Corte: this.itemRep.corte,
-      };
+        Reponer: this.itemRep.id_ordenes_productos,
+        id_ordenes_productos: this.itemRep.id_ordenes_productos,
+      }; */
 
-      return myItem;
+      const myProductsTable = this.productos.map((el) => {
+        return {
+          Orden: el.id_orden,
+          Producto: el.producto,
+          Talla: el.talla,
+          Cantidad: el.cantidad,
+          Tela: el.tela,
+          Corte: el.corte,
+          Reponer: el._id,
+        };
+      });
+
+      return myProductsTable;
     },
 
     tablaProductos2() {
@@ -173,7 +200,13 @@ export default {
     this.getReposicionData();
   },
 
-  mounted() {},
+  mounted() {
+    if (this.itemRep.en_reposiciones) {
+      this.disableBtns.backward = true;
+    } else {
+      this.disableBtns.eye = true;
+    }
+  },
 
   props: ["id_orden", "reload_this", "itemRep"],
 };

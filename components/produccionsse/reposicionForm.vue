@@ -1,8 +1,5 @@
 <template>
   <div>
-    <!-- <pre style="background-color: pink">
-      {{ empleados }}
-    </pre> -->
     <b-overlay :overlay="overlay" spinner-small>
       <div v-if="hideMe" class="floatme">
         <b-button :variant="myVariant" @click="$bvModal.show(modal)">
@@ -50,7 +47,7 @@
                   id="input-group-1"
                   label="Cantidad:"
                   label-for="input-1"
-                  description="Cantidad de piezas a reponer. ccc"
+                  description="Cantidad de piezas a reponer."
                 >
                   <b-form-input
                     style="width: 90px"
@@ -63,9 +60,47 @@
                   </b-form-input>
                 </b-form-group>
 
+                <hr />
+
+                <!-- Nuevo Selector de Empleado Inicio Reposición -->
                 <b-form-group
-                  id="input-group-2"
-                  label="Empleado:"
+                  id="input-group-empleado-inicio"
+                  label="Empleado Inicio Reposición:"
+                  label-for="select-empleado-inicio"
+                  description="Seleccione el empleado que inició la reposición (causó el error)."
+                >
+                  <b-form-select
+                    id="select-empleado-inicio"
+                    v-model="emp_inicio_reposicion"
+                    :options="selectEmpleados"
+                  ></b-form-select>
+                </b-form-group>
+
+                <!-- Nuevo Selector de Departamento para Visibilidad -->
+                <b-form-group
+                  v-if="
+                    emp_inicio_reposicion &&
+                    emp_inicio_reposicion !== 0 &&
+                    inicioEmployeeDepartments.length > 0
+                  "
+                  id="input-group-departamento-visibilidad"
+                  label="Departamento Inicio Reposición:"
+                  label-for="select-departamento-visibilidad"
+                  description="Seleccione el departamento donde esta reposición será visible."
+                >
+                  <b-form-select
+                    id="select-departamento-visibilidad"
+                    v-model="form.id_departamento_visibilidad"
+                    :options="selectVisibilidadDepartmentOptions"
+                  >
+                  </b-form-select>
+                </b-form-group>
+
+                <hr />
+
+                <b-form-group
+                  id="input-group-empleado-fin"
+                  label="Empleado Fin Reposición:"
                   label-for="select-empleado"
                   description="Empleado involucrado en la reposición."
                 >
@@ -83,16 +118,18 @@
                     emp && emp !== 0 && selectedEmployeeDepartments.length > 0
                   "
                   id="input-group-departamento-reposicion-form"
-                  label="Departamento del Empleado:"
+                  label="Departamento Fin Reposición:"
                   label-for="select-departamento-reposicion-form"
                   description="Departamento del empleado para la reposición."
                 >
                   <b-form-select
                     id="select-departamento-reposicion-form"
-                    v-model="form.id_departamento"
+                    v-model="form.id_departamento_asignado"
                     :options="selectDepartmentOptions"
                   ></b-form-select>
                 </b-form-group>
+
+                <hr />
 
                 <b-form-group
                   id="input-group-2"
@@ -135,14 +172,17 @@ export default {
       overlay: false,
       myVariant: "warning",
       repos: null,
-      emp: 0,
+      emp: 0, // Empleado que finaliza la reposición (la realiza)
+      emp_inicio_reposicion: 0, // Nuevo: Empleado que inició la reposición (causó el error)
       hideMe: false,
       form: {
-        id_departamento: null, // Nuevo para el departamento seleccionado
+        id_departamento_asignado: null, // Para el empleado que realiza la reposición
+        id_departamento_visibilidad: null, // Nuevo para el departamento de visibilidad
         cantidad: 0,
-        detalle: "",
+        detalle: "", // Keep existing detail
       },
-      selectedEmployeeDepartments: [], // Nuevo para almacenar departamentos del empleado
+      selectedEmployeeDepartments: [], // Para 'Empleado Fin Reposición'
+      inicioEmployeeDepartments: [], // Para 'Empleado Inicio Reposición'
     };
   },
 
@@ -191,6 +231,21 @@ export default {
       options.unshift({ value: null, text: "Seleccione un departamento" });
       return options;
     },
+
+    selectVisibilidadDepartmentOptions() {
+      if (
+        !this.inicioEmployeeDepartments ||
+        this.inicioEmployeeDepartments.length === 0
+      ) {
+        return [{ value: null, text: "Seleccione un departamento" }];
+      }
+      let options = this.inicioEmployeeDepartments.map((dep) => ({
+        value: dep._id,
+        text: dep.departamento,
+      }));
+      options.unshift({ value: null, text: "Seleccione un departamento" });
+      return options;
+    },
   },
 
   methods: {
@@ -204,10 +259,10 @@ export default {
         });
     },
 
-    async fetchEmployeeDepartments(employeeId) {
+    async fetchFinEmployeeDepartments(employeeId) {
       if (!employeeId || employeeId === 0) {
         this.selectedEmployeeDepartments = [];
-        this.form.id_departamento = null;
+        this.form.id_departamento_asignado = null;
         return;
       }
       this.overlay = true;
@@ -216,14 +271,78 @@ export default {
           `${this.$config.API}/departamentos-empleado/${employeeId}`
         );
         this.selectedEmployeeDepartments = response.data || [];
-        this.form.id_departamento = null;
+
+        // If the employee has only one department, pre-select it for assigned_department
+        if (this.selectedEmployeeDepartments.length === 1) {
+          this.form.id_departamento_asignado =
+            this.selectedEmployeeDepartments[0].id_departamento;
+        } else {
+          this.form.id_departamento_asignado = null;
+        }
       } catch (error) {
-        console.error("Error fetching employee departments:", error);
+        console.error(
+          "Error al obtener los departamentos del empleado:",
+          error
+        );
         this.selectedEmployeeDepartments = [];
-        this.form.id_departamento = null;
+        this.form.id_departamento_asignado = null;
         this.$fire({
           title: "Error",
           html: "<p>No se pudieron cargar los departamentos del empleado.</p>",
+          type: "warning",
+        });
+      } finally {
+        this.overlay = false;
+      }
+    },
+
+    // Nuevo método para cargar todos los departamentos
+    /* async fetchAllDepartments() {
+      try {
+        const response = await this.$axios.get(
+          `${this.$config.API}/departamentos`
+        );
+        this.allDepartments = response.data || [];
+      } catch (error) {
+        console.error("Error fetching all departments:", error);
+        this.allDepartments = [];
+        this.$fire({
+          title: "Error",
+          html: "<p>No se pudieron cargar todos los departamentos.</p>",
+          type: "warning",
+        });
+      }
+    }, */
+
+    async fetchInicioEmployeeDepartments(employeeId) {
+      if (!employeeId || employeeId === 0) {
+        this.inicioEmployeeDepartments = [];
+        this.form.id_departamento_visibilidad = null;
+        return;
+      }
+      this.overlay = true;
+      try {
+        const response = await this.$axios.get(
+          `${this.$config.API}/departamentos-empleado/${employeeId}`
+        );
+        this.inicioEmployeeDepartments = response.data || [];
+
+        if (this.inicioEmployeeDepartments.length === 1) {
+          this.form.id_departamento_visibilidad =
+            this.inicioEmployeeDepartments[0].id_departamento;
+        } else {
+          this.form.id_departamento_visibilidad = null;
+        }
+      } catch (error) {
+        console.error(
+          "Error al obtener los departamentos del empleado (INICIO):",
+          error
+        );
+        this.inicioEmployeeDepartments = [];
+        this.form.id_departamento_visibilidad = null;
+        this.$fire({
+          title: "Error",
+          html: "<p>No se pudieron cargar los departamentos del empleado que inicia.</p>",
           type: "warning",
         });
       } finally {
@@ -250,6 +369,11 @@ export default {
         msg = msg + "<p>Escriba el detalle de la reposición</p>";
       }
 
+      if (!parseInt(this.emp_inicio_reposicion)) {
+        valido = false;
+        msg = msg + "<p>Seleccione el empleado que inició la reposición.</p>";
+      }
+
       if (!parseInt(this.emp)) {
         valido = false;
         msg =
@@ -261,11 +385,18 @@ export default {
         this.emp &&
         this.emp !== 0 &&
         this.selectedEmployeeDepartments.length > 0 &&
-        !this.form.id_departamento
+        !this.form.id_departamento_asignado
       ) {
         valido = false;
         msg += "<p>Seleccione un departamento para el empleado.</p>";
       }
+
+      // Validar el nuevo selector de departamento de visibilidad
+      /* if (!this.form.id_departamento_visibilidad) {
+        valido = false;
+        msg +=
+          "<p>Seleccione un departamento de visibilidad para la reposición.</p>";
+      } */
 
       if (valido) {
         this.createReposicion().then(() => {
@@ -283,9 +414,12 @@ export default {
     clearForm() {
       this.form = {
         cantidad: 0,
-        detalle: "",
-        id_departamento: null,
-      };
+        detalle: "", // Keep existing detail
+        id_departamento_asignado: null,
+        id_departamento_visibilidad: null,
+      }; // Reset form fields
+      this.emp_inicio_reposicion = 0; // Resetear el nuevo campo
+
       this.emp = 0;
       this.selectedEmployeeDepartments = [];
     },
@@ -298,18 +432,17 @@ export default {
       data.set("cantidad", this.form.cantidad);
       data.set("detalle", this.form.detalle);
       if (this.emp && this.emp !== 0) {
-        data.set("id_empleado", this.emp); // Empleado asignado a la tarea de reposición
+        data.set("id_empleado", this.emp); // Empleado que realizará la reposición
       }
-      data.set(
-        "id_empleado_emisor",
-        this.$store.state.login.dataUser.id_empleado
-      );
+      if (this.emp_inicio_reposicion && this.emp_inicio_reposicion !== 0) {
+        data.set("id_empleado_emisor", this.emp_inicio_reposicion); // Empleado que inició la reposición
+      }
       data.set(
         "id_departamento_solicitante", // Renombrado
         this.$store.state.login.currentDepartamentId
       );
-      if (this.form.id_departamento) {
-        data.set("id_departamento", this.form.id_departamento);
+      if (this.form.id_departamento_visibilidad) {
+        data.set("id_departamento", this.form.id_departamento_visibilidad); // Este es el nuevo campo para la tabla reposiciones
       }
 
       await this.$axios
@@ -345,11 +478,20 @@ export default {
   },
 
   watch: {
-    emp: function (newEmpId, oldEmpId) {
-      this.form.id_departamento = null;
+    emp: function (newEmpId) {
+      // Para 'Empleado Fin Reposición'
+      this.form.id_departamento_asignado = null;
       this.selectedEmployeeDepartments = [];
       if (newEmpId && newEmpId !== 0) {
-        this.fetchEmployeeDepartments(newEmpId);
+        this.fetchFinEmployeeDepartments(newEmpId);
+      }
+    },
+    emp_inicio_reposicion: function (newEmpId) {
+      // Para 'Empleado Inicio Reposición'
+      this.form.id_departamento_visibilidad = null;
+      this.inicioEmployeeDepartments = [];
+      if (newEmpId && newEmpId !== 0) {
+        this.fetchInicioEmployeeDepartments(newEmpId);
       }
     },
   },
@@ -364,6 +506,7 @@ export default {
       }
       this.getEmpleados().then(() => (this.overlay = false))
     }) */
+    // this.fetchAllDepartments(); // <--- AÑADIDO: Carga todos los departamentos al montar el componente
   },
 };
 </script>

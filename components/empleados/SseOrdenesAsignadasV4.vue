@@ -1,10 +1,6 @@
 <template>
   <div>
     <b-overlay :show="overlay" spinner-small>
-      <!-- <pre class="force">
-              XXX {{ ordenes }}
-          </pre
-      > -->
       <div v-if="ordenesSize < 1">
         <b-row>
           <b-col>
@@ -147,6 +143,7 @@
                           @reload_this="reloadMe"
                           :id_orden="row.item.orden"
                           :itemRep="row.item"
+                          :productos="productsFilter(row.item.orden)"
                         />
                       </span>
 
@@ -599,7 +596,7 @@ export default {
           ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
           .map((el) => {
             return {
-              // ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el, // Incluimos todas las propiedades originales del objeto "el"
               esreposicion: false,
               en_reposiciones: el.en_reposiciones,
               id_orden: el.id_orden,
@@ -639,7 +636,7 @@ export default {
                     ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos` */
           .map((el) => {
             return {
-              // ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el, // Incluimos todas las propiedades originales del objeto "el"
               extra: el.extra,
               orden: el.id_orden, // Sobreescribimos la propiedad "orden"
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
@@ -672,7 +669,7 @@ export default {
           ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
           .map((el) => {
             return {
-              // ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el, // Incluimos todas las propiedades originales del objeto "el"
               extra: el.extra,
               orden: el.id_orden, // Sobreescribimos la propiedad "orden"
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
@@ -708,7 +705,7 @@ export default {
           ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
           .map((el) => {
             return {
-              // ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el, // Incluimos todas las propiedades originales del objeto "el"
               extra: el.extra,
               orden: el.id_orden, // Sobreescribimos la propiedad "orden"
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
@@ -745,7 +742,7 @@ export default {
           .filter((el) => el.progreso === "por iniciar")
           .map((el) => {
             return {
-              // ...el,
+              ...el,
               id_orden: el.id_orden,
               esreposicion: false,
               en_reposiciones: el.en_reposiciones,
@@ -1170,6 +1167,8 @@ export default {
           this.vinculadas = resp.data.vinculadas;
           this.productos = resp.data.productos;
           this.pausas = resp.data.pausas;
+
+          console.log("Productos recibidos pra el emplado", this.productos);
         });
     },
 

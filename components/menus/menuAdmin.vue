@@ -574,6 +574,36 @@
                   </span>
                 </router-link>
 
+                <router-link
+                  class="nav-link"
+                  to="/gastos-fijos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Gestión de Gastos Fijos
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/reporte-costos-produccion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Reporte de Costos
+                  </span>
+                </router-link>
+
                 <b-dropdown-item to="/"> </b-dropdown-item>
                 <router-link
                   class="nav-link"
