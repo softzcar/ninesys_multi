@@ -42,6 +42,7 @@
               :items="reportData"
               :fields="fields"
               responsive
+              foot-clone
             >
               <template #cell(costos_de_insumos)="data">
                 $ {{ data.item.costos_de_insumos.toFixed(2) }}
@@ -54,6 +55,44 @@
               </template>
               <template #cell(tiempo_de_produccion)="data">
                 {{ data.item.tiempo_de_produccion.toFixed(2) }} hrs
+              </template>
+
+              <!-- Footer Slots for Totals -->
+              <template #foot(id_orden)>
+                <strong>Totales:</strong>
+              </template>
+              <template #foot(vendedor)>
+                &nbsp
+                <!-- Celda vacía para la columna del vendedor -->
+              </template>
+              <template #foot(total_productos)>
+                <strong>{{ reportTotals.total_productos }}</strong>
+              </template>
+              <template #foot(costos_de_insumos)>
+                <strong
+                  >$ {{ reportTotals.costos_de_insumos.toFixed(2) }}</strong
+                >
+              </template>
+              <template #foot(costo_mano_de_obra)>
+                <strong
+                  >$ {{ reportTotals.costo_mano_de_obra.toFixed(2) }}</strong
+                >
+              </template>
+              <template #foot(eficiencia_del_corte)>
+                <strong
+                  >{{ reportTotals.eficiencia_del_corte.toFixed(2) }} m</strong
+                >
+              </template>
+              <template #foot(reposiciones)>
+                <strong>{{ reportTotals.reposiciones }}</strong>
+              </template>
+              <template #foot(tiempo_de_produccion)>
+                <strong
+                  >{{
+                    reportTotals.tiempo_de_produccion.toFixed(2)
+                  }}
+                  hrs</strong
+                >
               </template>
             </b-table>
           </b-col>
@@ -119,14 +158,35 @@ export default {
           label: "Eficiencia Corte",
           sortable: true,
         },
+        { key: "reposiciones", label: "Reposiciones", sortable: true },
         {
           key: "tiempo_de_produccion",
           label: "T. Producción",
           sortable: true,
         },
-        { key: "reposiciones", label: "Reposiciones", sortable: true },
       ],
     };
+  },
+  computed: {
+    reportTotals() {
+      const totals = {
+        total_productos: 0,
+        costos_de_insumos: 0,
+        costo_mano_de_obra: 0,
+        eficiencia_del_corte: 0,
+        reposiciones: 0,
+        tiempo_de_produccion: 0,
+      };
+      this.reportData.forEach((item) => {
+        totals.total_productos += item.total_productos;
+        totals.costos_de_insumos += item.costos_de_insumos;
+        totals.costo_mano_de_obra += item.costo_mano_de_obra;
+        totals.eficiencia_del_corte += item.eficiencia_del_corte;
+        totals.reposiciones += item.reposiciones;
+        totals.tiempo_de_produccion += item.tiempo_de_produccion;
+      });
+      return totals;
+    },
   },
   methods: {
     setDefaultDates() {
