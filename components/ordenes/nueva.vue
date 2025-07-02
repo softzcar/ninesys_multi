@@ -20,7 +20,6 @@
               {{ data.item.form.nombre }}
               {{ data.item.form.apellido }}
             </b-button>
-            <!-- <pre>{{ data.item.form.productos }}</pre> -->
           </template>
 
           <template #cell(empleado)="data">
@@ -443,6 +442,25 @@
                                       v-model="form.productos[data.index].tela"
                                       :options="$store.state.comerce.dataTelas"
                                     ></b-form-select>
+                                  </template>
+
+                                  <template #cell(atributo)="data">
+                                    <b-form-select
+                                      :disabled="
+                                        checkDesignForDiseabled(data.item.cod)
+                                      "
+                                      v-model="
+                                        form.productos[data.index].atributo
+                                      "
+                                      :options="productAttributes"
+                                    >
+                                      <template #first>
+                                        <b-form-select-option :value="null"
+                                          >-- Seleccione
+                                          --</b-form-select-option
+                                        >
+                                      </template></b-form-select
+                                    >
                                   </template>
 
                                   <template #cell(acciones)="data">
@@ -1142,6 +1160,7 @@ export default {
         { key: "talla", label: "talla", tdClass: "min-width" },
         { key: "corte", label: "corte" },
         { key: "tela", label: "tela" },
+        { key: "atributo", label: "Atributo" },
         { key: "color", label: "color" },
         { key: "acciones", label: "acciones" },
       ],
@@ -1158,6 +1177,7 @@ export default {
         show: false,
         text: "",
       },
+      productAttributes: [],
     };
   },
 
@@ -2606,6 +2626,7 @@ export default {
             existencia: product.stock_quantity,
             cantidad: 0,
             tela: null,
+            atributo: null,
             corte: "No aplica",
             talla: null,
             colores: [],
@@ -2648,6 +2669,7 @@ export default {
         cantidad: item.cantidad,
         talla: item.talla,
         tela: item.tela,
+        atributo: item.atributo,
         colores: [],
         corte: item.corte,
         precio: item.precio,
@@ -2858,6 +2880,29 @@ export default {
         });
     },
 
+    async loadProductAttributes() {
+      await this.$axios
+        .get(`${this.$config.API}/products-attributes`)
+        .then((response) => {
+          this.productAttributes = response.data.data.map((item) => {
+            return {
+              value: item._id,
+              text: item.name,
+            };
+          });
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de los atributos",
+            html: err,
+          });
+          // Re-lanzamos el error para que el bloque try/catch en mounted() lo capture
+          // y el flujo de carga se detenga correctamente.
+          throw err;
+        });
+    },
+
     async loadDataProductos() {
       await this.$axios
         .get(`${this.$config.API}/products`)
@@ -3001,23 +3046,36 @@ export default {
     // this.loadDataComercializacion()
   },
 
-  mounted() {
+  async mounted() {
     this.clearForm({
       form: true,
       formPrint: true,
     });
 
+    this.mainOverlay = true;
+    this.loadingMsg = "Cargando datos...";
+
     this.checkScreenSize();
     window.addEventListener("resize", this.handleResize);
 
-    this.loadDataCustomers();
-    this.loadDataTallas();
-    this.loadDataTelas();
-    this.loadDataProductos();
-    this.getOrdenesGuardadas();
-    this.$bvModal.hide(this.modal);
-    this.overlay = false;
-    // this.loadDataComercializacion()
+    try {
+      // Promise.all ejecuta todas las cargas de datos en paralelo para mayor eficiencia
+      await Promise.all([
+        this.loadDataCustomers(),
+        this.loadDataTallas(),
+        this.loadDataTelas(),
+        this.loadDataProductos(),
+        this.loadProductAttributes(), // Esta es la llamada que actualmente falla
+        this.getOrdenesGuardadas(),
+      ]);
+      // Si todo tiene éxito, ocultamos el overlay
+      this.mainOverlay = false;
+    } catch (error) {
+      console.error("Fallo en la carga de datos iniciales:", error);
+      // Si algo falla, el overlay se queda visible con un mensaje de error
+      this.loadingMsg =
+        "Ocurrió un error al cargar los datos. Por favor, recargue la página.";
+    }
   },
 
   beforeDestroy() {

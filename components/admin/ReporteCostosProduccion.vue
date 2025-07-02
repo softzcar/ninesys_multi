@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-overlay :show="overlay" spinner-variant="primary">
-      <b-container>
+      <b-container fluid>
         <b-row class="mb-3">
           <b-col>
             <h3>Reporte de Costos de Producción</h3>
@@ -9,8 +9,8 @@
         </b-row>
 
         <!-- Filtros -->
-        <b-row class="mb-4 p-3 bg-light border rounded">
-          <b-col md="5">
+        <b-row class="mb-4 p-3 bg-light border rounded align-items-end">
+          <b-col md="4">
             <b-form-group label="Fecha de Inicio:">
               <b-form-datepicker
                 v-model="filters.inicio"
@@ -18,7 +18,7 @@
               ></b-form-datepicker>
             </b-form-group>
           </b-col>
-          <b-col md="5">
+          <b-col md="4">
             <b-form-group label="Fecha de Fin:">
               <b-form-datepicker
                 v-model="filters.fin"
@@ -26,7 +26,16 @@
               ></b-form-datepicker>
             </b-form-group>
           </b-col>
-          <b-col md="2" class="d-flex align-items-end">
+          <b-col md="2">
+            <b-form-group label="Buscar por Orden:">
+              <b-form-input
+                v-model="tableFilter"
+                placeholder="N° Orden"
+                debounce="500"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+          <b-col md="2">
             <b-button variant="primary" @click="getReport" class="w-100">
               <b-icon-search></b-icon-search> Buscar
             </b-button>
@@ -41,20 +50,59 @@
               hover
               :items="reportData"
               :fields="fields"
+              :filter="tableFilter"
+              :filter-included-fields="['id_orden']"
+              @filtered="onFiltered"
               responsive
               foot-clone
             >
+              <template #cell(id_orden)="data">
+                <linkSearch :id="data.item.id_orden" />
+              </template>
+              <template #cell(total_productos)="data">
+                <reporte-costos-produccion-productos
+                  :id_orden="data.item.id_orden"
+                  :valor="data.item.total_productos"
+                />
+              </template>
               <template #cell(costos_de_insumos)="data">
-                $ {{ data.item.costos_de_insumos.toFixed(2) }}
+                <reporte-costos-produccion-insumos
+                  :id_orden="data.item.id_orden"
+                  :valor="data.item.costos_de_insumos"
+                />
               </template>
               <template #cell(costo_mano_de_obra)="data">
-                $ {{ data.item.costo_mano_de_obra.toFixed(2) }}
+                <reporte-costos-produccion-mano-obra
+                  :id_orden="data.item.id_orden"
+                  :valor="data.item.costo_mano_de_obra"
+                />
               </template>
-              <template #cell(eficiencia_del_corte)="data">
-                {{ data.item.eficiencia_del_corte.toFixed(2) }} m
+              <template #cell(material_consumido)="data">
+                <reporte-costos-produccion-material
+                  :id_orden="data.item.id_orden"
+                  :valor="data.item.material_consumido"
+                />
+              </template>
+              <template #cell(eficiencia)="data">
+                {{ data.item.eficiencia.toFixed(2) }} %
               </template>
               <template #cell(tiempo_de_produccion)="data">
                 {{ data.item.tiempo_de_produccion.toFixed(2) }} hrs
+              </template>
+              <template #cell(pago_total)="data">
+                $ {{ data.item.pago_total.toFixed(2) }}
+              </template>
+              <template #cell(ganancia)="data">
+                <strong
+                  :class="
+                    data.item.ganancia > 0 ? 'text-success' : 'text-danger'
+                  "
+                >
+                  $ {{ data.item.ganancia.toFixed(2) }}
+                </strong>
+              </template>
+              <template #cell(costo_total)="data">
+                <strong>$ {{ data.item.costo_total.toFixed(2) }}</strong>
               </template>
 
               <!-- Footer Slots for Totals -->
@@ -62,7 +110,7 @@
                 <strong>Totales:</strong>
               </template>
               <template #foot(vendedor)>
-                &nbsp
+                <span>&nbsp;</span>
                 <!-- Celda vacía para la columna del vendedor -->
               </template>
               <template #foot(total_productos)>
@@ -78,10 +126,13 @@
                   >$ {{ reportTotals.costo_mano_de_obra.toFixed(2) }}</strong
                 >
               </template>
-              <template #foot(eficiencia_del_corte)>
+              <template #foot(material_consumido)>
                 <strong
-                  >{{ reportTotals.eficiencia_del_corte.toFixed(2) }} m</strong
+                  >{{ reportTotals.material_consumido.toFixed(2) }} m</strong
                 >
+              </template>
+              <template #foot(eficiencia)>
+                <strong>{{ reportTotals.eficiencia.toFixed(2) }} %</strong>
               </template>
               <template #foot(reposiciones)>
                 <strong>{{ reportTotals.reposiciones }}</strong>
@@ -93,6 +144,21 @@
                   }}
                   hrs</strong
                 >
+              </template>
+              <template #foot(pago_total)>
+                <strong>$ {{ reportTotals.pago_total.toFixed(2) }}</strong>
+              </template>
+              <template #foot(ganancia)>
+                <strong
+                  :class="
+                    reportTotals.ganancia > 0 ? 'text-success' : 'text-danger'
+                  "
+                >
+                  $ {{ reportTotals.ganancia.toFixed(2) }}
+                </strong>
+              </template>
+              <template #foot(costo_total)>
+                <strong>$ {{ reportTotals.costo_total.toFixed(2) }}</strong>
               </template>
             </b-table>
           </b-col>
@@ -137,12 +203,25 @@
 </template>
 
 <script>
+import ReporteCostosProduccionProductos from "./ReporteCostosProduccionProductos.vue";
+import ReporteCostosProduccionInsumos from "./ReporteCostosDeProduccionInsumos.vue";
+import ReporteCostosProduccionManoObra from "./ReporteCostosProduccionManoObra.vue";
+import ReporteCostosProduccionMaterial from "./ReporteCostosProduccionMaterial.vue";
+
 export default {
+  components: {
+    ReporteCostosProduccionProductos,
+    ReporteCostosProduccionInsumos,
+    ReporteCostosProduccionManoObra,
+    ReporteCostosProduccionMaterial,
+  },
   data() {
     return {
       overlay: true,
       reportData: [],
+      filteredReportData: [],
       costosOperativos: {},
+      tableFilter: "",
       filters: {
         inicio: null,
         fin: null,
@@ -154,41 +233,81 @@ export default {
         { key: "costos_de_insumos", label: "Costo Insumos", sortable: true },
         { key: "costo_mano_de_obra", label: "Costo M.O.", sortable: true },
         {
-          key: "eficiencia_del_corte",
-          label: "Eficiencia Corte",
+          key: "material_consumido",
+          label: "Material Consumido",
           sortable: true,
         },
+        { key: "eficiencia", label: "Eficiencia", sortable: true },
         { key: "reposiciones", label: "Reposiciones", sortable: true },
         {
           key: "tiempo_de_produccion",
           label: "T. Producción",
           sortable: true,
         },
+        { key: "pago_total", label: "Venta", sortable: true },
+        { key: "ganancia", label: "Ganancia", sortable: true },
+        { key: "costo_total", label: "Costo Total", sortable: true },
       ],
     };
   },
   computed: {
     reportTotals() {
+      const dataToProcess = this.filteredReportData;
+      if (dataToProcess.length === 0) {
+        return {
+          total_productos: 0,
+          costos_de_insumos: 0,
+          costo_mano_de_obra: 0,
+          material_consumido: 0,
+          eficiencia: 0,
+          reposiciones: 0,
+          tiempo_de_produccion: 0,
+          pago_total: 0,
+          ganancia: 0,
+          costo_total: 0,
+        };
+      }
+
       const totals = {
         total_productos: 0,
         costos_de_insumos: 0,
         costo_mano_de_obra: 0,
-        eficiencia_del_corte: 0,
+        material_consumido: 0,
+        eficiencia: 0,
         reposiciones: 0,
         tiempo_de_produccion: 0,
+        pago_total: 0,
+        ganancia: 0,
+        costo_total: 0,
       };
-      this.reportData.forEach((item) => {
+
+      dataToProcess.forEach((item) => {
         totals.total_productos += item.total_productos;
         totals.costos_de_insumos += item.costos_de_insumos;
         totals.costo_mano_de_obra += item.costo_mano_de_obra;
-        totals.eficiencia_del_corte += item.eficiencia_del_corte;
+        totals.material_consumido += item.material_consumido;
+        totals.eficiencia += item.eficiencia;
         totals.reposiciones += item.reposiciones;
         totals.tiempo_de_produccion += item.tiempo_de_produccion;
+        totals.pago_total += parseFloat(item.pago_total);
+        totals.ganancia += item.ganancia;
+        totals.costo_total += item.costo_total;
       });
+
+      // La eficiencia total es el promedio del período
+      if (dataToProcess.length > 0) {
+        totals.eficiencia = totals.eficiencia / dataToProcess.length;
+      } else {
+        totals.eficiencia = 0;
+      }
+
       return totals;
     },
   },
   methods: {
+    onFiltered(filteredItems) {
+      this.filteredReportData = filteredItems;
+    },
     setDefaultDates() {
       const today = new Date();
       // getDay() devuelve 0 para Domingo, 1 para Lunes, etc.
@@ -204,6 +323,7 @@ export default {
 
     async getReport() {
       this.overlay = true;
+      this.tableFilter = "";
       if (!this.filters.inicio || !this.filters.fin) {
         this.$bvToast.toast("Por favor, seleccione un rango de fechas.", {
           title: "Faltan Datos",
@@ -219,6 +339,7 @@ export default {
       try {
         const { data } = await this.$axios.get(url);
         this.reportData = data.reporte_data;
+        this.filteredReportData = data.reporte_data;
         this.costosOperativos = data.costos_operativos;
       } catch (error) {
         console.error("Error al obtener el reporte:", error);
