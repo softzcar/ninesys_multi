@@ -1,5 +1,6 @@
 <template>
   <b-overlay :show="overlay" rounded="sm">
+    <!-- <pre class="force">{{ item }}</pre> -->
     <b-card
       :title="myTitle"
       img-alt="Image"
@@ -23,10 +24,10 @@
         <p>
           {{ miDetalle }}
         </p>
-        <hr />
+        <hr v-if="miDetalle" />
       </b-form-group>
 
-      <b-card-text v-if="showCard && checkImageUrl(tmpImage)" class="mt-4 mb-4">
+      <b-card-text v-if="showUploadForm" class="mt-4 mb-4">
         <b-form-group
           id="input-group-2"
           label="Tipo de diseño:"
@@ -70,8 +71,8 @@
     </template>
   </b-overlay>
 </template>
-
-<script>
+  
+  <script>
 import mixin from "~/mixins/mixins.js";
 import axios from "axios";
 
@@ -99,7 +100,6 @@ export default {
       if (val === "Rechazado") {
         this.showCard = false;
         this.variantAlert = "warning";
-        // this.disableForm = true
       }
       if (val === "Aprobado") {
         this.showCard = false;
@@ -125,7 +125,6 @@ export default {
     },
 
     urlCDN() {
-      // return `${this.$config.CDN}/?id_orden=${this.idorden}&id_diseno=${this.item.id_diseno}&review=${this.revision}&id_empresa=${this.$store.state.login.dataEmpresa.id}&id_empleado=${this.$store.state.login.dataUser.id_empleado}`
       return `${this.$config.CDN}/?id_orden=${this.idorden}&review=${this.item.id_revision}&id_empresa=${this.$store.state.login.dataEmpresa.id}&id_empleado=${this.$store.state.login.dataUser.id_empleado}`;
     },
 
@@ -144,42 +143,18 @@ export default {
 
       return tmpOptions;
     },
+
+    showUploadForm() {
+      // La única fuente de verdad para mostrar el formulario es si la revisión no tiene un producto asignado.
+      return this.item.id_product === null && this.showCard;
+    },
   },
 
   methods: {
-    checkImageUrl(url) {
-      const splitUrl = url.split("?");
-      if (splitUrl[0] != "https://cdn.nineteengreen.com/images/no-image.png") {
-        return false;
-      } else {
-        return true;
-      }
-    },
-
     hideMe() {
       this.$bvModal.hide(this.modal);
     },
-    /* async getEstatus() {
-            await this.$axios
-                .get(
-                    `${this.$config.API}/revisiones/estatus/${this.item.id_revision}`
-                )
-                .then((res) => {
-                    this.miRevision = res.data.estatus
-                    this.miDetalle = res.data.detalles
-                    if (this.item.estatus === "Rechazado") {
-                        this.showCard = false
-                        this.variantAlert = "warning"
-                        // this.disableForm = true
-                    }
-                    if (this.item.estatus === "Aprobado") {
-                        this.showCard = false
-                        this.variantAlert = "success"
-                    }
-                    if (this.item.estatus === "Esperando Respuesta")
-                        this.variantAlert = "info"
-                })
-        }, */
+
     sendNewImage() {
       this.overlay = true;
 
@@ -198,26 +173,28 @@ export default {
     },
 
     async enviarTipoDiseno() {
+      this.$emit("closemodal");
+
       const data = new URLSearchParams();
       data.set("id_diseno", this.item.id_diseno);
       data.set("id_revision", this.item.id_revision);
       data.set("id_product", this.tipoDiseno);
 
       await this.$axios
-        .post(`${this.$config.API}/diseno/update-tipo`, data)
+        .post(`${this.$config.API}/diseno/update-tipo`, data, {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        })
         .then((res) => {
           this.$fire({
             title: "Diseño Creado",
-            html: `<p>El diseño de tipo ${res.data} se guardó correctamente</p>`,
+            html: `<p>El tipo de diseño se guardó correctamente.</p>`,
             type: "success",
-          }).then(() => {
-            this.$emit("closemodal");
           });
         })
         .catch((err) => {
           this.$fire({
             title: "Error",
-            html: `<p>No se guardó el tipo de producto</p><p>${err}</p>`,
+            html: `<p>No se pudo guardar el tipo de diseño.</p><p>${err}</p>`,
             type: "warning",
           });
         })
@@ -226,11 +203,9 @@ export default {
         });
     },
 
-    // subir imagen
     async postImage() {
       this.overlay = true;
 
-      // VALIDAR FORMULARIO
       let ok = true;
       let msg = "";
 
@@ -256,7 +231,6 @@ export default {
           })
           .then((res) => {
             if (res.data.uploaded) {
-              // this.getEstatus()
               this.tmpImage = res.data.url + "?_=" + this.token();
               this.$emit("reload", "true");
               this.$emit("button", false);
@@ -292,31 +266,12 @@ export default {
 
     findImage() {
       let token = this.token();
-      console.log("Vamos a buscar la imagen");
-
       fetch(this.urlCDN)
         .then((response) => response.json())
         .then((res) => {
-          console.log(`El CDN respondió con una imagen`, res);
           this.tmpImage = `${this.$config.CDN}/${res.url}?_=${token}`;
         })
         .catch((err) => {
-          console.log(`El CDN respondió con un error`, err);
-          this.tmpImage = `${this.$config.CDN}/images/no-image.png`;
-        });
-    },
-
-    findImage_axios() {
-      let token = this.token();
-      console.log("Vamos a buscar la imágen");
-      axios
-        .get(this.urlCDN)
-        .then((res) => {
-          console.log(`El cdn respondio con una imagen`, res);
-          this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`;
-        })
-        .catch((err) => {
-          console.log(`El cdn respondio con un error`, err);
           this.tmpImage = `${this.$config.CDN}/images/no-image.png`;
         });
     },
@@ -324,28 +279,20 @@ export default {
 
   mounted() {
     this.overlayText = "Procesando imágen...";
-
     this.miRevision = this.item.estatus;
-
     if (this.item.id_product) {
       this.tipoDiseno = this.item.id_product;
     }
-
-    // this.getEstatus()
-    // console.log('modal opn says item.estatus', this.item.estatus)
     this.findImage();
     if (this.miRevision === "Rechazado") {
       this.showCard = false;
       this.variantAlert = "warning";
-      // this.disableForm = true
     }
     if (this.miRevision === "Aprobado") {
       this.showCard = false;
       this.variantAlert = "success";
     }
     if (this.miRevision === "Esperando Respuesta") this.variantAlert = "info";
-
-    // this.getEstatus()
   },
 
   props: [
@@ -361,8 +308,8 @@ export default {
   ],
 };
 </script>
-
-<style scoped>
+  
+  <style scoped>
 .card {
   border-top-width: 2px;
   border-right-width: 2px;
@@ -370,3 +317,4 @@ export default {
   border-left-width: 2px;
 }
 </style>
+  

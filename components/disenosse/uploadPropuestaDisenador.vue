@@ -14,7 +14,11 @@
         <b-container class="mb-4">
           <b-row>
             <b-col>
-              <!-- <pre class="force">{{ item }} <hr>{{ misRevisiones }}</pre> -->
+              <!-- <pre
+                class="force"
+                style="
+                  background-color: pink;
+                ">{{ item }} <hr>{{ misRevisiones }}</pre> -->
               <b-button
                 :disabled="disableButton"
                 @click="addReview()"
@@ -34,8 +38,8 @@
             >
               <diseno-uploadPropuesta
                 :key="index"
-                :id="item.id"
-                :revision="rev.revision"
+                :id="item.id_revision"
+                :revision="id_revision"
                 :item="rev"
                 @reload="reloadData"
                 @closemodal="hideMe"
@@ -47,12 +51,15 @@
             </b-card-group>
           </b-col>
         </b-row>
+        <!-- <pre class="force" style="background-color: blue">
+            {{ revisiones }}
+        </pre> -->
       </b-overlay>
     </b-modal>
   </div>
 </template>
-
-<script>
+  
+  <script>
 export default {
   data() {
     return {
@@ -87,16 +94,6 @@ export default {
         this.variantAlert = "info";
       }
     },
-
-    /* banReload(flag) {
-        if (flag) {
-          this.overlay = true
-          this.reloadData().then(() => {
-            this.overlay = false
-            this.banReload = false
-          })
-        }
-      }, */
   },
 
   computed: {
@@ -116,7 +113,6 @@ export default {
 
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7);
-
       return `modal-${rand}`;
     },
   },
@@ -132,8 +128,6 @@ export default {
 
     reloadData() {
       this.overlay = true;
-      // this.getRevisiones().then(() => (this.overlay = false))
-      // this.$emit("reload", true)
       this.$emit("reload", true);
       this.overlay = false;
     },
@@ -141,34 +135,37 @@ export default {
     addReview() {
       this.disableButton = true;
       this.overlay = true;
-      this.$confirm(``, "¿Desea crear un nuevo diseño?", "question")
+      this.$confirm(
+        `Se creará un nuevo proyecto de diseño para esta orden, el cual podrá especificar y cargar posteriormente.`,
+        "¿Desea agregar un nuevo diseño?",
+        "question"
+      )
         .then(() => {
           this.overlay = true;
           const data = new URLSearchParams();
-          data.set("id_diseno", this.item.id_diseno);
           data.set("id_orden", this.item.id_orden);
           data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
 
           this.$axios
-            .post(`${this.$config.API}/revision/nuevo`, data)
+            .post(`${this.$config.API}/disenos/nuevo-con-revision`, data)
             .then((res) => {
-              this.disableButton = true;
-              this.lastId = res.data.last_id;
-              this.id_orden = res.data;
+              this.$fire({
+                title: "Éxito",
+                html: `<p>${res.data.message}</p>`,
+                type: "success",
+              });
               this.$emit("reload", true);
             })
             .catch((err) => {
-              this.disableButton = false;
               this.$fire({
                 title: "Error",
-                html: `<p>La revisión no se creó.</p><p>${err}</p>`,
+                html: `<p>El nuevo diseño no se pudo crear.</p><p>${err}</p>`,
                 type: "error",
-              }).then(() => {
-                this.overlay = false;
               });
             })
             .finally(() => {
               this.overlay = false;
+              this.disableButton = false;
             });
         })
         .catch(() => {
@@ -177,19 +174,6 @@ export default {
           return false;
         });
     },
-
-    // tabs
-    closeTab(x) {
-      for (let i = 0; i < this.tabs.length; i++) {
-        if (this.tabs[i] === x) {
-          this.tabs.splice(i, 1);
-        }
-      }
-    },
-    newTab() {
-      this.tabs.push(this.tabCounter++);
-    },
-    // fin tabs
 
     token() {
       const length = 8;
@@ -204,47 +188,10 @@ export default {
       }
       return b.join("");
     },
-
-    /* initComponent() {
-            if (this.misRevisiones.length > 0) {
-                console.log(`'revision Si tiena datos'`, this.misRevisiones)
-                for (
-                    let index = 0;
-                    index < this.misRevisiones.length;
-                    index++
-                ) {
-                    let curr = parseInt(this.misRevisiones[index].revision)
-                    this.tabs.push(curr)
-                }
-            } else {
-                console.log(
-                    `'misRevisiones NO tiena datos'`,
-                    this.misRevisiones
-                )
-            }
-        }, */
-
-    /* async getRevisiones() {
-            await this.$axios
-                // .get(`${this.$config.API}/revision/diseno/${this.item.id}`)
-                .get(
-                    `${this.$config.API}/revision/diseno/${this.$store.state.login.dataUser.id_empleado}`
-                )
-                .then((res) => {
-                    console.log(`revision/diseno/${this.item.id}`, res.data)
-                    this.misRevisiones = res.data
-                })
-        }, */
   },
 
   mounted() {
     this.overlay = true;
-    // this.getRevisiones().then(() => (this.overlay = false))
-    /* this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
-        alert('hola vamos a cargar las imágenes de revisiones!!!!')
-        console.log('hola vamos a cargar las imágenes de revisiones!!!!', this.modal)
-      }) */
-
     if (this.item.estatus === "Rechazado") {
       this.variantAlert = "danger";
       this.iconBadge = "arrow-counterclockwise";
@@ -258,16 +205,14 @@ export default {
     if (this.item.estatus === "Esperando Respuesta") {
       this.variantAlert = "info";
     }
-
-    // this.initComponent()
     this.overlay = false;
   },
 
   props: ["item", "revisiones", "estatus", "reload", "productos"],
 };
 </script>
-
-<style scoped>
+  
+  <style scoped>
 .card-deck {
   display: block;
 }
@@ -288,3 +233,4 @@ export default {
   width: auto;
 }
 </style>
+  

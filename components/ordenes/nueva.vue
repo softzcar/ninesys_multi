@@ -1042,8 +1042,8 @@ export default {
       customersSelect: [],
       responseClientes: [],
       tasasLoaded: false,
-      dolar: 1,
-      peso: 1,
+      dolar: 130,
+      peso: 4000,
       // dolar: this.$store.state.comerce.dolar,
       // peso: this.$store.state.comerce.peso,
       formPrint: {
