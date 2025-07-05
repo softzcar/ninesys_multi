@@ -29,24 +29,7 @@
               offset-lg="9"
               offset-xl="9"
             >
-              <h5>Tasas del día</h5>
-              <b-form>
-                <b-form-group label="Peso">
-                  <b-form-input
-                    type="number"
-                    v-model="peso"
-                    @change="guardarPeso"
-                  />
-                </b-form-group>
-                <b-form-group label="Dólar">
-                  <b-form-input
-                    type="number"
-                    class="mb-4"
-                    v-model="dolar"
-                    @change="guardarDolar"
-                  />
-                </b-form-group>
-              </b-form>
+              <form-monedas />
             </b-col>
           </b-row>
         </b-container>
@@ -203,7 +186,7 @@
           <b-row>
             <b-col>
               <b-alert show variant="warning"
-                >Por favor asigne las tasas del dólar y el peso</b-alert
+                >Por favor indique las Tasas del día</b-alert
               >
             </b-col>
           </b-row>
@@ -227,6 +210,7 @@ import { mapState } from "vuex";
 import axios from "axios";
 import mixins from "~/mixins/mixins.js";
 import mixinLogin from "~/mixins/mixin-login.js";
+import FormMonedas from "~/components/formMonedas.vue";
 
 export default {
   mixins: [mixins, mixinLogin],
@@ -240,8 +224,6 @@ export default {
       totPesos: 0,
       totBolivares: 0,
       fondo: [],
-      dolar: this.$store.state.comerce.dolar,
-      peso: this.$store.state.comerce.peso,
       form: {
         abono: 0,
         montoDolaresEfectivo: 0,
@@ -252,12 +234,17 @@ export default {
   },
 
   computed: {
-    ...mapState("login", ["dataUser", "access"]),
+    ...mapState("login", ["dataUser", "access", "tasas"]),
 
     tasasCargadas() {
       let cargadas = false;
-      if (this.dolar > 0 && this.peso > 0) {
-        cargadas = true;
+      const tipos = this.$store.state.login.dataEmpresa.tipos_de_monedas || [];
+      const activeMonedas = tipos.filter((m) => m.activo);
+      if (activeMonedas.length > 0) {
+        // Check if every active currency has a rate > 0
+        cargadas = activeMonedas.every(
+          (moneda) => this.tasas[moneda.moneda] > 0
+        );
       }
       return cargadas;
     },
@@ -353,7 +340,7 @@ export default {
       const montoPesos =
         (parseFloat(this.form.montoPesosEfectivo) +
           parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.peso);
+        parseFloat(this.tasas.peso_colombiano);
 
       // CALCULO EN BOLIVARES
       const montoBolivares =
@@ -361,7 +348,7 @@ export default {
           parseFloat(this.form.montoBolivaresPagomovil) +
           parseFloat(this.form.montoBolivaresPunto) +
           parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.dolar);
+        parseFloat(this.tasas.bolivar);
 
       let total = montoDolares + montoPesos + montoBolivares;
 
@@ -370,6 +357,7 @@ export default {
     },
   },
 
+  components: { FormMonedas },
   methods: {
     fechaActual() {
       let date = new Date();
@@ -435,8 +423,8 @@ export default {
               "id_empleado",
               this.$store.state.login.dataUser.id_empleado
             );
-            data.set("tasa_dolar", this.dolar);
-            data.set("tasa_peso", this.peso);
+            data.set("tasa_dolar", this.tasas.bolivar);
+            data.set("tasa_peso", this.tasas.peso_colombiano);
             data.set("cierreDolaresEfectivo", this.form.montoDolaresEfectivo);
             data.set("cierrePesosEfectivo", this.form.montoPesosEfectivo);
             data.set(
@@ -537,11 +525,13 @@ export default {
 
         // CALCULO EN PESOS
         montoPesos =
-          parseFloat(this.form.montoPesosEfectivo) / parseFloat(this.peso);
+          parseFloat(this.form.montoPesosEfectivo) /
+          parseFloat(this.tasas.peso_colombiano);
 
         // CALCULO EN BOLIVARES
         montoBolivares =
-          parseFloat(this.form.montoBolivaresEfectivo) / parseFloat(this.dolar);
+          parseFloat(this.form.montoBolivaresEfectivo) /
+          parseFloat(this.tasas.bolivar);
 
         // SUMATOORIA DE TODAS LAS MONEDAS
         newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
@@ -550,17 +540,6 @@ export default {
       }
 
       return false;
-    },
-
-    guardarPeso(val) {
-      // this.peso = val
-      this.$store.commit("comerce/setPeso", val);
-      // Realiza alguna otra acción, como enviar los datos al servidor
-    },
-    guardarDolar(val) {
-      // this.dolar = val
-      this.$store.commit("comerce/setDolar", val);
-      // Realiza alguna otra acción, como enviar los datos al servidor
     },
 
     async getDataCierre() {
@@ -591,8 +570,16 @@ export default {
           // Update the `efectivo` array which is used by other parts of the component
           this.efectivo = [
             { moneda: "Dólares", monto: this.totDolares, tasa: 1 },
-            { moneda: "Pesos", monto: this.totPesos, tasa: this.peso },
-            { moneda: "Bolívares", monto: this.totBolivares, tasa: this.dolar },
+            {
+              moneda: "Pesos",
+              monto: this.totPesos,
+              tasa: this.tasas.peso_colombiano,
+            },
+            {
+              moneda: "Bolívares",
+              monto: this.totBolivares,
+              tasa: this.tasas.bolivar,
+            },
           ];
         })
         .catch((err) => {

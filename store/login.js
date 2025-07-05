@@ -7,6 +7,7 @@ export const state = () => ({
     dataUser: [],
     dataEmpresa: [],
     departamentos: [],
+    tasas: { dolar: 1 },
     modulos: [],
     empleado: [0, 23],
     idEmpresa: 0,
@@ -16,6 +17,9 @@ export const state = () => ({
 })
 
 export const mutations = {
+    setTasa(state, { moneda, valor }) {
+        state.tasas = { ...state.tasas, [moneda]: valor }
+    },
     scurrentDepartamentId(state, data) {
         state.currentDepartamentId = data
     },
@@ -50,6 +54,17 @@ export const mutations = {
     },
     setDataEmpresa(state, data) {
         state.dataEmpresa = data
+        if (data && data.tipos_de_monedas) {
+            const initialTasas = { dolar: 1 } // Siempre iniciamos con dolar en 1
+            data.tipos_de_monedas.forEach((tipo) => {
+                // Omitimos 'dolar' porque ya está fijado y no debe ser 0
+                if (tipo.activo && tipo.moneda !== 'dolar') {
+                    // Mantenemos el valor si ya existe, si no, lo inicializamos en 0
+                    initialTasas[tipo.moneda] = state.tasas[tipo.moneda] || 0
+                }
+            })
+            state.tasas = initialTasas
+        }
     },
     setDepartamentos(state, data) {
         state.departamentos = data

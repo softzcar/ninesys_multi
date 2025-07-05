@@ -144,16 +144,62 @@
         </b-col>
       </b-row>
     </b-container>
+
+    <!-- Modal para forzar el ingreso de tasas -->
+    <b-modal
+      id="modal-tasas-iniciales"
+      title="Configuración Inicial de Tasas"
+      centered
+      no-close-on-backdrop
+      no-close-on-esc
+      hide-header-close
+    >
+      <b-alert show variant="info">
+        <h4 class="alert-heading">¡Atención!</h4>
+        <p>
+          Para continuar, es necesario que establezca las tasas de cambio para
+          el día de hoy. El sistema se desbloqueará automáticamente una vez que
+          todas las tasas requeridas sean mayores a cero.
+        </p>
+      </b-alert>
+      <form-monedas />
+      <template #modal-footer>
+        <b-button
+          variant="primary"
+          :disabled="!tasasEstanConfiguradas"
+          @click="aceptarTasas"
+        >
+          Aceptar
+        </b-button>
+      </template>
+    </b-modal>
   </div>
 </template>
 
 <script>
 import { mapState, mapGetters } from "vuex";
 import mixin from "~/mixins/mixin-login.js";
+import FormMonedas from "~/components/formMonedas.vue";
 
 export default {
   mixins: [mixin],
+  components: { FormMonedas },
   computed: {
+    tasasEstanConfiguradas() {
+      const depto = this.$store.state.login.dataUser.departamento;
+      if (depto !== "Administración" && depto !== "Comercialización") {
+        return true; // Si no es de estos deptos, no requiere la validación.
+      }
+      const tipos = this.$store.state.login.dataEmpresa.tipos_de_monedas || [];
+      // Excluimos el dólar que siempre es 1
+      const activeMonedas = tipos.filter(
+        (m) => m.activo && m.moneda !== "dolar"
+      );
+      if (activeMonedas.length === 0) return true; // No hay otras monedas que configurar.
+
+      // Verificamos que todas las monedas activas tengan una tasa > 0
+      return activeMonedas.every((moneda) => this.tasas[moneda.moneda] > 0);
+    },
     asyncComponent() {
       if (!this.currentComponent) return null;
       return () => import(`@/components/${this.currentComponent}.vue`);
@@ -162,6 +208,7 @@ export default {
       "access",
       "dataUser",
       "empleado",
+      "tasas",
       "currentDepartament",
       "currentComponent",
       "currentMinOrdenProcesoId",
@@ -170,6 +217,9 @@ export default {
   },
 
   methods: {
+    aceptarTasas() {
+      this.$bvModal.hide("modal-tasas-iniciales");
+    },
     goOut() {
       this.$confirm(`¿Desea Salir del sistema?`, "Salir", "question")
         .then(() => {
@@ -242,6 +292,10 @@ export default {
         this.getDepartamentosEmpleadoSelect[0].orden_proceso_min
       );
     } */
+
+    if (!this.tasasEstanConfiguradas) {
+      this.$bvModal.show("modal-tasas-iniciales");
+    }
   },
 };
 </script>

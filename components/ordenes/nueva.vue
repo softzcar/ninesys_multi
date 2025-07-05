@@ -51,23 +51,7 @@
             offset-lg="9"
             offset-xl="9"
           >
-            <h5>Tasas del día</h5>
-            <b-form>
-              <b-form-group label="Peso">
-                <b-form-input
-                  type="number"
-                  v-model="peso"
-                  @change="guardarPeso"
-                />
-              </b-form-group>
-              <b-form-group label="Dólar">
-                <b-form-input
-                  type="number"
-                  v-model="dolar"
-                  @change="guardarDolar"
-                />
-              </b-form-group>
-            </b-form>
+            <form-monedas />
           </b-col>
         </b-row>
       </b-container>
@@ -978,8 +962,8 @@
       <b-container v-else>
         <b-row>
           <b-col>
-            <b-alert show variant="warning"
-              >Por favor asigne las tasas del dólar y el peso</b-alert
+            <b-alert show variant="warning">
+              Por favor indique las Tasas del día</b-alert
             >
           </b-col>
         </b-row>
@@ -998,8 +982,9 @@
 <script>
 import mixins from "~/mixins/mixins.js";
 import axios from "axios";
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import quillOptions from "~/plugins/nuxt-quill-plugin";
+import FormMonedas from "~/components/formMonedas.vue";
 
 export default {
   data() {
@@ -1042,10 +1027,6 @@ export default {
       customersSelect: [],
       responseClientes: [],
       tasasLoaded: false,
-      dolar: 130,
-      peso: 4000,
-      // dolar: this.$store.state.comerce.dolar,
-      // peso: this.$store.state.comerce.peso,
       formPrint: {
         id: "",
         cedula: "", // Datos del cliente
@@ -1182,6 +1163,7 @@ export default {
   },
 
   computed: {
+    ...mapState("login", ["tasas"]),
     /* tableClass() {
             return {
                 "table-stacked": this.isSmallScreen,
@@ -1197,8 +1179,6 @@ export default {
       return `modal-${rand}`;
     },
 
-    ...mapState("comerce", ["dolar, peso"]),
-
     ...mapGetters("comerce", ["getProductsSport", "getProductsCustom"]),
 
     typeHeadData() {
@@ -1207,8 +1187,12 @@ export default {
 
     tasasCargadas() {
       let cargadas = false;
-      if (this.dolar > 0 && this.peso > 0) {
-        cargadas = true;
+      const tipos = this.$store.state.login.dataEmpresa.tipos_de_monedas || [];
+      const activeMonedas = tipos.filter((m) => m.activo);
+      if (activeMonedas.length > 0) {
+        cargadas = activeMonedas.every(
+          (moneda) => this.tasas[moneda.moneda] > 0
+        );
       }
       return cargadas;
     },
@@ -1358,6 +1342,7 @@ export default {
   },
 
   methods: {
+    ...mapState("login", ["tasas"]),
     checkPrices() {
       let checking = this.form.productos.filter((el) => el.precio === 0);
 
@@ -1518,19 +1503,6 @@ export default {
       return ok;
     },
 
-    // ...mapMutations('comerce', ['getDolar, getPeso']),
-    guardarPeso(val) {
-      // this.peso = val
-      this.$store.commit("comerce/setPeso", val);
-      // Realiza alguna otra acción, como enviar los datos al servidor
-    },
-
-    guardarDolar(val) {
-      // this.dolar = val
-      this.$store.commit("comerce/setDolar", val);
-      // Realiza alguna otra acción, como enviar los datos al servidor
-    },
-
     checkTallasTelas() {
       let checking = this.form.productos.filter(
         (el) => el.diseno === false && (el.talla === null || el.tela === null)
@@ -1603,7 +1575,7 @@ export default {
       montoPesos =
         (parseFloat(this.form.montoPesosEfectivo) +
           parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.peso);
+        parseFloat(this.tasas.peso_colombiano);
 
       // CALCULO EN BOLIVARES
       montoBolivares =
@@ -1611,7 +1583,7 @@ export default {
           parseFloat(this.form.montoBolivaresPagomovil) +
           parseFloat(this.form.montoBolivaresPunto) +
           parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.dolar);
+        parseFloat(this.tasas.bolivar);
 
       // crear
       // SUMATOORIA DE TODAS LAS MONEDAS
@@ -2427,8 +2399,8 @@ export default {
         "montoBolivaresTransferenciaDetalle",
         this.form.montoBolivaresTransferenciaDetalle
       );
-      data.set("tasa_dolar", this.dolar);
-      data.set("tasa_peso", this.peso);
+      data.set("tasa_dolar", this.tasas.bolivar);
+      data.set("tasa_peso", this.tasas.peso_colombiano);
 
       console.log("data para crear nueva orden", data);
 
@@ -3042,6 +3014,7 @@ export default {
     },
   },
 
+  components: { FormMonedas },
   created() {
     // this.loadDataComercializacion()
   },
