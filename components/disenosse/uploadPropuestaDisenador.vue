@@ -1,24 +1,31 @@
 <template>
   <div>
     <div class="float-badget">
-      <b-button variant="primary" @click="$bvModal.show(modal)">
-        <b-badge v-if="showBadge" :variant="variantAlert"
-          ><b-icon :icon="iconBadge"></b-icon
-        ></b-badge>
+      <b-button
+        variant="primary"
+        @click="$bvModal.show(modal)"
+      >
+        <b-badge
+          v-if="showBadge"
+          :variant="variantAlert"
+        ><b-icon :icon="iconBadge"></b-icon></b-badge>
         <b-icon icon="cloud-upload"></b-icon>
       </b-button>
     </div>
 
-    <b-modal :size="size" :title="title" :id="modal" hide-footer>
-      <b-overlay :show="overlay" spinner-small>
+    <b-modal
+      :size="size"
+      :title="title"
+      :id="modal"
+      hide-footer
+    >
+      <b-overlay
+        :show="overlay"
+        spinner-small
+      >
         <b-container class="mb-4">
           <b-row>
             <b-col>
-              <!-- <pre
-                class="force"
-                style="
-                  background-color: pink;
-                ">{{ item }} <hr>{{ misRevisiones }}</pre> -->
               <b-button
                 :disabled="disableButton"
                 @click="addReview()"
@@ -38,8 +45,8 @@
             >
               <diseno-uploadPropuesta
                 :key="index"
-                :id="item.id_revision"
-                :revision="id_revision"
+                :id="rev.id_revision"
+                :revision="rev.id_revision"
                 :item="rev"
                 @reload="reloadData"
                 @closemodal="hideMe"
@@ -51,10 +58,13 @@
             </b-card-group>
           </b-col>
         </b-row>
-        <!-- <pre class="force" style="background-color: blue">
-            {{ revisiones }}
-        </pre> -->
       </b-overlay>
+      <pre
+        class="force"
+        style="background-color: blue"
+      >
+          {{ item }}
+      </pre>
     </b-modal>
   </div>
 </template>

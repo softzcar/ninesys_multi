@@ -1,6 +1,8 @@
 <template>
-  <b-overlay :show="overlay" rounded="sm">
-    <!-- <pre class="force">{{ item }}</pre> -->
+  <b-overlay
+    :show="overlay"
+    rounded="sm"
+  >
     <b-card
       :title="myTitle"
       img-alt="Image"
@@ -11,23 +13,32 @@
       bg-variant="default"
       text-variant="red"
     >
-      <b-card-img-lazy class="mt-4" :src="tmpImage"></b-card-img-lazy>
+      <b-card-img-lazy
+        class="mt-4"
+        :src="tmpImage"
+      ></b-card-img-lazy>
 
       <b-alert
         class="text-center"
         show
         style="text-transform: uppercase; font-size: 1.2rem; font-weight: bold"
         :variant="variantAlert"
-        >{{ miRevision }}</b-alert
+      >{{ miRevision }}</b-alert>
+      <b-form-group
+        id="input-group-1"
+        label="Detalle:"
+        label-for="input-1"
       >
-      <b-form-group id="input-group-1" label="Detalle:" label-for="input-1">
         <p>
           {{ miDetalle }}
         </p>
         <hr v-if="miDetalle" />
       </b-form-group>
 
-      <b-card-text v-if="showUploadForm" class="mt-4 mb-4">
+      <b-card-text
+        v-if="showUploadForm"
+        class="mt-4 mb-4"
+      >
         <b-form-group
           id="input-group-2"
           label="Tipo de diseño:"
@@ -44,7 +55,11 @@
 
         <!-- Styled -->
         <div class="mt-4 pt-3">
-          <b-form-group id="input-group-3" label="Imagen" :label-for="inputId">
+          <b-form-group
+            id="input-group-3"
+            label="Imagen"
+            :label-for="inputId"
+          >
             <b-form-file
               :id="inputId"
               :disabled="disableForm"
@@ -61,8 +76,7 @@
             :disabled="disableForm"
             variant="primary"
             @click="postImage()"
-            >Enviar Diseño</b-button
-          >
+          >Enviar Diseño</b-button>
         </div>
       </b-card-text>
     </b-card>
@@ -177,6 +191,8 @@ export default {
 
       const data = new URLSearchParams();
       data.set("id_diseno", this.item.id_diseno);
+      data.set("url_imagen", this.tmpImage);
+      data.set("id_revision", this.item.id_diseno);
       data.set("id_revision", this.item.id_revision);
       data.set("id_product", this.tipoDiseno);
 

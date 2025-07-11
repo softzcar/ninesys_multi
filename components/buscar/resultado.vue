@@ -1,17 +1,55 @@
 <template>
   <div>
-    <b-overlay :show="overlay" spinner-small>
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
       <div class="table-wrapper">
         <b-row>
           <b-col class="mb-4">
-            <span class="floatme" style="margin-right: 0.8rem">
-              <b-button variant="primary" @click="imprimir">Imprimir</b-button>
+            <span
+              class="floatme"
+              style="margin-right: 0.8rem"
+            >
+              <b-button
+                variant="primary"
+                @click="imprimir"
+              >Imprimir</b-button>
             </span>
             <span class="floatme">
               <diseno-viewImage :id="orderId" />
             </span>
+            <span
+              v-if="
+                      dataUser.departamento === 'Comecialización' ||
+                      dataUser.departamento === 'Administración'
+                    "
+              class="floatme"
+            >
+              <b-button-group
+                v-if="activeCurrencies.length"
+                size="sm"
+              >
+                <b-button
+                  v-for="currency in activeCurrencies"
+                  :key="currency.moneda"
+                  :variant="selectedCurrency === currency.moneda ? 'primary' : 'outline-primary'"
+                  @click="handleCurrencySelection(currency)"
+                >{{ currency.mondeda_nombre }}</b-button>
+              </b-button-group>
+            </span>
           </b-col>
         </b-row>
+        <b-row v-if="selectedCurrency !== 'dolar'">
+          <b-col>
+            <b-alert
+              show
+              variant="info"
+              class="mt-2 pt-2 pb-2 text-center"
+            >Mostrando montos en <strong>{{ selectedCurrencyInfo.mondeda_nombre }}</strong>. Tasa de cambio referencial: 1 USD = {{ currentRate }} {{ currencySymbol }}</b-alert>
+          </b-col>
+        </b-row>
+
         <b-row id="reporte">
           <b-col>
             <table class="table-main table-header">
@@ -65,28 +103,22 @@
                     </tr>
                     <tr>
                       <td>
-                        <strong>INICIO: </strong
-                        >{{ makeDate(resOrden.orden[0].fecha_inicio) }}
+                        <strong>INICIO: </strong>{{ makeDate(resOrden.orden[0].fecha_inicio) }}
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <strong>ENTREGA: </strong
-                        >{{ makeDate(resOrden.orden[0].fecha_entrega) }}
+                        <strong>ENTREGA: </strong>{{ makeDate(resOrden.orden[0].fecha_entrega) }}
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <strong>CI | RIF: </strong
-                        >{{ resOrden.customer.cedula }}
+                        <strong>CI | RIF: </strong>{{ resOrden.customer.cedula }}
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <strong>TELEFONO: </strong
-                        ><span
-                          v-html="whatsAppMe(resOrden.customer.telefono, false)"
-                        ></span>
+                        <strong>TELEFONO: </strong><span v-html="whatsAppMe(resOrden.customer.telefono, false)"></span>
                         <!-- {{ whatsAppMe(resOrden.customer.telefono) }} -->
                       </td>
                     </tr>
@@ -105,6 +137,7 @@
               <th style="text-align: center">TALLA</th>
               <th>CORTE</th>
               <th>TELA</th>
+              <th>ATRIBUTO</th>
               <th
                 class="hideMe"
                 v-if="
@@ -127,7 +160,10 @@
               </th>
 
               <template v-for="product in resOrden.productos">
-                <tr class="row-product" :key="product._id">
+                <tr
+                  class="row-product"
+                  :key="product._id"
+                >
                   <!-- <td style="text-align: right">
                                         {{ index + 1 }}
                                     </td> -->
@@ -143,6 +179,7 @@
                   </td>
                   <td>{{ product.corte }}</td>
                   <td>{{ product.tela }}</td>
+                  <td>{{ product.atributo_nombre || 'N/A' }}</td>
                   <td
                     class="hideMe"
                     v-if="
@@ -151,7 +188,7 @@
                     "
                     style="text-align: right"
                   >
-                    {{ product.precio }}
+                    {{ currencySymbol }} {{ convertAndFormat(product.precio) }}
                   </td>
                   <td
                     class="hideMe"
@@ -161,12 +198,10 @@
                     "
                     style="text-align: right"
                   >
-                    {{
-                      (
-                        parseFloat(product.precio) *
-                        parseFloat(product.cantidad)
-                      ).toFixed(2)
-                    }}
+                    {{ currencySymbol }}
+                    {{ convertAndFormat(
+                      parseFloat(product.precio) * parseFloat(product.cantidad)
+                    ) }}
                   </td>
                 </tr>
               </template>
@@ -189,25 +224,25 @@
             >
               <h2>
                 ABONO:
-                {{ floatMe(resOrden.orden[0].pago_abono) }}
+                {{ currencySymbol }} {{ convertAndFormat(resOrden.orden[0].pago_abono) }}
               </h2>
               <h2>
                 DESCUENTOS:
-                {{ floatMe(resOrden.orden[0].pago_descuento) }}
+                {{ currencySymbol }} {{ convertAndFormat(resOrden.orden[0].pago_descuento) }}
               </h2>
               <h2>
                 RESTA:
-                {{
-                  parseFloat(
-                    montoTotalOrden(resOrden.productos) -
-                      resOrden.orden[0].pago_descuento -
-                      resOrden.orden[0].pago_abono
-                  ).toFixed(2)
-                }}
+                {{ currencySymbol }}
+                {{ convertAndFormat(
+                  montoTotalOrden(resOrden.productos) -
+                    resOrden.orden[0].pago_descuento -
+                    resOrden.orden[0].pago_abono
+                ) }}
               </h2>
               <h1>
                 TOTAL:
-                {{ floatMe(montoTotalOrden(resOrden.productos)) }}
+                {{ currencySymbol }}
+                {{ convertAndFormat(montoTotalOrden(resOrden.productos)) }}
               </h1>
             </div>
 
@@ -255,6 +290,7 @@ export default {
       show: true,
       output: null,
       preview: false,
+      selectedCurrency: "dolar",
     };
   },
 
@@ -266,7 +302,7 @@ export default {
   },
 
   computed: {
-    ...mapState("login", ["access", "dataUser"]),
+    ...mapState("login", ["access", "dataUser", "dataEmpresa", "tasas"]),
     ...mapGetters("buscar", ["resOrden"]),
     orderId() {
       // Usa el prop 'id' si está disponible, si no, usa el de la ruta.
@@ -277,10 +313,45 @@ export default {
       console.dir(this.$store.state.buscar.orden);
       return this.$store.state.buscar.orden;
     },
+    activeCurrencies() {
+      if (this.dataEmpresa && this.dataEmpresa.tipos_de_monedas) {
+        return this.dataEmpresa.tipos_de_monedas.filter((c) => c.activo);
+      }
+      return [];
+    },
+    currentRate() {
+      if (this.tasas && this.selectedCurrency) {
+        return this.tasas[this.selectedCurrency] || 1;
+      }
+      return 1;
+    },
+    currencySymbol() {
+      const symbols = {
+        dolar: "$",
+        euro: "€",
+        bolivar: "Bs.",
+        peso_colombiano: "COP",
+      };
+      return symbols[this.selectedCurrency] || "$";
+    },
+    selectedCurrencyInfo() {
+      if (!this.activeCurrencies) {
+        return {};
+      }
+      return (
+        this.activeCurrencies.find((c) => c.moneda === this.selectedCurrency) ||
+        {}
+      );
+    },
   },
 
   methods: {
     ...mapActions("buscar", ["getOrden"]),
+
+    handleCurrencySelection(currency) {
+      this.selectedCurrency = currency.moneda;
+      console.log("Moneda seleccionada:", this.selectedCurrency);
+    },
 
     async getImages(idOrderImg) {
       this.$axios
@@ -301,6 +372,14 @@ export default {
 
     floatMe(val) {
       return parseFloat(val).toFixed(2);
+    },
+
+    convertAndFormat(valueInDollars) {
+      if (isNaN(parseFloat(valueInDollars))) {
+        return "0.00";
+      }
+      const convertedValue = parseFloat(valueInDollars) * this.currentRate;
+      return convertedValue.toFixed(2);
     },
     montoTotalOrden(productos) {
       if (productos.length > 0) {

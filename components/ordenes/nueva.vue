@@ -1,7 +1,13 @@
 <template>
   <div>
+
     <!-- modal de ordenes guardadas -->
-    <b-modal :id="modal" title="Ordenes guardadas" hide-footer size="lg">
+    <b-modal
+      :id="modal"
+      title="Ordenes guardadas"
+      hide-footer
+      size="lg"
+    >
       <div class="mb-4">
         <b-table
           ref="table"
@@ -38,7 +44,10 @@
       </div>
     </b-modal>
 
-    <b-overlay :show="mainOverlay" rounded="sm">
+    <b-overlay
+      :show="mainOverlay"
+      rounded="sm"
+    >
       <b-container>
         <b-row>
           <b-col
@@ -60,7 +69,10 @@
         <b-container>
           <b-row v-if="ordenVinculada">
             <b-col>
-              <b-alert show variant="warning">
+              <b-alert
+                show
+                variant="warning"
+              >
                 <h4 class="alert-heading">
                   Orden Vinculada {{ ordenVinculada }}
                 </h4>
@@ -81,10 +93,15 @@
               <!-- Control buttons-->
               <div class="text-right mb-4">
                 <b-button-group class="mt-2">
-                  <b-button :disabled="disableButtons" @click="prev"
-                    >Anterior
+                  <b-button
+                    :disabled="disableButtons"
+                    @click="prev"
+                  >Anterior
                   </b-button>
-                  <b-button :disabled="disableButtons" @click="next">{{
+                  <b-button
+                    :disabled="disableButtons"
+                    @click="next"
+                  >{{
                     nextText
                   }}</b-button>
                 </b-button-group>
@@ -97,21 +114,32 @@
                     @click="guardarOrden"
                     class="floatme"
                     variant="success"
-                    >Guardar</b-button
-                  >
-                  <b-button @click="cargarOrden" class="floatme" variant="info"
-                    >Cargar</b-button
-                  >
-                  <b-button @click="clearForm" class="floatme" variant="danger"
-                    >Limpiar formulario</b-button
-                  >
+                  >Guardar</b-button>
+                  <b-button
+                    @click="cargarOrden"
+                    class="floatme"
+                    variant="info"
+                  >Cargar</b-button>
+                  <b-button
+                    @click="clearForm"
+                    class="floatme"
+                    variant="danger"
+                  >Limpiar formulario</b-button>
+                  <cargar-ordenes-no-asignadas
+                    :ordenes-sin-asignar="ordenesSinAsignar"
+                    @orden-cargada="manejarOrdenCargada"
+                    class="floatme"
+                  />
                 </b-col>
               </b-row>
               <b-row>
                 <b-col>
                   <div>
                     <!-- Tabs with card integration -->
-                    <b-card class="mt-4" no-body>
+                    <b-card
+                      class="mt-4"
+                      no-body
+                    >
                       <b-tabs
                         v-model="tabIndex"
                         @change="preventTabClick"
@@ -123,6 +151,20 @@
                           title-link-class="h5"
                           :disabled="disable1"
                         >
+                          <b-alert
+                            v-if="fechaProximaDisponible"
+                            show
+                            variant="info"
+                            class="mb-4"
+                          >
+                            <h5 class="alert-heading">
+                              <b-icon icon="calendar-check"></b-icon> Próxima Fecha de Entrega Sugerida
+                            </h5>
+                            <p class="mb-0">
+                              Según la cola de producción actual, la próxima fecha disponible para finalizar una nueva orden es aproximadamente el
+                              <strong>{{ fechaProximaFormateada }}</strong>.
+                            </p>
+                          </b-alert>
                           <div class="wizard-content">
                             <h3 class="mb-4">Datos del cliente</h3>
                             <b-overlay
@@ -152,9 +194,7 @@
                               </b-row>
                               <b-row>
                                 <b-col lg="12">
-                                  <produccion-vincularOrden
-                                    @reload="reloadVinculo"
-                                  />
+                                  <produccion-vincularOrden @reload="reloadVinculo" />
                                   <hr class="my-4 pb-4" />
                                 </b-col>
                               </b-row>
@@ -162,10 +202,15 @@
                                 <b-col lg="12">
                                   <b-form v-on:submit.prevent>
                                     <b-form-group>
-                                      <label for="input-fecha"
-                                        >Fecha de entega
-                                        <span required>*</span></label
-                                      >
+                                      <label for="input-fecha">Fecha de entrega
+                                        <span required>*</span>
+                                        <small
+                                          v-if="fechaProximaDisponible"
+                                          class="d-block text-muted"
+                                        >
+                                          <strong>Sugerida a partir del: {{ fechaProximaFormateada }}</strong>
+                                        </small>
+                                      </label>
                                       <b-form-datepicker
                                         id="input-fecha"
                                         v-model="form.fechaEntrega"
@@ -175,9 +220,7 @@
                                     </b-form-group>
 
                                     <b-form-group>
-                                      <label for="input-nombre"
-                                        >Nombre <span required>*</span></label
-                                      >
+                                      <label for="input-nombre">Nombre <span required>*</span></label>
                                       <b-form-input
                                         id="input-nombre"
                                         ref="nombre"
@@ -189,9 +232,7 @@
                                     </b-form-group>
 
                                     <b-form-group>
-                                      <label for="input-apellido"
-                                        >Apellido <span required>*</span></label
-                                      >
+                                      <label for="input-apellido">Apellido <span required>*</span></label>
                                       <b-form-input
                                         id="input-apellido"
                                         v-model="form.apellido"
@@ -202,9 +243,7 @@
                                     </b-form-group>
 
                                     <b-form-group>
-                                      <label for="input-telefono"
-                                        >Teléfono <span required>*</span></label
-                                      >
+                                      <label for="input-telefono">Teléfono <span required>*</span></label>
                                       <b-form-input
                                         id="input-telefono"
                                         v-model="form.telefono"
@@ -237,9 +276,7 @@
                                     </b-form-group>
 
                                     <b-form-group>
-                                      <label for="input-address"
-                                        >Dirección</label
-                                      >
+                                      <label for="input-address">Dirección</label>
                                       <b-form-input
                                         id="input-address"
                                         v-model="form.direccion"
@@ -267,26 +304,16 @@
                             <b-row>
                               <b-col lg="12">
                                 <b-list-group>
-                                  <b-list-group-item
-                                    >Cédula:
-                                    {{ form.cedula }}</b-list-group-item
-                                  >
-                                  <b-list-group-item
-                                    >Nombre:
+                                  <b-list-group-item>Cédula:
+                                    {{ form.cedula }}</b-list-group-item>
+                                  <b-list-group-item>Nombre:
                                     {{ form.nombre }}
-                                    {{ form.apellido }}</b-list-group-item
-                                  >
-                                  <b-list-group-item
-                                    >Teléfono:
-                                    {{ form.telefono }}</b-list-group-item
-                                  >
-                                  <b-list-group-item
-                                    >Email: {{ form.email }}</b-list-group-item
-                                  >
-                                  <b-list-group-item
-                                    >Entrega:
-                                    {{ form.fechaEntrega }}</b-list-group-item
-                                  >
+                                    {{ form.apellido }}</b-list-group-item>
+                                  <b-list-group-item>Teléfono:
+                                    {{ form.telefono }}</b-list-group-item>
+                                  <b-list-group-item>Email: {{ form.email }}</b-list-group-item>
+                                  <b-list-group-item>Entrega:
+                                    {{ form.fechaEntrega }}</b-list-group-item>
                                 </b-list-group>
                                 <br />
                               </b-col>
@@ -304,7 +331,10 @@
                                   <br />
                                 </b-list-group>
                                 <b-row>
-                                  <b-col lg="6" class="mt-4">
+                                  <b-col
+                                    lg="6"
+                                    class="mt-4"
+                                  >
                                     <products-new @r="getResponseNewProduct" />
                                   </b-col>
                                 </b-row>
@@ -345,7 +375,10 @@
                             </b-row>
 
                             <b-row>
-                              <b-col lg="12" class="mt-4">
+                              <b-col
+                                lg="12"
+                                class="mt-4"
+                              >
                                 <b-table
                                   :stacked="isSmallScreen ? 'md' : false"
                                   :responsive="!isSmallScreen"
@@ -372,7 +405,7 @@
                                         form.productos[data.index].cantidad
                                       "
                                       min="0"
-                                      :max="maxDesignLimit(data.item.cod)"
+                                      :max="1000"
                                       type="number"
                                       @change="montoTotalOrden"
                                     ></b-form-input>
@@ -380,9 +413,7 @@
 
                                   <template #cell(corte)="data">
                                     <b-form-select
-                                      :disabled="
-                                        checkDesignForDiseabled(data.item.cod)
-                                      "
+                                      :disabled="data.item.diseno"
                                       v-model="form.productos[data.index].corte"
                                       :options="cortes"
                                     ></b-form-select>
@@ -403,9 +434,7 @@
 
                                   <template #cell(talla)="data">
                                     <b-form-select
-                                      :disabled="
-                                        checkDesignForDiseabled(data.item.cod)
-                                      "
+                                      :disabled="data.item.diseno"
                                       v-model="form.productos[data.index].talla"
                                       :options="$store.state.comerce.dataTallas"
                                       @change="
@@ -420,9 +449,7 @@
 
                                   <template #cell(tela)="data">
                                     <b-form-select
-                                      :disabled="
-                                        checkDesignForDiseabled(data.item.cod)
-                                      "
+                                      :disabled="data.item.diseno"
                                       v-model="form.productos[data.index].tela"
                                       :options="$store.state.comerce.dataTelas"
                                     ></b-form-select>
@@ -430,32 +457,23 @@
 
                                   <template #cell(atributo)="data">
                                     <b-form-select
-                                      :disabled="
-                                        checkDesignForDiseabled(data.item.cod)
-                                      "
+                                      :disabled="data.item.diseno"
                                       v-model="
                                         form.productos[data.index].atributo
                                       "
                                       :options="productAttributes"
                                     >
                                       <template #first>
-                                        <b-form-select-option :value="null"
-                                          >-- Seleccione
-                                          --</b-form-select-option
-                                        >
-                                      </template></b-form-select
-                                    >
+                                        <b-form-select-option :value="null">-- Seleccione
+                                          --</b-form-select-option>
+                                      </template></b-form-select>
                                   </template>
 
                                   <template #cell(acciones)="data">
                                     <div>
                                       <span class="floatme">
                                         <b-button
-                                          :disabled="
-                                            checkDesignForDiseabled(
-                                              data.item.cod
-                                            )
-                                          "
+                                          :disabled="data.item.diseno"
                                           variant="primary"
                                           icon="ti-check"
                                           @click="
@@ -527,7 +545,7 @@
                                     >
                                       <h4>
                                         ABONO: $
-                                        {{ form.abono }}
+                                        {{ abonoTotalMostrado.toFixed(2) }}
                                       </h4>
                                       <!-- <b-form-input id="input-abono" min="0" v-model="form.abono" @keydown.enter.stop.prevent
                                       type="number" class="mb-2 mr-sm-2 mb-sm-0"
@@ -563,7 +581,12 @@
                               </b-row>
 
                               <b-row>
-                                <b-col xl="3" lg="3" md="3" sm="12">
+                                <b-col
+                                  xl="3"
+                                  lg="3"
+                                  md="3"
+                                  sm="12"
+                                >
                                   <b-row>
                                     <b-col>
                                       <hr />
@@ -644,7 +667,12 @@
                                     </b-col>
                                   </b-row>
                                 </b-col>
-                                <b-col xl="3" lg="3" md="3" sm="12">
+                                <b-col
+                                  xl="3"
+                                  lg="3"
+                                  md="3"
+                                  sm="12"
+                                >
                                   <b-row>
                                     <b-col>
                                       <hr />
@@ -702,7 +730,12 @@
                                     </b-col>
                                   </b-row>
                                 </b-col>
-                                <b-col xl="3" lg="3" md="3" sm="12">
+                                <b-col
+                                  xl="3"
+                                  lg="3"
+                                  md="3"
+                                  sm="12"
+                                >
                                   <b-row>
                                     <b-col>
                                       <hr />
@@ -811,7 +844,12 @@
                                   </b-row>
                                 </b-col>
 
-                                <b-col xl="3" lg="3" md="3" sm="12">
+                                <b-col
+                                  xl="3"
+                                  lg="3"
+                                  md="3"
+                                  sm="12"
+                                >
                                   <b-row>
                                     <b-col>
                                       <hr />
@@ -924,6 +962,8 @@
                                     <ordenes-preview
                                       :form="formPrint"
                                       :showpreview="true"
+                                      :editing-order-id="editingOrderId"
+                                      @resetTabs="goToFirsTab"
                                     />
                                   </b-overlay>
                                 </div>
@@ -934,6 +974,10 @@
                       </b-tabs>
                     </b-card>
 
+                    <pre class="force">
+                      {{form}}
+                    </pre>
+
                     <!-- <div class="text-right mt-4">
                       <b-button-group>
                         <b-button @click="prev">Anterior</b-button>
@@ -943,10 +987,15 @@
                     <!-- Control buttons-->
                     <div class="text-right mb-4">
                       <b-button-group class="mt-2">
-                        <b-button :disabled="disableButtons" @click="prev"
-                          >Anterior
+                        <b-button
+                          :disabled="disableButtons"
+                          @click="prev"
+                        >Anterior
                         </b-button>
-                        <b-button :disabled="disableButtons" @click="next">{{
+                        <b-button
+                          :disabled="disableButtons"
+                          @click="next"
+                        >{{
                           nextText
                         }}</b-button>
                       </b-button-group>
@@ -962,16 +1011,22 @@
       <b-container v-else>
         <b-row>
           <b-col>
-            <b-alert show variant="warning">
-              Por favor indique las Tasas del día</b-alert
+            <b-alert
+              show
+              variant="warning"
             >
+              Por favor indique las Tasas del día</b-alert>
           </b-col>
         </b-row>
       </b-container>
 
       <template #overlay>
         <div class="text-center">
-          <b-icon icon="stopwatch" font-scale="3" animation="cylon"></b-icon>
+          <b-icon
+            icon="stopwatch"
+            font-scale="3"
+            animation="cylon"
+          ></b-icon>
           <p id="cancel-label">{{ loadingMsg }}</p>
         </div>
       </template>
@@ -981,16 +1036,21 @@
 
 <script>
 import mixins from "~/mixins/mixins.js";
-import axios from "axios";
 import { mapState, mapGetters } from "vuex";
 import quillOptions from "~/plugins/nuxt-quill-plugin";
+import procesamientoOrdenes from "~/mixins/procesamientoOrdenes.js";
 import FormMonedas from "~/components/formMonedas.vue";
+import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
 
 export default {
   data() {
     return {
-      isSmallScreen: false,
+      abonoHistorico: 0, // Abono existente al cargar la orden
+      proyeccionData: [], // Almacenará los datos de la cola de producción
+      fechaProximaDisponible: null, // Almacenará la fecha calculada
+      editingOrderId: null,
       quillOptions,
+      ordenesSinAsignar: [],
       endpoint: "/ordenes/nueva/custom", // Opciones: `/ordenes/nueva/custom` - `/ordenes/nueva/sport`
       categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`
       categoriaDeLaORdenOptions: [
@@ -1218,7 +1278,6 @@ export default {
       }
 
       totalDolares = dolaresEfectivo + dolaresPanama + dolaresZelle;
-      this.updateMontoAbono();
       return totalDolares.toFixed(2);
     },
 
@@ -1274,24 +1333,29 @@ export default {
     // ANTERIOR DESADE AQUI
     calculoPago() {
       let saldo;
-      if (isNaN(this.form.abono)) {
-        this.form.abono = 0;
+      const total = isNaN(this.form.total) ? 0 : parseFloat(this.form.total);
+      const descuento = isNaN(this.form.descuento)
+        ? 0
+        : parseFloat(this.form.descuento);
+
+      // Usamos el nuevo abonoTotalMostrado para el cálculo del saldo restante
+      saldo = total - this.abonoTotalMostrado - descuento;
+
+      return saldo.toFixed(2);
+    },
+
+    abonoTotalMostrado() {
+      const abonoActual = this.form.abono ? parseFloat(this.form.abono) : 0;
+      return this.abonoHistorico + abonoActual;
+    },
+
+    fechaProximaFormateada() {
+      if (!this.fechaProximaDisponible) {
+        return "Calculando...";
       }
-
-      if (isNaN(this.form.total)) {
-        this.form.total = 0;
-      }
-
-      if (isNaN(this.form.descuento)) {
-        this.form.descuento = 0;
-      }
-
-      saldo =
-        parseFloat(this.form.total) -
-        parseFloat(this.form.abono) -
-        parseFloat(this.form.descuento).toFixed(2);
-
-      return saldo;
+      // Usamos el método del mixin 'mixins.js' que ya formatea la fecha y hora
+      // El método se llama formatDateTime12h, pero en tu mixin está como formatTimestamp. Asumo que es el mismo.
+      return this.formatDateTime12h(this.fechaProximaDisponible);
     },
   },
 
@@ -1342,6 +1406,28 @@ export default {
   },
 
   methods: {
+    async getProyeccionEntrega() {
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/ordenes/proyeccion-entrega`
+        );
+        this.proyeccionData = res.data;
+
+        // Una vez tenemos los datos, calculamos la próxima fecha disponible
+        const horarioLaboral =
+          this.$store.state.login.dataEmpresa.horario_laboral;
+        if (horarioLaboral) {
+          this.fechaProximaDisponible = this.getProximaFechaDisponible(
+            this.proyeccionData,
+            horarioLaboral
+          );
+        }
+      } catch (error) {
+        console.error("Error cargando la proyección de entrega:", error);
+        // No mostramos un error fatal, simplemente no se mostrará la fecha sugerida.
+      }
+    },
+
     ...mapState("login", ["tasas"]),
     checkPrices() {
       let checking = this.form.productos.filter((el) => el.precio === 0);
@@ -1357,6 +1443,122 @@ export default {
       console.log("updateTotal", item);
     },
 
+    manejarOrdenCargada(datosDeLaOrden) {
+      // 1. Limpiar el formulario y establecer el modo de edición
+      this.clearForm({ form: true, formPrint: true });
+      this.editingOrderId = datosDeLaOrden.orden[0]._id;
+
+      // 2. Poblar datos del cliente
+      const customerData = datosDeLaOrden.customer.data[0];
+      if (customerData) {
+        const nombre = customerData.billing_first_name;
+        const apellido = customerData.billing_last_name;
+        const telefono = this.formatPhoneNumber(customerData.billing_phone);
+
+        this.form.id = customerData.id;
+        this.form.nombre = nombre;
+        this.form.apellido = apellido;
+        this.form.cedula = customerData.billing_postcode;
+        this.form.telefono = telefono;
+        this.form.email = customerData.billing_email.startsWith("none_")
+          ? ""
+          : customerData.billing_email;
+        this.form.direccion = customerData.billing_address_1;
+
+        // FIX: Poblar `query2` para que el `watcher` no borre los datos del formulario.
+        // Esto también actualiza la UI para mostrar el cliente cargado en el buscador.
+        this.query2 = `${customerData.id} | ${nombre} ${apellido} - ${telefono}`;
+      }
+
+      // 3. Poblar datos de la orden
+      const ordenData = datosDeLaOrden.orden[0];
+      if (ordenData) {
+        this.form.fechaEntrega = ordenData.fecha_entrega;
+        this.form.obs = this.decodeHtmlEntities(ordenData.observaciones);
+        this.form.total = parseFloat(ordenData.pago_total) || 0;
+        this.abonoHistorico = parseFloat(ordenData.pago_abono) || 0;
+        this.form.abono = 0; // El 'form.abono' ahora solo registrará NUEVOS pagos
+        this.form.descuento = parseFloat(ordenData.pago_descuento) || 0;
+      }
+
+      // 4. Poblar productos
+      if (datosDeLaOrden.productos && datosDeLaOrden.productos.length > 0) {
+        this.form.productos = datosDeLaOrden.productos.map((apiProd, index) => {
+          const fullProduct = this.$store.state.comerce.dataProductos.find(
+            (p) => p.cod === apiProd.cod
+          );
+
+          return {
+            _id: apiProd._id, // <-- FIX: Preservar el ID del producto de la orden
+            item: index,
+            cod: apiProd.cod,
+            producto: apiProd.name,
+            existencia: fullProduct ? fullProduct.stock_quantity : "N/A",
+            tela: apiProd.id_tela || null, // FIX: Usar el ID de la tela para el v-model
+            atributo: apiProd.atributo || null,
+            atributo_nombre: apiProd.atributo_nombre || null, // FIX: Usar el ID del atributo para el v-model
+            cantidad: apiProd.cantidad,
+            corte: apiProd.corte || "No aplica",
+            talla: apiProd.id_talla || null,
+            colores: [],
+            xl: 0,
+            categoria: fullProduct
+              ? this.getCategory(fullProduct.categories)
+              : null,
+            // Si producto_fisico es 0, no es físico (es un diseño), por lo tanto diseno = true.
+            diseno: apiProd.producto_fisico === 0,
+            // FIX: Convertir el precio a número para que coincida con el v-model del select.
+            precio: parseFloat(apiProd.precio) || 0,
+          };
+        });
+      }
+
+      // 5. Recalcular totales y desbloquear el wizard
+      this.montoTotalOrden();
+      this.disable1 = false;
+      this.disable2 = false;
+      this.disable3 = false;
+      this.disable4 = false;
+
+      this.$fire({
+        title: "Formulario Poblado",
+        html: `<p>Los datos de la orden #${this.editingOrderId} están listos para ser editados.</p>`,
+        type: "info",
+      });
+
+      // Forzar el cambio a la primera pestaña después de que todos los datos se hayan cargado.
+      // Usamos $nextTick para asegurarnos de que Vue haya procesado los cambios de datos
+      // antes de intentar cambiar la pestaña.
+      this.$nextTick(() => {
+        this.tabIndex = 0;
+      });
+    },
+
+    async getOrdenesSinAsignar() {
+      const idVendedor = this.$store.state.login.dataUser.id_empleado;
+      if (!idVendedor) {
+        console.warn(
+          "ID de vendedor no encontrado, no se pueden cargar órdenes sin asignar."
+        );
+        return;
+      }
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/ordenes/sin-asignacion/${idVendedor}`
+        );
+        this.ordenesSinAsignar = res.data;
+      } catch (error) {
+        console.error("Error cargando órdenes sin asignar:", error);
+        // No mostramos un error fatal, simplemente el componente no tendrá datos para mostrar.
+      }
+    },
+
+    decodeHtmlEntities(text) {
+      if (typeof text !== "string") return text;
+      const textArea = document.createElement("textarea");
+      textArea.innerHTML = text;
+      return textArea.value;
+    },
     checkScreenSize() {
       this.isSmallScreen = window.innerWidth < 768; // Cambia el valor según tu necesidad
     },
@@ -1471,6 +1673,12 @@ export default {
           return `${prod.cod} | ${prod.name}`;
         });
         this.$store.commit("comerce/setDataProductosSelect", productsSelect);
+      } else if (this.id_orden_a_editar) {
+        this.endpoint = `/ordenes/nueva/custom/edit`;
+        const productsSelect = this.getProductsCustom.map((prod) => {
+          return `${prod.cod} | ${prod.name}`;
+        });
+        this.$store.commit("comerce/setDataProductosSelect", productsSelect);
       } else if (this.categoriaDeLaORden === "sport") {
         this.endpoint = `/ordenes/nueva/sport`;
         const productsSelect = this.getProductsSport.map((prod) => {
@@ -1480,27 +1688,6 @@ export default {
       }
 
       this.form.productos = [];
-    },
-
-    maxDesignLimit(cod) {
-      let limit;
-      if (this.validatDesign(cod)) {
-        limit = 1000; // CAntida máxima de diseÑos por item de la orden
-      } else {
-        limit = 1000;
-      }
-      return limit;
-    },
-
-    checkDesignForDiseabled(cod) {
-      let ok;
-      if (this.validatDesign(cod)) {
-        ok = true;
-      } else {
-        ok = false;
-      }
-      console.log(`validar codigo es`, ok, cod);
-      return ok;
     },
 
     checkTallasTelas() {
@@ -1821,10 +2008,16 @@ export default {
           item.cod != 20266
         ) */
       });
+
+      let cehckPrecios = this.form.productos.filter((item) => {
+        return item.precio === null;
+      });
+
       console.log("cantidades de productos", checkCantidad);
 
       if (this.form.productos.length) {
         console.log("(checkCantidad.length", checkCantidad.length);
+
         if (checkCantidad.length > 0) {
           ceroPrice = true;
         } else {
@@ -1836,7 +2029,12 @@ export default {
 
       let checkingTallaTela = this.checkTallasTelas();
 
-      if (!this.form.productos.length || ceroPrice || !checkingTallaTela) {
+      if (
+        !this.form.productos.length ||
+        ceroPrice ||
+        !checkingTallaTela ||
+        cehckPrecios.length
+      ) {
         let errors = "";
         ok = false;
 
@@ -1847,6 +2045,9 @@ export default {
 
         if (!checkingTallaTela)
           errors = errors + `<p>Debe seleccionar a Talla y la Tela</p>`;
+
+        if (cehckPrecios.length)
+          errors = errors + `<p>Debe seleccionar todos los precios</p>`;
 
         if (!this.form.productos.length)
           errors = errors + `<p>Debe seleccionar al menos un producto</p>`;
@@ -1880,12 +2081,45 @@ export default {
           type: "error",
         });
       } else {
-        // Crear copia del formulario
-        this.formPrint = this.form;
+        // Crear copia profunda y transformar datos para la vista previa
+        // Hacemos una copia profunda para no mutar el formulario original que aún necesita los IDs.
+        const formCopy = JSON.parse(JSON.stringify(this.form));
+
+        // Crear mapas para una búsqueda eficiente de los nombres de tallas y telas.
+        const tallasMap = this.$store.state.comerce.dataTallas.reduce(
+          (map, talla) => {
+            map[talla.value] = talla.text;
+            return map;
+          },
+          {}
+        );
+
+        const telasMap = this.$store.state.comerce.dataTelas.reduce(
+          (map, tela) => {
+            map[tela.value] = tela.text;
+            return map;
+          },
+          {}
+        );
+
+        // Mapear los productos para reemplazar los IDs de talla y tela por sus nombres correspondientes.
+        formCopy.productos = formCopy.productos.map((producto) => {
+          // Si el producto tiene una talla y existe en nuestro mapa, la reemplazamos por el nombre.
+          if (producto.talla && tallasMap[producto.talla]) {
+            producto.talla = tallasMap[producto.talla];
+          }
+          // Hacemos lo mismo para la tela.
+          if (producto.tela && telasMap[producto.tela]) {
+            producto.tela = telasMap[producto.tela];
+          }
+          return producto;
+        });
+
+        this.formPrint = formCopy;
       }
 
       // if (this.form.metodoDePago.length === 0) {
-      if (parseFloat(this.form.abono) === 0) {
+      if (parseFloat(this.form.abono) === 0 && this.editingOrderId === null) {
         ok = true;
         this.$fire({
           title: "Método de pago",
@@ -1897,39 +2131,22 @@ export default {
     },
 
     step4() {
-      this.$confirm("¿Desea emitir la orden?", "Finalizar", "success").then(
-        () => {
-          this.overlay = true;
-          this.disableButtons = true;
-          this.finishOrder(); /* .then(() => {
-                    this.$confirm(
-                        "¿Desea imprimir una copia de la orden orden?",
-                        "Imprimir",
-                        "info"
-                    )
-                        .then(() => {
-                            this.printOrder("reporte").then(() => {
-                                this.clearForm({
-                                    form: true,
-                                    formPrint: true,
-                                })
-                            })
-                        })
-                        .catch(() => {
-                            this.overlay = false
-                            this.disableButtons = false
-                            this.clearForm({
-                                form: true,
-                                formPrint: true,
-                            })
-                        })
-                        .then(() => {
-                            this.overlay = false
-                            this.disableButtons = false
-                        })
-                }) */
-        }
-      );
+      // Define el mensaje, el título y el ícono dinámicamente
+      const confirmMessage = this.editingOrderId
+        ? `¿Desea guardar los cambios en la orden #${this.editingOrderId}?`
+        : "¿Desea emitir la nueva orden?";
+
+      const confirmTitle = this.editingOrderId
+        ? "Actualizar Orden"
+        : "Finalizar Orden";
+
+      const confirmIcon = this.editingOrderId ? "info" : "success";
+
+      this.$confirm(confirmMessage, confirmTitle, confirmIcon).then(() => {
+        this.overlay = true;
+        this.disableButtons = true;
+        this.finishOrder();
+      });
 
       return true;
     },
@@ -2253,21 +2470,23 @@ export default {
     },
 
     clearForm(obj) {
+      // Objeto 'limpio' que replica la estructura inicial del formulario.
+      // Es crucial que tenga TODAS las propiedades del 'form' original en data()
+      // para evitar que la reactividad de Vue se rompa al limpiar el formulario.
       let clean = {
         id: "",
-        cedula: "", // Datos del cliente
+        cedula: "",
         nombre: "",
         apellido: "",
         telefono: "",
         email: "",
         direccion: "",
         fechaEntrega: "",
-        productos: [], // Datos para la tabla de productos
-        obs: "", // LIMPIAR OBSERVACIONES
-        abono: 0, // Pago total o parcial
-        total: 0, // Pago total o parcial
-        diseno_grafico: false,
-        diseno_modas: false,
+        productos: [],
+        metodoDePago: [],
+        obs: "",
+        tasaDolar: 0,
+        tasaPeso: 0,
         montoDolaresEfectivo: 0,
         montoDolaresEfectivoDetalle: "",
         montoDolaresZelle: 0,
@@ -2286,28 +2505,50 @@ export default {
         montoBolivaresPagomovilDetalle: "",
         montoBolivaresTransferencia: 0,
         montoBolivaresTransferenciaDetalle: "",
+        abono: 0,
         descuento: 0,
         descuentoDetalle: "",
+        total: 0,
+        diseno_grafico: false,
+        diseno_grafico_cantidad: 0,
+        diseno_modas: false,
+        diseno_modas_cantidad: 0,
+        sales_commision: null,
+        next: 0,
+        disableControl: false,
       };
-      if (obj.form) {
-        this.form = clean;
+
+      // Si se llama desde el evento de un clic, obj será un MouseEvent.
+      // Si no se pasa obj o es un evento, asumimos que se quiere una limpieza completa.
+      const isFullClear = !obj || obj instanceof MouseEvent;
+
+      if (isFullClear || (obj && obj.form)) {
+        this.form = { ...clean };
         console.log(`Limpiado form`);
       }
-      if (obj.formPrint) {
-        this.formPrint = clean;
+      if (isFullClear || (obj && obj.formPrint)) {
+        this.formPrint = { ...clean };
         console.log(`Limpiado formPrint`);
       }
+      this.abonoHistorico = 0;
+      this.editingOrderId = null;
+      this.endpoint = "/ordenes/nueva/custom"; // FIX: Reset endpoint to default
       this.query2 = "";
       this.ordenVinculada = 0;
       this.disable1 = false;
       this.disable2 = true;
       this.disable3 = true;
       this.disable4 = true;
-      this.tabIndex = 0;
+      this.tabIndex = 0; // Volver a la primera pestaña
     },
 
     async finishOrder() {
+      const endpoint = this.editingOrderId
+        ? "/ordenes/nueva/custom/edit"
+        : "/ordenes/nueva/custom";
+
       this.overlay = true;
+      this.disableButtons = true;
       // VERIFICAR SI HAY PAGO PARA EL VENDEDOR
 
       // METODO CON AXIOS
@@ -2326,6 +2567,7 @@ export default {
       // CREAR OBJETO DE DATOS PARA EL ENVIO
       const data = new URLSearchParams();
       data.set("id", this.form.id);
+      data.set("id_orden_edit", this.editingOrderId);
       data.set("vinculada", this.ordenVinculada);
       data.set("nombre", this.form.nombre);
       data.set("apellido", this.form.apellido);
@@ -2350,9 +2592,7 @@ export default {
       data.set("productos", JSON.stringify(this.form.productos));
       data.set(
         "productos_lotes_detalles",
-        JSON.stringify(
-          this.form.productos.filter((prod) => this.filterDesign(prod.cod))
-        )
+        JSON.stringify(this.form.productos.filter((prod) => !prod.diseno))
       );
       data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
       data.set(
@@ -2405,70 +2645,53 @@ export default {
       console.log("data para crear nueva orden", data);
 
       // ENVIAR DATOS AL SERVIDOR PARA CREAR UNA NUEVA ORDEN
-      await this.$axios
-        .post(`${this.$config.API}${this.endpoint}`, data)
-        .then((res) => {
-          console.log("res.data de crear orden", res.data);
-          if (res.data.response.status === "error") {
-            this.disableButtons = false;
-            this.$fire({
-              title: "Error",
-              html: `<p>Ocurrió un error al crear la orden</p> <p>${res.data.response.message}</p>`,
-              type: "error",
-            });
-          } else {
-            console.log(`La orden ${data.orden_nro} ha sido creada`);
-            console.dir(data);
-            this.clearForm({
-              form: true,
-            });
+      try {
+        const res = await this.$axios.post(
+          `${this.$config.API}${endpoint}`,
+          data
+        );
 
-            this.$confirm(
-              "¿Desea imprimir una copia de la orden orden?",
-              "Imprimir",
-              "info"
-            )
-              .then(() => {
-                this.printOrder("reporte").then(() => {
-                  this.clearForm({
-                    form: true,
-                    formPrint: true,
-                  });
-                });
-              })
-              .catch(() => {
-                this.overlay = false;
-                this.disableButtons = false;
-                this.clearForm({
-                  form: true,
-                  formPrint: true,
-                });
-              })
-              .then(() => {
-                this.overlay = false;
-                this.disableButtons = false;
-              });
-
-            /* this.$confirm("¿Desea imprimir la orden?").then(() => {
-                            this.printOrder("reporte").then(() => {
-                                this.clearForm({
-                                    formPrint: true,
-                                })
-                            })
-                        }) */
-          }
-        })
-        .catch((error) => {
+        if (res.data.response.status === "error") {
           this.$fire({
             title: "Error",
-            html: `<p>Ocurrió un error al crear la orden</p> <p>${error}</p>`,
+            html: `<p>Ocurrió un error al procesar la orden.</p><p>${res.data.response.message}</p>`,
             type: "error",
           });
-          this.disableButtons = false;
-        })
-        .finally(() => {
-          this.overlay = false;
+        } else {
+          // Éxito
+          this.$fire({
+            title: "¡Éxito!",
+            html: `<p>${res.data.response.message}</p>`,
+            type: "success",
+          });
+
+          this.getOrdenesSinAsignar(); // Recargar datos relacionados
+
+          const wantsToPrint = await this.$confirm(
+            "¿Desea imprimir una copia de la orden?",
+            "Imprimir",
+            "info"
+          ).catch(() => false);
+
+          if (wantsToPrint) {
+            await this.printOrder("reporte");
+          }
+
+          this.clearForm(); // Limpiar el formulario para la siguiente orden
+        }
+      } catch (error) {
+        this.$fire({
+          title: "Error de Conexión",
+          html: `<p>No se pudo comunicar con el servidor.</p><p>${
+            error.message || error
+          }</p>`,
+          type: "error",
         });
+      } finally {
+        // Este bloque se ejecuta siempre, haya éxito o error
+        this.overlay = false;
+        this.disableButtons = false;
+      }
     },
 
     clearStep1() {
@@ -2556,20 +2779,21 @@ export default {
       }
     },
 
-    checkDesign(categories) {
-      let cats = categories.filter((el) => el.name === "Diseños");
-      if (cats.length) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-
     loadProductPrices(idProduct, newItem) {
       const tmpProd = this.$store.state.comerce.dataProductos.find(
         (el) => el.cod === idProduct
       );
-      let options = tmpProd.prices.map((el) => {
+
+      // **FIX:** Verificamos si el producto fue encontrado antes de intentar usarlo.
+      if (!tmpProd) {
+        console.warn(
+          `[loadProductPrices] No se encontró el producto con código: ${idProduct} en el store. No se pueden cargar los precios.`
+        );
+        // Devolvemos un array vacío para que el <b-form-select> no falle.
+        return [];
+      }
+
+      const options = tmpProd.prices.map((el) => {
         return {
           value: el.price,
           text: `$${el.price} ${el.description}`,
@@ -2580,6 +2804,11 @@ export default {
         console.log("insertar el precio XL(n) en ", newItem);
         options.unshift(newItem);
       }
+
+      options.unshift({
+        value: null,
+        text: "",
+      });
 
       this.montoTotalOrden();
       console.log("options precios producto", options);
@@ -2604,8 +2833,10 @@ export default {
             colores: [],
             xl: 0,
             categoria: this.getCategory(product.categories),
-            diseno: this.checkDesign(product.categories),
-            precio: product.regular_price,
+            // Si producto_fisico es 0, no es físico (es un diseño), por lo tanto diseno = true.
+            diseno: product.producto_fisico === 0,
+            // precio: product.regular_price || 0,
+            precio: null,
             // precioWoo: product.regular_price,
           };
         })
@@ -2615,7 +2846,7 @@ export default {
 
       // PRECARAGAR DATOS PARA DISEÑOS
       console.log("YO SOY DATAPROD", dataProd);
-      if (this.validatDesign(dataProd.cod)) {
+      if (dataProd.diseno) {
         dataProd.cantidad = 0;
       }
 
@@ -2644,7 +2875,7 @@ export default {
         atributo: item.atributo,
         colores: [],
         corte: item.corte,
-        precio: item.precio,
+        precio: item.precio || null,
         categoria: item.categoria,
         diseno: item.diseno,
         // precioWoo: item.precioWoo,
@@ -2712,20 +2943,25 @@ export default {
     },
 
     checkDesigner() {
+      // Resetear valores antes de recalcular
+      this.form.diseno_grafico = false;
+      this.form.diseno_grafico_cantidad = 0;
+      this.form.diseno_modas = false;
+      this.form.diseno_modas_cantidad = 0;
+
       const designs = this.form.productos
-        .filter((el) => this.validatDesign(el.cod))
+        .filter((el) => el.diseno) // Usar la bandera 'diseno'
         .map((el) => {
           let tipo;
+          // Esta lógica hardcodeada es un punto a mejorar en el futuro
           if (el.cod === 20237 || el.cod === 20266) {
             tipo = "modas";
             this.form.diseno_modas = true;
-            this.form.diseno_modas_cantidad = parseInt(el.cantidad);
-          }
-
-          if (this.validatDesign(el.cod)) {
+            this.form.diseno_modas_cantidad += parseInt(el.cantidad) || 0;
+          } else {
             tipo = "gráfico";
             this.form.diseno_grafico = true;
-            this.form.diseno_grafico_cantidad = parseInt(el.cantidad);
+            this.form.diseno_grafico_cantidad += parseInt(el.cantidad) || 0;
           }
           return {
             cod: el.cod,
@@ -2833,7 +3069,7 @@ export default {
           // Cargar Telas
           let myTelas = responseTelas.data.data.map((item) => {
             return {
-              value: item.tela,
+              value: item._id, // FIX: Usar el ID como valor para el select
               text: item.tela,
             };
           });
@@ -3014,7 +3250,7 @@ export default {
     },
   },
 
-  components: { FormMonedas },
+  components: { FormMonedas, CargarOrdenesNoAsignadas },
   created() {
     // this.loadDataComercializacion()
   },
@@ -3039,6 +3275,8 @@ export default {
         this.loadDataTelas(),
         this.loadDataProductos(),
         this.loadProductAttributes(), // Esta es la llamada que actualmente falla
+        this.getProyeccionEntrega(), // <-- Añadimos la nueva carga de datos
+        this.getOrdenesSinAsignar(),
         this.getOrdenesGuardadas(),
       ]);
       // Si todo tiene éxito, ocultamos el overlay
@@ -3055,7 +3293,7 @@ export default {
     window.removeEventListener("resize", this.handleResize);
   },
 
-  mixins: [mixins],
+  mixins: [mixins, procesamientoOrdenes],
 };
 </script>
 

@@ -1,10 +1,19 @@
 <template>
   <div>
     <h2>{{ title }}</h2>
-    <b-overlay :show="overlay" spinner-small>
-      <b-row v-if="error.show" class="mt-4">
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
+      <b-row
+        v-if="error.show"
+        class="mt-4"
+      >
         <b-col>
-          <b-alert show variant="danger">Danger Alert: {{ error.msg }}</b-alert>
+          <b-alert
+            show
+            variant="danger"
+          >Danger Alert: {{ error.msg }}</b-alert>
         </b-col>
       </b-row>
 
@@ -20,7 +29,7 @@
             </template>
 
             <template #cell(imagen)="data">
-              <diseno-viewImage :id="data.item.imagen" />
+              <diseno-viewImageRevision :id="data.item.id_revision" />
             </template>
 
             <template #cell(terminar)="data">
@@ -34,69 +43,69 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
 export default {
   data() {
     return {
-      title: 'Diseños terminados',
+      title: "Diseños terminados",
       error: {
         show: false,
-        msg: '',
+        msg: "",
       },
-      search: '',
+      search: "",
       result: [],
-      type: 'number',
-      selectedType: 'orden', // orden ó cliente
+      type: "number",
+      selectedType: "orden", // orden ó cliente
       optionsSearchType: [
-        { text: 'Orden', value: 'orden' },
-        { text: 'Cliente', value: 'cliente' },
+        { text: "Orden", value: "orden" },
+        { text: "Cliente", value: "cliente" },
       ],
-      placeholder: 'Buscar orden',
+      placeholder: "Buscar orden",
       overlay: true,
       items: [],
       fields: [],
-    }
+    };
   },
 
   computed: {
     dataTable() {
-      return this.$store.state.disenos.disenosTerminados
+      return this.$store.state.disenos.disenosTerminados;
     },
   },
 
   methods: {
     searchThis() {
-      this.error.show = false
-      let id = this.search
+      this.error.show = false;
+      let id = this.search;
       let filter = this.dataTable.items.filter(
         (item) => item.orden === this.search
-      )
-      this.result = filter
-      this.search = ''
+      );
+      this.result = filter;
+      this.search = "";
       if (filter.length === 0) {
-        this.error.show = true
-        this.error.msg = `No se encontró la orden ${id}`
+        this.error.show = true;
+        this.error.msg = `No se encontró la orden ${id}`;
       }
     },
 
     setType(type) {
-      console.log(`type selected: ${type}`)
-      this.selectedType = type
-      if (type == 'orden') {
-        this.type = 'number'
-        this.placeholder = 'Buscar por número de orden'
+      console.log(`type selected: ${type}`);
+      this.selectedType = type;
+      if (type == "orden") {
+        this.type = "number";
+        this.placeholder = "Buscar por número de orden";
       } else {
-        this.type = 'text'
-        this.placeholder = 'Buscar por nombre del cliente'
+        this.type = "text";
+        this.placeholder = "Buscar por nombre del cliente";
       }
     },
 
     terminarTarea(orden) {
       if (confirm(`¿Ha terminado el diseño de la orden ${orden}?`)) {
-        console.log(`Diseño terminado`)
+        console.log(`Diseño terminado`);
       } else {
-        console.log(`cancelado ${orden}`)
+        console.log(`cancelado ${orden}`);
       }
     },
   },
@@ -104,10 +113,10 @@ export default {
   mounted() {
     // this.getDisenos()
     this.$store
-      .dispatch('disenos/getDisenosTerminados')
-      .then(() => (this.overlay = false))
+      .dispatch("disenos/getDisenosTerminados")
+      .then(() => (this.overlay = false));
   },
-}
+};
 </script>
 
 <style scoped>

@@ -1,16 +1,29 @@
 <template>
   <div>
     <h2>{{ title }}</h2>
-    <b-overlay :show="overlay" spinner-small>
-      <b-row v-if="error.show" class="mt-4">
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
+      <b-row
+        v-if="error.show"
+        class="mt-4"
+      >
         <b-col>
-          <b-alert show variant="danger">Danger Alert: {{ error.msg }}</b-alert>
+          <b-alert
+            show
+            variant="danger"
+          >Danger Alert: {{ error.msg }}</b-alert>
         </b-col>
       </b-row>
 
       <b-row class="mt-4">
         <b-col>
-          <b-table responsive :fields="fields" :items="items">
+          <b-table
+            responsive
+            :fields="fields"
+            :items="items"
+          >
             <template #cell(id)="data">
               <linkSearch :id="data.item.id" />
             </template>
@@ -80,10 +93,6 @@
         </b-col>
       </b-row>
     </b-overlay>
-    <!-- <pre>
-      <h4>Asignados</h4>
-      <h5>$data:</h5> {{ $data.revisiones }}
-    </pre> -->
   </div>
 </template>
 

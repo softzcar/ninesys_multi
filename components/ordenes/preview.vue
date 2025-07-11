@@ -46,7 +46,7 @@
                             <table class="table-header">
                                 <tr>
                                     <td>
-                                        <h1>ORDEN # {{ nextId }}</h1>
+                                        <h1>ORDEN # {{ editingOrderId ? editingOrderId : nextId }}</h1>
                                     </td>
                                 </tr>
                                 <tr>
@@ -88,6 +88,7 @@
                     <th style="text-align: center">TALLA</th>
                     <th>CORTE</th>
                     <th>TELA</th>
+                    <th>ATRIBUTO</th>
                     <th
                         class="hideMe"
                         v-if="
@@ -115,7 +116,7 @@
                             <!-- <td style="text-align: center">
                                 {{ product.cod }}
                             </td> -->
-                            <td>{{ product.producto }}</td>
+                            <td>{{ product.name }}</td>
                             <td style="text-align: right">
                                 {{ product.cantidad }}
                             </td>
@@ -124,6 +125,7 @@
                             </td>
                             <td>{{ product.corte }}</td>
                             <td>{{ product.tela }}</td>
+                            <td>{{ product.atributo_nombre || 'N/A' }}</td>
                             <td
                                 class="hideMe"
                                 v-if="
@@ -304,7 +306,7 @@ export default {
         this.nextIdOrden()
     },
     mixins: [mixin],
-    props: ["form", "showpreview", "go"],
+    props: ["form", "showpreview", "go", "editingOrderId"],
 }
 </script>
 
