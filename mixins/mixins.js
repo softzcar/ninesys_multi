@@ -65,11 +65,21 @@ export default {
     },
 
     async sendMsgCustomIneterno(idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
+      if (this.$store.state.login.currentDepartamentId === null) {
+        this.$fire({
+          title: "Departamento",
+          html: `<p>seleccione un modulo de trabajo</p>`,
+          type: "info",
+        });
+
+        return
+      }
+
       this.overlay = true;
       const data = new URLSearchParams();
+      data.set("id_departamento", this.$store.state.login.currentDepartamentId);
       data.set("id_destino", idEmpleadoDestino);
       data.set("id_remitente", idEmpleadoRemitente);
-      data.set("id_departamento", idDep);
       data.set("message", message);
       data.set("nombre_empleado", this.$store.state.login.dataUser.nombre);
 
@@ -93,12 +103,24 @@ export default {
           }
         })
         .catch((err) => {
-          console.log('Error al enviar mensaje interno', err);
+          // Cuando Axios recibe una respuesta de error del servidor (ej. 404, 500),
+          // los detalles, incluido el cuerpo de la respuesta, están en `err.response`.
+          console.error('Error al enviar mensaje interno:', err.response || err);
+
+          let errorMessage = 'No se pudo enviar el mensaje.'; // Mensaje por defecto
+
+          if (err.response && err.response.data && err.response.data.error) {
+            // Usar el mensaje de error específico que envía tu API
+            errorMessage = err.response.data.error;
+          } else if (err.message) {
+            // Si no hay un mensaje específico, usar el mensaje genérico de Axios
+            errorMessage = err.message;
+          }
 
           this.$fire({
             title: "Error",
-            html: `<p>No se pudo enviar el mensaje</p><p>${err}</p>`,
-            type: "warning",
+            html: `<p>${errorMessage}</p>`,
+            type: "error",
           });
         })
         .finally(() => {
