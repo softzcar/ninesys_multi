@@ -3,9 +3,13 @@
     <h3 class="mt-4">Reposiciones</h3>
 
     <div v-if="reposiciones_solicitadas.length === 0">
-      <b-alert class="text-cetner mb-4" show variant="info"
-        ><h3>No hay reposiciones para revisar</h3></b-alert
+      <b-alert
+        class="text-cetner mb-4"
+        show
+        variant="info"
       >
+        <h3>No hay reposiciones para revisar</h3>
+      </b-alert>
     </div>
 
     <div v-else>
@@ -26,10 +30,7 @@
               style="cursor: grab"
               class="pb-3 drag-handle d-flex align-items-left list-group-draggable-item"
             >
-              <span
-                style="padding-top: 4px; padding-right: 8px; padding-top: 12px"
-                >☰</span
-              >
+              <span style="padding-top: 4px; padding-right: 8px; padding-top: 12px">☰</span>
             </b-list-group-item>
 
             <b-list-group-item>
@@ -49,14 +50,23 @@
     <h3 class="mt-4">Ordenes en curso</h3>
 
     <div v-if="items.length === 0">
-      <b-alert show class="mt-2 mb-4" variant="info">
+      <b-alert
+        show
+        class="mt-2 mb-4"
+        variant="info"
+      >
         <h3>No hay ordenes en curso</h3>
       </b-alert>
     </div>
 
     <div v-else>
       <b-container fluid>
-        <draggable v-model="items" @end="afterDrag" tag="ul" class="list-group">
+        <draggable
+          v-model="items"
+          @end="afterDrag"
+          tag="ul"
+          class="list-group"
+        >
           <b-list-group
             class="list-group-draggable"
             v-for="(el, index) in items"
@@ -67,17 +77,20 @@
               style="cursor: grab"
               class="pb-3 drag-handle d-flex align-items-left list-group-draggable-item"
             >
-              <span
-                style="padding-top: 4px; padding-right: 8px; padding-top: 12px"
-                >☰</span
-              >
+              <span style="padding-top: 4px; padding-right: 8px; padding-top: 12px">☰</span>
               <div>
-                <link-search :id="el.orden" :key="el.oreden" />
+                <link-search
+                  :id="el.orden"
+                  :key="el.oreden"
+                />
               </div>
             </b-list-group-item>
 
             <b-list-group-item>
-              <div v-if="el.estatus_revision === 'Aprobado'" class="h1 mt-2">
+              <div
+                v-if="el.estatus_revision === 'Aprobado'"
+                class="h1 mt-2"
+              >
                 <b-button variant="outline-light">
                   <b-icon
                     icon="exclamation-circle-fill"
@@ -88,7 +101,10 @@
                 </b-button>
               </div>
 
-              <div v-else class="h1 mt-2">
+              <div
+                v-else
+                class="h1 mt-2"
+              >
                 <b-button
                   variant="outline-light"
                   @click="showDesigner(el.disenador)"
@@ -178,7 +194,10 @@
 
             <b-list-group-item>
               <div>
-                <ordenes-editar :data="el" :key="el.orden" />
+                <ordenes-editar
+                  :data="el"
+                  :key="el.orden"
+                />
               </div>
             </b-list-group-item>
           </b-list-group>

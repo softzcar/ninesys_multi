@@ -5,7 +5,7 @@
             <b-row>
                 <b-col class="mb-4">
                     <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
-                        button-variant="outline-primary" size="lg" name="radio-btn-outline" @input="showResultRadio()"
+                        button-variant="outline-primary" size="lg" name="radio-btn-outline" @input="applyFilters()"
                         buttons></b-form-radio-group>
                 </b-col>
                 <b-col offset-lg="8" offset-xl="8">
@@ -24,10 +24,42 @@
 
             <b-row>
                 <b-col>
+                    <b-form class="mb-4" @submit.prevent="onSubmit">
+                        <b-row>
+                            <b-col>
+                                <h3>Fecha Inicio</h3>
+                                <b-form-datepicker class="mb-4" v-model="fechaConsultaInicio" />
+                            </b-col>
+                            <b-col>
+                                <h3>Fecha Fin</h3>
+                                <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
+                            </b-col>
+                            <b-col>
+                                <h3>Vendedor</h3>
+                                <b-form-select v-model="selectedVendedor" :options="vendedores"
+                                    @change="applyFilters()" />
+                            </b-col>
+                        </b-row>
+
+                        <b-row>
+                            <b-col class="text-center">
+                                <b-button type="submit" variant="primary" class="mr-2">BUSCAR</b-button>
+                                <b-button
+                                  type="button"
+                                  variant="secondary"
+                                  @click="resetFilters"
+                                >Limpiar Filtros</b-button>
+                            </b-col>
+                        </b-row>
+                    </b-form>
+                </b-col>
+            </b-row>
+
+            <b-row>
+                <b-col>
                     <b-pagination v-model="currentPage" :total-rows="totalRows" :per-page="perPage"></b-pagination>
 
                     <p class="mt-3">Página actual: {{ currentPage }}</p>
-                    <!-- <b-pagination-nav :link-gen="linkGen" :number-of-pages="10" use-router></b-pagination-nav> -->
 
                     <b-table :items="ordenesTabla" :per-page="perPage" :current-page="currentPage"
                         @filtered="onFiltered" :fields="fields" :filter="filter"
@@ -36,17 +68,6 @@
                             <linkSearch :id="data.item.orden" key="data.item.orden" />
                         </template>
                         <template #cell(acc)="data">
-                            <!-- <div
-                                style="
-                                    float: left;
-                                    margin-right: 6px;
-                                    margin-top: 6px;
-                                "
-                            >
-                                <span
-                                    v-html="whatsAppMe(data.item.phone, true)"
-                                ></span>
-                            </div> -->
                             <div style="float: left; margin-right: 6px">
                                 <diseno-view-image class="floatme mb-2" :id="data.item.orden" />
                             </div>
@@ -84,60 +105,89 @@ export default {
             perPage: 25,
             currentPage: 1,
             ordenesLength: 0,
-            ordenes: null,
-            ordenesTabla: null,
-            ordenesFiltradas: null,
+            ordenes: [],
+            ordenesTabla: [],
             fields: null,
             filter: null,
             loading: {
                 show: true,
                 text: "Cargando ordenes...",
             },
-
-            fields: [
-                {
-                    key: "name",
-                    label: "Person full name",
-                    sortable: true,
-                    sortDirection: "desc",
-                },
-                {
-                    key: "age",
-                    label: "Person age",
-                    sortable: true,
-                    class: "text-center",
-                },
-                {
-                    key: "isActive",
-                    label: "Is Active",
-                    formatter: (value, key, item) => {
-                        return value ? "Yes" : "No"
-                    },
-                    sortable: true,
-                    sortByFormatted: true,
-                    filterByFormatted: true,
-                },
-                { key: "actions", label: "Actions" },
-            ],
+            fechaConsultaInicio: "",
+            fechaConsultaFin: "",
+            selectedVendedor: 0,
+            vendedores: [],
         }
     },
 
     methods: {
-        showResultRadio() {
-            if (this.selectedRadio === "todas") {
-                this.ordenesTabla = this.ordenes
-            } else if (this.selectedRadio === "pagadas") {
-                this.ordenesTabla = this.ordenes.filter(
-                    (el) => parseFloat(el.monto_pendiente) === 0
-                )
-            } else if (this.selectedRadio === "pendientes") {
-                this.ordenesTabla = this.ordenes.filter(
-                    (el) => parseFloat(el.monto_pendiente) > 0
-                )
-            } else {
-                this.ordenesTabla = this.ordenes
-            }
+        resetFilters() {
+            this.fechaConsultaInicio = "";
+            this.fechaConsultaFin = "";
+            this.selectedVendedor = 0;
+            this.selectedRadio = "todas";
+            this.applyFilters();
         },
+        onSubmit(event) {
+            event.preventDefault();
+            const fechaInicio = this.fechaConsultaInicio;
+            const fechaFin = this.fechaConsultaFin;
+
+            if (!fechaInicio || !fechaFin) {
+                this.$fire({
+                    title: "Datos requeridos",
+                    html: `<p>Por favor seleccione ambas fechas</p>`,
+                    type: "warning",
+                });
+                return;
+            }
+
+            if (new Date(fechaInicio) > new Date(fechaFin)) {
+                this.$fire({
+                    title: "Datos requeridos",
+                    html: `<p>La fecha de inicio debe ser anterior o igual a la fecha de fin</p>`,
+                    type: "warning",
+                });
+                return;
+            }
+            this.applyFilters();
+        },
+
+        applyFilters() {
+            let filtered = [...this.ordenes];
+
+            // Filter by seller
+            if (this.selectedVendedor != 0) {
+                filtered = filtered.filter(el => el.id_vendedor == this.selectedVendedor);
+            }
+
+            // Filter by date range
+            if (this.fechaConsultaInicio && this.fechaConsultaFin) {
+                const inicio = new Date(this.fechaConsultaInicio);
+                const fin = new Date(this.fechaConsultaFin);
+                fin.setHours(23, 59, 59, 999); // Include the whole end day
+
+                filtered = filtered.filter(item => {
+                    const fechaInicio = new Date(item.fecha_inicio);
+                    const fechaEntrega = new Date(item.fecha_entrega);
+                    return (
+                        (fechaInicio >= inicio && fechaInicio <= fin) ||
+                        (fechaEntrega >= inicio && fechaEntrega <= fin) ||
+                        (fechaInicio <= inicio && fechaEntrega >= fin)
+                    );
+                });
+            }
+
+            // Filter by payment status
+            if (this.selectedRadio === "pagadas") {
+                filtered = filtered.filter(el => parseFloat(el.monto_pendiente) === 0);
+            } else if (this.selectedRadio === "pendientes") {
+                filtered = filtered.filter(el => parseFloat(el.monto_pendiente) > 0);
+            }
+
+            this.ordenesTabla = filtered;
+        },
+
         async getOrdenes() {
             await this.$axios
                 .get(`${this.$config.API}/table/ordenes-todas`)
@@ -145,25 +195,25 @@ export default {
                     this.ordenes = res.data.items.map((obj) => ({
                         ...obj,
                         acc: obj.orden,
-                    }))
-                    this.ordenesLength = this.ordenes.length
-                    this.ordenesTabla = this.ordenes
-
-                    this.fields = res.data.fields
-                })
+                    }));
+                    this.fields = res.data.fields;
+                    this.applyFilters(); // Apply filters after loading orders
+                });
         },
+
         async getPagos() {
             this.overlay = true
             await this.$axios
                 .get(`${this.$config.API}/reporte-de-pagos`)
                 .then((resp) => {
-                    this.pagos = resp.data.pagos
-                    /* this.vendedores = resp.data.vendedores
-                    this.vendedores.unshift({ value: 0, text: "Todos" })
-
-                    this.ordenesLength = this.pagos.length
-                    console.log("Pagos y abonos cargados", this.pagos)
-                    console.log("Totales", this.totales) */
+                    this.pagos = resp.data.pagos;
+                    this.vendedores = resp.data.vendedores.map((el) => {
+                        return {
+                            value: el._id,
+                            text: el.nombre,
+                        };
+                    });
+                    this.vendedores.unshift({ value: 0, text: "Todos" });
                     this.overlay = false
                 })
         },
@@ -172,17 +222,13 @@ export default {
             return this.pagos.filter((el) => el.orden == idOrden)
         },
 
-        loadOrders() {
-            this.overlay = true
-            this.getOrdenes().then(() => (this.loading.show = false))
-        },
-
         onFiltered(filteredItems) {
-            // Trigger pagination to update the number of buttons/pages due to filtering
             this.totalRows = filteredItems.length
             this.currentPage = 1
         },
+
         reloadMe() {
+            this.loading.show = true;
             this.getOrdenes().then(() => {
                 this.getPagos().then(() => {
                     this.loading.show = false
@@ -193,11 +239,7 @@ export default {
 
     computed: {
         totalRows() {
-            return parseInt(this.ordenesLength) + 1
-        },
-
-        misOrdenes() {
-            return this.ordenes
+            return this.ordenesTabla.length;
         },
     },
 
