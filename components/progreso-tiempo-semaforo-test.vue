@@ -1,9 +1,20 @@
 <template>
   <div>
-    <b-button variant="info" @click="$bvModal.show(modal)">TEST</b-button>
+    <b-button
+      variant="info"
+      @click="$bvModal.show(modal)"
+    >TEST</b-button>
 
-    <b-modal :id="modal" :title="title" hide-footer size="xl">
-      <b-overlay :show="overlay" spinner-small>
+    <b-modal
+      :id="modal"
+      :title="title"
+      hide-footer
+      size="xl"
+    >
+      <b-overlay
+        :show="overlay"
+        spinner-small
+      >
         <b-table-lite
           bordered
           responsive
@@ -12,13 +23,6 @@
           :items="resultORdenes"
         ></b-table-lite>
 
-        <pre class="force">
-                    <!-- <h3>resultORdenes</h3> -->
-                    <!-- {{ resultORdenes }} -->
-                    <hr />
-                    <h3>ordenesProyectadas</h3>
-                    {{ ordenesProyectadas }}
-                </pre>
       </b-overlay>
     </b-modal>
   </div>

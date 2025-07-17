@@ -1,8 +1,17 @@
 <template>
   <div>
-    <b-overlay :show="overlay" spinner-small>
-      <div class="mb-2" v-if="asignado">
-        <b-alert variant="info" show>Insumo Creado {{ attributeText }}</b-alert>
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
+      <div
+        class="mb-2"
+        v-if="asignado"
+      >
+        <b-alert
+          variant="info"
+          show
+        >Insumo Creado {{ attributeText }}</b-alert>
       </div>
       <b-form>
         <b-form-group id="input-group-0">
@@ -12,9 +21,16 @@
             variant="info"
             class="mt-4"
           >
-            <b-icon icon="plus-lg" size="sm"></b-icon> Nuevo insumo
+            <b-icon
+              icon="plus-lg"
+              size="sm"
+            ></b-icon> Nuevo insumo
           </b-button>
-          <b-popover target="add-insumo" triggers="hover" placement="top">
+          <b-popover
+            target="add-insumo"
+            triggers="hover"
+            placement="top"
+          >
             <template #title>Crear nuevo insumo</template>
           </b-popover>
         </b-form-group>
@@ -81,13 +97,6 @@
           Asignar
         </b-button>
       </b-form>
-
-      <!-- <pre class="force" style="background-color: red">
-                {{ clacTimeProduction }}
-                <hr>
-                {{ $props }}
-            </pre> -->
-
       <b-modal
         :id="modal"
         ref="modalCaptura"

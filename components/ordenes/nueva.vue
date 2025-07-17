@@ -974,10 +974,6 @@
                       </b-tabs>
                     </b-card>
 
-                    <pre class="force">
-                      {{form}}
-                    </pre>
-
                     <!-- <div class="text-right mt-4">
                       <b-button-group>
                         <b-button @click="prev">Anterior</b-button>

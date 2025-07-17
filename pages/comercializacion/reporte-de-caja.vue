@@ -6,26 +6,28 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div
-        v-if="
+      <div v-if="
           accessModule.accessData.id_modulo === 2 ||
           accessModule.accessData.id_modulo === 1
-        "
-      >
-        <b-overlay :show="overlay" spinner-small>
-          <b-container
-            v-if="
+        ">
+        <b-overlay
+          :show="overlay"
+          spinner-small
+        >
+          <b-container v-if="
               this.accessModule.accessData.id_modulo === 2 ||
               accessModule.accessData.id_modulo === 1
-            "
-          >
+            ">
             <b-row>
               <b-col>
                 <h1 class="mb-4">{{ titulo }}</h1>
               </b-col>
             </b-row>
 
-            <b-form class="mb-4" @submit="onSubmit">
+            <b-form
+              class="mb-4"
+              @submit="onSubmit"
+            >
               <b-row>
                 <b-col>
                   <h3>Fecha Inicio</h3>
@@ -36,12 +38,18 @@
                 </b-col>
                 <b-col>
                   <h3>Fecha Fin</h3>
-                  <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
+                  <b-form-datepicker
+                    class="mb-4"
+                    v-model="fechaConsultaFin"
+                  />
                 </b-col>
               </b-row>
               <b-row>
                 <b-col class="text-center">
-                  <b-button type="submit" variant="primary">BUSCAR</b-button>
+                  <b-button
+                    type="submit"
+                    variant="primary"
+                  >BUSCAR</b-button>
                 </b-col>
               </b-row>
             </b-form>
@@ -51,19 +59,13 @@
                 <b-col>
                   <h3 class="mt-4">Efectivo</h3>
 
-                  <!-- <pre class="force">
-                    {{ dataReport.efectivo.dolares }}
-                </pre
-                  > -->
-
                   <h3>DOLARES</h3>
 
                   <b-alert
                     v-if="dataReport.efectivo.dolares.length === 0"
                     variant="info"
                     show
-                    >No hay dólares en la caja</b-alert
-                  >
+                  >No hay dólares en la caja</b-alert>
 
                   <div v-else>
                     <b-table
@@ -109,8 +111,7 @@
                     v-if="dataReport.efectivo.pesos.length === 0"
                     variant="info"
                     show
-                    >No hay dólares en la caja</b-alert
-                  >
+                  >No hay dólares en la caja</b-alert>
 
                   <div v-else>
                     <b-table
@@ -157,8 +158,7 @@
                     v-if="dataReport.efectivo.bolivares.length === 0"
                     variant="info"
                     show
-                    >No hay dólares en la caja</b-alert
-                  >
+                  >No hay dólares en la caja</b-alert>
 
                   <div v-else>
                     <b-table
@@ -209,13 +209,9 @@
                     v-if="dataReport.retiros.length === 0"
                     variant="info"
                     show
-                    >No hay retiros</b-alert
-                  >
+                  >No hay retiros</b-alert>
 
                   <div v-else>
-                    <pre class="force">
-                        {{ dataReport.retiros }}}}
-                    </pre>
                     <b-table
                       striped
                       small
@@ -260,12 +256,10 @@
                 <b-col>
                   <h4 class="text-right mb-4">
                     Total Efectivo
-                    <span class="money-result"
-                      >$
+                    <span class="money-result">$
                       {{
                         getTotal("efectivo", "num") - getTotal("retiros", "num")
-                      }}</span
-                    >
+                      }}</span>
                   </h4>
                 </b-col>
               </b-row>
@@ -280,8 +274,7 @@
                     v-if="dataReport.digital.length === 0"
                     variant="info"
                     show
-                    >No hay Zelle</b-alert
-                  >
+                  >No hay Zelle</b-alert>
 
                   <div v-else>
                     <b-table
@@ -328,8 +321,7 @@
                     v-if="dataReport.digital.length === 0"
                     variant="info"
                     show
-                    >No hay Pago Móvil</b-alert
-                  >
+                  >No hay Pago Móvil</b-alert>
 
                   <div v-else>
                     <b-table
@@ -376,8 +368,7 @@
                     v-if="dataReport.digital.length === 0"
                     variant="info"
                     show
-                    >No hay Transferencias</b-alert
-                  >
+                  >No hay Transferencias</b-alert>
 
                   <div v-else>
                     <b-table
@@ -428,23 +419,18 @@
                 <hr />
                 <h4 class="text-right mb-4 mt-4 pb-4">
                   Total General
-                  <span class="money-result"
-                    >$
+                  <span class="money-result">$
                     {{
                       totalGeneral(
                         getTotal("efectivo", "num"),
                         getTotal("digital", "num"),
                         getTotal("retiros", "num")
                       )
-                    }}</span
-                  >
+                    }}</span>
                 </h4>
               </b-col>
             </b-row>
 
-            <!-- <pre>
-            {{ sumPagos }}
-          </pre> -->
           </b-container>
         </b-overlay>
       </div>

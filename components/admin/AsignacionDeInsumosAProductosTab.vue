@@ -23,14 +23,24 @@
 
       <!-- {{ clacTimeProduction() }} -->
 
-      <b-button @click="saveTime" class="ml-2" variant="success">
+      <b-button
+        @click="saveTime"
+        class="ml-2"
+        variant="success"
+      >
         <b-icon icon="check-lg"></b-icon>
       </b-button>
     </b-form>
 
     <h3 class="mt-4">Insumos Asignados</h3>
 
-    <b-table class="mt-4" striped hover :fields="fields" :items="filterInsumos">
+    <b-table
+      class="mt-4"
+      striped
+      hover
+      :fields="fields"
+      :items="filterInsumos"
+    >
       <template #cell(tiempo)="data">
         {{ SegundosAMinutos(data.item.tiempo) }}
       </template>
@@ -58,11 +68,21 @@
     >
       <b-icon icon="plus-lg"></b-icon>
     </b-button>
-    <b-popover target="add-insumo" triggers="hover" placement="top">
+    <b-popover
+      target="add-insumo"
+      triggers="hover"
+      placement="top"
+    >
       <template #title>Asignar nuevo insumo</template>
     </b-popover>
 
-    <b-table responsive primary-key="id" :fields="campos" :items="form" small>
+    <b-table
+      responsive
+      primary-key="id"
+      :fields="campos"
+      :items="form"
+      small
+    >
       <template #cell(input)="row">
         <admin-AsignacionDeInsumosProductosForm
           :selecttallas="selecttallas"
@@ -87,10 +107,6 @@
         </b-button>
       </template>
     </b-table>
-
-    <!-- <pre class="force">
-            insumosasignados::: {{ insumosasignados }}
-        </pre> -->
   </div>
 </template>
 

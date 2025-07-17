@@ -1,11 +1,14 @@
 <template>
   <div>
-    <!-- <pre style="background-color: lightblue; color: gray !important">
-        {{ items }}
-      </pre
-    > -->
-    <b-overlay :show="overlay" spinner-small>
-      <b-table responsive :fields="fields" :items="items">
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
+      <b-table
+        responsive
+        :fields="fields"
+        :items="items"
+      >
         <template #cell(prioridad)="data">
           <produccion-check-prioridad
             :id="data.item.orden"
@@ -68,8 +71,8 @@
 </template>
 
 <script>
-import axios from 'axios'
-import mixin from '~/mixins/mixins.js'
+import axios from "axios";
+import mixin from "~/mixins/mixins.js";
 
 export default {
   data() {
@@ -78,7 +81,7 @@ export default {
       fields: [],
       items: [],
       reloadMe: false,
-    }
+    };
   },
 
   methods: {
@@ -86,17 +89,17 @@ export default {
       axios
         .get(`${this.$config.API}/lotes/en-proceso`)
         .then((res) => {
-          this.fields = res.data.fields
-          this.items = res.data.items
-          this.overlay = false
+          this.fields = res.data.fields;
+          this.items = res.data.items;
+          this.overlay = false;
         })
         .catch((err) => {
           this.$fire({
-            type: 'error',
-            title: 'Error',
+            type: "error",
+            title: "Error",
             html: `No se pudo obtener los datos de la tabla:  ${err}`,
-          })
-        })
+          });
+        });
     },
   },
 
@@ -107,11 +110,11 @@ export default {
   },
 
   mounted() {
-    this.loadOrdersProduction()
+    this.loadOrdersProduction();
   },
 
   mixins: [mixin],
-}
+};
 </script>
 
 <style scoped>

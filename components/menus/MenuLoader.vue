@@ -12,12 +12,18 @@
 
         </div> -->
 
-    <b-container style="padding: 0px" class="mb-4" fluid>
+    <b-container
+      style="padding: 0px"
+      class="mb-4"
+      fluid
+    >
       <b-row>
         <b-col>
-          <component :is="asyncComponent" v-if="currentComponent" />
+          <component
+            :is="asyncComponent"
+            v-if="currentComponent"
+          />
         </b-col>
-        <!-- <pre class="force">{{ accessModule }} </pre> -->
 
         <!-- <b-col v-if="dataUser.departamento === 'Comercialización'">
                     <menus-menuComercializacion />
@@ -76,11 +82,9 @@
                 <span class="tit-departament">{{ currentDepartament }}</span>
                 {{ $store.state.login.dataEmpresa.nombre }}
               </div>
-              <div
-                v-if="
+              <div v-if="
                   $store.state.login.currentDepartament === 'Administración'
-                "
-              >
+                ">
                 <div class="text-right">
                   <checkConnection style="float: right; margin-left: 12px" />
                 </div>
@@ -88,9 +92,7 @@
 
               <div v-else>
                 <div class="text-right">
-                  <admin-WsSendMsgCustomInterno
-                    style="float: right; margin-left: 12px"
-                  />
+                  <admin-WsSendMsgCustomInterno style="float: right; margin-left: 12px" />
                 </div>
               </div>
 
@@ -116,10 +118,12 @@
                       ) in getDepartamentosEmpleadoSelect"
                       :key="index"
                       variant="info"
-                      >{{ departamento.text }}</b-button
-                    >
+                    >{{ departamento.text }}</b-button>
 
-                    <b-button variant="info" @click="goOut()">Salir</b-button>
+                    <b-button
+                      variant="info"
+                      @click="goOut()"
+                    >Salir</b-button>
                   </b-button-group>
                 </div>
               </div>
@@ -130,7 +134,10 @@
       <b-row>
         <b-col>
           <div v-if="getDepartamentosEmpleadoSelect.length === 0">
-            <b-alert variant="warning" show>
+            <b-alert
+              variant="warning"
+              show
+            >
               <h4 class="text-center alert-heading">
                 No se encontraron modulos asignados
               </h4>
@@ -139,7 +146,10 @@
         </b-col>
       </b-row>
       <b-row>
-        <b-col v-if="currentComponent" class="mr-4 text-right">
+        <b-col
+          v-if="currentComponent"
+          class="mr-4 text-right"
+        >
           <buscar-BarraDeBusqueda />
         </b-col>
       </b-row>
@@ -154,7 +164,10 @@
       no-close-on-esc
       hide-header-close
     >
-      <b-alert show variant="info">
+      <b-alert
+        show
+        variant="info"
+      >
         <h4 class="alert-heading">¡Atención!</h4>
         <p>
           Para continuar, es necesario que establezca las tasas de cambio para

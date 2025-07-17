@@ -12,7 +12,6 @@
               <h3 v-if="departamento != 'Comercialización'">
                 RELACIÓN DE PAGOS
               </h3>
-              <!-- <pre>{{ ordenes }}</pre> -->
             </b-list-group-item>
             <b-list-group-item variant="info">
               <h3>{{ horasTrabajadas }} HORAS</h3>

@@ -6,12 +6,10 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div
-        v-if="
+      <div v-if="
           accessModule.accessData.id_modulo === 2 ||
           accessModule.accessData.id_modulo === 1
-        "
-      >
+        ">
         <b-container>
           <b-row>
             <b-col>
@@ -35,14 +33,20 @@
         </b-container>
 
         <b-container v-if="tasasCargadas">
-          <b-overlay :show="overlay" spinner-small>
+          <b-overlay
+            :show="overlay"
+            spinner-small
+          >
             <b-row class="mb-4">
               <b-col>
-                <b-alert show class="mb-4" variant="warning">
+                <b-alert
+                  show
+                  class="mb-4"
+                  variant="warning"
+                >
                   El cierre de caja implica el retiro del efectivo por parte de
                   la empresa,
-                  <strong
-                    >Si va a hacer un retiro de efectivo para algun gasto,
+                  <strong>Si va a hacer un retiro de efectivo para algun gasto,
                     hagalo desde el siguiente link:
                     <router-link
                       class="nav-link"
@@ -59,8 +63,7 @@
                       >
                         Retiros
                       </span>
-                    </router-link></strong
-                  >
+                    </router-link></strong>
                 </b-alert>
               </b-col>
             </b-row>
@@ -73,8 +76,7 @@
                     class="ml-4"
                     variant="success"
                     @click="enviarCierre"
-                    >Cerrar Caja</b-button
-                  >
+                  >Cerrar Caja</b-button>
                 </h2>
               </b-col>
             </b-row>
@@ -85,7 +87,13 @@
             </b-row>
 
             <b-row>
-              <b-col xl="4" lg="4" md="4" sm="12" xs="12">
+              <b-col
+                xl="4"
+                lg="4"
+                md="4"
+                sm="12"
+                xs="12"
+              >
                 <b-row>
                   <b-col>
                     <hr />
@@ -116,7 +124,13 @@
                   </b-col>
                 </b-row>
               </b-col>
-              <b-col xl="4" lg="4" md="4" sm="12" xs="12">
+              <b-col
+                xl="4"
+                lg="4"
+                md="4"
+                sm="12"
+                xs="12"
+              >
                 <b-row>
                   <b-col>
                     <hr />
@@ -147,7 +161,13 @@
                   </b-col>
                 </b-row>
               </b-col>
-              <b-col xl="4" lg="4" md="4" sm="12" xs="12">
+              <b-col
+                xl="4"
+                lg="4"
+                md="4"
+                sm="12"
+                xs="12"
+              >
                 <b-row>
                   <b-col>
                     <hr />
@@ -185,17 +205,13 @@
         <b-container v-else>
           <b-row>
             <b-col>
-              <b-alert show variant="warning"
-                >Por favor indique las Tasas del día</b-alert
-              >
+              <b-alert
+                show
+                variant="warning"
+              >Por favor indique las Tasas del día</b-alert>
             </b-col>
           </b-row>
         </b-container>
-        <!-- <pre>
-                    {{ $data }}
-                    <hr>
-                    {{ efectivo }}
-                </pre> -->
       </div>
 
       <div v-else>

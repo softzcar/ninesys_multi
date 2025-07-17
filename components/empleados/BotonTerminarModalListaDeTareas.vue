@@ -13,10 +13,6 @@
       hide-footer
       size="xl"
     >
-      <pre>
-        {{ $props }}
-    </pre>
-      <pre> dataTable2 {{ dataTable2 }}</pre>
       <b-overlay
         :show="overlay"
         spinner-small

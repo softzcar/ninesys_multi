@@ -90,9 +90,6 @@
             ></quill-editor>
           </b-col>
         </b-row>
-        <pre class="force">
-          {{ productos }}
-        </pre>
       </b-modal>
     </div>
   </div>

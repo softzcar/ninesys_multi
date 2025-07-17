@@ -1,6 +1,9 @@
 <template>
   <div>
-    <b-overlay :show="overlay" spinner-small>
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
       <b-table
         ref="table"
         responsive
@@ -20,11 +23,20 @@
 
         <template #cell(check)="data">
           <div class="text-center">
-            <p v-if="data.item.check != null" class="h1 mt-2">
-              <b-icon icon="exclamation-circle-fill" variant="success"></b-icon>
+            <p
+              v-if="data.item.check != null"
+              class="h1 mt-2"
+            >
+              <b-icon
+                icon="exclamation-circle-fill"
+                variant="success"
+              ></b-icon>
             </p>
 
-            <p v-else class="h1 mt-2">
+            <p
+              v-else
+              class="h1 mt-2"
+            >
               <b-icon
                 icon="exclamation-circle-fill"
                 style="color: lightgray"
@@ -59,9 +71,6 @@
                     <ordenes-vinculadas :id_orden="data.item.vinculadas" />
                 </template> -->
       </b-table>
-      <!-- <pre class="force">
-    {{ datax }}
-</pre> -->
     </b-overlay>
   </div>
 </template>

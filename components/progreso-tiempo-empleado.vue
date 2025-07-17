@@ -4,9 +4,6 @@
     <p style="margin-top: -16px">
       ${filtrado[0].fecha_estimada_entrega_formateada}
     </p>
-    <pre style="background-color: green" class="force">
-        {{ $props }}
-    </pre>
   </div>
 </template>
 

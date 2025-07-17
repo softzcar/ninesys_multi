@@ -2,8 +2,14 @@
   <div>
     <b-container>
       <b-row>
-        <b-col offset-lg="8" offset-xl="8">
-          <b-input-group class="mb-4" size="sm">
+        <b-col
+          offset-lg="8"
+          offset-xl="8"
+        >
+          <b-input-group
+            class="mb-4"
+            size="sm"
+          >
             <b-form-input
               id="filter-input"
               v-model="filter"
@@ -12,7 +18,10 @@
             ></b-form-input>
 
             <b-input-group-append>
-              <b-button :disabled="!filter" @click="filter = ''">
+              <b-button
+                :disabled="!filter"
+                @click="filter = ''"
+              >
                 Clear
               </b-button>
             </b-input-group-append>
@@ -54,9 +63,6 @@
         </b-col>
       </b-row>
     </b-container>
-    <pre>
-        {{ processedItems[11] }}
-    </pre>
   </div>
 </template>
 

@@ -1,10 +1,10 @@
 <template>
   <div>
     <b-container fluid>
-      <pre>
-        {{ items }}
-      </pre>
-      <b-overlay :show="overlay" spinner-small>
+      <b-overlay
+        :show="overlay"
+        spinner-small
+      >
         <b-row>
           <b-col>
             <b-card
@@ -49,7 +49,11 @@
                 </b-table>
               </b-card-text>
               <b-card-text v-else>
-                <b-alert :show="showAlert" class="text-center" variant="info">
+                <b-alert
+                  :show="showAlert"
+                  class="text-center"
+                  variant="info"
+                >
                   No hay tareas en curso.
                 </b-alert>
               </b-card-text>
@@ -63,8 +67,14 @@
 
         <!-- Buscador -->
         <b-row>
-          <b-col offset-lg="8" offset-xl="8">
-            <b-input-group class="mb-4" size="sm">
+          <b-col
+            offset-lg="8"
+            offset-xl="8"
+          >
+            <b-input-group
+              class="mb-4"
+              size="sm"
+            >
               <b-form-input
                 id="filter-input"
                 v-model="filter"
@@ -73,7 +83,10 @@
               ></b-form-input>
 
               <b-input-group-append>
-                <b-button :disabled="!filter" @click="filter = ''">
+                <b-button
+                  :disabled="!filter"
+                  @click="filter = ''"
+                >
                   Limpiar
                 </b-button>
               </b-input-group-append>
@@ -140,11 +153,6 @@
         </b-row>
       </b-overlay>
     </b-container>
-    <!-- <pre>
-      {{ processedItems }}
-      <hr>
-      {{ items }}
-    </pre> -->
   </div>
 </template>
 

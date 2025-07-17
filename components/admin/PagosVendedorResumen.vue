@@ -3,29 +3,41 @@
     <!-- <b-button variant="primary" @click="$bvModal.show(modal)">
             <b-icon icon="journal-code"></b-icon>
         </b-button> -->
-    <a href="#" @click="$bvModal.show(modal)">
+    <a
+      href="#"
+      @click="$bvModal.show(modal)"
+    >
       {{ item.nombre }}
     </a>
 
-    <b-modal :size="size" :title="title" :id="modal" hide-footer>
-      <b-overlay :show="overlay" spinner-small>
+    <b-modal
+      :size="size"
+      :title="title"
+      :id="modal"
+      hide-footer
+    >
+      <b-overlay
+        :show="overlay"
+        spinner-small
+      >
         <b-container fluid>
           <b-row>
             <b-col>
-              <div class="floatme" style="width: 100%; margin-bottom: 20px">
+              <div
+                class="floatme"
+                style="width: 100%; margin-bottom: 20px"
+              >
                 <span v-if="showbutton != 'false'">
                   <b-button
                     @click="pagarEmpleado(item.id_empleado)"
                     variant="success"
-                    >PAGAR {{ item.pago }}</b-button
-                  >
+                  >PAGAR {{ item.pago }}</b-button>
                 </span>
               </div>
             </b-col>
           </b-row>
           <b-row class="justify-content-md-center">
             <b-col>
-              <!-- <pre>{{ detalles }}</pre> -->
               <b-table
                 responsive
                 small
@@ -45,8 +57,14 @@
                   ${{ data.item.pago }}
                 </template>
                 <template #cell(id_orden)="data">
-                  <linkSearch class="floatme" :id="data.item.id_orden" />
-                  <diseno-viewImage class="floatme" :id="data.item.id_orden" />
+                  <linkSearch
+                    class="floatme"
+                    :id="data.item.id_orden"
+                  />
+                  <diseno-viewImage
+                    class="floatme"
+                    :id="data.item.id_orden"
+                  />
                 </template>
               </b-table>
             </b-col>
@@ -54,9 +72,6 @@
         </b-container>
       </b-overlay>
     </b-modal>
-    <!-- <pre class="force">
-      {{ detalles }}
-    </pre> -->
   </div>
 </template>
 

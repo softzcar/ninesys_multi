@@ -2,27 +2,42 @@
   <div>
     <div>
       <span class="floatme">
-        <b-button variant="primary" @click="$bvModal.show(modal)">
+        <b-button
+          variant="primary"
+          @click="$bvModal.show(modal)"
+        >
           <b-icon icon="credit-card"></b-icon>
         </b-button>
         <!-- {{ this.successMsg }} -->
       </span>
-      <span v-if="showCalculatingBadge" class="floatme">
+      <span
+        v-if="showCalculatingBadge"
+        class="floatme"
+      >
         <span class="floatme">
           <b-badge variant="light">CALCULANDO...</b-badge>
         </span>
       </span>
-      <span v-else-if="parseFloat(calculated) === 0" class="floatme">
+      <span
+        v-else-if="parseFloat(calculated) === 0"
+        class="floatme"
+      >
         <span class="floatme">
           <b-badge variant="success">PAGADO: {{ moneyFormatter(dataCalc.abono) }}</b-badge>
         </span>
       </span>
-      <span v-else-if="parseFloat(calculated) > 0" class="floatme">
+      <span
+        v-else-if="parseFloat(calculated) > 0"
+        class="floatme"
+      >
         <span class="floatme">
           <b-badge variant="info">RESTA: {{ moneyFormatter(calculated) }}</b-badge>
         </span>
       </span>
-      <span v-else-if="parseFloat(calculated) < 0" class="floatme">
+      <span
+        v-else-if="parseFloat(calculated) < 0"
+        class="floatme"
+      >
         <span class="floatme">
           <b-badge variant="warning">SOBREPAGO: {{ moneyFormatter(parseFloat(calculated) * -1) }}</b-badge>
         </span>
@@ -42,8 +57,16 @@
         <b-badge variant="success">PAGADO</b-badge>
       </span> -->
 
-      <b-modal :id="modal" :title="title" hide-footer size="xl">
-        <b-overlay :show="overlay" spinner-small>
+      <b-modal
+        :id="modal"
+        :title="title"
+        hide-footer
+        size="xl"
+      >
+        <b-overlay
+          :show="overlay"
+          spinner-small
+        >
           <b-container>
             <b-row>
               <b-col
@@ -65,15 +88,17 @@
             <b-row>
               <b-col class="mb-4">
                 <p class="mt-4 mb-4">
-                  <b-alert :show="showError" variant="danger">{{
+                  <b-alert
+                    :show="showError"
+                    variant="danger"
+                  >{{
                     errorMsg
                   }}</b-alert>
                   <b-alert
                     :show="showSuccess"
                     class="text-center"
                     variant="success"
-                    >{{ successMsg }}</b-alert
-                  >
+                  >{{ successMsg }}</b-alert>
                 </p>
                 <p>
                   <b-button
@@ -82,9 +107,12 @@
                     variant="success"
                     block
                     @click="enviarSaldo"
-                    ><b-icon icon="whatsapp" variant="light" size="sm"></b-icon>
-                    Enviar saldo al cliente</b-button
-                  >
+                  ><b-icon
+                      icon="whatsapp"
+                      variant="light"
+                      size="sm"
+                    ></b-icon>
+                    Enviar saldo al cliente</b-button>
                 </p>
                 <h4 class="mt-4">Histórico</h4>
                 <b-table
@@ -96,7 +124,10 @@
                   :items="item"
                 >
                   <template #cell(orden)="data">
-                    <linkSearch :key="data.item._id" :id="data.item.orden" />
+                    <linkSearch
+                      :key="data.item._id"
+                      :id="data.item.orden"
+                    />
                   </template>
 
                   <template #cell(monto)="data">
@@ -143,20 +174,16 @@
                 <h4 class="mt-4">Estado actual</h4>
                 <b-list-group>
                   <b-list-group-item>
-                    <strong>Total orden: </strong
-                    >{{ moneyFormatter(dataCalc.total) }}
+                    <strong>Total orden: </strong>{{ moneyFormatter(dataCalc.total) }}
                   </b-list-group-item>
                   <b-list-group-item>
-                    <strong>Abonado: </strong
-                    >{{ moneyFormatter(dataCalc.abono) }}
+                    <strong>Abonado: </strong>{{ moneyFormatter(dataCalc.abono) }}
                   </b-list-group-item>
                   <b-list-group-item>
-                    <strong>Descuentos: </strong
-                    >{{ moneyFormatter(dataCalc.descuento) }}
+                    <strong>Descuentos: </strong>{{ moneyFormatter(dataCalc.descuento) }}
                   </b-list-group-item>
                   <b-list-group-item>
-                    <strong>Total: </strong
-                    >{{ moneyFormatter(dataCalc.total_abono_descuento) }}
+                    <strong>Total: </strong>{{ moneyFormatter(dataCalc.total_abono_descuento) }}
                   </b-list-group-item>
                   <b-list-group-item>
                     <strong>Resta:</strong>
@@ -167,7 +194,12 @@
             </b-row>
 
             <b-row>
-              <b-col xl="3" lg="3" md="6" sm="12">
+              <b-col
+                xl="3"
+                lg="3"
+                md="6"
+                sm="12"
+              >
                 <b-row>
                   <b-col>
                     <hr />
@@ -247,7 +279,12 @@
                 </b-row>
               </b-col>
 
-              <b-col xl="3" lg="3" md="6" sm="12">
+              <b-col
+                xl="3"
+                lg="3"
+                md="6"
+                sm="12"
+              >
                 <b-row>
                   <b-col>
                     <hr />
@@ -301,7 +338,13 @@
                 </b-row>
               </b-col>
 
-              <b-col xl="3" lg="3" md="6" sm="12" xs="12">
+              <b-col
+                xl="3"
+                lg="3"
+                md="6"
+                sm="12"
+                xs="12"
+              >
                 <b-row>
                   <b-col>
                     <hr />
@@ -402,15 +445,19 @@
                 </b-row>
               </b-col>
 
-              <b-col xl="3" lg="3" md="6" sm="12" class="mb-4">
+              <b-col
+                xl="3"
+                lg="3"
+                md="6"
+                sm="12"
+                class="mb-4"
+              >
                 <b-row>
                   <b-col>
-                    <div
-                      v-if="
+                    <div v-if="
                         this.$store.state.login.dataUser.departamento ===
                         'Administración'
-                      "
-                    >
+                      ">
                       <hr />
                       <h4>Descuento</h4>
                     </div>
@@ -419,12 +466,10 @@
                 <b-row align-h="start">
                   <!-- <b-form-input min="0" :disabled="inputDisabled" v-model="value" type="number"
                   placeholder="Abono"></b-form-input>-->
-                  <div
-                    v-if="
+                  <div v-if="
                       this.$store.state.login.dataUser.departamento ===
                       'Administración'
-                    "
-                  >
+                    ">
                     <b-form-input
                       min="0"
                       lab
@@ -441,21 +486,18 @@
                     variant="success"
                     block
                     @click="hacerAbono"
-                    >Abonar</b-button
-                  >
+                  >Abonar</b-button>
                 </b-row>
               </b-col>
             </b-row>
-            <!-- <pre>
-             {{ $data.form }}
-            </pre> -->
           </b-container>
           <b-container v-else>
             <b-row>
               <b-col>
-                <b-alert show variant="warning"
-                  >Por favor indique las Tasas del día</b-alert
-                >
+                <b-alert
+                  show
+                  variant="warning"
+                >Por favor indique las Tasas del día</b-alert>
               </b-col>
             </b-row>
           </b-container>
@@ -1047,10 +1089,7 @@ export default {
   },
 
   mounted() {
-    Promise.all([
-      this.getData(),
-      this.getDataAbonos()
-    ]).then(() => {
+    Promise.all([this.getData(), this.getDataAbonos()]).then(() => {
       this.showCalculatingBadge = false;
     });
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {});

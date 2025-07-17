@@ -1,7 +1,5 @@
 <template>
   <div>
-    <!-- Mostrar el resultado de la información del servidor en una etiqueta <pre> -->
-    <pre>{{ serverData }}</pre>
 
     <!-- Botones para interactuar con el servidor -->
     <b-button @click="sendBroadcast">Enviar Broadcast</b-button>
@@ -13,41 +11,41 @@
 
 <script>
 // import socketWebClient from '~/path/to/socketWebClient'
-import socketWebClient from '~/utils/socketPluginClient.js'
+import socketWebClient from "~/utils/socketPluginClient.js";
 
 export default {
   data() {
     return {
-      serverData: '',
-    }
+      serverData: "",
+    };
   },
   methods: {
     initWebSocket(initParams) {
       // ...
 
       // Configurar el callback para manejar el mensaje del servidor
-      this.sock.setCallbackReadMessage(this.handleMessage)
+      this.sock.setCallbackReadMessage(this.handleMessage);
 
       // ...
     },
     handleMessage(data) {
       // Actualizar la información recibida del servidor en la propiedad serverData
-      this.serverData = JSON.stringify(data, null, 2)
+      this.serverData = JSON.stringify(data, null, 2);
     },
     sendBroadcast() {
-      this.sock.broadcast('Hello from component')
+      this.sock.broadcast("Hello from component");
     },
     sendFeedback() {
-      this.sock.feedback({ data: 'Feedback message from component' })
+      this.sock.feedback({ data: "Feedback message from component" });
     },
     sendEcho() {
-      this.sock.echo('Echo message from component')
+      this.sock.echo("Echo message from component");
     },
     closeSocket() {
-      this.sock.quit()
+      this.sock.quit();
     },
   },
-}
+};
 </script>
 
 <style>

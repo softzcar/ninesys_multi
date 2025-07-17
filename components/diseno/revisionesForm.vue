@@ -1,6 +1,9 @@
 <template>
   <div>
-    <b-overlay :show="overlay" rounded="sm">
+    <b-overlay
+      :show="overlay"
+      rounded="sm"
+    >
       <b-container>
         <b-row>
           <b-col>
@@ -32,8 +35,7 @@
                           font-weight: bold;
                         "
                         :variant="variantAlert"
-                        >{{ item.estatus }}</b-alert
-                      >
+                      >{{ item.estatus }}</b-alert>
                     </b-col>
                   </b-row>
                 </b-col>
@@ -91,15 +93,12 @@
         </b-row>
       </b-container>
     </b-overlay>
-    <!-- <pre>
-        {{ $data }}
-    </pre> -->
   </div>
 </template>
 
 <script>
-import mixin from '~/mixins/mixins.js'
-import axios from 'axios'
+import mixin from "~/mixins/mixins.js";
+import axios from "axios";
 
 export default {
   mixins: [mixin],
@@ -109,68 +108,68 @@ export default {
       tmpImage: null,
       overlay: false,
       detalles: this.item.detalles,
-      variantAlert: 'secondary',
-    }
+      variantAlert: "secondary",
+    };
   },
 
   watch: {
     item(val) {
-      if (val.estatus === 'Rechazado') {
-        this.variantAlert = 'warning'
+      if (val.estatus === "Rechazado") {
+        this.variantAlert = "warning";
       }
-      if (val.estatus === 'Aprobado') {
-        this.variantAlert = 'success'
+      if (val.estatus === "Aprobado") {
+        this.variantAlert = "success";
       }
-      if (val.estatus === 'Esperando Respuesta') {
-        this.variantAlert = 'info'
+      if (val.estatus === "Esperando Respuesta") {
+        this.variantAlert = "info";
       }
     },
   },
 
   computed: {
     title() {
-      return `ORDEN ${this.item.id_orden}, REVISIÓN ${this.item.revision}`
+      return `ORDEN ${this.item.id_orden}, REVISIÓN ${this.item.revision}`;
     },
   },
 
   methods: {
     copyLink() {
-      const el = document.createElement('textarea')
-      el.value = this.tmpImage
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      const el = document.createElement("textarea");
+      el.value = this.tmpImage;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
 
-      console.log('Enlace copiado al portapapeles: ' + this.tmpImage)
+      console.log("Enlace copiado al portapapeles: " + this.tmpImage);
     },
 
     findImage() {
-      let token = this.token()
+      let token = this.token();
       axios
         .get(
           `${this.$config.CDN}/?id_orden=${this.item.id_orden}&id_diseno=${this.item.id_diseno}&review=${this.item.revision}`
         )
         .then((res) => {
-          console.log(`El cdn respondio con una imagen`, res)
-          this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`
+          console.log(`El cdn respondio con una imagen`, res);
+          this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`;
         })
         .catch((err) => {
-          console.log(`El cdn respondio con un error`, err)
-          this.tmpImage = `${this.$config.CDN}/images/no-image.png`
-        })
+          console.log(`El cdn respondio con un error`, err);
+          this.tmpImage = `${this.$config.CDN}/images/no-image.png`;
+        });
     },
   },
 
   mounted() {
-    this.findImage()
-    if (this.item.estatus === 'Rechazado') this.variantAlert = 'warning'
-    if (this.item.estatus === 'Aprobado') this.variantAlert = 'success'
-    if (this.item.estatus === 'Esperando Respuesta') this.variantAlert = 'info'
+    this.findImage();
+    if (this.item.estatus === "Rechazado") this.variantAlert = "warning";
+    if (this.item.estatus === "Aprobado") this.variantAlert = "success";
+    if (this.item.estatus === "Esperando Respuesta") this.variantAlert = "info";
   },
 
-  props: ['item', 'reload'],
-}
+  props: ["item", "reload"],
+};
 </script>
 
 <style scoped>

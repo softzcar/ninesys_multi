@@ -6,12 +6,10 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div
-        v-if="
+      <div v-if="
           accessModule.accessData.id_modulo === 2 ||
           accessModule.accessData.id_modulo === 1
-        "
-      >
+        ">
         <b-container>
           <b-container>
             <b-row>
@@ -34,24 +32,18 @@
               </b-col>
             </b-row>
           </b-container>
-          <!-- <pre class="force">
-                        {{ $data }}
-                    </pre> -->
           <div v-if="tasasCargadas">
-            <b-overlay :show="overlay" spinner-small>
+            <b-overlay
+              :show="overlay"
+              spinner-small
+            >
               <b-row>
                 <b-col>
                   <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
                   <b-list-group class="mb-4">
-                    <b-list-group-item
-                      >DOLARES: {{ caja[0].monto }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                      >PESOS: {{ caja[1]["monto"] }}</b-list-group-item
-                    >
-                    <b-list-group-item
-                      >BOLIVARES: {{ caja[2]["monto"] }}</b-list-group-item
-                    >
+                    <b-list-group-item>DOLARES: {{ caja[0].monto }}</b-list-group-item>
+                    <b-list-group-item>PESOS: {{ caja[1]["monto"] }}</b-list-group-item>
+                    <b-list-group-item>BOLIVARES: {{ caja[2]["monto"] }}</b-list-group-item>
                   </b-list-group>
                 </b-col>
               </b-row>
@@ -64,8 +56,7 @@
                       class="ml-4"
                       variant="success"
                       @click="enviarRetiro"
-                      >RETIRAR</b-button
-                    >
+                    >RETIRAR</b-button>
                   </h2>
                 </b-col>
               </b-row>
@@ -76,7 +67,13 @@
                 </b-col>
               </b-row>
               <b-row>
-                <b-col xl="3" lg="3" md="3" sm="12" xs="12">
+                <b-col
+                  xl="3"
+                  lg="3"
+                  md="3"
+                  sm="12"
+                  xs="12"
+                >
                   <b-row>
                     <b-col>
                       <hr />
@@ -158,7 +155,12 @@
                   </b-row>
                 </b-col>
 
-                <b-col xl="9" lg="9" md="9" sm="12">
+                <b-col
+                  xl="9"
+                  lg="9"
+                  md="9"
+                  sm="12"
+                >
                   <b-row>
                     <b-col>
                       <hr />
@@ -173,7 +175,12 @@
                           v-model="fechaConsulta"
                           @input="realizarConsulta"
                         />
-                        <b-table striped hover :items="report" :fields="fields">
+                        <b-table
+                          striped
+                          hover
+                          :items="report"
+                          :fields="fields"
+                        >
                           <template #cell(moneda)="data">
                             {{ data.item.moneda }}
                             {{ data.item.metodo_pago }}
@@ -202,9 +209,10 @@
           </div>
 
           <div v-else>
-            <b-alert show variant="warning"
-              >Por favor indique las Tasas del día</b-alert
-            >
+            <b-alert
+              show
+              variant="warning"
+            >Por favor indique las Tasas del día</b-alert>
           </div>
         </b-container>
       </div>

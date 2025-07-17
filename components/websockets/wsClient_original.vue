@@ -4,55 +4,65 @@
       <div class="col-md-6">
         <h4>
           Status:
-          <span id="connect" style="font-size: 1.2em">not connected</span>
+          <span
+            id="connect"
+            style="font-size: 1.2em"
+          >not connected</span>
         </h4>
       </div>
     </div>
     <div class="row">
       <div class="col-md-12">
-        <b-button class="mr-2" variant="primary" @click="connect"
-          >Connect to Server</b-button
-        >
-        <b-button variant="danger" @click="closeConnection"
-          >Close connection</b-button
-        >
+        <b-button
+          class="mr-2"
+          variant="primary"
+          @click="connect"
+        >Connect to Server</b-button>
+        <b-button
+          variant="danger"
+          @click="closeConnection"
+        >Close connection</b-button>
       </div>
     </div>
     <div class="row mt-4">
       <div class="col-md-12">
         <b-card>
-          <b-button variant="secondary" @click="callBackend"
-            >CALL Backend via AJAX</b-button
-          >
+          <b-button
+            variant="secondary"
+            @click="callBackend"
+          >CALL Backend via AJAX</b-button>
           <div class="mt-3">Here you will see feedback from backend :</div>
-          <pre>{{ feedback }}</pre>
         </b-card>
       </div>
       <div class="col-md-6">
         <b-card>
-          <b-button variant="secondary" @click="echoMessage"
-            >Echo message</b-button
-          >
+          <b-button
+            variant="secondary"
+            @click="echoMessage"
+          >Echo message</b-button>
           <div class="mt-3">Here you will see echo :</div>
-          <pre>{{ echoMsg }}</pre>
         </b-card>
       </div>
     </div>
     <div class="row mt-4">
       <div class="col-md-6">
         <b-card>
-          <b-button variant="secondary" @click="pingMe">Ping me</b-button>
+          <b-button
+            variant="secondary"
+            @click="pingMe"
+          >Ping me</b-button>
           <div class="mt-3">Here you will see ping :</div>
-          <b
-            ><span id="pingmsg">{{ pingMsg }}</span></b
-          >
+          <b><span id="pingmsg">{{ pingMsg }}</span></b>
         </b-card>
       </div>
     </div>
     <hr />
     <div class="row mt-4">
       <div class="col-md-6">
-        <b-button variant="success" @click="talkToOthers">
+        <b-button
+          variant="success"
+          @click="talkToOthers"
+        >
           Talk to others; my UUID=<b>{{ uuid }}</b>
         </b-button>
       </div>
@@ -68,15 +78,15 @@
 </template>
 
 <script>
-import mixin from '~/mixins/mixins.js'
+import mixin from "~/mixins/mixins.js";
 export default {
   data() {
     return {
-      feedback: '',
-      echoMsg: '',
-      pingMsg: '', // Propiedad para el mensaje de "ping"
-      uuid: '',
-    }
+      feedback: "",
+      echoMsg: "",
+      pingMsg: "", // Propiedad para el mensaje de "ping"
+      uuid: "",
+    };
   },
   methods: {
     /*
@@ -112,8 +122,8 @@ export default {
   },
   mixins: [mixin],
   mounted() {
-    this.socketWebClient()
-    this.startGUI()
+    this.socketWebClient();
+    this.startGUI();
   },
-}
+};
 </script>
