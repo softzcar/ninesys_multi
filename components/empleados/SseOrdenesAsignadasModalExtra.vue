@@ -5,8 +5,7 @@
         @click="$bvModal.show(modal)"
         variant="success"
         :disabled="ButtonDisabled"
-        >{{ btnText }}</b-button
-      >
+      >{{ btnText }}</b-button>
     </span>
 
     <!-- Pausas -->
@@ -20,8 +19,16 @@
       />
     </span>
 
-    <b-modal :id="modal" :title="title" hide-footer size="lg">
-      <b-overlay :show="overlay" spinner-small>
+    <b-modal
+      :id="modal"
+      :title="title"
+      hide-footer
+      size="lg"
+    >
+      <b-overlay
+        :show="overlay"
+        spinner-small
+      >
         <!-- Formulario de Impresión -->
         <!-- <div
                     v-if="
@@ -85,13 +92,11 @@
             </b-form-group>
           </div>
           <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO -->
-          <div
-            v-if="
+          <div v-if="
               $store.state.login.currentDepartament === 'Estampado' ||
               $store.state.login.currentDepartament === 'Corte' ||
               $store.state.login.currentDepartament === 'Corte papel'
-            "
-          >
+            ">
             <!-- <p>
                             <strong>Papel Utilizado:</strong>
                             {{ papelUtilizado }} Metros
@@ -216,16 +221,13 @@
             @click="validateForm"
             ButtonDisabled
             variant="primary"
-            >Enviar</b-button
-          >
-          <b-button :disbaled="ButtonDisabled" type="reset" variant="danger"
-            >Borrar</b-button
-          >
+          >Enviar</b-button>
+          <b-button
+            :disbaled="ButtonDisabled"
+            type="reset"
+            variant="danger"
+          >Borrar</b-button>
         </b-form>
-        <pre class="force">
-            {{ $props.item }}
-        </pre>
-        <!-- </div> -->
       </b-overlay>
     </b-modal>
   </div>

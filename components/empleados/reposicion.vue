@@ -15,17 +15,28 @@
       <b-icon icon="eye"></b-icon>
     </b-button>
 
-    <b-modal :size="size" :title="title" :id="modal2" hide-footer>
+    <b-modal
+      :size="size"
+      :title="title"
+      :id="modal2"
+      hide-footer
+    >
       <p>
         {{ filterDetallesReposicion }}
       </p>
-      <pre class="force">
-        {{ $props }}
-      </pre>
     </b-modal>
 
-    <b-modal :size="size" :title="title" :id="modal" hide-footer>
-      <b-container fluid class="p-3" style="width: 100%">
+    <b-modal
+      :size="size"
+      :title="title"
+      :id="modal"
+      hide-footer
+    >
+      <b-container
+        fluid
+        class="p-3"
+        style="width: 100%"
+      >
         <b-row>
           <b-col>
             <h3>Datos de la orden</h3>
@@ -35,22 +46,19 @@
               </b-list-group-item>
 
               <b-list-group-item>
-                <span
-                  ><strong>Cliente:</strong>
+                <span><strong>Cliente:</strong>
                   {{ item.cliente }}
                 </span>
               </b-list-group-item>
               <b-list-group-item>
                 <span>
                   <strong>Paso actual:</strong>
-                  <span
-                    style="
+                  <span style="
                       text-transform: uppercase;
                       background-color: #fff3cd;
                       font-weight: 700;
                       padding: 4px;
-                    "
-                  >
+                    ">
                     {{ item.paso }}
                   </span>
                 </span>
@@ -61,9 +69,11 @@
                   size="sm"
                   v-b-toggle.collapse-1
                   variant="light"
-                  >Ver Detalles</b-button
+                >Ver Detalles</b-button>
+                <b-collapse
+                  id="collapse-1"
+                  class="mt-2"
                 >
-                <b-collapse id="collapse-1" class="mt-2">
                   <span v-html="item.detalle_supervisor"></span>
                   <p>Mas detalles...</p>
                 </b-collapse>
@@ -73,7 +83,10 @@
         </b-row>
         <b-row>
           <b-col class="mt-4">
-            <b-table hover :items="tablaProductos">
+            <b-table
+              hover
+              :items="tablaProductos"
+            >
               <template #cell(Reponer)="data">
                 <empleados-reposicion-form-empleados
                   :item="data"

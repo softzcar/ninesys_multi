@@ -62,14 +62,14 @@
     <div v-else>
       <b-container fluid>
         <draggable
-          v-model="items"
+          v-model="itemsFiltrados"
           @end="afterDrag"
           tag="ul"
           class="list-group"
         >
           <b-list-group
             class="list-group-draggable"
-            v-for="(el, index) in items"
+            v-for="(el, index) in itemsFiltrados"
             :key="index"
             horizontal="xl"
           >
@@ -507,6 +507,46 @@ export default {
     // --- COMPUTED ORIGINAL RESTAURADO ---
     totalRows() {
       return parseInt(this.ordenesLength) + 1;
+    },
+
+    itemsFiltrados: {
+      get() {
+        if (!this.items.length || !this.orden_productos.length) {
+          return [];
+        }
+
+        return this.items.filter((order) => {
+          // Encontrar todos los productos para la orden actual
+          const productosDeLaOrden = this.orden_productos.filter(
+            (p) => p.id_orden === order.orden
+          );
+
+          if (productosDeLaOrden.length === 0) {
+            return false; // Si no tiene productos, no se puede verificar, se excluye.
+          }
+
+          // La regla es mostrar la orden si tiene AL MENOS UN producto físico (fisico = 1)
+          const tieneProductoFisico = productosDeLaOrden.some(
+            (p) => p.fisico == 1
+          );
+
+          return tieneProductoFisico;
+        });
+      },
+      set(reorderedItems) {
+        // 1. Obtenemos los items que fueron filtrados (los que son solo no-físicos)
+        const itemsNoFisicos = this.items.filter((order) => {
+          const productosDeLaOrden = this.orden_productos.filter(
+            (p) => p.id_orden === order.orden
+          );
+          // Un item es "no físico" si ninguno de sus productos es físico.
+          // Si la orden no tiene productos, some() devuelve false, por lo que !some() es true, y se filtra correctamente.
+          return !productosDeLaOrden.some((p) => p.fisico == 1);
+        });
+
+        // 2. Concatenamos la lista reordenada con los no físicos al final.
+        this.items = [...reorderedItems, ...itemsNoFisicos];
+      },
     },
   },
 

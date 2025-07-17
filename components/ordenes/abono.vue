@@ -7,19 +7,31 @@
         </b-button>
         <!-- {{ this.successMsg }} -->
       </span>
-      <span v-if="moneyFormatter(calculated) === '$0.00'" class="floatme">
+      <span v-if="showCalculatingBadge" class="floatme">
         <span class="floatme">
-          <b-badge variant="success">PAGADO</b-badge>
+          <b-badge variant="light">CALCULANDO...</b-badge>
         </span>
       </span>
-      <span v-if="moneyFormatter(calculated) != '$0.00'" class="floatme">
-        <strong>Resta:</strong> {{ moneyFormatter(calculated) }}
+      <span v-else-if="parseFloat(calculated) === 0" class="floatme">
+        <span class="floatme">
+          <b-badge variant="success">PAGADO: {{ moneyFormatter(dataCalc.abono) }}</b-badge>
+        </span>
+      </span>
+      <span v-else-if="parseFloat(calculated) > 0" class="floatme">
+        <span class="floatme">
+          <b-badge variant="info">RESTA: {{ moneyFormatter(calculated) }}</b-badge>
+        </span>
+      </span>
+      <span v-else-if="parseFloat(calculated) < 0" class="floatme">
+        <span class="floatme">
+          <b-badge variant="warning">SOBREPAGO: {{ moneyFormatter(parseFloat(calculated) * -1) }}</b-badge>
+        </span>
       </span>
       <span
         v-if="moneyFormatter(dataCalc.descuento) != '$0.00'"
         class="floatme"
       >
-        <strong>Desc: </strong>{{ moneyFormatter(dataCalc.descuento) }}
+        <strong>DESC: </strong>{{ moneyFormatter(dataCalc.descuento) }}
       </span>
       <!-- <span
         v-if="
@@ -469,6 +481,7 @@ export default {
       errorMsg: `ERROR`,
       successMsg: "OK",
       dataTable: [],
+      showCalculatingBadge: true,
       dataCalc: {
         id_orden: this.idorden,
         abono: 0,
@@ -1034,15 +1047,12 @@ export default {
   },
 
   mounted() {
-    /* this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
-      this.getData().then(() => {
-        // console.log(`Calculated order: ${this.idorden}`, this.calculated)
-      })
-
+    Promise.all([
+      this.getData(),
       this.getDataAbonos()
-    }) */
-    this.getData();
-    this.getDataAbonos();
+    ]).then(() => {
+      this.showCalculatingBadge = false;
+    });
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {});
   },
   props: ["idorden", "item", "reload"],

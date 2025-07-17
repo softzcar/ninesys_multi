@@ -11,6 +11,11 @@
         </b-col>
       </b-row>
       <b-row>
+        <b-col class="mb-4">
+            <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
+                button-variant="outline-primary" size="lg" name="radio-btn-outline" @input="applyFilters()"
+                buttons></b-form-radio-group>
+        </b-col>
         <b-col
           offset-lg="8"
           offset-xl="8"
@@ -150,6 +155,8 @@
                   :key="data.item.orden"
                   :idorden="data.item.orden"
                   :item="filterPago(data.item.orden)"
+                  :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
+                  @reload="reloadMe()"
                 />
               </div>
             </template>
@@ -167,6 +174,13 @@ import mixin from "~/mixins/mixins.js";
 export default {
   data() {
     return {
+      selectedRadio: "todas",
+      optionsRadio: [
+          { text: "Todas", value: "todas" },
+          { text: "Pagadas", value: "pagadas" },
+          { text: "Pendientes", value: "pendientes" },
+          { text: "Sobrepagadas", value: "sobrepagada" },
+      ],
       ordenesLength: 0,
       dataTable: [],
       ordenesActivas: [],
@@ -194,6 +208,7 @@ export default {
       this.fechaConsultaInicio = "";
       this.fechaConsultaFin = "";
       this.selectedVendedor = 0;
+      this.selectedRadio = "todas";
       this.applyFilters();
     },
 
@@ -223,7 +238,7 @@ export default {
     },
 
     applyFilters() {
-      let filtered = [...this.ordenesActivas];
+      let filtered = [...this.ordenesConEstadoDePago]; // Start from the computed property
 
       // Filter by seller
       if (this.selectedVendedor != 0) {
@@ -247,6 +262,15 @@ export default {
         });
       }
       
+      // Filter by payment status
+      if (this.selectedRadio === "pagadas") {
+          filtered = filtered.filter(el => el.payment_status === 'pagada');
+      } else if (this.selectedRadio === "pendientes") {
+          filtered = filtered.filter(el => el.payment_status === 'pendiente');
+      } else if (this.selectedRadio === "sobrepagada") {
+          filtered = filtered.filter(el => el.payment_status === 'sobrepagada');
+      }
+
       this.dataTable = filtered;
     },
 
@@ -254,8 +278,9 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/table/ordenes-activas/${id_empleado}`)
         .then((res) => {
-          this.dataTable = res.data.items;
           this.fields = res.data.fields;
+          // Añadir la columna 'Estatus'
+          this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
           this.ordenesActivas = res.data.items;
           this.ordenesLength = this.ordenesActivas.length;
         });
@@ -289,11 +314,13 @@ export default {
 
     reloadMe() {
       this.overlay = true;
-      this.getOrdenesActivas(this.dataUser.id_empleado).then(() => {
-        this.getPagos().then(() => {
-          this.loading.show = false;
-          this.overlay = false;
-        });
+      Promise.all([
+        this.getOrdenesActivas(this.dataUser.id_empleado),
+        this.getPagos()
+      ]).then(() => {
+        this.applyFilters(); // Call applyFilters after both data sources are loaded
+        this.loading.show = false;
+        this.overlay = false;
       });
     },
   },
@@ -305,6 +332,30 @@ export default {
 
     misOrdenes() {
       return this.ordenesActivas;
+    },
+    ordenesConEstadoDePago() {
+        if (!this.ordenesActivas.length || !this.pagos.length) return [];
+        
+        return this.ordenesActivas.map(orden => {
+            const pagosDeOrden = this.pagos.filter(p => p.orden === orden.orden);
+            const totalAbonado = pagosDeOrden.reduce((acc, pago) => acc + parseFloat(pago.monto), 0);
+            const totalOrden = parseFloat(orden.total) || 0;
+            const montoPendiente = totalOrden - totalAbonado;
+
+            let payment_status = 'pendiente';
+            if (montoPendiente === 0) {
+                payment_status = 'pagada';
+            } else if (montoPendiente < 0) {
+                payment_status = 'sobrepagada';
+            }
+
+            return {
+                ...orden,
+                acc: orden.orden,
+                monto_pendiente: montoPendiente,
+                payment_status: payment_status
+            };
+        });
     },
     ...mapState("login", ["dataUser"]),
   },

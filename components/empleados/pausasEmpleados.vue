@@ -4,10 +4,14 @@
       :disabled="disableMe"
       @click="$bvModal.show(modal)"
       variant="primary"
-      >{{ btnText }}</b-button
-    >
+    >{{ btnText }}</b-button>
 
-    <b-modal :id="modal" title="Rendimiento" hide-footer size="md">
+    <b-modal
+      :id="modal"
+      title="Rendimiento"
+      hide-footer
+      size="md"
+    >
       <b-row v-if="lengthPausa">
         <b-col>
           <h3>Reanudar Tarea</h3>
@@ -17,9 +21,10 @@
           </p>
           <p v-if="lengthPausa">Motivo: {{ pausas[0].motivo }}</p>
           <b-form>
-            <b-button @click="reanudarPausa" variant="primary"
-              >Reanudar</b-button
-            >
+            <b-button
+              @click="reanudarPausa"
+              variant="primary"
+            >Reanudar</b-button>
           </b-form>
         </b-col>
       </b-row>
@@ -41,15 +46,14 @@
               ></b-form-textarea>
             </b-form-group>
 
-            <b-button @click="iniciarPausa" variant="primary">Iniciar</b-button>
+            <b-button
+              @click="iniciarPausa"
+              variant="primary"
+            >Iniciar</b-button>
           </b-form>
         </b-col>
       </b-row>
 
-      <pre class="force">
-                {{ $props }}
-            </pre
-      >
     </b-modal>
   </div>
 </template>

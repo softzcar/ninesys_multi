@@ -1,7 +1,10 @@
 <template>
   <div>
     <!-- <h1 class="mb-4">{{ this.$store.state.login.dataUser.departamento }}</h1> -->
-    <b-overlay :show="overlay" spinner-small>
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
       <b-row>
         <b-col>
           <b-list-group class="mb-4">
@@ -11,20 +14,14 @@
               </h3>
               <!-- <pre>{{ ordenes }}</pre> -->
             </b-list-group-item>
-            <b-list-group-item variant="info"
-              ><h3>{{ horasTrabajadas }} HORAS</h3>
+            <b-list-group-item variant="info">
+              <h3>{{ horasTrabajadas }} HORAS</h3>
             </b-list-group-item>
-            <b-list-group-item variant="success"
-              ><strong>TERMINADO</strong> $
-              {{ totalTerminado }}</b-list-group-item
-            >
-            <b-list-group-item variant="danger"
-              ><strong>PENDIENTE</strong> $
-              {{ totalPendiente }}</b-list-group-item
-            >
-            <b-list-group-item variant="primary"
-              ><strong>TOTAL</strong> $ {{ total }}</b-list-group-item
-            >
+            <b-list-group-item variant="success"><strong>TERMINADO</strong> $
+              {{ totalTerminado }}</b-list-group-item>
+            <b-list-group-item variant="danger"><strong>PENDIENTE</strong> $
+              {{ totalPendiente }}</b-list-group-item>
+            <b-list-group-item variant="primary"><strong>TOTAL</strong> $ {{ total }}</b-list-group-item>
           </b-list-group>
         </b-col>
       </b-row>
@@ -107,11 +104,6 @@
           </b-tabs>
         </b-col>
       </b-row>
-      <pre class="force">
-        {{departamento}}
-        <hr>
-        {{ trabajosTerminados }}
-      </pre>
     </b-overlay>
   </div>
 </template>

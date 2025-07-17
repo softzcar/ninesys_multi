@@ -75,8 +75,12 @@
                                 <ordenes-editar :data="data.item" :key="data.item.orden" />
                             </div>
                             <div style="float: left; margin-right: 6px">
-                                <ordenes-abono :idorden="data.item.orden" :key="data.item.orden"
-                                    :item="filterPago(data.item.orden)" @reload="reloadMe()" />
+                                <ordenes-abono 
+                                    :idorden="data.item.orden" 
+                                    :key="data.item.orden"
+                                    :item="filterPago(data.item.orden)" 
+                                    :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
+                                    @reload="reloadMe()" />
                             </div>
                         </template>
                     </b-table>
@@ -101,10 +105,11 @@ export default {
                 { text: "Todas", value: "todas" },
                 { text: "Pagadas", value: "pagadas" },
                 { text: "Pendientes", value: "pendientes" },
+                { text: "Sobrepagadas", value: "sobrepagada" },
+                { text: "Canceladas", value: "cancelada" },
             ],
             perPage: 25,
             currentPage: 1,
-            ordenesLength: 0,
             ordenes: [],
             ordenesTabla: [],
             fields: null,
@@ -154,7 +159,7 @@ export default {
         },
 
         applyFilters() {
-            let filtered = [...this.ordenes];
+            let filtered = [...this.ordenesConEstadoDePago];
 
             // Filter by seller
             if (this.selectedVendedor != 0) {
@@ -180,42 +185,45 @@ export default {
 
             // Filter by payment status
             if (this.selectedRadio === "pagadas") {
-                filtered = filtered.filter(el => parseFloat(el.monto_pendiente) === 0);
+                filtered = filtered.filter(el => el.payment_status === 'pagada');
             } else if (this.selectedRadio === "pendientes") {
-                filtered = filtered.filter(el => parseFloat(el.monto_pendiente) > 0);
+                filtered = filtered.filter(el => el.payment_status === 'pendiente');
+            } else if (this.selectedRadio === "sobrepagada") {
+                filtered = filtered.filter(el => el.payment_status === 'sobrepagada');
+            } else if (this.selectedRadio === "cancelada") {
+                filtered = filtered.filter(el => el.estatus === 'cancelada');
             }
 
             this.ordenesTabla = filtered;
         },
 
-        async getOrdenes() {
-            await this.$axios
-                .get(`${this.$config.API}/table/ordenes-todas`)
-                .then((res) => {
-                    this.ordenes = res.data.items.map((obj) => ({
-                        ...obj,
-                        acc: obj.orden,
-                    }));
-                    this.fields = res.data.fields;
-                    this.applyFilters(); // Apply filters after loading orders
-                });
-        },
+        async loadData() {
+            this.loading.show = true;
+            try {
+                const [ordenesRes, pagosRes] = await Promise.all([
+                    this.$axios.get(`${this.$config.API}/table/ordenes-todas`),
+                    this.$axios.get(`${this.$config.API}/reporte-de-pagos`)
+                ]);
 
-        async getPagos() {
-            this.overlay = true
-            await this.$axios
-                .get(`${this.$config.API}/reporte-de-pagos`)
-                .then((resp) => {
-                    this.pagos = resp.data.pagos;
-                    this.vendedores = resp.data.vendedores.map((el) => {
-                        return {
-                            value: el._id,
-                            text: el.nombre,
-                        };
-                    });
-                    this.vendedores.unshift({ value: 0, text: "Todos" });
-                    this.overlay = false
-                })
+                this.pagos = pagosRes.data.pagos;
+                const vendedoresData = pagosRes.data.vendedores.map(el => ({
+                    value: el._id,
+                    text: el.nombre,
+                }));
+                this.vendedores = [{ value: 0, text: "Todos" }, ...vendedoresData];
+                this.ordenes = ordenesRes.data.items;
+                this.fields = ordenesRes.data.fields;
+                
+                // Añadir la columna 'Estatus'
+                this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
+
+                this.applyFilters();
+
+            } catch (error) {
+                console.error("Error cargando los datos:", error);
+            } finally {
+                this.loading.show = false;
+            }
         },
 
         filterPago(idOrden) {
@@ -228,23 +236,42 @@ export default {
         },
 
         reloadMe() {
-            this.loading.show = true;
-            this.getOrdenes().then(() => {
-                this.getPagos().then(() => {
-                    this.loading.show = false
-                })
-            })
+            this.loadData();
         },
     },
 
     computed: {
+        ordenesConEstadoDePago() {
+            if (!this.ordenes.length || !this.pagos.length) return [];
+            
+            return this.ordenes.map(orden => {
+                const pagosDeOrden = this.pagos.filter(p => p.orden === orden.orden);
+                const totalAbonado = pagosDeOrden.reduce((acc, pago) => acc + parseFloat(pago.monto), 0);
+                const totalOrden = parseFloat(orden.total) || 0;
+                const montoPendiente = totalOrden - totalAbonado;
+
+                let payment_status = 'pendiente';
+                if (montoPendiente === 0) {
+                    payment_status = 'pagada';
+                } else if (montoPendiente < 0) {
+                    payment_status = 'sobrepagada';
+                }
+
+                return {
+                    ...orden,
+                    acc: orden.orden,
+                    monto_pendiente: montoPendiente,
+                    payment_status: payment_status
+                };
+            });
+        },
         totalRows() {
             return this.ordenesTabla.length;
         },
     },
 
     mounted() {
-        this.reloadMe()
+        this.loadData()
     },
 
     mixins: [mixin],

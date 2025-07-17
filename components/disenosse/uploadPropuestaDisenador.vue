@@ -59,12 +59,6 @@
           </b-col>
         </b-row>
       </b-overlay>
-      <pre
-        class="force"
-        style="background-color: blue"
-      >
-          {{ item }}
-      </pre>
     </b-modal>
   </div>
 </template>

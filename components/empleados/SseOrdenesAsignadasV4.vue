@@ -1,10 +1,17 @@
 <template>
   <div>
-    <b-overlay :show="overlay" spinner-small>
+    <b-overlay
+      :show="overlay"
+      spinner-small
+    >
       <div v-if="ordenesSize < 1">
         <b-row>
           <b-col>
-            <b-alert :show="showAlert" class="text-center" variant="info">
+            <b-alert
+              :show="showAlert"
+              class="text-center"
+              variant="info"
+            >
               <h3>{{ msg }}</h3>
             </b-alert>
           </b-col>
@@ -13,7 +20,10 @@
         <!-- Eficiencia -->
         <b-row>
           <b-col>
-            <empleados-RendimientoGeneral :ordenes="ordenes" :pausas="pausas" />
+            <empleados-RendimientoGeneral
+              :ordenes="ordenes"
+              :pausas="pausas"
+            />
           </b-col>
         </b-row>
       </div>
@@ -22,8 +32,14 @@
         <b-container fluid>
           <!-- Filtro de busqueda -->
           <b-row>
-            <b-col offset-lg="8" offset-xl="8">
-              <b-input-group class="mb-4" size="sm">
+            <b-col
+              offset-lg="8"
+              offset-xl="8"
+            >
+              <b-input-group
+                class="mb-4"
+                size="sm"
+              >
                 <b-form-input
                   id="filter-input"
                   v-model="filter"
@@ -32,7 +48,10 @@
                 ></b-form-input>
 
                 <b-input-group-append>
-                  <b-button :disabled="!filter" @click="filter = ''">
+                  <b-button
+                    :disabled="!filter"
+                    @click="filter = ''"
+                  >
                     Limpiar
                   </b-button>
                 </b-input-group-append>
@@ -45,9 +64,10 @@
             <b-col>
               <b-row class="text-center mb-4">
                 <b-col>
-                  <b-button variant="success" @click="reloadMe"
-                    >Recargar</b-button
-                  >
+                  <b-button
+                    variant="success"
+                    @click="reloadMe"
+                  >Recargar</b-button>
                 </b-col>
               </b-row>
             </b-col>
@@ -78,8 +98,7 @@
                   show
                   variant="info"
                 >
-                  No tienes reposiciones en curso</b-alert
-                >
+                  No tienes reposiciones en curso</b-alert>
 
                 <!-- TABLA DE REPOSICIONES -->
                 <b-table
@@ -94,7 +113,10 @@
                   <template #cell(orden)="row">
                     <div>
                       <span class="floatme">
-                        <linkSearch class="floatme mb-2" :id="row.item.orden" />
+                        <linkSearch
+                          class="floatme mb-2"
+                          :id="row.item.orden"
+                        />
                       </span>
 
                       <!-- Terminar -->
@@ -131,10 +153,11 @@
                       </span>
 
                       <!-- ProgressBar -->
-                      <span class="floatme" style="width: 160px">
-                        <empleados-ProgressBarEmpleados
-                          :idOrden="row.item.orden"
-                        />
+                      <span
+                        class="floatme"
+                        style="width: 160px"
+                      >
+                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
                       </span>
 
                       <!-- Reposición -->
@@ -179,8 +202,7 @@
                   v-if="dataTableEnCurso.length < 1"
                   show
                   variant="info"
-                  >No tienes tareas en curso</b-alert
-                >
+                >No tienes tareas en curso</b-alert>
                 <!-- BOTONES EN CURSO -->
                 <b-table
                   v-else
@@ -194,7 +216,10 @@
                   <template #cell(orden)="row">
                     <div>
                       <span class="floatme">
-                        <linkSearch class="floatme mb-2" :id="row.item.orden" />
+                        <linkSearch
+                          class="floatme mb-2"
+                          :id="row.item.orden"
+                        />
                       </span>
 
                       <!-- Terminar -->
@@ -230,10 +255,11 @@
                       </span>
 
                       <!-- ProgressBar -->
-                      <span class="floatme" style="width: 160px">
-                        <empleados-ProgressBarEmpleados
-                          :idOrden="row.item.orden"
-                        />
+                      <span
+                        class="floatme"
+                        style="width: 160px"
+                      >
+                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
                       </span>
 
                       <!-- Reposición -->
@@ -258,9 +284,7 @@
 
                       <!-- Vinculadas -->
                       <span class="floatme">
-                        <ordenes-vinculadas-v2
-                          :ordenes_vinculadas="filterVinculdas(row.item.orden)"
-                        />
+                        <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
                       </span>
 
                       <span class="floatme">
@@ -297,8 +321,7 @@
                   v-if="dataTablePendiente.length < 1"
                   show
                   variant="info"
-                  >No tienes tareas pendientes</b-alert
-                >
+                >No tienes tareas pendientes</b-alert>
 
                 <b-table
                   v-else
@@ -312,7 +335,10 @@
                   <template #cell(orden)="row">
                     <div>
                       <span class="floatme">
-                        <linkSearch class="floatme mb-2" :id="row.item.orden" />
+                        <linkSearch
+                          class="floatme mb-2"
+                          :id="row.item.orden"
+                        />
                       </span>
 
                       <span class="floatme">
@@ -329,7 +355,7 @@
                           @click="
                             iniciarTodo(row.item.orden, row.item.unidades)
                           "
-                          >Iniciar Todo
+                        >Iniciar Todo
                         </b-button>
                       </span>
 
@@ -340,10 +366,11 @@
                         />
                       </span>
 
-                      <span class="floatme" style="width: 160px">
-                        <empleados-ProgressBarEmpleados
-                          :idOrden="row.item.orden"
-                        />
+                      <span
+                        class="floatme"
+                        style="width: 160px"
+                      >
+                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
                       </span>
 
                       <!-- Detalles -->
@@ -359,9 +386,7 @@
 
                       <!-- Vinculadas -->
                       <span class="floatme">
-                        <ordenes-vinculadas-v2
-                          :ordenes_vinculadas="filterVinculdas(row.item.orden)"
-                        />
+                        <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
                       </span>
 
                       <span class="floatme">
@@ -604,7 +629,7 @@ export default {
               orden: el.id_orden, // Sobreescribimos la propiedad "orden"
               urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
               entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
-              id_lotes_detalles: el.id_lotes_detalles,
+              id_lotes_detalles: el.id_lotes_detalles_empleados_asignados,
               lotes_detalles_empleados_asignados:
                 el.lotes_detalles_empleados_asignados,
               unidades: el.unidades,
@@ -936,11 +961,11 @@ export default {
       this.currentPage = 1;
     },
 
-    productsFilter_old(id) {
+    productsFilter(id) {
       return this.productos.filter((el) => el.id_orden == id);
     },
 
-    productsFilter(id) {
+    productsFilter_old(id) {
       const seen = new Set();
       return this.productos.filter((el) => {
         const key = JSON.stringify(el);
