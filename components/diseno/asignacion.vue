@@ -138,9 +138,7 @@ export default {
     empleadosFiltered() {
       let options = [];
       options = this.$store.state.disenos.empleados
-        .filter((el) => el.departamento === "Diseño")
         .map((el) => {
-          // const rand_id = this.generateRandomId()
           return {
             value: el.id_usuario,
             text: `${el.nombre}`,
@@ -205,11 +203,11 @@ export default {
       this.getEmpleados().then(() => {
         this.$store.dispatch("disenos/getDisenos").then(() => {
           let tmpOptions = this.empleados
-            .filter(
+            /* .filter(
               (el) =>
                 el.departamento === "Diseño" ||
                 el.departamento === "Jefe de diseño"
-            )
+            ) */
             .map((el) => {
               return {
                 value: el.id_usuario,

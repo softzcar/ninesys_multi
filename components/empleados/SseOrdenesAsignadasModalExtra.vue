@@ -29,6 +29,10 @@
         :show="overlay"
         spinner-small
       >
+
+      <pre class="force">
+        {{ dataInsumos }}
+      </pre>
         <!-- Formulario de Impresión -->
         <!-- <div
                     v-if="
