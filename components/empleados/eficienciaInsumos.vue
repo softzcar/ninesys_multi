@@ -15,9 +15,6 @@
         @input="sendData"
       ></b-form-radio-group>
     </b-form-group>
-    <pre class="force">
-      {{$props}}
-    </pre>
   </div>
 </template>
 

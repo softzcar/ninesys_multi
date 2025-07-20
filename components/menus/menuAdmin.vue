@@ -2,19 +2,38 @@
   <div>
     <b-row>
       <b-col>
-        <b-navbar toggleable="lg" type="dark" variant="primary">
+        <b-navbar
+          toggleable="lg"
+          type="dark"
+          variant="primary"
+        >
           <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-          <b-collapse id="nav-collapse" is-nav>
+          <b-collapse
+            id="nav-collapse"
+            is-nav
+          >
             <b-navbar-nav>
               <b-nav-item to="/"> </b-nav-item>
-              <router-link class="nav-link" to="/" custom v-slot="{ navigate }">
-                <span @click="navigate" @keypress.enter="navigate" role="link">
+              <router-link
+                class="nav-link"
+                to="/"
+                custom
+                v-slot="{ navigate }"
+              >
+                <span
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                  role="link"
+                >
                   <b-icon-house-fill></b-icon-house-fill>
                 </span>
               </router-link>
 
-              <b-nav-item-dropdown text="Ordenes y Lotes" right>
+              <b-nav-item-dropdown
+                text="Ordenes y Lotes"
+                right
+              >
                 <router-link
                   class="nav-link"
                   to="/comercializacion/ordenes"
@@ -80,7 +99,7 @@
                                 </router-link> 
                                 -->
 
-                <router-link
+                <!-- <router-link
                   class="nav-link"
                   to="/comercializacion/ordenes/semana"
                   custom
@@ -108,10 +127,10 @@
                   >
                     Lotes
                   </span>
-                </router-link>
+                </router-link> -->
               </b-nav-item-dropdown>
 
-              <router-link
+              <!-- <router-link
                 class="nav-link"
                 to="/ordenes-fechas-entrega"
                 custom
@@ -120,9 +139,12 @@
                 <span @click="navigate" @keypress.enter="navigate" role="link">
                   Ordenes fechas de entrega
                 </span>
-              </router-link>
+              </router-link> -->
 
-              <b-nav-item-dropdown text="Caja" right>
+              <b-nav-item-dropdown
+                text="Caja"
+                right
+              >
                 <router-link
                   class="nav-link"
                   to="/comercializacion/retiros"
@@ -199,7 +221,10 @@
                 </router-link>
               </b-nav-item-dropdown>
 
-              <b-nav-item-dropdown text="Diseños" right>
+              <b-nav-item-dropdown
+                text="Diseños"
+                right
+              >
                 <router-link
                   class="nav-link"
                   to="/diseno/asignacion"
@@ -267,7 +292,11 @@
                 custom
                 v-slot="{ navigate }"
               >
-                <span @click="navigate" @keypress.enter="navigate" role="link">
+                <span
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                  role="link"
+                >
                   Control de Producción
                 </span>
               </router-link>
@@ -278,7 +307,7 @@
                 </span>
               </router-link> -->
 
-              <router-link
+              <!-- <router-link
                 class="nav-link"
                 to="/produccion/cortar"
                 custom
@@ -287,7 +316,7 @@
                 <span @click="navigate" @keypress.enter="navigate" role="link">
                   Cortar
                 </span>
-              </router-link>
+              </router-link> -->
 
               <!-- <router-link class="nav-link" to="/produccion/control" custom v-slot="{ navigate }">
                 <span @click="navigate" @keypress.enter="navigate" role="link">
@@ -295,101 +324,52 @@
                 </span>
               </router-link> -->
 
-              <b-nav-item-dropdown text="Inventario" right>
-                <router-link
-                  class="nav-link"
-                  to="/inventario/gestion"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Gestión de inventario
-                  </span>
-                </router-link>
+              
 
-                <router-link
-                  class="nav-link"
-                  to="/inventario/rendimiento"
-                  custom
-                  v-slot="{ navigate }"
+              <router-link
+                class="nav-link"
+                to="/inventario/gestion"
+                custom
+                v-slot="{ navigate }"
+              >
+                <span
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                  role="link"
                 >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Rendimiento
-                  </span>
-                </router-link>
+                  Inventario
+                </span>
+              </router-link>
+
+              <!-- <b-nav-item-dropdown
+                text="Inventario"
+                right
+              >
+
                 <hr />
-                <!-- <b-dropdown-item to="/inventario/reportes/general">
+                <b-dropdown-item to="/inventario/reportes/general">
                   Reporte general de invetario
-                </b-dropdown-item> -->
+                </b-dropdown-item>
 
-                <!-- <router-link class="nav-link" to="/inventario/reportes/semana" custom
+                <router-link class="nav-link" to="/inventario/reportes/semana" custom
                                     v-slot="{ navigate }">
                                     <span @click="navigate" @keypress.enter="navigate" role="link">
                                         Reporte por semana
                                     </span>
                                 </router-link> -->
 
-                <router-link
-                  class="nav-link"
-                  to="/inventario/reportes/orden"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Reporte de insumos consumidos por orden
-                  </span>
-                </router-link>
-
-                <router-link
-                  class="nav-link"
-                  to="/inventario/reportes/insumo"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Reporte por insumo
-                  </span>
-                </router-link>
-
-                <router-link
-                  class="nav-link"
-                  to="/inventario/reportes/producto"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Reporte por producto
-                  </span>
-                </router-link>
-
-                <!-- <router-link class="nav-link" to="/inventario/reportes/empleado" custom v-slot="{ navigate }">
+              <!-- <router-link class="nav-link" to="/inventario/reportes/empleado" custom v-slot="{ navigate }">
                   <span @click="navigate" @keypress.enter="navigate" role="link">
                     Reporte por empleado
                   </span>
-                </router-link> -->
+                </router-link>
               </b-nav-item-dropdown>
 
-              <b-nav-item-dropdown text="Empleados" right>
+               -->
+               <b-nav-item-dropdown
+                text="Empleados"
+                right
+              >
                 <router-link
                   class="nav-link"
                   to="/empleados/gestion"
@@ -402,85 +382,6 @@
                     role="link"
                   >
                     Gestión de empleados
-                  </span>
-                </router-link>
-
-                <router-link
-                  class="nav-link"
-                  to="/asistencias"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Asistencias
-                  </span>
-                </router-link>
-
-                <router-link
-                  class="nav-link"
-                  to="/asistencias/reporte-semanal"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Asistencias reporte semanal
-                  </span>
-                </router-link>
-
-                <router-link
-                  class="nav-link"
-                  to="/asistencias/reporte"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Asistencias reporte por fechas
-                  </span>
-                </router-link>
-              </b-nav-item-dropdown>
-
-              <b-nav-item-dropdown text="Clientes" right>
-                <router-link
-                  class="nav-link"
-                  to="/clientes/gestion"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Gestión de clientes
-                  </span>
-                </router-link>
-              </b-nav-item-dropdown>
-
-              <b-nav-item-dropdown text="Varios" right>
-                <router-link
-                  class="nav-link"
-                  to="/productos/gestion"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Gestión de Productos
                   </span>
                 </router-link>
 
@@ -499,9 +400,9 @@
                   </span>
                 </router-link>
 
-                <router-link
+                <!-- <router-link
                   class="nav-link"
-                  to="/produccion/reporte-reposiciones"
+                  to="/asistencias"
                   custom
                   v-slot="{ navigate }"
                 >
@@ -510,7 +411,76 @@
                     @keypress.enter="navigate"
                     role="link"
                   >
-                    Reporte reposiciones
+                    Asistencias
+                  </span>
+                </router-link> 
+               <router-link
+                  class="nav-link"
+                  to="/asistencias/reporte-semanal"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Asistencias reporte semanal
+                  </span>
+                </router-link> 
+
+               <router-link
+                  class="nav-link"
+                  to="/asistencias/reporte"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Asistencias reporte por fechas
+                  </span>
+                </router-link>  -->
+              </b-nav-item-dropdown>
+
+              <b-nav-item-dropdown
+                text="Clientes"
+                right
+              >
+                <router-link
+                  class="nav-link"
+                  to="/clientes/gestion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Gestión de clientes
+                  </span>
+                </router-link>
+              </b-nav-item-dropdown>
+
+              <b-nav-item-dropdown
+                text="Productos"
+                right
+              >
+                <router-link
+                  class="nav-link"
+                  to="/productos/gestion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Gestión de Productos
                   </span>
                 </router-link>
 
@@ -541,6 +511,128 @@
                     role="link"
                   >
                     Comisiones de Productos
+                  </span>
+                </router-link>
+              </b-nav-item-dropdown>
+
+              
+
+              <b-nav-item-dropdown
+                text="Pagos"
+                right
+              >
+                <router-link
+                  class="nav-link"
+                  to="/empleados/planilla-de-pagos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Planilla De Pagos
+                  </span>
+                </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/empleados/historico-de-pagos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Histórico De Pagos
+                  </span>
+                </router-link>
+              </b-nav-item-dropdown>
+
+              <b-nav-item-dropdown
+                text="Reportes"
+                right
+              >
+                <router-link
+                  class="nav-link"
+                  to="/inventario/rendimiento"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Rendimiento
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/inventario/reportes/orden"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Insumos consumidos por orden
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/inventario/reportes/insumo"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Insumos
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/inventario/reportes/producto"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Productos
+                  </span>
+                </router-link>
+              </b-nav-item-dropdown>
+
+              <b-nav-item-dropdown
+                text="Varios"
+                right
+              >
+
+                <router-link
+                  class="nav-link"
+                  to="/produccion/reporte-reposiciones"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Reporte reposiciones
                   </span>
                 </router-link>
 
@@ -620,26 +712,7 @@
                   </span>
                 </router-link>
               </b-nav-item-dropdown>
-              <router-link
-                class="nav-link"
-                to="/empleados/planilla-de-pagos"
-                custom
-                v-slot="{ navigate }"
-              >
-                <span @click="navigate" @keypress.enter="navigate" role="link">
-                  Planilla De Pagos
-                </span>
-              </router-link>
-              <router-link
-                class="nav-link"
-                to="/empleados/historico-de-pagos"
-                custom
-                v-slot="{ navigate }"
-              >
-                <span @click="navigate" @keypress.enter="navigate" role="link">
-                  Histórico De Pagos
-                </span>
-              </router-link>
+
               <!-- <router-link class="nav-link" to="/logout" custom v-slot="{ navigate }">
                                 <span @click="navigate" @keypress.enter="navigate" role="link">
                                     Salir

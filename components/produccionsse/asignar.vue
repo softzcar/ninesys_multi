@@ -17,7 +17,7 @@
         spinner-small
       >
         <b-container>
-          <b-row>
+          <!-- <b-row>
             <b-col>
               <h5>Asignación de insumos Lote {{ id }}</h5>
               <b-table
@@ -35,14 +35,13 @@
                     :id="data.item._id"
                     @reload="setReload"
                   />
-                  <!-- {{ data.item }} -->
                 </template>
               </b-table>
               <p>
                 Cantidad productos {{ orden_productos.length }}
               </p>
             </b-col>
-          </b-row>
+          </b-row> -->
           <b-row>
             <b-col>
               <h5 class="mt-4">

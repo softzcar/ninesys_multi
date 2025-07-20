@@ -1,0 +1,54 @@
+# REVISION DE COMPONENTES HUERFANOS
+
+## components/admin
+
+- [ ] jul 17 14:09 WsSendMsg.vue
+- [ ] jul 17 14:09 reposicionesReporte.vue
+- [ ] jul 17 14:09 PagosVendedorResumen.vue
+- [ ] jul 17 14:08 PagosEmpleadosDetallado.vue
+- [ ] jul 17 14:08 InsumosDeProductos.vue
+- [ ] jul 17 14:08 EntradaSalida.vue
+- [ ] jul 17 14:08 detallePagos.vue
+- [ ] jul 17 14:08 ComisionesProductosInputGeneral.vue
+- [ ] jul 17 14:07 asistenciasReporteSemanal.vue
+- [ ] jul 17 14:06 asistenciasReporteDetalles.vue
+- [ ] jul 17 14:06 asistenciasReporte.vue
+- [ ] jul 17 14:06 asistenciasInputHora.vue
+- [ ] jul 17 14:06 AsignacionDeInsumosProductosForm.vue
+- [ ] jul 17 14:06 AsignacionDeInsumosAProductosTab.vue
+- [ ] jul 17 14:05 AsignacionDeAtributos.vue
+- [ ] jul 17 13:49 PagosHistorico.vue
+- [ ] jul 15 17:25 WsSendMsgCustomInterno.vue
+- [ ] jul 15 16:57 departamentosEditWs.vue
+- [ ] jul  2 10:58 PagosDisenioResumen.vue
+- [ ] jul  2 10:58 PagosEmpleadoResumen.vue
+- [ ] jul  1 16:46 AsignacionDeInsumosAProductos.vue
+- [ ] jul  1 14:48 ReporteCostosProduccion.vue
+- [ ] jul  1 14:33 ReporteCostosProduccionMaterial.vue
+- [ ] jul  1 11:34 ReporteCostosProduccionManoObra.vue
+- [ ] jul  1 11:28 ReporteCostosDeProduccionInsumos.vue
+- [ ] jul  1 11:14 ReporteCostosProduccionProductos.vue
+- [ ] jun 30 15:20 GastosFijos.vue
+- [ ] jun 24 15:24 PagosEmpleados.vue
+- [ ] may 16 10:43 catalogoInsumosProductos.vue
+- [ ] may  7 11:54 WsSendMsgCustomClientes.vue
+- [ ] may  6 15:34 WsSendMsgBye.vue
+- [ ] may  6 15:34 WsSendMsgWelcome.vue
+- [ ] may  6 15:34 WsSendMsgSaldo.vue
+- [ ] abr 29 17:56 departamentosDelete.vue
+- [ ] abr 29 17:16 departamentosNew.vue
+- [ ] abr 29 17:15 departamentosEdit.vue
+- [ ] mar 10 10:27 AsignacionDePrecios.vue
+- [ ] mar  7 14:50 AsignacionDeInsumosAProductosDelete.vue
+- [ ] mar  5 15:58 AsignacionDeAtributosForm.vue
+- [ ] feb 11 15:48 EmpleadoEditar.vue
+- [ ] feb 10 11:17 ComisionesProductos.vue
+- [ ] feb  3 18:00 EmpleadoNuevo.vue
+- [ ] ene 29 15:13 disenosAprobacion.vue
+- [ ] ene 27 13:32 resumenLotes.vue
+- [ ] ene 27 13:14 ComisionesProductosInput.vue
+- [ ] ene 23 09:17 AsignacionDePreciosForm.vue
+- [ ] nov 26  2024 TelasNuevo.vue
+- [ ] nov 22  2024 updateInsumo.vue
+- [X] nov 22  2024 PagosEmpleadosTerminar.vue
+- [ ] nov 22  2024 TelasEditar.vue

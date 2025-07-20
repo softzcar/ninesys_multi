@@ -30,9 +30,6 @@
         spinner-small
       >
 
-      <pre class="force">
-        {{ dataInsumos }}
-      </pre>
         <!-- Formulario de Impresión -->
         <!-- <div
                     v-if="
@@ -337,7 +334,7 @@ export default {
     },
 
     dataSearchInsumo() {
-      let tmpArray = [];
+      /* let tmpArray = [];
 
       if (this.$store.state.login.currentDepartament === "Impresión") {
         tmpArray = this.insumosimp;
@@ -357,9 +354,9 @@ export default {
       } else if (this.$store.state.login.currentDepartament === "Revisión") {
         tmpArray = this.insumosrev;
         this.insumos = this.insumosrev;
-      }
+      } */
 
-      return tmpArray.map((el) => {
+      return this.insumosTodos.map((el) => {
         return `${el._id} | ${el.insumo}`;
       });
     },
@@ -616,7 +613,7 @@ export default {
         const formTmp = this.form;
 
         const errors = formTmp.find(
-          (el) => el.input === 0 || el.select === null || el.idCatalogo === null
+          (el) => el.input === 0 || el.select === null
         );
 
         if (errors) {
@@ -1003,6 +1000,9 @@ export default {
   },
 
   mounted() {
+    console.log('XXX', this.inusmosTodos);
+    
+
     this.esReposicion = parseInt(this.esreposicion);
     this.clearForms();
 
@@ -1064,6 +1064,7 @@ export default {
 
   props: [
     "item",
+    "inusmosTodos",
     "items",
     "pausas",
     "idlotesdetalles",
