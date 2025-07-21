@@ -1,208 +1,215 @@
 <template>
     <div>
-        <b-row>
-            <b-col>
-                <table class="table-main table-header">
-                    <tr>
-                        <th>
-                            <table class="table-header">
-                                <tr>
-                                    <td>
-                                        <h2>
-                                            {{ this.$config.EMPRESA.nombre }}
-                                        </h2>
-                                        <p>
-                                            {{ this.$config.EMPRESA.direccion }}
-                                        </p>
-                                        <p>{{ this.$config.EMPRESA.email }}</p>
-                                        <p>
-                                            {{ this.$config.EMPRESA.telefono }}
-                                        </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>CLIENTE: </strong
-                                        >{{
+        <div v-if="!editingOrderId || (form && form.nombre)">
+            <b-row>
+                <b-col>
+                    <table class="table-main table-header">
+                        <tr>
+                            <th>
+                                <table class="table-header">
+                                    <tr>
+                                        <td>
+                                            <h2>
+                                                {{ this.$config.EMPRESA.nombre }}
+                                            </h2>
+                                            <p>
+                                                {{ this.$config.EMPRESA.direccion }}
+                                            </p>
+                                            <p>{{ this.$config.EMPRESA.email }}</p>
+                                            <p>
+                                                {{ this.$config.EMPRESA.telefono }}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>CLIENTE: </strong
+                                            >{{
                                             form.nombre + "  " + form.apellido
                                         }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>DIRECCIÓN:</strong>
-                                        {{ form.direccion }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>CORREO:</strong>
-                                        {{ form.email }}
-                                    </td>
-                                </tr>
-                            </table>
-                        </th>
-                        <td>
-                            <table class="table-header">
-                                <tr>
-                                    <td>
-                                        <h1>ORDEN # {{ editingOrderId ? editingOrderId : nextId }}</h1>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>INICIO: </strong
-                                        >{{ makeDate() }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>ENTREGA: </strong
-                                        >{{ makeDate(form.fechaEntrega) }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>CI | RIF: </strong
-                                        >{{ form.cedula }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>TELEFONO: </strong
-                                        >{{ form.telefono }}
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-
-                <div class="spacer"></div>
-
-                <table class="table-products">
-                    <!-- <th style="text-align: right">ITEM</th> -->
-                    <!-- <th style="text-align: center">SKU</th> -->
-                    <th>PRODUCTO</th>
-                    <th style="text-align: right">CANT</th>
-                    <th style="text-align: center">TALLA</th>
-                    <th>CORTE</th>
-                    <th>TELA</th>
-                    <th>ATRIBUTO</th>
-                    <th
-                        class="hideMe"
-                        v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
-                        "
-                        style="text-align: right"
-                    >
-                        PRECIO
-                    </th>
-                    <th
-                        class="hideMe"
-                        v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
-                        "
-                        style="text-align: right"
-                    >
-                        TOTAL
-                    </th>
-
-                    <template v-for="product in form.productos">
-                        <tr class="row-product" :key="product.cod">
-                            <!-- <td style="text-align: right">{{ index + 1 }}</td> -->
-                            <!-- <td style="text-align: center">
-                                {{ product.cod }}
-                            </td> -->
-                            <td>{{ product.name }}</td>
-                            <td style="text-align: right">
-                                {{ product.cantidad }}
-                            </td>
-                            <td style="text-align: center">
-                                {{ product.talla }}
-                            </td>
-                            <td>{{ product.corte }}</td>
-                            <td>{{ product.tela }}</td>
-                            <td>{{ product.atributo_nombre || 'N/A' }}</td>
-                            <td
-                                class="hideMe"
-                                v-if="
-                                    dataUser.departamento ===
-                                        'Comercialización' ||
-                                    dataUser.departamento === 'Administración'
-                                "
-                                style="text-align: right"
-                            >
-                                {{ product.precio }}
-                            </td>
-                            <td
-                                class="hideMe"
-                                v-if="
-                                    dataUser.departamento ===
-                                        'Comercialización' ||
-                                    dataUser.departamento === 'Administración'
-                                "
-                                style="text-align: right"
-                            >
-                                {{
-                                    (
-                                        parseFloat(product.precio) *
-                                        parseFloat(product.cantidad)
-                                    ).toFixed(2)
-                                }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>DIRECCIÓN:</strong>
+                                            {{ form.direccion }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>CORREO:</strong>
+                                            {{ form.email }}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </th>
+                            <td>
+                                <table class="table-header">
+                                    <tr>
+                                        <td>
+                                            <h1>ORDEN # {{ editingOrderId ? editingOrderId : nextId }}</h1>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>INICIO: </strong
+                                            >{{ makeDate() }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>ENTREGA: </strong
+                                            >{{ makeDate(form.fechaEntrega) }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>CI | RIF: </strong
+                                            >{{ form.cedula }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <strong>TELEFONO: </strong
+                                            >{{ form.telefono }}
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
-                    </template>
-                </table>
+                    </table>
 
-                <div class="izquierda">
-                    <h2>
-                        TOTAL PRODUCTOS:
-                        {{ totalProductos(form.productos, "cantidad") }}
-                    </h2>
-                </div>
+                    <div class="spacer"></div>
 
-                <div
-                    class="spacer hideMe derecha"
-                    style="width: 100% !important"
-                    v-if="
-                        dataUser.departamento === 'Comercialización' ||
-                        dataUser.departamento === 'Administración'
-                    "
-                >
-                    <h2>ABONO: {{ floatMe(form.abono) }}</h2>
-                    <h2>DESCUENTOS: {{ floatMe(form.descuento) }}</h2>
-                    <h2>
-                        RESTA:
-                        {{
-                            (
-                                parseFloat(montoTotalOrden(form.productos)) -
-                                parseFloat(form.abono) -
-                                parseFloat(form.descuento)
-                            ).toFixed(2)
-                        }}
-                    </h2>
-                    <h1>
-                        TOTAL: {{ floatMe(montoTotalOrden(form.productos)) }}
-                    </h1>
-                </div>
+                    <table class="table-products">
+                        <!-- <th style="text-align: right">ITEM</th> -->
+                        <!-- <th style="text-align: center">SKU</th> -->
+                        <th>PRODUCTO</th>
+                        <th style="text-align: right">CANT</th>
+                        <th style="text-align: center">TALLA</th>
+                        <th>CORTE</th>
+                        <th>TELA</th>
+                        <th>ATRIBUTO</th>
+                        <th
+                            class="hideMe"
+                            v-if="
+                                dataUser.departamento === 'Comercialización' ||
+                                dataUser.departamento === 'Administración'
+                            "
+                            style="text-align: right"
+                        >
+                            PRECIO
+                        </th>
+                        <th
+                            class="hideMe"
+                            v-if="
+                                dataUser.departamento === 'Comercialización' ||
+                                dataUser.departamento === 'Administración'
+                            "
+                            style="text-align: right"
+                        >
+                            TOTAL
+                        </th>
 
-                <div class="spacer">
-                    <div style="text-align: center; margin-top: 40px">
-                        <h2>OBSERVACIONES</h2>
+                        <template v-for="product in form.productos">
+                            <tr class="row-product" :key="product.cod">
+                                <!-- <td style="text-align: right">{{ index + 1 }}</td> -->
+                                <!-- <td style="text-align: center">
+                                    {{ product.cod }}
+                                </td> -->
+                                <td>{{ product.name }}</td>
+                                <td style="text-align: right">
+                                    {{ product.cantidad }}
+                                </td>
+                                <td style="text-align: center">
+                                    {{ product.talla }}
+                                </td>
+                                <td>{{ product.corte }}</td>
+                                <td>{{ product.tela }}</td>
+                                <td>{{ product.atributo_nombre || 'N/A' }}</td>
+                                <td
+                                    class="hideMe"
+                                    v-if="
+                                        dataUser.departamento ===
+                                            'Comercialización' ||
+                                        dataUser.departamento === 'Administración'
+                                    "
+                                    style="text-align: right"
+                                >
+                                    {{ product.precio }}
+                                </td>
+                                <td
+                                    class="hideMe"
+                                    v-if="
+                                        dataUser.departamento ===
+                                            'Comercialización' ||
+                                        dataUser.departamento === 'Administración'
+                                    "
+                                    style="text-align: right"
+                                >
+                                    {{
+                                        (
+                                            parseFloat(product.precio) *
+                                            parseFloat(product.cantidad)
+                                        ).toFixed(2)
+                                    }}
+                                </td>
+                            </tr>
+                        </template>
+                    </table>
+
+                    <div class="izquierda">
+                        <h2>
+                            TOTAL PRODUCTOS:
+                            {{ totalProductos(form.productos, "cantidad") }}
+                        </h2>
                     </div>
-                    <div class="observaciones">
-                        <h3 style="text-transform: uppercase">
-                            TIPO DE DISEÑO: {{ form.diseno }}
-                        </h3>
+
+                    <div
+                        class="spacer hideMe derecha"
+                        style="width: 100% !important"
+                        v-if="
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Administración'
+                        "
+                    >
+                        <h2>ABONO: {{ floatMe(form.abono) }}</h2>
+                        <h2>DESCUENTOS: {{ floatMe(form.descuento) }}</h2>
+                        <h2>
+                            RESTA:
+                            {{
+                                (
+                                    parseFloat(montoTotalOrden(form.productos)) -
+                                    parseFloat(form.abono) -
+                                    parseFloat(form.descuento)
+                                ).toFixed(2)
+                            }}
+                        </h2>
+                        <h1>
+                            TOTAL: {{ floatMe(montoTotalOrden(form.productos)) }}
+                        </h1>
                     </div>
-                    <div class="spacer observaciones" v-html="form.obs"></div>
-                </div>
-            </b-col>
-        </b-row>
-        <div id="toprint"></div>
+
+                    <div class="spacer">
+                        <div style="text-align: center; margin-top: 40px">
+                            <h2>OBSERVACIONES</h2>
+                        </div>
+                        <div class="observaciones">
+                            <h3 style="text-transform: uppercase">
+                                TIPO DE DISEÑO: {{ form.diseno }}
+                            </h3>
+                        </div>
+                        <div class="spacer observaciones" v-html="form.obs"></div>
+                    </div>
+                </b-col>
+            </b-row>
+            <div id="toprint"></div>
+        </div>
+        <div v-else>
+            <b-alert show variant="info">
+                <strong>Orden no encontrada.</strong> No se ha podido encontrar el número de orden especificado. Por favor, verifique el número e intente de nuevo.
+            </b-alert>
+        </div>
     </div>
 </template>
 

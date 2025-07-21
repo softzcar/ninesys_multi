@@ -4,7 +4,7 @@
       :show="overlay"
       spinner-small
     >
-      <div class="table-wrapper">
+      <div v-if="resOrden && resOrden.orden && resOrden.orden.length > 0" class="table-wrapper">
         <b-row>
           <b-col class="mb-4">
             <span
@@ -199,9 +199,11 @@
                     style="text-align: right"
                   >
                     {{ currencySymbol }}
-                    {{ convertAndFormat(
-                      parseFloat(product.precio) * parseFloat(product.cantidad)
-                    ) }}
+                    {{
+                      convertAndFormat(
+                        parseFloat(product.precio) * parseFloat(product.cantidad)
+                      )
+                    }}
                   </td>
                 </tr>
               </template>
@@ -233,11 +235,13 @@
               <h2>
                 RESTA:
                 {{ currencySymbol }}
-                {{ convertAndFormat(
-                  montoTotalOrden(resOrden.productos) -
-                    resOrden.orden[0].pago_descuento -
-                    resOrden.orden[0].pago_abono
-                ) }}
+                {{
+                  convertAndFormat(
+                    montoTotalOrden(resOrden.productos) -
+                      resOrden.orden[0].pago_descuento -
+                      resOrden.orden[0].pago_abono
+                  )
+                }}
               </h2>
               <h1>
                 TOTAL:
@@ -272,6 +276,11 @@
           </b-col>
         </b-row>
         <div id="toprint"></div>
+      </div>
+      <div v-else-if="!overlay">
+          <b-alert show variant="info" class="order-not-found-alert">
+              <strong>Orden no encontrada.</strong> No se ha podido encontrar la orden con el número <strong>{{ orderId }}</strong>. Por favor, verifique el número e inténtelo de nuevo.
+          </b-alert>
       </div>
     </b-overlay>
   </div>
@@ -685,5 +694,9 @@ table {
 
 .table-header {
   width: 100%;
+}
+
+.order-not-found-alert {
+  padding: 1rem;
 }
 </style>

@@ -26,7 +26,13 @@
                                     rev.id_revision,
                                     rev.id_disenador
                                 )
-                                    " fluid class="image-zoom"></b-img-lazy>
+                                    " fluid class="image-zoom design-approval-image">
+                                    <template #placeholder>
+                                        <div style="height: 150px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                            <span style="color: #333; font-size: 1rem;">Cargando...</span>
+                                        </div>
+                                    </template>
+                                </b-img-lazy>
                             </div>
                         </div>
 
@@ -334,5 +340,9 @@ export default {
 .zoomed-image {
     max-height: 100%;
     max-width: 100%;
+}
+
+.design-approval-image img {
+    background: none !important;
 }
 </style>

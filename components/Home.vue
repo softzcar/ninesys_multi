@@ -46,8 +46,10 @@
                         align-v="center"
                     >
                         <b-col>
-                            <h1>ninesys 4.0</h1>
-                            <em>CONTROL DE PROCESOS</em>
+                            <h1>ninesys</h1>
+                            <em>CONTROL DE PROCESOS DE PRODUCCIÓN</em>
+                            <br>
+                            <em>V 4.1.0</em>
                         </b-col>
                     </b-row>
                 </b-container>

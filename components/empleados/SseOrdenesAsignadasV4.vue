@@ -234,7 +234,7 @@
                           :items="filterOrder(row.item.orden, 'en curso')"
                           class="floatme"
                           :esreposicion="0"
-                          :insumosTodos="inusmos"
+                          :insumosTodos="insumos"
                           :insumosimp="insumosImpresion"
                           :insumosest="insumosEstampado"
                           :insumoscos="insumosCostura"
@@ -726,7 +726,6 @@ export default {
           .filter(
             (el) =>
               el.progreso === "en curso" &&
-              el.en_inv_mov === 0 &&
               el.en_reposiciones === 0 &&
               el.fecha_inicio != null
           ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
@@ -1034,7 +1033,7 @@ export default {
         });
     },
 
-    /* async sendMessageClient(idOrden) {
+    async sendMessageClient(idOrden) {
             this.overlay = true
 
             const data = new URLSearchParams()
@@ -1045,7 +1044,7 @@ export default {
                 // this.$store.dispatch('comerce/getOrdenesActivas').then(() => (this.overlay = false))
                 this.overlay = false
             })
-        }, */
+        },
 
     iniciarTodo(idOrden, unidades) {
       this.$confirm(

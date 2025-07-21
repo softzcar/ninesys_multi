@@ -1064,7 +1064,7 @@ export default {
 
   props: [
     "item",
-    "inusmosTodos",
+    "insumosTodos",
     "items",
     "pausas",
     "idlotesdetalles",
