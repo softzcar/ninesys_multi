@@ -92,6 +92,7 @@
               >
                 <h3>Reposiciones</h3>
 
+                
                 <b-alert
                   class="text-center"
                   v-if="dataTableReposiciones.length < 1"
@@ -138,6 +139,7 @@
                           :insumoscos="insumosCostura"
                           :insumoslim="insumosLimpieza"
                           :insumosrev="insumosRevision"
+                          :orden_proceso_departamento="orden_proceso_departamento"
                           tipo="todo"
                           :idorden="row.item.orden"
                           :id_ordenes_productos="row.item.id_ordenes_productos"
@@ -185,7 +187,7 @@
                   </template>
 
                   <!-- Lista de productos -->
-                </b-table>
+                </b-table>                
               </b-card>
             </b-col>
           </b-row>
@@ -198,6 +200,9 @@
                 :header="contarItems(dataTableEnCurso.length)"
               >
                 <h3>En Curso</h3>
+                <pre class="force" style="background-color: darkblue;">
+                  {{ dataTablePendiente }}
+                </pre>
                 <b-alert
                   class="text-center"
                   v-if="dataTableEnCurso.length < 1"
@@ -245,6 +250,7 @@
                           :idorden="row.item.orden"
                           :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe()"
+                          :orden_proceso_departamento="orden_proceso_departamento"
                         />
                       </span>
 
@@ -642,6 +648,7 @@ export default {
               valor_final: el.valor_final,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
+              orden_proceso_departamento: el.orden_proceso_departamento,
             };
           })
           .reduce((acc, item) => {
@@ -679,6 +686,7 @@ export default {
               valor_final: el.valor_final,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
+              orden_proceso_departamento: el.orden_proceso_departamento,
             };
           })
           .reduce((acc, item) => {
@@ -712,6 +720,7 @@ export default {
               en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
+              orden_proceso_departamento: el.orden_proceso_departamento,
             };
           })
           .reduce((acc, item) => {
@@ -747,6 +756,7 @@ export default {
               en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
+              orden_proceso_departamento: el.orden_proceso_departamento,
             };
           })
           .reduce((acc, item) => {
@@ -782,6 +792,7 @@ export default {
               orden_proceso_min: el.orden_proceso_min,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
+              orden_proceso_departamento: el.orden_proceso_departamento,
             };
           })
           .reduce((acc, item) => {
@@ -987,13 +998,13 @@ export default {
       }
     },
 
-    async registrarEstado(tipo, id_orden, unidades, es_reposicion = false) {
+    async registrarEstado(tipo, id_orden, unidades, es_reposicion = false, id_lotes_detalles_param = null) {
       this.overlay = true;
       const data = new URLSearchParams();
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
       data.set("id_orden", id_orden);
-      // data.set("id_lotes_detalles", this.item.id_lotes_detalles);
+      data.set("id_lotes_detalles", id_lotes_detalles_param); // Usamos el nuevo parámetro
       data.set("tipo", tipo);
       data.set("es_reposicion", es_reposicion);
       data.set("unidades", unidades);
@@ -1059,7 +1070,7 @@ export default {
 
                     console.log("OrdenesPorIniciar", OrdenesPorIniciar); */
 
-          this.registrarEstado("inicio", idOrden, unidades).then(() => {
+          this.registrarEstado("inicio", idOrden, unidades, false, this.ordenes.find(o => o.id_orden === idOrden).id_lotes_detalles_empleados_asignados).then(() => {
             this.reloadMe();
             this.sendMessageClient(idOrden);
           });
@@ -1194,7 +1205,7 @@ export default {
           this.productos = resp.data.productos;
           this.pausas = resp.data.pausas;
 
-          console.log("Productos recibidos pra el emplado", this.productos);
+          console.log("Ordenes recibidas del API:", this.ordenes);
         });
     },
 

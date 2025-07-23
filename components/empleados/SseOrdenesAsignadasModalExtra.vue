@@ -30,6 +30,9 @@
         spinner-small
       >
 
+      <pre class="force">{{ $store.state.login.currentOrdenProceso }}</pre>
+
+
         <!-- Formulario de Impresión -->
         <!-- <div
                     v-if="
@@ -334,28 +337,6 @@ export default {
     },
 
     dataSearchInsumo() {
-      /* let tmpArray = [];
-
-      if (this.$store.state.login.currentDepartament === "Impresión") {
-        tmpArray = this.insumosimp;
-        this.insumos = this.insumosimp;
-      } else if (this.$store.state.login.currentDepartament === "Estampado") {
-        tmpArray = this.insumosest;
-        this.insumos = this.insumosest;
-      } else if (this.$store.state.login.currentDepartament === "Corte") {
-        tmpArray = this.insumosest;
-        this.insumos = this.insumosest;
-      } else if (this.$store.state.login.currentDepartament === "Costura") {
-        tmpArray = this.insumoscos;
-        this.insumos = this.insumoscos;
-      } else if (this.$store.state.login.currentDepartament === "Limpieza") {
-        tmpArray = this.insumoslim;
-        this.insumos = this.insumoslim;
-      } else if (this.$store.state.login.currentDepartament === "Revisión") {
-        tmpArray = this.insumosrev;
-        this.insumos = this.insumosrev;
-      } */
-
       return this.insumosTodos.map((el) => {
         return `${el._id} | ${el.insumo}`;
       });
@@ -363,18 +344,15 @@ export default {
 
     selectOptions() {
       let myOptions = [];
-      if (this.$store.state.login.currentDepartament === "Impresión") {
-        myOptions = this.insumosimp;
-      } else if (this.$store.state.login.currentDepartament === "Estampado") {
-        myOptions = this.insumosest;
-      } else if (this.$store.state.login.currentDepartament === "Corte") {
-        myOptions = this.insumosest;
-      } else if (this.$store.state.login.currentDepartament === "Costura") {
-        myOptions = this.insumoscos;
-      } else if (this.$store.state.login.currentDepartament === "Limpieza") {
-        myOptions = this.insumoslim;
-      } else if (this.$store.state.login.currentDepartament === "Revisión") {
-        myOptions = this.insumosrev;
+      const dep = this.$store.state.login.currentDepartament;
+      switch (dep) {
+        case "Impresión": myOptions = this.insumosimp; break;
+        case "Estampado": myOptions = this.insumosest; break;
+        case "Corte": myOptions = this.insumoscor; break; // Corregido a insumoscor
+        case "Costura": myOptions = this.insumoscos; break;
+        case "Limpieza": myOptions = this.insumoslim; break;
+        case "Revisión": myOptions = this.insumosrev; break;
+        default: myOptions = [];
       }
 
       let options = myOptions.map((item) => {
@@ -815,7 +793,7 @@ export default {
       const data = new URLSearchParams();
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
-      data.set("id_lotes_detalles", this.idlotesdetalles);
+      data.set("id_lotes_detalles", this.idlotesdetalles); // Usamos la prop idlotesdetalles
       data.set("id_orden", id_orden);
       data.set("tipo", tipo);
       data.set("es_reposicion", this.esReposicion);
@@ -823,6 +801,7 @@ export default {
       data.set("unidades", unidades);
       data.set("departamento", this.$store.state.login.currentDepartament);
       data.set("orden_proceso", this.$store.state.login.currentOrdenProceso);
+      data.set("paso_actual", this.orden_proceso_departamento);
 
       if (this.item.esreposicion) {
         data.set("id_reposicion", this.item.id_reposicion);
@@ -1067,7 +1046,7 @@ export default {
     "insumosTodos",
     "items",
     "pausas",
-    "idlotesdetalles",
+    "F",
     "tipo",
     "departamento",
     "esreposicion",
@@ -1080,6 +1059,7 @@ export default {
     "idorden",
     "id_ordenes_productos",
     "reload",
+    "orden_proceso_departamento",
   ],
 };
 </script>

@@ -422,9 +422,9 @@
                                   <template #cell(precio)="data">
                                     <b-form-select
                                       v-model="
-                                        form.productos[data.index].precio
+                                        form.productos[data.index].original_selected_price
                                       "
-                                      @change="montoTotalOrden"
+                                      @change="setOriginalPriceAndRecalculate(data.index, $event)"
                                       :options="
                                         loadProductPrices(data.item.cod, null)
                                       "
@@ -1505,6 +1505,7 @@ export default {
             diseno: apiProd.producto_fisico === 0,
             // FIX: Convertir el precio a número para que coincida con el v-model del select.
             precio: parseFloat(apiProd.precio) || 0,
+            original_selected_price: parseFloat(apiProd.precio) || 0, // Inicializar original_selected_price
           };
         });
       }
@@ -1798,49 +1799,53 @@ export default {
     },
 
     recalcularSegunTalla(index, item, idProd) {
-      // verificar si la talla es XL
-      let miTalla = item.talla.split("XL");
-      let montoXL = 0;
-      let finlaPrice = 0;
+      const tallaSeleccionada = this.$store.state.comerce.dataTallas.find(
+        (t) => t.value === item.talla
+      );
 
-      if (miTalla.length === 2) {
-        // Verificar precio seleccionado
-        if (item.precio <= 0) {
-          this.$fire({
-            title: "Precio",
-            html: `<p>Debe seleccionar el precio antes de seleccionar una talla Extra Grande</p>`,
-            type: "info",
-          }).then(() => {
-            this.form.productos[index].talla = null;
-          });
-        } else {
-          if (!miTalla[1]) {
-            montoXL = 1; // Un dolar adiconal por la talla XL
-          } else {
-            montoXL = parseInt(miTalla[1]);
-          }
-          // this.form.productos[index].xl = montoXL
-          finlaPrice = (
-            parseFloat(this.form.productos[index].precio) + montoXL
-          ).toFixed(0);
-
-          // Añadir precio a $store.state.comerce.dataProductos
-          const addVal = {
-            cod: idProd,
-            price: finlaPrice,
-            description: `Precio ${item.talla}`,
-          };
-
-          this.$store.commit("comerce/addDataProductos", addVal);
-
-          this.loadProductPrices(idProd, addVal);
-        }
-      } else {
-        finlaPrice = this.form.productos[index].precio;
+      // Validar que original_selected_price esté definido y sea válido
+      if (typeof item.original_selected_price === "undefined" || item.original_selected_price <= 0) {
+        this.$fire({
+          title: "Precio Requerido",
+          html: `<p>Primero debe seleccionar un precio para el producto.</p>`,
+          type: "info",
+        }).then(() => {
+          item.talla = null; // Resetear la selección de talla
+        });
+        return;
       }
 
-      this.form.productos[index].precio = finlaPrice;
+      // Si no hay talla seleccionada, restablecer el precio a original_selected_price y salir.
+      if (!tallaSeleccionada) {
+        item.xl = 0;
+        item.precio = item.original_selected_price;
+        this.montoTotalOrden();
+        return;
+      }
+
+      const nombreTalla = tallaSeleccionada.text;
+      const esTallaXL = nombreTalla.toUpperCase().startsWith("XL");
+
+      if (esTallaXL) {
+        const numeroTalla = nombreTalla.toUpperCase().replace("XL", "");
+        item.xl = numeroTalla === "" ? 1 : parseInt(numeroTalla) || 0;
+      } else {
+        item.xl = 0;
+      }
+
+      // Calcular el precio final usando original_selected_price
+      item.precio = (parseFloat(item.original_selected_price) + item.xl).toFixed(2);
+
       this.montoTotalOrden();
+    },
+
+    setOriginalPriceAndRecalculate(index, newPrice) {
+      const parsedPrice = parseFloat(newPrice);
+      if (!isNaN(parsedPrice)) {
+        this.form.productos[index].original_selected_price = parsedPrice; // Guardar el precio original seleccionado
+        this.recalcularSegunTalla(index, this.form.productos[index], this.form.productos[index].cod); // Recalcular por si hay talla XL
+        this.montoTotalOrden(); // Recalcular el total de la orden
+      }
     },
 
     reloadVinculo(val) {
@@ -2791,8 +2796,8 @@ export default {
 
       const options = tmpProd.prices.map((el) => {
         return {
-          value: el.price,
-          text: `$${el.price} ${el.description}`,
+          value: parseFloat(el.price), // Aseguramos que el valor sea un número flotante
+          text: `${el.price} ${el.description}`,
         };
       });
 
@@ -2832,7 +2837,8 @@ export default {
             // Si producto_fisico es 0, no es físico (es un diseño), por lo tanto diseno = true.
             diseno: product.producto_fisico === 0,
             // precio: product.regular_price || 0,
-            precio: null,
+            precio: product.price,
+            original_selected_price: product.price, // Inicializar original_selected_price
             // precioWoo: product.regular_price,
           };
         })
@@ -2872,6 +2878,7 @@ export default {
         colores: [],
         corte: item.corte,
         precio: item.precio || null,
+        original_selected_price: item.original_selected_price, // Copiar el precio original seleccionado
         categoria: item.categoria,
         diseno: item.diseno,
         // precioWoo: item.precioWoo,
@@ -2982,11 +2989,13 @@ export default {
         this.form.total = 0;
         this.form.total = this.form.productos
           .map((item) => {
-            console.log(`item pago:`, item);
-
-            return parseFloat(item.precio) * parseInt(item.cantidad);
+            let miPrecio = item.precio
+            if (miPrecio === undefined || miPrecio === null) item.precio = 0  
+            return parseFloat(miPrecio) * parseInt(item.cantidad);
           })
-          .reduce((acc, curr) => (acc = acc + curr));
+        .reduce((acc, item) => acc + item);
+      } else {        
+        this.form.total = 0;
       }
     },
 

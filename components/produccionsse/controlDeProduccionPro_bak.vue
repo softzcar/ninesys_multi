@@ -2,17 +2,7 @@
   <div>
     <h3 class="mt-4">Reposiciones</h3>
 
-    <div v-if="isLoading">
-      <b-alert
-        class="text-cetner mb-4"
-        show
-        variant="info"
-      >
-        <h3>Cargando reposiciones...</h3>
-      </b-alert>
-    </div>
-
-    <div v-else-if="reposiciones_solicitadas.length === 0">
+    <div v-if="reposiciones_solicitadas.length === 0">
       <b-alert
         class="text-cetner mb-4"
         show
@@ -28,13 +18,13 @@
           v-model="reposiciones_solicitadas"
           @end="afterDragRep"
           tag="ul"
-          class="list-group reposiciones-grid-container"
+          class="list-group"
         >
           <b-list-group
             v-for="(el, index) in reposiciones_solicitadas"
-            class=""
+            class="list-group-draggable"
             :key="index"
-            horizontal
+            horizontal="xl"
           >
             <b-list-group-item
               style="cursor: grab"
@@ -43,53 +33,14 @@
               <span style="padding-top: 4px; padding-right: 8px; padding-top: 12px">☰</span>
             </b-list-group-item>
 
-            <b-list-group-item style="min-width: 15%; max-width: 15%">
-              <!-- Orden {{ el.id_orden }} -->
-              <div
-                v-if="el.estatus_revision === 'Aprobado'"
-                class="h1 mt-2"
-              >
-                <b-button variant="outline-light">
-                  <b-icon
-                    icon="exclamation-circle-fill"
-                    variant="success"
-                    @click="showDesigner(el.disenador)"
-                    :key="el.orden"
-                  ></b-icon>
-                </b-button>
-              </div>
-
-              <div
-                v-else
-                class="h1 mt-2"
-              >
-                <b-button
-                  variant="outline-light"
-                  @click="showDesigner(el.disenador)"
-                  :key="el.orden"
-                >
-                  <b-icon
-                    icon="exclamation-circle-fill"
-                    style="color: lightgray"
-                  ></b-icon>
-                </b-button>
-              </div>
-            </b-list-group-item>
-
-            <b-list-group-item style="min-width: 40%; max-width: 40%">
-              {{ el.producto }}
-            </b-list-group-item>
-
-            <b-list-group-item style="min-width: 15%; max-width: 15%">
-              {{ el.unidades }} unidades
-            </b-list-group-item>
-
             <b-list-group-item>
-              <produccionsse-reposicionesPendientes
-                :empleados="empleados"
-                :item="el"
-                :key="index"
-              />
+              <div style="margin-top: 15px">
+                <produccionsse-reposicionesPendientes
+                  :empleados="empleados"
+                  :item="el"
+                  :key="index"
+                />
+              </div>
             </b-list-group-item>
           </b-list-group>
         </draggable>
@@ -98,17 +49,7 @@
 
     <h3 class="mt-4">Ordenes en curso</h3>
 
-    <div v-if="isLoading">
-      <b-alert
-        show
-        class="mt-2 mb-4"
-        variant="info"
-      >
-        <h3>Cargando ordenes...</h3>
-      </b-alert>
-    </div>
-
-    <div v-else-if="items.length === 0">
+    <div v-if="items.length === 0">
       <b-alert
         show
         class="mt-2 mb-4"
@@ -124,28 +65,28 @@
           v-model="itemsFiltrados"
           @end="afterDrag"
           tag="ul"
-          class="list-group draggable-grid-container"
+          class="list-group"
           handle=".drag-handle-zone"
         >
           <b-list-group
-            class="list-group-draggable list-group-draggable-item"
+            class="list-group-draggable"
             v-for="(el, index) in itemsFiltrados"
             :key="index"
+            horizontal="xl"
           >
             <b-list-group-item
-              class="pb-3 drag-handle d-flex align-items-left "
+              class="pb-3 drag-handle d-flex align-items-left list-group-draggable-item"
             >
-              <span class="drag-handle-zone" style="cursor: grab; padding-top: 4px; padding-right: 16px; padding-top: 12px">☰</span>
-              
-            </b-list-group-item>
-
-            <b-list-group-item>
+              <span class="drag-handle-zone" style="cursor: grab; padding-top: 4px; padding-right: 8px; padding-top: 12px">☰</span>
               <div>
                 <link-search
                   :id="el.orden"
                   :key="el.oreden"
                 />
               </div>
+            </b-list-group-item>
+
+            <b-list-group-item>
               <div
                 v-if="el.estatus_revision === 'Aprobado'"
                 class="h1 mt-2"
@@ -177,17 +118,17 @@
               </div>
             </b-list-group-item>
 
-            <b-list-group-item>
+            <b-list-group-item style="min-width: 20%; max-width: 20%">
               {{ el.cliente }}
             </b-list-group-item>
 
             <b-list-group-item>
-              <div>
+              <div style="min-width: 18%">
                 {{ el.unidades }}
               </div>
             </b-list-group-item>
 
-            <b-list-group-item>
+            <b-list-group-item style="min-width: 20%; max-width: 20%">
               <div>
                 <produccionsse-progress-bar
                   :pasos="pasos"
@@ -223,7 +164,7 @@
               </div>
             </b-list-group-item>
 
-            <b-list-group-item>
+            <b-list-group-item style="min-width: 5%; max-width: 5%">
               <div class="floatme">
                 <ordenes-vinculadas
                   :vinculadas="filterVinculadas(el.acciones)"
@@ -232,7 +173,7 @@
               </div>
             </b-list-group-item>
 
-            <b-list-group-item>
+            <b-list-group-item style="min-width: 7%; max-width: 7%">
               <div>
                 {{ el.estatus }}
               </div>
@@ -278,7 +219,6 @@ export default {
   },
   data() {
     return {
-      isLoading: true,
       // --- DATOS ORIGINALES RESTAURADOS ---
       ordenesProyectadas2: [],
       fechasResultSemaforo: null,
@@ -346,7 +286,6 @@ export default {
     },
 
     initTiemposDeProduccion() {
-      this.isLoading = true;
       console.log("Vamos a cargar los tiempos de producción");
       this.getOrdenesFechas().then(() => {
         this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
@@ -552,7 +491,6 @@ export default {
         })
         .finally(() => {
           this.overlay = false;
-          this.isLoading = false;
         });
     },
 
@@ -639,26 +577,5 @@ export default {
   float: left;
   margin-right: 4px;
   margin-top: 4px;
-}
-.reposiciones-grid-container {
-  display: grid;
-  grid-template-columns: auto auto auto auto 1fr;
-}
-
-.draggable-grid-container {
-  display: grid;
-  /* Define 10 columnas: Handle, Orden, Diseño, Cliente, Unidades, Progreso, Entrega, Vinculada, Estatus, Detalles, Acciones */
-  grid-template-columns: auto auto  1fr auto auto auto auto auto auto auto;
-  /* Ajusta las columnas según necesites. '1fr' para la columna de cliente que tomará el espacio restante */
-}
-
-.list-group-draggable {
-  display: contents; /* ¡La clave del éxito! */
-}
-
-.list-group-draggable > .list-group-item {
-  border-bottom: 1px solid #4e5d6c; /* Simula el borde de la fila */
-  display: flex;
-  align-items: center;
 }
 </style>
