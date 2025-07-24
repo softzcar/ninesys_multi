@@ -30,8 +30,6 @@
         spinner-small
       >
 
-      <pre class="force">{{ $store.state.login.currentOrdenProceso }}</pre>
-
 
         <!-- Formulario de Impresión -->
         <!-- <div

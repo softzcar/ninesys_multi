@@ -7,17 +7,32 @@ export default {
     // =================================================================
     generarPlanProduccionCompleto(ordenes, horarioLaboral) {
       const fechaDeCalculo = new Date();
-      const tareasProcesadas = this.procesarColaProduccion(ordenes, horarioLaboral, fechaDeCalculo);
+
+      // Mapear las propiedades de los objetos 'item' a las que espera procesarColaProduccion
+      const mappedOrdenes = ordenes.map(item => ({
+        id_orden: item.orden, // Mapear 'orden' a 'id_orden'
+        status: item.estatus, // Mapear 'estatus' a 'status'
+        nombre_departamento: item.paso, // Mapear 'paso' a 'nombre_departamento'
+        fecha_inicio: item.inicio, // Mapear 'inicio' a 'fecha_inicio'
+        fecha_terminado: item.entrega, // Mapear 'entrega' a 'fecha_terminado'
+        orden_fila_orden: item.orden_fila, // Mapear 'orden_fila' a 'orden_fila_orden'
+        // tiempo_total_orden_depto: item.tiempo_total_orden_depto || 0, // Si no existe, usar 0
+        // Otras propiedades que puedan ser necesarias para procesarColaProduccion
+        // y que provengan del 'item' original
+        ...item // Mantener el resto de las propiedades del item original
+      }));
+
+      const tareasProcesadas = this.procesarColaProduccion(mappedOrdenes, horarioLaboral, fechaDeCalculo);
 
       if (!tareasProcesadas || !tareasProcesadas.length) return [];
 
       const ordenesAgrupadas = tareasProcesadas.reduce((acc, tarea) => {
-        const id = tarea.id_orden;
+        const id = tarea.id_orden; // Ahora 'id_orden' debería existir
         if (!acc[id]) {
           acc[id] = {
             id_orden: id,
-            prioridad: tarea.orden_fila_orden,
-            fecha_entrega_orden: this.formatDate(tarea.fecha_entrega_de_la_orden),
+            prioridad: tarea.orden_fila_orden, // Ahora 'orden_fila_orden' debería existir
+            fecha_entrega_orden: this.formatDate(tarea.entrega), // Usar la fecha de entrega original si no hay otra
             fecha_estimada_entrega_formateada: null,
             tiempo_total_estimado_segundos: 0,
             tiempo_restante_segundos: 0,
@@ -26,8 +41,8 @@ export default {
             tareas: []
           };
         }
-        acc[id].tiempo_total_estimado_segundos += tarea.tiempo_total_orden_depto;
-        if (!tarea.fecha_terminado) acc[id].tiempo_restante_segundos += tarea.tiempo_total_orden_depto;
+        acc[id].tiempo_total_estimado_segundos += (typeof tarea.tiempo_total_orden_depto === 'number' ? tarea.tiempo_total_orden_depto : 0);
+        if (!tarea.fecha_terminado) acc[id].tiempo_restante_segundos += (typeof tarea.tiempo_total_orden_depto === 'number' ? tarea.tiempo_total_orden_depto : 0);
 
         acc[id].tareas.push(tarea);
         return acc;
@@ -87,7 +102,7 @@ export default {
         if (esTerminada) return { variant: 'info', variant_text: 'TERMINADO' };
 
         const esPorIniciar = orden.tareas.every(t => !t.fecha_inicio);
-        if (esPorIniciar) return { variant: 'light', variant_text: 'POR INICIAR' };
+        if (esPorIniciar) return { variant: 'secondary', variant_text: 'POR INICIAR' };
 
         const ultimaTarea = orden.tareas[orden.tareas.length - 1];
         const fechaFinEstimada = ultimaTarea ? ultimaTarea.fecha_estimada_fin : null;

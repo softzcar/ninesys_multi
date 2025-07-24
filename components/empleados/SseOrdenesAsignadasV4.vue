@@ -200,9 +200,6 @@
                 :header="contarItems(dataTableEnCurso.length)"
               >
                 <h3>En Curso</h3>
-                <pre class="force" style="background-color: darkblue;">
-                  {{ dataTablePendiente }}
-                </pre>
                 <b-alert
                   class="text-center"
                   v-if="dataTableEnCurso.length < 1"
@@ -775,7 +772,7 @@ export default {
       return (
         this.ordenes
           // .filter((el) => el.fecha_inicio === null)
-          .filter((el) => el.progreso === "por iniciar")
+          .filter((el) => el.progreso === "POR INICIAR")
           .map((el) => {
             return {
               ...el,

@@ -100,6 +100,7 @@ export default {
       // El "reloj" reactivo
       ahora: new Date(),
       intervaloReloj: null,
+      isLoading: true, // Nueva propiedad para el estado de carga
       fieldsTareas: [
         { key: "nombre_departamento", label: "Departamento" },
         { key: "fecha_inicio_formateada", label: "Inicio Real" },
@@ -122,14 +123,22 @@ export default {
     },
 
     ordenReactiva() {
+      console.log("ordenReactiva: ordenesProyectadas2", this.ordenesProyectadas2);
+      console.log("ordenReactiva: id_orden", this.id_orden);
+
       if (!this.ordenesProyectadas2 || !this.ordenesProyectadas2.length) {
+        console.log("ordenReactiva: ordenesProyectadas2 is empty or null");
         return null;
       }
       const ordenBase = this.ordenesProyectadas2.find(
         (o) => o.id_orden === this.id_orden
       );
 
+      console.log("ordenReactiva: ordenBase found", ordenBase);
+
       if (!ordenBase) {
+        console.log("ordenReactiva: ordenBase not found");
+        this.isLoading = false; // Set isLoading to false if no order is found
         return null;
       }
 
@@ -137,6 +146,9 @@ export default {
         ordenBase,
         this.ahora
       );
+      console.log("ordenReactiva: variant from _determinarVarianteOrden", variant);
+      console.log("ordenReactiva: variant_text from _determinarVarianteOrden", variant_text);
+
       const tareasActualizadas = ordenBase.tareas.map((tarea) => {
         const { variant: tareaVariant, variant_text: tareaVariantText } =
           this._determinarVarianteTarea(tarea, this.ahora);
@@ -146,7 +158,9 @@ export default {
           variant_text: tareaVariantText,
         };
       });
+      console.log("ordenReactiva: tareasActualizadas", tareasActualizadas);
 
+      this.isLoading = false; // Set isLoading to false once data is processed
       return {
         ...ordenBase,
         variant,
@@ -162,13 +176,14 @@ export default {
     },
 
     variant() {
-      return this.ordenReactiva ? this.ordenReactiva.variant : "light";
+      return this.isLoading ? "light" : (this.ordenReactiva ? this.ordenReactiva.variant : "light");
     },
 
     textButton() {
+      if (this.isLoading) return "Calculando fecha...";
       if (this.ordenReactiva && this.ordenReactiva.variant_text === "PAUSADA")
         return "PAUSADA";
-      if (!this.ordenReactiva) return "Por asignar";
+      if (!this.ordenReactiva) return "POR ASIGNAR";
       if (this.ordenReactiva.variant === "light")
         return this.ordenReactiva.variant_text;
 

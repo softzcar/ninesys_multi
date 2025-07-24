@@ -354,16 +354,14 @@ export default {
     initTiemposDeProduccion() {
       this.isLoading = true;
       console.log("Vamos a cargar los tiempos de producción");
-      this.getOrdenesFechas().then(() => {
-        this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
-          this.fechas,
-          this.$store.state.login.dataEmpresa.horario_laboral
-        );
+      this.loadOrdersProduction().then(() => {
+        this.getOrdenesFechas().then(() => {
+          this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
+            this.fechas, // Use this.fechas (detailed tasks) here
+            this.$store.state.login.dataEmpresa.horario_laboral
+          );
 
-        console.log("KKKKKKK", this.fechas);
-
-        this.loadOrdersProduction().then(() => {
-          // this.getPorcentaje()
+          console.log("KKKKKKK", this.fechas);
         });
       });
     },
@@ -654,7 +652,7 @@ export default {
 .list-group-draggable {
   display: grid;
   /* Define 10 columnas: Handle, Orden, Diseño, Cliente, Unidades, Progreso, Entrega, Vinculada, Estatus, Detalles, Acciones */
-  grid-template-columns: auto auto 1fr auto auto auto auto auto auto auto;
+  grid-template-columns: auto 1fr 4fr 1fr 2fr 2fr 1fr 1fr auto auto;
   /* Ajusta las columnas según necesites. '1fr' para la columna de cliente que tomará el espacio restante */
 }
 
