@@ -500,6 +500,7 @@
                               <b-col lg="12">
                                 <h3 class="mb-4 mt-4">Observaciones</h3>
                                 <quill-editor
+                                  ref="myQuillEditor"
                                   v-model="form.obs"
                                   :options="quillOptions"
                                   @change="onEditorChange($event)"
@@ -1045,7 +1046,19 @@ export default {
       proyeccionData: [], // Almacenará los datos de la cola de producción
       fechaProximaDisponible: null, // Almacenará la fecha calculada
       editingOrderId: null,
-      quillOptions,
+      quillOptions: {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strikethrough'],
+            [{ 'header': 1 }, { 'header': 2 }, { 'header': 3 }],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            ['link', 'image'],
+            [{ 'align': [] }],
+            ['clean']
+          ]
+        }
+      },
       ordenesSinAsignar: [],
       endpoint: "/ordenes/nueva/custom", // Opciones: `/ordenes/nueva/custom` - `/ordenes/nueva/sport`
       categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`

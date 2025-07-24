@@ -255,7 +255,7 @@ export default {
       return asignados.length;
     },
 
-    guararComisiones() {
+    async guararComisiones() {
       const ceroVerify = this.form.find(
         (el) =>
           el.comision == 0 ||
@@ -284,12 +284,24 @@ export default {
       }
 
       if (this.form.length > 0) {
-        this.form.forEach((empleado, index) => {
-          this.updateEmpleado(empleado.empleado, empleado.comision, index);
-          console.log("vamos a emitir relad desde asignarEmpleadoMulti");
+        this.overlay = true;
+        const updatePromises = this.form.map((empleado, index) =>
+          this.updateEmpleado(empleado.empleado, empleado.comision, index)
+        );
 
-          this.$emit("reload");
-        });
+        try {
+          await Promise.all(updatePromises);
+          this.$fire({
+            title: "Asignación Guardada",
+            html: `<p>Se guardaron las comisiones de los empleados.</p>`,
+            type: "success",
+          });
+          this.$emit("assignments-updated", this.form);
+        } catch (error) {
+          console.error("Una o más asignaciones fallaron", error);
+        } finally {
+          this.overlay = false;
+        }
       }
     },
 

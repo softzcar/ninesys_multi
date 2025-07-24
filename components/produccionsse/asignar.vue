@@ -11,6 +11,7 @@
       :title="title"
       :id="modal"
       hide-footer
+      @hide="onModalHide"
     >
       <b-overlay
         :show="overlay"
@@ -66,7 +67,7 @@
 
                             <produccionsse-asignar-empleado-multi
                               :item="dep"
-                              @reload="setReload"
+                              @assignments-updated="handleAssignmentsUpdated"
                               :idorden="id"
                               :emp_asignados="
                                                                 filterAsigandos(
@@ -702,6 +703,8 @@ export default {
 
   data() {
     return {
+      assignmentsChanged: false,
+      local_emp_asignados: [],
       asignados: [],
       switches: {
         switchImpresion: true,
@@ -724,11 +727,14 @@ export default {
   },
 
   watch: {
-    reload() {
-      if (this.reload) {
-        this.overlay = true;
-        // this.getLotInfo().then(() => (this.overlay = false))
-      }
+    emp_asignados: {
+        handler(newVal) {
+            if (newVal) {
+                this.local_emp_asignados = JSON.parse(JSON.stringify(newVal));
+            }
+        },
+        immediate: true,
+        deep: true,
     },
   },
 
@@ -812,8 +818,13 @@ export default {
   },
 
   methods: {
+    handleAssignmentAdded(newAssignment) {
+        console.log("Nueva asignación recibida:", newAssignment);
+        this.local_emp_asignados.push(newAssignment);
+    },
+
     filterAsigandos(id_dep, id_orden) {
-      return this.emp_asignados.filter(
+      return this.local_emp_asignados.filter(
         (el) => el.id_departamento == id_dep && el.id_orden == id_orden
       );
     },
@@ -1115,10 +1126,34 @@ export default {
             return options
         }, */
 
-    setReload() {
-      console.log("relaod desde asignar.vue");
+    handleAssignmentsUpdated(updatedAssignments) {
+        this.assignmentsChanged = true; // Marcar que hubo cambios
+        console.log("Asignaciones actualizadas recibidas:", updatedAssignments);
+        const updatedIds = new Set(updatedAssignments.map(a => a.empleado));
+        
+        this.local_emp_asignados = this.local_emp_asignados.filter(emp => updatedIds.has(emp.id_empleado));
 
-      this.$emit("reload", true);
+        updatedAssignments.forEach(newEmp => {
+            const existingEmp = this.local_emp_asignados.find(emp => emp.id_empleado === newEmp.empleado);
+            if (existingEmp) {
+                existingEmp.procentaje_comision = newEmp.comision;
+            } else {
+                this.local_emp_asignados.push({
+                    id_empleado: newEmp.empleado,
+                    procentaje_comision: newEmp.comision,
+                    id_departamento: this.item._id, 
+                    id_orden: this.idorden 
+                });
+            }
+        });
+    },
+
+    onModalHide() {
+      if (this.assignmentsChanged) {
+        console.log("Refrescando datos al cerrar el modal.");
+        this.$emit("refresh-data");
+        this.assignmentsChanged = false; // Resetear la bandera
+      }
     },
     token() {
       const length = 8;

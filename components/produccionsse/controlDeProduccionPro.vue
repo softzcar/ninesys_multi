@@ -124,142 +124,148 @@
           v-model="itemsFiltrados"
           @end="afterDrag"
           tag="ul"
-          class="list-group draggable-grid-container"
+          class="list-group"
           handle=".drag-handle-zone"
         >
-          <b-list-group
-            class="list-group-draggable list-group-draggable-item"
+          <li
             v-for="(el, index) in itemsFiltrados"
             :key="index"
+            class="list-group-item"
+            style="list-style: none; padding: 0; margin: 0; border: none"
           >
-            <b-list-group-item
-              class="pb-3 drag-handle d-flex align-items-left "
+            <b-list-group
+              class="list-group-draggable"
             >
-              <span class="drag-handle-zone" style="cursor: grab; padding-top: 4px; padding-right: 16px; padding-top: 12px">☰</span>
-              
-            </b-list-group-item>
-
-            <b-list-group-item>
-              <div>
-                <link-search
-                  :id="el.orden"
-                  :key="el.oreden"
-                />
-              </div>
-              <div
-                v-if="el.estatus_revision === 'Aprobado'"
-                class="h1 mt-2"
+              <b-list-group-item
+                class="pb-3 drag-handle d-flex align-items-left"
               >
-                <b-button variant="outline-light">
-                  <b-icon
-                    icon="exclamation-circle-fill"
-                    variant="success"
+                <span
+                  class="drag-handle-zone"
+                  style="
+                    cursor: grab;
+                    padding-top: 4px;
+                    padding-right: 16px;
+                    padding-top: 12px;
+                  "
+                  >☰</span
+                >
+              </b-list-group-item>
+
+              <b-list-group-item>
+                <div>
+                  <link-search :id="el.orden" :key="el.oreden" />
+                </div>
+                <div
+                  v-if="el.estatus_revision === 'Aprobado'"
+                  class="h1 mt-2"
+                >
+                  <b-button variant="outline-light">
+                    <b-icon
+                      icon="exclamation-circle-fill"
+                      variant="success"
+                      @click="showDesigner(el.disenador)"
+                      :key="el.orden"
+                    ></b-icon>
+                  </b-button>
+                </div>
+
+                <div v-else class="h1 mt-2">
+                  <b-button
+                    variant="outline-light"
                     @click="showDesigner(el.disenador)"
                     :key="el.orden"
-                  ></b-icon>
-                </b-button>
-              </div>
+                  >
+                    <b-icon
+                      icon="exclamation-circle-fill"
+                      style="color: lightgray"
+                    ></b-icon>
+                  </b-button>
+                </div>
+              </b-list-group-item>
 
-              <div
-                v-else
-                class="h1 mt-2"
-              >
-                <b-button
-                  variant="outline-light"
-                  @click="showDesigner(el.disenador)"
-                  :key="el.orden"
-                >
-                  <b-icon
-                    icon="exclamation-circle-fill"
-                    style="color: lightgray"
-                  ></b-icon>
-                </b-button>
-              </div>
-            </b-list-group-item>
+              <b-list-group-item>
+                {{ el.cliente }}
+              </b-list-group-item>
 
-            <b-list-group-item>
-              {{ el.cliente }}
-            </b-list-group-item>
+              <b-list-group-item>
+                <div>
+                  {{ el.unidades }}
+                </div>
+              </b-list-group-item>
 
-            <b-list-group-item>
-              <div>
-                {{ el.unidades }}
-              </div>
-            </b-list-group-item>
+              <b-list-group-item>
+                <div>
+                  <produccionsse-progress-bar
+                    :pasos="pasos"
+                    :asignacion="asignacion"
+                    :emp_asignados="empleadosAsignados"
+                    :empleados="empleados"
+                    :por_asignar="por_asignar"
+                    :depart="pActivo(el.orden)"
+                    :item="el"
+                    :orden_productos="filterOrdenProductos(el.orden)"
+                    :reposicion_ordenes_productos="
+                      reposicion_ordenes_productos
+                    "
+                    :lote_detalles="filterLoteDetalles(el.orden)"
+                    :lotes_fisicos="lotes_fisicos"
+                    :key="el.orden"
+                    @reload="initTiemposDeProduccion"
+                  />
+                </div>
+              </b-list-group-item>
 
-            <b-list-group-item>
-              <div>
-                <produccionsse-progress-bar
-                  :pasos="pasos"
-                  :asignacion="asignacion"
-                  :emp_asignados="empleadosAsignados"
-                  :empleados="empleados"
-                  :por_asignar="por_asignar"
-                  :depart="pActivo(el.orden)"
-                  :item="el"
-                  :orden_productos="filterOrdenProductos(el.orden)"
-                  :reposicion_ordenes_productos="reposicion_ordenes_productos"
-                  :lote_detalles="filterLoteDetalles(el.orden)"
-                  :lotes_fisicos="lotes_fisicos"
-                  :key="el.orden"
-                  @reload="initTiemposDeProduccion"
-                />
-              </div>
-            </b-list-group-item>
+              <b-list-group-item>
+                <div style="margin-top: 32px">
+                  <!-- ===================== INICIO DE MODIFICACIÓN ==================== -->
+                  <!-- Se reemplaza @reload por los eventos de modal -->
+                  <progreso-tiempo-semaforo
+                    :key="el.orden"
+                    @modal-shown="handleModalShown"
+                    @modal-hidden="handleModalHidden"
+                    :ordenesTodas="fechas"
+                    :id_orden="el.orden"
+                    :ordenesProyectadas2="ordenesProyectadas2"
+                  />
+                  <!-- ====================== FIN DE MODIFICACIÓN ====================== -->
+                </div>
+              </b-list-group-item>
 
-            <b-list-group-item>
-              <div style="margin-top: 32px">
-                <!-- ===================== INICIO DE MODIFICACIÓN ==================== -->
-                <!-- Se reemplaza @reload por los eventos de modal -->
-                <progreso-tiempo-semaforo
-                  :key="el.orden"
-                  @modal-shown="handleModalShown"
-                  @modal-hidden="handleModalHidden"
-                  :ordenesTodas="fechas"
-                  :id_orden="el.orden"
-                  :ordenesProyectadas2="ordenesProyectadas2"
-                />
-                <!-- ====================== FIN DE MODIFICACIÓN ====================== -->
-              </div>
-            </b-list-group-item>
+              <b-list-group-item>
+                <div class="floatme">
+                  <ordenes-vinculadas
+                    :vinculadas="filterVinculadas(el.acciones)"
+                    :key="el.orden"
+                  />
+                </div>
+              </b-list-group-item>
 
-            <b-list-group-item>
-              <div class="floatme">
-                <ordenes-vinculadas
-                  :vinculadas="filterVinculadas(el.acciones)"
-                  :key="el.orden"
-                />
-              </div>
-            </b-list-group-item>
+              <b-list-group-item>
+                <div>
+                  {{ el.estatus }}
+                </div>
+              </b-list-group-item>
 
-            <b-list-group-item>
-              <div>
-                {{ el.estatus }}
-              </div>
-            </b-list-group-item>
+              <b-list-group-item>
+                <div>
+                  <produccion-control-de-produccion-detalles-editor
+                    :idorden="el.orden"
+                    :item="el"
+                    :detalles="el.detalles"
+                    :detalle_empleado="el.detalle_empleado"
+                    :key="el.orden"
+                    :productos="productsFilter(el.orden)"
+                  />
+                </div>
+              </b-list-group-item>
 
-            <b-list-group-item>
-              <div>
-                <produccion-control-de-produccion-detalles-editor
-                  :idorden="el.orden"
-                  :item="el"
-                  :detalles="el.detalles"
-                  :detalle_empleado="el.detalle_empleado"
-                  :key="el.orden"
-                  :productos="productsFilter(el.orden)"
-                />
-              </div>
-            </b-list-group-item>
-
-            <b-list-group-item>
-              <div>
-                <ordenes-editar
-                  :data="el"
-                  :key="el.orden"
-                />
-              </div>
-            </b-list-group-item>
-          </b-list-group>
+              <b-list-group-item>
+                <div>
+                  <ordenes-editar :data="el" :key="el.orden" />
+                </div>
+              </b-list-group-item>
+            </b-list-group>
+          </li>
         </draggable>
       </b-container>
     </div>
@@ -645,15 +651,11 @@ export default {
   grid-template-columns: auto auto auto auto 1fr;
 }
 
-.draggable-grid-container {
+.list-group-draggable {
   display: grid;
   /* Define 10 columnas: Handle, Orden, Diseño, Cliente, Unidades, Progreso, Entrega, Vinculada, Estatus, Detalles, Acciones */
-  grid-template-columns: auto auto  1fr auto auto auto auto auto auto auto;
+  grid-template-columns: auto auto 1fr auto auto auto auto auto auto auto;
   /* Ajusta las columnas según necesites. '1fr' para la columna de cliente que tomará el espacio restante */
-}
-
-.list-group-draggable {
-  display: contents; /* ¡La clave del éxito! */
 }
 
 .list-group-draggable > .list-group-item {

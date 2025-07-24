@@ -33,7 +33,7 @@
                         reloadtest="Reload test!!!"
                         :lote_detalles="lote_detalles"
                         :lotes_fisicos="lotes_fisicos"
-                        @reload="reloadOrders"
+                        @refresh-data="reloadOrders"
                     />
                 </div>
                 <div class="floatme margin-buttons-bar">
