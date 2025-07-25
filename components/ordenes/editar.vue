@@ -94,7 +94,7 @@ export default {
     mounted() {
         if (this.$store.state.login.dataUser.departamento === 'Producción') {
             this.options = [{ value: 'En espera', text: 'En espera' }, { value: 'activa', text: 'Activa' }, { value: 'pausada', text: 'Pausada' }, { value: 'cancelada', text: 'Cancelada' }, { value: 'terminada', text: 'Terminada' }]
-        } else if (this.$store.state.login.dataUser.departamento === 'Comercialización') {
+        } else if (this.$store.state.login.dataUser.departamento === 'Comecialización') {
             this.options = [{ value: 'En espera', text: 'En espera' }, { value: 'activa', text: 'Activa' }, { value: 'pausada', text: 'Pausada' }, { value: 'cancelada', text: 'Cancelada' }, { value: 'entregada', text: 'Entregada' }]
         } else if (this.$store.state.login.dataUser.departamento === 'Administración') {
             this.options = [{ value: 'En espera', text: 'En espera' }, { value: 'activa', text: 'Activa' }, { value: 'pausada', text: 'Pausada' }, { value: 'cancelada', text: 'Cancelada' }, { value: 'terminada', text: 'Terminada' }, { value: 'entregada', text: 'Entregada' }]

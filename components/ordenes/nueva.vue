@@ -1046,19 +1046,7 @@ export default {
       proyeccionData: [], // Almacenará los datos de la cola de producción
       fechaProximaDisponible: null, // Almacenará la fecha calculada
       editingOrderId: null,
-      quillOptions: {
-        theme: 'snow',
-        modules: {
-          toolbar: [
-            ['bold', 'italic', 'underline', 'strikethrough'],
-            [{ 'header': 1 }, { 'header': 2 }, { 'header': 3 }],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'],
-            [{ 'align': [] }],
-            ['clean']
-          ]
-        }
-      },
+      quillOptions: quillOptions,
       ordenesSinAsignar: [],
       endpoint: "/ordenes/nueva/custom", // Opciones: `/ordenes/nueva/custom` - `/ordenes/nueva/sport`
       categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`

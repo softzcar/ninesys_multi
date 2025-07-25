@@ -1,7 +1,12 @@
 import Vue from 'vue'
 import VueQuillEditor from 'vue-quill-editor'
+import Quill from 'quill'
+import BlotFormatter from 'quill-blot-formatter'
 
 Vue.use(VueQuillEditor)
+
+// Registrar el módulo BlotFormatter
+Quill.register('modules/blotFormatter', BlotFormatter)
 
 // Configuración personalizada de Quill
 const options = {
@@ -14,7 +19,8 @@ const options = {
             ['link', 'image'],
             [{ 'align': [] }],
             ['clean'] // Botón para limpiar el editor
-        ]
+        ],
+        blotFormatter: {} // Habilitar BlotFormatter
     }
 }
 

@@ -173,7 +173,7 @@ rif: 'J-00000000-0', */
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-    transpile: ['date-fns'],
+    transpile: ['date-fns', 'quill-image-resize-module'],
     extractCSS: true,
     splitChunks: {
       layouts: true,

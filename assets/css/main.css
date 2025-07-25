@@ -180,3 +180,72 @@ em {
     border: solid 2px;
     border-color: red;
 }
+
+/* Quill Blot Formatter styles */
+.blot-formatter__container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  border: 1px solid #444; /* Example border for selection */
+}
+
+.blot-formatter__resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: #444;
+  border: 1px solid #fff;
+  box-sizing: border-box;
+  opacity: 0.8;
+}
+
+.blot-formatter__resize-handle.blot-formatter__resize-handle--nw {
+  top: -6px;
+  left: -6px;
+  cursor: nwse-resize;
+}
+
+.blot-formatter__resize-handle.blot-formatter__resize-handle--ne {
+  top: -6px;
+  right: -6px;
+  cursor: nesw-resize;
+}
+
+.blot-formatter__resize-handle.blot-formatter__resize-handle--se {
+  bottom: -6px;
+  right: -6px;
+  cursor: nwse-resize;
+}
+
+.blot-formatter__resize-handle.blot-formatter__resize-handle--sw {
+  bottom: -6px;
+  left: -6px;
+  cursor: nesw-resize;
+}
+
+.blot-formatter__toolbar {
+  position: absolute;
+  top: -30px; /* Adjust as needed */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.blot-formatter__toolbar-button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.blot-formatter__toolbar-button:hover {
+  background-color: #555;
+}

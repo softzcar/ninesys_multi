@@ -133,6 +133,7 @@
               <quill-editor
                 v-model="form.obs"
                 @change="onEditorChange($event)"
+                :options="quillOptions"
               ></quill-editor>
             </b-col>
           </b-row>

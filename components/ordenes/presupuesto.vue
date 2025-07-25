@@ -583,6 +583,7 @@
                                                                             $event
                                                                         )
                                                                         "
+                                  :options="quillOptions"
                                 ></quill-editor>
                               </b-col>
                             </b-row>
