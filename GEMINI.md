@@ -5,6 +5,7 @@
 - Siempre concersaremos en español
 - Revisa la estructura de directorios y los archivos necesarios para que tengas el contexto más completo posible del proyecto
 - si existe el archivo `bitacora.md` debes leerlo ye ntederlo para estar al tanto de las tareas realizadas en el proyecto
+- REvisa en el H1 la fecha de la bitacora, si no es la fecha de el día debes crearla para poder saber de que dia es la conversación no un h1 po conversacion sino un h1 para selarar las conversaciones de cada dia 
 - Al inicio de cada sesion debes indicar en un H1 la hora y fecha del inicio de la sesion
 - Siempre prefiere implementar codigo de la manera menos invasiva posible
 - Evita hacer cambios o mejoras que no se te soliciten pero siempre puedes sujerirlas

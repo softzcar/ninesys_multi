@@ -258,6 +258,22 @@ export default {
   },
 
   methods: {
+    async getObservaciones() {
+      // Carga las observaciones desde el nuevo endpoint dedicado.
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/ordenes-observaciones/${this.item.orden}`
+        )
+        // El endpoint devuelve un array, incluso si está vacío.
+        // Si hay datos, tomamos el campo 'observaciones' del primer elemento.
+        if (res.data && res.data.length > 0) {
+          this.form.obs = res.data[0].observaciones || ''
+        }
+      } catch (error) {
+        console.error('Error al cargar las observaciones:', error)
+        this.form.obs = '<p>Error al cargar observaciones.</p>'
+      }
+    },
     recalcularSegunTalla(index, item) {
       // verificar si la talla es XL
       console.log("recacultar talla index", index);
@@ -664,11 +680,11 @@ export default {
       .then(() => {
         if (this.editable) {
           this.getProductsOrder();
-          thia.getTelas();
-          thia.getTallas();
+          this.getTelas();
+          this.getTallas();
           this.getProducts();
-
-          this.form.obs = this.item.obs;
+          this.getObservaciones(); // Cargar observaciones desde el nuevo endpoint
+          // this.form.obs = this.item.obs; // Se elimina la carga desde la prop
         }
       })
       .then(() => (this.overlay = false));

@@ -270,7 +270,7 @@
                             </div> -->
               <div
                 class="spacer observaciones"
-                v-html="resOrden.orden[0].observaciones"
+                v-html="observaciones"
               ></div>
             </div>
           </b-col>
@@ -313,6 +313,7 @@ export default {
   computed: {
     ...mapState("login", ["access", "dataUser", "dataEmpresa", "tasas"]),
     ...mapGetters("buscar", ["resOrden"]),
+    ...mapState("buscar", ["observaciones"]),
     orderId() {
       // Usa el prop 'id' si está disponible, si no, usa el de la ruta.
       return this.id || this.$route.params.id;
@@ -355,7 +356,7 @@ export default {
   },
 
   methods: {
-    ...mapActions("buscar", ["getOrden"]),
+    ...mapActions("buscar", ["getOrden", "getObservaciones"]),
 
     handleCurrencySelection(currency) {
       this.selectedCurrency = currency.moneda;
@@ -442,12 +443,18 @@ export default {
   /* async asyncData({ params, $http }) {
     const post = await this.getOrdenNow()
   }, */
-  mounted() {
-    this.getImages(this.orderId);
-    this.getOrden(this.orderId).then(() => {
-      console.log("desactivar overlay");
-      this.overlay = false;
-    });
+  async mounted() {
+    console.log('Tasas:', this.tasas);
+    console.log('Data Empresa:', this.dataEmpresa);
+    this.$store.commit("buscar/clearData");
+    await Promise.all([
+      this.getImages(this.orderId),
+      this.getOrden(this.orderId).then(() => {
+        return this.getObservaciones(this.orderId);
+      }),
+    ]);
+    console.log("desactivar overlay");
+    this.overlay = false;
   },
 
   mixins: [mixin],

@@ -36,6 +36,7 @@
         title="Estado del Servicio de WhatsApp"
         hide-footer
         size="xl"
+        @show="onModalShow"
       >
         <div v-if="ws.error">
           <b-alert
@@ -483,18 +484,28 @@ export default {
     restartPolling() {
       this.stopPolling(); // Detener el intervalo actual antes de reiniciarlo
 
-      // Usar intervalo corto si no está listo o hay error, largo si está listo
-      const interval =
-        this.ws.ws_ready && !this.ws.error
-          ? this.longInterval
-          : this.shortInterval;
+      // Si estamos conectados y sin errores, continuar el sondeo.
+      if (this.ws.ws_ready && !this.ws.error) {
+        const interval = this.longInterval;
+        console.log(
+          `Conectado. Reiniciando polling cada ${interval / 1000} segundos.`
+        );
+        this.pollingInterval = setInterval(() => {
+          this.getWSInfo();
+        }, interval);
+      } else {
+        // Si no estamos conectados o hay un error, detener el sondeo por completo.
+        console.log("No conectado o con error. Polling detenido.");
+        this.stopPolling();
+      }
+    },
 
-      console.log(
-        `Reiniciando polling con intervalo de ${interval / 1000} segundos.`
-      );
-      this.pollingInterval = setInterval(() => {
+    onModalShow() {
+      console.log("Modal abierto. Verificando estado si no está conectado.");
+      // Si no estamos ya conectados, busca la información más reciente (ej. un nuevo QR)
+      if (!this.ws.ws_ready) {
         this.getWSInfo();
-      }, interval);
+      }
     },
 
     // --- NUEVAS FUNCIONES PARA ACCIONES ---

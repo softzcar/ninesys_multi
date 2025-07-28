@@ -33,9 +33,15 @@
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <!-- <inventario-InsumoNuevo @reload="getProducts" /> -->
+                            </b-col>
+                        </b-row>
+                        <b-row class="mb-4">
+                            <b-col md="6">
                                 <products-new :attributescat="prductAttributes" :attributesval="prductAttributesValues"
-                                    class="mb-4" @r="getResponseNewProduct" />
+                                     @r="getResponseNewProduct" />
+                            </b-col>
+                            <b-col md="6">
+                                <products-BulkLoad />
                             </b-col>
                         </b-row>
                         <b-row>
