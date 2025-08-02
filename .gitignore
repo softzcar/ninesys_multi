@@ -42,3 +42,7 @@ notes.md
 task.md
 # GEMINI.md 
 
+# Deployment scripts and backups
+*.sh
+backups_transpilaciones/
+logs_deploys/

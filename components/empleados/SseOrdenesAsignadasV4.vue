@@ -139,7 +139,7 @@
                           :insumoscos="insumosCostura"
                           :insumoslim="insumosLimpieza"
                           :insumosrev="insumosRevision"
-                          :orden_proceso_departamento="orden_proceso_departamento"
+                          :orden_proceso_departamento="row.item.orden_proceso_departamento"
                           tipo="todo"
                           :idorden="row.item.orden"
                           :id_ordenes_productos="row.item.id_ordenes_productos"
@@ -247,7 +247,7 @@
                           :idorden="row.item.orden"
                           :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe()"
-                          :orden_proceso_departamento="orden_proceso_departamento"
+                          :orden_proceso_departamento="row.item.orden_proceso_departamento"
                         />
                       </span>
 
@@ -320,6 +320,7 @@
             <b-col>
               <b-card :header="contarItems(dataTablePendiente.length)">
                 <h3>Pendientes</h3>
+
 
                 <b-alert
                   class="text-center"
@@ -432,6 +433,7 @@ export default {
   data() {
     return {
       // sourceEvent: null, // Variable para inicializar eventSource y utilizarla poseteriormente en la sfunciones para obtener la informacion de las ordenes asignadas
+      orden_proceso_departamento: null,
       disIniciar: false,
       filter: null,
       includedFields: ["orden"],
@@ -619,7 +621,8 @@ export default {
         enCurso = this.ordenes
           .filter(
             (el) =>
-              (el.progreso === "en curso" || el.progreso === "terminada") &&
+              // (el.progreso === "en curso" || el.progreso === "terminada") &&
+              (el.fecha_inicio != null && el.fecha_terminado == null) &&
               el.en_tintas === 0 &&
               el.en_reposiciones === 0 /* &&
                             (el.fecha_inicio != null && el.fecha_terminado == null) */
@@ -771,8 +774,8 @@ export default {
     dataTablePendiente() {
       return (
         this.ordenes
-          // .filter((el) => el.fecha_inicio === null)
-          .filter((el) => el.progreso === "POR INICIAR")
+          .filter((el) => el.fecha_inicio === null)
+          // .filter((el) => el.progreso == "por iniciar")
           .map((el) => {
             return {
               ...el,

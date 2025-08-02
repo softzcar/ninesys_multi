@@ -153,7 +153,7 @@
 
               <b-list-group-item>
                 <div>
-                  <link-search :id="el.orden" :key="el.oreden" />
+                  <link-search :id="el.orden" :key="el.orden" />
                 </div>
                 <div
                   v-if="el.estatus_revision === 'Aprobado'"

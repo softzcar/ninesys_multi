@@ -6,10 +6,10 @@
 
     <b-modal :id="modalId" hide-footer size="lg">
       <template #modal-title>
-        <h3>Carga Masiva de Productos</h3>
+        <h3>Carga Masiva de Inventario</h3>
       </template>
       <p>
-        Para agregar o actualizar productos de forma masiva, puede descargar
+        Para agregar o actualizar ítems de inventario de forma masiva, puede descargar
         nuestra plantilla de Excel. Rellene los datos siguiendo las
         instrucciones y luego suba el archivo para procesarlo.
       </p>
@@ -19,17 +19,15 @@
       <ul>
         <li>No modifique los nombres de las columnas ni el de las hojas.</li>
         <li>
-          La columna <strong>SKU</strong> es obligatoria y se usa para
-          identificar si un producto es nuevo o si se debe actualizar uno
+          La columna <strong>Rollo</strong> es obligatoria y se usa para
+          identificar si un ítem de inventario es nuevo o si se debe actualizar uno
           existente.
         </li>
         <li>
-          Para las columnas con listas desplegables (como Categoría),
-          seleccione una de las opciones disponibles.
+          Para las columnas con listas desplegables, seleccione una de las opciones disponibles.
         </li>
         <li>
-          En la hoja <strong>Productos</strong>, puede asignar un precio a
-          un mismo producto usando su SKU.
+          En la hoja <strong>Inventario</strong>, asegúrese de que el campo 'Rollo' sea único para cada ítem.
         </li>
       </ul>
       <b-overlay :show="loading" spinner-small>
@@ -43,7 +41,7 @@
 
       <h5>Subir y Procesar Archivo</h5>
       <b-form-group
-        label="Seleccione el archivo Excel con los productos:"
+        label="Seleccione el archivo Excel con los ítems de inventario:"
         label-for="file-upload"
       >
         <b-form-file
@@ -74,7 +72,7 @@
 import * as XLSX from 'xlsx'
 
 export default {
-  name: 'ProductsBulkLoad',
+  name: 'InventoryBulkLoad',
   data() {
     return {
       loading: false,
@@ -93,12 +91,12 @@ export default {
       this.error = null
       try {
         const response = await this.$axios.get(
-          `${this.$config.API}/api/products/template-excel`
+          `${this.$config.API}/api/inventario/template-excel`
         )
         const fileUrl = response.data.file_url
         const link = document.createElement('a')
         link.href = `${this.$config.API}${fileUrl}`
-        link.setAttribute('download', 'plantilla_productos.xlsx')
+        link.setAttribute('download', 'plantilla_inventario.xlsx')
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -119,7 +117,7 @@ export default {
       this.error = null
 
       try {
-        const { products: productsToUpload, errors: validationErrors } = await this.parseExcel(this.file)
+        const { inventoryItems: inventoryItemsToUpload, errors: validationErrors } = await this.parseExcel(this.file)
 
         if (validationErrors.length > 0) {
           let errorString = 'Se encontraron errores en el archivo. Por favor, corríjalos antes de subirlo:\n'
@@ -130,21 +128,21 @@ export default {
           return;
         }
 
-        if (productsToUpload.length === 0) {
-          this.error = "El archivo no contiene productos válidos para procesar."
+        if (inventoryItemsToUpload.length === 0) {
+          this.error = "El archivo no contiene ítems de inventario válidos para procesar."
           return
         }
 
         const data = new URLSearchParams();
-        data.set('products', JSON.stringify(productsToUpload));
+        data.set('inventoryItems', JSON.stringify(inventoryItemsToUpload));
 
         const response = await this.$axios.post(
-          `${this.$config.API}/api/products/bulk-load`,
+          `${this.$config.API}/api/inventario/bulk-load`,
           data
         )
 
         // Mostramos un mensaje de éxito
-        this.$bvToast.toast(response.data.message || "Productos procesados correctamente.", {
+        this.$bvToast.toast(response.data.message || "Ítems de inventario procesados correctamente.", {
           title: "Carga Masiva Exitosa",
           variant: "success",
           solid: true,
@@ -171,42 +169,48 @@ export default {
             const data = e.target.result
             const workbook = XLSX.read(data, { type: 'array' })
 
-            const productsSheet = workbook.Sheets['Productos']
-            if (!productsSheet) {
-              throw new Error('No se encontró la hoja "Productos" en el archivo.')
+            const inventorySheet = workbook.Sheets['Inventario']
+            if (!inventorySheet) {
+              throw new Error('No se encontró la hoja "Inventario" en el archivo.')
             }
-            const productsRaw = XLSX.utils.sheet_to_json(productsSheet)
+            const inventoryRaw = XLSX.utils.sheet_to_json(inventorySheet)
 
-            const validatedProducts = []
+            const validatedInventoryItems = []
             const validationErrors = []
 
-            productsRaw.forEach((product, index) => {
+            inventoryRaw.forEach((item, index) => {
               const rowNumber = index + 2; // +1 for 0-based index, +1 for header row
               const rowErrors = [];
 
-              if (!product.SKU) rowErrors.push('El campo SKU es obligatorio.');
-              if (!product.Nombre) rowErrors.push('El campo Nombre es obligatorio.');
-              if (product.Precios === undefined || product.Precios === null) rowErrors.push('El campo Precios es obligatorio.');
-              if (!product['Precio Descripción']) rowErrors.push('El campo "Precio Descripción" es obligatorio.');
-              if (!product.Categoría) rowErrors.push('El campo Categoría es obligatorio.');
+              if (!item.Rollo) rowErrors.push('El campo Rollo es obligatorio.');
+              if (!item.Nombre) rowErrors.push('El campo Nombre es obligatorio.');
+              if (item.Cantidad === undefined || item.Cantidad === null) rowErrors.push('El campo Cantidad es obligatorio.');
+              if (!item.Unidad) rowErrors.push('El campo "Unidad" es obligatorio.');
+              if (item.Costo === undefined || item.Costo === null) rowErrors.push('El campo Costo es obligatorio.');
+              if (!item.Departamento) rowErrors.push('El campo Departamento es obligatorio.');
+
+              // Validación de unicidad del Rollo
+              if (validatedInventoryItems.some(existingItem => existingItem.Rollo === item.Rollo)) {
+                rowErrors.push('El campo Rollo debe ser único.');
+              }
 
               if (rowErrors.length > 0) {
                 validationErrors.push({ row: rowNumber, messages: rowErrors });
               } else {
-                validatedProducts.push({
-                  SKU: product.SKU,
-                  Nombre: product.Nombre,
-                  Categoría: product.Categoría,
-                  Atributos: product.Atributos || null,
-                  precios: [{
-                    valor: product.Precios,
-                    descripcion: product['Precio Descripción'],
-                  }],
+                validatedInventoryItems.push({
+                  Rollo: item.Rollo,
+                  Nombre: item.Nombre,
+                  Cantidad: item.Cantidad,
+                  Unidad: item.Unidad,
+                  Costo: item.Costo,
+                  Departamento: item.Departamento,
+                  Rendimiento: item.Rendimiento || 1,
+                  Descripción: item.Descripción || null,
                 });
               }
             });
 
-            resolve({ products: validatedProducts, errors: validationErrors });
+            resolve({ inventoryItems: validatedInventoryItems, errors: validationErrors });
 
           } catch (err) {
             reject(err)

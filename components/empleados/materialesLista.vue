@@ -241,6 +241,9 @@ export default {
       // Esta función parece usar this.eficiencia_estimada y this.materialUtilizado
       // que no están definidos en el data de este componente.
       // Asegúrate de que estas propiedades existan o se pasen como props.
+
+      // PARA CALCULAR LA EFICIENCIA COMPARAMOS CON UNA REGLA DE TRES EL MATERIAL UTILIZADO DEL ESTIMADO Y NOS RESULTA LA EFICIENCIA
+
       console.warn(
         "calcularPorcentajeDiferenciaTela usa propiedades no definidas (eficiencia_estimada, materialUtilizado)."
       );

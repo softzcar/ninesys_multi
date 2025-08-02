@@ -1,32 +1,13 @@
 <template>
   <div>
-    <div class="floatme">
+    <div>
       <b-button
-        variant="light"
+        variant="success"
         @click="$bvModal.show(modal)"
         :disabled="disableBtnOnIdDep"
       >
-        <span style="margin-right: 10px">
-          <b-icon
-            icon="whatsapp"
-            variant="success"
-            font-scale="1.2"
-          ></b-icon>
-        </span>
-
-        <span v-if="$nuxt.isOffline">
-          <b-icon
-            icon="wifi-off"
-            variant="danger"
-          ></b-icon>
-        </span>
-
-        <span v-else>
-          <b-icon
-            icon="wifi"
-            variant="success"
-          ></b-icon>
-        </span>
+        <b-icon icon="whatsapp" class="mr-2"></b-icon>
+        WhatsApp a Empleados
       </b-button>
 
       <b-modal
@@ -176,6 +157,8 @@ export default {
   mounted() {
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
       if (modalId === this.modal) {
+        this.mensaje = "";
+        this.destinatario = null;
         this.getEmpleados().then(() => (this.overlay = false));
       }
     });

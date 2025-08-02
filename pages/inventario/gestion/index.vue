@@ -19,6 +19,7 @@
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
                                 <inventario-InsumoNuevo @reload="getInsumos" />
+                                <inventario-BulkLoad @upload-success="getInsumos" />
                             </b-col>
                         </b-row>
 

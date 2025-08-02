@@ -10,25 +10,26 @@
         @click="$bvModal.show(modalId)"
         variant="light"
       >
-        <span style="margin-right: 10px">
-          <b-icon
-            icon="whatsapp"
-            :variant="statusWs.variant"
-            font-scale="1.2"
-          ></b-icon>
-        </span>
-        <span v-if="$nuxt.isOffline">
-          <b-icon
-            icon="wifi-off"
-            variant="danger"
-          ></b-icon>
-        </span>
-        <span v-else>
-          <b-icon
-            icon="wifi"
-            variant="success"
-          ></b-icon>
-        </span>
+
+      <span style="margin-right: 10px">
+            <b-icon
+              icon="whatsapp"
+              :variant="statusWs.variant"
+              font-scale="1.2"
+            ></b-icon>
+          </span>
+          <span v-if="$nuxt.isOffline">
+            <b-icon
+              icon="wifi-off"
+              variant="danger"
+            ></b-icon>
+          </span>
+          <span v-else>
+            <b-icon
+              icon="wifi"
+              variant="success"
+            ></b-icon>
+          </span>        
       </b-button>
 
       <b-modal
@@ -81,6 +82,7 @@
                   @click="confirmRestart(getCompanyId)"
                   :disabled="isActionLoading"
                 >
+                  <b-icon icon="arrow-clockwise" class="mr-2"></b-icon>
                   <b-spinner
                     small
                     v-if="
@@ -96,6 +98,7 @@
                   @click="confirmDisconnect(getCompanyId)"
                   :disabled="isActionLoading"
                 >
+                  <b-icon icon="power" class="mr-2"></b-icon>
                   <b-spinner
                     small
                     v-if="
@@ -105,6 +108,7 @@
                   ></b-spinner>
                   Desconectar Cliente
                 </b-button>
+                
                 <span class="floatme mr-2">
                   <admin-departamentosEditWs />
                 </span>
@@ -112,12 +116,15 @@
                 <span class="floatme mr-2">
                   <admin-WsSendMsg />
                 </span>
+                <span class="floatme mr-2">
+                  <admin-WsSendMsgCustomInterno />
+                </span>
               </div>
             </b-col>
           </b-row>
         </b-container>
 
-        <b-container v-else-if="ws.qr">
+        <b-container v-else-if="ws.qr" class="mb-4">
           <b-row>
             <b-col md="6">
               <h2 class="mt-2 mb-4">Vincular dispositivo</h2>
@@ -140,32 +147,38 @@
                   derecha.
                 </li>
               </ol>
-              <div class="mt-4">
-                <b-button
-                  variant="primary"
-                  @click="fetchQRCode(getCompanyId)"
-                  :disabled="isActionLoading"
-                >
-                  <b-spinner
-                    small
-                    v-if="
-                                            isActionLoading &&
-                                            currentAction === 'fetchQR'
-                                        "
-                  ></b-spinner>
-                  Recargar Código QR
-                </b-button>
-              </div>
             </b-col>
             <b-col
               md="6"
               class="text-center"
             >
-              <b-img-lazy
-                v-bind="wsImgProps"
-                :src="ws.qr"
-                alt="Código QR para WhatsApp"
-              ></b-img-lazy>
+              <!-- Contenedor con tamaño fijo para evitar el salto de la interfaz -->
+              <div style="width: 300px; height: 300px;" class="d-flex justify-content-center align-items-center mx-auto my-0">
+                <div v-if="isActionLoading && currentAction === 'fetchQR'">
+                  <b-spinner
+                    style="width: 3rem; height: 3rem"
+                    label="Cargando QR..."
+                  ></b-spinner>
+                  <p class="mt-2">Generando nuevo código...</p>
+                </div>
+                <b-img-lazy
+                  v-else-if="ws.qr"
+                  v-bind="wsImgProps"
+                  :src="ws.qr"
+                  alt="Código QR para WhatsApp"
+                ></b-img-lazy>
+              </div>
+
+              <div class="mt-2">
+                <b-button
+                  variant="success"
+                  @click="fetchQRCode(getCompanyId)"
+                  :disabled="isActionLoading"
+                >
+                  <b-icon icon="whatsapp" class="mr-2"></b-icon>
+                  Recargar Código QR
+                </b-button>
+              </div>
             </b-col>
           </b-row>
         </b-container>
@@ -300,7 +313,9 @@
 // Importar componentes de BootstrapVue si no están registrados globalmente
 // import { BButton, BIcon, BModal, BAlert, BContainer, BRow, BCol, BImgLazy, BSpinner } from 'bootstrap-vue';
 import axios from "axios";
+import AdminWsSendMsgCustomInterno from "./admin/WsSendMsgCustomInterno.vue";
 export default {
+  components: { AdminWsSendMsgCustomInterno },
   // Registrar componentes si no están registrados globalmente
   // components: {
   //     BButton, BIcon, BModal, BAlert, BContainer, BRow, BCol, BImgLazy, BSpinner
@@ -484,20 +499,28 @@ export default {
     restartPolling() {
       this.stopPolling(); // Detener el intervalo actual antes de reiniciarlo
 
-      // Si estamos conectados y sin errores, continuar el sondeo.
+      let intervalToUse = this.longInterval; // Por defecto, intervalo largo
+
       if (this.ws.ws_ready && !this.ws.error) {
-        const interval = this.longInterval;
+        intervalToUse = this.longInterval; // Conectado, sondeo menos frecuente
         console.log(
-          `Conectado. Reiniciando polling cada ${interval / 1000} segundos.`
+          `Conectado. Reiniciando polling cada ${intervalToUse / 1000} segundos.`
         );
-        this.pollingInterval = setInterval(() => {
-          this.getWSInfo();
-        }, interval);
+      } else if (this.ws.qr && !this.ws.error) {
+        intervalToUse = this.shortInterval; // QR presente, sondeo más frecuente
+        console.log(
+          `QR presente. Reiniciando polling cada ${intervalToUse / 1000} segundos.`
+        );
       } else {
-        // Si no estamos conectados o hay un error, detener el sondeo por completo.
-        console.log("No conectado o con error. Polling detenido.");
-        this.stopPolling();
+        // No conectado, sin QR o con error. Detener sondeo.
+        console.log("No conectado, sin QR o con error. Polling detenido.");
+        this.stopPolling(); // Asegurarse de que esté detenido
+        return; // Salir temprano
       }
+
+      this.pollingInterval = setInterval(() => {
+        this.getWSInfo();
+      }, intervalToUse);
     },
 
     onModalShow() {
@@ -571,10 +594,8 @@ export default {
       console.log(`Attempting to fetch QR code for ${companyId}`);
       this.isActionLoading = true;
       this.currentAction = "fetchQR";
-      this.ws.qr = null; // Limpiar QR anterior
       this.ws.error = null; // Limpiar errores anteriores
       this.ws.details = null;
-      this.ws.ws_ready = false; // Asumir que no está listo
 
       // Detener polling temporalmente
       this.stopPolling();
@@ -687,8 +708,7 @@ export default {
         this.isActionLoading = false;
         this.currentAction = null;
         this.companyIdToAction = null;
-        // Reiniciar polling después de la acción
-        this.restartPolling();
+        this.getWSInfo(); // Obtener el estado más reciente inmediatamente
       }
     },
 
@@ -747,8 +767,7 @@ export default {
         this.isActionLoading = false;
         this.currentAction = null;
         this.companyIdToAction = null;
-        // Reiniciar polling después de la acción
-        this.restartPolling();
+        this.getWSInfo(); // Obtener el estado más reciente inmediatamente
       }
     },
 
@@ -767,3 +786,21 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.qr-reloading {
+  filter: brightness(0.4);
+  transition: filter 0.2s ease-in-out;
+}
+.qr-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+</style>

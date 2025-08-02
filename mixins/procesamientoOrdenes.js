@@ -32,7 +32,7 @@ export default {
           acc[id] = {
             id_orden: id,
             prioridad: tarea.orden_fila_orden, // Ahora 'orden_fila_orden' debería existir
-            fecha_entrega_orden: this.formatDate(tarea.entrega), // Usar la fecha de entrega original si no hay otra
+            fecha_entrega_orden: this.formatDate(tarea.fecha_entrega_orden), // Usar la fecha de entrega original si no hay otra
             fecha_estimada_entrega_formateada: null,
             tiempo_total_estimado_segundos: 0,
             tiempo_restante_segundos: 0,
@@ -340,7 +340,7 @@ export default {
 
     formatDate(date) {
       let dateObj;
-      if (typeof date === 'string') dateObj = new Date(`${date}T00:00:00`); // Corregido para ser consistente
+      if (typeof date === 'string') dateObj = new Date(date.replace(" ", "T")); // Corregido para manejar fechas con hora
       else if (date instanceof Date && !isNaN(date.getTime())) dateObj = date;
       else return null;
       if (isNaN(dateObj.getTime())) return null;

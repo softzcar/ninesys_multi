@@ -99,7 +99,7 @@
               $store.state.login.currentDepartament === 'Corte' ||
               $store.state.login.currentDepartament === 'Corte papel'
             ">
-            <!-- <p>
+            <p>
                             <strong>Papel Utilizado:</strong>
                             {{ papelUtilizado }} Metros
                         </p>
@@ -114,7 +114,7 @@
                             {{ materialUtilizado }} Metros
                         </p>
 
-                        <p
+                        <!-- <p
                             v-html="
                                 calcularPorcentajeDiferenciaTela(
                                     eficienciaEstimada

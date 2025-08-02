@@ -300,6 +300,7 @@ export default {
       output: null,
       preview: false,
       selectedCurrency: "dolar",
+      imageAbortController: null, // Added for request cancellation
     };
   },
 
@@ -364,13 +365,23 @@ export default {
     },
 
     async getImages(idOrderImg) {
+      if (this.imageAbortController) {
+        this.imageAbortController.abort();
+      }
+      this.imageAbortController = new AbortController();
       this.$axios
-        .get(`${this.$config.API}/disenos/images/${this.orderId}`)
+        .get(`${this.$config.API}/disenos/images/${this.orderId}`, {
+          signal: this.imageAbortController.signal,
+        })
         .then((res) => {
           console.log(`Imágenes encontradas`, res);
           this.tmpImage = res.data;
         })
         .catch((err) => {
+          if (this.$axios.isCancel(err)) {
+            console.log('Request canceled', err.message);
+            return;
+          }
           console.error(`El cdn respondio con un error`, err);
           this.tmpImage = [`${this.$config.API}/images/no-image.png`];
         });
@@ -458,6 +469,12 @@ export default {
   },
 
   mixins: [mixin],
+
+  beforeDestroy() {
+    if (this.imageAbortController) {
+      this.imageAbortController.abort();
+    }
+  },
 };
 </script>
 

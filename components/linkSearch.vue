@@ -4,10 +4,10 @@
       >{{ id }}
     </b-button>
 
-    <b-modal :id="modal" :title="title" hide-footer size="xl">
+    <b-modal :id="modal" :title="title" hide-footer size="xl" @show="onModalShow" @hidden="onModalHidden">
       <div class="table-wrapper">
         <b-overlay :show="overlay" spinner-small>
-          <buscar-resultado :id="id" />
+          <buscar-resultado v-if="showResultado" :id="id" />
         </b-overlay>
       </div>
     </b-modal>
@@ -25,7 +25,17 @@ export default {
       title: `Orden ${this.id}`,
       overlay: false,
       statusbutton: "outline-primary",
+      showResultado: false,
     };
+  },
+
+  methods: {
+    onModalShow() {
+      this.showResultado = true;
+    },
+    onModalHidden() {
+      this.showResultado = false;
+    },
   },
 
   computed: {

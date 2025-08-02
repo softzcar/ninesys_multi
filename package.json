@@ -40,7 +40,8 @@
     "vue-template-compiler": "^2.7.16",
     "vue-the-mask": "^0.11.1",
     "vue-typeahead-bootstrap": "^2.12.0",
-    "vuedraggable": "^2.24.3"
+    "vuedraggable": "^2.24.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",

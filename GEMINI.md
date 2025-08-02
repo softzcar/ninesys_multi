@@ -4,9 +4,20 @@
 
 - Siempre concersaremos en español
 - Revisa la estructura de directorios y los archivos necesarios para que tengas el contexto más completo posible del proyecto
-- si existe el archivo `bitacora.md` debes leerlo ye ntederlo para estar al tanto de las tareas realizadas en el proyecto
-- REvisa en el H1 la fecha de la bitacora, si no es la fecha de el día debes crearla para poder saber de que dia es la conversación no un h1 po conversacion sino un h1 para selarar las conversaciones de cada dia 
-- Al inicio de cada sesion debes indicar en un H1 la hora y fecha del inicio de la sesion
-- Siempre prefiere implementar codigo de la manera menos invasiva posible
-- Evita hacer cambios o mejoras que no se te soliciten pero siempre puedes sujerirlas
-- Si no esta creado crea un archivo llamado `bitacora.md` En este archivo vas a escribir un resumen de cada cambio o implemtación que hagas una vez termines cada tarea debes escribir enel archivo `bitacora.md` de manera que si algo sale mal el archivo nbo quede vacio, vas a incluir el mensaje que te he enviado al principio y luego tu respuesta y el resultado obtenido recuerda siempre debes hacer esto para poder entender luego que ha sucedido si algo falla y se cierra la sesion
+- **Gestión de Bitácora (CRÍTICO):**
+    - Al inicio de cada sesión, **DEBES** verificar la fecha en el H1 de `bitacora.md`. Si no es la fecha actual, **DEBES** actualizarla o crear una nueva sección con la fecha de hoy (ej. `# Jueves, 31 de julio de 2025`).
+    - **Al inicio de cada sesión, DEBES indicar en un H1 la hora y fecha del inicio de la sesión.**
+    - Si existe el archivo `bitacora.md`, **DEBES** leerlo y entenderlo para estar al tanto de las tareas realizadas en el proyecto.
+    - **Después de CADA interacción significativa o tarea completada (diagnóstico, propuesta, implementación, verificación, etc.), DEBES registrarla INMEDIATAMENTE en `bitacora.md`.**
+    - Cada entrada en `bitacora.md` debe incluir:
+        - El mensaje del usuario.
+        - Tu respuesta o la acción realizada.
+        - El resultado obtenido (ej. "Archivo modificado exitosamente", "Error de compilación", "Comando ejecutado").
+    - Este registro es fundamental para el seguimiento del proyecto y para la generación de reportes. **La precisión y la inmediatez son IMPERATIVAS.**
+- Siempre prefiere implementar código de la manera menos invasiva posible
+- Evita hacer cambios o mejoras que no se te soliciten pero siempre puedes sugerirlas
+
+## Información del Backend:
+
+- **Framework:** Slim Framework
+- **Rutas de la API:** `https://raw.githubusercontent.com/softzcar/ninesys-apidev/refs/heads/main/app/routes.php`

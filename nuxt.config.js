@@ -8,6 +8,23 @@ export default {
 
   // Should hold all env variables that are public as these will be exposed on the frontend.
   publicRuntimeConfig: {
+    // PRODUCCIÓN
+   /*  LOCAL_IP: `https://api.nineteengreen.com`,
+    LOCAL_IP_WOO: `https://api.nineteengreen.com`,
+    API: `https://api.nineteengreen.com`,
+    CDN: `https://cdn.nineteengreen.com`,
+    LIVE: `https://live.nineteengreen.com`,
+    APP_URL: `https://app.nineteencustom.com`,
+    WS_API: `https://ws.nineteengreen.com`, // Produccion
+    // WS_API: `http://localhost:3000`, // Desarrollo
+    HORARIO: {
+      horaInicioManana: 8.5,  // 8:30 AM
+      horaFinManana: 12,     // 12:00 PM
+      horaInicioTarde: 13,   // 1:00 PM
+      horaFinTarde: 17.5,    // 5:30 PM
+      diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
+    }, */
+    
     // DESARROLLO
     LOCAL_IP: `https://apidev.nineteengreen.com`,
     LOCAL_IP_WOO: `https://apidev.nineteengreen.com`,
@@ -24,23 +41,6 @@ export default {
       horaFinTarde: 17.5,    // 5:30 PM
       diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
     },
-
-    // PRODUCCION
-    /* LOCAL_IP: `https://api.nineteencustom.com`,
-    LOCAL_IP_WOO: `https://api.nineteencustom.com`,
-    API: `https://api.nineteencustom.com`,
-    CDN: `https://cdn.nineteengreen.com`,
-    LIVE: `https://live.nineteengreen.com`,
-    APP_URL: `https://app.nineteencustom.com`,
-    WS_API: `https://ws.nineteengreen.com`,
-*/
-    // NINETEENCUSTOM PRODUCTION
-    /*  LOCAL_IP: `https://api.nineteencustom.com`,
- LOCAL_IP_WOO: `https://api.nineteencustom.com`,
- API: `https://api.nineteencustom.com`,
- CDN: `https://cdn.nineteencustom.com`,
- LIVE: `https://live.nineteencustom.com`,
- APP_URL: `https://app.nineteengreen.com`, */
 
     // Datos Empresa
     EMPRESA: {

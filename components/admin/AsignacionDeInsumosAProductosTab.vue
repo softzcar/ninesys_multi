@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h3>Tiempo</h3>
+    <h3>Tiempo Promedio</h3>
     <b-form-group
       id="input-group-4"
       label-for="input-tiempo"
-      description="Indique el tiempo em minutos, por ejemplo 3.3 equivale a tres minutos y medio"
+      description="Indique el promedio de tiempo en minutos, por ejemplo 3.5 equivale a tres minutos y medio"
     >
     </b-form-group>
     <b-form inline>

@@ -4,7 +4,10 @@
       class="mb-4"
       @click="$bvModal.show(modal)"
       variant="success"
-    >Mensajes</b-button>
+    >
+      <b-icon icon="whatsapp" class="mr-2"></b-icon>
+      WhatsApp a Clientes
+    </b-button>
 
     <b-modal
       :id="modal"

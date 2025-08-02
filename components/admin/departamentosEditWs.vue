@@ -1,8 +1,9 @@
 <template>
     <div>
-        <b-button class="mb-4" @click="$bvModal.show(modal)" variant="info"
-            >Departamentos</b-button
-        >
+        <b-button class="mb-4" @click="$bvModal.show(modal)" variant="info">
+          <b-icon icon="building" class="mr-2"></b-icon>
+          Departamentos
+        </b-button>
 
         <b-modal :id="modal" :title="title" hide-footer size="lg">
             <b-overlay :show="overlay" spinner-small>
