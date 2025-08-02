@@ -56,7 +56,11 @@ export default {
 
   computed: {
     filterDeps() {
-      return this.departamentos.filter((dep) => dep.asignar_numero_de_paso > 0);
+      const filtered = this.departamentos.filter((dep) => dep.asignar_numero_de_paso > 0);
+      if (this.selectedDepartment) {
+        return filtered.filter(dep => dep._id === this.selectedDepartment);
+      }
+      return filtered;
     },
 
     modal: function () {
@@ -130,6 +134,7 @@ export default {
     "idprod",
     "nomdep",
     "reload",
+    "selectedDepartment",
   ],
 };
 </script>
