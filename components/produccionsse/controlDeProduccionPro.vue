@@ -1,5 +1,15 @@
 <template>
   <div>
+    <b-button
+      @click="initTiemposDeProduccion"
+      :variant="buttonState.variant"
+      :disabled="buttonState.disabled"
+      class="mb-3"
+    >
+      <b-icon icon="arrow-clockwise" :animation="isLoading ? 'spin' : ''"></b-icon>
+      {{ buttonState.text }}
+    </b-button>
+
     <h3 class="mt-4">Reposiciones</h3>
 
     <div v-if="isLoading">
@@ -285,7 +295,9 @@ export default {
   data() {
     return {
       isLoading: true,
-      // --- DATOS ORIGINALES RESTAURADOS ---
+      hasNewData: false,
+      toastShown: false,
+      isCheckingForUpdates: false,
       ordenesProyectadas2: [],
       fechasResultSemaforo: null,
       fechas: [],
@@ -330,15 +342,52 @@ export default {
         { key: "detalles", label: "Detalles" },
         { key: "acciones", label: "Acciones" },
       ],
-
-      // --- NUEVA LÓGICA DE RECARGA ---
       activeModalCount: 0,
       intervaloRecargaDatos: null,
     };
   },
 
   methods: {
-    // --- NUEVOS MÉTODOS PARA CONTROLAR LA RECARGA ---
+    checkForUpdates() {
+      if (this.isCheckingForUpdates || this.isLoading) return;
+      this.isCheckingForUpdates = true;
+
+      this.$axios
+        .get(`${this.$config.API}/sse/produccion`)
+        .then((res) => {
+          const newItems = res.data.items;
+          const newReposiciones = res.data.reposiciones_solicitadas;
+
+          const currentItemsStr = JSON.stringify(this.items.map(i => i.orden));
+          const newItemsStr = JSON.stringify(newItems.map(i => i.orden));
+
+          const currentReposicionesStr = JSON.stringify(this.reposiciones_solicitadas.map(r => r.id_reposicion));
+          const newReposicionesStr = JSON.stringify(newReposiciones.map(r => r.id_reposicion));
+
+          if (currentItemsStr !== newItemsStr || currentReposicionesStr !== newReposicionesStr) {
+            if (!this.toastShown) {
+              this.$bvToast.toast("Hay nuevas órdenes o reposiciones.", {
+                id: 'new-data-toast',
+                title: "Actualización Disponible",
+                variant: "success",
+                solid: true,
+                toaster: "b-toaster-top-right",
+                noAutoHide: true,
+                appendToast: true,
+              });
+              this.hasNewData = true;
+              this.toastShown = true;
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Error al verificar actualizaciones:", err);
+        })
+        .finally(() => {
+          this.isCheckingForUpdates = false;
+        });
+    },
+
     handleModalShown() {
       this.activeModalCount++;
     },
@@ -346,28 +395,23 @@ export default {
       this.activeModalCount--;
     },
 
-    // --- MÉTODOS ORIGINALES RESTAURADOS ---
-    tiempoTotalEstimado(idOrden) {
-      return th;
-    },
-
     initTiemposDeProduccion() {
       this.isLoading = true;
-      console.log("Vamos a cargar los tiempos de producción");
+      this.hasNewData = false;
+      this.toastShown = false;
+      this.$bvToast.hide('new-data-toast'); // Ocultar el toast de nuevos datos
+
       this.loadOrdersProduction().then(() => {
         this.getOrdenesFechas().then(() => {
           this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
-            this.fechas, // Use this.fechas (detailed tasks) here
+            this.fechas,
             this.$store.state.login.dataEmpresa.horario_laboral
           );
-
-          console.log("KKKKKKK", this.fechas);
         });
       });
     },
 
     async getOrdenesFechas() {
-      this.overlay = true;
       await this.$axios
         .get(`${this.$config.API}/ordenes/proyeccion-entrega`)
         .then((res) => {
@@ -380,9 +424,6 @@ export default {
             type: "warning",
           });
         })
-        .finally(() => {
-          this.overlay = false;
-        });
     },
 
     afterDrag(evt) {
@@ -405,24 +446,13 @@ export default {
       const nuevasReposiciones = this.reposiciones_solicitadas.map(
         (dep, index) => ({
           id_reposicion: dep.id_reposicion,
-          id_orden: dep.id_orden,
-          id_ordenes_productos: dep.id_ordenes_productos,
-          empleado: dep.empleado,
-          detalle_emisor: dep.detalle_emisor,
-          fecha: dep.fecha,
-          hora: dep.hora,
-          producto: dep.producto,
-          unidades: dep.unidades,
-          talla: dep.talla,
-          corte: dep.corte,
-          tela: dep.tela,
           orden_fila: index + 1,
         })
       );
       try {
         this.reposiciones_solicitadas = nuevasReposiciones;
         this.reposiciones_solicitadas.forEach((el) => {
-          this.updateFilaReposicionNueva(el.id_reposicion, el.orden_fila); // Llamamos al nuevo método
+          this.updateFilaReposicionNueva(el.id_reposicion, el.orden_fila);
         });
       } catch (error) {
         console.error("Error al actualizar orden:", error);
@@ -430,7 +460,6 @@ export default {
     },
 
     async updateFilaOren(idOrden, ordenFila) {
-      this.overlay = true;
       const data = new URLSearchParams();
       data.set("id_orden", idOrden);
       data.set("orden_fila", ordenFila);
@@ -443,39 +472,14 @@ export default {
             type: "warning",
           });
         })
-        .finally(() => {
-          this.overlay = false;
-        });
     },
 
-    // Método anterior, lo dejamos por si se usa en otro lado o para referencia, aunque ahora usaremos el nuevo.
-    // async updateFilaReposicion(idOrden, ordenFila) {
-    //   this.overlay = true;
-    //   const data = new URLSearchParams();
-    //   data.set("id_orden", idOrden); // Este era el problema, enviaba id_orden en lugar de id_reposicion
-    //   data.set("orden_fila", ordenFila);
-    //   await this.$axios
-    //     .post(`${this.$config.API}/ordenes/actualizar-fila`, data)
-    //     .catch((err) => {
-    //       this.$fire({
-    //         title: "Error",
-    //         html: `<p>No se pudo actualizar el orden de la reposición.</p><p>${err}</p>`,
-    //         type: "warning",
-    //       });
-    //     })
-    //     .finally(() => {
-    //       this.overlay = false;
-    //     });
-    // },
-
     async updateFilaReposicionNueva(idReposicion, ordenFila) {
-      // Nuevo método específico para reposiciones
-      this.overlay = true;
       const data = new URLSearchParams();
-      data.set("id_reposicion", idReposicion); // Enviamos id_reposicion
+      data.set("id_reposicion", idReposicion);
       data.set("orden_fila", ordenFila);
       await this.$axios
-        .post(`${this.$config.API}/reposiciones/actualizar-fila`, data) // Usamos el nuevo endpoint
+        .post(`${this.$config.API}/reposiciones/actualizar-fila`, data)
         .catch((err) => {
           this.$fire({
             title: "Error",
@@ -483,9 +487,6 @@ export default {
             type: "warning",
           });
         })
-        .finally(() => {
-          this.overlay = false;
-        });
     },
 
     productsFilter(id) {
@@ -526,7 +527,6 @@ export default {
     },
 
     async loadOrdersProduction() {
-      this.overlay = true;
       await this.$axios
         .get(`${this.$config.API}/sse/produccion`)
         .then((res) => {
@@ -548,24 +548,16 @@ export default {
           this.pasos = res.data.pasos;
         })
         .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<p>Error obteniendo los datos de producción</p><p>${err}</p>`,
-            type: "warning",
+          this.$bvToast.toast("No se pudieron cargar los datos de producción.", {
+            title: "Error de Carga",
+            variant: "danger",
+            solid: true,
           });
+          this.hasNewData = true; // Permitir reintentar
         })
         .finally(() => {
-          this.overlay = false;
           this.isLoading = false;
         });
-    },
-
-    connectToServer() {
-      this.loadOrdersProduction();
-    },
-
-    async getPorcentaje() {
-      // ... (código original)
     },
   },
 
@@ -614,23 +606,40 @@ export default {
         this.items = [...reorderedItems, ...itemsNoFisicos];
       },
     },
+
+    buttonState() {
+      if (this.isLoading) {
+        return {
+          variant: 'info',
+          text: 'Cargando...',
+          disabled: true,
+        };
+      }
+      if (this.hasNewData) {
+        return {
+          variant: 'success',
+          text: 'Recargar para ver cambios',
+          disabled: false,
+        };
+      }
+      return {
+        variant: 'primary',
+        text: 'Recargar',
+        disabled: false,
+      };
+    },
   },
 
   mounted() {
-    // 1. Carga inicial de datos.
     this.initTiemposDeProduccion();
-
-    // --- NUEVA LÓGICA DE RECARGA CENTRALIZADA ---
-    // 2. Inicia el intervalo que comprueba si debe recargar.
     this.intervaloRecargaDatos = setInterval(() => {
-      if (this.activeModalCount > 0) {
-        this.initTiemposDeProduccion();
+      if (this.activeModalCount === 0) {
+        this.checkForUpdates();
       }
-    }, 60000); // 60000 ms = 1 minuto
+    }, 60000);
   },
 
   beforeDestroy() {
-    // --- NUEVA LÓGICA DE LIMPIEZA ---
     clearInterval(this.intervaloRecargaDatos);
   },
 

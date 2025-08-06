@@ -176,7 +176,13 @@ export default {
     },
 
     variant() {
-      return this.isLoading ? "light" : (this.ordenReactiva ? this.ordenReactiva.variant : "light");
+      // Si está cargando, el botón es 'light'.
+      if (this.isLoading) {
+        return 'light';
+      }
+      // Si ordenReactiva existe (no es null), usamos su 'variant'.
+      // Si no existe, usamos 'light' como valor por defecto.
+      return this.ordenReactiva ? this.ordenReactiva.variant : 'light';
     },
 
     textButton() {

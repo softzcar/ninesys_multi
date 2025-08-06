@@ -32,6 +32,132 @@
       </b-button>
     </b-form>
 
+    <h3 class="mt-4">Asignación Masiva de Insumos por Talla</h3>
+    <b-form-group
+      id="input-group-insumo-base"
+      label="Seleccione Insumo Base:"
+      label-for="select-insumo-base"
+      description="Seleccione el insumo que desea asignar a todas las tallas."
+    >
+      <b-form-select
+        id="select-insumo-base"
+        v-model="selectedInsumoBase"
+        :options="selectinsumos"
+      ></b-form-select>
+    </b-form-group>
+
+    <b-button
+      variant="info"
+      @click="loadAllSizes"
+      :disabled="!selectedInsumoBase"
+      class="mb-4"
+    >
+      <b-icon icon="plus-lg"></b-icon> Cargar Todas las Tallas
+    </b-button>
+
+    <b-button
+      variant="success"
+      @click="saveAllAssignments"
+      :disabled="form.length === 0"
+      class="mb-4 ml-2"
+    >
+      <b-icon icon="save"></b-icon> Guardar Todas las Asignaciones
+    </b-button>
+
+    <b-button
+      @click="$bvModal.show('modal-crear-insumo')"
+      id="create-new-insumo"
+      variant="info"
+      class="mb-4 ml-2"
+    >
+      <b-icon icon="plus-lg"></b-icon> Crear Nuevo Insumo
+    </b-button>
+    <b-popover
+      target="create-new-insumo"
+      triggers="hover"
+      placement="top"
+    >
+      <template #title>Crear un nuevo insumo en el catálogo</template>
+    </b-popover>
+
+    <b-form-group
+      id="input-group-mass-unit"
+      label="Asignar Unidad a Todos:"
+      label-for="select-mass-unit"
+      class="mb-4 ml-2"
+      style="display: inline-block;"
+    >
+      <b-form-select
+        id="select-mass-unit"
+        v-model="selectedUnitForMassAssignment"
+        :options="optionsUnidad"
+        class="mr-2"
+        :disabled="form.length === 0"
+      ></b-form-select>
+      <b-button
+        variant="secondary"
+        @click="assignAllUnits"
+        :disabled="!selectedUnitForMassAssignment || form.length === 0"
+      >
+        Asignar Unidad
+      </b-button>
+    </b-form-group>
+
+    <b-overlay :show="savingInProgress" rounded="sm">
+      <b-table
+        responsive
+        primary-key="id"
+        :fields="newCampos"
+        :items="form"
+        small
+        class="mt-4"
+      >
+        <template #cell(insumo)="row">
+          <b-form-select
+            v-model="row.item.insumo"
+            :options="selectinsumos"
+          ></b-form-select>
+        </template>
+        <template #cell(cantidad)="row">
+          <b-form-input
+            type="number"
+            v-model="row.item.cantidad"
+          />
+        </template>
+        <template #cell(miTalla)="row">
+          <b-form-select
+            v-model="row.item.miTalla"
+            :options="selecttallas"
+          ></b-form-select>
+        </template>
+        <template #cell(unidadDeMedida)="row">
+          <b-form-select
+            v-model="row.item.unidadDeMedida"
+            :options="optionsUnidad"
+          ></b-form-select>
+        </template>
+        <template #cell(actions)="row">
+          <b-button
+            variant="danger"
+            @click="removeItem(row.index)"
+            aria-label="Eliminar insumo"
+            size="sm"
+            class="mr-1"
+          >
+            <b-icon icon="trash"></b-icon>
+          </b-button>
+          <b-button
+            variant="primary"
+            @click="duplicateItem(row.item)"
+            aria-label="Duplicar insumo"
+            size="sm"
+          >
+            <b-icon icon="files"></b-icon>
+          </b-button>
+        </template>
+      </b-table>
+    </b-overlay>
+
     <h3 class="mt-4">Insumos Asignados</h3>
 
     <b-table
@@ -76,37 +202,19 @@
       <template #title>Asignar nuevo insumo</template>
     </b-popover>
 
-    <b-table
-      responsive
-      primary-key="id"
-      :fields="campos"
-      :items="form"
-      small
+    <b-modal
+      id="modal-crear-insumo"
+      ref="modalCrearInsumo"
+      title="Crear nuevo insumo"
+      @ok="crearInsumo"
+      @cancel="clearInput"
     >
-      <template #cell(input)="row">
-        <admin-AsignacionDeInsumosProductosForm
-          :selecttallas="selecttallas"
-          :selectinsumos="selectinsumos"
-          @reload="reloadMe($event)"
-          :item="row.item"
-          :tiemposprod="tiemposprod"
-          :iddep="item._id"
-          :idprod="idprod"
-          :index="row.index"
-        />
-      </template>
+      <b-form-input
+        v-model="nuevoInsumo"
+        placeholder="Nombre del insumo"
+      ></b-form-input>
+    </b-modal>
 
-      <template #cell(id)="row">
-        <b-button
-          variant="danger"
-          @click="removeItem(row.index)"
-          aria-label="Agregar insumo"
-          class="mt-4"
-        >
-          <b-icon icon="trash"></b-icon>
-        </b-button>
-      </template>
-    </b-table>
   </div>
 </template>
 
@@ -117,6 +225,21 @@ export default {
       tiempo: null,
       ButtonDisabled: false,
       form: [],
+      nuevoInsumo: "",
+      overlay: false,
+      savingInProgress: false,
+      selectedInsumoBase: null,
+      selectedUnitForMassAssignment: null,
+      optionsUnidad: [
+        { value: null, text: "Seleccione una opción" },
+        { value: "Kg", text: "Kilos" },
+        { value: "Mt", text: "Metros" },
+        { value: "Und", text: "Unidades" },
+        { value: "Ml", text: "Mililitros" },
+        { value: "Lt", text: "Litros" },
+        { value: "Gr", text: "Gramos" },
+        { value: "Cm", text: "Centímetros" },
+      ],
       fields: [
         {
           key: "insumo",
@@ -143,9 +266,12 @@ export default {
           label: "Acciones",
         },
       ],
-      campos: [
-        { key: "input", label: "" },
-        { key: "id", label: "" },
+      newCampos: [
+        { key: "insumo", label: "Insumo" },
+        { key: "cantidad", label: "Cantidad" },
+        { key: "miTalla", label: "Talla" },
+        { key: "unidadDeMedida", label: "Unidad" },
+        { key: "actions", label: "Acciones" },
       ],
     };
   },
@@ -318,7 +444,15 @@ export default {
 
     removeItem(index) {
       this.form.splice(index, 1);
-      this.$emit("reload");
+    },
+
+    duplicateItem(itemToDuplicate) {
+      const random_id = this.generateRandomId();
+      const duplicatedItem = {
+        ...itemToDuplicate,
+        id: random_id,
+      };
+      this.form.push(duplicatedItem);
     },
 
     /* getForm(id) {
@@ -342,6 +476,31 @@ export default {
       this.form.push(obj);
     },
 
+    loadAllSizes() {
+      this.form = []; // Limpiar el formulario actual
+      if (this.selectedInsumoBase && this.selecttallas.length > 0) {
+        this.selecttallas.forEach(talla => {
+          if (talla.value !== null) { // Ignorar la opción "No aplica / Seleccione"
+            const random_id = this.generateRandomId();
+            const obj = {
+              id: random_id,
+              insumo: this.selectedInsumoBase,
+              miTalla: talla.value,
+              cantidad: 1,
+              unidadDeMedida: null,
+            };
+            this.form.push(obj);
+          }
+        });
+      } else {
+        this.$fire({
+          type: "warning",
+          title: "Seleccione un insumo base y asegúrese de que haya tallas disponibles.",
+          html: "",
+        });
+      }
+    },
+
     SegundosAMinutos(segundos) {
       if (parseInt(segundos) === 0) {
         return 0;
@@ -360,13 +519,188 @@ export default {
       // Devolver la respuesta en formato HH:MM
       // return `${horasFormateadas}:${minutosFormateados}`;
     },
+
+    clearInput() {
+      this.nuevoInsumo = "";
+    },
+
+    async crearInsumo() {
+      let msg = "";
+
+      if (!this.nuevoInsumo || this.nuevoInsumo.trim() === "") {
+        msg += `<p>Ingrese el nombre del insumo</p>`;
+        this.$fire({
+          title: "Dato Requerido",
+          html: msg,
+          type: "warning",
+        });
+      } else {
+        this.overlay = true;
+
+        const data = new URLSearchParams();
+        data.set("id_departamento", this.iddep);
+        data.set("insumo", this.nuevoInsumo);
+        data.set("id_product", this.idprod);
+
+        await this.$axios
+          .post(`${this.$config.API}/catalogo-insumos-productos`, data)
+          .then((res) => {
+            this.$fire({
+              title: "Nuevo Insumo",
+              html: `<p>el insumo "${this.nuevoInsumo}" se ha creado correctamente</p>`,
+              type: "success",
+            });
+            this.$emit("reload", true);
+          })
+          .catch((err) => {
+            this.$fire({
+              title: "Error",
+              html: `<p>No se pudo crear el insumo</p><p>${err}</p>`,
+              type: "error",
+            });
+          })
+          .finally(() => {
+            this.nuevoInsumo = "";
+            this.overlay = false;
+          });
+      }
+    },
+
+    async saveAllAssignments() {
+      try {
+        await this.$confirm(
+          `Se guardarán todas las asignaciones de la tabla.`,
+          "¿Está seguro?",
+          "question"
+        );
+
+        this.savingInProgress = true;
+        let allSuccess = true;
+        const assignmentsToSave = [...this.form];
+
+        for (const assignment of assignmentsToSave) {
+          const data = new URLSearchParams();
+          data.set("insumo", assignment.insumo);
+          data.set("departamento", this.item._id);
+          data.set("cantidad", assignment.cantidad);
+          data.set("unidad", assignment.unidadDeMedida);
+          data.set("id_size", assignment.miTalla);
+          data.set("id_product", this.idprod);
+
+          try {
+            await this.$axios.post(`${this.$config.API}/insumos-productos`, data);
+          } catch (err) {
+            allSuccess = false;
+            console.error("Error al guardar asignación:", assignment, err);
+            this.$fire({
+              title: "Error al guardar",
+              html: `<p>No se pudo guardar el insumo ${assignment.insumo} para la talla ${assignment.miTalla}</p><p>${err}</p>`,
+              type: "error",
+            });
+          }
+        }
+
+        this.savingInProgress = false;
+        if (allSuccess) {
+          this.$fire({
+            title: "Asignaciones Guardadas",
+            html: `<p>Todas las asignaciones se han guardado correctamente.</p>`,
+            type: "success",
+          });
+          this.form = [];
+          this.$emit("reload");
+        } else {
+          this.$fire({
+            title: "Advertencia",
+            html: `<p>Algunas asignaciones no pudieron guardarse. Revise los errores.</p>`,
+            type: "warning",
+          });
+        }
+      } catch (e) {
+        // El usuario canceló el diálogo de confirmación
+        return false;
+      }
+    },
+
+    /* saveAllAssignments_fire_not_work() {
+      this.$fire({
+        title: '¿Está seguro?',
+        text: "Se guardarán todas las asignaciones de la tabla.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'No, cancelar',
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          this.savingInProgress = true;
+          let allSuccess = true;
+          const assignmentsToSave = [...this.form];
+
+          for (const assignment of assignmentsToSave) {
+            const data = new URLSearchParams();
+            data.set("insumo", assignment.insumo);
+            data.set("departamento", this.item._id);
+            data.set("cantidad", assignment.cantidad);
+            data.set("unidad", assignment.unidadDeMedida);
+            data.set("id_size", assignment.miTalla);
+            data.set("id_product", this.idprod);
+
+            try {
+              await this.$axios.post(`${this.$config.API}/insumos-productos`, data);
+            } catch (err) {
+              allSuccess = false;
+              console.error("Error al guardar asignación:", assignment, err);
+              this.$fire({
+                title: "Error al guardar",
+                html: `<p>No se pudo guardar el insumo ${assignment.insumo} para la talla ${assignment.miTalla}</p><p>${err}</p>`,
+                type: "error",
+              });
+            }
+          }
+
+          this.savingInProgress = false;
+          if (allSuccess) {
+            this.$fire({
+              title: "Asignaciones Guardadas",
+              html: `<p>Todas las asignaciones se han guardado correctamente.</p>`,
+              type: "success",
+            });
+            this.form = [];
+            this.$emit("reload");
+          } else {
+            this.$fire({
+              title: "Advertencia",
+              html: `<p>Algunas asignaciones no pudieron guardarse. Revise los errores.</p>`,
+              type: "warning",
+            });
+          }
+        }
+      });
+    }, */
+
+    assignAllUnits() {
+      if (this.selectedUnitForMassAssignment) {
+        this.form.forEach(item => {
+          item.unidadDeMedida = this.selectedUnitForMassAssignment;
+        });
+        this.$fire({
+          title: "Unidad Asignada",
+          html: `<p>La unidad ${this.selectedUnitForMassAssignment} ha sido asignada a todos los ítems.</p>`,
+          type: "success",
+        });
+      } else {
+        this.$fire({
+          type: "warning",
+          title: "Seleccione una unidad",
+          html: "Debe seleccionar una unidad para asignar.",
+        });
+      }
+    },
   },
 
+
   mounted() {
-    this.addItem(this.item._id);
     this.tiempo = this.clacTimeProduction();
-    // this.tiempo = this.tiemposprod[0].tiempo;
-    // this.reloadMe();
   },
 
   props: [
