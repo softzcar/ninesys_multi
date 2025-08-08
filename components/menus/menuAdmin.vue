@@ -326,20 +326,67 @@
 
               
 
-              <router-link
-                class="nav-link"
-                to="/inventario/gestion"
-                custom
-                v-slot="{ navigate }"
+              <b-nav-item-dropdown
+                text="Inventario"
+                right
               >
-                <span
-                  @click="navigate"
-                  @keypress.enter="navigate"
-                  role="link"
+                <router-link
+                  class="nav-link"
+                  to="/inventario/gestion"
+                  custom
+                  v-slot="{ navigate }"
                 >
-                  Inventario
-                </span>
-              </router-link>
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Inventario
+                  </span>
+                </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/impresoras/gestion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Gestión de Impresoras
+                  </span>
+                </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/inventario/recarga-tintas"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Recarga de Tintas
+                  </span>
+                </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/inventario/nueva-tinta"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Nueva Tinta
+                  </span>
+                </router-link>
+              </b-nav-item-dropdown>
 
               <!-- <b-nav-item-dropdown
                 text="Inventario"
@@ -666,20 +713,7 @@
                   </span>
                 </router-link>
 
-                <router-link
-                  class="nav-link"
-                  to="/gastos-fijos"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Gestión de Gastos Fijos
-                  </span>
-                </router-link>
+                
 
                 <router-link
                   class="nav-link"

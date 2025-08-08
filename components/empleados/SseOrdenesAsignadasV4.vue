@@ -26,6 +26,7 @@
             />
           </b-col>
         </b-row>
+
       </div>
 
       <div v-else>
@@ -132,6 +133,7 @@
                           class="floatme"
                           :esreposicion="1"
                           :idlotesdetalles="row.item.id_lotes_detalles"
+                          :impresoras="impresoras"
                           :insumosTodos="insumos"
                           :insumosimp="insumosImpresion"
                           :insumosest="insumosEstampado"
@@ -236,6 +238,7 @@
                           :items="filterOrder(row.item.orden, 'en curso')"
                           class="floatme"
                           :esreposicion="0"
+                          :impresoras="impresoras"
                           :insumosTodos="insumos"
                           :insumosimp="insumosImpresion"
                           :insumosest="insumosEstampado"
@@ -464,6 +467,7 @@ export default {
           variant: "",
         },
       ],
+      impresoras: [],
       fields2: [
         {
           key: "orden",
@@ -1331,6 +1335,14 @@ export default {
       });
     },
 
+    async getImpresoras() {
+      await this.$axios.get(`${this.$config.API}/impresoras`).then((resp) => {
+        console.log('respuesta de impresoras', resp);
+        
+        this.impresoras = resp.data;
+      });
+    },
+
     maquetarPrioridad(prioridad) {
       const pri = parseInt(prioridad);
       let text = "";
@@ -1381,6 +1393,8 @@ export default {
       // console.log("Pausas en  V4", this.pausas);
     });
     if (this.$store.state.login.currentDepartament === "Impresión") {
+      // Cargar Impresoras
+      this.getImpresoras()
       this.promptHTML = "<h2>Ingrese la cantidad en metros</h2>";
       this.prompInputType = "number";
       // Cargar Insumos

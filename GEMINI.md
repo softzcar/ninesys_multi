@@ -15,11 +15,12 @@
         - Cada entrada debe seguir el siguiente formato estructurado:
             ```markdown
             ### Tarea: [Descripción concisa de la tarea]
+            - **Fecha:** [Fecha de la tarea]
             - **Solicitud del Usuario:** [Referencia breve a la solicitud]
-            - **Acción Realizada:** [Descripción de mi acción, ej: Modificación de archivo, ejecución de comando]
+            - **Acción Realizada:** [Descripción detallada y técnica de mi acción, incluyendo archivos afectados, funciones modificadas, comandos ejecutados, etc.]
             - **Herramienta(s) Utilizada(s):** [Ej: `default_api.replace`, `default_api.run_shell_command`]
             - **Resultado:** [Éxito | Fallo | Parcial]
-            - **Verificación:** [Ej: "El comando `replace` retornó éxito.", "La compilación de Nuxt se completó sin errores.", "El endpoint devolvió los datos esperados."]
+            - **Verificación:** [Descripción técnica de cómo se verificó la tarea, incluyendo resultados de pruebas, salidas de comandos, comportamiento observado, etc. Ej: "El comando `replace` retornó éxito.", "La compilación de Nuxt se completó sin errores y el componente `X` se renderizó correctamente mostrando los datos `Y`.", "El endpoint `Z` devolvió los datos esperados con un `status 200` y la estructura `{'campo': 'valor'}`."]
             - **Observaciones:** (Opcional) [Cualquier detalle adicional relevante]
             ```
     - Este registro es fundamental para el seguimiento del proyecto y para la generación de reportes. **La precisión y la inmediatez son IMPERATIVAS.**

@@ -30,7 +30,6 @@
         spinner-small
       >
 
-
         <!-- Formulario de Impresión -->
         <!-- <div
                     v-if="
@@ -46,6 +45,20 @@
                 > -->
         <b-form @reset="onReserForm">
           <div v-if="$store.state.login.currentDepartament === 'Impresión'">
+            <b-form-group
+              label="Impresora:"
+              label-for="impresora-select"
+            >
+            <!-- Impresoras -->
+              <b-form-select
+                id="impresora-select"
+                v-model="formImp.id_impresora"
+                :options="impresorasOptions"
+                required
+              ></b-form-select>
+            </b-form-group>
+
+
             <!-- Tintas -->
             <b-form-group
               id="input-group-1"
@@ -91,6 +104,17 @@
                 min="0"
                 class="black-label"
               ></b-form-input>
+
+              <b-form-input
+                v-if="showWhiteInkField"
+                id="input-5"
+                v-model="formImp.colorWhite"
+                placeholder="White"
+                type="number"
+                step="0.01"
+                min="0"
+                class="white-label"
+              ></b-form-input>
             </b-form-group>
           </div>
           <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO -->
@@ -100,21 +124,21 @@
               $store.state.login.currentDepartament === 'Corte papel'
             ">
             <p>
-                            <strong>Papel Utilizado:</strong>
-                            {{ papelUtilizado }} Metros
-                        </p>
+              <strong>Papel Utilizado:</strong>
+              {{ papelUtilizado }} Metros
+            </p>
 
-                        <p>
-                            <strong>Material Estimado:</strong>
-                            {{ eficienciaEstimada }} Metros
-                        </p>
+            <p>
+              <strong>Material Estimado:</strong>
+              {{ eficienciaEstimada }} Metros
+            </p>
 
-                        <p>
-                            <strong>Material Utilizado:</strong>
-                            {{ materialUtilizado }} Metros
-                        </p>
+            <p>
+              <strong>Material Utilizado:</strong>
+              {{ materialUtilizado }} Metros
+            </p>
 
-                        <!-- <p
+            <!-- <p
                             v-html="
                                 calcularPorcentajeDiferenciaTela(
                                     eficienciaEstimada
@@ -267,6 +291,8 @@ export default {
         colorMagenta: "",
         colorYellow: "",
         colorBlack: "",
+        id_impresora: null,
+        colorWhite: "",
       },
       campos: [
         { key: "input", label: "" },
@@ -344,13 +370,26 @@ export default {
       let myOptions = [];
       const dep = this.$store.state.login.currentDepartament;
       switch (dep) {
-        case "Impresión": myOptions = this.insumosimp; break;
-        case "Estampado": myOptions = this.insumosest; break;
-        case "Corte": myOptions = this.insumoscor; break; // Corregido a insumoscor
-        case "Costura": myOptions = this.insumoscos; break;
-        case "Limpieza": myOptions = this.insumoslim; break;
-        case "Revisión": myOptions = this.insumosrev; break;
-        default: myOptions = [];
+        case "Impresión":
+          myOptions = this.insumosimp;
+          break;
+        case "Estampado":
+          myOptions = this.insumosest;
+          break;
+        case "Corte":
+          myOptions = this.insumoscor;
+          break; // Corregido a insumoscor
+        case "Costura":
+          myOptions = this.insumoscos;
+          break;
+        case "Limpieza":
+          myOptions = this.insumoslim;
+          break;
+        case "Revisión":
+          myOptions = this.insumosrev;
+          break;
+        default:
+          myOptions = [];
       }
 
       let options = myOptions.map((item) => {
@@ -361,6 +400,34 @@ export default {
       });
       options.unshift({ text: "Seleccione una opción", value: null });
       return options;
+    },
+
+    
+
+    impresorasOptions() {
+      console.log('impresoras prop in impresorasOptions:', this.impresoras);
+      if (!this.impresoras || this.impresoras.length === 0) {
+        return [{ value: null, text: "No hay impresoras disponibles" }];
+      }
+      let options = this.impresoras.map((imp) => {
+        return {
+          value: imp._id,
+          text: `${imp.codigo_interno} - ${imp.marca} ${imp.modelo}`,
+          tipo_tecnologia: imp.tipo_tecnologia, // Añadir tipo_tecnologia aquí
+        };
+      });
+      options.unshift({ value: null, text: "Seleccione una impresora" });
+      return options;
+    },
+
+    showWhiteInkField() {
+      if (!this.impresoras || this.impresoras.length === 0) {
+        return false;
+      }
+      const selectedPrinter = this.impresoras.find(
+        (imp) => imp._id === this.formImp.id_impresora
+      );
+      return selectedPrinter && selectedPrinter.tipo_tecnologia === 'CMYK+W';
     },
   },
 
@@ -515,6 +582,8 @@ export default {
         colorMagenta: "",
         colorYellow: "",
         colorBlack: "",
+        id_impresora: null,
+        colorWhite: "",
       };
 
       this.formEst = {
@@ -534,10 +603,17 @@ export default {
     // VALIDACIÓN DE FORMULARIOS
     validateForm() {
       let ok = true;
-      if (this.showSelect) {
+      if (this.showSelect) { 
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
+          console.log('valor de select impresora', this.formImp.id_impresora);
+          if (this.formImp.id_impresora === null) {
+            
+            ok = false;
+            msg = msg + "<p>Seleccione una impresora</p>";
+          } 
+
           if (
             parseFloat(this.formImp.colorCyan) <= 0 ||
             this.formImp.colorCyan.trim() === ""
@@ -568,6 +644,14 @@ export default {
           ) {
             ok = false;
             msg = msg + "<p>Ingrese la cantidad de tinta Black</p>";
+          }
+
+          if (this.showWhiteInkField && (
+            this.formImp.colorWhite.trim() === "" ||
+            parseFloat(this.formImp.colorWhite) <= 0
+          )) {
+            ok = false;
+            msg = msg + "<p>Ingrese la cantidad de tinta White</p>";
           }
         }
 
@@ -639,6 +723,8 @@ export default {
       data.set("m", this.formImp.colorMagenta);
       data.set("y", this.formImp.colorYellow);
       data.set("k", this.formImp.colorBlack);
+      data.set("id_impresora", this.formImp.id_impresora);
+      data.set("w", this.showWhiteInkField ? this.formImp.colorWhite : null);
 
       await this.$axios
         .post(`${this.$config.API}/empleados/tintas`, data)
@@ -977,11 +1063,11 @@ export default {
   },
 
   mounted() {
-    console.log('XXX', this.inusmosTodos);
-    
+    console.log("XXX", this.inusmosTodos);
 
     this.esReposicion = parseInt(this.esreposicion);
     this.clearForms();
+    console.log('formImp.id_impresora after clearForms:', this.formImp.id_impresora);
 
     this.$root.$on("bv::modal::show", (bvEvent, modal) => {
       if (modal === this.modal) {
@@ -1058,6 +1144,7 @@ export default {
     "id_ordenes_productos",
     "reload",
     "orden_proceso_departamento",
+    "impresoras",
   ],
 };
 </script>
@@ -1086,6 +1173,11 @@ export default {
 
 .magenta-label {
   background-color: magenta;
+  color: black;
+}
+
+.white-label {
+  background-color: white;
   color: black;
 }
 </style>

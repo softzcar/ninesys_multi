@@ -162,6 +162,7 @@ export default {
             data.set("rendimiento", this.form.rendimiento)
             data.set("costo", this.form.costo)
             data.set("departamento", this.form.departamento)
+            data.set("es_tinta", 0)
 
             await this.$axios
                 .post(`${this.$config.API}/insumos/nuevo`, data)
