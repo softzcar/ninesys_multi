@@ -49,7 +49,7 @@
                 <div class="d-flex flex-wrap">
                   <div
                     class="form-check form-check-inline"
-                    v-for="colorOption in colorOptions"
+                    v-for="colorOption in filteredColorOptions"
                     :key="colorOption.value"
                   >
                     <input
@@ -58,6 +58,7 @@
                       :id="'color-' + colorOption.value"
                       :value="colorOption.value"
                       v-model="selectedColor"
+                      :disabled="colorOption.disabled"
                       required
                     />
                     <label
@@ -114,6 +115,7 @@ export default {
       selectedPrinterId: "",
       selectedSupplyId: "",
       selectedColor: "",
+      selectedPrinterTechnology: null, // Nuevo: para almacenar el tipo de tecnología de la impresora
       milliliters: null,
       colorOptions: [
         {
@@ -184,6 +186,31 @@ export default {
       options.unshift({ value: null, text: "Seleccione un insumo" });
       return options;
     },
+    filteredColorOptions() {
+      // Si no hay impresora seleccionada o la tecnología es CMYK, deshabilitar 'White'
+      if (!this.selectedPrinterId || this.selectedPrinterTechnology === 'CMYK') {
+        return this.colorOptions.map(option => ({
+          ...option,
+          disabled: option.value === 'W' || !this.selectedPrinterId // Deshabilitar 'W' o todos si no hay impresora seleccionada
+        }));
+      } else if (this.selectedPrinterTechnology === 'CMYK+W') {
+        // Si la tecnología es CMYK+W, habilitar todos los colores
+        return this.colorOptions.map(option => ({ ...option, disabled: false }));
+      }
+      // Por defecto, si no hay tecnología definida o no se cumple ninguna condición, deshabilitar todos
+      return this.colorOptions.map(option => ({ ...option, disabled: true }));
+    }
+  },
+  watch: {
+    selectedPrinterId(newVal) {
+      if (newVal) {
+        const selectedPrinter = this.impresoras.find(imp => imp._id === newVal);
+        this.selectedPrinterTechnology = selectedPrinter ? selectedPrinter.tipo_tecnologia : null;
+      } else {
+        this.selectedPrinterTechnology = null;
+      }
+      this.selectedColor = ""; // Limpiar la selección de color al cambiar la impresora
+    }
   },
   methods: {
     async getImpresoras() {
@@ -214,7 +241,11 @@ export default {
         
         console.log('Respuesta de la API:', response.data);
         this.$emit('recarga-exitosa');
-        alert("Recarga registrada con éxito.");
+        this.$fire({
+          title: "Recarga Exitosa",
+          html: `<p>La recarga de tinta ha sido registrada con éxito.</p>`,
+          type: "success",
+        });
         
         this.fetchSupplies();
         
@@ -226,7 +257,11 @@ export default {
 
       } catch (error) {
         console.error("Error al registrar la recarga:", error);
-        alert("Error al registrar la recarga. Revise la consola para más detalles.");
+        this.$fire({
+          title: "Error al Registrar",
+          html: `<p>Hubo un problema al registrar la recarga. Revise la consola para más detalles.</p>`,
+          type: "error",
+        });
       }
     },
   },

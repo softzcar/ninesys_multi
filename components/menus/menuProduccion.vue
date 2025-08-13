@@ -174,6 +174,21 @@
 
                                 <router-link
                                     class="nav-link"
+                                    to="/impresoras/tintas-actual"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
+                                        Reporte de Tintas Actuales
+                                    </span>
+                                </router-link>
+
+                                <router-link
+                                    class="nav-link"
                                     to="/inventario/reportes/empleado"
                                     custom
                                     v-slot="{ navigate }"

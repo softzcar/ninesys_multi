@@ -18,7 +18,7 @@
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <inventario-InsumoNuevo @reload="getInsumos" />
+                                <inventario-InsumoNuevo @reload="getInsumos" :catalogoProductosData="catalogoInsumosProductos" />
                                 <inventario-BulkLoad @upload-success="getInsumos" />
                             </b-col>
                         </b-row>
@@ -29,7 +29,7 @@
                                     button-variant="outline-primary" size="lg" name="radio-btn-outline"
                                     @input="showResultRadio()" buttons></b-form-radio-group>
                             </b-col>
-                            <b-col offset-lg="8" offset-xl="8">
+                            <b-col offset-lg="6" offset-xl="6">
                                 <b-input-group class="mb-4" size="sm">
                                     <b-form-input id="filter-input" v-model="filter" type="search"
                                         placeholder="Filtrar Resultados"></b-form-input>
@@ -59,7 +59,7 @@
                                     sort-icon-left>
                                     <template #cell(_id)="data">
                                         <span class="floatme">
-                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item" />
+                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item" :catalogoProductosData="catalogoInsumosProductos" />
                                         </span>
                                         <span class="floatme">
                                             <b-button variant="danger" v-on:click="
@@ -85,7 +85,7 @@ import axios from "axios"
 export default {
     data() {
         return {
-            includedFields: ["insumo", "departamento"],
+            includedFields: ["insumo", "departamento", "sku"],
             titulo: "Gestión de Inventario",
             overlay: true,
             filter: null,
@@ -95,6 +95,7 @@ export default {
             sortDesc: false,
             perPage: 25,
             currentPage: 1,
+            totalRows: 0, // Initialized totalRows
             selectedRadio: "todas",
             optionsRadio: [],
             optionsRadio1: [
@@ -105,7 +106,12 @@ export default {
             fields: [
                 {
                     key: "rollo",
-                    label: "Rollo",
+                    label: "ID Insumo",
+                    sortable: false,
+                },
+                {
+                    key: "sku",
+                    label: "SKU",
                     sortable: false,
                 },
                 {
@@ -149,6 +155,7 @@ export default {
                     sortable: false,
                 },
             ],
+            catalogoInsumosProductos: [], // New data property
         }
     },
 
@@ -171,7 +178,7 @@ export default {
                     const data = new URLSearchParams()
                     data.set("id", id_emp)
 
-                    axios
+                    this.$axios
                         .post(`${this.$config.API}/insumos/eliminar`, data)
                         .then((res) => {
                             this.getInsumos().then(() => (this.overlay = false))
@@ -181,6 +188,15 @@ export default {
                     console.log("CATCH!!!", err)
                     return false
                 })
+        },
+
+        async fetchCatalogoInsumosProductos() {
+            try {
+                const response = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
+                this.catalogoInsumosProductos = response.data;
+            } catch (error) {
+                console.error("Error al obtener el catálogo de productos:", error);
+            }
         },
 
         reloadData() {
@@ -219,7 +235,12 @@ export default {
                 this.fields = [
                     {
                         key: "rollo",
-                        label: "Rollo",
+                        label: "ID Insumo",
+                        sortable: false,
+                    },
+                    {
+                        key: "sku",
+                        label: "SKU",
                         sortable: false,
                     },
                     {
@@ -267,7 +288,12 @@ export default {
                 this.fields = [
                     {
                         key: "rollo",
-                        label: "Rollo",
+                        label: "ID Insumo",
+                        sortable: false,
+                    },
+                    {
+                        key: "sku",
+                        label: "SKU",
                         sortable: false,
                     },
                     {
@@ -328,6 +354,7 @@ export default {
         this.getInsumos().then(() => {
             this.overlay = false
         })
+        this.fetchCatalogoInsumosProductos(); // Call the new method
     },
 }
 </script>

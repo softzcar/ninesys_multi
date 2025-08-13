@@ -411,6 +411,22 @@ export default {
 
     },
 
+    formatDateTimeCustom(timestamp) {
+      if (timestamp != null) {
+        const dateObj = new Date(timestamp);
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const year = dateObj.getFullYear();
+        const hours = dateObj.getHours().toString().padStart(2, '0');
+        const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+        const seconds = dateObj.getSeconds().toString().padStart(2, '0');
+
+        return `${day} ${hours}:${minutes}:${seconds}/${month}/${year}`;
+      } else {
+        return '';
+      }
+    },
+
     formatDate(date) {
       // Verificar sila fewhca tiene formato antiguo
       if (date != null) {

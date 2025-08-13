@@ -5,25 +5,23 @@
 - Siempre concersaremos en español
 - Revisa la estructura de directorios y los archivos necesarios para que tengas el contexto más completo posible del proyecto
 - **Gestión de Bitácora (CRÍTICO):**
-    - **Proceso de Actualización Diaria:**
-        1. Al inicio de una nueva sesión, leer `bitacora.md` para identificar la fecha del último encabezado `H1`.
-        2. Si la fecha del último `H1` **no es la fecha actual**, se debe añadir un nuevo encabezado `H1` con la fecha del día de hoy.
-        3. Debajo del `H1` correspondiente al día actual, añadir un `H2` con la hora de inicio de la sesión (ej. `## Sesión iniciada a las 10:00`).
-        4. **NUNCA** se debe copiar contenido de días anteriores bajo la fecha nueva. La bitácora es un registro cronológico.
-    - **Registro de Tareas:**
-        - Después de CADA tarea completada, se debe **AÑADIR (append)** la nueva entrada al final del archivo `bitacora.md`.
-        - Cada entrada debe seguir el siguiente formato estructurado:
-            ```markdown
-            ### Tarea: [Descripción concisa de la tarea]
-            - **Fecha:** [Fecha de la tarea]
-            - **Solicitud del Usuario:** [Referencia breve a la solicitud]
-            - **Acción Realizada:** [Descripción detallada y técnica de mi acción, incluyendo archivos afectados, funciones modificadas, comandos ejecutados, etc.]
-            - **Herramienta(s) Utilizada(s):** [Ej: `default_api.replace`, `default_api.run_shell_command`]
-            - **Resultado:** [Éxito | Fallo | Parcial]
-            - **Verificación:** [Descripción técnica de cómo se verificó la tarea, incluyendo resultados de pruebas, salidas de comandos, comportamiento observado, etc. Ej: "El comando `replace` retornó éxito.", "La compilación de Nuxt se completó sin errores y el componente `X` se renderizó correctamente mostrando los datos `Y`.", "El endpoint `Z` devolvió los datos esperados con un `status 200` y la estructura `{'campo': 'valor'}`."]
-            - **Observaciones:** (Opcional) [Cualquier detalle adicional relevante]
-            ```
-    - Este registro es fundamental para el seguimiento del proyecto y para la generación de reportes. **La precisión y la inmediatez son IMPERATIVAS.**
+    - Al iniicar siempre actualizate leyendo los logs anteriores
+    
+    - **Gestión de Bitácora (CRÍTICO):**
+    - **Estrategia de Logging:** Se utilizarán archivos `.log` individuales para registrar cada tarea completada. Estos archivos se almacenarán en la carpeta `/logs_gemini`.
+    - **Nomenclatura de Archivos:** Cada archivo de log se nombrará siguiendo el formato `YYYY-MM-DD_HH-MM-SS_tarea-[descripcion_corta].log` para asegurar la unicidad y la cronología.
+    - **Registro de Tareas:** Después de CADA tarea completada, se debe crear un nuevo archivo `.log` con la siguiente estructura de información:
+        ```
+        - Solicitud del Usuario: [Texto completo de la solicitud del usuario]
+        - Archivos Involucrados: [Lista de rutas de archivos afectados o relevantes para la tarea]
+        - Acción Realizada: [Descripción detallada y técnica de mi acción, incluyendo funciones modificadas, comandos ejecutados, etc.]
+        - Herramienta(s) Utilizada(s): [Ej: `default_api.write_file`, `default_api.run_shell_command`]
+        - Resultado: [Éxito | Fallo | Parcial]
+        - Verificación: [Descripción técnica de cómo se verificó la tarea, incluyendo resultados de pruebas, salidas de comandos, comportamiento observado, etc.]
+        - Observaciones de Gemini: [Cualquier detalle adicional relevante o auto-reflexión sobre la tarea]
+        - Respuesta de Gemini: [La respuesta final que se le dio al usuario después de completar la tarea]
+        ```
+    - Este registro es fundamental para el seguimiento del proyecto y para la generación de reportes. **La precisión y la inmediatez son IMPERATIVA.
 - Siempre prefiere implementar código de la manera menos invasiva posible
 - Evita hacer cambios o mejoras que no se te soliciten pero siempre puedes sugerirlas
 

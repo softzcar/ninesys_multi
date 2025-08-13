@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-link @click="showModal">$ {{ valor.toFixed(2) }}</b-link>
+    <b-link @click="showModal">$ {{ totalCombinedCost.toFixed(2) }}</b-link>
 
     <b-modal
       :id="modalId"
@@ -25,7 +25,10 @@
             responsive
           >
             <template #cell(total_tinta)="data">
-              {{ data.item.total_tinta.toFixed(2) }} ml
+              {{ data.item.total_tinta_consumo_ml.toFixed(2) }} ml
+            </template>
+            <template #cell(total_tinta_costo)="data">
+              $ {{ data.item.total_tinta_costo.toFixed(2) }}
             </template>
           </b-table>
 
@@ -38,6 +41,9 @@
             :fields="fieldsInsumos"
             responsive
           >
+            <template #cell(sku)="data">
+              {{ data.item.sku }} - {{ data.item.id_insumo }}
+            </template>
             <template #cell(total_insumo)="data">
               $ {{ data.item.total_insumo.toFixed(2) }}
             </template>
@@ -82,9 +88,11 @@ export default {
         { key: "magenta", label: "Magenta" },
         { key: "yellow", label: "Yellow" },
         { key: "black", label: "Black" },
-        { key: "total_tinta", label: "Total Tinta" },
+        { key: "total_tinta_consumo_ml", label: "Total Tinta" }, // Changed key
+        { key: "total_tinta_costo", label: "Total Costo" }, // New field
       ],
       fieldsInsumos: [
+        { key: "sku", label: "SKU" }, // New field
         { key: "nombre_insumo", label: "Insumo" },
         { key: "costo", label: "Costo" },
         { key: "cantidad_utilizada", label: "Utilizado" },
@@ -96,6 +104,10 @@ export default {
   computed: {
     modalId() {
       return `modal-insumos-${this.id_orden}`;
+    },
+    totalCombinedCost() {
+      const totalInkCost = this.reporte.tintas.reduce((sum, tinta) => sum + (tinta.total_tinta_costo || 0), 0);
+      return this.valor + totalInkCost;
     },
   },
   methods: {

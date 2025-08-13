@@ -24,6 +24,19 @@
                                 </b-form-group>
 
                                 <b-form-group
+                                    id="input-group-sku"
+                                    label="SKU:"
+                                    label-for="input-sku"
+                                >
+                                    <b-form-input
+                                        id="input-sku"
+                                        v-model="form.sku"
+                                        placeholder="Ingrese el SKU"
+                                        required
+                                    ></b-form-input>
+                                </b-form-group>
+
+                                <b-form-group
                                     id="input-group-3"
                                     label="Cantidad:"
                                     label-for="input-cantidad"
@@ -34,6 +47,19 @@
                                         placeholder="Ingrese la cantidad"
                                         required
                                     ></b-form-input>
+                                </b-form-group>
+
+                                <b-form-group
+                                    id="input-group-product-catalog"
+                                    label="Producto del Catálogo:"
+                                    label-for="input-product-catalog"
+                                >
+                                    <b-form-select
+                                        id="input-product-catalog"
+                                        v-model="selectedProduct"
+                                        :options="catalogoProductosOptions"
+                                        required
+                                    ></b-form-select>
                                 </b-form-group>
 
                                 <b-form-group
@@ -115,12 +141,15 @@ export default {
         return {
             form: {
                 insumo: "",
+                sku: "",
                 unidad: "",
                 cantidad: "",
                 rendimiento: 0,
                 costo: 0,
                 departamento: "",
             },
+            catalogoProductos: [],
+            selectedProduct: null,
             unidadesOptions: [
                 { value: "Mts", text: "Metros" },
                 { value: "Kg", text: "Kilos" },
@@ -138,6 +167,16 @@ export default {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
         },
+        catalogoProductosOptions() {
+            if (!this.catalogoProductosData || this.catalogoProductosData.length === 0) {
+                return [{ value: null, text: "Cargando catálogo..." }];
+            }
+            let options = this.catalogoProductosData.map(prod => {
+                return { value: prod._id, text: prod.nombre };
+            });
+            options.unshift({ value: null, text: "Seleccione un producto" });
+            return options;
+        },
     },
 
     methods: {
@@ -145,44 +184,101 @@ export default {
             this.overlay = true
             this.form = {
                 insumo: "",
+                sku: "",
                 unidad: "",
                 cantidad: "",
                 rendimiento: 0,
+                costo: 0,
                 departamento: "",
             }
             this.overlay = false
+            this.selectedProduct = null
         },
         async guardarInsumo() {
+            const requiredFields = {
+                insumo: 'Insumo',
+                sku: 'SKU',
+                unidad: 'Tipo de unidad',
+                cantidad: 'Cantidad',
+                selectedProduct: 'Producto del Catálogo',
+                rendimiento: 'Rendimiento',
+                costo: 'Costo',
+                departamento: 'Departamento',
+            };
+
+            for (const fieldKey in requiredFields) {
+                let fieldValue;
+                if (fieldKey === 'selectedProduct') {
+                    fieldValue = this.selectedProduct;
+                } else {
+                    fieldValue = this.form[fieldKey];
+                }
+
+                if (!fieldValue) {
+                    this.$fire({
+                        title: "Campo Requerido",
+                        html: `<p>Por favor, complete el campo: <strong>${requiredFields[fieldKey]}</strong></p>`,
+                        type: "warning",
+                    });
+                    return;
+                }
+            }
+
+            if (parseFloat(this.form.rendimiento) === 0) {
+                this.$fire({
+                    title: "Valor Inválido",
+                    html: `<p>El campo <strong>Rendimiento</strong> no puede ser cero.</p>`,
+                    type: "warning",
+                });
+                return;
+            }
+
             this.overlay = true
 
-            const data = new URLSearchParams()
-            data.set("insumo", this.form.insumo)
-            data.set("unidad", this.form.unidad)
-            data.set("cantidad", this.form.cantidad)
-            data.set("rendimiento", this.form.rendimiento)
-            data.set("costo", this.form.costo)
-            data.set("departamento", this.form.departamento)
-            data.set("es_tinta", 0)
+            const data = new URLSearchParams();
+            data.set("insumo", this.form.insumo);
+            data.set("sku", this.form.sku);
+            data.set("unidad", this.form.unidad);
+            data.set("cantidad", this.form.cantidad);
+            data.set("rendimiento", this.form.rendimiento);
+            data.set("costo", this.form.costo);
+            data.set("departamento", this.form.departamento);
+            data.set("es_tinta", 0);
+            data.set("id_catalogo_producto", this.selectedProduct);
 
-            await this.$axios
-                .post(`${this.$config.API}/insumos/nuevo`, data)
-                .then((res) => {
-                    console.log("resultado insumo nuevo", res)
-
+            try {
+                const response = await this.$axios.post(`${this.$config.API}/insumos/nuevo`, data);
+                if (response.data && response.data.length > 0 && response.data[0].last_insert_id) {
                     this.$fire({
-                        title: `Insumo ${this.form.insumo} ID: ${res.data[0].last_insert_id}`,
-                        html: ` `,
-                        type: "info",
-                    }).then(() => {
-                        this.resetForm()
-                        this.$bvModal.hide(this.modal)
-                    })
-                })
+                        title: "Insumo Guardado",
+                        html: `<p>El insumo <strong>${this.form.insumo}</strong> ha sido guardado exitosamente.</p>`,
+                        type: "success",
+                    });
+                    this.resetForm();
+                    this.$bvModal.hide(this.modal);
+                    this.$emit("reload");
+                } else {
+                    this.$fire({
+                        title: "Error al Guardar",
+                        html: `<p>${response.data.message}</p>`,
+                        type: "error",
+                    });
+                }
+            } catch (error) {
+                console.error("Error al guardar el insumo:", error);
+                this.$fire({
+                    title: "Error de Conexión",
+                    html: `<p>Hubo un problema al conectar con el servidor. Intente de nuevo más tarde.</p>`,
+                    type: "error",
+                });
+            } finally {
+                this.overlay = false;
+            }
         },
 
         onSubmit(event) {
             event.preventDefault()
-            this.guardarInsumo().then(() => this.$emit("reload"))
+            this.guardarInsumo()
         },
 
         onReset(event) {
@@ -190,9 +286,11 @@ export default {
             // Reset our form values
             this.form = {
                 insumo: "",
+                sku: "",
                 unidad: "",
                 cantidad: "",
                 rendimiento: 0,
+                costo: 0,
                 departamento: "",
             }
             // Trick to reset/clear native browser form validation state
@@ -200,7 +298,10 @@ export default {
             this.$nextTick(() => {
                 this.show = true
             })
+            this.selectedProduct = null
         },
     },
+    
+    props: ["catalogoProductosData"],
 }
 </script>

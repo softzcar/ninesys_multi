@@ -19,6 +19,19 @@
                                 ></b-form-input>
                             </b-form-group>
 
+                            <b-form-group
+                                id="input-group-sku"
+                                label="SKU:"
+                                label-for="input-sku"
+                            >
+                                <b-form-input
+                                    id="input-sku"
+                                    v-model="form.sku"
+                                    placeholder="Ingrese el SKU"
+                                    required
+                                ></b-form-input>
+                            </b-form-group>
+
                             <div class="form-group mt-3">
                                 <label>Color de la Tinta:</label>
                                 <div class="d-flex flex-wrap">
@@ -53,6 +66,35 @@
                                     placeholder="Ingrese la cantidad"
                                     required
                                 ></b-form-input>
+                            </b-form-group>
+
+                            <b-form-group
+                                id="input-group-mililitros"
+                                label="Mililitros:"
+                                label-for="input-mililitros"
+                            >
+                                <b-form-input
+                                    id="input-mililitros"
+                                    v-model="form.mililitros"
+                                    placeholder="Ingrese los mililitros"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                ></b-form-input>
+                            </b-form-group>
+
+                            <b-form-group
+                                id="input-group-product-catalog"
+                                label="Producto del Catálogo:"
+                                label-for="input-product-catalog"
+                            >
+                                <b-form-select
+                                    id="input-product-catalog"
+                                    v-model="selectedProduct"
+                                    :options="catalogoProductosOptions"
+                                    required
+                                ></b-form-select>
                             </b-form-group>
 
                             <!-- <b-form-group
@@ -133,13 +175,17 @@ export default {
         return {
             form: {
                 insumo: "",
+                sku: "",
                 unidad: "",
                 cantidad: "",
+                mililitros: 0, // New data property
                 rendimiento: 0,
                 costo: 0,
                 departamento: "",
                 color: "",
             },
+            catalogoProductos: [],
+            selectedProduct: null,
             selectedColor: '',
             colorOptions: [
                 { name: 'Cyan', value: 'C', bgColor: '#00FFFF', textColor: '#000000' },
@@ -160,26 +206,51 @@ export default {
         }
     },
 
-    
+    computed: {
+        catalogoProductosOptions() {
+            if (!this.catalogoProductos || this.catalogoProductos.length === 0) {
+                return [{ value: null, text: "Cargando catálogo..." }];
+            }
+            let options = this.catalogoProductos.map(prod => {
+                return { value: prod._id, text: prod.nombre };
+            });
+            options.unshift({ value: null, text: "Seleccione un producto" });
+            return options;
+        },
+    },
 
     methods: {
         resetForm() {
             this.form = {
                 insumo: "",
+                sku: "",
                 unidad: "",
                 cantidad: "",
+                mililitros: 0, // New data property
                 rendimiento: 1,
                 costo: 0,
                 departamento: "",
                 color: "",
             }
             this.selectedColor = ''
+            this.selectedProduct = null
+        },
+        async fetchCatalogoProductos() {
+            try {
+                const response = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
+                this.catalogoProductos = response.data;
+            } catch (error) {
+                console.error("Error al obtener el catálogo de productos:", error);
+            }
         },
         async guardarInsumo() {
             const requiredFields = {
                 insumo: 'Insumo',
+                sku: 'SKU',
                 selectedColor: 'Color de la Tinta',
                 cantidad: 'Cantidad',
+                mililitros: 'Mililitros', // New required field
+                selectedProduct: 'Producto del Catálogo',
                 costo: 'Costo',
                 rendimiento: 'Rendimiento',
             };
@@ -188,6 +259,8 @@ export default {
                 let fieldValue;
                 if (fieldKey === 'selectedColor') {
                     fieldValue = this.selectedColor;
+                } else if (fieldKey === 'selectedProduct') {
+                    fieldValue = this.selectedProduct;
                 } else {
                     fieldValue = this.form[fieldKey];
                 }
@@ -215,8 +288,11 @@ export default {
 
             const data = new URLSearchParams()
             data.set("insumo", this.form.insumo)
+            data.set("sku", this.form.sku)
             data.set("unidad", 'Und')
             data.set("cantidad", this.form.cantidad)
+            data.set("mililitros", this.form.mililitros) // New data to send
+            data.set("id_catalogo_producto", this.selectedProduct)
             data.set("rendimiento", this.form.rendimiento)
             data.set("costo", this.form.costo)
             data.set("departamento", 'Impresión')
@@ -228,13 +304,33 @@ export default {
                 .then((res) => {
                     console.log("resultado insumo nuevo", res)
 
+                    if (res.data && res.data && res.data.error == false) {
+                        this.$fire({
+                            title: "Tinta Guardada",
+                            html: `<p>La tinta ha sido guardada exitosamente con.</p><p>${res.data.message}</p>`,
+                            type: "success",
+                        }).then(() => {
+                            this.resetForm()
+                            this.$bvModal.hide(this.modal) // Close modal on success
+                        })
+                    } else {
+                        this.$fire({
+                            title: "Error al Guardar",
+                            html: `<p>No se pudo obtener el ID del nuevo insumo.</p><p>${res.data.message}</p>`,
+                            type: "error",
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error al guardar el insumo:", error);
                     this.$fire({
-                        title: `Insumo ${this.form.insumo} ID: ${res.data[0].last_insert_id}`,
-                        html: ` `,
-                        type: "info",
-                    }).then(() => {
-                        this.resetForm()
-                    })
+                        title: "Error de Conexión",
+                        html: `<p>Hubo un problema al conectar con el servidor. Intente de nuevo más tarde.</p>`,
+                        type: "error",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false; // Always set overlay to false
                 })
         },
 
@@ -248,20 +344,26 @@ export default {
             // Reset our form values
             this.form = {
                 insumo: "",
+                sku: "",
                 unidad: "",
                 cantidad: "",
+                mililitros: 0, // New data property
                 rendimiento: 0,
                 costo: 0,
                 departamento: "",
                 color: "",
             }
             this.selectedColor = ''
+            this.selectedProduct = null
             // Trick to reset/clear native browser form validation state
             this.show = false
             this.$nextTick(() => {
                 this.show = true
             })
         },
+    },
+    created() {
+        this.fetchCatalogoProductos();
     },
 }
 </script>
