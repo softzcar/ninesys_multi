@@ -415,6 +415,33 @@ export default {
          * @param {Object} horarioLaboral - Definición del horario laboral.
          * @returns {Array} Array de órdenes procesadas con fechas estimadas.
          */
+        parseFechaFlexible(fechaString) {
+            if (!fechaString || typeof fechaString !== 'string') return null;
+
+            // Primero, intentar el formato estándar YYYY-MM-DD, que new Date() maneja bien.
+            // El replace de /-/g por '/' ayuda a evitar problemas de zona horaria (convierte a local).
+            let date = new Date(fechaString.replace(/-/g, '/'));
+            if (date instanceof Date && !isNaN(date.getTime())) {
+                if (date.getFullYear() > 2000) {
+                    return date;
+                }
+            }
+
+            // Si falla o el año es incorrecto, intentar el formato DD-MM-YYYY
+            const parts = fechaString.split(' ')[0].split('-');
+            if (parts.length === 3) {
+                const [day, month, year] = parts.map(p => parseInt(p, 10));
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 2000) {
+                    const ddmmyyyyDate = new Date(year, month - 1, day);
+                    if (ddmmyyyyDate.getFullYear() === year && ddmmyyyyDate.getMonth() === month - 1 && ddmmyyyyDate.getDate() === day) {
+                        return ddmmyyyyDate;
+                    }
+                }
+            }
+            
+            return null; // Si ambos fallan
+        },
+
         proyectarEntregaConCola(dataOrdenes, horarioLaboral) {
             console.log("MIXIN COLA vFinal: proyectarEntregaConCola LLAMADO");
             if (!dataOrdenes || !Array.isArray(dataOrdenes)) { console.error("MIXIN COLA ERROR: 'dataOrdenes' no es un array."); return []; }
@@ -463,7 +490,7 @@ export default {
                 if (itemFechaInicioDate && isNaN(itemFechaInicioDate.getTime())) itemFechaInicioDate = null;
                 let itemFechaTerminadoDate = fecha_terminado ? new Date(fecha_terminado.replace(" ", "T")) : null;
                 if (itemFechaTerminadoDate && isNaN(itemFechaTerminadoDate.getTime())) itemFechaTerminadoDate = null;
-                let itemFechaEntregaDate = fecha_entrega_orden ? new Date(fecha_entrega_orden.replace(" ", "T")) : null;
+                let itemFechaEntregaDate = fecha_entrega_orden ? this.parseFechaFlexible(fecha_entrega_orden) : null;
                 if (itemFechaEntregaDate && isNaN(itemFechaEntregaDate.getTime())) itemFechaEntregaDate = null;
 
                 const cantidadParsed = parseInt(cantidad) || 0;

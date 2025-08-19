@@ -619,6 +619,21 @@
 
                 <router-link
                   class="nav-link"
+                  to="/reporte-eficiencia-empleados"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Reporte de Eficiencia de Empleados
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
                   to="/inventario/reportes/orden"
                   custom
                   v-slot="{ navigate }"

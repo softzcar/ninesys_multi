@@ -4,7 +4,7 @@
       :show="overlay"
       spinner-small
     >
-      <div v-if="resOrden && resOrden.orden && resOrden.orden.length > 0" class="table-wrapper">
+      <div v-if="resOrden && resOrden.orden && resOrden.orden[0] && resOrden.orden[0]._id !== '0'" class="table-wrapper">
         <b-row>
           <b-col class="mb-4">
             <span
@@ -268,10 +268,12 @@
                                     TIPO DE DISEÑO: {{ tipoDiseno }}
                                 </h3>
                             </div> -->
-              <div
-                class="spacer observaciones"
-                v-html="observaciones"
-              ></div>
+              <b-overlay :show="overlayObservaciones" spinner-small>
+                <div
+                  class="spacer observaciones"
+                  v-html="observaciones"
+                ></div>
+              </b-overlay>
             </div>
           </b-col>
         </b-row>
@@ -295,6 +297,7 @@ export default {
     return {
       tmpImage: [],
       overlay: true,
+      overlayObservaciones: true,
       nextId: 0,
       show: true,
       output: null,
@@ -455,17 +458,22 @@ export default {
     const post = await this.getOrdenNow()
   }, */
   async mounted() {
-    console.log('Tasas:', this.tasas);
-    console.log('Data Empresa:', this.dataEmpresa);
     this.$store.commit("buscar/clearData");
-    await Promise.all([
-      this.getImages(this.orderId),
-      this.getOrden(this.orderId).then(() => {
-        return this.getObservaciones(this.orderId);
-      }),
-    ]);
-    console.log("desactivar overlay");
-    this.overlay = false;
+
+    this.overlay = true;
+    this.overlayObservaciones = true;
+
+    this.getOrden(this.orderId)
+      .then(() => {
+        this.overlay = false;
+      });
+
+    this.getImages(this.orderId);
+
+    this.getObservaciones(this.orderId)
+      .then(() => {
+        this.overlayObservaciones = false;
+      });
   },
 
   mixins: [mixin],

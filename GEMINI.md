@@ -28,7 +28,7 @@
 ## Información del Backend:
 
 - **Framework:** Slim Framework
-- **Rutas de la API:** `https://raw.githubusercontent.com/softzcar/ninesys-apidev/refs/heads/main/app/routes.php`
+- **Rutas de la API:** `https://raw.githubusercontent.com/softzcar/ninesys-apidev/refs/heads/main/app/routes.php` (Usar `curl` para leer el contenido)
 
 ## Elaboración de Reportes:
 

@@ -120,7 +120,6 @@ export default {
       ordenesSemana: [],
       ordenesTerminadas: [],
       ordenesPendientes: [],
-      departamento: this.$store.state.login.dataUser.departamento,
     };
   },
 
@@ -130,8 +129,8 @@ export default {
 
       // Excluir a los departamentos que no registran tiempo por tarea.
       if (
-        this.$store.state.login.dataUser.departamento !== "Comercialización" &&
-        this.$store.state.login.dataUser.departamento !== "Administración"
+        this.departamento !== "Comercialización" &&
+        this.departamento !== "Administración"
       ) {
         if (Array.isArray(this.ordenesSemana)) {
           // Filtrar las órdenes que tienen un tiempo transcurrido válido y sumarlo.
@@ -189,16 +188,6 @@ export default {
             label: "ORD",
             class: "text-center",
           },
-          /* {
-                        key: "fecha_de_pago",
-                        label: "FECHA",
-                        class: "text-center",
-                    }, 
-                    {
-                        key: "tipo_de_pago",
-                        label: "TIPO",
-                        class: "text-center",
-                    },*/
           {
             key: "calculo_pago",
             label: "COMISIÓN",
@@ -212,11 +201,6 @@ export default {
             label: "ORD",
             class: "text-center",
           },
-          /* {
-            key: "cantidad",
-            label: "CANTIDAD",
-            class: "text-center",
-          }, */
           {
             key: "producto",
             label: "PRODUCTO",
@@ -234,11 +218,6 @@ export default {
             label: "ORD",
             class: "text-center",
           },
-          /* {
-            key: "cantidad",
-            label: "CANTIDAD",
-            class: "text-center",
-          }, */
           {
             key: "producto",
             label: "PRODUCTO",
@@ -266,22 +245,6 @@ export default {
             key: "cliente",
             label: "CLIENTE",
           },
-          /* {
-            key: 'hora_inicio',
-            label: 'INICIO',
-          },
-          {
-            key: 'hora_terminado',
-            label: 'FIN',
-          },
-          {
-            key: 'hora_terminado',
-            label: 'FIN',
-          },
-          {
-            key: 'tiempo_transcurrido',
-            label: 'TIEMPO',
-          },*/
           {
             key: "calculo_pago",
             label: "$",
@@ -355,14 +318,7 @@ export default {
 
     totalTerminado() {
       let comision = 0;
-      /* if (this.departamento === "Diseño") {
-        comision = this.ordenesTerminadas.reduce((total, orden) => {
-          if (orden.estatus === "Aprobado") {
-            total += parseFloat(orden.monto_pago);
-          }
-          return total;
-        }, 0);
-      } else  */ if (
+      if (
         this.departamento === "Comercialización" ||
         this.departamento === "Administración"
       ) {
@@ -387,35 +343,6 @@ export default {
     },
 
     totalPendiente() {
-      let comision = 0;
-      /* if (this.departamento === "Diseño") {
-                comision = this.ordenesPendientes.reduce((total, orden) => {
-                    if (orden.fecha_terminado === null) {
-                        total += parseFloat(orden.monto_pago);
-                    }
-                    return total;
-                }, 0);
-            } else if (
-                this.departamento === "Comercialización" ||
-                this.departamento === "Administración"
-            ) {
-                comision = this.ordenesPendientes.reduce((total, orden) => {
-                    total += parseFloat(orden.monto_pago);
-                    return total;
-                }, 0);
-            } else {
-                comision = this.ordenesPendientes.reduce((total, orden) => {
-                    if (orden.fecha_terminado === null) {
-                        // total += parseFloat(orden.monto_pago);
-                        this.montoComisionEmpelado(
-                            orden.comision_tipo,
-                            orden.total_comision_variable,
-                            orden.total_comision_fija
-                        );
-                    }
-                    return total;
-                }, 0);
-            } */
       var total = 0;
       this.ordenesPendientes.forEach((orden) => {
         if (orden.fecha_terminado === null) {
@@ -428,20 +355,6 @@ export default {
       });
 
       return total.toFixed(2);
-
-      /* comision = this.ordenesPendientes.reduce((total, orden) => {
-                total = 0;
-                if (orden.fecha_terminado === null) {
-                    total += this.montoComisionEmpelado(
-                        orden.comision_tipo,
-                        orden.total_comision_variable,
-                        orden.total_comision_fija
-                    );
-                }
-                return total;
-            }, 0); */
-
-      return total.toFixed(2);
     },
     total() {
       const tot =
@@ -451,16 +364,13 @@ export default {
 
     trabajosTerminados() {
       if (this.departamento === "Diseño") {
-        // return this.ordenesTerminadas.filter((el) => el.estatus === "Aprobado");
         return this.ordenesTerminadas;
       } else if (
         this.departamento === "Comercialización" ||
         this.departamento === "Administración"
       ) {
-        // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
         return this.ordenesTerminadas;
       } else {
-        // return this.ordenesTerminadas
         return this.ordenesTerminadas
           .filter((el) => el.progreso === "terminada")
           .map((obj) => ({
@@ -469,28 +379,6 @@ export default {
           }));
       }
     },
-
-    /* trabajosTerminados() {
-            if (this.departamento === "Diseño") {
-                return this.ordenesTerminadas.filter(
-                    (el) => el.estatus === "Aprobado"
-                );
-            } else if (
-                this.departamento === "Comercialización" ||
-                this.departamento === "Administración"
-            ) {
-                // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
-                return this.ordenesTerminadas;
-            } else {
-                // return this.ordenesTerminadas
-                return this.ordenesTerminadas
-                    .filter((el) => el.progreso === "terminada")
-                    .map((obj) => ({
-                        ...obj,
-                        calculo_pago: obj.nomto_pago,
-                    }));
-            }
-        }, */
   },
 
   methods: {
@@ -529,7 +417,6 @@ export default {
     },
 
     trabajosPendientes() {
-      // return null;
       if (this.departamento === "Diseño") {
         return this.ordenesPendientes.filter(
           (el) => el.fecha_terminado === null
@@ -542,12 +429,11 @@ export default {
     },
 
     async getOrdenesAsignadas(tipo = "empleado") {
-      // tipo puede ser 'empleado' o 'disenador'
       let url = "";
       if (tipo === "disenador") {
-        url = `${this.$config.API}/reportes/resumen/disenadores/${this.emp}/${this.$store.state.login.currentDepartamentId}`;
+        url = `${this.$config.API}/reportes/resumen/disenadores/${this.emp}/${this.departamentoId}`;
       } else {
-        url = `${this.$config.API}/reportes/resumen/empleados/${this.emp}/${this.$store.state.login.currentDepartamentId}`;
+        url = `${this.$config.API}/reportes/resumen/empleados/${this.emp}/${this.departamentoId}`;
       }
 
       await this.$axios.get(url).then((resp) => {
@@ -563,7 +449,7 @@ export default {
   mounted() {
     let tipo = "";
 
-    if (this.$store.state.login.currentDepartament === "Diseño") {
+    if (this.departamento === "Diseño") {
       tipo = "disenador";
     } else {
       tipo = "empleado";
@@ -572,6 +458,6 @@ export default {
     this.getOrdenesAsignadas(tipo);
   },
 
-  props: ["emp"],
+  props: ["emp", "departamento", "departamentoId"],
 };
 </script>
