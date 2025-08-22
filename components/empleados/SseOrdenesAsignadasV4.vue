@@ -84,6 +84,30 @@
             </b-col>
           </b-row>
 
+          <!-- Lotes en Proceso -->
+          <b-row v-if="lotesActivos.length > 0">
+            <b-col>
+              <b-card
+                class="mb-4"
+                header="Lotes en Proceso"
+              >
+                <div v-for="lote in lotesActivos" :key="lote.id" class="mb-3">
+                  <b-card :header="`Lote #${lote.id} - Estado: ${lote.estado}`">
+                    <b-list-group flush>
+                      <b-list-group-item v-for="orden in lote.ordenes" :key="orden.id_orden">
+                        Orden #{{ orden.id_orden }}
+                      </b-list-group-item>
+                    </b-list-group>
+                    <template #footer>
+                      <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" class="mr-2">Iniciar Lote</b-button>
+                      <b-button v-if="lote.estado === 'en_curso'" @click="terminarLote(lote.id)" variant="danger">Terminar Lote</b-button>
+                    </template>
+                  </b-card>
+                </div>
+              </b-card>
+            </b-col>
+          </b-row>
+
           <!-- Reposiciones -->
           <b-row>
             <b-col>
@@ -318,6 +342,19 @@
             </b-col>
           </b-row>
 
+          <!-- Botón para Crear Lote -->
+          <b-row v-if="esDepartamentoDeMateriales">
+            <b-col class="mb-3">
+              <b-button
+                variant="primary"
+                :disabled="ordenesSeleccionadas.length === 0"
+                @click="crearLote"
+              >
+                Crear Lote ({{ ordenesSeleccionadas.length }} seleccionadas)
+              </b-button>
+            </b-col>
+          </b-row>
+
           <!-- ORDENES PENDIENTES -->
           <b-row>
             <b-col>
@@ -343,6 +380,15 @@
                 >
                   <template #cell(orden)="row">
                     <div>
+                      <!-- Checkbox de selección -->
+                      <span v-if="esDepartamentoDeMateriales" class="floatme mr-2">
+                        <b-form-checkbox
+                          v-model="ordenesSeleccionadas"
+                          :value="row.item.id_orden"
+                          size="lg"
+                        />
+                      </span>
+
                       <span class="floatme">
                         <linkSearch
                           class="floatme mb-2"
@@ -435,6 +481,10 @@ import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js";
 export default {
   data() {
     return {
+      // Propiedades para la nueva funcionalidad de lotes
+      ordenesSeleccionadas: [],
+      lotesActivos: [],
+
       // sourceEvent: null, // Variable para inicializar eventSource y utilizarla poseteriormente en la sfunciones para obtener la informacion de las ordenes asignadas
       orden_proceso_departamento: null,
       disIniciar: false,
@@ -562,6 +612,11 @@ export default {
   },
 
   computed: {
+    esDepartamentoDeMateriales() {
+      const depto = this.$store.state.login.currentDepartament;
+      return ['Estampado', 'Corte'].includes(depto);
+    },
+
     ordenProceso() {
       if (this.$store.getters["login/getDepartamentosOrdenProceso"]) {
         return this.$store.getters["login/getDepartamentosOrdenProceso"][0];
@@ -776,9 +831,10 @@ export default {
     },
 
     dataTablePendiente() {
+      const ordenesEnLotes = this.lotesActivos.flatMap(lote => lote.ordenes.map(o => o.id_orden));
       return (
         this.ordenes
-          .filter((el) => el.fecha_inicio === null)
+          .filter((el) => el.fecha_inicio === null && !ordenesEnLotes.includes(el.id_orden))
           // .filter((el) => el.progreso == "por iniciar")
           .map((el) => {
             return {
@@ -923,6 +979,49 @@ export default {
   },
 
   methods: {
+    crearLote() {
+      this.$confirm(
+        `¿Desea crear un nuevo lote con ${this.ordenesSeleccionadas.length} órdenes seleccionadas?`,
+        'Confirmar Creación de Lote',
+        'question'
+      ).then(() => {
+        this.overlay = true;
+
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Se cambia el formato del payload a URLSearchParams para coincidir con el resto de la aplicación.
+        const payload = new URLSearchParams();
+        payload.append('id_empleado', this.$store.state.login.dataUser.id_empleado);
+        payload.append('id_departamento', this.$store.state.login.currentDepartamentId);
+
+        // Convertimos el array de órdenes a una cadena separada por comas.
+        // El backend se encargará de reconstruir el array.
+        payload.append('ordenes', this.ordenesSeleccionadas.join(','));
+        // --- FIN DE LA CORRECCIÓN ---
+
+        this.$axios
+          .post(`${this.$config.API}/lotes`, payload)
+          .then((res) => {
+            this.$fire({
+              title: 'Éxito',
+              html: `<p>Se ha creado el lote con el ID: ${res.data.id_lote}</p>`,
+              type: 'success',
+            });
+            this.ordenesSeleccionadas = []; // Limpiar selección
+            this.reloadMe(); // Recargar datos
+          })
+          .catch((err) => {
+            this.$fire({
+              title: 'Error',
+              html: `<p>No se pudo crear el lote.</p><p>${err}</p>`,
+              type: 'warning',
+            });
+          })
+          .finally(() => {
+            this.overlay = false;
+          });
+      });
+    },
+
     verificarOrdenProceso(idOrdenProceso, min) {
       let IdVerificado = null;
 
@@ -942,7 +1041,6 @@ export default {
     filterFechaEstimada(idOrden) {
       //   return false;
       const filtrado = this.fechasResult.filter((el) => el.id_orden == idOrden);
-      console.log("fechas filtradas", filtrado);
 
       if (filtrado.length) {
         // Buscar la fecha del departemento
@@ -1047,19 +1145,6 @@ export default {
           console.log("Rendimienot enviado");
         });
     },
-
-    async sendMessageClient(idOrden) {
-            this.overlay = true
-
-            const data = new URLSearchParams()
-            data.set('departamento', this.$store.state.login.currentDepartament)
-            data.set('id_orden', idOrden)
-
-            await this.$axios.post(`${this.$config.API}/send-message-produccion`, data).then(res => {
-                // this.$store.dispatch('comerce/getOrdenesActivas').then(() => (this.overlay = false))
-                this.overlay = false
-            })
-        },
 
     iniciarTodo(idOrden, unidades) {
       this.$confirm(
@@ -1232,6 +1317,54 @@ export default {
         });
     },
 
+    iniciarLote(loteId) {
+      this.$confirm(
+        `¿Desea iniciar el Lote #${loteId}? Todas las órdenes contenidas comenzarán a procesarse.`,
+        'Confirmar Inicio de Lote',
+        'question'
+      ).then(() => {
+        this.overlay = true;
+        this.$axios
+          .post(`${this.$config.API}/lotes/${loteId}/iniciar`)
+          .then((res) => {
+            this.$fire({
+              title: 'Éxito',
+              html: `<p>El lote #${loteId} ha sido iniciado.</p>`,
+              type: 'success',
+            });
+            this.reloadMe(); // Recargar datos para reflejar el cambio de estado
+          })
+          .catch((err) => {
+            this.$fire({
+              title: 'Error',
+              html: `<p>No se pudo iniciar el lote.</p><p>${err}</p>`,
+              type: 'warning',
+            });
+          })
+          .finally(() => {
+            this.overlay = false;
+          });
+      });
+    },
+
+    terminarLote(loteId) {
+      this.$confirm(
+        `¿Está seguro de que desea terminar el Lote #${loteId}? Esta acción es irreversible.`,
+        'Confirmar Finalización de Lote',
+        'warning'
+      ).then(() => {
+        console.log(`Lógica para terminar el lote ${loteId} aquí.`);
+        // TODO: Implementar la llamada al API POST /lotes/{id}/terminar
+        // Esto probablemente requerirá un modal para capturar datos adicionales,
+        // similar a como funciona la finalización de órdenes individuales.
+        this.$fire({
+          title: 'Funcionalidad Pendiente',
+          html: `<p>La lógica para terminar lotes aún no ha sido implementada.</p>`,
+          type: 'info',
+        });
+      });
+    },
+
     /* getOrdenesAsignadasSSE() {
             this.msg = "Estamos buscando sus tareas por favor espere.."
             this.sourceEvent.addEventListener("message", (event) => {
@@ -1338,7 +1471,7 @@ export default {
     async getImpresoras() {
       await this.$axios.get(`${this.$config.API}/impresoras`).then((resp) => {
         console.log('respuesta de impresoras', resp);
-        
+
         this.impresoras = resp.data;
       });
     },
