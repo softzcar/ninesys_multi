@@ -90,17 +90,45 @@
               <b-card
                 class="mb-4"
                 header="Lotes en Proceso"
+                header-tag="header"
               >
                 <div v-for="lote in lotesActivos" :key="lote.id" class="mb-3">
-                  <b-card :header="`Lote #${lote.id} - Estado: ${lote.estado}`">
+                  <b-card no-body>
+                    <template #header>
+                      <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                        <span>
+                          Lote #{{ lote.id }} <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{ lote.estado }}</b-badge>
+                        </span>
+                        <small>Órdenes: {{ lote.ordenes.length }}</small>
+                      </h5>
+                    </template>
+
                     <b-list-group flush>
-                      <b-list-group-item v-for="orden in lote.ordenes" :key="orden.id_orden">
-                        Orden #{{ orden.id_orden }}
+                      <b-list-group-item 
+                        v-for="orden in lote.ordenes" 
+                        :key="orden.id_orden"
+                        class="d-flex align-items-center"
+                      >
+                        <linkSearch
+                          :id="orden.id_orden"
+                          size="sm"
+                          class="mr-3"
+                        />
+                        <span>
+                          <strong>Orden #{{ orden.id_orden }}</strong> - {{ orden.cliente_nombre }}
+                        </span>
                       </b-list-group-item>
                     </b-list-group>
+
                     <template #footer>
-                      <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" class="mr-2">Iniciar Lote</b-button>
-                      <b-button v-if="lote.estado === 'en_curso'" @click="terminarLote(lote.id)" variant="danger">Terminar Lote</b-button>
+                      <div class="text-left">
+                        <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" size="sm" class="mr-2">
+                           Iniciar Lote
+                        </b-button>
+                        <b-button v-if="lote.estado === 'en_curso'" @click="finalizarLotePorDepartamento(lote.id)" variant="success" size="sm">
+                          Finalizar Lote
+                        </b-button>
+                      </div>
                     </template>
                   </b-card>
                 </div>
@@ -386,6 +414,7 @@
                           v-model="ordenesSeleccionadas"
                           :value="row.item.id_orden"
                           size="lg"
+                          :disabled="verificarOrdenProceso(row.item.orden_proceso, row.item.orden_proceso_min)"
                         />
                       </span>
 
@@ -979,40 +1008,165 @@ export default {
   },
 
   methods: {
+    // =================================================================
+    // MÉTODOS PARA LA GESTIÓN DE LOTES (NUEVA LÓGICA)
+    // =================================================================
+
+    async getLotesActivos() {
+      const payload = new URLSearchParams();
+      payload.append('id_empleado', this.$store.state.login.dataUser.id_empleado);
+      payload.append('id_departamento', this.$store.state.login.currentDepartamentId);
+      
+      await this.$axios.post(`${this.$config.API}/lotes/activos`, payload)
+        .then(res => {
+          this.lotesActivos = res.data;
+        })
+        .catch(err => {
+          console.error('Error al cargar los lotes activos:', err);
+          this.lotesActivos = []; // Asegurarse de que esté vacío en caso de error
+        });
+    },
+
+    /**
+     * Lógica central para iniciar un lote y todas sus órdenes.
+     * No tiene confirmaciones, solo ejecuta las acciones.
+     * @param {number} loteId - El ID del lote a iniciar.
+     * @param {Array<number>} ordenesDelLote - Un array con los IDs de las órdenes a iniciar.
+     */
+    async _ejecutarInicioDeLote(loteId, ordenesDelLote) {
+      this.overlay = true;
+      try {
+        // 1. Marcar el lote como 'en_curso' en el backend.
+        await this.$axios.post(`${this.$config.API}/lotes/${loteId}/iniciar`);
+
+        // 2. Mapear las órdenes a promesas de `registrarEstado`.
+        const promesas = ordenesDelLote.map(idOrden => {
+          const ordenCompleta = this.ordenes.find(o => o.id_orden === idOrden);
+          if (ordenCompleta) {
+            return this.registrarEstado(
+              "inicio",
+              ordenCompleta.id_orden,
+              ordenCompleta.unidades,
+              false, // es_reposicion
+              ordenCompleta.lotes_detalles_empleados_asignados
+            );
+          }
+          console.warn(`No se encontraron los detalles completos para la orden #${idOrden} en el lote.`);
+          return Promise.resolve();
+        });
+
+        await Promise.all(promesas);
+
+        this.$fire({
+          title: 'Éxito',
+          html: `<p>El lote #${loteId} y sus ${ordenesDelLote.length} órdenes han sido iniciados correctamente.</p>`,
+          type: 'success',
+        });
+
+      } catch (err) {
+        this.$fire({
+          title: 'Error',
+          html: `<p>Ocurrió un error al iniciar las tareas del lote.</p><p>${err}</p>`,
+          type: 'warning',
+        });
+      } finally {
+        this.ordenesSeleccionadas = [];
+        // Agregamos un pequeño retraso para dar tiempo a la BD a procesar
+        setTimeout(() => {
+          this.reloadMe();
+          this.overlay = false;
+        }, 1000); // 1 segundo de retraso
+      }
+    },
+
+    /**
+     * Método llamado por el botón "Crear Lote".
+     * Crea el lote y lo inicia automáticamente.
+     */
     crearLote() {
+      const ordenesParaLote = [...this.ordenesSeleccionadas];
       this.$confirm(
-        `¿Desea crear un nuevo lote con ${this.ordenesSeleccionadas.length} órdenes seleccionadas?`,
-        'Confirmar Creación de Lote',
+        `¿Desea crear un nuevo lote con ${ordenesParaLote.length} órdenes? El lote se iniciará automáticamente.`,
+        'Confirmar Creación e Inicio',
         'question'
       ).then(() => {
         this.overlay = true;
+        const payload = new URLSearchParams();
+        payload.append('id_empleado', this.$store.state.login.dataUser.id_empleado);
+        payload.append('id_departamento', this.$store.state.login.currentDepartamentId);
+        payload.append('ordenes', ordenesParaLote.join(','));
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Se cambia el formato del payload a URLSearchParams para coincidir con el resto de la aplicación.
+        this.$axios
+          .post(`${this.$config.API}/lotes`, payload)
+          .then(res => {
+            const newLoteId = res.data.id_lote;
+            // Inmediatamente después de crear, llamamos a la lógica de inicio.
+            // Usamos $nextTick para darle tiempo a la UI a que se actualice si es necesario,
+            // aunque la lógica ahora no depende de `lotesActivos` para el inicio inmediato.
+            this.$nextTick(() => {
+                this._ejecutarInicioDeLote(newLoteId, ordenesParaLote);
+            });
+          })
+          .catch(err => {
+            this.$fire({
+              title: 'Error',
+              html: `<p>No se pudo crear el lote.</p><p>${err}</p>`,
+              type: 'warning',
+            });
+            this.overlay = false;
+          });
+      }).catch(()=>{
+        // User cancelled
+      });
+    },
+
+    /**
+     * Método llamado por el botón "Iniciar Lote" en un lote ya existente.
+     */
+    iniciarLote(loteId) {
+      const lote = this.lotesActivos.find(l => l.id === loteId);
+      if (!lote) return;
+
+      const ordenesDelLote = lote.ordenes.map(o => o.id_orden);
+      this.$confirm(
+        `¿Desea iniciar el Lote #${loteId}?`,
+        'Confirmar Inicio',
+        'question'
+      ).then(() => {
+        this._ejecutarInicioDeLote(loteId, ordenesDelLote);
+      }).catch(()=>{
+        // El usuario canceló
+      });
+    },
+
+    /**
+     * Método llamado por el botón "Terminar Lote".
+     */
+    finalizarLotePorDepartamento(loteId) {
+      this.$confirm(
+        `¿Está seguro de que desea finalizar las tareas del Lote #${loteId} para este departamento?`,
+        'Confirmar Finalización',
+        'warning'
+      ).then(() => {
+        this.overlay = true;
         const payload = new URLSearchParams();
         payload.append('id_empleado', this.$store.state.login.dataUser.id_empleado);
         payload.append('id_departamento', this.$store.state.login.currentDepartamentId);
 
-        // Convertimos el array de órdenes a una cadena separada por comas.
-        // El backend se encargará de reconstruir el array.
-        payload.append('ordenes', this.ordenesSeleccionadas.join(','));
-        // --- FIN DE LA CORRECCIÓN ---
-
         this.$axios
-          .post(`${this.$config.API}/lotes`, payload)
+          .post(`${this.$config.API}/lotes/${loteId}/finalizar-departamento`, payload)
           .then((res) => {
             this.$fire({
               title: 'Éxito',
-              html: `<p>Se ha creado el lote con el ID: ${res.data.id_lote}</p>`,
+              html: `<p>El lote #${loteId} ha sido finalizado para este departamento.</p>`,
               type: 'success',
             });
-            this.ordenesSeleccionadas = []; // Limpiar selección
-            this.reloadMe(); // Recargar datos
+            this.reloadMe();
           })
           .catch((err) => {
             this.$fire({
               title: 'Error',
-              html: `<p>No se pudo crear el lote.</p><p>${err}</p>`,
+              html: `<p>No se pudo finalizar el lote en este departamento.</p><p>${err}</p>`,
               type: 'warning',
             });
           })
@@ -1022,15 +1176,17 @@ export default {
       });
     },
 
+    // =================================================================
+    // MÉTODOS DE SOPORTE Y LÓGICA EXISTENTE (MERGED)
+    // =================================================================
+
     verificarOrdenProceso(idOrdenProceso, min) {
       let IdVerificado = null;
-
       if (idOrdenProceso === null) {
         IdVerificado = min;
       } else {
         IdVerificado = idOrdenProceso;
       }
-
       if (IdVerificado === this.$store.state.login.currentOrdenProceso) {
         return false;
       } else {
@@ -1039,11 +1195,8 @@ export default {
     },
 
     filterFechaEstimada(idOrden) {
-      //   return false;
       const filtrado = this.fechasResult.filter((el) => el.id_orden == idOrden);
-
       if (filtrado.length) {
-        // Buscar la fecha del departemento
         const fechaEstimada = filtrado[0].tareas
           .filter(
             (el) =>
@@ -1070,7 +1223,6 @@ export default {
     },
 
     onFiltered(filteredItems) {
-      // Trigger pagination to update the number of buttons/pages due to filtering
       this.totalRows = filteredItems.length;
       this.currentPage = 1;
     },
@@ -1101,35 +1253,17 @@ export default {
     },
 
     async registrarEstado(tipo, id_orden, unidades, es_reposicion = false, id_lotes_detalles_param = null) {
-      this.overlay = true;
       const data = new URLSearchParams();
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
       data.set("id_orden", id_orden);
-      data.set("id_lotes_detalles", id_lotes_detalles_param); // Usamos el nuevo parámetro
+      data.set("id_lotes_detalles", id_lotes_detalles_param);
       data.set("tipo", tipo);
       data.set("es_reposicion", es_reposicion);
       data.set("unidades", unidades);
       data.set("departamento", this.$store.state.login.currentDepartament);
       data.set("orden_proceso", this.$store.state.login.currentOrdenProceso);
-
-      await this.$axios
-        .post(`${this.$config.API}/registrar-paso-empleado`, data)
-        .then((res) => {
-          console.log("emitimos aqui...");
-          // this.$emit('reload', 'true')
-          this.overlay = false;
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<p>No se pudo registrar la acción</p><p>${err}</p>`,
-            type: "warning",
-          });
-        })
-        .finally(() => {
-          this.overlay = false;
-        });
+      return this.$axios.post(`${this.$config.API}/registrar-paso-empleado`, data);
     },
 
     async rendimiento(valor, idOrden) {
@@ -1138,11 +1272,10 @@ export default {
       data.set("valor", valor);
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("departamento", this.$store.state.login.currentDepartament);
-
       await this.$axios
         .post(`${this.$config.API}/insumos/rendimiento`, data)
         .then((res) => {
-          console.log("Rendimienot enviado");
+          console.log("Rendimiento enviado");
         });
     },
 
@@ -1153,32 +1286,26 @@ export default {
         "question"
       )
         .then(() => {
-          /* const OrdenesPorIniciar = this.ordenes.filter(
-                        (el) => el.id_orden == idOrden
-                    );
-
-                    console.log("OrdenesPorIniciar", OrdenesPorIniciar); */
-
-          this.registrarEstado("inicio", idOrden, unidades, false, this.ordenes.find(o => o.id_orden === idOrden).id_lotes_detalles_empleados_asignados).then(() => {
-            this.reloadMe();
+          this.overlay = true;
+          this.registrarEstado("inicio", idOrden, unidades, false, this.ordenes.find(o => o.id_orden === idOrden).lotes_detalles_empleados_asignados)
+          .then(() => {
             this.sendMessageClient(idOrden);
+            this.reloadMe();
+          })
+          .catch((err) => {
+             this.$fire({
+                title: "Error",
+                html: `<p>No se pudo registrar la acción.</p><p>${err}</p>`,
+                type: "warning",
+              });
+          })
+          .finally(() => {
+            this.overlay = false;
           });
         })
-        .catch((err) => {
-          console.log(`Error al iniciar la tarea`, err);
-          return false;
-        })
-        .finally(() => {
-          this.reloadMe();
-          // this.getOrdenesAsignadas()
-          this.overlay = false;
-        });
     },
 
     checkTerminar(idOrden, items) {
-      /**
-       * Checar aqui si vamos a termiar todo e individual también okok!
-       */
       if (this.$store.state.login.currentDepartament === "Impresión") {
         alert("Solicitar números de rollos de papel");
       } else if (this.$store.state.login.currentDepartament === "Estampado") {
@@ -1195,33 +1322,19 @@ export default {
     },
 
     compararFecha(fecha) {
-      // Obtener la fecha actual
       const fechaActual = new Date();
-
-      // Dividir la fecha ingresada en día, mes y año
       const [dia, mes, anio] = fecha.split("-");
-
-      // Crear un objeto de fecha con la fecha ingresada
       const fechaIngresada = new Date(anio, mes - 1, dia);
-
-      // Comparar las fechas
       if (fechaIngresada <= fechaActual) {
-        // La fecha es igual o menor a la fecha actual, retornar el mismo valor
         return fecha;
       } else {
-        // Restar un día a la fecha ingresada
         fechaIngresada.setDate(fechaIngresada.getDate() - 1);
-
-        // Obtener el nuevo día, mes y año
         const nuevoDia = fechaIngresada.getDate();
         const nuevoMes = fechaIngresada.getMonth() + 1;
         const nuevoAnio = fechaIngresada.getFullYear();
-
-        // Formatear el nuevo valor de la fecha
         const nuevoValor = `${nuevoDia.toString().padStart(2, "0")}-${nuevoMes
           .toString()
           .padStart(2, "0")}-${nuevoAnio}`;
-
         return nuevoValor;
       }
     },
@@ -1247,7 +1360,6 @@ export default {
     filterOrder(id_orden, tipo) {
       let products;
       if (tipo === "en curso") {
-        // Discriminar ordenes de Impresión
         if (this.departamento === "Impresión") {
           products = this.ordenes.filter(
             (item) =>
@@ -1255,11 +1367,7 @@ export default {
               item.progreso === tipo &&
               item.en_tintas === 0
           );
-        } /* else if (this.departamento === 'Estampado') {
-          // Discriminar estampado
-        } else if (this.departamento === 'Corte') {
-          // Discriminar Corte
-        } */ else {
+        } else {
           products = this.ordenes.filter(
             (item) => item.id_orden === id_orden && item.progreso === tipo
           );
@@ -1273,7 +1381,6 @@ export default {
           (item) => item.id_orden === id_orden && item.progreso === tipo
         );
       }
-
       return products;
     },
 
@@ -1286,15 +1393,11 @@ export default {
           if (resp.data.ordenes.length === 0) {
             this.msg = "Usted no tiene ordenes asignadas";
           }
-
-          this.ordenes = [];
           this.ordenes = resp.data.ordenes;
           this.reposiciones = resp.data.reposiciones;
           this.vinculadas = resp.data.vinculadas;
           this.productos = resp.data.productos;
           this.pausas = resp.data.pausas;
-
-          console.log("Ordenes recibidas del API:", this.ordenes);
         });
     },
 
@@ -1317,151 +1420,6 @@ export default {
         });
     },
 
-    iniciarLote(loteId) {
-      this.$confirm(
-        `¿Desea iniciar el Lote #${loteId}? Todas las órdenes contenidas comenzarán a procesarse.`,
-        'Confirmar Inicio de Lote',
-        'question'
-      ).then(() => {
-        this.overlay = true;
-        this.$axios
-          .post(`${this.$config.API}/lotes/${loteId}/iniciar`)
-          .then((res) => {
-            this.$fire({
-              title: 'Éxito',
-              html: `<p>El lote #${loteId} ha sido iniciado.</p>`,
-              type: 'success',
-            });
-            this.reloadMe(); // Recargar datos para reflejar el cambio de estado
-          })
-          .catch((err) => {
-            this.$fire({
-              title: 'Error',
-              html: `<p>No se pudo iniciar el lote.</p><p>${err}</p>`,
-              type: 'warning',
-            });
-          })
-          .finally(() => {
-            this.overlay = false;
-          });
-      });
-    },
-
-    terminarLote(loteId) {
-      this.$confirm(
-        `¿Está seguro de que desea terminar el Lote #${loteId}? Esta acción es irreversible.`,
-        'Confirmar Finalización de Lote',
-        'warning'
-      ).then(() => {
-        console.log(`Lógica para terminar el lote ${loteId} aquí.`);
-        // TODO: Implementar la llamada al API POST /lotes/{id}/terminar
-        // Esto probablemente requerirá un modal para capturar datos adicionales,
-        // similar a como funciona la finalización de órdenes individuales.
-        this.$fire({
-          title: 'Funcionalidad Pendiente',
-          html: `<p>La lógica para terminar lotes aún no ha sido implementada.</p>`,
-          type: 'info',
-        });
-      });
-    },
-
-    /* getOrdenesAsignadasSSE() {
-            this.msg = "Estamos buscando sus tareas por favor espere.."
-            this.sourceEvent.addEventListener("message", (event) => {
-                console.group("SSE Listener (Asignadas)")
-                // console.log("event message", event);
-                const eventData = JSON.parse(event.data)
-                const eventType = event.type
-
-                if (eventType === "chat") {
-                    this.events.push(eventData)
-                }
-
-                if (eventType === "message") {
-                    // this.events = eventData
-                    const tmpResp = eventData.items.filter(
-                        (item) =>
-                            item.id_woo != "11" ||
-                            item.id_woo != "12" ||
-                            item.id_woo != "13" ||
-                            item.id_woo != "14" ||
-                            item.id_woo != "15" ||
-                            item.id_woo != "16" ||
-                            item.id_woo != "112" ||
-                            item.id_woo != "113" ||
-                            item.id_woo != "168" ||
-                            item.id_woo != "169" ||
-                            item.id_woo != "170" ||
-                            item.id_woo != "171" ||
-                            item.id_woo != "172" ||
-                            item.id_woo != "173"
-                    )
-                    console.log("igual?", tmpResp != this.ordenes)
-                    const checkMe = tmpResp == this.ordenes
-                    if (!checkMe) {
-                        this.ordenes = tmpResp
-                        console.log("this.enCurso", this.enCurso.length)
-                        console.log("eventData", eventData.length)
-                        this.enCurso = eventData.trabajos_en_curso
-                    }
-                    console.groupEnd()
-                }
-            })
-
-            this.source.addEventListener("error", (error) => {
-                console.error("Error in SSE connection:", error)
-                this.source.close() // Cerrar la conexión actual
-            })
-        }, */
-
-    /* async getOrdenesAsignadasReload() {
-            this.msg = "Estamos buscando sus tareas por favor espere.."
-            await this.sourceEvent.addEventListener("message", (event) => {
-                console.group("SSE Listener (Reload)")
-                console.log("event message", event)
-                const eventData = JSON.parse(event.data)
-                const eventType = event.type
-
-                if (eventType === "chat") {
-                    this.events.push(eventData)
-                }
-
-                if (eventType === "message") {
-                    // this.events = eventData
-                    const tmpResp = eventData.items.filter(
-                        (item) =>
-                            item.id_woo != "11" ||
-                            item.id_woo != "12" ||
-                            item.id_woo != "13" ||
-                            item.id_woo != "14" ||
-                            item.id_woo != "15" ||
-                            item.id_woo != "16" ||
-                            item.id_woo != "112" ||
-                            item.id_woo != "113" ||
-                            item.id_woo != "168" ||
-                            item.id_woo != "169" ||
-                            item.id_woo != "170" ||
-                            item.id_woo != "171" ||
-                            item.id_woo != "172" ||
-                            item.id_woo != "173"
-                    )
-
-                    if (tmpResp != this.ordenes) {
-                        this.ordenes = tmpResp
-                        console.log("this.enCurso", this.enCurso)
-                        console.log("eventData", eventData)
-                        this.enCurso = eventData.trabajos_en_curso
-                    }
-
-                    console.groupEnd()
-                }
-            })
-
-            this.source.addEventListener("error", (error) => {
-                console.error("Error in SSE connection:", error)
-                this.source.close() // Cerrar la conexión actual
-            })
-        }, */
     async getInsumos() {
       await this.$axios.get(`${this.$config.API}/insumos`).then((resp) => {
         this.insumos = resp.data;
@@ -1470,28 +1428,22 @@ export default {
 
     async getImpresoras() {
       await this.$axios.get(`${this.$config.API}/impresoras`).then((resp) => {
-        console.log('respuesta de impresoras', resp);
-
         this.impresoras = resp.data;
       });
     },
 
     maquetarPrioridad(prioridad) {
       const pri = parseInt(prioridad);
-      let text = "";
-
       if (!pri) {
-        text = "";
         this.fields[0].variant = "info";
       } else {
-        text = "";
         this.fields[0].variant = "danger";
       }
-
-      return text;
+      return "";
     },
 
     reloadMe() {
+      this.getLotesActivos();
       this.getInsumos();
       this.getOrdenesAsignadas();
       this.getOrdenesFechas().then(() => {
@@ -1500,16 +1452,11 @@ export default {
           this.$store.state.login.dataEmpresa.horario_laboral
         );
       });
-
-      console.log("fechasResult", this.fechasResult);
-
-      if (this.ordenes != this.items) {
-        this.msg = "Tiene nuevas ordenes asignadas";
-      }
     },
   },
 
   mounted() {
+    this.getLotesActivos();
     // CArgar datos de las ordenes asignadas
     /* this.sourceEvent = new EventSource(
       `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`
