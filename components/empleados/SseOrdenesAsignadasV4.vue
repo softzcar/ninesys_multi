@@ -498,6 +498,38 @@
         </b-container>
       </div>
     </b-overlay>
+
+    <!-- MODAL PARA FINALIZAR LOTE -->
+    <FinalizarLoteModal
+      v-if="loteParaFinalizar"
+      :show="showFinalizarLoteModal"
+      :lote-id="loteParaFinalizar.id"
+      :total-papel-utilizado="papelUtilizadoLote"
+      :insumos="insumos"
+      @close="showFinalizarLoteModal = false"
+      @lote-finalizado="handleLoteFinalizado"
+    />
+
+    <!-- MODAL PARA FINALIZAR LOTE DE IMPRESIÓN -->
+    <FinalizarLoteImpresionModal
+      v-if="loteParaFinalizar"
+      :show="showFinalizarImpresionModal"
+      :lote-id="loteParaFinalizar.id"
+      :insumos="insumos"
+      :impresoras="impresoras"
+      @close="showFinalizarImpresionModal = false"
+      @lote-finalizado="handleLoteFinalizado"
+    />
+
+    <!-- MODAL PARA FINALIZAR LOTE DE CORTE -->
+    <FinalizarLoteCorteModal
+      v-if="loteParaFinalizar"
+      :show="showFinalizarCorteModal"
+      :lote-id="loteParaFinalizar.id"
+      :insumos="insumos"
+      @close="showFinalizarCorteModal = false"
+      @lote-finalizado="handleLoteFinalizado"
+    />
   </div>
 </template>
 
@@ -505,11 +537,26 @@
 import mixin from "~/mixins/mixins.js";
 import mixin2 from "~/mixins/mixin-proyeccion-entrega.js";
 import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js";
+import FinalizarLoteModal from '~/components/empleados/FinalizarLoteModal.vue'
+import FinalizarLoteImpresionModal from '~/components/empleados/FinalizarLoteImpresionModal.vue'
+import FinalizarLoteCorteModal from '~/components/empleados/FinalizarLoteCorteModal.vue';
 
 // import { log } from 'console'
 export default {
+  components: {
+    FinalizarLoteModal,
+    FinalizarLoteImpresionModal,
+    FinalizarLoteCorteModal,
+  },
   data() {
     return {
+      // Modal de finalización
+      showFinalizarLoteModal: false,
+      showFinalizarImpresionModal: false,
+      showFinalizarCorteModal: false,
+      loteParaFinalizar: null,
+      papelUtilizadoLote: 0,
+
       // Propiedades para la nueva funcionalidad de lotes
       ordenesSeleccionadas: [],
       lotesActivos: [],
@@ -643,7 +690,7 @@ export default {
   computed: {
     esDepartamentoDeMateriales() {
       const depto = this.$store.state.login.currentDepartament;
-      return ['Estampado', 'Corte'].includes(depto);
+      return ['Estampado', 'Corte', 'Impresión'].includes(depto);
     },
 
     ordenProceso() {
@@ -703,100 +750,99 @@ export default {
     },
 
     dataTableEnCurso() {
-      let enCurso = [];
-      if (this.$store.state.login.currentDepartament === "Impresión") {
-        //
+      const ordenesEnLotes = this.lotesActivos.flatMap((lote) =>
+        lote.ordenes.map((o) => o.id_orden)
+      )
+
+      let enCurso = []
+      if (this.$store.state.login.currentDepartament === 'Impresión') {
         enCurso = this.ordenes
           .filter(
             (el) =>
-              // (el.progreso === "en curso" || el.progreso === "terminada") &&
-              (el.fecha_inicio != null && el.fecha_terminado == null) &&
+              !ordenesEnLotes.includes(el.id_orden) &&
+              el.fecha_inicio != null &&
+              el.fecha_terminado == null &&
               el.en_tintas === 0 &&
-              el.en_reposiciones === 0 /* &&
-                            (el.fecha_inicio != null && el.fecha_terminado == null) */
-          ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
+              el.en_reposiciones === 0
+          )
           .map((el) => {
             return {
-              ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el,
               esreposicion: false,
               en_reposiciones: el.en_reposiciones,
               id_orden: el.id_orden,
               extra: el.extra,
-              orden: el.id_orden, // Sobreescribimos la propiedad "orden"
-              urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
-              entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
+              orden: el.id_orden,
+              urgent: el.prioridad,
+              entrega: el.fecha_entrega,
               id_lotes_detalles: el.id_lotes_detalles_empleados_asignados,
               lotes_detalles_empleados_asignados:
                 el.lotes_detalles_empleados_asignados,
               unidades: el.unidades,
               id_woo: el.id_woo,
-              en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
-              en_tintas: el.en_tintas, // Verificar si ya tiene registro en la tabal tintas
+              en_inv_mov: el.en_inv_mov,
+              en_tintas: el.en_tintas,
               valor_inicial: el.valor_inicial,
               valor_final: el.valor_final,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
               orden_proceso_departamento: el.orden_proceso_departamento,
-            };
+            }
           })
           .reduce((acc, item) => {
-            // console.log('item to push', item)
             if (acc.filter((row) => row.orden === item.orden).length === 0) {
-              acc.push(item);
+              acc.push(item)
             }
-            return acc;
-          }, []);
-      } else if (this.$store.state.login.currentDepartament === "Estampado") {
-        enCurso = this.ordenes
-          .filter((el) => el.progreso === "en curso") // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
-          /* .filter(
-                        (el) =>
-                            (el.progreso === "en curso" ||
-                                el.progreso === "terminada") &&
-                            el.en_inv_mov === 0 &&
-                            el.en_reposiciones === 0 && el.fecha_inicio != null
-                    ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos` */
-          .map((el) => {
-            return {
-              ...el, // Incluimos todas las propiedades originales del objeto "el"
-              extra: el.extra,
-              orden: el.id_orden, // Sobreescribimos la propiedad "orden"
-              urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
-              entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
-              id_lotes_detalles: el.id_lotes_detalles,
-              lotes_detalles_empleados_asignados:
-                el.lotes_detalles_empleados_asignados,
-              unidades: el.unidades,
-              id_woo: el.id_woo,
-              en_tintas: el.en_tintas, // Verificar si ya tiene registro en la tabal tintas
-              en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
-              valor_inicial: el.valor_inicial,
-              valor_final: el.valor_final,
-              observaciones: el.observaciones,
-              detalle_empleado: el.detalle_empleado,
-              orden_proceso_departamento: el.orden_proceso_departamento,
-            };
-          })
-          .reduce((acc, item) => {
-            // console.log('item to push', item)
-            if (acc.filter((row) => row.orden === item.orden).length === 0) {
-              acc.push(item);
-            }
-            return acc;
-          }, []);
-        // opciones para corte
-      } else if (this.$store.state.login.currentDepartament === "Corte") {
+            return acc
+          }, [])
+      } else if (this.$store.state.login.currentDepartament === 'Estampado') {
         enCurso = this.ordenes
           .filter(
-            (el) => el.progreso === "en curso" && el.en_reposiciones === 0
-          ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
+            (el) =>
+              !ordenesEnLotes.includes(el.id_orden) && el.progreso === 'en curso'
+          )
           .map((el) => {
             return {
-              ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el,
               extra: el.extra,
-              orden: el.id_orden, // Sobreescribimos la propiedad "orden"
-              urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
-              entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
+              orden: el.id_orden,
+              urgent: el.prioridad,
+              entrega: el.fecha_entrega,
+              id_lotes_detalles: el.id_lotes_detalles,
+              lotes_detalles_empleados_asignados:
+                el.lotes_detalles_empleados_asignados,
+              unidades: el.unidades,
+              id_woo: el.id_woo,
+              en_tintas: el.en_tintas,
+              en_inv_mov: el.en_inv_mov,
+              valor_inicial: el.valor_inicial,
+              valor_final: el.valor_final,
+              observaciones: el.observaciones,
+              detalle_empleado: el.detalle_empleado,
+              orden_proceso_departamento: el.orden_proceso_departamento,
+            }
+          })
+          .reduce((acc, item) => {
+            if (acc.filter((row) => row.orden === item.orden).length === 0) {
+              acc.push(item)
+            }
+            return acc
+          }, [])
+      } else if (this.$store.state.login.currentDepartament === 'Corte') {
+        enCurso = this.ordenes
+          .filter(
+            (el) =>
+              !ordenesEnLotes.includes(el.id_orden) &&
+              el.progreso === 'en curso' &&
+              el.en_reposiciones === 0
+          )
+          .map((el) => {
+            return {
+              ...el,
+              extra: el.extra,
+              orden: el.id_orden,
+              urgent: el.prioridad,
+              entrega: el.fecha_entrega,
               id_lotes_detalles: el.id_lotes_detalles,
               lotes_detalles_empleados_asignados:
                 el.lotes_detalles_empleados_asignados,
@@ -804,35 +850,35 @@ export default {
               id_woo: el.id_woo,
               valor_inicial: el.valor_inicial,
               valor_final: el.valor_final,
-              en_tintas: el.en_tintas, // Verificar si ya tiene registro en la tabal tintas
-              en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
+              en_tintas: el.en_tintas,
+              en_inv_mov: el.en_inv_mov,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
               orden_proceso_departamento: el.orden_proceso_departamento,
-            };
+            }
           })
           .reduce((acc, item) => {
-            // console.log('item to push', item)
             if (acc.filter((row) => row.orden === item.orden).length === 0) {
-              acc.push(item);
+              acc.push(item)
             }
-            return acc;
-          }, []);
+            return acc
+          }, [])
       } else {
         enCurso = this.ordenes
           .filter(
             (el) =>
-              el.progreso === "en curso" &&
+              !ordenesEnLotes.includes(el.id_orden) &&
+              el.progreso === 'en curso' &&
               el.en_reposiciones === 0 &&
               el.fecha_inicio != null
-          ) // Filtramos las órdenes "en curso" y verificamos que aún no tenga registro en la tabla `inventario_movimientos`
+          )
           .map((el) => {
             return {
-              ...el, // Incluimos todas las propiedades originales del objeto "el"
+              ...el,
               extra: el.extra,
-              orden: el.id_orden, // Sobreescribimos la propiedad "orden"
-              urgent: el.prioridad, // Sobreescribimos la propiedad "urgent"
-              entrega: el.fecha_entrega, // Sobreescribimos la propiedad "entrega"
+              orden: el.id_orden,
+              urgent: el.prioridad,
+              entrega: el.fecha_entrega,
               id_lotes_detalles: el.id_lotes_detalles,
               lotes_detalles_empleados_asignados:
                 el.lotes_detalles_empleados_asignados,
@@ -840,23 +886,22 @@ export default {
               id_woo: el.id_woo,
               valor_inicial: el.valor_inicial,
               valor_final: el.valor_final,
-              en_tintas: el.en_tintas, // Verificar si ya tiene registro en la tabal tintas
-              en_inv_mov: el.en_inv_mov, // Verificar si ya tiene registro en la tabal inventario_movimientos
+              en_tintas: el.en_tintas,
+              en_inv_mov: el.en_inv_mov,
               observaciones: el.observaciones,
               detalle_empleado: el.detalle_empleado,
               orden_proceso_departamento: el.orden_proceso_departamento,
-            };
+            }
           })
           .reduce((acc, item) => {
-            // console.log('item to push', item)
             if (acc.filter((row) => row.orden === item.orden).length === 0) {
-              acc.push(item);
+              acc.push(item)
             }
-            return acc;
-          }, []);
+            return acc
+          }, [])
       }
 
-      return enCurso;
+      return enCurso
     },
 
     dataTablePendiente() {
@@ -1143,37 +1188,48 @@ export default {
      * Método llamado por el botón "Terminar Lote".
      */
     finalizarLotePorDepartamento(loteId) {
-      this.$confirm(
-        `¿Está seguro de que desea finalizar las tareas del Lote #${loteId} para este departamento?`,
-        'Confirmar Finalización',
-        'warning'
-      ).then(() => {
-        this.overlay = true;
-        const payload = new URLSearchParams();
-        payload.append('id_empleado', this.$store.state.login.dataUser.id_empleado);
-        payload.append('id_departamento', this.$store.state.login.currentDepartamentId);
+      const lote = this.lotesActivos.find((l) => l.id === loteId)
+      if (!lote) {
+        this.$fire({
+          title: 'Error',
+          html: '<p>No se pudo encontrar el lote activo.</p>',
+          type: 'error',
+        })
+        return
+      }
 
-        this.$axios
-          .post(`${this.$config.API}/lotes/${loteId}/finalizar-departamento`, payload)
-          .then((res) => {
-            this.$fire({
-              title: 'Éxito',
-              html: `<p>El lote #${loteId} ha sido finalizado para este departamento.</p>`,
-              type: 'success',
-            });
-            this.reloadMe();
-          })
-          .catch((err) => {
-            this.$fire({
-              title: 'Error',
-              html: `<p>No se pudo finalizar el lote en este departamento.</p><p>${err}</p>`,
-              type: 'warning',
-            });
-          })
-          .finally(() => {
-            this.overlay = false;
-          });
-      });
+      this.loteParaFinalizar = lote
+      const depto = this.$store.state.login.currentDepartament
+
+      if (depto === 'Impresión') {
+        this.showFinalizarImpresionModal = true
+      } else if (depto === 'Corte') {
+        this.showFinalizarCorteModal = true
+      } else {
+        let papelConsumido = 0
+        const ordenesIdsDelLote = lote.ordenes.map((o) => o.id_orden)
+        const ordenesCompletasDelLote = this.ordenes.filter((o) =>
+          ordenesIdsDelLote.includes(o.id_orden)
+        )
+
+        ordenesCompletasDelLote.forEach((orden) => {
+          if (orden.valor_inicial && orden.valor_final) {
+            papelConsumido +=
+              parseFloat(orden.valor_inicial) - parseFloat(orden.valor_final)
+          }
+        })
+
+        this.papelUtilizadoLote = papelConsumido
+        this.showFinalizarLoteModal = true
+      }
+    },
+
+    handleLoteFinalizado() {
+      this.showFinalizarLoteModal = false
+      this.showFinalizarImpresionModal = false
+      this.showFinalizarCorteModal = false
+      this.loteParaFinalizar = null
+      this.reloadMe()
     },
 
     // =================================================================
