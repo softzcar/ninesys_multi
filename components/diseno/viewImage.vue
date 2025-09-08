@@ -15,41 +15,41 @@
     >
       <p style="color: white; font-size: 0.01rem">URL: {{ imageUrl }}</p>
 
-      <!-- <b-button
-        :disabled="disableButton"
-        variant="primary"
-        class="mt-4"
-        @click="copiarAlPortapapeles"
-        >Copiar link de aprobación</b-button
-      > -->
-      <div v-if="
-                    this.$store.state.login.dataUser.acceso ||
-                    this.$store.state.login.dataUser.departamento ===
-                        'Comercialización'
-                ">
-        Enviar aprobación
-        <span v-html="whatsAppMe('584147307169', true, msgAprobacion)"></span>
-        <p
-          style="color: #fff"
-          id="parrafoParaCopiar"
-        >{{ url }}</p>
-      </div>
       <b-overlay
         :show="overlay"
         spinner-small
       >
         <b-container>
           <b-row>
-            <b-col> </b-col>
+            <b-col>
+              <div v-if="
+                this.$store.state.login.dataUser.acceso ||
+                this.$store.state.login.dataUser.departamento === 'Comercialización'
+              ">
+                <b-button class="mb-4" :disabled="disableButton" variant="info" @click="copiarAlPortapapeles">
+                  <b-icon icon="image"></b-icon> Copiar Imagen
+                </b-button>
+              </div>
+            </b-col>
           </b-row>
           <b-row>
             <b-col>
-              <div class="image-container">
+              <div
+                v-if="imageUrl.length > 0"
+                class="image-container mb-4"
+              >
                 <img
                   :src="imageUrl"
                   :width="imageWidth"
                   :height="imageHeight"
                 />
+              </div>
+
+              <div v-else>
+                <b-alert
+                  show
+                  variant="info"
+                >No hay imagen aprobada</b-alert>
               </div>
             </b-col>
           </b-row>
@@ -67,113 +67,64 @@ export default {
 
   data() {
     return {
-      url: "zzz",
-      aprobado: null,
-      revision: null,
-      id_diseno: null,
-      newImage: null,
       overlay: false,
       size: "lg",
-      title: "Imágen del diseño",
+      title: "Imagen de la orden",
       imageWidth: "100%",
       imageHeight: "auto",
-      imageUrl: `${this.$config.CDN}/images/no-image.png`,
-      actionURL: "",
-      msgAprobacion: "",
-
-      // ANTIGUO
-      titulo: "",
-      fileList: [],
+      imageUrl: "",
     };
   },
 
   computed: {
     disableButton() {
-      if (this.aprobado) {
-        return false;
-      } else {
-        return true;
-      }
-    },
-    srcImag() {
-      let token = this.token();
-      return this.imageUrl + "&_=" + token;
+      return this.imageUrl.length === 0;
     },
     modalView: function () {
       const rand = Math.random().toString(36).substring(2, 7);
-
       return `modal-${rand}`;
     },
   },
 
   methods: {
-    copiarAlPortapapeles() {
-      // Obtén el párrafo por su ID
-      const parrafo = document.getElementById("parrafoParaCopiar");
-
-      // Crea un rango de selección
-      const range = document.createRange();
-      range.selectNode(parrafo);
-
-      // Selecciona el contenido del rango
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
+    async copiarAlPortapapeles() {
+      if (!navigator.clipboard || !navigator.clipboard.write) {
+        this.$fire({ title: "Error", html: "Tu navegador no soporta esta funcionalidad.", type: "error" });
+        return;
+      }
 
       try {
-        // Copia el contenido seleccionado al portapapeles
-        document.execCommand("copy");
-        window.getSelection().removeAllRanges();
+        this.overlay = true;
+
+        const response = await fetch(this.imageUrl);
+        if (!response.ok) {
+          throw new Error('No se pudo descargar la imagen.');
+        }
+
+        const blob = await response.blob();
+
+        const clipboardItem = new ClipboardItem({
+          [blob.type]: blob,
+        });
+
+        await navigator.clipboard.write([clipboardItem]);
+
         this.$fire({
-          title: "URL copiada al portapapeles",
-          html: ``,
-          type: "info",
+          title: "¡Éxito!",
+          html: "La imagen ha sido copiada al portapapeles.",
+          type: "success",
         });
+
       } catch (err) {
-        console.error("No se pudo copiar al portapapeles: ", err);
+        console.error("Error al copiar la imagen: ", err);
+        this.$fire({
+          title: "Error",
+          html: "No se pudo copiar la imagen. Esto puede deberse a un problema de CORS o del navegador.",
+          type: "error",
+        });
+      } finally {
+        this.overlay = false;
       }
-    },
-
-    mostrarNotificacion() {
-      this.$fire({
-        title: "URL Copiada",
-        html: `La URL de la aprobación del cliente ha sido copiada al portapapeles`,
-        type: "info",
-      });
-    },
-
-    async verificarAprobacion() {
-      await this.$axios
-        .get(`${this.$config.API}/diseno/aprobado/${this.id}`)
-        .then((res) => {
-          console.log(`En verificar aprobacion recibimos en data`, res.data);
-          this.aprobado = res.data.aprobado;
-          if (this.aprobado == true) {
-            this.revision = res.data.data.revision;
-            this.id_diseno = res.data.data.id_diseno;
-            this.imageUrl = this.findImage();
-          } else {
-            // this.imageUrl = this.findImage()
-            this.imageUrl = `${this.$config.CDN}/images/no-image.png`;
-          }
-        })
-        .catch((err) => {
-          alert(err + "RRR: " + res.data);
-        })
-        .finally(() => {
-          this.overlay = false;
-        });
-    },
-
-    async findImage() {
-      this.$axios
-        .get(`${this.$config.API}/disenos/images/${this.id}`)
-        .then((res) => {
-          this.imageUrl = `${this.$config.API}/${res.data[0]}`;
-        })
-        .catch((err) => {
-          console.error(`El cdn respondio con un error`, err);
-          this.imageUrl = [`${this.$config.API}/images/no-image.png`];
-        });
     },
 
     token() {
@@ -189,17 +140,42 @@ export default {
       }
       return b.join("");
     },
+
+    async getImages() {
+      this.overlay = true;
+      // Primero obtenemos la RUTA de la imagen desde nuestro endpoint original
+      this.$axios
+        .get(
+          `${this.$config.CDN}/?id_orden=${this.id}&id_empresa=${this.$store.state.login.dataEmpresa.id}`
+        )
+        .then((res) => {
+          // Si no hay una URL válida, dejamos el campo vacío
+          if (res.data.url === "images/no-image.png" || !res.data.url) {
+            this.imageUrl = "";
+          } else {
+            // Si hay una URL, construimos el enlace a nuestro nuevo script get_image.php
+            const imagePath = res.data.url;
+            this.imageUrl = `${this.$config.CDN}/get_image.php?path=${imagePath}`;
+          }
+        })
+        .catch((err) => {
+          console.error("Error al obtener la ruta de la imagen:", err);
+          this.imageUrl = "";
+        })
+        .finally(() => {
+          this.overlay = false;
+        });
+    },
   },
 
   props: ["id"],
 
   mounted() {
-    this.overlay = true;
-    this.titulo = `Imagen de la orden ${this.id}`;
+    this.title = `Imagen de la orden ${this.id}`;
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      this.findImage().then(() => {
-        this.overlay = false;
-      });
+      if (modalId === this.modalView) {
+        this.getImages();
+      }
     });
   },
 };

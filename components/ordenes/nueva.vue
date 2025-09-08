@@ -958,6 +958,15 @@
 
                             <b-row>
                               <b-col>
+                                <b-form-group
+                                  label="Notificaciones"
+                                  class="mb-4 text-left"
+                                >
+                                  <b-form-checkbox v-model="form.sendWhatsAppMessage" size="lg" name="check-ws">
+                                    <strong class="text-primary">Enviar mensaje de bienvenida al cliente por WhatsApp.</strong>
+                                  </b-form-checkbox>
+                                </b-form-group>
+
                                 <div id="reporte">
                                   <b-overlay :show="overlay">
                                     <ordenes-preview
@@ -1169,6 +1178,7 @@ export default {
         sales_commision: null,
         next: 0,
         disableControl: false,
+        sendWhatsAppMessage: true,
       },
       cortes: [
         {
@@ -1567,12 +1577,15 @@ export default {
 
     loadFormGuardadas(idArray, idTable) {
       this.form = this.ordenesGuardadas[idArray].form;
+
+      // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
+      if (typeof this.form.sendWhatsAppMessage === 'undefined') {
+        this.$set(this.form, 'sendWhatsAppMessage', true);
+      }
+
       console.log("cargar orden:", this.ordenesGuardadas[idArray].form);
       this.clearSearch();
       this.$bvModal.hide(this.modal);
-      /*  this.deleteOrdenGuardada(idTable).then(() => {
-         this.$bvModal.hide(this.modal)
-       }) */
     },
 
     async getOrdenesGuardadas() {
@@ -1805,7 +1818,10 @@ export default {
       );
 
       // Validar que original_selected_price esté definido y sea válido
-      if (typeof item.original_selected_price === "undefined" || item.original_selected_price <= 0) {
+      if (
+        typeof item.original_selected_price === "undefined" ||
+        item.original_selected_price <= 0
+      ) {
         this.$fire({
           title: "Precio Requerido",
           html: `<p>Primero debe seleccionar un precio para el producto.</p>`,
@@ -1835,7 +1851,9 @@ export default {
       }
 
       // Calcular el precio final usando original_selected_price
-      item.precio = (parseFloat(item.original_selected_price) + item.xl).toFixed(2);
+      item.precio = (
+        parseFloat(item.original_selected_price) + item.xl
+      ).toFixed(2);
 
       this.montoTotalOrden();
     },
@@ -1844,7 +1862,11 @@ export default {
       const parsedPrice = parseFloat(newPrice);
       if (!isNaN(parsedPrice)) {
         this.form.productos[index].original_selected_price = parsedPrice; // Guardar el precio original seleccionado
-        this.recalcularSegunTalla(index, this.form.productos[index], this.form.productos[index].cod); // Recalcular por si hay talla XL
+        this.recalcularSegunTalla(
+          index,
+          this.form.productos[index],
+          this.form.productos[index].cod
+        ); // Recalcular por si hay talla XL
         this.montoTotalOrden(); // Recalcular el total de la orden
       }
     },
@@ -2518,6 +2540,7 @@ export default {
         sales_commision: null,
         next: 0,
         disableControl: false,
+        sendWhatsAppMessage: true, // <-- THE FIX
       };
 
       // Si se llama desde el evento de un clic, obj será un MouseEvent.
@@ -2643,6 +2666,7 @@ export default {
       );
       data.set("tasa_dolar", this.tasas.bolivar);
       data.set("tasa_peso", this.tasas.peso_colombiano);
+      data.set("sendWhatsAppMessage", this.form.sendWhatsAppMessage);
 
       console.log("data para crear nueva orden", data);
 
@@ -2990,12 +3014,12 @@ export default {
         this.form.total = 0;
         this.form.total = this.form.productos
           .map((item) => {
-            let miPrecio = item.precio
-            if (miPrecio === undefined || miPrecio === null) item.precio = 0  
+            let miPrecio = item.precio;
+            if (miPrecio === undefined || miPrecio === null) item.precio = 0;
             return parseFloat(miPrecio) * parseInt(item.cantidad);
           })
-        .reduce((acc, item) => acc + item);
-      } else {        
+          .reduce((acc, item) => acc + item);
+      } else {
         this.form.total = 0;
       }
     },
@@ -3266,6 +3290,9 @@ export default {
       form: true,
       formPrint: true,
     });
+
+    console.log('check WS', this.form.sendWhatsAppMessage);
+    
 
     this.mainOverlay = true;
     this.loadingMsg = "Cargando datos...";

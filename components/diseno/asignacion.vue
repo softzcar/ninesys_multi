@@ -46,14 +46,16 @@
         </template>
 
         <template #cell(imagen)="data">
-          <!-- <div class="floatme">
-                        <disenosse-uploadPropuesta
-                            :item="data.item"
-                            @reload="loadAll()"
-                        />
-                    </div> -->
-          <div class="floatme">
-            <diseno-viewImage :id="data.item.id" />
+          <div class="d-flex">
+            <div class="floatme mr-2">
+              <diseno-viewImage :id="data.item.id" />
+            </div>
+            <div class="floatme">
+              <disenosse-uploadDisenoAprobado
+                :item="data.item"
+                @reload="loadAll()"
+              />
+            </div>
           </div>
         </template>
 

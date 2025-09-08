@@ -138,9 +138,11 @@ export default {
     this.overlay = true;
     this.titulo = `Imagen de la orden ${this.id}`;
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      this.findImage().then(() => {
-        this.overlay = false;
-      });
+      if (this.modalView === modalId) {
+        this.findImage().then(() => {
+          this.overlay = false;
+        });
+      }
     });
   },
 };

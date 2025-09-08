@@ -89,7 +89,10 @@
 </template>
 
 <script>
+import mixin from '~/mixins/mixins.js'
+
 export default {
+  mixins: [mixin],
   props: {
     show: {
       type: Boolean,
@@ -106,6 +109,10 @@ export default {
     insumos: {
       type: Array,
       required: true,
+    },
+    ordenes: {
+      type: Array,
+      default: () => [],
     },
   },
   data() {
@@ -194,6 +201,10 @@ export default {
           title: 'Éxito',
           html: `<p>${response.data.message}</p>`,
           type: 'success',
+        })
+
+        this.ordenes.forEach(orden => {
+          this.sendMsgCustom(orden.id_orden, 'paso', this.$store.state.login.currentDepartamentId)
         })
 
         this.$emit('lote-finalizado')

@@ -300,7 +300,7 @@ export default {
                     this.nextId = res.data.id
                 })
                 .catch((err) => {
-                    console.error("Error consiltando nextIdOrden", err)
+                    console.error("Error consultado nextIdOrden", err)
                 })
                 .finally(() => {
                     this.overlay = false

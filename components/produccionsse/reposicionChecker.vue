@@ -81,11 +81,13 @@ export default {
 
   mounted() {
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      this.getRepositions().then(() => {
-        if (this.repos.length) {
-          this.showControl = true;
-        }
-      });
+      if (this.modal === modalId) {
+        this.getRepositions().then(() => {
+          if (this.repos.length) {
+            this.showControl = true;
+          }
+        });
+      }
     });
   },
 

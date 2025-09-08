@@ -6,56 +6,85 @@ Se ha realizado una jornada de desarrollo intensiva enfocada en la implementaci�
 
 ---
 
-## Implementación de Finalización de Lotes de Producción
+### Implementación de Finalización de Lotes de Producción
 
 El objetivo principal fue crear un sistema que permitiera a los empleados finalizar múltiples órdenes agrupadas en un lote con una sola acción, manejando los requerimientos específicos de cada departamento en cuanto al registro de consumo de materiales.
 
-### Backend (API)
+#### Backend (API)
 
 Se realizó un trabajo considerable en la API para soportar la nueva lógica de negocio.
 
-#### Endpoint Modificado: `POST /lotes/{id}/finalizar-departamento`
-Este endpoint fue el punto de partida y evolucionó para convertirse en el manejador de lotes para departamentos estándar (ej. Estampado). 
-- **Corrección Inicial:** Se solucionó un bug crítico que impedía el procesamiento de payloads JSON y causaba errores de CORS.
-- **Funcionalidad:** Ahora procesa un array de insumos, distribuye su consumo total de forma proporcional entre las órdenes del lote y actualiza el inventario de forma segura.
+- **Endpoint Modificado: `POST /lotes/{id}/finalizar-departamento`**: Se solucionó un bug crítico de CORS y se adaptó para procesar un array de insumos, distribuyendo su consumo proporcionalmente.
+- **Nuevo Endpoint: `POST /lotes/{id}/finalizar-impresion`**: Creado para manejar los requerimientos únicos de Impresión, incluyendo consumo de papel y tintas.
+- **Nuevo Endpoint: `POST /lotes/{id}/finalizar-corte`**: Creado para el departamento de Corte, permitiendo registrar tanto el material consumido como el desperdicio.
 
-#### Nuevo Endpoint: `POST /lotes/{id}/finalizar-impresion`
-Se creó un endpoint dedicado para el departamento de Impresión debido a sus requerimientos únicos.
-- **Funcionalidad:** Procesa un payload que contiene tanto el consumo de papel (múltiples rollos) como el consumo detallado de tintas (CMYKW) y el ID de la impresora. Distribuye ambos tipos de consumo proporcionalmente entre las órdenes del lote, registrando los datos en las tablas `inventario_movimientos` y `tintas`.
+#### Frontend (Interfaz de Usuario)
 
-#### Nuevo Endpoint: `POST /lotes/{id}/finalizar-corte`
-Se creó un endpoint dedicado para el departamento de Corte.
-- **Funcionalidad:** Procesa un payload que, además del consumo de material, incluye la cantidad de **desperdicio** por cada tipo de insumo. Distribuye ambos valores de forma proporcional y registra el desperdicio en la tabla `rendimiento`.
+- **Nuevos Componentes:** Se crearon los modales `FinalizarLoteModal.vue`, `FinalizarLoteImpresionModal.vue`, y `FinalizarLoteCorteModal.vue` para cada flujo de trabajo.
+- **Componente Principal Modificado (`SseOrdenesAsignadasV4.vue`):** Se actualizó para funcionar como un "enrutador" que abre el modal correcto según el departamento y para limpiar la interfaz de tareas duplicadas.
 
-### Frontend (Interfaz de Usuario)
+### Resumen de la Jornada (martes)
 
-Se crearon y modificaron varios componentes de Vue.js para ofrecer una experiencia de usuario intuitiva para los nuevos flujos.
-
-#### Nuevos Componentes Desarrollados
-
-- **`FinalizarLoteModal.vue`:** Un modal genérico para departamentos como Estampado. Permite al usuario registrar el consumo de múltiples tipos de insumos (telas) para un lote completo.
-- **`FinalizarLoteImpresionModal.vue`:** Un modal especializado para Impresión. Presenta un formulario para registrar el consumo de múltiples rollos de papel y, por separado, las cantidades de tinta CMYKW utilizadas y la impresora. Incluye lógica para habilitar la tinta blanca (W) solo si la impresora la soporta.
-- **`FinalizarLoteCorteModal.vue`:** Un modal especializado para Corte. Permite registrar por cada insumo tanto la cantidad total utilizada como la cantidad de desperdicio generado.
-
-#### Componente Principal Modificado: `SseOrdenesAsignadasV4.vue`
-
-Este componente, que es la vista principal del empleado, recibió modificaciones importantes:
-- **Habilitación de Lotes:** Se actualizó la lógica para que los departamentos de Impresión, Corte y Estampado puedan crear y gestionar lotes.
-- **Enrutador de Modales:** El método que gestiona la finalización de un lote (`finalizarLotePorDepartamento`) fue convertido en un "enrutador" que ahora abre el modal específico (`Impresión`, `Corte` o `Estándar`) según el departamento del usuario.
-- **Limpieza de Interfaz:** Se actualizó la lógica de la tabla "En Curso" para que ya no muestre órdenes que están siendo gestionadas dentro de un lote activo, evitando así la redundancia de información.
+- **Logros:**
+  - Sistema completo para creación y finalización de lotes implementado.
+  - Flujos de trabajo y endpoints especializados para Impresión y Corte desarrollados.
+  - 3 nuevos componentes modales en Vue.js creados.
+- **Tareas Pendientes:**
+  - **Pruebas a Fondo (Crítico):** Realizar pruebas exhaustivas de los nuevos flujos de finalización de lotes.
 
 ---
 
-## Resumen de la Jornada
+## miércoles, 27 de agosto de 2025
 
-### Logros
+### Mejoras de Interfaz y Experiencia de Usuario (UX)
+- **Tarea:** Se implementaron estados de carga y error en la vista de resultados de búsqueda de órdenes (`resultado.vue`).
+- **Logro:** La interfaz ahora provee una retroalimentación visual clara al usuario mientras los datos de una orden se están cargando, cuando ocurre un error, y un mensaje específico para la carga de la sección de observaciones, mejorando significativamente la experiencia de usuario.
 
-- Se implementó de principio a fin un sistema completo para la creación y finalización de lotes de producción.
-- Se desarrollaron flujos de trabajo y endpoints especializados para los requerimientos únicos de los departamentos de Impresión y Corte.
-- Se crearon 3 nuevos componentes modales en Vue.js para una interfaz de usuario clara y funcional.
-- Se crearon 2 nuevos endpoints en el backend y se refactorizó 1 existente para manejar la nueva lógica de negocio de forma segura y centralizada.
-- Se mejoró la claridad de la interfaz principal al ocultar tareas duplicadas, mostrando las órdenes en lotes únicamente en la sección de lotes.
+### Análisis y Refactorización del Flujo de Lotes
+- **Tarea:** Se investigó a fondo el flujo de trabajo de los lotes de producción para solucionar un problema de visibilidad entre departamentos y se proveyó el código para la solución.
+- **Logro:** Se adaptó la lógica de la API para que los lotes fluyan correctamente entre departamentos. Se generó el código PHP completo para los siguientes endpoints, que el usuario actualizará manualmente:
+    - **`POST /lotes`**: Modificado para que al crear un lote se establezca correctamente el departamento creador y el departamento actual.
+    - **`POST /lotes/activos`**: Modificado para que los empleados vean los lotes asignados a su departamento actual, sin importar quién los creó.
+    - **`POST /lotes/{id}/finalizar-departamento`**: Modificado para que, al finalizar, el lote se transfiera al siguiente departamento en la línea de producción o se marque como completado si es el último paso.
+    - **`POST /lotes/{id}/finalizar-impresion`**: Lógica de transición de lotes idéntica a la anterior, pero para el flujo de impresión.
+    - **`POST /lotes/{id}/finalizar-corte`**: Lógica de transición de lotes idéntica a la anterior, pero para el flujo de corte.
 
-### Tareas Pendientes
+### Planificación de Nuevas Funcionalidades
+- **Tarea:** Se analizó la funcionalidad existente de "Pausa" para tareas individuales.
+- **Logro:** Se diseñó un plan de acción detallado para extender esta funcionalidad a los lotes de producción completos. El plan incluye los cambios necesarios tanto en el frontend como en el backend para permitir pausar y reanudar todas las órdenes de un lote de forma simultánea.
 
-- **Pruebas a Fondo (Crítico):** Realizar pruebas exhaustivas end-to-end de los nuevos flujos de finalización de lotes para cada tipo de departamento (Estándar, Impresión y Corte). Es necesario verificar la correcta persistencia de los datos en todas las tablas involucradas (`inventario`, `inventario_movimientos`, `tintas`, `rendimiento`, `pagos`, `lotes`, etc.) y el comportamiento esperado de la interfaz de usuario.
+### Resumen de la Jornada (miércoles)
+- **Logros Generales:**
+    - Mejora sustancial de la UX en un componente clave.
+    - Finalización del análisis y la codificación para una refactorización crítica del sistema de lotes.
+    - Planificación completa de la próxima funcionalidad a desarrollar (Pausa de Lotes).
+- **Tareas Pendientes:**
+    - **Implementar el plan de acción para la funcionalidad de "Pausar Lote".**
+    - **Realizar las pruebas exhaustivas de la implementación de finalización de lotes de ayer**, que aún no se han podido ejecutar.
+
+---
+
+## jueves, 28 de agosto de 2025
+
+### Implementación y Depuración de Notificaciones por WhatsApp
+
+Se abordó la tarea de implementar una opción configurable para que el usuario decidiera si enviar o no un mensaje de bienvenida por WhatsApp al crear una nueva orden.
+
+-   **Tarea:** Análisis del flujo de envío de mensajes existente.
+-   **Logro:** Se determinó que el envío se gestiona en el backend a través de un microservicio externo, y se analizó el código de dicho servicio para entender su funcionamiento.
+
+-   **Tarea:** Implementación de la opción en el frontend.
+-   **Logro:** Se añadió una casilla de verificación en el componente `components/ordenes/nueva.vue`. Tras varias iteraciones para corregir bugs visuales y de comportamiento, la funcionalidad del lado del cliente quedó completada y robusta.
+
+-   **Tarea:** Depuración de la comunicación con el microservicio de WhatsApp.
+-   **Logro:** Se detectó un error persistente de `HTTP 400 Bad Request`. Para diagnosticarlo, se refactorizó el código de envío en `app/routes.php` para usar cURL, lo que mejoró la comunicación y nos dio errores más claros. Tras una larga sesión de depuración, se concluyó que el problema reside en una discrepancia entre el payload enviado y la forma en que el microservicio lo procesa, probablemente debido a factores externos al código PHP (cache, configuración del servidor Node.js). Se documentó todo el proceso en un log detallado.
+
+### Resumen de la Jornada (jueves)
+
+-   **Logros Generales:**
+    -   Funcionalidad de frontend para el envío condicional de WhatsApp completada.
+    -   Se mejoró la comunicación del backend a cURL, haciéndola más robusta.
+    -   Se identificó y aisló un problema complejo en la comunicación con un microservicio externo.
+-   **Tareas Pendientes:**
+    -   **Finalizar la depuración del envío de mensajes de WhatsApp**, investigando el microservicio de Node.js como se detalla en el log de hoy.
+    -   **Ejecutar el plan de pruebas de `PLAN_DE_PRUEBAS_LOTES.md`**, que sigue pendiente, para validar el nuevo flujo de finalización de lotes.

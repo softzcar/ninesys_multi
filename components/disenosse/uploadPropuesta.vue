@@ -288,7 +288,9 @@ export default {
   mounted() {
     this.overlayText = "Procesando imágen...";
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      this.getImages();
+      if (this.modal === modalId) {
+        this.getImages();
+      }
     });
 
     /* this.$root.$on('bv::modal::show', (bvEvent, modalId) => {

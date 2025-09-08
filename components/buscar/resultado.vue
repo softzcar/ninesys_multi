@@ -1,9 +1,25 @@
 <template>
   <div>
+    <div v-if="error" class="text-center p-5">
+        <b-alert show variant="danger">
+            <h4>Error al Cargar la Orden</h4>
+            <p>{{ error }}</p>
+            <b-button @click="loadOrderData" variant="primary">Reintentar</b-button>
+        </b-alert>
+    </div>
     <b-overlay
+      v-else
       :show="overlay"
       spinner-small
+      rounded="sm"
     >
+      <template #overlay>
+        <div class="text-center p-3 bg-white rounded">
+          <b-spinner label="Cargando..."></b-spinner>
+          <p style="margin-top: 1rem;">Cargando los datos de la orden...</p>
+        </div>
+      </template>
+
       <div v-if="resOrden && resOrden.orden && resOrden.orden[0] && resOrden.orden[0]._id !== '0'" class="table-wrapper">
         <b-row>
           <b-col class="mb-4">
@@ -252,23 +268,36 @@
 
             <div class="spacer">
               <div style="text-align: center; margin-top: 40px">
-                <h2>OBSERVACIONES</h2>
+                <h2 class="mb-2">OBSERVACIONES</h2>
+              </div>
+
+              <div v-if="tmpImage.length > 0">
+                <hr>
+                <h3 class="text-center">Diseño Aprobado</h3>
+                <b-img-lazy :src="tmpImage" class="mt-4" fluid-grow></b-img-lazy>
+                <hr>
               </div>
 
               <div class="observaciones">
-                <disenosse-imagesGalery
+                <!-- <disenosse-imagesGalery
                   :images="tmpImage"
                   showdelete="false"
                   :idorden="resOrden.orden[0]._id"
-                />
-              </div>
+                />-->
+              </div> 
 
               <!-- <div class="observaciones">
                                 <h3 style="text-transform: uppercase">
                                     TIPO DE DISEÑO: {{ tipoDiseno }}
                                 </h3>
                             </div> -->
-              <b-overlay :show="overlayObservaciones" spinner-small>
+              <b-overlay :show="overlayObservaciones" spinner-small rounded="sm">
+                <template #overlay>
+                  <div class="text-center">
+                    <b-spinner small label="Cargando..."></b-spinner>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Cargando observaciones...</p>
+                  </div>
+                </template>
                 <div
                   class="spacer observaciones"
                   v-html="observaciones"
@@ -304,6 +333,7 @@ export default {
       preview: false,
       selectedCurrency: "dolar",
       imageAbortController: null, // Added for request cancellation
+      error: null
     };
   },
 
@@ -362,12 +392,57 @@ export default {
   methods: {
     ...mapActions("buscar", ["getOrden", "getObservaciones"]),
 
+    loadOrderData() {
+        this.$store.commit("buscar/clearData");
+
+        this.overlay = true;
+        this.error = null;
+        this.overlayObservaciones = true;
+
+      this.getOrden(this.orderId).then(() => {
+        // this.getImagenAprobada(this.orderId)
+        })
+          .catch((err) => {
+            console.error('Error al buscar la orden:', err);
+            this.error = 'No se pudieron cargar los datos de la orden. Por favor, inténtelo de nuevo más tarde.';
+          })
+          .finally(() => {
+            this.overlay = false;
+          });
+
+        this.getImagenAprobada(this.orderId);
+
+        this.getObservaciones(this.orderId)
+          .then(() => {
+            this.overlayObservaciones = false;
+          });
+    },
+
     handleCurrencySelection(currency) {
       this.selectedCurrency = currency.moneda;
       console.log("Moneda seleccionada:", this.selectedCurrency);
     },
 
-    async getImages(idOrderImg) {
+    async getImagenAprobada(idOrden) {
+      this.$axios
+        .get(
+          `${this.$config.CDN}/?id_orden=${idOrden}&id_empresa=${this.$store.state.login.dataEmpresa.id}`
+        )
+        .then((res) => {
+          if (res.data.url === 'images/no-image.png') {
+            this.tmpImage = ''
+          } else {
+            let token = this.token();
+            this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`;
+          }
+        })
+        .catch((err) => {
+          console.error("error al traer la imagen", err);
+          this.tmpImage = "";
+        });
+    },
+
+    /* async getImages(idOrderImg) {
       if (this.imageAbortController) {
         this.imageAbortController.abort();
       }
@@ -388,7 +463,7 @@ export default {
           console.error(`El cdn respondio con un error`, err);
           this.tmpImage = [`${this.$config.API}/images/no-image.png`];
         });
-    },
+    }, */
 
     imprimir() {
       this.printOrder("reporte");
@@ -440,7 +515,7 @@ export default {
         .get(`${this.$config.API}/buscar/${this.orderId}`)
         .then((resp) => {
           this.this.tmpImage = [];
-          this.getImages(this.orderId);
+          this.getImagenAprobada(this.orderId);
           this.$store.commit("buscar/clearOrden");
           this.$store.commit("buscar/setOrden", resp.data);
         })
@@ -457,23 +532,8 @@ export default {
   /* async asyncData({ params, $http }) {
     const post = await this.getOrdenNow()
   }, */
-  async mounted() {
-    this.$store.commit("buscar/clearData");
-
-    this.overlay = true;
-    this.overlayObservaciones = true;
-
-    this.getOrden(this.orderId)
-      .then(() => {
-        this.overlay = false;
-      });
-
-    this.getImages(this.orderId);
-
-    this.getObservaciones(this.orderId)
-      .then(() => {
-        this.overlayObservaciones = false;
-      });
+  mounted() {
+    this.loadOrderData();
   },
 
   mixins: [mixin],

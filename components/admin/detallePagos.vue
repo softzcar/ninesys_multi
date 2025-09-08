@@ -314,8 +314,10 @@ export default {
 
   mounted() {
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      this.getData();
-      this.getDataAbonos();
+      if (this.modal === modalId) { 
+        this.getData();
+        this.getDataAbonos();
+      }
     });
   },
   props: ["idorden", "item"],

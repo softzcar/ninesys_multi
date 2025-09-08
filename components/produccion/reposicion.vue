@@ -143,12 +143,14 @@ export default {
 
   mounted() {
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      this.overlay = true;
-      this.getPasoActual().then(() => {
-        this.getProductos().then(() => {
-          this.overlay = false;
+      if (this.modal === modalId) {
+        this.overlay = true;
+        this.getPasoActual().then(() => {
+          this.getProductos().then(() => {
+            this.overlay = false;
+          });
         });
-      });
+      }
     });
   },
 };

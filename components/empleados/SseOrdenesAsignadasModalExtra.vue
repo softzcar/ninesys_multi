@@ -261,8 +261,9 @@
 
 <script>
 import eficienciaInsumoMixin from "~/mixins/mixin-insumos";
+import mixin from '~/mixins/mixins.js';
 export default {
-  mixins: [eficienciaInsumoMixin],
+  mixins: [eficienciaInsumoMixin, mixin],
   data() {
     return {
       esReposicion: null,
@@ -896,6 +897,9 @@ export default {
       await this.$axios
         .post(`${this.$config.API}/registrar-paso-empleado`, data)
         .then((res) => {
+          if (tipo === 'fin') {
+            this.sendMsgCustom(id_orden, 'paso', this.$store.state.login.currentDepartamentId);
+          }
           console.log("emitimos aqui...");
           this.$emit("reload", "true");
           this.overlay = false;
@@ -913,7 +917,8 @@ export default {
     },
 
     terminarTodo() {
-      this.registrarEstado("fin", this.idorden, 0);
+            this.registrarEstado("fin", this.idorden, 0);
+      // this.sendMsgCustom(this.idorden, 'fin', this.$store.state.login.currentDepartamentId);
       this.form.forEach((el) => {
         console.log("Enviamos elemento del formulario", el);
 

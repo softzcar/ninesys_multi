@@ -182,15 +182,16 @@ export default {
               const rowNumber = index + 2; // +1 for 0-based index, +1 for header row
               const rowErrors = [];
 
-              if (!item.Rollo) rowErrors.push('El campo Rollo es obligatorio.');
+              if (!item.SKU) rowErrors.push('El campo Rollo es obligatorio.');
               if (!item.Nombre) rowErrors.push('El campo Nombre es obligatorio.');
+              if (!item.Insumo) rowErrors.push('El campo Insumo es obligatorio.');
               if (item.Cantidad === undefined || item.Cantidad === null) rowErrors.push('El campo Cantidad es obligatorio.');
               if (!item.Unidad) rowErrors.push('El campo "Unidad" es obligatorio.');
               if (item.Costo === undefined || item.Costo === null) rowErrors.push('El campo Costo es obligatorio.');
               if (!item.Departamento) rowErrors.push('El campo Departamento es obligatorio.');
 
               // Validación de unicidad del Rollo
-              if (validatedInventoryItems.some(existingItem => existingItem.Rollo === item.Rollo)) {
+              if (validatedInventoryItems.some(existingItem => existingItem.Rollo === item.SKU)) {
                 rowErrors.push('El campo Rollo debe ser único.');
               }
 
@@ -198,8 +199,9 @@ export default {
                 validationErrors.push({ row: rowNumber, messages: rowErrors });
               } else {
                 validatedInventoryItems.push({
-                  Rollo: item.Rollo,
+                  SKU: item.SKU,
                   Nombre: item.Nombre,
+                  Insumo: item.Insumo, // InsumoCatalogo
                   Cantidad: item.Cantidad,
                   Unidad: item.Unidad,
                   Costo: item.Costo,

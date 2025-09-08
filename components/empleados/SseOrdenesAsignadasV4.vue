@@ -506,6 +506,7 @@
       :lote-id="loteParaFinalizar.id"
       :total-papel-utilizado="papelUtilizadoLote"
       :insumos="insumos"
+      :ordenes="ordenesParaFinalizar"
       @close="showFinalizarLoteModal = false"
       @lote-finalizado="handleLoteFinalizado"
     />
@@ -517,6 +518,7 @@
       :lote-id="loteParaFinalizar.id"
       :insumos="insumos"
       :impresoras="impresoras"
+      :ordenes="ordenesParaFinalizar"
       @close="showFinalizarImpresionModal = false"
       @lote-finalizado="handleLoteFinalizado"
     />
@@ -527,6 +529,7 @@
       :show="showFinalizarCorteModal"
       :lote-id="loteParaFinalizar.id"
       :insumos="insumos"
+      :ordenes="ordenesParaFinalizar"
       @close="showFinalizarCorteModal = false"
       @lote-finalizado="handleLoteFinalizado"
     />
@@ -555,6 +558,7 @@ export default {
       showFinalizarImpresionModal: false,
       showFinalizarCorteModal: false,
       loteParaFinalizar: null,
+      ordenesParaFinalizar: [],
       papelUtilizadoLote: 0,
 
       // Propiedades para la nueva funcionalidad de lotes
@@ -1129,6 +1133,15 @@ export default {
      * Crea el lote y lo inicia automáticamente.
      */
     crearLote() {
+      if (this.ordenesSeleccionadas.length < 2) {
+        this.$fire({
+          title: 'Información',
+          html: '<p>Debe seleccionar más de una orden para poder crear un lote.</p>',
+          type: 'info',
+        });
+        return;
+      }
+
       const ordenesParaLote = [...this.ordenesSeleccionadas];
       this.$confirm(
         `¿Desea crear un nuevo lote con ${ordenesParaLote.length} órdenes? El lote se iniciará automáticamente.`,
@@ -1189,16 +1202,17 @@ export default {
      */
     finalizarLotePorDepartamento(loteId) {
       const lote = this.lotesActivos.find((l) => l.id === loteId)
-      if (!lote) {
+      if (!lote || !lote.ordenes || lote.ordenes.length === 0) {
         this.$fire({
           title: 'Error',
-          html: '<p>No se pudo encontrar el lote activo.</p>',
+          html: '<p>No se pudo encontrar el lote o el lote no contiene órdenes.</p>',
           type: 'error',
         })
         return
       }
 
       this.loteParaFinalizar = lote
+      this.ordenesParaFinalizar = lote.ordenes
       const depto = this.$store.state.login.currentDepartament
 
       if (depto === 'Impresión') {

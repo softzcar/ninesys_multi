@@ -728,13 +728,13 @@ export default {
 
   watch: {
     emp_asignados: {
-        handler(newVal) {
-            if (newVal) {
-                this.local_emp_asignados = JSON.parse(JSON.stringify(newVal));
-            }
-        },
-        immediate: true,
-        deep: true,
+      handler(newVal) {
+        if (newVal) {
+          this.local_emp_asignados = JSON.parse(JSON.stringify(newVal));
+        }
+      },
+      immediate: true,
+      deep: true,
     },
   },
 
@@ -819,8 +819,8 @@ export default {
 
   methods: {
     handleAssignmentAdded(newAssignment) {
-        console.log("Nueva asignación recibida:", newAssignment);
-        this.local_emp_asignados.push(newAssignment);
+      console.log("Nueva asignación recibida:", newAssignment);
+      this.local_emp_asignados.push(newAssignment);
     },
 
     filterAsigandos(id_dep, id_orden) {
@@ -1127,25 +1127,29 @@ export default {
         }, */
 
     handleAssignmentsUpdated(updatedAssignments) {
-        this.assignmentsChanged = true; // Marcar que hubo cambios
-        console.log("Asignaciones actualizadas recibidas:", updatedAssignments);
-        const updatedIds = new Set(updatedAssignments.map(a => a.empleado));
-        
-        this.local_emp_asignados = this.local_emp_asignados.filter(emp => updatedIds.has(emp.id_empleado));
+      this.assignmentsChanged = true; // Marcar que hubo cambios
+      console.log("Asignaciones actualizadas recibidas:", updatedAssignments);
+      const updatedIds = new Set(updatedAssignments.map((a) => a.empleado));
 
-        updatedAssignments.forEach(newEmp => {
-            const existingEmp = this.local_emp_asignados.find(emp => emp.id_empleado === newEmp.empleado);
-            if (existingEmp) {
-                existingEmp.procentaje_comision = newEmp.comision;
-            } else {
-                this.local_emp_asignados.push({
-                    id_empleado: newEmp.empleado,
-                    procentaje_comision: newEmp.comision,
-                    id_departamento: this.item._id, 
-                    id_orden: this.idorden 
-                });
-            }
-        });
+      this.local_emp_asignados = this.local_emp_asignados.filter((emp) =>
+        updatedIds.has(emp.id_empleado)
+      );
+
+      updatedAssignments.forEach((newEmp) => {
+        const existingEmp = this.local_emp_asignados.find(
+          (emp) => emp.id_empleado === newEmp.empleado
+        );
+        if (existingEmp) {
+          existingEmp.procentaje_comision = newEmp.comision;
+        } else {
+          this.local_emp_asignados.push({
+            id_empleado: newEmp.empleado,
+            procentaje_comision: newEmp.comision,
+            id_departamento: this.item._id,
+            id_orden: this.idorden,
+          });
+        }
+      });
     },
 
     onModalHide() {
@@ -1227,12 +1231,14 @@ export default {
     );
 
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
-      // this.getLotInfo().then(() => (this.overlay = false))
-      /* axios
-      .get(`${this.$config.API}/empleados/produccion/asignacion`)
-      .then((res) => {
-        this.optionsEmpleados = res.data
-      }) */
+      if (this.modal === modalId) {
+        // this.getLotInfo().then(() => (this.overlay = false))
+        /* axios
+        .get(`${this.$config.API}/empleados/produccion/asignacion`)
+        .then((res) => {
+          this.optionsEmpleados = res.data
+        }) */
+      }
     });
   },
 };

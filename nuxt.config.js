@@ -9,7 +9,7 @@ export default {
   // Should hold all env variables that are public as these will be exposed on the frontend.
   publicRuntimeConfig: {
     // PRODUCCIÓN
-   /*  LOCAL_IP: `https://api.nineteengreen.com`,
+    /* LOCAL_IP: `https://api.nineteengreen.com`,
     LOCAL_IP_WOO: `https://api.nineteengreen.com`,
     API: `https://api.nineteengreen.com`,
     CDN: `https://cdn.nineteengreen.com`,
