@@ -560,6 +560,21 @@
                     Comisiones de Productos
                   </span>
                 </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/atributos-productos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Atributos de Productos
+                  </span>
+                </router-link>
               </b-nav-item-dropdown>
 
               

@@ -11,7 +11,7 @@
                     
                     <h5 class="mt-4 mb-2">Filtrar por categoría de producto:</h5>
                     <b-form-radio-group id="btn-radios-categories" v-model="selectedCategory" :options="optionsCategories"
-                        button-variant="outline-info" size="lg" name="radio-btn-categories" @input="applyFilters()"
+                        button-variant="outline-primary" size="lg" name="radio-btn-categories" @input="applyFilters()"
                         buttons></b-form-radio-group>
                 </b-col>
                 <b-col offset-lg="8" offset-xl="8">

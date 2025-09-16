@@ -154,7 +154,7 @@ rif: 'J-00000000-0', */
     // Deshabilita la carga del CSS por defecto de Bootstrap
     bootstrapCSS: false,
     // Deshabilita la carga del CSS por defecto de BootstrapVue
-    bootstrapVueCSS: false,
+    bootstrapVueCSS: true,
     // Mantenemos los iconos, que es muy útil
     icons: true
   },

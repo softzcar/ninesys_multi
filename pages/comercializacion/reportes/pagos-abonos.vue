@@ -75,11 +75,26 @@
                 </b-row>
 
                 <b-row>
-                  <b-col class="text-center">
+                  <b-col class="text-center mt-4 pt-4">
                     <b-button
                       type="submit"
                       variant="primary"
                     >BUSCAR</b-button>
+                  </b-col>
+                </b-row>
+
+                <b-row class="mt-3 mb-3">
+                  <b-col class="mb-4">
+                    <h5 class="mt-4 mb-2 pb-2">Filtrar por Categoría de Producto</h5>
+                    <b-form-radio-group
+                      id="category-filter"
+                      v-model="selectedCategory"
+                      :options="optionsCategories"
+                      name="category-filter-radios"
+                      buttons
+                      button-variant="outline-primary"
+                      size="lg"
+                    ></b-form-radio-group>
                   </b-col>
                 </b-row>
               </b-form>
@@ -111,15 +126,15 @@
                 </p>
 
                 <h4
-                  v-for="pago in this.totales.porMetodoPago"
+                  v-for="pago in totales.porMetodoPago"
                   :key="pago.metodoPago"
                   class="text-right"
                 >
                   {{ pago.metodoPago }}: {{ pago.total }}
                 </h4>
 
-                <h3 class="text-right mb-2">
-                  TOTAL: {{ this.totales.totalGeneral }}
+                <h3 class="text-right mt-2 mb-4">
+                  TOTAL: {{ totales.totalGeneral }}
                 </h3>
 
                 <b-table
@@ -130,7 +145,7 @@
                   responsive
                   small
                   :fields="campos"
-                  :items="pagos"
+                  :items="pagosFiltrados"
                   @filtered="onFiltered"
                   :filter="filter"
                   :filter-included-fields="includedFields"
@@ -190,11 +205,13 @@ export default {
       filter: null,
       perPage: 25,
       currentPage: 1,
-      ordenesLength: 0,
+      totalRows: 0,
       overlay: true,
       titulo: "Pagos y Abonos",
       pagos: [],
       selectedVendedor: 0,
+      selectedCategory: 'Todas',
+      optionsCategories: [],
       campos: [
         {
           key: "orden",
@@ -250,31 +267,30 @@ export default {
 
   computed: {
     ...mapState("login", ["dataUser", "access"]),
+    pagosFiltrados() {
+      if (this.selectedCategory === 'Todas' || !this.selectedCategory) {
+        return this.pagos;
+      }
+      return this.pagos.filter(pago => 
+        pago.product_categories && pago.product_categories.some(cat => cat.category_name === this.selectedCategory)
+      );
+    },
     totales() {
-      // Crear un objeto para almacenar los totales por método de pago y el total general
       const totales = {
         porMetodoPago: {},
         totalGeneral: 0,
       };
 
-      // Iterar sobre cada elemento del arreglo de datos
-      this.pagos.forEach((item) => {
+      this.pagosFiltrados.forEach((item) => {
         const { metodo_pago, monto, tasa } = item;
-
-        // Calcular el monto ajustado
         const montoAjustado = monto / tasa;
-
-        // Sumar al total general
         totales.totalGeneral += montoAjustado;
-
-        // Sumar al total del método de pago
         if (!totales.porMetodoPago[metodo_pago]) {
           totales.porMetodoPago[metodo_pago] = 0;
         }
         totales.porMetodoPago[metodo_pago] += montoAjustado;
       });
 
-      // Convertir el objeto de totales por método de pago en un arreglo de objetos
       const resultadoPorMetodoPago = Object.entries(totales.porMetodoPago).map(
         ([metodoPago, total]) => ({
           metodoPago,
@@ -282,7 +298,6 @@ export default {
         })
       );
 
-      // Agregar un console.log para verificar el resultado antes de retornarlo
       console.log("Resultado final:", {
         porMetodoPago: resultadoPorMetodoPago,
         totalGeneral: totales.totalGeneral.toFixed(2),
@@ -293,15 +308,29 @@ export default {
         totalGeneral: totales.totalGeneral.toFixed(2),
       };
     },
+  },
 
-    totalRows() {
-      return this.ordenesLength;
-    },
+  watch: {
+    pagosFiltrados(newVal) {
+      this.totalRows = newVal.length;
+      this.currentPage = 1;
+    }
   },
 
   methods: {
+    generateCategoryOptions() {
+      const allCategories = this.pagos.flatMap(pago => 
+        pago.product_categories ? pago.product_categories.map(cat => cat.category_name) : []
+      );
+      const uniqueCategories = [...new Set(allCategories)];
+      const options = uniqueCategories.filter(c => c).sort().map(category => ({
+        value: category,
+        text: category
+      }));
+      this.optionsCategories = [{ value: 'Todas', text: 'Todas' }, ...options];
+    },
+
     onFiltered(filteredItems) {
-      // Trigger pagination to update the number of buttons/pages due to filtering
       this.totalRows = filteredItems.length;
       this.currentPage = 1;
     },
@@ -313,7 +342,6 @@ export default {
         .then((resp) => {
           this.pagos = resp.data.pagos;
 
-          // Prevenir recarga de empleados
           this.vendedores = [];
           this.vendedores = resp.data.vendedores.map((el) => {
             return {
@@ -323,7 +351,8 @@ export default {
           });
           this.vendedores.unshift({ value: 0, text: "Todos" });
 
-          this.ordenesLength = this.pagos.length;
+          this.totalRows = this.pagos.length;
+          this.generateCategoryOptions();
           console.log("Pagos y abonos cargados", this.pagos);
           console.log("Totales", this.totales);
           this.overlay = false;
@@ -375,7 +404,8 @@ export default {
           });
           this.vendedores.unshift({ value: 0, text: "Todos" });
 
-          this.ordenesLength = this.pagos.length;
+          this.totalRows = this.pagos.length;
+          this.generateCategoryOptions();
           console.log("Pagos y abonos cargados", this.pagos);
           console.log("Totales", this.totales);
           this.overlay = false;

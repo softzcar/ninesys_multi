@@ -7,17 +7,14 @@
         <div v-else>
             <menus-MenuLoader />
             <div
-                v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Producción'
-                "
+                v-if="dataUser.departamento === 'Administración' || dataUser.departamento === 'Producción'"
             >
                 <b-overlay :show="overlay" spinner-small>
                     <b-container>
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <admin-TallasNuevo @reload="getTallas" />
+                                <admin-AtributosNuevo @reload="getAtributos" />
                             </b-col>
                         </b-row>
                         <b-row>
@@ -29,20 +26,15 @@
                                 >
                                     <template #cell(_id)="data">
                                         <span class="floatme">
-                                            <AdminTallasEditar
+                                            <admin-AtributosEditar
                                                 :item="data.item"
-                                                @reload="getTallas"
+                                                @reload="getAtributos"
                                             />
                                         </span>
                                         <span class="floatme">
                                             <b-button
                                                 variant="danger"
-                                                v-on:click="
-                                                    deleteTalla(
-                                                        data.item.name,
-                                                        data.item._id
-                                                    )
-                                                "
+                                                v-on:click="deleteAtributo(data.item.name, data.item._id)"
                                             >
                                                 <b-icon icon="trash"></b-icon>
                                             </b-button>
@@ -61,70 +53,69 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
-import axios from "axios"
+import { mapState } from "vuex";
 
 export default {
     data() {
         return {
-            titulo: "Gestión de Tallas",
+            titulo: "Gestión de Atributos de Productos",
             overlay: true,
             dataTable: [],
             fields: [
                 {
                     key: "name",
-                    label: "Talla",
+                    label: "Atributo",
                 },
                 {
                     key: "_id",
                     label: "Acciones",
                 },
             ],
-        }
+        };
     },
     computed: {
         ...mapState("login", ["dataUser", "access"]),
     },
     methods: {
-        async getTallas() {
+        async getAtributos() {
             this.overlay = true;
-            await this.$axios.get(`${this.$config.API}/sizes`).then((resp) => {
-                this.dataTable = resp.data
-                this.overlay = false
+            await this.$axios.get(`${this.$config.API}/products-attributes`).then((resp) => {
+                this.dataTable = resp.data;
+                this.overlay = false;
             }).catch(error => {
                 this.overlay = false;
-                console.error("Error cargando las tallas:", error);
-                this.$bvToast.toast("No se pudieron cargar las tallas", {
+                console.error("Error cargando los atributos:", error);
+                this.$bvToast.toast("No se pudieron cargar los atributos", {
                   variant: "danger",
                 });
             });
         },
 
-        deleteTalla(name, idTalla) {
+        deleteAtributo(name, idAtributo) {
             this.$confirm(
-                `¿Desea Elimiar la talla ${name} ?`,
-                "Eliminar Talla",
+                `¿Desea Eliminar el atributo ${name} ?`,
+                "Eliminar Atributo",
                 "warning"
             )
                 .then(() => {
-                    this.overlay = true
-                    const data = new URLSearchParams()
-                    data.set("id", idTalla)
+                    this.overlay = true;
+                    const data = new URLSearchParams();
+                    data.set("id", idAtributo);
 
                     this.$axios
-                        .post(`${this.$config.API}/sizes/eliminar`, data)
+                        .post(`${this.$config.API}/products-attributes/eliminar`, data)
                         .then((res) => {
-                            this.getTallas().then(() => (this.overlay = false))
-                        })
+                            this.getAtributos().then(() => (this.overlay = false));
+                        });
                 })
                 .catch((err) => {
-                    console.log("CATCH!!!", err)
-                    return false
-                })
+                    console.log("CATCH!!!", err);
+                    return false;
+                });
         },
     },
     mounted() {
-        this.getTallas()
+        this.getAtributos();
     },
-}
+};
 </script>
