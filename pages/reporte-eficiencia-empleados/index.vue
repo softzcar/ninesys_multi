@@ -11,7 +11,7 @@
         <b-container>
           <b-row>
             <b-col>
-              <empleados-ReporteEficienciaEmpleados />
+              <LazyEmpleadosReporteEficienciaEmpleados />
             </b-col>
           </b-row>
         </b-container>

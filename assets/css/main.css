@@ -19,7 +19,7 @@ h3 {
 }
 
 .swal2-container input {
-    pointer-events: unset !important;
+    pointer-events: auto !important;
 }
 
 /* Progress Bar */
@@ -248,4 +248,8 @@ em {
 
 .blot-formatter__toolbar-button:hover {
   background-color: #555;
+}
+
+.swal2-container {
+  z-index: 9999 !important;
 }

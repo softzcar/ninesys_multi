@@ -364,7 +364,7 @@
 
                     <!-- Vinculadas -->
                     <span class="floatme">
-                      <ordenes-vinculadas-v2 :ordenes_vinculadas="vinculadas" />
+                      <ordenes-vinculadas-v2="vinculadas" />
                       VINCULADAS
                     </span>
                   </div>

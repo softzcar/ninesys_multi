@@ -243,9 +243,10 @@
 
               <b-list-group-item>
                 <div class="floatme">
-                  <ordenes-vinculadas
+                  <ordenes-vinculadas-v2
                     :vinculadas="filterVinculadas(el.acciones)"
                     :key="el.orden"
+                    :id_orden="el.orden"
                   />
                 </div>
               </b-list-group-item>

@@ -24,7 +24,7 @@ export default {
       horaFinTarde: 17.5,    // 5:30 PM
       diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
     }, */
-    
+
     // DESARROLLO
     LOCAL_IP: `https://apidev.nineteengreen.com`,
     LOCAL_IP_WOO: `https://apidev.nineteengreen.com`,
@@ -143,14 +143,25 @@ rif: 'J-00000000-0', */
     "@nuxtjs/pwa",
   ],
 
-  bootstrapVue: {
+  // antiguo
+  /* bootstrapVue: {
     path: "@assets/css/bootstrap_slate.min.css",
     icons: true,
     locate: "es",
+  }, */
+
+  bootstrapVue: {
+    // Deshabilita la carga del CSS por defecto de Bootstrap
+    bootstrapCSS: false,
+    // Deshabilita la carga del CSS por defecto de BootstrapVue
+    bootstrapVueCSS: false,
+    // Mantenemos los iconos, que es muy útil
+    icons: true
   },
 
+
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {
+  /* axios: {
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
     retries: 50,
@@ -159,20 +170,41 @@ rif: 'J-00000000-0', */
     auth: {
       id_empresa: 2,
     },
+  }, */
+
+  axios: {
+    // Necesario para manejar grandes volúmenes de datos y archivos.
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+
+    // Un tiempo de espera de 30 segundos para peticiones lentas.
+    timeout: 30000,
   },
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
-    manifest: {
-      lang: "es",
-      name: "ninesys 2",
+    // Usa tu imagen para generar todos los íconos necesarios
+    icon: {
+      source: 'static/favicon.png',
+      fileName: 'favicon.png'
     },
+    manifest: {
+      lang: 'es',
+      name: 'Ninesys 2',
+      short_name: 'Ninesys',
+      description: 'Aplicación para la gestión de procesos.',
+      theme_color: '#272b30',
+      background_color: '#272b30',
+      display: 'standalone',
+      start_url: '/'
+    }
   },
 
   loading: false,
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+    analyze: true,
     transpile: ['date-fns', 'quill-image-resize-module'],
     extractCSS: true,
     splitChunks: {

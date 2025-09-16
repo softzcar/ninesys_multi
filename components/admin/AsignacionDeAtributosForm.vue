@@ -22,7 +22,7 @@
                         class="floatme"
                     ></b-form-select>
                     <b-button
-                        @click="showPrompt"
+                        @click="$bvModal.show(modalId)"
                         id="add-atributo"
                         variant="light"
                     >
@@ -63,6 +63,26 @@
             </b-form>
             <hr class="mt-4" />
         </b-overlay>
+        
+        <b-modal :id="modalId" title="Crear Nuevo Atributo" hide-footer no-enforce-focus>
+            <b-overlay :show="overlay" spinner-small>
+                <b-form @submit.prevent="crearAtributo">
+                    <b-form-group
+                        id="input-group-new-attr"
+                        label="Nombre del atributo:"
+                        label-for="input-new-attr"
+                    >
+                        <b-form-input
+                            id="input-new-attr"
+                            v-model="newAttributeName"
+                            placeholder="Ingrese el nombre del atributo"
+                            required
+                        ></b-form-input>
+                    </b-form-group>
+                    <b-button type="submit" variant="primary">Guardar</b-button>
+                </b-form>
+            </b-overlay>
+        </b-modal>
     </div>
 </template>
 
@@ -75,53 +95,76 @@ export default {
             asignado: false,
             inputDisabled: false,
             overlay: false,
+            newAttributeName: "",
         };
     },
 
     computed: {
+        modalId() {
+            const rand = Math.random().toString(36).substring(2, 7);
+            return `modal-new-attr-${rand}`;
+        },
         dataSave() {
             return {
                 id: this.item.id,
                 attribute: this.attribute,
                 descripcion: this.attributeText,
             };
-        },
+      },
 
-        options() {
-            let tmpOpt = this.attributescat.map((el) => {
-                return {
-                    value: el._id,
-                    text: el.attribute_name,
-                };
-            });
-            tmpOpt.unshift({
-                value: null,
-                text: "Seleccione un atributo",
-            });
-            return tmpOpt;
-        },
+      options() {
+        return this.attributescat
+      },
     },
 
     methods: {
-        async showPrompt() {
+        async crearAtributo() {
+            if (!this.newAttributeName || this.newAttributeName.trim() === '') {
+                this.$fire({
+                    title: 'Dato Requerido',
+                    html: '<p>El nombre no puede estar vacío.</p>',
+                    type: 'info'
+                });
+                return;
+            }
+
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("nombre", this.newAttributeName);
+
             try {
-                // Llama al método prompt del plugin
-                const input = await this.$prompt(
-                    "Por favor, escribe tu nombre:"
-                );
-                if (input && input.trim() !== "") {
-                    console.log("Texto ingresado:", input);
+                const response = await this.$axios.post(`${this.$config.API}/products-attributes`, data);
+
+                if (response.data && typeof response.data.response === 'string') {
+                    const innerResponse = JSON.parse(response.data.response);
+                    if (innerResponse.insert_id) {
+                        this.$fire({
+                            title: "Atributo Creado",
+                            html: `<p>El atributo '${this.newAttributeName}' ha sido creado.</p>`,
+                            type: "success",
+                        });
+                        this.$emit('refresh-list');
+                        this.newAttributeName = '';
+                        this.$bvModal.hide(this.modalId);
+                    } else {
+                        throw new Error("La respuesta de la API no contiene 'insert_id'.");
+                    }
                 } else {
-                    console.log("El campo está vacío o fue cancelado.");
+                    throw new Error("La respuesta de la API no tiene el formato esperado.");
                 }
-            } catch (error) {
-                console.log("El prompt fue cancelado.", error);
+            } catch (err) {
+                this.$fire({
+                    title: "Error",
+                    html: `<p>No se pudo crear el atributo.</p><p>${err}</p>`,
+                    type: "warning",
+                });
+            } finally {
+                this.overlay = false;
             }
         },
 
         asignarAtributo() {
             this.asignado = true;
-            this.inputDisabled = true;
         },
 
         saveChange() {
@@ -143,9 +186,6 @@ export default {
             if (ok) {
                 this.$emit("reload", this.dataSave);
                 this.asignarAtributo();
-                alert(
-                    "todo OK vamos a guardar el registro en el formularieo para enviarlo posteriormente"
-                );
             } else {
                 this.$fire({
                     title: "Datos requeridos",
@@ -190,12 +230,13 @@ export default {
         },
     },
 
-    /* mounted() {
-        this.attributesVal = this.attributesval
-        this.attributesCat = this.attributescat
-    }, */
+    mounted() {
+        if (this.item && this.item.attribute) {
+            this.attribute = this.item.attribute;
+            this.attributeText = this.item.descripcion;
+        }
+    },
 
-    // props: ["item", "options", "hashtags", "idempleado", "closemodal"],
     props: ["attributesval", "item", "attributescat", "reload"],
 };
 </script>

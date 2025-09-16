@@ -105,9 +105,9 @@
             </template>
 
             <template #cell(id_father)="data">
-              <ordenes-vinculadas
+              <ordenes-vinculadas-v2
                 :key="data.item.orden"
-                :id_orden="data.item.id_father"
+                :id_orden="data.item.orden"
               />
             </template>
 

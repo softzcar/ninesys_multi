@@ -166,7 +166,7 @@
 
             <b-list-group-item style="min-width: 5%; max-width: 5%">
               <div class="floatme">
-                <ordenes-vinculadas
+                <ordenes-vinculadas-v2
                   :vinculadas="filterVinculadas(el.acciones)"
                   :key="el.orden"
                 />

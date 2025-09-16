@@ -61,8 +61,7 @@
               </template>
 
               <template #cell(id_father)="data">
-                <!-- <ordenes-vinculadas :key="data.item.orden" :id_orden="data.item.id_father" /> -->
-                {{ data.item.id_father }}, {{ data.item.orden }}
+                <ordenes-vinculadas-v2 :key="data.item.orden" :id_orden="data.item.orden" />
               </template>
 
               <template #cell(acc)="data">

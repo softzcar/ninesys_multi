@@ -69,9 +69,9 @@
           </div>
         </template>
 
-        <!-- <template #cell(vinculadas)="data">
-                    <ordenes-vinculadas :id_orden="data.item.vinculadas" />
-                </template> -->
+        <template #cell(vinculadas)="data">
+                    <ordenes-vinculadas-v2 :id_orden="data.item.vinculadas" />
+                </template>
       </b-table>
     </b-overlay>
   </div>

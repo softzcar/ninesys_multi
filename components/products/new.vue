@@ -8,109 +8,150 @@
     <b-modal
       id="bv-modal-example"
       hide-footer
+      size="xl"
+      no-enforce-focus
     >
-      <template #modal-title> Crear Nuevo Producto </template>
+      <template #modal-title>
+        <span v-if="!assigningInsumos">Crear Nuevo Producto</span>
+        <span v-else>Asignación de Insumos</span>
+      </template>
       <b-overlay
         :show="overlay"
         spinner-small
       >
-        <b-form
-          @submit="onSubmit"
-          @reset="onReset"
-          v-if="show"
-        >
-          <b-form-group
-            id="input-group-1"
-            label="Producto:"
-            label-for="input-product"
-          >
-            <b-form-input
-              id="input-product"
-              v-model="form.product"
-              type="text"
-              placeholder="Nombre del producto"
-              required
-            ></b-form-input>
-          </b-form-group>
 
-          <b-form-group
-            v-if="$store.state.login.dataUser.acceso"
-            id="input-group-2"
-            label="SKU:"
-            label-for="input-sku"
+        <!-- Step 1: Product Creation Form -->
+        <div v-if="!assigningInsumos">
+          <b-form
+            @submit.prevent="onSubmit"
+            @reset="onReset"
+            v-if="show"
           >
-            <b-form-input
-              id="input-sku"
-              v-model="form.sku"
-              type="text"
-              placeholder="SKU del producto"
-              required
-            ></b-form-input>
-          </b-form-group>
-
-          <b-form-group
-            id="input-group-5"
-            label="Categoría:"
-            label-for="select-category"
-          >
-            <b-form-select
-              requred
-              id="select-category"
-              v-model="form.category"
-              :options="catagoriesSelect"
-              size="sm"
-              class="mt-3"
-            ></b-form-select>
-            <b-alert
-              :show="showPriceError"
-              variant="danger"
-            >Seleccione una categoría</b-alert>
-          </b-form-group>
-
-          <b-form-group
-            id="input-group-3"
-            label-for="input-price"
-          >
-            <admin-AsignacionDePrecios
-              class="floatme"
-              :precios="form.prices"
-              @reload="updatePrices($event)"
-            />
-            <admin-AsignacionDeAtributos
-              class="floatme"
-              :attributescat="attributescat"
-              :attributesval="attributesval"
-              @reload="updateAttributes($event)"
-            />
-          </b-form-group>
-
-          <b-list-group>
-            <b-list-group-item
-              v-for="(item, index) in form.prices"
-              :key="index"
+            <b-form-group
+              label="Producto:"
+              label-for="input-product"
             >
-              {{ item.price }} - {{ item.descripcion }}
-            </b-list-group-item>
-          </b-list-group>
+              <b-form-input
+                id="input-product"
+                v-model="form.product"
+                type="text"
+                placeholder="Nombre del producto"
+                required
+              ></b-form-input>
+            </b-form-group>
 
-          <!-- <b-button type="reset" variant="danger">Reset</b-button> -->
+            <b-form-group
+              v-if="$store.state.login.dataUser.acceso"
+              label="SKU:"
+              label-for="input-sku"
+            >
+              <b-form-input
+                id="input-sku"
+                v-model="form.sku"
+                type="text"
+                placeholder="SKU del producto"
+                required
+              ></b-form-input>
+            </b-form-group>
+
+            <b-form-group
+              label="Categoría:"
+              label-for="select-category"
+            >
+              <b-form-select
+                requred
+                id="select-category"
+                v-model="form.category"
+                :options="catagoriesSelect"
+                size="sm"
+                class="mt-3"
+              ></b-form-select>
+              <b-alert
+                :show="showPriceError"
+                variant="danger"
+              >Seleccione una categoría</b-alert>
+            </b-form-group>
+
+            <b-form-group label-for="input-price">
+              <admin-AsignacionDePrecios
+                class="floatme"
+                :precios="form.prices"
+                @reload="updatePrices($event)"
+              />
+              <admin-AsignacionDeAtributos
+                class="floatme"
+                test="TEST PROPS"
+                :attributescat="attributescat"
+                :attributesval="form.attributes"
+                @reload="updateAttributes($event)"
+                @refresh-attributes="$emit('refresh-attributes')"
+              />
+            </b-form-group>
+
+            <b-button
+              type="submit"
+              variant="success"
+            >Guardar y Asignar Insumos</b-button>
+          </b-form>
+          
+          <div v-if="form.prices.length > 0" class="mt-3">
+            <h5>Precios</h5>
+            <b-list-group>
+              <b-list-group-item
+                v-for="(item, index) in form.prices"
+                :key="index"
+              >
+                {{ item.price }} - {{ item.descripcion }}
+              </b-list-group-item>
+            </b-list-group>
+          </div>
+
+          <div v-if="form.attributes.length > 0" class="mt-3">
+            <h5>Atributos</h5>
+            <b-list-group>
+              <b-list-group-item
+                v-for="(item, index) in form.attributes"
+                :key="`attr-${index}`"
+              >
+                {{ getAttributeName(item.attribute) }}: {{ item.descripcion }}
+              </b-list-group-item>
+            </b-list-group>
+          </div>
+        </div>
+
+        <!-- Step 2: Insumos Assignment -->
+        <div v-if="assigningInsumos">
+           <div class="mb-4">
+            <p><strong>Producto:</strong> {{ form.product }}</p>
+            <p><strong>SKU:</strong> {{ newlyCreatedProduct.sku }}</p>
+          </div>
+          <admin-AsignacionDeInsumosAProductos
+            :item="newlyCreatedProduct"
+            :departamentos="departamentos"
+            :selectinsumos="selectInsumos"
+            :insumosasignados="[]"
+            :tiemposprod="[]"
+            @reload="handleInsumosUpdate"
+          />
           <b-button
-            type="submit"
-            variant="success"
-          >Guardar</b-button>
-        </b-form>
+            variant="primary"
+            @click="finish"
+            class="mt-3"
+          >Finalizar</b-button>
+        </div>
+
       </b-overlay>
-      <!-- <b-button class="mt-3" block @click="$bvModal.hide('bv-modal-example')"
-        >Cerrar</b-button
-      > -->
     </b-modal>
   </div>
 </template>
 
 <script>
-import { log } from "console";
+import AsignacionDeInsumosAProductos from "~/components/admin/AsignacionDeInsumosAProductos.vue";
 
 export default {
+  components: {
+    "admin-AsignacionDeInsumosAProductos": AsignacionDeInsumosAProductos,
+  },
   data() {
     return {
       overlay: false,
@@ -123,47 +164,31 @@ export default {
         prices: [],
         attributes: [],
       },
+      // New state for the two-step process
+      assigningInsumos: false,
+      newlyCreatedProduct: null,
+      departamentos: [],
+      selectInsumos: [],
     };
   },
 
   computed: {
     catagoriesSelect() {
-      return (
-        this.$store.state.comerce.dataCategories
-          /* .filter((el) => el.parent === 35 || el.id === 38 || el.id === 91) */
-          .map((el) => {
-            return {
-              value: el.id,
-              text: el.name,
-            };
-          })
-      );
-    },
-
-    catagoriesSelect_old() {
-      return this.$store.state.comerce.dataCategories
-        .filter((el) => el.parent === 35 || el.id === 38 || el.id === 91)
-        .map((el) => {
-          return {
-            value: el.id,
-            text: el.name,
-          };
-        });
-    },
-  },
-
-  watch: {
-    form: function (val) {
-      console.log(val);
-      if (val.price > 0) {
-        this.showPriceError = false;
-      } else {
-        this.showPriceError = true;
-      }
+      return this.$store.state.comerce.dataCategories.map((el) => ({
+        value: el.id,
+        text: el.name,
+      }));
     },
   },
 
   methods: {
+    getAttributeName(attributeId) {
+      if (!this.attributescat) return "";
+      const attribute = this.attributescat.find(
+        (attr) => attr.value === attributeId
+      );
+      return attribute ? attribute.text : "";
+    },
     updatePrices(newPrices) {
       this.form.prices = newPrices;
     },
@@ -171,24 +196,22 @@ export default {
       this.form.attributes = newAttributes;
     },
 
-    onSubmit(event) {
-      event.preventDefault();
+    onSubmit() {
       let ban = true;
       let msg = "";
 
       if (this.form.product.trim() === "") {
         ban = false;
-        msg = msg + "<p>Asige un nombre</p>";
+        msg += "<p>Asigne un nombre</p>";
       }
-
-      if (!this.form.prices.length === 0) {
+      if (this.form.prices.length === 0) {
         ban = false;
-        msg = msg + "<p>Asige un precio</p>";
+        msg +=
+          "<p>Debe asignar al menos un precio. Utilice el botón '+ Precios' para agregarlo.</p>";
       }
-
       if (this.form.category === null) {
         ban = false;
-        msg = msg + "<p>Seleccione una categoría</p>";
+        msg += "<p>Seleccione una categoría</p>";
       }
 
       if (!ban) {
@@ -197,76 +220,115 @@ export default {
           type: "warning",
           title: "Faltan datos",
           html: msg,
-        }); /* .then(() => {
-          this.$store.commit('login/setAccess', false)
-          window.location.assign('/')
-        }) */
-      } else {
-        this.postProduct().then(() => {
-          // this.$emit('r', true)
-          this.form = {
-            category: null,
-            product: "",
-            sku: null,
-            prices: [],
-            attributes: [],
-          };
-          this.$bvModal.hide("bv-modal-example");
         });
+      } else {
+        this.postProduct();
       }
     },
 
     async postProduct() {
       this.overlay = true;
-      console.log("VAmos a enviar etos datos para nuevo producto", this.form);
       const data = new URLSearchParams();
       data.set("product", this.form.product);
       data.set("prices", JSON.stringify(this.form.prices));
+      data.set("attributes", JSON.stringify(this.form.attributes));
       data.set("category", this.form.category);
       data.set("sku", this.form.sku);
 
-      await this.$axios
-        .post(
-          // `${this.$config.API}/products/lite/${this.form.product}/${this.form.price}/${this.form.category}`,
+      try {
+        const res = await this.$axios.post(
           `${this.$config.API}/products/lite`,
           data
-        )
-        .then((res) => {
-          this.$emit("r", true);
-          this.reponse = res;
-          this.loading = false;
-          this.form = {
-            category: null,
-            product: "",
-            sku: null,
-            prices: [],
-          };
-          // this.urlLink = res.data.linkdrive
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Error creando el producto",
-            html: `<p>${{ err }}</p>`,
-            type: "warning",
-          });
-        })
-        .finally(() => {
-          this.overlay = false;
+        );
+        // --- Start of new logic ---
+        // IMPORTANT: The API must return the newly created product object
+        this.newlyCreatedProduct = res.data.product;
+
+        if (!this.newlyCreatedProduct || !this.newlyCreatedProduct._id) {
+          throw new Error(
+            "La respuesta de la API no incluyó el producto creado con su ID."
+          );
+        }
+
+        await this.fetchEssentialData();
+        this.assigningInsumos = true;
+        // --- End of new logic ---
+      } catch (err) {
+        this.$fire({
+          title: "Error creando el producto",
+          html: `<p>${err.message || err}</p>`,
+          type: "warning",
         });
+      } finally {
+        this.overlay = false;
+      }
     },
 
-    onReset(event) {
-      event.preventDefault();
-      // Reset our form values
-      this.form.email = "";
-      this.form.name = "";
-      this.form.food = null;
-      this.form.checked = [];
-      // Trick to reset/clear native browser form validation state
+    async fetchEssentialData() {
+      this.overlay = true;
+      try {
+        const [depsRes, catalogoInsumosRes] = await Promise.all([
+          this.$axios.get(`${this.$config.API}/departamentos`),
+          this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`),
+        ]);
+        this.departamentos = depsRes.data;
+        this.selectInsumos = this.formatInsumosForSelect(
+          catalogoInsumosRes.data
+        );
+      } catch (error) {
+        this.$fire({
+          title: "Error al cargar datos para la asignación",
+          html: `<p>${error.message || error}</p>`,
+          type: "danger",
+        });
+      } finally {
+        this.overlay = false;
+      }
+    },
+
+    formatInsumosForSelect(insumos) {
+      const options = insumos.map((insumo) => ({
+        value: insumo._id,
+        text: insumo.nombre,
+      }));
+      options.unshift({ value: null, text: "Seleccione un insumo" });
+      return options;
+    },
+
+    handleInsumosUpdate() {
+      // Optional: could be used to show a success message
+      console.log("Insumos actualizados");
+    },
+
+    finish() {
+      this.$emit("r", true); // Reload the main product list
+      this.resetAllState();
+      this.$bvModal.hide("bv-modal-example");
+    },
+
+    resetAllState() {
+      // Reset form
+      this.form = {
+        category: null,
+        product: "",
+        sku: null,
+        prices: [],
+        attributes: [],
+      };
+      // Reset new state
+      this.assigningInsumos = false;
+      this.newlyCreatedProduct = null;
+      this.departamentos = [];
+      this.selectInsumos = [];
       this.show = false;
       this.$nextTick(() => {
         this.show = true;
       });
+    },
+
+    onReset(event) {
+      event.preventDefault();
+      this.resetAllState();
     },
   },
 

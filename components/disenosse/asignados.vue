@@ -79,7 +79,7 @@
             </template>
 
             <template #cell(id_orden)="data">
-              <ordenes-vinculadas :id_orden="data.item.id_orden" />
+              <ordenes-vinculadas-v2 :id_orden="data.item.id_orden" />
             </template>
 
             <template #cell(tallas_y_personalizacion)="data">

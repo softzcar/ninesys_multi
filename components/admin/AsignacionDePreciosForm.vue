@@ -54,7 +54,6 @@ export default {
     methods: {
         asignarPrecio() {
             this.asignado = true
-            this.inputDisabled = true
         },
 
         saveChange() {
@@ -63,12 +62,9 @@ export default {
             let ok = true
             let msg = ""
 
-            if (this.price.length === 0) {
+            if (!this.price || this.price <= 0) {
                 ok = false
-                msg += "<p>Debe indicar el precio</p>"
-            } else if (this.price == 0) {
-                ok = false
-                msg += "<p>El precio no puede ser cero</p>"
+                msg += "<p>El precio debe ser un número mayor a cero.</p>"
             }
 
             if (this.descripcion.trim() === '') {
@@ -126,7 +122,7 @@ export default {
     mounted() {
         this.id = this.item.id
         this.price = this.item.price
-        this.descripcion = this.item.description
+        this.descripcion = this.item.descripcion || ""
     },
 
     // props: ["item", "options", "hashtags", "idempleado", "closemodal"],

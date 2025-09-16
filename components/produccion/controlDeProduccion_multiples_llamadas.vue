@@ -42,7 +42,7 @@
 
         <template #cell(vinculada)="data">
           <span class="floatme">
-            <ordenes-vinculadas :id_orden="data.item.acciones" />
+            <ordenes-vinculadas-v2 :id_orden="data.item.acciones" />
           </span>
         </template>
 

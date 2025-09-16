@@ -25,7 +25,7 @@
                 :key="dep._id"
                 :form="form"
                 :item="dep"
-                :idprod="item.cod"
+                :idprod="item._id"
                 :iddep="dep._id"
                 :tiemposprod="tiemposprod"
                 :insumosasignados="insumosasignados"

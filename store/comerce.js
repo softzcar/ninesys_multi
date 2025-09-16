@@ -91,6 +91,15 @@ export const getters = {
 
     getProductsSport(state) {
         return state.dataProductos.filter((objeto) => {
+            return parseInt(objeto.stock_quantity) > 0
+        })
+    },
+
+    getProductsCustom(state) {
+        return state.dataProductos
+    },
+    /* getProductsSport(state) {
+        return state.dataProductos.filter((objeto) => {
             return objeto.categories.some((categoria) => categoria.id === 91)
         })
     },
@@ -99,7 +108,7 @@ export const getters = {
         return state.dataProductos.filter((objeto) => {
             return objeto.categories.some((categoria) => categoria.id != 91)
         })
-    },
+    }, */
 }
 
 export const mutations = {

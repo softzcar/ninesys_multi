@@ -12,6 +12,7 @@
       :title="title"
       hide-footer
       size="md"
+      no-enforce-focus
     >
       <b-overlay
         :show="overlay"
@@ -37,6 +38,7 @@
               :attributesval="attibutesval"
               :attributescat="attributescat"
               @reload="removeItemAndSave($event)"
+              @refresh-list="$emit('refresh-attributes')"
               :item="row.item"
               :index="row.index"
             />
@@ -165,8 +167,8 @@ export default {
       const random_id = this.generateRandomId();
       const obj = {
         id: random_id,
-        attribute: "this.attribute",
-        descripcion: "this.descripcion",
+        attribute: null,
+        descripcion: "",
       };
       let arr1 = this.form;
       arr1.push(obj);
@@ -208,7 +210,7 @@ export default {
       console.log("request prices new product", obj);
       const producto = this.form.find((item) => item.id === obj.id);
       if (producto) {
-        producto.price = obj.price;
+        producto.attribute = obj.attribute;
         producto.descripcion = obj.descripcion;
         console.log("Formulario actualizado:", this.form);
         console.log("Producto actualizado:", producto);
@@ -449,8 +451,11 @@ export default {
   },
 
   mounted() {
-    // this.form = this.precios
-    this.form = [];
+    if (this.isValidArrayOfObjects(this.attributesval)) {
+      this.form = this.attributesval
+    } else {
+      this.form = []
+    }
     /* this.$root.$on("bv::modal::show", (bvEvent, modal) => {
             $(document).off('focusin.modal');
         }); */
@@ -469,7 +474,7 @@ export default {
         this.form = myForm */
   },
 
-  props: ["attibutesval", "attributescat", "reload"],
+  props: ["attributesval", "attributescat", "reload","test"],
 };
 </script>
 

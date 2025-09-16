@@ -119,7 +119,7 @@
 
                         <template #cell(vinculada)="data">
                             <span class="floatme">
-                                <ordenes-vinculadas :vinculadas="filterVinculadas(data.item.acciones)
+                                <ordenes-vinculadas-v2 :vinculadas="filterVinculadas(data.item.acciones)
                                     " :key="data.item._id" />
                             </span>
                         </template>

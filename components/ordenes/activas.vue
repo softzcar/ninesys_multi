@@ -12,8 +12,14 @@
       </b-row>
       <b-row>
         <b-col class="mb-4">
+            <h5 class="mb-2">Filtrar por estado de pago:</h5>
             <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
                 button-variant="outline-primary" size="lg" name="radio-btn-outline" @input="applyFilters()"
+                buttons></b-form-radio-group>
+            
+            <h5 class="mt-4 mb-2">Filtrar por categoría de producto:</h5>
+            <b-form-radio-group id="btn-radios-categories" v-model="selectedCategory" :options="optionsCategories"
+                button-variant="outline-info" size="lg" name="radio-btn-categories" @input="applyFilters()"
                 buttons></b-form-radio-group>
         </b-col>
         <b-col
@@ -64,7 +70,7 @@
                   v-model="fechaConsultaFin"
                 />
               </b-col>
-              <b-col v-if="
+              <b-col class="mb-4 pb-4" v-if="
                 this.$store.state.login.dataUser
                   .departamento === 'Administración'
               ">
@@ -78,7 +84,7 @@
             </b-row>
 
             <b-row>
-              <b-col class="text-center">
+              <b-col class="text-center mt-4">
                 <b-button
                   type="submit"
                   variant="primary"
@@ -131,7 +137,7 @@
             </template>
 
             <template #cell(id_father)="data">
-              {{ data.item.id_father }}, {{ data.item.orden }}
+              <ordenes-vinculadas-v2 :key="data.item.orden" :id_orden="data.item.orden" />
             </template>
 
             <template #cell(acc)="data">
@@ -181,6 +187,8 @@ export default {
           { text: "Pendientes", value: "pendientes" },
           { text: "Sobrepagadas", value: "sobrepagada" },
       ],
+      selectedCategory: "todas",
+      optionsCategories: [],
       ordenesLength: 0,
       dataTable: [],
       ordenesActivas: [],
@@ -209,6 +217,7 @@ export default {
       this.fechaConsultaFin = "";
       this.selectedVendedor = 0;
       this.selectedRadio = "todas";
+      this.selectedCategory = "todas";
       this.applyFilters();
     },
 
@@ -235,6 +244,41 @@ export default {
         return;
       }
       this.applyFilters();
+    },
+
+    generateCategoryOptions() {
+      if (!this.ordenesActivas || this.ordenesActivas.length === 0) {
+        this.optionsCategories = [];
+        return;
+      }
+
+      const uniqueCategories = new Map();
+      this.ordenesActivas.forEach(order => {
+        if (order.product_categories && Array.isArray(order.product_categories)) {
+          order.product_categories.forEach(cat => {
+            if (cat.category_name) {
+              const trimmedCat = cat.category_name.trim();
+              const lowerCaseCat = trimmedCat.toLowerCase();
+              if (trimmedCat && !uniqueCategories.has(lowerCaseCat)) {
+                uniqueCategories.set(lowerCaseCat, trimmedCat); // Use original casing for display
+              }
+            }
+          });
+        }
+      });
+
+      const categoryOptions = [...uniqueCategories.values()].map(originalCat => ({
+        text: originalCat,
+        value: originalCat,
+      }));
+
+      // Sort categories alphabetically for better UX
+      categoryOptions.sort((a, b) => a.text.localeCompare(b.text));
+
+      this.optionsCategories = [
+        { text: "Todas", value: "todas" },
+        ...categoryOptions,
+      ];
     },
 
     applyFilters() {
@@ -271,6 +315,13 @@ export default {
           filtered = filtered.filter(el => el.payment_status === 'sobrepagada');
       }
 
+      // Filter by category
+      if (this.selectedCategory !== "todas") {
+        filtered = filtered.filter(order => 
+            order.product_categories && order.product_categories.some(cat => cat.category_name === this.selectedCategory)
+        );
+      }
+
       this.dataTable = filtered;
     },
 
@@ -283,6 +334,7 @@ export default {
           this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
           this.ordenesActivas = res.data.items;
           this.ordenesLength = this.ordenesActivas.length;
+          this.generateCategoryOptions();
         });
     },
 

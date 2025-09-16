@@ -335,7 +335,7 @@
                                     lg="6"
                                     class="mt-4"
                                   >
-                                    <products-new @r="getResponseNewProduct" />
+                                    <products-new :attributescat="productAttributes" :attributesval="productAttributesValues" @r="getResponseNewProduct" />
                                   </b-col>
                                 </b-row>
                                 <br />
@@ -351,6 +351,14 @@
                                   class="mb-4"
                                   @input="changeCategory"
                                 ></b-form-radio-group>
+
+                                <b-form-checkbox
+                                  v-model="form.guardarStock"
+                                  :disabled="categoriaDeLaORden !== 'custom'"
+                                  class="mb-4"
+                                >
+                                  Guardar en Stock
+                                </b-form-checkbox>
 
                                 <vue-typeahead-bootstrap
                                   @hit="loadProduct"
@@ -1051,6 +1059,8 @@ import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsigna
 export default {
   data() {
     return {
+      productAttributes: [], // <-- AÑADIDO
+      productAttributesValues: [], // <-- AÑADIDO
       abonoHistorico: 0, // Abono existente al cargar la orden
       proyeccionData: [], // Almacenará los datos de la cola de producción
       fechaProximaDisponible: null, // Almacenará la fecha calculada
@@ -1179,6 +1189,7 @@ export default {
         next: 0,
         disableControl: false,
         sendWhatsAppMessage: true,
+        guardarStock: false, // Nuevo campo para "Guardar en Stock"
       },
       cortes: [
         {
@@ -1413,6 +1424,22 @@ export default {
   },
 
   methods: {
+    /* async loadProductAttributes() {
+      await this.$axios
+        .get(`${this.$config.API}/products-attributes`)
+        .then((resp) => {
+          this.productAttributes = resp.data.products_attributes;
+          this.productAttributesValues = resp.data.products_attributes_values;
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de los atributos",
+            html: err,
+          });
+          throw err;
+        });
+    }, */
     async getProyeccionEntrega() {
       try {
         const res = await this.$axios.get(
@@ -1679,19 +1706,17 @@ export default {
     changeCategory() {
       // Definir el endpoint para crear la orden
       if (this.categoriaDeLaORden === "custom") {
-        this.endpoint = `/ordenes/nueva/custom`;
-        const productsSelect = this.getProductsCustom.map((prod) => {
-          return `${prod.cod} | ${prod.name}`;
-        });
-        this.$store.commit("comerce/setDataProductosSelect", productsSelect);
-      } else if (this.id_orden_a_editar) {
-        this.endpoint = `/ordenes/nueva/custom/edit`;
+        this.endpoint = this.editingOrderId
+          ? `/ordenes/nueva/custom/edit`
+          : `/ordenes/nueva/custom`;
         const productsSelect = this.getProductsCustom.map((prod) => {
           return `${prod.cod} | ${prod.name}`;
         });
         this.$store.commit("comerce/setDataProductosSelect", productsSelect);
       } else if (this.categoriaDeLaORden === "sport") {
-        this.endpoint = `/ordenes/nueva/sport`;
+        this.endpoint = this.editingOrderId
+          ? `/ordenes/nueva/sport/edit`
+          : `/ordenes/nueva/sport`;
         const productsSelect = this.getProductsSport.map((prod) => {
           return `${prod.cod} | ${prod.name}`;
         });
@@ -1699,6 +1724,10 @@ export default {
       }
 
       this.form.productos = [];
+      // Si se selecciona "Tienda", deseleccionar "Guardar en Stock"
+      if (this.categoriaDeLaORden === 'sport') {
+        this.form.guardarStock = false;
+      }
     },
 
     checkTallasTelas() {
@@ -2557,7 +2586,7 @@ export default {
       }
       this.abonoHistorico = 0;
       this.editingOrderId = null;
-      this.endpoint = "/ordenes/nueva/custom"; // FIX: Reset endpoint to default
+      // this.endpoint = "/ordenes/nueva/custom"; // FIX: Reset endpoint to default
       this.query2 = "";
       this.ordenVinculada = 0;
       this.disable1 = false;
@@ -2568,9 +2597,7 @@ export default {
     },
 
     async finishOrder() {
-      const endpoint = this.editingOrderId
-        ? "/ordenes/nueva/custom/edit"
-        : "/ordenes/nueva/custom";
+      const endpoint = this.endpoint;
 
       this.overlay = true;
       this.disableButtons = true;
@@ -2667,6 +2694,7 @@ export default {
       data.set("tasa_dolar", this.tasas.bolivar);
       data.set("tasa_peso", this.tasas.peso_colombiano);
       data.set("sendWhatsAppMessage", this.form.sendWhatsAppMessage);
+      data.set("guardar_stock", this.form.guardarStock);
 
       console.log("data para crear nueva orden", data);
 
@@ -2677,21 +2705,18 @@ export default {
           data
         );
 
-        if (res.data.response.status === "error") {
-          this.$fire({
-            title: "Error",
-            html: `<p>Ocurrió un error al procesar la orden.</p><p>${res.data.response.message}</p>`,
-            type: "error",
-          });
-        } else {
+        // Handle both 'sport' and 'custom' endpoint response structures
+        if ((res.data.response && res.data.response.status !== "error") || res.data.orden_creada === true) {
           // Éxito
           this.$fire({
             title: "¡Éxito!",
-            html: `<p>${res.data.response.message}</p>`,
+            // Use a generic message or one from the response if available
+            html: `<p>${res.data.response ? res.data.response.message : 'Orden creada con éxito'}</p>`,
             type: "success",
           });
 
           this.getOrdenesSinAsignar(); // Recargar datos relacionados
+          this.loadDataProductos(); // ACTUALIZAR LA EXISTENCIA DE PRODUCTOS
 
           const wantsToPrint = await this.$confirm(
             "¿Desea imprimir una copia de la orden?",
@@ -2704,6 +2729,14 @@ export default {
           }
 
           this.clearForm(); // Limpiar el formulario para la siguiente orden
+        } else {
+          // Error
+          this.$fire({
+            title: "Error",
+            // Use a generic message or one from the response if available
+            html: `<p>Ocurrió un error al procesar la orden.</p><p>${res.data.response ? res.data.response.message : 'La respuesta del servidor no indicó éxito.'}</p>`,
+            type: "error",
+          });
         }
       } catch (error) {
         this.$fire({
@@ -3307,8 +3340,9 @@ export default {
         this.loadDataTallas(),
         this.loadDataTelas(),
         this.loadDataProductos(),
-        this.loadProductAttributes(), // Esta es la llamada que actualmente falla
-        this.getProyeccionEntrega(), // <-- Añadimos la nueva carga de datos
+        this.loadDataCategories(), // <-- AÑADIDO PARA CORREGIR EL BUG
+        this.loadProductAttributes(),
+        this.getProyeccionEntrega(),
         this.getOrdenesSinAsignar(),
         this.getOrdenesGuardadas(),
       ]);
