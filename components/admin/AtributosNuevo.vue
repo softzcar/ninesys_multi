@@ -22,6 +22,23 @@
                                         required
                                     ></b-form-input>
                                 </b-form-group>
+
+                                <b-form-group
+                                    id="input-group-2"
+                                    label="Precio:"
+                                    label-for="input-precio"
+                                >
+                                    <b-form-input
+                                        id="input-precio"
+                                        v-model="form.precio"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="Ingrese el precio del atributo"
+                                        required
+                                    ></b-form-input>
+                                </b-form-group>
+
                                 <b-button type="submit" variant="primary">Guardar</b-button>
                                 <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                             </b-form>
@@ -39,6 +56,7 @@ export default {
         return {
             form: {
                 name: "",
+                precio: 0, // Initialize price
             },
             size: "md",
             title: "Nuevo Atributo de Producto",
@@ -56,6 +74,7 @@ export default {
     methods: {
         resetForm() {
             this.form.name = "";
+            this.form.precio = 0; // Reset price
         },
         async guardarAtributo() {
             if (this.form.name.trim().length === 0) {
@@ -64,11 +83,19 @@ export default {
                     html: "<p>Ingrese el nombre del atributo</p>",
                     type: "info",
                 })
-            } else {
+            } else if (isNaN(parseFloat(this.form.precio)) || parseFloat(this.form.precio) < 0) {
+                this.$fire({
+                    title: "Dato Requerido",
+                    html: "<p>Ingrese un precio válido (número positivo)</p>",
+                    type: "info",
+                })
+            }
+            else {
                 this.overlay = true
 
                 const data = new URLSearchParams()
                 data.set("nombre", this.form.name) // Usando 'nombre' como lo espera la API
+                data.set("precio", parseFloat(this.form.precio)) // Send price
 
                 await this.$axios
                     .post(`${this.$config.API}/products-attributes`, data)

@@ -48,6 +48,22 @@
                     Nueva Orden
                   </span>
                 </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/relacion-de-pagos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Relacion de pagos
+                  </span>
+                </router-link>
+
                 <router-link
                   class="nav-link"
                   to="/comercializacion/presupuesto"
@@ -324,8 +340,6 @@
                 </span>
               </router-link> -->
 
-              
-
               <b-nav-item-dropdown
                 text="Inventario"
                 right
@@ -413,7 +427,7 @@
               </b-nav-item-dropdown>
 
                -->
-               <b-nav-item-dropdown
+              <b-nav-item-dropdown
                 text="Empleados"
                 right
               >
@@ -576,8 +590,6 @@
                   </span>
                 </router-link>
               </b-nav-item-dropdown>
-
-              
 
               <b-nav-item-dropdown
                 text="Pagos"
@@ -772,8 +784,6 @@
                     Telas
                   </span>
                 </router-link>
-
-                
 
                 <router-link
                   class="nav-link"

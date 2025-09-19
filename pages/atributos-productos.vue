@@ -67,6 +67,10 @@ export default {
                     label: "Atributo",
                 },
                 {
+                    key: "precio", // New field
+                    label: "Precio", // New field
+                },
+                {
                     key: "_id",
                     label: "Acciones",
                 },
@@ -106,6 +110,15 @@ export default {
                         .post(`${this.$config.API}/products-attributes/eliminar`, data)
                         .then((res) => {
                             this.getAtributos().then(() => (this.overlay = false));
+                        })
+                        .catch(err => {
+                            this.overlay = false;
+                            console.error(`Error al eliminar el atributo: ${err}`);
+                            this.$bvToast.toast('Error al eliminar el atributo', {
+                                title: 'Error',
+                                variant: 'danger',
+                                solid: true
+                            });
                         });
                 })
                 .catch((err) => {

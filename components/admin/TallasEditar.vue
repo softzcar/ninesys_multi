@@ -72,11 +72,12 @@ export default {
                 })
                 .catch((err) => {
                     this.overlay = false;
-                    this.$fire({
-                        title: "Error",
-                        html: `<p>Ocurrió un error guardando los datos</p><p>${err}</p>`,
-                        type: "warning",
-                    })
+                    console.error(`Error al editar la talla: ${err}`);
+                    this.$bvToast.toast('Error al editar la talla', {
+                        title: 'Error',
+                        variant: 'danger',
+                        solid: true
+                    });
                 })
         },
         onSubmit(event) {

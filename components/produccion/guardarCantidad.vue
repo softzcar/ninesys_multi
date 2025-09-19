@@ -47,6 +47,6 @@ export default {
     this.cantidad = this.cantidadLote
   },
 
-  props: ['id', , 'cantidadLote'],
+  props: ['id', 'cantidadLote'],
 }
 </script>

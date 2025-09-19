@@ -1059,6 +1059,7 @@ import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsigna
 export default {
   data() {
     return {
+      isSmallScreen: false,
       productAttributes: [], // <-- AÑADIDO
       productAttributesValues: [], // <-- AÑADIDO
       abonoHistorico: 0, // Abono existente al cargar la orden
@@ -1248,9 +1249,6 @@ export default {
                 "table-responsive": !this.isSmallScreen,
             }
         }, */
-    isSmallScreen() {
-      return window.innerWidth < 768; // Cambia el valor según el tamaño de pantalla deseado
-    },
 
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7);
@@ -1462,7 +1460,6 @@ export default {
       }
     },
 
-    ...mapState("login", ["tasas"]),
     checkPrices() {
       let checking = this.form.productos.filter((el) => el.precio === 0);
 
@@ -2751,6 +2748,10 @@ export default {
         this.overlay = false;
         this.disableButtons = false;
       }
+    },
+
+    goToFirsTab() {
+      this.tabIndex = 0;
     },
 
     clearStep1() {

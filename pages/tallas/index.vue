@@ -116,6 +116,15 @@ export default {
                         .then((res) => {
                             this.getTallas().then(() => (this.overlay = false))
                         })
+                        .catch(err => {
+                            this.overlay = false;
+                            console.error(`Error al eliminar la talla: ${err}`);
+                            this.$bvToast.toast('Error al eliminar la talla', {
+                                title: 'Error',
+                                variant: 'danger',
+                                solid: true
+                            });
+                        })
                 })
                 .catch((err) => {
                     console.log("CATCH!!!", err)
