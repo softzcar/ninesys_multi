@@ -37,160 +37,161 @@
               :show="overlay"
               spinner-small
             >
-              <b-row>
-                <b-col>
-                  <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
-                  <b-list-group class="mb-4">
-                    <b-list-group-item>DOLARES: {{ caja[0].monto }}</b-list-group-item>
-                    <b-list-group-item>PESOS: {{ caja[1]["monto"] }}</b-list-group-item>
-                    <b-list-group-item>BOLIVARES: {{ caja[2]["monto"] }}</b-list-group-item>
-                  </b-list-group>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col>
-                  <h2 class="mb-4">
-                    TOTAL RETIRO: {{ totalRetiro }}
-                    <b-button
-                      size="lg"
-                      class="ml-4"
-                      variant="success"
-                      @click="enviarRetiro"
-                    >RETIRAR</b-button>
-                  </h2>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col>
-                  <h4>Detalle del retiro</h4>
-                  <b-form-textarea v-model="form.detalle"></b-form-textarea>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col
-                  xl="3"
-                  lg="3"
-                  md="3"
-                  sm="12"
-                  xs="12"
-                >
-                  <b-row>
-                    <b-col>
-                      <hr />
-                      <h4 class="mb-4">Dólares {{ totalDolares }}</h4>
-                    </b-col>
-                  </b-row>
+              <div v-if="totalEnCaja > 0">
+                <b-row>
+                  <b-col>
+                    <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
+                    <b-list-group class="mb-4">
+                      <b-list-group-item>DOLARES: {{ caja[0].monto }}</b-list-group-item>
+                      <b-list-group-item>PESOS: {{ caja[1]["monto"] }}</b-list-group-item>
+                      <b-list-group-item>BOLIVARES: {{ caja[2]["monto"] }}</b-list-group-item>
+                    </b-list-group>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col>
+                    <h2 class="mb-4">
+                      TOTAL RETIRO: {{ totalRetiro }}
+                      <b-button
+                        size="lg"
+                        class="ml-4"
+                        variant="success"
+                        @click="enviarRetiro"
+                      >RETIRAR</b-button>
+                    </h2>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col>
+                    <h4>Detalle del retiro</h4>
+                    <b-form-textarea v-model="form.detalle"></b-form-textarea>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col
+                    xl="3"
+                    lg="3"
+                    md="3"
+                    sm="12"
+                    xs="12"
+                  >
+                    <b-row>
+                      <b-col>
+                        <hr />
+                        <h4 class="mb-4">Dólares {{ totalDolares }}</h4>
+                      </b-col>
+                    </b-row>
 
-                  <b-row align-h="start">
-                    <b-col>
-                      <b-form-group
-                        id="input-group-1"
-                        label="EFECTIVO"
-                        label-for="input-dolares-efectivo"
-                        class="pl-2"
-                      >
-                        <b-form-input
-                          id="input-dolares-efectivo"
-                          type="number"
-                          step="0.10"
-                          min="0"
-                          @change="updateMontoRetiro"
-                          v-model="form.montoDolaresEfectivo"
-                        ></b-form-input>
-                      </b-form-group>
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col>
-                      <hr />
-                      <h4 class="mb-4">Pesos {{ totalPesos }}</h4>
-                    </b-col>
-                  </b-row>
-
-                  <b-row align-h="start">
-                    <b-col>
-                      <b-form-group
-                        id="input-group-4"
-                        label="EFECTIVO"
-                        label-for="input-dolares-efectivo"
-                        class="pl-2"
-                      >
-                        <b-form-input
-                          id="input-pesos-efectivo"
-                          type="number"
-                          step="0.10"
-                          min="0"
-                          v-model="form.montoPesosEfectivo"
-                          @change="updateMontoRetiro"
-                        ></b-form-input>
-                      </b-form-group>
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col>
-                      <hr />
-                      <h4 class="mb-4">Bolívares {{ totalBolivares }}</h4>
-                    </b-col>
-                  </b-row>
-                  <b-row align-h="start">
-                    <b-col>
-                      <b-form-group
-                        id="input-group-6"
-                        label="EFECTIVO"
-                        label-for="input-bolivares-efectivo "
-                        class="pl-2"
-                      >
-                        <b-form-input
-                          id="input-bolivares-efectivo"
-                          type="number"
-                          step="0.10"
-                          min="0"
-                          v-model="form.montoBolivaresEfectivo"
-                          @change="updateMontoRetiro"
-                        ></b-form-input>
-                      </b-form-group>
-                    </b-col>
-                  </b-row>
-                </b-col>
-
-                <b-col
-                  xl="9"
-                  lg="9"
-                  md="9"
-                  sm="12"
-                >
-                  <b-row>
-                    <b-col>
-                      <hr />
-                      <h4 class="mb-4">Reporte de retiros</h4>
-                    </b-col>
-                  </b-row>
-
-                  <b-row align-h="start">
-                    <b-col>
-                      <b-form-group label="Fecha de consulta">
-                        <b-form-datepicker
-                          v-model="fechaConsulta"
-                          @input="realizarConsulta"
-                        />
-                        <b-table
-                          striped
-                          hover
-                          :items="report"
-                          :fields="fields"
+                    <b-row align-h="start">
+                      <b-col>
+                        <b-form-group
+                          id="input-group-1"
+                          label="EFECTIVO"
+                          label-for="input-dolares-efectivo"
+                          class="pl-2"
                         >
-                          <template #cell(moneda)="data">
-                            {{ data.item.moneda }}
-                            {{ data.item.metodo_pago }}
-                          </template>
+                          <b-form-input
+                            id="input-dolares-efectivo"
+                            type="number"
+                            step="0.10"
+                            min="0"
+                            @change="updateMontoRetiro"
+                            v-model="form.montoDolaresEfectivo"
+                          ></b-form-input>
+                        </b-form-group>
+                      </b-col>
+                    </b-row>
 
-                          <template #cell(detalle_retiro)="data">
-                            {{ data.item.detalle_retiro }}
-                          </template>
+                    <b-row>
+                      <b-col>
+                        <hr />
+                        <h4 class="mb-4">Pesos {{ totalPesos }}</h4>
+                      </b-col>
+                    </b-row>
 
-                          <!-- <template v-slot:tfoot>
+                    <b-row align-h="start">
+                      <b-col>
+                        <b-form-group
+                          id="input-group-4"
+                          label="EFECTIVO"
+                          label-for="input-dolares-efectivo"
+                          class="pl-2"
+                        >
+                          <b-form-input
+                            id="input-pesos-efectivo"
+                            type="number"
+                            step="0.10"
+                            min="0"
+                            v-model="form.montoPesosEfectivo"
+                            @change="updateMontoRetiro"
+                          ></b-form-input>
+                        </b-form-group>
+                      </b-col>
+                    </b-row>
+
+                    <b-row>
+                      <b-col>
+                        <hr />
+                        <h4 class="mb-4">Bolívares {{ totalBolivares }}</h4>
+                      </b-col>
+                    </b-row>
+                    <b-row align-h="start">
+                      <b-col>
+                        <b-form-group
+                          id="input-group-6"
+                          label="EFECTIVO"
+                          label-for="input-bolivares-efectivo "
+                          class="pl-2"
+                        >
+                          <b-form-input
+                            id="input-bolivares-efectivo"
+                            type="number"
+                            step="0.10"
+                            min="0"
+                            v-model="form.montoBolivaresEfectivo"
+                            @change="updateMontoRetiro"
+                          ></b-form-input>
+                        </b-form-group>
+                      </b-col>
+                    </b-row>
+                  </b-col>
+
+                  <b-col
+                    xl="9"
+                    lg="9"
+                    md="9"
+                    sm="12"
+                  >
+                    <b-row>
+                      <b-col>
+                        <hr />
+                        <h4 class="mb-4">Reporte de retiros</h4>
+                      </b-col>
+                    </b-row>
+
+                    <b-row align-h="start">
+                      <b-col>
+                        <b-form-group label="Fecha de consulta">
+                          <b-form-datepicker
+                            v-model="fechaConsulta"
+                            @input="realizarConsulta"
+                          />
+                          <b-table
+                            striped
+                            hover
+                            :items="report"
+                            :fields="fields"
+                          >
+                            <template #cell(moneda)="data">
+                              {{ data.item.moneda }}
+                              {{ data.item.metodo_pago }}
+                            </template>
+
+                            <template #cell(detalle_retiro)="data">
+                              {{ data.item.detalle_retiro }}
+                            </template>
+
+                            <!-- <template v-slot:tfoot>
                             <tr>
                               <th></th>
                               <th>{{ sumatoriaDescuento }}</th>
@@ -199,12 +200,21 @@
                               <th></th>
                             </tr>
                           </template>-->
-                        </b-table>
-                      </b-form-group>
-                    </b-col>
-                  </b-row>
-                </b-col>
-              </b-row>
+                          </b-table>
+                        </b-form-group>
+                      </b-col>
+                    </b-row>
+                  </b-col>
+                </b-row>
+              </div>
+              <div v-else>
+                <b-alert
+                  show
+                  variant="info"
+                  class="mt-4"
+                  >No hay fondos en efectivo disponibles para retirar.</b-alert
+                >
+              </div>
             </b-overlay>
           </div>
 
@@ -377,24 +387,40 @@ export default {
         parseFloat(this.form.montoDolaresPanama) +
         parseFloat(this.form.montoDolaresZelle);
 
-      // CALCULO EN PESOS
-      const montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.tasas.peso_colombiano);
+      // CALCULO EN PESOS (solo si tasa existe y > 0)
+      let montoPesos = 0;
+      if (this.tasas.peso_colombiano && parseFloat(this.tasas.peso_colombiano) > 0) {
+        montoPesos =
+          (parseFloat(this.form.montoPesosEfectivo) +
+            parseFloat(this.form.montoPesosTransferencia)) /
+          parseFloat(this.tasas.peso_colombiano);
+      }
 
-      // CALCULO EN BOLIVARES
-      const montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.tasas.bolivar);
+      // CALCULO EN BOLIVARES (solo si tasa existe y > 0)
+      let montoBolivares = 0;
+      if (this.tasas.bolivar && parseFloat(this.tasas.bolivar) > 0) {
+        montoBolivares =
+          (parseFloat(this.form.montoBolivaresEfectivo) +
+            parseFloat(this.form.montoBolivaresPagomovil) +
+            parseFloat(this.form.montoBolivaresPunto) +
+            parseFloat(this.form.montoBolivaresTransferencia)) /
+          parseFloat(this.tasas.bolivar);
+      }
 
       let total = montoDolares + montoPesos + montoBolivares;
 
       if (isNaN(total)) total = 0;
       return total.toFixed(2);
+    },
+
+    totalEnCaja() {
+      if (!this.caja || this.caja.length === 0) {
+        return 0;
+      }
+      return this.caja.reduce(
+        (total, current) => total + (parseFloat(current.monto) || 0),
+        0
+      );
     },
   },
 

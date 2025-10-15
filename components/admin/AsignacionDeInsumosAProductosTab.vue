@@ -41,7 +41,7 @@
     >
       <b-form-select
         id="select-insumo-base"
-        v-model="selectedInsumoBase"
+        v-model.lazy="selectedInsumoBase"
         :options="selectinsumos"
       ></b-form-select>
     </b-form-group>
@@ -49,7 +49,7 @@
     <b-button
       variant="info"
       @click="loadAllSizes"
-      :disabled="!selectedInsumoBase"
+      :disabled="isButtonDisabled"
       class="mb-4"
     >
       <b-icon icon="plus-lg"></b-icon> Cargar Todas las Tallas
@@ -65,15 +65,15 @@
     </b-button>
 
     <b-button
-      @click="$bvModal.show('modal-crear-insumo')"
-      id="create-new-insumo"
+      @click="$bvModal.show(`modal-crear-insumo-${iddep}`)"
+      :id="`create-new-insumo-${iddep}`"
       variant="info"
       class="mb-4 ml-2"
     >
       <b-icon icon="plus-lg"></b-icon> Crear Nuevo Insumo
     </b-button>
     <b-popover
-      target="create-new-insumo"
+      :target="`create-new-insumo-${iddep}`"
       triggers="hover"
       placement="top"
     >
@@ -203,8 +203,8 @@
     </b-popover>
 
     <b-modal
-      id="modal-crear-insumo"
-      ref="modalCrearInsumo"
+      :id="`modal-crear-insumo-${iddep}`"
+      :ref="`modalCrearInsumo-${iddep}`"
       title="Crear nuevo insumo"
       @ok="crearInsumo"
       @cancel="clearInput"
@@ -362,6 +362,9 @@ export default {
           parseInt(insumo.id_departamento) === parseInt(this.item._id) &&
           parseInt(insumo.id_product) === parseInt(this.idprod)
       );
+    },
+    isButtonDisabled() {
+      return this.selectedInsumoBase === null || this.selectedInsumoBase === undefined;
     },
   },
 
@@ -534,13 +537,25 @@ export default {
           html: msg,
           type: "warning",
         });
-      } else {
-        this.overlay = true;
+        return;
+      }
 
-        const data = new URLSearchParams();
-        data.set("id_departamento", this.iddep);
-        data.set("insumo", this.nuevoInsumo);
-        data.set("id_product", this.idprod);
+      if (!this.item || !this.item._id) {
+        console.log("item:", this.item);
+        this.$fire({
+          title: "Error",
+          html: `Producto no disponible o sin ID. Intente recargar la página.`,
+          type: "error",
+        });
+        return;
+      }
+
+      this.overlay = true;
+
+      const data = new URLSearchParams();
+      data.set("id_departamento", this.iddep);
+      data.set("insumo", this.nuevoInsumo);
+      data.set("id_product", this.item._id);
 
         await this.$axios
           .post(`${this.$config.API}/catalogo-insumos-productos`, data)
@@ -563,7 +578,6 @@ export default {
             this.nuevoInsumo = "";
             this.overlay = false;
           });
-      }
     },
 
     async saveAllAssignments() {
@@ -700,7 +714,7 @@ export default {
 
 
   mounted() {
-    this.tiempo = this.clacTimeProduction();
+    this.tiempo = this.tiempoInicial || this.clacTimeProduction();
   },
 
   props: [
@@ -712,6 +726,7 @@ export default {
     "selecttallas",
     "tiemposprod",
     "item",
+    "tiempoInicial",
   ],
 };
 </script>

@@ -144,7 +144,7 @@ import { log } from "console";
 export default {
   data() {
     return {
-      includedFields: ["orden"],
+      includedFields: ["first_name", "last_name", "cedula", "email", "phone", "address"],
       filter: null,
       ordenesLength: 0,
       perPage: 25,

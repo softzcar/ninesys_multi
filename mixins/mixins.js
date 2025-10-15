@@ -38,26 +38,10 @@ export default {
       await this.$axios
         .post(`${this.$config.API}/ws/build-message`, data)
         .then((res) => {
-          if (res.data.result_msg.error) {
-            this.$fire({
-              title: "No se pudo enviar el mensaje",
-              html: `<p>${res.data.result_msg.error}</p>`,
-              type: "error",
-            });
-          } else {
-            this.$fire({
-              title: "El mensaje ha sido enviado",
-              html: `<p></p>`,
-              type: "success",
-            });
-          }
+            console.log("Mensaje enviado correctamente.");
         })
         .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<p>No se pudo enviar el mensaje</p><p>${err}</p>`,
-            type: "warning",
-          });
+          console.error("Error en la solicitud de envío de mensaje:", err);
         })
         .finally(() => {
           this.overlay = false;

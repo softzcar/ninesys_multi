@@ -153,7 +153,7 @@
               <th style="text-align: center">TALLA</th>
               <th>CORTE</th>
               <th>TELA</th>
-              <th>ATRIBUTO</th>
+              <th>ATRIBUTOS</th>
               <th
                 class="hideMe"
                 v-if="
@@ -195,7 +195,14 @@
                   </td>
                   <td>{{ product.corte }}</td>
                   <td>{{ product.tela }}</td>
-                  <td>{{ product.atributo_nombre || 'N/A' }}</td>
+                  <td>
+                    <ul v-if="productAttributesMap[product.cod] && productAttributesMap[product.cod].length" style="padding-left: 15px; margin-bottom: 0; list-style-type: disc;">
+                      <li v-for="(attr, index) in productAttributesMap[product.cod]" :key="index">
+                        {{ attr.attribute_value.split('(')[0].trim() }}
+                      </li>
+                    </ul>
+                    <span v-else>N/A</span>
+                  </td>
                   <td
                     class="hideMe"
                     v-if="
@@ -225,7 +232,7 @@
               </template>
             </table>
 
-            <div class="izquierda">
+            <div class="izquierda" style="margin-top: 2rem;">
               <h2>
                 TOTAL PRODUCTOS:
                 {{ totalProductos(resOrden.productos, "cantidad") }}
@@ -275,6 +282,15 @@
                 <hr>
                 <h3 class="text-center">Diseño Aprobado</h3>
                 <b-img-lazy :src="tmpImage" class="mt-4" fluid-grow></b-img-lazy>
+                <hr>
+              </div>
+              <div v-else>
+                <hr>
+                <b-alert variant="light" show class="text-center">
+                  <b-icon icon="image"></b-icon>
+                  <strong>No hay imagen aprobada</strong><br>
+                  Esta orden aún no tiene un diseño aprobado.
+                </b-alert>
                 <hr>
               </div>
 
@@ -348,6 +364,20 @@ export default {
     ...mapState("login", ["access", "dataUser", "dataEmpresa", "tasas"]),
     ...mapGetters("buscar", ["resOrden"]),
     ...mapState("buscar", ["observaciones"]),
+
+    productAttributesMap() {
+      const map = {};
+      if (this.resOrden && this.resOrden.atributos_prodcutos) {
+        for (const attr of this.resOrden.atributos_prodcutos) {
+          if (!map[attr.id_product]) {
+            map[attr.id_product] = [];
+          }
+          map[attr.id_product].push(attr);
+        }
+      }
+      return map;
+    },
+
     orderId() {
       // Usa el prop 'id' si está disponible, si no, usa el de la ruta.
       return this.id || this.$route.params.id;
@@ -426,7 +456,7 @@ export default {
     async getImagenAprobada(idOrden) {
       this.$axios
         .get(
-          `${this.$config.CDN}/?id_orden=${idOrden}&id_empresa=${this.$store.state.login.dataEmpresa.id}`
+          `${this.$config.CDN}/?id_orden=${idOrden}&id_empresa=${this.$store.state.login.dataEmpresa.id}&aprobada=true`
         )
         .then((res) => {
           if (res.data.url === 'images/no-image.png') {
@@ -594,6 +624,7 @@ h3 {
 
 .table-products tr td {
   padding: 0.25rem 0.4rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 @media print {

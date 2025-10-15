@@ -32,6 +32,22 @@
                     </b-col>
                 </b-row>
 
+                <b-row class="mt-3 mb-3">
+                    <b-col>
+                        <h5>Filtrar por tipo de producto:</h5>
+                        <b-form-radio-group id="btn-radios-type" v-model="selectedType" :options="optionsType"
+                            button-variant="outline-primary" size="lg" name="radio-btn-type" buttons></b-form-radio-group>
+                    </b-col>
+                </b-row>
+
+                <b-row class="mt-3 mb-3">
+                    <b-col>
+                        <b-button variant="primary" @click="guardarTodosLosCambios" :disabled="!hayCambios">
+                            Guardar Todos los Cambios
+                        </b-button>
+                    </b-col>
+                </b-row>
+
                 <b-row>
                     <b-col>
                         <h2 class="mt-4">{{ departamentoTit }}</h2>
@@ -45,7 +61,8 @@
                             :filter="filter">
                             <template #cell(comision)="data">
                                 <admin-ComisionesProductosInputGeneral :iddep="departamento" :key="data.item.cod"
-                                    :item="data.item" :seldep="departamentosSelect" @reload="loadData" />
+                                    :item="data.item" :seldep="departamentosSelect"
+                                    @update-comision="actualizarComisionEnData" />
                             </template>
 
                             <template #cell(categories)="data">
@@ -80,6 +97,12 @@ export default {
             departamentos: [],
             departamentosSelect: [],
             productsSelect: [],
+            selectedType: "todos",
+            optionsType: [
+                { text: "Todos", value: "todos" },
+                { text: "Físicos", value: "fisicos" },
+                { text: "Digitales", value: "digitales" },
+            ],
             fields: [
                 {
                     key: "name",
@@ -90,6 +113,7 @@ export default {
                     label: "comision",
                 },
             ],
+            cambios: {}, // Objeto para registrar los cambios pendientes
         }
     },
 
@@ -98,20 +122,26 @@ export default {
             // ACTUALIZAR EL TITULO DEL DEPARTAMENTO SELECCIONADO
             const tmpDep = this.departamentosSelect.find(el => el.value === val)
             this.departamentoTit = tmpDep.text
-
+            this.selectedType = "todos"
+            this.applyFilters()
         },
 
         totalRows() {
             // ACTUALIZAR EL TITULO DEL DEPARTAMENTO SELECCIONADO
             const tmpDep = this.departamentosSelect.find(el => el.value === this.departamento)
             this.departamentoTit = tmpDep.text
+        },
+
+        selectedType() {
+            this.applyFilters()
         }
     },
 
     computed: {
-        /* productsOrdered() {
-            return this.products.sort(this.compareNames)
-        }, */
+        hayCambios() {
+            return Object.keys(this.cambios).length > 0
+        },
+
         totalRows() {
             return parseInt(this.dataLength) + 1
         },
@@ -127,7 +157,10 @@ export default {
         async loadData() {
             this.overlay = true
             await this.getDepartamentos()
-            await this.getProducts().then(() => this.productsTable = this.products)
+            await this.getProducts().then(() => {
+                this.productsTable = this.products
+                this.applyFilters()
+            })
             this.overlay = false
         },
 
@@ -213,6 +246,93 @@ export default {
                     this.products = res.data.data
                 })
         }, */
+
+        actualizarComisionEnData(payload) {
+            // payload es { id_producto: ..., comision: ... }
+
+            // Actualizamos el valor en la data local para que la UI sea consistente
+            const producto = this.products.find(p => p.cod === payload.id_producto)
+            if (producto) {
+                // Esto es opcional, pero mantiene la data del padre sincronizada
+                // por si se necesita en el futuro.
+            }
+
+            // Registramos el cambio en nuestro objeto de cambios pendientes
+            // Usamos el id_producto como clave para no tener duplicados
+            this.$set(this.cambios, payload.id_producto, payload.comision)
+
+            // Forzamos la reactividad si es necesario (Vue 2)
+            this.$forceUpdate()
+        },
+
+        applyFilters() {
+            let filtered = [...this.productsTable] // Start from the original products
+
+            // Filter by product type
+            if (this.selectedType === "fisicos") {
+                filtered = filtered.filter(product => product.producto_fisico === 1)
+            } else if (this.selectedType === "digitales") {
+                filtered = filtered.filter(product => product.producto_fisico === 0)
+            }
+
+            this.products = filtered
+            this.dataLength = filtered.length
+            this.currentPage = 1
+        },
+
+        async guardarTodosLosCambios() {
+            this.overlay = true
+
+            // Convertimos nuestro objeto de cambios a un array que la API pueda procesar
+            const loteDeCambios = Object.keys(this.cambios).map(idProducto => {
+                return {
+                    id_product: idProducto,
+                    id_departamento: this.departamento, // El departamento actual
+                    comision: this.cambios[idProducto],
+                }
+            })
+
+            // --- IMPORTANTE: Modificación en el Backend ---
+            // El endpoint actual (`/product-set-comision-producto`) procesa un solo cambio.
+            // Lo ideal es crear un NUEVO ENDPOINT que acepte un lote.
+            // Ej: POST /product-set-comisiones-batch
+
+            // --- CAMBIO AQUÍ: Construir URLSearchParams con JSON.stringify --- 
+            const params = new URLSearchParams()
+            params.set('comisiones', JSON.stringify(loteDeCambios)) // <--- ESTE ES EL CAMBIO CLAVE
+            // --- FIN CAMBIO ---
+
+            await this.$axios
+                .post(
+                    `${this.$config.API}/product-set-comisiones-batch`,
+                    params.toString(), // Envía el string de URLSearchParams
+                    {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded' // Especifica el Content-Type
+                        }
+                    }
+                )
+                .then(res => {
+                    this.$fire({
+                        title: "Éxito",
+                        html: "Se guardaron todas las comisiones.",
+                        type: "success",
+                    })
+                    this.cambios = {} // Limpiamos los cambios pendientes
+                    this.loadData() // Recargamos los datos desde la fuente original
+                })
+                .catch(err => {
+                    console.error("Error al guardar en lote:", err)
+                    this.$fire({
+                        title: "Error",
+                        html: "No se pudieron guardar los cambios.",
+                        type: "error",
+                    })
+                })
+                .finally(() => {
+                    this.overlay = false
+                })
+        },
     },
 
     mounted() {

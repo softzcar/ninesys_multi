@@ -22,7 +22,7 @@
         <b-button
           class="mr-2"
           @click="asignarEmpleado"
-          variant="light"
+          variant="success"
         >
           <b-icon icon="plus-lg"></b-icon> Añadir Empleado
         </b-button>
@@ -45,15 +45,6 @@
       </b-form-group>
 
       <b-form-group id="button-group-1">
-        <b-button
-          class="mr-2"
-          :disabled="saveDisabled"
-          @click="guararComisiones"
-          variant="success"
-        >
-          Guardar
-        </b-button>
-
         <span class="porcentaje">Total porcentaje {{ calculoPorcentaje }}%</span>
       </b-form-group>
     </b-form>
@@ -291,12 +282,12 @@ export default {
 
         try {
           await Promise.all(updatePromises);
-          this.$fire({
+          this.$bvToast.toast("Se guardaron las comisiones de los empleados.", {
             title: "Asignación Guardada",
-            html: `<p>Se guardaron las comisiones de los empleados.</p>`,
-            type: "success",
+            variant: "success",
+            solid: true,
           });
-          this.$emit("assignments-updated", this.form);
+          this.$emit("assignments-updated", this.form, this.item._id, this.idorden);
         } catch (error) {
           console.error("Una o más asignaciones fallaron", error);
         } finally {
@@ -341,6 +332,7 @@ export default {
           this.form = arr1;
           this.empleado = null;
         }
+        this.guararComisiones(); // Guardar automáticamente después de añadir
       }
     },
 
@@ -359,11 +351,7 @@ export default {
       await this.$axios
         .post(`${this.$config.API}/lotes/empleados/reasignar`, data)
         .then((res) => {
-          this.$fire({
-            title: "Asignación correcta",
-            html: `<p></p>`,
-            type: "success",
-          });
+          // console.log("Asignación correcta para empleado:", idEmpleado); // Opcional: para depuración
 
           // this.$nuxt.$emit("reload")
           // this.$store.dispatch('produccion/getPorcentaje2', this.item.id_orden)
@@ -374,11 +362,7 @@ export default {
           this.deleteEmpleado(idEmpleado).then(() => {
             this.removeItem(index);
           });
-          this.$fire({
-            title: "Error",
-            html: `<p>No se pudo asignar el empleado</p><p>${err}</p>`,
-            type: "error",
-          });
+          console.error("Error al asignar el empleado:", idEmpleado, err);
         })
         .finally(() => {
           this.overlay = false;

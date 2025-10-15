@@ -59,6 +59,7 @@ export default {
     data() {
         return {
             max: 100,
+            overlay: false, // Definir la propiedad overlay
         };
     },
 

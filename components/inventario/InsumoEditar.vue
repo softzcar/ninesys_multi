@@ -165,7 +165,6 @@ export default {
                 { value: "Kg", text: "Kilos" },
                 { value: "Und", text: "Unidades" },
             ],
-            departamentOptions: this.$config.DEPARTAMENT_OPTIONS,
             size: "md",
             title: "Editar Insumo",
             overlay: false,
@@ -204,6 +203,14 @@ export default {
             });
             options.unshift({ value: null, text: "Seleccione un producto" });
             return options;
+        },
+        departamentOptions() {
+            return [...this.$store.state.login.departamentos]
+                .sort((a, b) => a.departamento.localeCompare(b.departamento))
+                .map(dep => ({
+                    value: dep.departamento,
+                    text: dep.departamento
+                }));
         },
     },
 

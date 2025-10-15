@@ -56,21 +56,21 @@
             @submit.prevent="onSubmit"
           >
             <b-row>
-              <b-col>
+              <b-col class="col-12 col-md-4">
                 <h3>Fecha Inicio</h3>
                 <b-form-datepicker
                   class="mb-4"
                   v-model="fechaConsultaInicio"
                 />
               </b-col>
-              <b-col>
+              <b-col class="col-12 col-md-4">
                 <h3>Fecha Fin</h3>
                 <b-form-datepicker
                   class="mb-4"
                   v-model="fechaConsultaFin"
                 />
               </b-col>
-              <b-col class="mb-4 pb-4" v-if="
+              <b-col class="col-12 col-md-4 mb-4 pb-4" v-if="
                 this.$store.state.login.dataUser
                   .departamento === 'Administración'
               ">
@@ -141,29 +141,43 @@
             </template>
 
             <template #cell(acc)="data">
-              <div style="float: left; margin-right: 6px">
-                <diseno-view-image
-                  :index="data.index"
-                  class="floatme mb-2"
-                  :id="data.item.orden"
-                />
-              </div>
-              <div style="float: left; margin-right: 6px">
-                <ordenes-editar
-                  :index="data.index"
-                  :key="data.item.orden"
-                  :data="data.item"
-                />
-              </div>
-              <div style="float: left; margin-right: 6px">
-                <ordenes-abono
-                  :index="data.index"
-                  :key="data.item.orden"
-                  :idorden="data.item.orden"
-                  :item="filterPago(data.item.orden)"
-                  :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
-                  @reload="reloadMe()"
-                />
+              <div class="acciones-container">
+                <div class="botones-superior">
+                  <div class="btn-acciones">
+                    <diseno-view-image
+                      :index="data.index"
+                      class="floatme mb-2"
+                      :id="data.item.orden"
+                    />
+                  </div>
+                  <div class="btn-acciones">
+                    <ordenes-editar
+                      :index="data.index"
+                      :key="data.item.orden"
+                      :data="data.item"
+                    />
+                  </div>
+                  <div class="btn-acciones d-lg-none text-left">
+                    <ordenes-abono
+                      :index="data.index"
+                      :key="data.item.orden"
+                      :idorden="data.item.orden"
+                      :item="filterPago(data.item.orden)"
+                      :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
+                      @reload="reloadMe()"
+                    />
+                  </div>
+                </div>
+                <div class="abono-inferior d-lg-block">
+                  <ordenes-abono
+                    :index="data.index"
+                    :key="data.item.orden"
+                    :idorden="data.item.orden"
+                    :item="filterPago(data.item.orden)"
+                    :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
+                    @reload="reloadMe()"
+                  />
+                </div>
               </div>
             </template>
           </b-table>
@@ -419,3 +433,38 @@ export default {
   mixins: [mixin],
 };
 </script>
+
+<style scoped>
+@media (min-width: 992px) {
+  .acciones-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .botones-superior {
+    display: flex;
+    flex-direction: row;
+  }
+  .abono-inferior {
+    margin-left: 20px;
+  }
+}
+@media (max-width: 991px) {
+  .acciones-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .botones-superior {
+    display: flex;
+    justify-content: flex-start;
+  }
+  .abono-inferior {
+    margin-top: 16px;
+  }
+  .btn-acciones {
+    float: none !important;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+}
+</style>

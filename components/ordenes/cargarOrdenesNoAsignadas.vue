@@ -2,6 +2,7 @@
   <div>
     <b-button
       variant="warning"
+      class="w-100 w-md-auto"
       @click="$bvModal.show(modal)"
     >
       Cargar Orden no Asignada

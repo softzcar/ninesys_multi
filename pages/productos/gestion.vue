@@ -96,7 +96,7 @@
                   <template #cell(cod)="data">
                     <span class="floatme">
                       <products-ProductEditar
-                        :key="data.item.cod"
+                        :key="`${data.item.cod}-${productEditKey}`"
                         @reload="getProducts"
                         :data="data.item"
                       />
@@ -301,6 +301,7 @@ export default {
       await this.$axios.get(`${this.$config.API}/products`).then((resp) => {
         this.dataTable = resp.data;
         this.productsLength = this.dataTable.length;
+        this.productEditKey += 1; // Forzar re-renderizado de componentes hijos
         this.overlay = false;
       });
     },

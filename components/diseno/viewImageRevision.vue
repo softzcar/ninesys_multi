@@ -33,7 +33,15 @@
           <b-row>
             <b-col> </b-col>
           </b-row>
-          <b-row>
+          <b-row v-if="showNoImageAlert">
+            <b-col>
+              <b-alert variant="info" show>
+                <b-icon icon="info-circle"></b-icon>
+                No se ha encontrado una imagen aprobada para esta orden.
+              </b-alert>
+            </b-col>
+          </b-row>
+          <b-row v-else>
             <b-col>
               <div class="image-container">
                 <img
@@ -65,12 +73,13 @@ export default {
       newImage: null,
       overlay: false,
       size: "lg",
-      title: "Imágen del diseño",
+      title: "Imágen aprobada",
       imageWidth: "100%",
       imageHeight: "auto",
       imageUrl: `${this.$config.CDN}/images/no-image.png`,
       actionURL: "",
       msgAprobacion: "",
+      showNoImageAlert: false,
 
       // ANTIGUO
       titulo: "",
@@ -103,8 +112,10 @@ export default {
         .get(`${this.$config.API}/revision/image/${this.id}`)
         .then((res) => {
           if (res.data.url_image == null) {
+            this.showNoImageAlert = true;
             this.imageUrl = `${this.$config.CDN}/images/no-image.png`;
           } else {
+            this.showNoImageAlert = false;
             this.imageUrl = res.data.url_image;
           }
 
@@ -113,6 +124,7 @@ export default {
         })
         .catch((err) => {
           console.error(`El cdn respondio con un error`, err);
+          this.showNoImageAlert = true;
           this.imageUrl = [`${this.$config.API}/images/no-image.png`];
         });
     },
@@ -136,6 +148,7 @@ export default {
 
   mounted() {
     this.overlay = true;
+    this.showNoImageAlert = false;
     this.titulo = `Imagen de la orden ${this.id}`;
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
       if (this.modalView === modalId) {

@@ -30,6 +30,29 @@
         spinner-small
       >
 
+        <!-- Alerta cuando faltan impresoras o insumos -->
+        <b-alert
+          v-if="$store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion"
+          show
+          variant="warning"
+          class="mb-4"
+        >
+          <h5 class="alert-heading">
+            <b-icon icon="exclamation-triangle"></b-icon>
+            {{ !hayImpresoras ? 'No hay impresoras configuradas' : 'No hay insumos de impresión disponibles' }}
+          </h5>
+          <div class="mb-0">
+            <p v-if="!hayImpresoras">
+              No se pueden asignar tintas porque no existen impresoras configuradas en el sistema.
+              Contacte al administrador para configurar las impresoras.
+            </p>
+            <p v-if="!hayInsumosImpresion">
+              No se pueden asignar tintas porque no existen insumos de impresión disponibles en el inventario.
+              Contacte al administrador para agregar insumos de impresión.
+            </p>
+          </div>
+        </b-alert>
+
         <!-- Formulario de Impresión -->
         <!-- <div
                     v-if="
@@ -49,15 +72,15 @@
               label="Impresora:"
               label-for="impresora-select"
             >
-            <!-- Impresoras -->
+              <!-- Impresoras -->
               <b-form-select
                 id="impresora-select"
                 v-model="formImp.id_impresora"
                 :options="impresorasOptions"
+                :disabled="!puedeUsarModalImpresion"
                 required
               ></b-form-select>
             </b-form-group>
-
 
             <!-- Tintas -->
             <b-form-group
@@ -72,6 +95,7 @@
                 type="number"
                 step="0.01"
                 min="0"
+                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
                 class="cyan-label"
               ></b-form-input>
 
@@ -82,6 +106,7 @@
                 type="number"
                 step="0.01"
                 min="0"
+                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
                 class="magenta-label"
               ></b-form-input>
 
@@ -92,6 +117,7 @@
                 type="number"
                 step="0.01"
                 min="0"
+                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
                 class="yellow-label"
               ></b-form-input>
 
@@ -102,6 +128,7 @@
                 type="number"
                 step="0.01"
                 min="0"
+                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
                 class="black-label"
               ></b-form-input>
 
@@ -113,16 +140,44 @@
                 type="number"
                 step="0.01"
                 min="0"
+                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
                 class="white-label"
               ></b-form-input>
             </b-form-group>
           </div>
-          <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO -->
-          <div v-if="
+          <!-- INPUT DE DESPERDICIO PARA CORTE (SIEMPRE VISIBLE) -->
+          <div v-if="$store.state.login.currentDepartament === 'Corte'">
+            <p>Peso del desperdicio en kilos</p>
+            <b-form-input
+              id="input-13"
+              v-model="desperdicioCorte"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Peso desperdicio"
+              required
+              class="mb-2"
+            ></b-form-input>
+          </div>
+          <!-- <div v-if="$store.state.login.currentDepartament === 'Corte'">
+            <b-form-group label="Peso del desperdicio en kilos" label-for="desperdicio-corte">
+              <b-form-input
+                id="desperdicio-corte"
+                v-model="desperdicioCorte"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ingrese el peso del desperdicio"
+                required
+              />
+            </b-form-group>
+          </div> -->
+
+          <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (SOLO PARA ESTAMPADO Y CORTE PAPEL CUANDO ESTÉ CONFIGURADO) -->
+          <div v-if="showSelect && (
               $store.state.login.currentDepartament === 'Estampado' ||
-              $store.state.login.currentDepartament === 'Corte' ||
               $store.state.login.currentDepartament === 'Corte papel'
-            ">
+            )">
             <p>
               <strong>Papel Utilizado:</strong>
               {{ papelUtilizado }} Metros
@@ -137,14 +192,6 @@
               <strong>Material Utilizado:</strong>
               {{ materialUtilizado }} Metros
             </p>
-
-            <!-- <p
-                            v-html="
-                                calcularPorcentajeDiferenciaTela(
-                                    eficienciaEstimada
-                                )
-                            "
-                        ></p> -->
 
             <p>
               <empleados-materialesLista
@@ -205,19 +252,6 @@
                   class="mt-2 mb-4"
                 ></b-form-input>
 
-                <div v-if="$store.state.login.currentDepartament === 'Corte'">
-                  <p>Peso del desperdicio en kilos</p>
-                  <b-form-input
-                    id="input-13"
-                    v-model="form[row.index].desperdicio"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Peso desperdicio"
-                    required
-                    class="mb-2"
-                  ></b-form-input>
-                </div>
               </template>
 
               <template #cell(id)="row">
@@ -243,13 +277,12 @@
           </div>
 
           <b-button
-            :disbaled="ButtonDisabled"
+            :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
             @click="validateForm"
-            ButtonDisabled
             variant="primary"
           >Enviar</b-button>
           <b-button
-            :disbaled="ButtonDisabled"
+            :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
             type="reset"
             variant="danger"
           >Borrar</b-button>
@@ -261,7 +294,7 @@
 
 <script>
 import eficienciaInsumoMixin from "~/mixins/mixin-insumos";
-import mixin from '~/mixins/mixins.js';
+import mixin from "~/mixins/mixins.js";
 export default {
   mixins: [eficienciaInsumoMixin, mixin],
   data() {
@@ -302,6 +335,7 @@ export default {
       datosEficiencia: {},
       eficienciaCalculada: null,
       intentoDeCalculo: false,
+      desperdicioCorte: 0,
     };
   },
 
@@ -403,10 +437,8 @@ export default {
       return options;
     },
 
-    
-
     impresorasOptions() {
-      console.log('impresoras prop in impresorasOptions:', this.impresoras);
+      console.log("impresoras prop in impresorasOptions:", this.impresoras);
       if (!this.impresoras || this.impresoras.length === 0) {
         return [{ value: null, text: "No hay impresoras disponibles" }];
       }
@@ -428,7 +460,19 @@ export default {
       const selectedPrinter = this.impresoras.find(
         (imp) => imp._id === this.formImp.id_impresora
       );
-      return selectedPrinter && selectedPrinter.tipo_tecnologia === 'CMYK+W';
+      return selectedPrinter && selectedPrinter.tipo_tecnologia === "CMYKW";
+    },
+
+    hayImpresoras() {
+      return this.impresoras && this.impresoras.length > 0;
+    },
+
+    hayInsumosImpresion() {
+      return this.insumosimp && this.insumosimp.length > 0;
+    },
+
+    puedeUsarModalImpresion() {
+      return this.hayImpresoras && this.hayInsumosImpresion;
     },
   },
 
@@ -452,11 +496,13 @@ export default {
     },
 
     filterPausa(idOrden) {
-      console.log("ID para filtar la pausa", idOrden);
-
-      return this.pausas.filter((el) => el.id_orden == idOrden);
       return this.pausas.filter((el) => el.id_orden == idOrden);
     },
+
+    // filterPausa(idOrden) {
+    //   console.log("ID para filtar la pausa", idOrden);
+    //   return this.pausas.filter((el) => el.id_orden == idOrden);
+    // },
 
     getId(value) {
       if (value) {
@@ -578,6 +624,7 @@ export default {
 
     clearForms() {
       this.form = [];
+      this.desperdicioCorte = 0;
       this.formImp = {
         colorCyan: "",
         colorMagenta: "",
@@ -604,16 +651,30 @@ export default {
     // VALIDACIÓN DE FORMULARIOS
     validateForm() {
       let ok = true;
-      if (this.showSelect) { 
+      if (this.showSelect) {
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
-          console.log('valor de select impresora', this.formImp.id_impresora);
-          if (this.formImp.id_impresora === null) {
-            
+          // Verificar si hay impresoras e insumos configurados
+          if (!this.puedeUsarModalImpresion) {
             ok = false;
-            msg = msg + "<p>Seleccione una impresora</p>";
-          } 
+            if (!this.hayImpresoras) {
+              msg =
+                msg +
+                "<p>No hay impresoras configuradas en el sistema. Contacte al administrador.</p>";
+            }
+            if (!this.hayInsumosImpresion) {
+              msg =
+                msg +
+                "<p>No hay insumos de impresión disponibles en el inventario. Contacte al administrador.</p>";
+            }
+          } else {
+            console.log("valor de select impresora", this.formImp.id_impresora);
+            if (this.formImp.id_impresora === null) {
+              ok = false;
+              msg = msg + "<p>Seleccione una impresora</p>";
+            }
+          }
 
           if (
             parseFloat(this.formImp.colorCyan) <= 0 ||
@@ -647,23 +708,23 @@ export default {
             msg = msg + "<p>Ingrese la cantidad de tinta Black</p>";
           }
 
-          if (this.showWhiteInkField && (
-            this.formImp.colorWhite.trim() === "" ||
-            parseFloat(this.formImp.colorWhite) <= 0
-          )) {
+          if (
+            this.showWhiteInkField &&
+            (this.formImp.colorWhite.trim() === "" ||
+              parseFloat(this.formImp.colorWhite) <= 0)
+          ) {
             ok = false;
             msg = msg + "<p>Ingrese la cantidad de tinta White</p>";
           }
         }
 
         if (this.$store.state.login.currentDepartament === "Corte") {
-          // VALIDAR DESPERDICIO
-          const errDesperdicio = this.form.find((el) => el.desperdicio === 0);
-
-          if (errDesperdicio) {
+          // VALIDAR DESPERDICIO DEL CORTE
+          if (this.desperdicioCorte === null || this.desperdicioCorte === "") {
             ok = false;
-            msg = msg + "<p>Ingrese el peso del desperdicio</p>";
+            msg = msg + "<p>Ingrese el peso del desperdicio del corte</p>";
           }
+          // Si es 0, permitir pero con confirmación
         }
 
         if (this.form.length === 0) {
@@ -693,18 +754,33 @@ export default {
 
           // ok = false;
         } else {
-          if (this.$store.state.login.currentDepartament === "Impresión") {
-            this.postImp();
+          // Validación especial para Corte: confirmar si desperdicio es 0
+          if (
+            this.$store.state.login.currentDepartament === "Corte" &&
+            this.desperdicioCorte === 0
+          ) {
+            this.$confirm(
+              "¿Está seguro que desea enviar el desperdicio con valor 0? Esto significa que no hubo desperdicio de material.",
+              "Confirmar desperdicio",
+              "question"
+            )
+              .then(() => {
+                // Usuario confirmó, continuar con el envío
+                this.terminarTodo();
+                this.$emit("reload");
+              })
+              .catch(() => {
+                // Usuario canceló, no hacer nada
+                return false;
+              });
+          } else {
+            // Validación normal o desperdicio > 0
+            if (this.$store.state.login.currentDepartament === "Impresión") {
+              this.postImp();
+            }
+            this.terminarTodo();
+            this.$emit("reload");
           }
-
-          /* if (
-                        this.$store.state.login.currentDepartament === "Corte"
-                    ) {
-                        // Enviar desperdicio
-                        this.rendimiento(this.formCor.input, this.idorden);
-                    } */
-          this.terminarTodo();
-          this.$emit("reload");
         }
       } else {
         // Enviar solo el formulario aqui
@@ -897,8 +973,12 @@ export default {
       await this.$axios
         .post(`${this.$config.API}/registrar-paso-empleado`, data)
         .then((res) => {
-          if (tipo === 'fin') {
-            this.sendMsgCustom(id_orden, 'paso', this.$store.state.login.currentDepartamentId);
+          if (tipo === "fin" && this.isLastDepartment()) {
+            this.sendMsgCustom(
+              id_orden,
+              "paso",
+              this.$store.state.login.currentDepartamentId
+            );
           }
           console.log("emitimos aqui...");
           this.$emit("reload", "true");
@@ -916,9 +996,45 @@ export default {
         });
     },
 
+    isLastDepartment() {
+      const departamentos = this.$store.state.login.departamentos;
+      if (!departamentos || departamentos.length === 0) {
+        return false;
+      }
+
+      const departamentosConPaso = departamentos.filter(
+        (dep) => dep.asignar_numero_de_paso
+      );
+
+      if (departamentosConPaso.length === 0) {
+        return false;
+      }
+
+      const maxOrdenProceso = Math.max(
+        ...departamentosConPaso.map((dep) => dep.orden_proceso)
+      );
+
+      const currentOrdenProceso = this.$store.state.login.currentOrdenProceso;
+
+      return currentOrdenProceso === maxOrdenProceso;
+    },
+
     terminarTodo() {
-            this.registrarEstado("fin", this.idorden, 0);
+      this.registrarEstado("fin", this.idorden, 0);
       // this.sendMsgCustom(this.idorden, 'fin', this.$store.state.login.currentDepartamentId);
+
+      // Para Corte, enviar el desperdicio único
+      if (this.$store.state.login.currentDepartament === "Corte") {
+        this.postInventarioMovimientos(
+          0, // cantidad consumida (no aplica para desperdicio)
+          null, // id insumo (no aplica)
+          null, // id catalogo (no aplica)
+          this.item.id_woo,
+          this.desperdicioCorte // desperdicio del corte
+        );
+      }
+
+      // Para otros departamentos, enviar los elementos del formulario
       this.form.forEach((el) => {
         console.log("Enviamos elemento del formulario", el);
 
@@ -1067,12 +1183,29 @@ export default {
     },
   },
 
+  watch: {
+    'formImp.id_impresora'(newVal, oldVal) {
+      // Limpiar los inputs de tintas cuando se cambia la impresora seleccionada
+      if (newVal !== oldVal) {
+        this.formImp.colorCyan = "";
+        this.formImp.colorMagenta = "";
+        this.formImp.colorYellow = "";
+        this.formImp.colorBlack = "";
+        this.formImp.colorWhite = "";
+      }
+    }
+  },
+
+
   mounted() {
     console.log("XXX", this.inusmosTodos);
 
     this.esReposicion = parseInt(this.esreposicion);
     this.clearForms();
-    console.log('formImp.id_impresora after clearForms:', this.formImp.id_impresora);
+    console.log(
+      "formImp.id_impresora after clearForms:",
+      this.formImp.id_impresora
+    );
 
     this.$root.$on("bv::modal::show", (bvEvent, modal) => {
       if (modal === this.modal) {
@@ -1088,6 +1221,12 @@ export default {
     } else {
       //  VEERIFICAR DEPARTAMENTOS
       const dep = this.$store.state.login.currentDepartament;
+
+      console.log("DEBUG - Modal Extra - Departamento actual:", dep);
+      console.log(
+        "DEBUG - Modal Extra - Configuración del sistema:",
+        this.$store.state.datasys.dataSys
+      );
 
       const showEstampado =
         this.$store.state.datasys.dataSys
@@ -1108,7 +1247,17 @@ export default {
         this.$store.state.datasys.dataSys
           .sys_mostrar_insumo_en_empleado_revision;
 
+      console.log("DEBUG - Modal Extra - showEstampado:", showEstampado);
+      console.log("DEBUG - Modal Extra - insumosest:", this.insumosest);
+      console.log(
+        "DEBUG - Modal Extra - insumosest length:",
+        this.insumosest ? this.insumosest.length : "undefined"
+      );
+
       if (dep === "Estampado" && showEstampado) {
+        console.log(
+          "DEBUG - Modal Extra - Activando showSelect para Estampado"
+        );
         this.showSelect = true;
       }
 
@@ -1128,6 +1277,8 @@ export default {
         this.showSelect = true;
       }
     }
+
+    console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
   },
 
   props: [

@@ -119,7 +119,7 @@ export default {
 
     async deleteImage() {
       this.overlay = true;
-      await this.$axios.delete(`${this.$config.CDN}/?id_orden=${this.item.id_orden}&id_empresa=${this.$store.state.login.dataEmpresa.id}`)
+      await this.$axios.delete(`${this.$config.CDN}/?id_orden=${this.item.id_orden}&id_empresa=${this.$store.state.login.dataEmpresa.id}&aprobada=true`)
         .then(res => {
           this.$fire({
             title: "Imagen Eliminada",
@@ -147,6 +147,7 @@ export default {
       let formData = new FormData();
 
       formData.append("file", this.newImage);
+      formData.append("aprobada", "true");
 
       await this.$axios
         .post(
@@ -165,7 +166,15 @@ export default {
               html: `<p>La imagen se ha subido correctamente.</p>`,
               type: "success",
             });
-            this.tmpImage = res.data.url;
+            // Actualizar la imagen mostrada con la nueva URL
+            let token = this.token();
+            // Si res.data.url ya incluye la URL completa del CDN, extraer solo la parte relativa
+            let imagePath = res.data.url;
+            if (imagePath.startsWith('https://')) {
+              // Extraer la parte relativa removiendo el dominio del CDN
+              imagePath = imagePath.replace(this.$config.CDN + '/', '');
+            }
+            this.tmpImage = `${this.$config.CDN}/${imagePath}?_=${token}`;
 
             this.$emit("reload", "true");
             this.$emit("button", false);
@@ -188,7 +197,7 @@ export default {
     async getImages() {
       this.$axios
         .get(
-          `${this.$config.CDN}/?id_orden=${this.item.id_orden}&id_empresa=${this.$store.state.login.dataEmpresa.id}`
+          `${this.$config.CDN}/?id_orden=${this.item.id_orden}&id_empresa=${this.$store.state.login.dataEmpresa.id}&aprobada=true`
         )
         .then((res) => {
           if (res.data.url === 'images/no-image.png') {

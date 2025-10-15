@@ -267,7 +267,7 @@ export default {
         // this.tmpImage = `${this.$config.CDN}/${res.data.url}?_=${token}`
 
         generateURL(id_orden, id_diseno, id_revision, id_disenador) {
-            return `${this.$config.CDN}/images/${this.$store.state.login.dataEmpresa.id}/${id_orden}/${id_orden}-${id_revision}-${id_disenador}.png?_=${this.token()}`
+            return `${this.$config.CDN}/images/${this.$store.state.login.dataEmpresa.id}/${id_orden}-${id_revision}.png?_=${this.token()}`
         },
 
         openModal() {

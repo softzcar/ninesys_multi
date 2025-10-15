@@ -750,6 +750,10 @@ export default {
         nuevoDescuento = this.floatMe(this.valueDescuento);
       }
 
+      // Asegurar que no haya NaN en los cálculos
+      if (isNaN(nuevoAbono)) nuevoAbono = 0;
+      if (isNaN(nuevoDescuento)) nuevoDescuento = 0;
+
       let resultado = total - abonado - descuento - nuevoAbono - nuevoDescuento;
 
       if (isNaN(resultado)) {
@@ -839,27 +843,31 @@ export default {
         parseFloat(this.form.montoDolaresPanama) +
         parseFloat(this.form.montoDolaresZelle);
 
-      // CALCULO EN PESOS
-      montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.tasas.peso_colombiano);
+      // CALCULO EN PESOS - Solo si tasas están cargadas
+      if (this.tasasCargadas && this.tasas.peso_colombiano > 0) {
+        montoPesos =
+          (parseFloat(this.form.montoPesosEfectivo) +
+            parseFloat(this.form.montoPesosTransferencia)) /
+          parseFloat(this.tasas.peso_colombiano);
+      } else {
+        montoPesos = 0;
+      }
 
-      // CALCULO EN BOLIVARES
-      montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.tasas.bolivar);
+      // CALCULO EN BOLIVARES - Solo si tasas están cargadas
+      if (this.tasasCargadas && this.tasas.bolivar > 0) {
+        montoBolivares =
+          (parseFloat(this.form.montoBolivaresEfectivo) +
+            parseFloat(this.form.montoBolivaresPagomovil) +
+            parseFloat(this.form.montoBolivaresPunto) +
+            parseFloat(this.form.montoBolivaresTransferencia)) /
+          parseFloat(this.tasas.bolivar);
+      } else {
+        montoBolivares = 0;
+      }
 
       // SUMATOORIA DE TODAS LAS MONEDAS
-      console.log("dolares", montoDolares);
-      console.log("pesos", montoPesos);
-      console.log("bolivares", montoBolivares);
       newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
       this.form.abono = newVal;
-      console.log("this.form.abono = ", newVal);
       return newVal;
     },
 

@@ -1,90 +1,38 @@
 # Reporte Frontend
 
-## martes, 26 de agosto de 2025
+## miércoles, 25 de septiembre de 2025
 
-Se ha realizado una jornada de desarrollo intensiva enfocada en la implementación de una nueva funcionalidad para la gestión de órdenes de producción por lotes, mejorando significativamente la eficiencia de los flujos de trabajo departamentales.
+### Tareas Realizadas
 
----
+#### 1. Refactorización de Lógica de Monedas y Tasas
+- **Resumen:** Se detectó un comportamiento incorrecto en la visualización de las tasas de cambio. Se refactorizó la lógica para mostrar mensajes claros al usuario según la configuración de monedas (sin monedas, solo dólar, o múltiples monedas). La lógica de validación se centralizó en la store de Vuex usando `getters` para ser consumida por múltiples componentes, eliminando código duplicado y mejorando la mantenibilidad.
+- **Logro:** Comportamiento consistente en toda la aplicación y un código más limpio y centralizado.
 
-### Implementación de Finalización de Lotes de Producción
+#### 2. Mejora de UX en Página de Retiros
+- **Resumen:** Se modificó la página de retiros para que, en caso de no haber fondos disponibles, se muestre una alerta informativa en lugar de un formulario vacío, guiando mejor al usuario.
+- **Logro:** La interfaz ahora es más clara y previene la confusión del usuario.
 
-El objetivo principal fue crear un sistema que permitiera a los empleados finalizar múltiples órdenes agrupadas en un lote con una sola acción, manejando los requerimientos específicos de cada departamento en cuanto al registro de consumo de materiales.
+#### 3. Corrección de Bug de Cálculo `NaN` en Abonos
+- **Resumen:** Se solucionó un bug crítico en la página de "Abonos" donde los totales se mostraban como `NaN`. El error se debía a cálculos que no manejaban valores nulos de las tasas de cambio. Se robustecieron los métodos de cálculo para prevenir el error.
+- **Logro:** Los cálculos en la sección de abonos ahora son seguros y muestran siempre un valor numérico correcto.
 
-#### Backend (API)
+#### 4. Corrección de Bug de Cálculo `NaN` en Reporte de Caja
+- **Resumen:** Se corrigió un bug similar en la página de "Reporte de Caja". Se identificó el componente correcto (`reporte-de-caja.vue`) y se arregló el método de cálculo `getTotal()` que contenía errores de lógica y de depuración.
+- **Logro:** Los totales del reporte ahora se calculan y muestran correctamente.
 
-Se realizó un trabajo considerable en la API para soportar la nueva lógica de negocio.
+#### 5. Mejora de UX en Recarga de Tintas
+- **Resumen:** Se implementó una validación en la página de recarga de tintas. Si no hay impresoras o tintas configuradas, ahora se muestra una alerta con enlaces directos a las páginas de gestión correspondientes.
+- **Logro:** La página ahora guía activamente al usuario para que complete la configuración necesaria antes de usar la funcionalidad.
 
-- **Endpoint Modificado: `POST /lotes/{id}/finalizar-departamento`**: Se solucionó un bug crítico de CORS y se adaptó para procesar un array de insumos, distribuyendo su consumo proporcionalmente.
-- **Nuevo Endpoint: `POST /lotes/{id}/finalizar-impresion`**: Creado para manejar los requerimientos únicos de Impresión, incluyendo consumo de papel y tintas.
-- **Nuevo Endpoint: `POST /lotes/{id}/finalizar-corte`**: Creado para el departamento de Corte, permitiendo registrar tanto el material consumido como el desperdicio.
+#### 6. Corrección de Error de Runtime en Control de Producción
+- **Resumen:** Se solucionó un error `TypeError` que rompía la aplicación en la página de control de producción. El problema era un acceso inseguro a propiedades de una respuesta de API que a veces no existían. Se blindó el código para manejar respuestas incompletas.
+- **Logro:** Se restauró la funcionalidad de la página de control de producción, evitando que la aplicación se detenga.
 
-#### Frontend (Interfaz de Usuario)
+#### 7. Corrección de Enlace en Recarga de Tintas
+- **Resumen:** Se corrigió un enlace roto en la nueva alerta de la página de recarga de tintas. Se ajustó la ruta del `router-link` y su estilo para que funcionara y se viera correctamente.
+- **Logro:** La funcionalidad de la alerta de guía ahora está completa y es 100% funcional.
 
-- **Nuevos Componentes:** Se crearon los modales `FinalizarLoteModal.vue`, `FinalizarLoteImpresionModal.vue`, y `FinalizarLoteCorteModal.vue` para cada flujo de trabajo.
-- **Componente Principal Modificado (`SseOrdenesAsignadasV4.vue`):** Se actualizó para funcionar como un "enrutador" que abre el modal correcto según el departamento y para limpiar la interfaz de tareas duplicadas.
+### Tareas Pendientes
 
-### Resumen de la Jornada (martes)
-
-- **Logros:**
-  - Sistema completo para creación y finalización de lotes implementado.
-  - Flujos de trabajo y endpoints especializados para Impresión y Corte desarrollados.
-  - 3 nuevos componentes modales en Vue.js creados.
-- **Tareas Pendientes:**
-  - **Pruebas a Fondo (Crítico):** Realizar pruebas exhaustivas de los nuevos flujos de finalización de lotes.
-
----
-
-## miércoles, 27 de agosto de 2025
-
-### Mejoras de Interfaz y Experiencia de Usuario (UX)
-- **Tarea:** Se implementaron estados de carga y error en la vista de resultados de búsqueda de órdenes (`resultado.vue`).
-- **Logro:** La interfaz ahora provee una retroalimentación visual clara al usuario mientras los datos de una orden se están cargando, cuando ocurre un error, y un mensaje específico para la carga de la sección de observaciones, mejorando significativamente la experiencia de usuario.
-
-### Análisis y Refactorización del Flujo de Lotes
-- **Tarea:** Se investigó a fondo el flujo de trabajo de los lotes de producción para solucionar un problema de visibilidad entre departamentos y se proveyó el código para la solución.
-- **Logro:** Se adaptó la lógica de la API para que los lotes fluyan correctamente entre departamentos. Se generó el código PHP completo para los siguientes endpoints, que el usuario actualizará manualmente:
-    - **`POST /lotes`**: Modificado para que al crear un lote se establezca correctamente el departamento creador y el departamento actual.
-    - **`POST /lotes/activos`**: Modificado para que los empleados vean los lotes asignados a su departamento actual, sin importar quién los creó.
-    - **`POST /lotes/{id}/finalizar-departamento`**: Modificado para que, al finalizar, el lote se transfiera al siguiente departamento en la línea de producción o se marque como completado si es el último paso.
-    - **`POST /lotes/{id}/finalizar-impresion`**: Lógica de transición de lotes idéntica a la anterior, pero para el flujo de impresión.
-    - **`POST /lotes/{id}/finalizar-corte`**: Lógica de transición de lotes idéntica a la anterior, pero para el flujo de corte.
-
-### Planificación de Nuevas Funcionalidades
-- **Tarea:** Se analizó la funcionalidad existente de "Pausa" para tareas individuales.
-- **Logro:** Se diseñó un plan de acción detallado para extender esta funcionalidad a los lotes de producción completos. El plan incluye los cambios necesarios tanto en el frontend como en el backend para permitir pausar y reanudar todas las órdenes de un lote de forma simultánea.
-
-### Resumen de la Jornada (miércoles)
-- **Logros Generales:**
-    - Mejora sustancial de la UX en un componente clave.
-    - Finalización del análisis y la codificación para una refactorización crítica del sistema de lotes.
-    - Planificación completa de la próxima funcionalidad a desarrollar (Pausa de Lotes).
-- **Tareas Pendientes:**
-    - **Implementar el plan de acción para la funcionalidad de "Pausar Lote".**
-    - **Realizar las pruebas exhaustivas de la implementación de finalización de lotes de ayer**, que aún no se han podido ejecutar.
-
----
-
-## jueves, 28 de agosto de 2025
-
-### Implementación y Depuración de Notificaciones por WhatsApp
-
-Se abordó la tarea de implementar una opción configurable para que el usuario decidiera si enviar o no un mensaje de bienvenida por WhatsApp al crear una nueva orden.
-
--   **Tarea:** Análisis del flujo de envío de mensajes existente.
--   **Logro:** Se determinó que el envío se gestiona en el backend a través de un microservicio externo, y se analizó el código de dicho servicio para entender su funcionamiento.
-
--   **Tarea:** Implementación de la opción en el frontend.
--   **Logro:** Se añadió una casilla de verificación en el componente `components/ordenes/nueva.vue`. Tras varias iteraciones para corregir bugs visuales y de comportamiento, la funcionalidad del lado del cliente quedó completada y robusta.
-
--   **Tarea:** Depuración de la comunicación con el microservicio de WhatsApp.
--   **Logro:** Se detectó un error persistente de `HTTP 400 Bad Request`. Para diagnosticarlo, se refactorizó el código de envío en `app/routes.php` para usar cURL, lo que mejoró la comunicación y nos dio errores más claros. Tras una larga sesión de depuración, se concluyó que el problema reside en una discrepancia entre el payload enviado y la forma en que el microservicio lo procesa, probablemente debido a factores externos al código PHP (cache, configuración del servidor Node.js). Se documentó todo el proceso en un log detallado.
-
-### Resumen de la Jornada (jueves)
-
--   **Logros Generales:**
-    -   Funcionalidad de frontend para el envío condicional de WhatsApp completada.
-    -   Se mejoró la comunicación del backend a cURL, haciéndola más robusta.
-    -   Se identificó y aisló un problema complejo en la comunicación con un microservicio externo.
--   **Tareas Pendientes:**
-    -   **Finalizar la depuración del envío de mensajes de WhatsApp**, investigando el microservicio de Node.js como se detalla en el log de hoy.
-    -   **Ejecutar el plan de pruebas de `PLAN_DE_PRUEBAS_LOTES.md`**, que sigue pendiente, para validar el nuevo flujo de finalización de lotes.
+- **Resolver Bug en Edición de Precios de Productos:**
+  - A pesar de una larga sesión de depuración y la corrección de múltiples bugs secundarios en 4 componentes distintos, persiste el problema principal: la edición de un precio existente resulta en la creación de un duplicado porque el `id` se pierde en el flujo de datos. La tarea quedó pendiente para ser retomada.

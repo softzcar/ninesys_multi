@@ -775,23 +775,31 @@ export default {
     totalAbono() {
       // CALCULO DOLARES
       const montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo) +
-        parseFloat(this.form.montoDolaresPanama) +
-        parseFloat(this.form.montoDolaresZelle);
+        parseFloat(this.form.montoDolaresEfectivo || 0) +
+        parseFloat(this.form.montoDolaresPanama || 0) +
+        parseFloat(this.form.montoDolaresZelle || 0);
 
       // CALCULO EN PESOS
-      const montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.tasas.peso_colombiano);
+      let montoPesos = 0;
+      const tasaPeso = parseFloat(this.tasas.peso_colombiano);
+      if (tasaPeso > 0) {
+        montoPesos =
+          (parseFloat(this.form.montoPesosEfectivo || 0) +
+            parseFloat(this.form.montoPesosTransferencia || 0)) /
+          tasaPeso;
+      }
 
       // CALCULO EN BOLIVARES
-      const montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.tasas.bolivar);
+      let montoBolivares = 0;
+      const tasaBolivar = parseFloat(this.tasas.bolivar);
+      if (tasaBolivar > 0) {
+        montoBolivares =
+          (parseFloat(this.form.montoBolivaresEfectivo || 0) +
+            parseFloat(this.form.montoBolivaresPagomovil || 0) +
+            parseFloat(this.form.montoBolivaresPunto || 0) +
+            parseFloat(this.form.montoBolivaresTransferencia || 0)) /
+          tasaBolivar;
+      }
 
       let total = montoDolares + montoPesos + montoBolivares;
 
@@ -895,9 +903,9 @@ export default {
 
     updateMontoAbono() {
       let newVal;
-      let montoBolivares;
-      let montoDolares;
-      let montoPesos;
+      let montoBolivares = 0;
+      let montoDolares = 0;
+      let montoPesos = 0;
 
       // LIMPIAR VALORES ERRONEOS
       if (this.form.montoBolivaresEfectivo === "")
@@ -926,26 +934,28 @@ export default {
         parseFloat(this.form.montoDolaresZelle);
 
       // CALCULO EN PESOS
-      montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.tasas.peso_colombiano);
+      const tasaPeso = parseFloat(this.tasas.peso_colombiano);
+      if (tasaPeso > 0) {
+        montoPesos =
+          (parseFloat(this.form.montoPesosEfectivo) +
+            parseFloat(this.form.montoPesosTransferencia)) /
+          tasaPeso;
+      }
 
       // CALCULO EN BOLIVARES
-      montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.tasas.bolivar);
+      const tasaBolivar = parseFloat(this.tasas.bolivar);
+      if (tasaBolivar > 0) {
+        montoBolivares =
+          (parseFloat(this.form.montoBolivaresEfectivo) +
+            parseFloat(this.form.montoBolivaresPagomovil) +
+            parseFloat(this.form.montoBolivaresPunto) +
+            parseFloat(this.form.montoBolivaresTransferencia)) /
+          tasaBolivar;
+      }
 
       // SUMATOORIA DE TODAS LAS MONEDAS
-      console.log("dolares", montoDolares);
-      console.log("pesos", montoPesos);
-      console.log("bolivares", montoBolivares);
       newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
       this.form.abono = newVal;
-      console.log("this.form.abono = ", newVal);
       return newVal;
     },
 
@@ -1125,17 +1135,25 @@ export default {
         parseFloat(this.abonoOrderForm.montoDolaresPanama || 0) +
         parseFloat(this.abonoOrderForm.montoDolaresZelle || 0);
 
-      let montoPesos =
-        (parseFloat(this.abonoOrderForm.montoPesosEfectivo || 0) +
-          parseFloat(this.abonoOrderForm.montoPesosTransferencia || 0)) /
-        parseFloat(this.tasas.peso_colombiano);
+      // CALCULO EN PESOS (solo si tasa existe y > 0)
+      let montoPesos = 0;
+      if (this.tasas.peso_colombiano && parseFloat(this.tasas.peso_colombiano) > 0) {
+        montoPesos =
+          (parseFloat(this.abonoOrderForm.montoPesosEfectivo || 0) +
+            parseFloat(this.abonoOrderForm.montoPesosTransferencia || 0)) /
+          parseFloat(this.tasas.peso_colombiano);
+      }
 
-      let montoBolivares =
-        (parseFloat(this.abonoOrderForm.montoBolivaresEfectivo || 0) +
-          parseFloat(this.abonoOrderForm.montoBolivaresPagomovil || 0) +
-          parseFloat(this.abonoOrderForm.montoBolivaresPunto || 0) +
-          parseFloat(this.abonoOrderForm.montoBolivaresTransferencia || 0)) /
-        parseFloat(this.tasas.bolivar);
+      // CALCULO EN BOLIVARES (solo si tasa existe y > 0)
+      let montoBolivares = 0;
+      if (this.tasas.bolivar && parseFloat(this.tasas.bolivar) > 0) {
+        montoBolivares =
+          (parseFloat(this.abonoOrderForm.montoBolivaresEfectivo || 0) +
+            parseFloat(this.abonoOrderForm.montoBolivaresPagomovil || 0) +
+            parseFloat(this.abonoOrderForm.montoBolivaresPunto || 0) +
+            parseFloat(this.abonoOrderForm.montoBolivaresTransferencia || 0)) /
+          parseFloat(this.tasas.bolivar);
+      }
 
       let total = montoDolares + montoPesos + montoBolivares;
       if (isNaN(total)) total = 0;

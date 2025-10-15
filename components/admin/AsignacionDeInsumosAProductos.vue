@@ -25,12 +25,13 @@
                 :key="dep._id"
                 :form="form"
                 :item="dep"
-                :idprod="item._id"
+                :idprod="item.cod"
                 :iddep="dep._id"
                 :tiemposprod="tiemposprod"
                 :insumosasignados="insumosasignados"
                 :selectinsumos="selectinsumos"
                 :selecttallas="selectTallas"
+                :tiempoInicial="getTiempo(item, dep._id)"
                 @reload="reloadParent"
               />
             </div>
@@ -76,6 +77,17 @@ export default {
     loadDataTab(idDepartamento) {
       this.$emit("reload");
       this.showDom = true;
+    },
+    getTiempo(product, depId) {
+      const tiempos = this.tiemposprod.filter(
+        (t) => t.id_product === product.cod && t.id_departamento === depId
+      );
+      const totalSegundos = tiempos.reduce(
+        (acc, t) => acc + parseInt(t.tiempo || 0),
+        0
+      );
+
+      return totalSegundos;
     },
     async loadTallas() {
       try {

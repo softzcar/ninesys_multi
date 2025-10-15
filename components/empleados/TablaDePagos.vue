@@ -258,13 +258,13 @@ export default {
             class: "text-center",
           },
           {
-            key: "total_productos",
+            key: "unidades",
             label: "UND",
             class: "text-center",
           },
           {
-            key: "cliente",
-            label: "CLIENTE",
+            key: "product",
+            label: "PRODUCTO",
           },
           /* {
             key: 'hora_inicio',
@@ -297,13 +297,13 @@ export default {
             class: "text-center",
           },
           {
-            key: "total_productos",
+            key: "unidades",
             label: "UND",
             class: "text-center",
           },
           {
-            key: "cliente",
-            label: "CLIENTE",
+            key: "product",
+            label: "PRODUCTO",
           },
           {
             key: "fecha_inicio",
@@ -388,60 +388,36 @@ export default {
 
     totalPendiente() {
       let comision = 0;
-      /* if (this.departamento === "Diseño") {
-                comision = this.ordenesPendientes.reduce((total, orden) => {
-                    if (orden.fecha_terminado === null) {
-                        total += parseFloat(orden.monto_pago);
-                    }
-                    return total;
-                }, 0);
-            } else if (
-                this.departamento === "Comercialización" ||
-                this.departamento === "Administración"
-            ) {
-                comision = this.ordenesPendientes.reduce((total, orden) => {
-                    total += parseFloat(orden.monto_pago);
-                    return total;
-                }, 0);
-            } else {
-                comision = this.ordenesPendientes.reduce((total, orden) => {
-                    if (orden.fecha_terminado === null) {
-                        // total += parseFloat(orden.monto_pago);
-                        this.montoComisionEmpelado(
-                            orden.comision_tipo,
-                            orden.total_comision_variable,
-                            orden.total_comision_fija
-                        );
-                    }
-                    return total;
-                }, 0);
-            } */
-      var total = 0;
-      this.ordenesPendientes.forEach((orden) => {
-        if (orden.fecha_terminado === null) {
-          total += this.montoComisionEmpelado(
-            orden.comision_tipo,
-            orden.total_comision_variable,
-            orden.total_comision_fija
-          );
-        }
-      });
+      if (this.departamento === "Diseño") {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          if (orden.progreso !== "terminada") {
+            total += parseFloat(orden.monto_pago || 0);
+          }
+          return total;
+        }, 0);
+      } else if (
+        this.departamento === "Comercialización" ||
+        this.departamento === "Administración"
+      ) {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          total += parseFloat(orden.monto_pago || 0);
+          return total;
+        }, 0);
+      } else {
+        var total = 0;
+        this.ordenesPendientes.forEach((orden) => {
+          if (orden.progreso !== "terminada") {
+            total += this.montoComisionEmpelado(
+              orden.comision_tipo,
+              orden.total_comision_variable,
+              orden.total_comision_fija
+            );
+          }
+        });
+        comision = total;
+      }
 
-      return total.toFixed(2);
-
-      /* comision = this.ordenesPendientes.reduce((total, orden) => {
-                total = 0;
-                if (orden.fecha_terminado === null) {
-                    total += this.montoComisionEmpelado(
-                        orden.comision_tipo,
-                        orden.total_comision_variable,
-                        orden.total_comision_fija
-                    );
-                }
-                return total;
-            }, 0); */
-
-      return total.toFixed(2);
+      return comision.toFixed(2);
     },
     total() {
       const tot =
@@ -460,6 +436,7 @@ export default {
         // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
         return this.ordenesTerminadas;
       } else {
+        // return this.ordenesTerminadas
         // return this.ordenesTerminadas
         return this.ordenesTerminadas
           .filter((el) => el.progreso === "terminada")
@@ -532,11 +509,11 @@ export default {
       // return null;
       if (this.departamento === "Diseño") {
         return this.ordenesPendientes.filter(
-          (el) => el.fecha_terminado === null
+          (el) => el.progreso !== "terminada"
         );
       } else {
         return this.ordenesPendientes.filter(
-          (el) => el.fecha_terminado === null
+          (el) => el.progreso !== "terminada"
         );
       }
     },

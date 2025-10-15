@@ -1,8 +1,8 @@
 <template>
     <div>
-        <b-button size="sm" class="mb-4" @click="confirmRmove" variant="danger">
-            <b-icon icon="trash"></b-icon
-        ></b-button>
+        <b-button size="sm" class="mb-4" @click="confirmRmove" variant="danger" :disabled="isDefaultDepartment">
+            <b-icon icon="trash"></b-icon>
+        </b-button>
     </div>
 </template>
 
@@ -16,6 +16,13 @@ export default {
         return {
             title: "Eliminar departamento",
         };
+    },
+
+    computed: {
+        isDefaultDepartment() {
+            // Los IDs 1-7 son departamentos por defecto del sistema
+            return this.iddep >= 1 && this.iddep <= 7;
+        }
     },
 
     /* computed: {

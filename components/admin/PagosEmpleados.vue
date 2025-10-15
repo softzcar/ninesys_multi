@@ -212,11 +212,11 @@ export default {
               id_empleado: curr.id_empleado,
               departamento: curr.departamento,
               cantidad: parseInt(curr.cantidad),
-              pago: parseFloat(curr.pago),
+              pago: parseFloat(curr.cantidad) * parseFloat(curr.comision),
             });
           } else {
             acc[index].cantidad += parseInt(curr.cantidad);
-            acc[index].pago += parseFloat(curr.pago);
+            acc[index].pago += parseFloat(curr.cantidad) * parseFloat(curr.comision);
           }
           return acc;
         }, []);

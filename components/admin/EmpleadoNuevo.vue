@@ -40,16 +40,22 @@
                                         placeholder="Ingrese la contraseña" type="password" required></b-form-input>
                                 </b-form-group>
 
-                                <b-form-group id="input-group-5" label="Comisión fija:" label-for="input-comision">
+                                <b-form-group id="input-group-8" label="Tipo de comisión:" label-for="input-access">
+                                    <b-form-select id="input-access" v-model="form.comsionTipo"
+                                        :options="comisionOptions" required>
+                                    </b-form-select>
+                                </b-form-group>
+
+                                <b-form-group v-if="form.comsionTipo === 'fija'" id="input-group-5" label="Comisión fija:" label-for="input-comision">
                                     <b-form-input id="input-comision" v-model="form.comision"
                                         placeholder="Ingrese % de comision" type="number" step="0.01" min="0" required>
                                     </b-form-input>
                                 </b-form-group>
 
-                                <b-form-group id="input-group-8" label="Tipo de comisión:" label-for="input-access">
-                                    <b-form-select id="input-access" v-model="form.comsionTipo"
-                                        :options="comisionOptions" required>
-                                    </b-form-select>
+                                <b-form-group v-if="form.comsionTipo === 'porcentaje'" id="input-group-9" label="Comisión Porcentaje:" label-for="input-comision-porcentaje">
+                                    <b-form-input id="input-comision-porcentaje" v-model="form.comisionPorcentaje"
+                                        placeholder="Ingrese % de comisión porcentaje" type="number" step="0.01" min="0" max="100" required>
+                                    </b-form-input>
                                 </b-form-group>
 
                                 <b-form-group id="input-group-6" label="Tipo de acceso:" label-for="input-access">
@@ -93,7 +99,8 @@ export default {
                 email: "",
                 acceso: null,
                 comision: 0,
-                comsionTipo: 'variable',
+                comsionTipo: null,
+                comisionPorcentaje: 0,
                 departamentos: [],
             },
             accessOptions: [
@@ -101,8 +108,10 @@ export default {
                 { value: 1, text: "Administrador" },
             ],
             comisionOptions: [
+                { value: null, text: "Seleccione un tipo de comisión" },
                 { value: 'variable', text: "Variable" },
                 { value: 'fija', text: "Fija" },
+                { value: 'porcentaje', text: "Porcentaje" },
             ],
             departamentOptions: this.depOptions,
             size: "md",
@@ -138,13 +147,40 @@ export default {
                 email: "",
                 acceso: null,
                 comision: 0,
-                comsionTipo: 'variable',
+                comsionTipo: null,
+                comisionPorcentaje: 0,
                 departamentos: [],
             }
             this.overlay = false
         },
         async guardarEmpleado() {
             this.overlay = true
+
+            // Validación adicional para tipo de comisión fija
+            if (this.form.comsionTipo === 'fija') {
+                if (!this.form.comision || this.form.comision < 0) {
+                    this.$fire({
+                        title: "Campo requerido",
+                        html: `<p>Debe ingresar una comisión fija válida</p>`,
+                        type: "warning",
+                    })
+                    this.overlay = false
+                    return
+                }
+            }
+
+            // Validación adicional para tipo de comisión porcentaje
+            if (this.form.comsionTipo === 'porcentaje') {
+                if (!this.form.comisionPorcentaje || this.form.comisionPorcentaje <= 0 || this.form.comisionPorcentaje > 100) {
+                    this.$fire({
+                        title: "Campo requerido",
+                        html: `<p>Debe ingresar un porcentaje de comisión válido (entre 1 y 100)</p>`,
+                        type: "warning",
+                    })
+                    this.overlay = false
+                    return
+                }
+            }
 
             const data = new URLSearchParams()
             data.set("acceso", this.form.acceso)
@@ -153,6 +189,7 @@ export default {
             data.set("password", this.form.password)
             data.set("comision", this.form.comision)
             data.set("comsion_tipo", this.form.comsionTipo)
+            data.set("comision_porcentaje", this.form.comisionPorcentaje)
             data.set("username", this.form.username)
             data.set("departamentos", this.form.departamentos)
 

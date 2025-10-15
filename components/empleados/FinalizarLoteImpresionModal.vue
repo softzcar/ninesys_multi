@@ -171,7 +171,7 @@ export default {
         (p) => p._id === this.consumoTinta.id_impresora
       )
       // Lógica replicada del componente original para consistencia
-      return selectedPrinter ? selectedPrinter.tipo_tecnologia === 'CMYK+W' : false
+      return selectedPrinter ? selectedPrinter.tipo_tecnologia === 'CMYKW' : false
     },
     insumosOptions() {
       const insumosPapel = this.insumos.filter(

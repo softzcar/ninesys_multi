@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-row>
-      <b-col>
+      <b-col class="pr-0">
         <b-navbar
           toggleable="lg"
           type="dark"
@@ -64,7 +64,7 @@
                   </span>
                 </router-link>
 
-                <router-link
+                <!-- <router-link
                   class="nav-link"
                   to="/comercializacion/presupuesto"
                   custom
@@ -77,7 +77,7 @@
                   >
                     Nuevo Presupuesto
                   </span>
-                </router-link>
+                </router-link> -->
                 <router-link
                   class="nav-link"
                   to="/comercializacion/ordenes/activas"
@@ -253,21 +253,6 @@
                     role="link"
                   >
                     Asignación
-                  </span>
-                </router-link>
-
-                <router-link
-                  class="nav-link"
-                  to="/diseno/disenos"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Diseños
                   </span>
                 </router-link>
 
@@ -547,6 +532,21 @@
 
                 <router-link
                   class="nav-link"
+                  to="/insumos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Insumos
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
                   to="/insumos-productos"
                   custom
                   v-slot="{ navigate }"
@@ -587,6 +587,21 @@
                     role="link"
                   >
                     Atributos de Productos
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/categorias/gestion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Categorías
                   </span>
                 </router-link>
               </b-nav-item-dropdown>
@@ -742,6 +757,21 @@
 
                 <router-link
                   class="nav-link"
+                  to="/empresa/configuracion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Configuración de Empresa
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
                   to="/produccion/reporte-reposiciones"
                   custom
                   v-slot="{ navigate }"
@@ -801,7 +831,7 @@
                 </router-link>
 
                 <b-dropdown-item to="/"> </b-dropdown-item>
-                <router-link
+                <!-- <router-link
                   class="nav-link"
                   to="/ayuda"
                   custom
@@ -814,7 +844,7 @@
                   >
                     Ayuda
                   </span>
-                </router-link>
+                </router-link> -->
               </b-nav-item-dropdown>
 
               <!-- <router-link class="nav-link" to="/logout" custom v-slot="{ navigate }">

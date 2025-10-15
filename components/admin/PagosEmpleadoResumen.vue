@@ -34,7 +34,40 @@
           </b-row>
           <b-row class="justify-content-md-center">
             <b-col>
+              <!-- Tabla para comisiones variables -->
               <b-table
+                v-if="isVariable"
+                responsive
+                small
+                striped
+                :items="detalles"
+                :fields="fieldsVariable"
+              >
+                <template #cell(orden)="data">
+                  <linkSearch :id="data.item.orden" />
+                </template>
+                <template #cell(comision)="data">
+                  <admin-ComisionesProductosInput
+                    :item="data.item"
+                    :idprod="filterProd(data.item.id_woo, 'cod')"
+                    :attributes="filterProd(data.item.id_woo, 'attributes')"
+                    :categories="filterProd(data.item.id_woo, 'categories')"
+                    @reload="reloadMe"
+                    :lock="data.item.fecha_pago"
+                    :departamento="data.item.departamento"
+                    :comisionEmp="data.item.comision"
+                  />
+                </template>
+                <template #cell(pago)="data">
+                  <div class="text-right">
+                    ${{ calcularPagoFila(data.item) }}
+                  </div>
+                </template>
+              </b-table>
+
+              <!-- Tabla para comisiones fijas (la original) -->
+              <b-table
+                v-else
                 responsive
                 small
                 striped
@@ -55,6 +88,11 @@
                     :departamento="data.item.departamento"
                     :comisionEmp="data.item.comision"
                   />
+                </template>
+                <template #cell(pago)="data">
+                  <div class="text-right">
+                    ${{ calcularPagoFila(data.item) }}
+                  </div>
                 </template>
               </b-table>
             </b-col>
@@ -87,48 +125,26 @@ export default {
       overlay: false,
       dataTable: [],
       fields: [
-        {
-          key: 'orden',
-          label: 'Orden',
-        },
-        {
-          key: 'nombre',
-          label: 'Empleado',
-        },
-        {
-          key: 'departamento',
-          label: 'Departamento',
-        },
-        {
-          key: 'dia',
-          label: 'Día',
-        },
-        {
-          key: 'semana',
-          label: 'Semana',
-        },
-        {
-          key: 'comision_tipo',
-          label: 'Tipo',
-        },
-        {
-          key: 'cantidad',
-          label: 'Cantidad',
-        },
-        {
-          key: 'porcentaje',
-          label: 'Comisión',
-        },
-        {
-          key: 'pago',
-          label: 'Pago',
-          thClass: 'text-right',
-          tdClass: 'text-right',
-        },
-        {
-          key: 'fecha',
-          label: 'Fecha',
-        },
+        { key: 'orden', label: 'Orden' },
+        { key: 'nombre', label: 'Empleado' },
+        { key: 'departamento', label: 'Departamento' },
+        { key: 'dia', label: 'Día' },
+        { key: 'semana', label: 'Semana' },
+        { key: 'comision_tipo', label: 'Tipo' },
+        { key: 'cantidad', label: 'Cantidad' },
+        { key: 'porcentaje', label: 'Comisión' },
+        { key: 'pago', label: 'Pago', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'fecha', label: 'Fecha' },
+      ],
+      fieldsVariable: [
+        { key: 'orden', label: 'ORDEN' },
+        { key: 'departamento', label: 'Departamento' },
+        { key: 'producto', label: 'Producto' },
+        { key: 'talla', label: 'Talla' },
+        { key: 'cantidad', label: 'Cantidad' },
+        { key: 'comision', label: 'Comisión' },
+        { key: 'pago', label: 'Pago' },
+        { key: 'fecha', label: 'Fecha' },
       ],
     }
   },
@@ -256,9 +272,24 @@ export default {
       // console.log("campo", campo);
       // console.log("----------------");
     },
+
+    calcularPagoFila(item) {
+      // Calcular el pago individual por fila: cantidad * comisión
+      const cantidad = parseFloat(item.cantidad) || 0
+      const comision = parseFloat(item.comision) || 0
+      const pago = cantidad * comision
+      return pago.toFixed(2)
+    },
   },
 
   computed: {
+    isVariable() {
+      return (
+        this.detalles &&
+        this.detalles.length > 0 &&
+        this.detalles[0].comision_tipo === 'variable'
+      )
+    },
     datosParaElReporte() {
       return {
         nombreEmpleado: this.item.nombre,
@@ -269,7 +300,8 @@ export default {
     },
     pagoTotal() {
       const total = this.detalles.reduce((acc, curr) => {
-        const pagoDecimal = parseFloat(curr.pago)
+        const pagoCalculado = this.calcularPagoFila(curr)
+        const pagoDecimal = parseFloat(pagoCalculado)
         return acc + (isNaN(pagoDecimal) ? 0 : pagoDecimal)
       }, 0)
 

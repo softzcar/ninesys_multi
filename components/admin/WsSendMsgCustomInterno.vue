@@ -123,7 +123,7 @@ export default {
       });
     },
 
-    validateMsg() {
+    async validateMsg() {
       let ok = true;
       let msg = "";
 
@@ -144,12 +144,14 @@ export default {
           type: "info",
         });
       } else {
-        this.sendMsgCustomIneterno(
+        await this.sendMsgCustomIneterno(
           this.destinatario,
           this.$store.state.login.dataUser.id_empleado,
           this.$store.state.login.currentDepartamentId,
           this.mensaje
         );
+        this.mensaje = "";
+        this.destinatario = null;
       }
     },
   },

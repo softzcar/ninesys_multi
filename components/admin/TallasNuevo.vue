@@ -79,6 +79,7 @@ export default {
                     .then((res) => {
                         this.resetForm()
                         this.$bvModal.hide(this.modal)
+                        this.overlay = false;
                     })
                     .catch(err => {
                         this.overlay = false;

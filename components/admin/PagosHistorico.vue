@@ -275,13 +275,15 @@ export default {
       // Calcular totales
       const totalVendedores = data.vendedores ? sumarPagos(data.vendedores) : 0;
       const totalEmpleados = data.empleados ? sumarPagos(data.empleados) : 0;
-      const totalGeneral = totalVendedores + totalEmpleados;
+      const totalDiseno = data.diseno ? sumarPagos(data.diseno) : 0;
+      const totalGeneral = totalVendedores + totalEmpleados + totalDiseno;
 
       // Retornar el resultado como un JSON
       return {
         totalGeneral: totalGeneral.toFixed(2), // Total general de pagos
         totalVendedores: totalVendedores.toFixed(2), // Total de pagos a vendedores
         totalEmpleados: totalEmpleados.toFixed(2), // Total de pagos a empleados
+        totalDiseno: totalDiseno.toFixed(2), // Total de pagos a diseñadores
       };
     },
 
@@ -346,6 +348,7 @@ export default {
           this.dataReporte = res.data;
           this.pagosVendedores = res.data.data.vendedores;
           this.pagosEmpleados = res.data.data.empleados;
+          this.pagosDiseno = res.data.data.diseno;
           this.totalCancelado = this.totalPagos(res.data.data);
         });
     },

@@ -43,7 +43,7 @@
                             style="width: 250px"
                             type="text"
                             v-model="newDep"
-                            :disabled="overlay"
+                            :disabled="overlay || isDefaultDepartment"
                         />
                     </b-form-group>
                     <b-form-group
@@ -131,6 +131,11 @@ export default {
             const rand = Math.random().toString(36).substring(2, 7);
             return `modal-${rand}`;
         },
+
+        isDefaultDepartment() {
+            // Los IDs 1-7 son departamentos por defecto del sistema
+            return this.item && this.item._id >= 1 && this.item._id <= 7;
+        }
     },
 
     methods: {

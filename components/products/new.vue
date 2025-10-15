@@ -8,7 +8,7 @@
     <b-modal
       id="bv-modal-example"
       hide-footer
-      size="xl"
+      size="md"
       no-enforce-focus
     >
       <template #modal-title>
@@ -73,55 +73,100 @@
             </b-form-group>
 
             <b-form-group label-for="input-price">
-              <admin-AsignacionDePrecios
+              <admin-AsignacionDePreciosNuevo
                 class="floatme"
-                :precios="form.prices"
                 @reload="updatePrices($event)"
               />
-              <admin-AsignacionDeAtributos
-                class="floatme"
-                test="TEST PROPS"
-                :attributescat="attributescat"
-                :attributesval="form.attributes"
-                @reload="updateAttributes($event)"
-                @refresh-attributes="$emit('refresh-attributes')"
-              />
+
+            </b-form-group>
+
+            <b-form-group>
+              <b-form-checkbox
+                v-model="form.producto_fisico"
+                :value="1"
+                :unchecked-value="0"
+                @change="onProductoFisicoChange"
+              >
+                Producto Físico
+              </b-form-checkbox>
+              <small class="text-muted">
+                Marque esta opción si el producto es un artículo físico que requiere inventario
+              </small>
+            </b-form-group>
+
+            <b-form-group>
+              <b-form-checkbox
+                v-model="form.es_diseno"
+                :value="1"
+                :unchecked-value="0"
+                :disabled="form.producto_fisico === 1"
+              >
+                Es un Diseño
+              </b-form-checkbox>
+              <small class="text-muted">
+                Marque esta opción si el producto es un diseño (gráfico, logotipo, etc.)
+              </small>
+              <small
+                v-if="form.producto_fisico === 1"
+                class="text-warning"
+              >
+                <br />Los productos físicos no pueden ser diseños
+              </small>
             </b-form-group>
 
             <b-button
               type="submit"
               variant="success"
-            >Guardar y Asignar Insumos</b-button>
+            >Guardar</b-button>
           </b-form>
-          
-          <div v-if="form.prices.length > 0" class="mt-3">
+
+          <div
+            v-if="form.prices.length > 0"
+            class="mt-3"
+          >
             <h5>Precios</h5>
             <b-list-group>
               <b-list-group-item
                 v-for="(item, index) in form.prices"
                 :key="index"
               >
-                {{ item.price }} - {{ item.descripcion }}
+                {{ item.price }} - {{ item.description }}
               </b-list-group-item>
             </b-list-group>
           </div>
 
-          <div v-if="form.attributes.length > 0" class="mt-3">
-            <h5>Atributos</h5>
-            <b-list-group>
-              <b-list-group-item
-                v-for="(item, index) in form.attributes"
-                :key="`attr-${index}`"
-              >
-                {{ getAttributeName(item.attribute) }}: {{ item.descripcion }}
-              </b-list-group-item>
-            </b-list-group>
-          </div>
         </div>
 
         <!-- Step 2: Insumos Assignment -->
         <div v-if="assigningInsumos">
-           <div class="mb-4">
+          <div class="mb-4">
+            <b-alert
+              show
+              variant="warning"
+            >
+              <h3>Comisiones de productos</h3>
+              <p>
+                Para que el producto a crerar esté activo en el sistema debe asignar comisiones a los departamentos para este producto.
+              </p>
+              <hr>
+              <p class="mb-0">
+                <router-link
+                  class="nav-link"
+                  to="/comisiones-productos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    <strong>Haga Click Aqui para asignar comisiones a productos</strong>
+                  </span>
+                </router-link>
+              </p>
+            </b-alert>
+
             <p><strong>Producto:</strong> {{ form.product }}</p>
             <p><strong>SKU:</strong> {{ newlyCreatedProduct.sku }}</p>
           </div>
@@ -162,7 +207,8 @@ export default {
         product: "",
         sku: null,
         prices: [],
-        attributes: [],
+        producto_fisico: 1, // Por defecto desactivado (físico)
+        es_diseno: 0, // Por defecto desactivado (no es diseño)
       },
       // New state for the two-step process
       assigningInsumos: false,
@@ -182,18 +228,15 @@ export default {
   },
 
   methods: {
-    getAttributeName(attributeId) {
-      if (!this.attributescat) return "";
-      const attribute = this.attributescat.find(
-        (attr) => attr.value === attributeId
-      );
-      return attribute ? attribute.text : "";
-    },
     updatePrices(newPrices) {
       this.form.prices = newPrices;
     },
-    updateAttributes(newAttributes) {
-      this.form.attributes = newAttributes;
+
+    onProductoFisicoChange() {
+      // Si se marca como producto físico, deshabilitar "Es un Diseño" y ponerlo en false
+      if (this.form.producto_fisico === 1) {
+        this.form.es_diseno = 0;
+      }
     },
 
     onSubmit() {
@@ -231,9 +274,11 @@ export default {
       const data = new URLSearchParams();
       data.set("product", this.form.product);
       data.set("prices", JSON.stringify(this.form.prices));
-      data.set("attributes", JSON.stringify(this.form.attributes));
+
       data.set("category", this.form.category);
       data.set("sku", this.form.sku);
+      data.set("producto_fisico", this.form.producto_fisico);
+      data.set("es_diseno", this.form.es_diseno);
 
       try {
         const res = await this.$axios.post(
@@ -313,7 +358,8 @@ export default {
         product: "",
         sku: null,
         prices: [],
-        attributes: [],
+        producto_fisico: 0,
+        es_diseno: 0,
       };
       // Reset new state
       this.assigningInsumos = false;

@@ -85,7 +85,7 @@ rif: 'J-00000000-0', */
       { hid: "description", name: "description", content: "" },
       { name: "format-detection", content: "telephone=no" },
     ],
-    link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+    link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }, { rel: 'stylesheet', href: 'https://unpkg.com/@icon/themify-icons/themify-icons.css' }],
   },
 
   router: {

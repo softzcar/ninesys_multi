@@ -6,6 +6,7 @@ export const state = () => ({
     currentMinOrdenProcesoId: null,
     dataUser: [],
     dataEmpresa: [],
+    datos_personalizacion: {},
     departamentos: [],
     tasas: { dolar: 1 },
     modulos: [],
@@ -14,9 +15,18 @@ export const state = () => ({
     access: false,
     loading: true,
     activo: false,
+    configuracionFaltante: [],
 })
 
 export const mutations = {
+    setConfiguracionFaltante(state, data) {
+        state.configuracionFaltante = data;
+    },
+    removeConfiguracionFaltante(state, errorsToRemove) {
+        state.configuracionFaltante = state.configuracionFaltante.filter(
+            error => !errorsToRemove.some(errToRemove => error.includes(errToRemove))
+        );
+    },
     setTasa(state, { moneda, valor }) {
         state.tasas = { ...state.tasas, [moneda]: valor }
     },
@@ -72,6 +82,9 @@ export const mutations = {
     setDataUser(state, data) {
         state.dataUser = data
     },
+    setDatosPersonalizacion(state, data) {
+        state.datos_personalizacion = data
+    },
     setActivo(state, data) {
         state.activo = data
     },
@@ -96,6 +109,59 @@ export const actions = {
     },
 }
 export const getters = {
+    // N E W   G E T T E R S
+    allActiveMonedas(state) {
+        const tipos = state.dataEmpresa.tipos_de_monedas || []
+        return tipos.filter((m) => m.activo)
+    },
+
+    additionalActiveMonedas(state, getters) {
+        return getters.allActiveMonedas.filter((m) => m.moneda !== "dolar")
+    },
+
+    currencyConfigState(state, getters) {
+        if (getters.allActiveMonedas.length === 0) {
+            return "NO_CURRENCIES"
+        }
+        if (
+            getters.allActiveMonedas.length > 0 &&
+            getters.additionalActiveMonedas.length === 0
+        ) {
+            return "ONLY_BASE_CURRENCY"
+        }
+        return "SHOW_FORM"
+    },
+
+    areRatesLoaded(state, getters) {
+        const all = getters.allActiveMonedas
+
+        // --- DEBUGGING LOGS ---
+        console.log("[DEBUG] areRatesLoaded getter triggered.")
+        console.log("[DEBUG] allActiveMonedas:", JSON.stringify(all))
+        console.log("[DEBUG] allActiveMonedas.length:", all.length)
+        if (all.length > 0) {
+            console.log("[DEBUG] all[0].moneda:", all[0].moneda)
+            console.log(
+                "[DEBUG] Condition (all.length === 1 && all[0].moneda === 'dolar'):",
+                all.length === 1 && all[0].moneda === "dolar"
+            )
+        }
+        // --- END DEBUGGING ---
+
+        // NEW: If the only active currency is 'dolar', always proceed.
+        if (all.length === 1 && all[0].moneda === "dolar") {
+            return true
+        }
+
+        // Original logic for all other cases:
+        if (all.length > 0) {
+            return all.every((moneda) => state.tasas[moneda.moneda] > 0)
+        }
+
+        return false // No active currencies.
+    },
+
+    // E X I S T I N G   G E T T E R S
     getModulosSelect(state) {
         let modTmp = state.modulos.map((mod) => {
             return {
@@ -116,7 +182,7 @@ export const getters = {
 
     getDepartamentosEmpleadoSelect(state) {
         return state.empleado.departamentos.map((el) => {
-            console.log('getDepartamentosEmpleadoSelect', el);
+            // console.log('getDepartamentosEmpleadoSelect', el);
             
             return {
                 value: el.id,
@@ -125,7 +191,7 @@ export const getters = {
                 orden_proceso: el.orden_proceso,
                 orden_proceso_min: el.orden_proceso_min,
             }
-        })
+        }).sort((a, b) => a.orden_proceso - b.orden_proceso)
     },
     
     getDepartamentosOrdenProceso(state) {

@@ -347,7 +347,7 @@
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
                       </span>
 
-                      <span class="floatme">
+                      <!-- <span class="floatme">
                         <b-alert
                           :variant="filterFechaEstimada(row.item.orden).variant"
                           show
@@ -360,9 +360,9 @@
                               filterFechaEstimada(row.item.orden)
                                 .fecha_estimada_fin_formateada
                             }}
-                          </h4>
+                          </h4> mmmmm
                         </b-alert>
-                      </span>
+                      </span> -->
                     </div>
                   </template>
                 </b-table>
@@ -714,10 +714,12 @@ export default {
     },
 
     insumosEstampado() {
+      console.log('DEBUG - SseOrdenesAsignadasV4 - insumos:', this.insumos);
       let options = this.insumos.filter(
-        (item) => item.departamento === "Telas"
+        (item) => item.departamento === "Telas" || item.departamento === "Estampado"
       );
-      options.concat({ value: 0, text: "Seleccion insumo" });
+      console.log('DEBUG - SseOrdenesAsignadasV4 - insumosEstampado filtrados:', options);
+      options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
@@ -1257,7 +1259,7 @@ export default {
       } else {
         IdVerificado = idOrdenProceso;
       }
-      if (IdVerificado === this.$store.state.login.currentOrdenProceso) {
+      if (IdVerificado == this.$store.state.login.currentOrdenProceso) {
         return false;
       } else {
         return true;
@@ -1359,7 +1361,9 @@ export default {
           this.overlay = true;
           this.registrarEstado("inicio", idOrden, unidades, false, this.ordenes.find(o => o.id_orden === idOrden).lotes_detalles_empleados_asignados)
           .then(() => {
-            this.sendMessageClient(idOrden);
+            if (!this.isLastDepartment()) {
+              this.sendMsgCustom(idOrden, 'paso', this.$store.state.login.currentDepartamentId);
+            }
             this.reloadMe();
           })
           .catch((err) => {
@@ -1373,6 +1377,29 @@ export default {
             this.overlay = false;
           });
         })
+    },
+
+    isLastDepartment() {
+      const departamentos = this.$store.state.login.departamentos;
+      if (!departamentos || departamentos.length === 0) {
+        return false;
+      }
+
+      const departamentosConPaso = departamentos.filter(
+        (dep) => dep.asignar_numero_de_paso
+      );
+
+      if (departamentosConPaso.length === 0) {
+        return false;
+      }
+
+      const maxOrdenProceso = Math.max(
+        ...departamentosConPaso.map((dep) => dep.orden_proceso)
+      );
+
+      const currentOrdenProceso = this.$store.state.login.currentOrdenProceso;
+
+      return currentOrdenProceso === maxOrdenProceso;
     },
 
     checkTerminar(idOrden, items) {

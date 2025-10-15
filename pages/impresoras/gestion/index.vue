@@ -18,7 +18,7 @@
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <admin-ImpresoraNueva @reload="getImpresoras" />
+                                <admin-ImpresoraNueva class="mb-4" @reload="getImpresoras" />
                             </b-col>
                         </b-row>
                         <b-row>

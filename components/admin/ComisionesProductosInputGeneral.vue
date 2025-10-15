@@ -6,29 +6,16 @@
     >
       <b-row>
         <b-col>
-          <b-form inline>
-            <b-form-input
-              :id="idInput"
-              style="width: 100px"
-              type="number"
-              min="0"
-              step="0.01"
-              v-model="comision"
-              :value="comision"
-              :disabled="inputDisabled"
-            />
-
-            <b-button
-              :disabled="inputDisabled"
-              size="sm"
-              class="ml-2"
-              variant="success"
-              @click="guardarComision()"
-            >
-              <b-icon-check-lg></b-icon-check-lg>
-            </b-button>
-
-          </b-form>
+          <b-form-input
+            :id="idInput"
+            style="width: 100px"
+            type="number"
+            min="0"
+            step="0.01"
+            :value="comision"
+            :disabled="inputDisabled"
+            @change="notificarCambio"
+          />
         </b-col>
       </b-row>
     </b-overlay>
@@ -59,41 +46,12 @@ export default {
   },
 
   methods: {
-    async guardarComision() {
-      this.overlay = true;
-      /* let typeQuery = ''
-            if (this.item.comisiones[0].comision === null) {
-                typeQuery = 'insert'
-            } else {
-                typeQuery = 'update'
-            } */
-
-      const data = new URLSearchParams();
-      data.set("id_product", this.item.cod);
-      data.set("id_departamento", this.iddep);
-      data.set("comision", this.comision);
-      // data.set('type', typeQuery)
-
-      await this.$axios
-        .post(`${this.$config.API}/product-set-comision-producto`, data)
-        .then((res) => {
-          this.$emit("reload");
-          this.$fire({
-            title: "Guardar Comisión",
-            html: `<p>La comisión se guardó correctamente</p>`,
-            type: "success",
-          });
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Guardar Comisión",
-            html: `<p>Courrió un error al guardar la comisión</p><p>${err}</p>`,
-            type: "error",
-          });
-        })
-        .finally(() => {
-          this.overlay = false;
-        });
+    notificarCambio(newValue) {
+      // Emitimos un objeto con todo lo que el padre necesita saber
+      this.$emit('update-comision', {
+        id_producto: this.item.cod,
+        comision: parseFloat(newValue), // Asegurarse de que sea un número
+      })
     },
 
     iddepChacker(val) {

@@ -853,7 +853,7 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/config`)
         .then((res) => {
-          console.log("datos de cnfiguración del sistema", res.data);
+          // console.log("datos de cnfiguración del sistema", res.data);
           this.$store.commit("datasys/setDataSys", res.data);
           const activo = parseInt(res.data.activo);
 
@@ -1126,9 +1126,11 @@ export default {
             return options
         }, */
 
-    handleAssignmentsUpdated(updatedAssignments) {
+    handleAssignmentsUpdated(updatedAssignments, id_departamento_from_child, id_orden_from_child) {
       this.assignmentsChanged = true; // Marcar que hubo cambios
       console.log("Asignaciones actualizadas recibidas:", updatedAssignments);
+      console.log("id_departamento_from_child:", id_departamento_from_child);
+      console.log("id_orden_from_child:", id_orden_from_child);
       const updatedIds = new Set(updatedAssignments.map((a) => a.empleado));
 
       this.local_emp_asignados = this.local_emp_asignados.filter((emp) =>
@@ -1145,8 +1147,8 @@ export default {
           this.local_emp_asignados.push({
             id_empleado: newEmp.empleado,
             procentaje_comision: newEmp.comision,
-            id_departamento: this.item._id,
-            id_orden: this.idorden,
+            id_departamento: id_departamento_from_child,
+            id_orden: id_orden_from_child,
           });
         }
       });

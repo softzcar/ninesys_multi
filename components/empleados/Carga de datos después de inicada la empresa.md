@@ -1,0 +1,5 @@
+# CArga de datos
+
+1. Crear impresora: `INSERT INTO catalogo_impresoras(codigo_interno, marca, modelo, capacidad_contenedor, ubicacion, tipo_tecnologia, estado, notas) VALUES ('Impresora de pruebas','EPSON','EP_0001','0','Fábrica','CMYK','activa','Notas de la impresora');` 
+2. cargar catálogo de prodcutos: `INSERT INTO catalogo_insumos_productos(nombre, id_product, id_departamento) VALUES ('Papel de pruebas',1,1); INSERT INTO catalogo_insumos_productos(nombre, id_product, id_departamento) VALUES ('Tela de pruebas',2,3);`
+3. Crear insumos necesarios para los departamentos: `INSERT INTO inventario(sku, id_catalogo, insumo, unidad, costo, rendimiento, cantidad, color, ancho, departamento) VALUES ('PAP_001',1,'Papel de pruebas','Mts','20','8','12','BLANCO','0.9','Impresión'); INSERT INTO inventario(sku, id_catalogo, insumo, unidad, costo, rendimiento, cantidad, color, ancho, elongacion, departamento) VALUES ('PAP_001',2,'Tela de pruebas','Kg','80','3','12','BLANCO','1.5','HORIZONTAL','Telas');`

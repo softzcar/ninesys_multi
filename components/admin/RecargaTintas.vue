@@ -1,106 +1,134 @@
 <template>
   <div class="container mt-4">
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Recarga de Tintas</h3>
-      </div>
-      <div class="card-body">
-        <form @submit.prevent="submitForm">
-          <b-row>
-            <b-col
-              md="6"
-              lg="4"
-            >
-              <b-form-group
-                label="Seleccionar Impresora:"
-                label-for="printerSelect"
-              >
-                <b-form-select
-                  id="printerSelect"
-                  v-model="selectedPrinterId"
-                  :options="impresorasOptions"
-                  required
-                ></b-form-select>
-              </b-form-group>
-            </b-col>
+    <div v-if="isFormReady">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Recarga de Tintas</h3>
+        </div>
+        <div class="card-body">
+          <form @submit.prevent="submitForm">
+            <b-row>
+              <b-col md="6" lg="4">
+                <b-form-group
+                  label="Seleccionar Impresora:"
+                  label-for="printerSelect"
+                >
+                  <b-form-select
+                    id="printerSelect"
+                    v-model="selectedPrinterId"
+                    :options="impresorasOptions"
+                    required
+                  ></b-form-select>
+                </b-form-group>
+              </b-col>
 
-            <b-col
-              md="6"
-              lg="4"
-            >
-              <b-form-group
-                label="Seleccionar Insumo (Tinta):"
-                label-for="supplySelect"
-              >
-                <b-form-select
-                  id="supplySelect"
-                  v-model="selectedSupplyId"
-                  :options="suppliesOptions"
-                  required
-                ></b-form-select>
-              </b-form-group>
-            </b-col>
-          </b-row>
+              <b-col md="6" lg="4">
+                <b-form-group
+                  label="Seleccionar Insumo (Tinta):"
+                  label-for="supplySelect"
+                >
+                  <b-form-select
+                    id="supplySelect"
+                    v-model="selectedSupplyId"
+                    :options="suppliesOptions"
+                    required
+                  ></b-form-select>
+                </b-form-group>
+              </b-col>
+            </b-row>
 
-          <b-row class="mt-3">
-            <b-col>
-              <div class="form-group">
-                <label>Color de la Tinta:</label>
-                <div class="d-flex flex-wrap">
-                  <div
-                    class="form-check form-check-inline"
-                    v-for="colorOption in filteredColorOptions"
-                    :key="colorOption.value"
-                  >
-                    <input
-                      class="form-check-input"
-                      type="radio"
-                      :id="'color-' + colorOption.value"
-                      :value="colorOption.value"
-                      v-model="selectedColor"
-                      :disabled="colorOption.disabled"
-                      required
-                    />
-                    <label
-                      class="form-check-label px-2 py-1 rounded"
-                      :for="'color-' + colorOption.value"
-                      :style="{ backgroundColor: colorOption.bgColor, color: colorOption.textColor, border: colorOption.border || '' }"
+            <b-row class="mt-3">
+              <b-col>
+                <div class="form-group">
+                  <label>Color de la Tinta:</label>
+                  <div class="d-flex flex-wrap">
+                    <div
+                      class="form-check form-check-inline"
+                      v-for="colorOption in filteredColorOptions"
+                      :key="colorOption.value"
                     >
-                      {{ colorOption.name }}
-                    </label>
+                      <input
+                        class="form-check-input"
+                        type="radio"
+                        :id="'color-' + colorOption.value"
+                        :value="colorOption.value"
+                        v-model="selectedColor"
+                        :disabled="colorOption.disabled"
+                        required
+                      />
+                      <label
+                        class="form-check-label px-2 py-1 rounded"
+                        :for="'color-' + colorOption.value"
+                        :style="{
+                          backgroundColor: colorOption.bgColor,
+                          color: colorOption.textColor,
+                          border: colorOption.border || '',
+                        }"
+                      >
+                        {{ colorOption.name }}
+                      </label>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </b-col>
-          </b-row>
+              </b-col>
+            </b-row>
 
-          <b-row class="mt-3">
-            <b-col
-              md="4"
-              lg="3"
-            >
-              <b-form-group
-                label="Mililitros Recargados:"
-                label-for="milliliters"
-              >
-                <b-form-input
-                  id="milliliters"
-                  v-model.number="milliliters"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  required
-                ></b-form-input>
-              </b-form-group>
-            </b-col>
-          </b-row>
+            <b-row class="mt-3">
+              <b-col md="4" lg="3">
+                <b-form-group
+                  label="Mililitros Recargados:"
+                  label-for="milliliters"
+                >
+                  <b-form-input
+                    id="milliliters"
+                    v-model.number="milliliters"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    required
+                  ></b-form-input>
+                </b-form-group>
+              </b-col>
+            </b-row>
 
-          <button
-            type="submit"
-            class="btn btn-primary mt-4"
-          >Registrar Recarga</button>
-        </form>
+            <button type="submit" class="btn btn-primary mt-4">
+              Registrar Recarga
+            </button>
+          </form>
+        </div>
       </div>
+    </div>
+    <div v-else>
+      <b-alert show variant="info">
+        <h4>Faltan datos de configuración</h4>
+        <p>Para continuar, primero debe configurar lo siguiente:</p>
+        <ul>
+          <li v-if="!impresorasDisponibles">
+            No hay impresoras configuradas.
+            <router-link to="/impresoras/gestion" class="alert-link"
+              >Crear Impresoras</router-link
+            >
+          </li>
+          <li v-if="!tintasDisponibles">
+            No hay tintas en el inventario.
+            <router-link
+              to="/inventario/nueva-tinta"
+              custom
+              v-slot="{ navigate }"
+            >
+              <span
+                @click="navigate"
+                @keypress.enter="navigate"
+                role="link"
+                class="alert-link"
+                style="cursor: pointer;"
+              >
+                Crear Tintas
+              </span>
+            </router-link>
+          </li>
+        </ul>
+      </b-alert>
     </div>
   </div>
 </template>
@@ -158,6 +186,15 @@ export default {
     };
   },
   computed: {
+    impresorasDisponibles() {
+      return this.impresoras && this.impresoras.length > 0;
+    },
+    tintasDisponibles() {
+      return this.supplies && this.supplies.length > 0;
+    },
+    isFormReady() {
+      return this.impresorasDisponibles && this.tintasDisponibles;
+    },
     impresorasOptions() {
       console.log("impresoras prop in impresorasOptions:", this.impresoras);
       if (!this.impresoras || this.impresoras.length === 0) {
@@ -193,8 +230,8 @@ export default {
           ...option,
           disabled: option.value === 'W' || !this.selectedPrinterId // Deshabilitar 'W' o todos si no hay impresora seleccionada
         }));
-      } else if (this.selectedPrinterTechnology === 'CMYK+W') {
-        // Si la tecnología es CMYK+W, habilitar todos los colores
+      } else if (this.selectedPrinterTechnology === 'CMYKW') {
+        // Si la tecnología es CMYKW, habilitar todos los colores
         return this.colorOptions.map(option => ({ ...option, disabled: false }));
       }
       // Por defecto, si no hay tecnología definida o no se cumple ninguna condición, deshabilitar todos

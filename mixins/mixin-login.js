@@ -2,6 +2,9 @@ export default {
     computed: {
         accessModule() {            
             const currDep = this.$store.state.login.currentDepartamentId
+            if (!this.$store.state.login.empleado) {
+                return { access: null, currDep: null, accessData: {} };
+            }
             const deps = this.$store.state.login.empleado.departamentos
             let response = {
                 access: null,

@@ -83,7 +83,7 @@ export default {
             tecnologias: [
                 { value: null, text: 'Seleccione una opción' },
                 { value: 'CMYK', text: 'CMYK' },
-                { value: 'CMYK+W', text: 'CMYK+W' }
+                { value: 'CMYKW', text: 'CMYKW' }
             ]
         }
     },

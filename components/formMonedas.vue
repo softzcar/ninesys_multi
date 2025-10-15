@@ -1,9 +1,9 @@
 <template>
   <div>
     <h5>Tasas del día</h5>
-    <b-form v-if="activeMonedas.length">
+    <b-form v-if="currencyConfigState === 'SHOW_FORM'">
       <b-form-group
-        v-for="moneda in activeMonedas"
+        v-for="moneda in additionalActiveMonedas"
         :key="moneda.moneda"
         :label="moneda.mondeda_nombre"
       >
@@ -16,24 +16,23 @@
         />
       </b-form-group>
     </b-form>
+    <div v-else-if="currencyConfigState === 'ONLY_BASE_CURRENCY'">
+      <p><strong>No hay monedas adicionales configuradas, los precios se manejan solamente en dólares.</strong></p>
+    </div>
     <div v-else>
-      <p>No hay monedas activas configuradas.</p>
+      <p>Debe configurar las monedas para poder continuar.</p>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   name: "FormMonedas",
   computed: {
     ...mapState("login", ["tasas"]),
-    activeMonedas() {
-      const tipos = this.$store.state.login.dataEmpresa.tipos_de_monedas || [];
-      // Filtramos las monedas activas y excluimos el dólar para que no se muestre en el formulario
-      return tipos.filter((m) => m.activo && m.moneda !== "dolar");
-    },
+    ...mapGetters("login", ["additionalActiveMonedas", "currencyConfigState"]),
   },
   methods: {
     updateTasa(moneda, valor) {

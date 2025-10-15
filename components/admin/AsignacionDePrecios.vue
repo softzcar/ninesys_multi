@@ -4,7 +4,10 @@
             <b-icon icon="plus-lg"></b-icon> Precios
         </b-button>
 
-        <b-modal :id="modal" :title="title" hide-footer size="md">
+        <b-modal :id="modal" :title="title" size="md">
+            <template #modal-footer>
+                <b-button variant="primary" @click="saveChanges">Guardar y Cerrar</b-button>
+            </template>
             <b-overlay :show="overlay" spinner-small>
                 <!-- Formulario de Impresión -->
                 <b-button
@@ -16,7 +19,7 @@
                 </b-button>
                 <b-table
                     responsive
-                    :primary-key="generateRandomId()"
+                    
                     :fields="campos"
                     :items="form"
                     small
@@ -47,429 +50,127 @@
 </template>
 
 <script>
-// import axios from "axios"
-
 export default {
-    data() {
+  data() {
+    return {
+      title: `Asignación De Precios`,
+      overlay: false,
+      form: [],
+      campos: [
+        { key: "input", label: "" },
+        { key: "id", label: "" },
+      ],
+    };
+  },
+
+  computed: {
+    modal: function () {
+      const rand = Math.random().toString(36).substring(2, 7);
+      return `modal-${rand}`;
+    },
+  },
+
+      methods: {
+    async saveChanges() {
+      this.overlay = true;
+      const pricesToSave = this.form.map((p) => {
         return {
-            title: `Asignación De Precios`,
-            overlay: false,
-            ButtonDisabled: false,
-            form: [],
-            showSelect: false,
-            formEst: {
-                input: 0,
-            },
-            formCor: {
-                input: 0,
-            },
-            formImp: {
-                colorCyan: "",
-                colorMagenta: "",
-                colorYellow: "",
-                colorBlack: "",
-            },
-            campos: [
-                { key: "input", label: "" },
-                { key: "id", label: "" },
-            ],
+          id: p.id || p._id || null,
+          price: p.price,
+          description: p.description,
         };
+      });
+
+      const data = new URLSearchParams();
+      data.set("product_id", this.product_id);
+      data.set("prices", JSON.stringify(pricesToSave));
+
+      try {
+        const response = await this.$axios.post(
+          `${this.$config.API}/editar-producto-precios`,
+          data
+        );
+        const updatedPrices = response.data && response.data[0] ? response.data[0].prices : [];
+        this.form = updatedPrices; // Actualizar el estado local
+        this.$emit("reload", updatedPrices); // Emitir el estado actualizado
+        this.$bvModal.hide(this.modal);
+      } catch (err) {
+        this.$fire({
+          title: "Error",
+          html: `<p>No se pudieron guardar los precios.</p><p>${err}</p>`,
+          type: "warning",
+        });
+      } finally {
+        this.overlay = false;
+      }
+    },    addItem() {
+      // Añadir un nuevo precio sin ID, solo con la estructura base.
+      this.form.push({
+        price: 0,
+        description: "",
+      });
     },
 
-    /* watch: {
-        form() {
-            alert('form ha cambiado')
-        }
-    }, */
+    removeItem(index) {
+      const priceToDelete = this.form[index];
+      if (!priceToDelete) return;
 
-    computed: {
-        modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7);
-            return `modal-${rand}`;
-        },
-    },
+      // Si el precio no tiene `id` o `_id`, es uno nuevo que no ha sido guardado.
+      // Simplemente lo eliminamos del formulario local.
+      if (!priceToDelete.id && !priceToDelete._id) {
+        this.form.splice(index, 1);
+        this.$emit("reload", this.form);
+        return;
+      }
 
-    methods: {
-        /* generateRandomId() {
-            let id
-            do {
-                // Generar un número aleatorio entre 100000 y 9999999
-                id = Math.floor(Math.random() * (9999999 - 100000 + 1)) + 100000
-            } while (this.form.some((obj) => obj.id === id)) // Asegurarse de que el ID no esté repetido en el array
-            return id
-        }, */
+      // Si el precio ya existe, pedimos confirmación y llamamos a la API.
+      this.$confirm(
+        `¿Está seguro de que desea eliminar el precio de ${priceToDelete.price} - ${priceToDelete.description}?`,
+        "Confirmar Eliminación",
+        "warning"
+      )
+        .then(async () => {
+          this.overlay = true;
+          const priceId = priceToDelete.id || priceToDelete._id;
 
-        isValidArrayOfObjects(variable) {
-            return (
-                Array.isArray(variable) && // Es un array
-                variable.length > 0 && // No está vacío
-                variable.every(
-                    (item) => typeof item === "object" && item !== null
-                ) // Todos son objetos
-            );
-        },
-
-        closeModal() {
-            this.$bvModal.hide(this.modal);
-        },
-
-        /* updateEmpId(id_empleado, index) {
-            console.log("registro anterior", this.form)
-            this.form[index].select = id_empleado
-            console.log("registro actualizado", this.form)
-        }, */
-
-        updateEmpId(id_empleado, index) {
-            console.log("registro anterior", this.form);
-
-            // Verificar si el id_empleado ya existe en el formulario
-            const idExists = this.form.some(
-                (item) => item.select === id_empleado
+          try {
+            const response = await this.$axios.delete(
+              `${this.$config.API}/products-prices/${priceId}`
             );
 
-            if (idExists) {
-                console.error(
-                    `El ID ${id_empleado} ya existe en el formulario.`
-                );
-                // Mostrar mensaje de error al usuario
-                this.$bvToast.toast(
-                    `El diseñador ya fué asignado a esta Orden.`,
-                    {
-                        title: "Error",
-                        variant: "danger",
-                        solid: true,
-                    }
-                );
+            const updatedPrices = response.data && response.data[0] ? response.data[0].prices : [];
+            this.form = updatedPrices;
+            this.$emit("reload", updatedPrices);
 
-                // Eliminar el registro del formulario
-                this.form.splice(index, 1);
-                console.log("registro eliminado", this.form);
-            } else {
-                this.form[index].select = id_empleado;
-                console.log("registro actualizado", this.form);
-            }
-        },
-
-        generateRandomId() {
-            // Generar un número aleatorio entre 100000 y 9999999
-            const myKey =
-                Math.floor(Math.random() * (9999999 - 100000 + 1)) + 100000;
-            return myKey.toString();
-        },
-
-        addItem() {
-            // const dep = this.$store.state.login.dataUser.departamento
-            const random_id = this.generateRandomId();
-            const obj = {
-                id: random_id,
-                price: 0,
-                descripcion: "",
-            };
-            this.form.push(obj);
-        },
-
-        async deleteDisenador(index) {
-            this.overlay = true;
-            const data = new URLSearchParams();
-            data.set("id_diseno", this.item.id_diseno);
-            data.set("id_orden", this.item.id_orden);
-            data.set("id_empleado", this.item.empleado);
-
-            await this.$axios
-                .post(`${this.$config.API}/disenador-asignado`, data)
-                .then((res) => {
-                    console.log("Respuesta de delete disenador", res);
-                    this.form.splice(index, 1);
-                    this.$fire({
-                        title: "Diseñador",
-                        html: `<p>La asiganción fué eliminada</p>`,
-                        type: "success",
-                    });
-                })
-                .catch((err) => {
-                    this.$fire({
-                        title: "Error",
-                        html: `<p>No se eliminó el registro</p><p>${err}</p>`,
-                        type: "warning",
-                    });
-                })
-                .finally(() => {
-                    this.overlay = false;
-                });
-        },
-
-        removeItemAndSave(obj) {
-            console.log("form -> prices", this.form);
-            console.log("request prices new product", obj);
-            const producto = this.form.find((item) => item.id === obj.id);
-            if (producto) {
-                producto.price = obj.price;
-                producto.descripcion = obj.descripcion;
-                console.log("Formulario actualizado:", this.form);
-                console.log("Producto actualizado:", producto);
-                this.$emit("reload", this.form);
-            } else {
-                console.log(
-                    "Producto con el ID especificado no encontrado.",
-                    producto
-                );
-            }
-
-            /* this.form[obj.id].price = obj.price
-            this.form[obj.id].descripcion = obj.descripcion */
-        },
-
-        /* async removeItemAndSave(obj) {
-            this.overlay = true
-            const data = new URLSearchParams()
-            data.set("id_product", obj.id_product)
-            data.set("price", obj.price)
-            data.set("descripcion", obj.descripcion)
-        
-            await this.$axios
-                .post(`${this.$config.API}/products-price`, data)
-                .then((res) => {
-                    console.log("Respuesta de delete disenador", res)
-                    this.form.splice(obj.index, 1)
-                    this.$fire({
-                        title: "Diseñador",
-                        html: `<p>La asiganción fué eliminada</p>`,
-                        type: "success",
-                    })
-                })
-                .catch((err) => {
-                    this.$fire({
-                        title: "Error",
-                        html: `<p>No se eliminó el registro</p><p>${err}</p>`,
-                        type: "warning",
-                    })
-                })
-                .finally(() => {
-                    this.overlay = false
-                })
-        }, */
-
-        removeItem(index) {
-            this.form.splice(index, 1);
-            //
-            /* if (this.form[index].id != null) {
-                this.$confirm(
-                    `Va a eliminar la asignación de un diseñador, esta acción cancellará todo registro de asignación de pagos para esta tarea.`,
-                    "Eliminar Diseñador",
-                    "info"
-                ).then(() => {
-                    this.deleteDisenador(index)
-                })
-            } else {
-                this.form.splice(index, 1)
-            } */
-        },
-
-        clearForms() {
-            this.form = [];
-            this.formImp = {
-                colorCyan: "",
-                colorMagenta: "",
-                colorYellow: "",
-                colorBlack: "",
-            };
-
-            this.formEst = {
-                input: 0,
-            };
-
-            this.formCor = {
-                input: 0,
-            };
-        },
-
-        onReserForm(event) {
-            event.preventDefault();
-            this.clearForms();
-        },
-
-        validateForm() {
-            let ok = true;
-            if (this.showSelect) {
-                let msg = "";
-
-                if (this.departamento === "Impresión") {
-                    if (
-                        parseFloat(this.formImp.colorCyan) <= 0 ||
-                        this.formImp.colorCyan.trim() === ""
-                    ) {
-                        ok = false;
-                        msg = msg + "<p>Ingrese la cantidad de tinta Cyan</p>";
-                    }
-
-                    if (
-                        parseFloat(this.formImp.colorMagenta) <= 0 ||
-                        this.formImp.colorMagenta.trim() === ""
-                    ) {
-                        ok = false;
-                        msg =
-                            msg + "<p>Ingrese la cantidad de tinta Magenta</p>";
-                    }
-
-                    if (
-                        parseFloat(this.formImp.colorYellow) <= 0 ||
-                        this.formImp.colorYellow.trim() === ""
-                    ) {
-                        ok = false;
-                        msg =
-                            msg + "<p>Ingrese la cantidad de tinta Yellow</p>";
-                    }
-
-                    if (
-                        this.formImp.colorBlack.trim() === "" ||
-                        parseFloat(this.formImp.colorBlack) <= 0
-                    ) {
-                        ok = false;
-                        msg = msg + "<p>Ingrese la cantidad de tinta Black</p>";
-                    }
-                }
-
-                if (this.departamento === "Corte") {
-                    // VALIDAR DESPERDICIO
-                    if (this.formCor.input === 0) {
-                        ok = false;
-                        msg = msg + "<p>Ingrese el peso del desperdicio</p>";
-                    }
-                }
-
-                if (this.form.length === 0) {
-                    ok = false;
-                    msg = msg + "<p>Debe asignar al menos un insumo</p>";
-                }
-
-                const formTmp = this.form;
-
-                const errors = formTmp.find(
-                    (el) => el.input === 0 || el.select === null
-                );
-
-                if (errors) {
-                    ok = false;
-                    msg =
-                        msg +
-                        "<p>Debe llenar todos los campos del formulario</p>";
-                }
-
-                if (!ok) {
-                    this.$fire({
-                        type: "info",
-                        title: "Datos requeridos",
-                        html: msg,
-                    });
-
-                    // ok = false;
-                } else {
-                    if (this.departamento === "Impresión") {
-                        this.postImp();
-                    }
-
-                    if (this.departamento === "Corte") {
-                        // Enviar desperdicio
-                        this.rendimiento(this.formCor.input, this.idorden);
-                    }
-                    this.terminarTodo();
-                }
-            } else {
-                // Enviar solo el formulario aqui
-                this.terminarTodo();
-            }
-
-            return ok;
-        },
-
-        async postImp() {
-            // this.overlay = true
-            const data = new URLSearchParams();
-            data.set("id_orden", this.idorden);
-            data.set(
-                "id_empleado",
-                this.$store.state.login.dataUser.id_empleado
-            );
-            data.set("c", this.formImp.colorCyan);
-            data.set("m", this.formImp.colorMagenta);
-            data.set("y", this.formImp.colorYellow);
-            data.set("k", this.formImp.colorBlack);
-
-            await this.$axios
-                .post(`${this.$config.API}/empleados/tintas`, data)
-                .then((res) => {
-                    // this.overlay = false
-                    // this.clearForms();
-                    this.$emit("reload", this.form);
-                    // this.urlLink = res.data.linkdrive
-                });
-
-            // this.terminarTodo()
-        },
-
-        async postForm() {
-            const data = new URLSearchParams();
-            data.set("id_orden", idOrden);
-            data.set(
-                "id_empleado",
-                this.$store.state.login.dataUser.id_empleado
-            );
-            data.set("terminar", 1);
-            data.set(
-                "id_empleado",
-                this.$store.state.login.dataUser.id_empleado
-            );
-            data.set(
-                "departamento",
-                this.$store.state.login.dataUser.departamento
-            );
-
-            await this.$axios
-                .post(`${this.$config.API}/insumos/rendimiento`, data)
-                .then((res) => {
-                    console.log("Rendimienot enviado");
-                    // this.resetForm()
-                    // this.$bvModal.hide(this.modal)
-                });
-        },
-
-        terminarTodo() {
-            this.form.forEach((el) => {
-                console.log("Enviamos elemento del formulario", el);
-
-                this.postInventarioMovimientos(
-                    // this.formImp.inputImp1,
-                    el.input,
-                    el.select,
-                    this.item.id_woo
-                );
+            this.$fire({
+              title: "Precio Eliminado",
+              html: "El precio ha sido eliminado correctamente.",
+              type: "success",
             });
-
-            if (this.items.length) {
-                this.items.forEach((item) => {
-                    // enviar estado
-                    this.registrarEstado(
-                        "fin",
-                        item.id_lotes_detalles,
-                        item.unidades
-                    ).then(() => {
-                        /* this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
-                            // console.log('Modal is about to be shown', bvEvent, modal)
-                            }); */
-                    });
-                });
-            }
-            // this.clearForms()
-            this.$emit("reload");
-            this.$bvModal.hide(this.modal);
-        },
+          } catch (err) {
+            this.$fire({
+              title: "Error",
+              html: `<p>No se pudo eliminar el precio.</p><p>${err}</p>`,
+              type: "error",
+            });
+          } finally {
+            this.overlay = false;
+          }
+        })
+        .catch(() => {
+          // El usuario canceló la eliminación
+        });
     },
 
-    mounted() {
-        this.form = this.precios;
-    },
 
-    props: ["precios", "reload"],
+  },
+
+  mounted() {
+    // Asignar la referencia directa para que los cambios se reflejen en el padre.
+    this.form = this.precios || [];
+  },
+
+  props: ["precios", "product_id"],
 };
 </script>
 

@@ -101,7 +101,7 @@
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Dólares XXX</h4>
+                        <h4 class="text-right mb-4">Total Dólares {{ totalDolares }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -147,7 +147,7 @@
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Pesos XXX</h4>
+                        <h4 class="text-right mb-4">Total Pesos {{ totalPesos }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -194,7 +194,7 @@
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Bolívares XXX</h4>
+                        <h4 class="text-right mb-4">Total Bolívares {{ totalBolivares }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -245,7 +245,7 @@
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Retiros XXX</h4>
+                        <h4 class="text-right mb-4">Total Retiros {{ totalRetiros }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -310,7 +310,7 @@
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Zelle XXX</h4>
+                        <h4 class="text-right mb-4">Total Zelle {{ totalZelle }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -357,7 +357,7 @@
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Pago Móvil XXX</h4>
+                        <h4 class="text-right mb-4">Total Pago Móvil {{ totalPagoMovil }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -405,7 +405,7 @@
                     <b-row>
                       <b-col>
                         <h4 class="text-right mb-4">
-                          Total Transferencias XXX
+                          Total Transferencias {{ totalTransferencias }}
                         </h4>
                       </b-col>
                     </b-row>
@@ -558,39 +558,69 @@ export default {
       });
       return result;
     },
+
+    totalDolares() {
+      return this.dataReport.efectivo.dolares.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
+
+    totalPesos() {
+      return this.dataReport.efectivo.pesos.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
+
+    totalBolivares() {
+      return this.dataReport.efectivo.bolivares.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
+
+    totalRetiros() {
+      return this.dataReport.retiros.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
+
+    totalZelle() {
+      return (this.dataReport.digital.zelle || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
+
+    totalPagoMovil() {
+      return (this.dataReport.digital.pagomovil || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
+
+    totalTransferencias() {
+      return (this.dataReport.digital.transferencia || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+    },
   },
 
   methods: {
     getTotal(campo, curr) {
-      return `${curr} - ${campo}`;
       let accumulatedDollars = 0;
       const dataToProcess = this.dataReport[campo];
 
       if (!dataToProcess) {
-        return curr === "num" ? "0.00" : `${curr} 0.00`;
+        return curr === "num" ? 0 : `${curr} 0.00`;
       }
 
       let items = [];
       if (campo === "efectivo") {
-        // dataToProcess es un objeto {dolares:[], pesos:[], bolivares:[]}
         items = [
           ...(dataToProcess.dolares || []),
           ...(dataToProcess.pesos || []),
           ...(dataToProcess.bolivares || []),
         ];
+      } else if (campo === "digital") {
+        items = [
+          ...(dataToProcess.zelle || []),
+          ...(dataToProcess.pagomovil || []),
+          ...(dataToProcess.punto || []),
+          ...(dataToProcess.transferencia || []),
+        ];
       } else {
-        // dataToProcess es un array para 'digital' y 'retiros'
-        items = dataToProcess;
+        items = dataToProcess || [];
       }
 
-      items.forEach((item) => {
-        if (item && item.dolares !== null && !isNaN(parseFloat(item.dolares))) {
-          accumulatedDollars += parseFloat(item.dolares);
-        }
-      });
+      accumulatedDollars = items.reduce((total, item) => {
+        return total + (parseFloat(item.dolares) || 0);
+      }, 0);
 
       if (curr === "num") {
-        return accumulatedDollars.toFixed(2);
+        return accumulatedDollars;
       }
       return `${curr} ${accumulatedDollars.toFixed(2)}`;
     },

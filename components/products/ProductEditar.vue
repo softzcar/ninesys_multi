@@ -18,16 +18,38 @@
       <b-container>
         <b-row>
           <b-col>
-            <!-- <p>
-              {{ $props }}
-              <hr>
-              {{ form }}
-            </p> -->
             <p>
               <b-overlay
                 :show="overlay"
                 spinner-small
               >
+
+                <b-alert
+                  show
+                  variant="warning"
+                >
+                  <h3>Comisiones de productos</h3>
+                  <p>
+                    Para que el producto a crerar esté activo en el sistema debe asignar comisiones a los departamentos para este producto.
+                  </p>
+                  <hr>
+                  <p class="mb-0">
+                    <router-link
+                      class="nav-link"
+                      to="/comisiones-productos"
+                      custom
+                      v-slot="{ navigate }"
+                    >
+                      <span
+                        @click="navigate"
+                        @keypress.enter="navigate"
+                        role="link"
+                      >
+                        <strong>Haga Click Aqui para asignar comisiones a productos</strong>
+                      </span>
+                    </router-link>
+                  </p>
+                </b-alert>
                 <b-form
                   @submit="onSubmit"
                   @reset="onReset"
@@ -68,6 +90,7 @@
                   >
                     <admin-AsignacionDePrecios
                       :precios="form.prices"
+                      :product_id="data.cod"
                       @reload="updatePrices($event)"
                     />
                   </b-form-group>
@@ -77,7 +100,7 @@
                       v-for="(item, index) in form.prices"
                       :key="index"
                     >
-                      {{ item.price }} - {{ item.descripcion }}
+                      {{ item.price }} - {{ item.description }}
                     </b-list-group-item>
                   </b-list-group>
                   <b-form-group
@@ -97,6 +120,40 @@
                       variant="danger"
                     >Seleccione una
                       categoría</b-alert>
+                  </b-form-group>
+
+                  <b-form-group>
+                    <b-form-checkbox
+                      v-model="form.producto_fisico"
+                      :value="1"
+                      :unchecked-value="0"
+                      @change="onProductoFisicoChange"
+                    >
+                      Producto Físico
+                    </b-form-checkbox>
+                    <small class="text-muted">
+                      Marque esta opción si el producto es un artículo físico que requiere inventario
+                    </small>
+                  </b-form-group>
+
+                  <b-form-group>
+                    <b-form-checkbox
+                      v-model="form.es_diseno"
+                      :value="1"
+                      :unchecked-value="0"
+                      :disabled="form.producto_fisico === 1"
+                    >
+                      Es un Diseño
+                    </b-form-checkbox>
+                    <small class="text-muted">
+                      Marque esta opción si el producto es un diseño (gráfico, logotipo, etc.)
+                    </small>
+                    <small
+                      v-if="form.producto_fisico === 1"
+                      class="text-warning"
+                    >
+                      <br />Los productos físicos no pueden ser diseños
+                    </small>
                   </b-form-group>
 
                   <b-button
@@ -155,6 +212,8 @@ export default {
         product: "",
         sku: null,
         prices: [],
+        producto_fisico: 0,
+        es_diseno: 0,
       },
       form_old: {
         id: null,
@@ -163,6 +222,8 @@ export default {
         sku: null,
         price: 0.0,
         unidades: 0,
+        producto_fisico: 0,
+        es_diseno: 0,
       },
       unidadesOptions: [
         { value: "Mts", text: "Metros" },
@@ -177,15 +238,22 @@ export default {
   },
 
   watch: {
-    /* data() {
-      this.form = {
-        product: this.data.name,
-        sku: this.data.sku,
-        price: this.data.price,
-        unidades: this.data.stock_quantity,
-        category: this.data.catagories[0].id,
-      }
-    }, */
+    data: {
+      handler(newData) {
+        this.form = {
+          product: newData.name,
+          sku: newData.sku,
+          prices: newData.prices,
+          category:
+            newData.categories && newData.categories.length > 0
+              ? newData.categories[0].id
+              : null,
+          producto_fisico: newData.producto_fisico || 0,
+          es_diseno: newData.es_diseno || 0,
+        };
+      },
+      immediate: true, // Ejecuta el handler inmediatamente al crear el componente
+    },
   },
 
   computed: {
@@ -219,7 +287,18 @@ export default {
 
   methods: {
     updatePrices(newPrices) {
-      this.form.prices = newPrices;
+      this.form = {
+        ...this.form,
+        prices: newPrices,
+      };
+      this.$emit("reload"); // Emitir para recargar la tabla principal
+    },
+
+    onProductoFisicoChange() {
+      // Si se marca como producto físico, deshabilitar "Es un Diseño" y ponerlo en false
+      if (this.form.producto_fisico === 1) {
+        this.form.es_diseno = 0;
+      }
     },
 
     async postProduct() {
@@ -227,9 +306,11 @@ export default {
       const data = new URLSearchParams();
       data.set("id", this.data.cod);
       data.set("product", this.form.product);
-      data.set("prices", JSON.stringify(this.form.prices));
+
       data.set("category", this.form.category);
       data.set("sku", this.form.sku);
+      data.set("producto_fisico", this.form.producto_fisico);
+      data.set("es_diseno", this.form.es_diseno);
 
       await this.$axios
         .post(`${this.$config.API}/editar-producto`, data)
@@ -296,6 +377,8 @@ export default {
         product: "",
         sku: null,
         prices: [],
+        producto_fisico: 0,
+        es_diseno: 0,
       };
       // Trick to reset/clear native browser form validation state
       this.show = false;
@@ -311,17 +394,11 @@ export default {
         product: "",
         sku: null,
         prices: [],
+        producto_fisico: 0,
+        es_diseno: 0,
       };
       this.overlay = false;
     },
-  },
-  mounted() {
-    this.form = {
-      product: this.data.name,
-      sku: this.data.sku,
-      prices: this.data.prices,
-      category: this.data.categories[0].id,
-    };
   },
 
   props: ["data", "reload"],

@@ -32,15 +32,15 @@
                 <b-col>
                     <b-form class="mb-4" @submit.prevent="onSubmit">
                         <b-row>
-                            <b-col>
+                            <b-col class="col-12 col-md-4">
                                 <h3>Fecha Inicio</h3>
                                 <b-form-datepicker class="mb-4" v-model="fechaConsultaInicio" />
                             </b-col>
-                            <b-col>
+                            <b-col class="col-12 col-md-4">
                                 <h3>Fecha Fin</h3>
                                 <b-form-datepicker class="mb-4" v-model="fechaConsultaFin" />
                             </b-col>
-                            <b-col>
+                            <b-col class="col-12 col-md-4 mb-4">
                                 <h3>Vendedor</h3>
                                 <b-form-select v-model="selectedVendedor" :options="vendedores"
                                     @change="applyFilters()" />
@@ -74,19 +74,31 @@
                             <linkSearch :id="data.item.orden" key="data.item.orden" />
                         </template>
                         <template #cell(acc)="data">
-                            <div style="float: left; margin-right: 6px">
-                                <diseno-view-image class="floatme mb-2" :id="data.item.orden" />
-                            </div>
-                            <div style="float: left; margin-right: 6px">
-                                <ordenes-editar :data="data.item" :key="data.item.orden" />
-                            </div>
-                            <div style="float: left; margin-right: 6px">
-                                <ordenes-abono 
-                                    :idorden="data.item.orden" 
-                                    :key="data.item.orden"
-                                    :item="filterPago(data.item.orden)" 
-                                    :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
-                                    @reload="reloadMe()" />
+                            <div class="acciones-container">
+                                <div class="botones-superior">
+                                    <div class="btn-acciones">
+                                        <diseno-view-image class="floatme mb-2" :id="data.item.orden" />
+                                    </div>
+                                    <div class="btn-acciones">
+                                        <ordenes-editar :data="data.item" :key="data.item.orden" />
+                                    </div>
+                                    <div class="btn-acciones d-lg-none text-left">
+                                        <ordenes-abono
+                                            :idorden="data.item.orden"
+                                            :key="data.item.orden"
+                                            :item="filterPago(data.item.orden)"
+                                            :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
+                                            @reload="reloadMe()" />
+                                    </div>
+                                </div>
+                                <div class="abono-inferior d-lg-block">
+                                    <ordenes-abono
+                                        :idorden="data.item.orden"
+                                        :key="data.item.orden"
+                                        :item="filterPago(data.item.orden)"
+                                        :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
+                                        @reload="reloadMe()" />
+                                </div>
                             </div>
                         </template>
                     </b-table>
@@ -328,3 +340,38 @@ export default {
     mixins: [mixin],
 }
 </script>
+
+<style scoped>
+@media (min-width: 992px) {
+  .acciones-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .botones-superior {
+    display: flex;
+    flex-direction: row;
+  }
+  .abono-inferior {
+    margin-left: 20px;
+  }
+}
+@media (max-width: 991px) {
+  .acciones-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .botones-superior {
+    display: flex;
+    justify-content: flex-start;
+  }
+  .abono-inferior {
+    margin-top: 16px;
+  }
+  .btn-acciones {
+    float: none !important;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+}
+</style>

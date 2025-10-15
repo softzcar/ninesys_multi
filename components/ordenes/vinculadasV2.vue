@@ -1,10 +1,10 @@
 <template>
   <div>
-    <div v-if="vinculadas.length == 0">
+    <div v-if="!ordenes_vinculadas || ordenes_vinculadas.length == 0">
       N/A
     </div>
     <div v-else>
-      <div class="link_vinculada" v-for="orden in vinculadas" :key="orden.id_child">
+      <div class="link_vinculada" v-for="orden in ordenes_vinculadas" :key="orden.id_child">
           <linkSearch :id="orden.id_child" />
       </div>
     </div>
@@ -41,6 +41,8 @@ export default {
   },
  
   mounted() {
+    console.log('ordenes vinculadas recibidas', this.ordenes_vinculadas);
+    
     this.getOrdenesVinculadas()
   },
   props: ['ordenes_vinculadas', 'id_orden'],

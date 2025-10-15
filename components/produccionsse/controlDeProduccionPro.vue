@@ -531,22 +531,24 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/sse/produccion`)
         .then((res) => {
-          this.items = res.data.items;
-          this.empleadosAsignados = res.data.emp_asignados;
-          this.por_asignar = res.data.por_asignar;
-          this.ordenesLength = parseInt(res.data.items.length) + 1;
-          this.pactivos = res.data.pactivos;
-          this.vinculadas = res.data.vinculadas;
-          this.products = res.data.productos;
-          this.reposiciones_solicitadas = res.data.reposiciones_solicitadas;
-          this.asignacion = res.data.asignacion;
-          this.empleados = res.data.empleados;
-          this.orden_productos = res.data.orden_productos;
+          this.items = res.data.items || [];
+          this.empleadosAsignados = res.data.emp_asignados || [];
+          this.por_asignar = res.data.por_asignar || [];
+          this.ordenesLength =
+            parseInt(res.data.items ? res.data.items.length : 0) + 1;
+          this.pactivos = res.data.pactivos || [];
+          this.vinculadas = res.data.vinculadas || [];
+          this.products = res.data.productos || [];
+          this.reposiciones_solicitadas =
+            res.data.reposiciones_solicitadas || [];
+          this.asignacion = res.data.asignacion || [];
+          this.empleados = res.data.empleados || [];
+          this.orden_productos = res.data.orden_productos || [];
           this.reposicion_ordenes_productos =
-            res.data.reposicion_ordenes_productos;
-          this.lote_detalles = res.data.lote_detalles;
-          this.lotes_fisicos = res.data.lotes_fisicos;
-          this.pasos = res.data.pasos;
+            res.data.reposicion_ordenes_productos || [];
+          this.lote_detalles = res.data.lote_detalles || [];
+          this.lotes_fisicos = res.data.lotes_fisicos || [];
+          this.pasos = res.data.pasos || [];
         })
         .catch((err) => {
           this.$bvToast.toast("No se pudieron cargar los datos de producción.", {

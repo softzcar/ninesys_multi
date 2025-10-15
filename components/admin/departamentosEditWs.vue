@@ -29,6 +29,17 @@
                     </ul>
                 </b-alert>
 
+                <div class="text-right mb-4">
+                    <b-button
+                        variant="primary"
+                        @click="saveAllSettings"
+                        :disabled="overlay"
+                    >
+                        <b-spinner small v-if="overlay"></b-spinner>
+                        Guardar Todos los Cambios
+                    </b-button>
+                </div>
+
                 <b-form>
                     <div v-for="(dep, index) in form" :key="index">
                         <b-form-group
@@ -56,22 +67,20 @@
                             >
                                 Enviar mensaje automático para este departamento
                             </b-form-checkbox>
-
-                            <div class="text-right mt-2">
-                                <b-button
-                                    variant="primary"
-                                    size="sm"
-                                    @click="saveDepartmentSettings(dep)"
-                                    :disabled="overlay"
-                                >
-                                    <b-spinner small v-if="overlay"></b-spinner>
-                                    Guardar Cambios
-                                </b-button>
-                            </div>
                         </b-form-group>
                         <hr v-if="index < form.length - 1" />
                     </div>
                 </b-form>
+                <div class="text-right mt-4">
+                    <b-button
+                        variant="primary"
+                        @click="saveAllSettings"
+                        :disabled="overlay"
+                    >
+                        <b-spinner small v-if="overlay"></b-spinner>
+                        Guardar Todos los Cambios
+                    </b-button>
+                </div>
             </b-overlay>
         </b-modal>
     </div>
@@ -111,82 +120,36 @@ export default {
         },
 
         // *** NUEVA FUNCIÓN: Guardar la configuración (mensaje y checkbox) de un departamento ***
-        async saveDepartmentSettings(department) {
-            console.log(
-                "Guardando configuración para departamento:",
-                department
-            );
-            this.overlay = true; // Mostrar overlay de carga
-
-            // Crear los datos a enviar al backend
-            const data = new URLSearchParams();
-            data.set("id_departamento", department.id_departamento);
-            data.set("enviar_mensaje", department.enviar_mensaje); // Valor del checkbox (1 o 0)
-            data.set("mensaje", department.mensaje); // Contenido del textarea
-
-            try {
-                // *** Llama al nuevo endpoint en tu API de Slim Framework 2 ***
-                // Asumo un endpoint como POST /departamentos/editar/settings
-                const url = `${this.$config.API}/departamentos/editar/settings`; // <-- Ajusta esta URL si tu endpoint es diferente
-                console.log(`Calling API: ${url} with data:`, department);
-
-                const res = await this.$axios.post(url, data);
-
-                // Manejar la respuesta del backend
-                if (res.data && res.data.success) {
-                    // Asumiendo que tu API de Slim devuelve { success: true } o similar
-                    console.log(
-                        "Configuración guardada exitosamente:",
-                        res.data
-                    );
-                    this.$fire({
-                        title: "Configuración Guardada",
-                        html: "<p>La configuración del departamento se actualizó correctamente.</p>",
-                        type: "success",
-                    });
-                    // Opcional: Emitir un evento si el componente padre necesita saber que se guardó
-                    // this.$emit("settings-saved", department.id_departamento);
-                } else {
-                    // Si la API responde con 200 pero indica un error en el cuerpo
-                    console.error(
-                        "Error al guardar configuración (respuesta API):",
-                        res.data
-                    );
-                    this.$fire({
-                        title: "Error al Guardar",
-                        html: `<p>Ocurrió un error al guardar la configuración.</p><p>${
-                            res.data.message || ""
-                        }</p>`,
-                        type: "error",
-                    });
-                }
-            } catch (err) {
-                // Manejar errores de red o errores HTTP (4xx, 5xx)
-                console.error("Error al guardar configuración (Axios):", err);
-                let errorMessage =
-                    "Ocurrió un error al comunicarse con el servidor.";
-                if (
-                    err.response &&
-                    err.response.data &&
-                    err.response.data.message
-                ) {
-                    errorMessage = err.response.data.message;
-                } else if (err.message) {
-                    errorMessage = err.message;
-                }
-
-                this.$fire({
-                    title: "Error de Conexión",
-                    html: `<p>${errorMessage}</p>`,
-                    type: "error",
-                });
-            } finally {
-                this.overlay = false; // Ocultar overlay
-                // Opcional: Si necesitas recargar datos después de guardar, puedes llamar a una función aquí.
-                // this.$emit("reload", "true"); // Si el padre necesita recargar la lista completa de departamentos
-            }
-        },
-
+                async saveAllSettings() {
+                    this.overlay = true;
+                    try {
+                        const promises = this.form.map(dep => this.saveDepartmentSettings(dep));
+                        await Promise.all(promises);
+                        this.$fire({
+                            title: "Éxito",
+                            html: "<p>Todos los cambios han sido guardados.</p>",
+                            type: "success",
+                        });
+                    } catch (error) {
+                        this.$fire({
+                            title: "Error",
+                            html: "<p>Ocurrió un error al guardar algunos cambios.</p>",
+                            type: "error",
+                        });
+                    } finally {
+                        this.overlay = false;
+                    }
+                },
+        
+                async saveDepartmentSettings(department) {
+                    const data = new URLSearchParams();
+                    data.set("id_departamento", department.id_departamento);
+                    data.set("enviar_mensaje", department.enviar_mensaje);
+                    data.set("mensaje", department.mensaje);
+        
+                    const url = `${this.$config.API}/departamentos/editar/settings`;
+                    return this.$axios.post(url, data);
+                },
         // La función guardarEnvioMensaje ya no es necesaria si saveDepartmentSettings guarda ambos campos
         // async guardarEnvioMensaje(value, idDep) { /* ... */ },
     },
