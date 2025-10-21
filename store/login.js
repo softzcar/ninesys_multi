@@ -16,6 +16,8 @@ export const state = () => ({
     loading: true,
     activo: false,
     configuracionFaltante: [],
+    token: null, // Token JWT
+    refreshToken: null, // Token de refresco
 })
 
 export const mutations = {
@@ -97,6 +99,26 @@ export const mutations = {
     logout(state) {
         state.access = false
         state.dataUser = []
+        state.token = null
+        state.refreshToken = null
+        localStorage.removeItem('jwt_token')
+        localStorage.removeItem('refresh_token')
+    },
+    setToken(state, token) {
+        state.token = token
+        if (token) {
+            localStorage.setItem('jwt_token', token)
+        } else {
+            localStorage.removeItem('jwt_token')
+        }
+    },
+    setRefreshToken(state, refreshToken) {
+        state.refreshToken = refreshToken
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken)
+        } else {
+            localStorage.removeItem('refresh_token')
+        }
     },
     setAccess(state, value) {
         state.access = value

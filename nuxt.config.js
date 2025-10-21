@@ -8,70 +8,74 @@ export default {
 
   // Should hold all env variables that are public as these will be exposed on the frontend.
   publicRuntimeConfig: {
-    // PRODUCCIÓN
-    /* LOCAL_IP: `https://api.nineteengreen.com`,
-    LOCAL_IP_WOO: `https://api.nineteengreen.com`,
-    API: `https://api.nineteengreen.com`,
-    CDN: `https://cdn.nineteengreen.com`,
-    LIVE: `https://live.nineteengreen.com`,
-    APP_URL: `https://app.nineteencustom.com`,
-    WS_API: `https://ws.nineteengreen.com`, // Produccion
-    // WS_API: `http://localhost:3000`, // Desarrollo
-    HORARIO: {
-      horaInicioManana: 8.5,  // 8:30 AM
-      horaFinManana: 12,     // 12:00 PM
-      horaInicioTarde: 13,   // 1:00 PM
-      horaFinTarde: 17.5,    // 5:30 PM
-      diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
-    }, */
+      // PRODUCCIÓN
+      /* LOCAL_IP: `https://api.nineteengreen.com`,
+      LOCAL_IP_WOO: `https://api.nineteengreen.com`,
+      API: `https://api.nineteengreen.com`,
+      CDN: `https://cdn.nineteengreen.com`,
+      LIVE: `https://live.nineteengreen.com`,
+      APP_URL: `https://app.nineteencustom.com`,
+      WS_API: `https://ws.nineteengreen.com`, // Produccion
+      // WS_API: `http://localhost:3000`, // Desarrollo
+      HORARIO: {
+        horaInicioManana: 8.5,  // 8:30 AM
+        horaFinManana: 12,     // 12:00 PM
+        horaInicioTarde: 13,   // 1:00 PM
+        horaFinTarde: 17.5,    // 5:30 PM
+        diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
+      }, */
 
-    // DESARROLLO
-    LOCAL_IP: `https://apidev.nineteengreen.com`,
-    LOCAL_IP_WOO: `https://apidev.nineteengreen.com`,
-    API: `https://apidev.nineteengreen.com`,
-    CDN: `https://cdn.nineteengreen.com`,
-    LIVE: `https://live.nineteengreen.com`,
-    APP_URL: `https://app.nineteencustom.com`,
-    WS_API: `https://ws.nineteengreen.com`, // Produccion
-    // WS_API: `http://localhost:3000`, // Desarrollo
-    HORARIO: {
-      horaInicioManana: 8.5,  // 8:30 AM
-      horaFinManana: 12,     // 12:00 PM
-      horaInicioTarde: 13,   // 1:00 PM
-      horaFinTarde: 17.5,    // 5:30 PM
-      diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
+      // DESARROLLO
+      LOCAL_IP: `https://apidev.nineteengreen.com`,
+      LOCAL_IP_WOO: `https://apidev.nineteengreen.com`,
+      API: `https://apidev.nineteengreen.com`,
+      CDN: `https://cdn.nineteengreen.com`,
+      LIVE: `https://live.nineteengreen.com`,
+      APP_URL: `https://app.nineteencustom.com`,
+      WS_API: `https://ws.nineteengreen.com`, // Produccion
+      // WS_API: `http://localhost:3000`, // Desarrollo
+      HORARIO: {
+        horaInicioManana: 8.5,  // 8:30 AM
+        horaFinManana: 12,     // 12:00 PM
+        horaInicioTarde: 13,   // 1:00 PM
+        horaFinTarde: 17.5,    // 5:30 PM
+        diasLaborales: [1, 2, 3, 4, 5] // Lunes (1) a Viernes (5)
+      },
+
+      // Datos Empresa
+      EMPRESA: {
+        nombre: "Nineteen",
+        direccion:
+          "av. 13 entre calles 1 y 3 local 1-54, El Vigía 5145, Mérida",
+        email: "empresa@email.com",
+        teléfono: "+584147495435",
+        rif: "J-00000000-0",
+        /* nombre: 'Nombre Empresa',
+  direccion: 'Dirección Empresa',
+  email: 'empresa@email.com',
+  teléfono: '+580400000000',
+  rif: 'J-00000000-0', */
+      },
+
+      DEPARTAMENT_OPTIONS: [
+        { value: "Comercialización", text: "Comercialización" },
+        { value: "Diseño", text: "Diseño" },
+        { value: "Impresión", text: "Impresión" },
+        { value: "Estampado", text: "Estampado" },
+        { value: "Corte", text: "Corte" },
+        { value: "Limpieza", text: "Limpieza" },
+        { value: "Costura", text: "Costura" },
+        { value: "Revisión", text: "Revisión" },
+        { value: "Producción", text: "Producción" },
+        { value: "Administración", text: "Administración" },
+      ],
+
+      // Credenciales JWT para servicio de WhatsApp
+      jwtUsername: process.env.JWT_USERNAME || 'admin',
+      jwtPassword: process.env.JWT_PASSWORD || 'Ninesys@2024',
+
+      // socketServerURL: 'http://localhost/phpClient/simulateBackend.php', // URL del servidor de pruebas
     },
-
-    // Datos Empresa
-    EMPRESA: {
-      nombre: "Nineteen",
-      direccion:
-        "av. 13 entre calles 1 y 3 local 1-54, El Vigía 5145, Mérida",
-      email: "empresa@email.com",
-      teléfono: "+584147495435",
-      rif: "J-00000000-0",
-      /* nombre: 'Nombre Empresa',
-direccion: 'Dirección Empresa',
-email: 'empresa@email.com',
-teléfono: '+580400000000',
-rif: 'J-00000000-0', */
-    },
-
-    DEPARTAMENT_OPTIONS: [
-      { value: "Comercialización", text: "Comercialización" },
-      { value: "Diseño", text: "Diseño" },
-      { value: "Impresión", text: "Impresión" },
-      { value: "Estampado", text: "Estampado" },
-      { value: "Corte", text: "Corte" },
-      { value: "Limpieza", text: "Limpieza" },
-      { value: "Costura", text: "Costura" },
-      { value: "Revisión", text: "Revisión" },
-      { value: "Producción", text: "Producción" },
-      { value: "Administración", text: "Administración" },
-    ],
-
-    // socketServerURL: 'http://localhost/phpClient/simulateBackend.php', // URL del servidor de pruebas
-  },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -183,6 +187,8 @@ rif: 'J-00000000-0', */
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
+    // Deshabilitar PWA para evitar problemas de cache
+    workbox: false,
     // Usa tu imagen para generar todos los íconos necesarios
     icon: {
       source: 'static/favicon.png',

@@ -31,6 +31,7 @@
                   type="email"
                   placeholder="Ingrese su email"
                   required
+                  autocomplete="username"
                 ></b-form-input>
               </b-form-group>
 
@@ -45,6 +46,7 @@
                   type="password"
                   placeholder="Ingrese su clave"
                   required
+                  autocomplete="current-password"
                 ></b-form-input>
               </b-form-group>
 
@@ -169,6 +171,14 @@ export default {
                         this.$store.commit("login/setEmpleado", res.data.empleado[0]);
                         this.$store.commit("login/setModulos", res.data.modulos);
                         this.$store.commit("login/setAccess", res.data.data.access);
+
+                        // Obtener token JWT para WhatsApp inmediatamente después del login exitoso
+                        this.getJWTToken().then(() => {
+                          console.log('Token JWT obtenido exitosamente después del login')
+                        }).catch((error) => {
+                          console.error('Error obteniendo token JWT después del login:', error)
+                          // No mostrar error al usuario, solo continuar
+                        })
 
                         // Guardar datos adicionales para que el wizard funcione tanto en config inicial como edición
                         this.$store.commit("login/setDatosUsuario", res.data.datos_usuario);

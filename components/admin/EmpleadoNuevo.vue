@@ -34,6 +34,11 @@
                                     </b-form-input>
                                 </b-form-group>
 
+                                <b-form-group id="input-group-7" label="Teléfono:" label-for="input-telefono">
+                                    <b-form-input id="input-telefono" v-model="form.telefono" placeholder="Ingrese el teléfono"
+                                        type="tel" maxlength="20" required>
+                                    </b-form-input>
+                                </b-form-group>
 
                                 <b-form-group id="input-group-2" label="Contraseña:" label-for="input-password">
                                     <b-form-input id="input-password" v-model="form.password"
@@ -76,6 +81,18 @@
                                         name="options-1"></b-form-checkbox-group>
                                 </b-form-group>
 
+                                <b-form-group id="input-group-10" label="Salario:" label-for="input-salario">
+                                    <b-form-input id="input-salario" v-model="form.salario"
+                                        placeholder="Ingrese el salario" type="number" step="0.01" min="0" :value="0">
+                                    </b-form-input>
+                                </b-form-group>
+
+                                <b-form-group id="input-group-11" label="Periodo de pago:" label-for="input-periodo">
+                                    <b-form-select id="input-periodo" v-model="form.periodo_pago"
+                                        :options="periodoOptions">
+                                    </b-form-select>
+                                </b-form-group>
+
                                 <b-button type="submit" variant="primary">Guardar</b-button>
                                 <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                             </b-form>
@@ -102,6 +119,8 @@ export default {
                 comsionTipo: null,
                 comisionPorcentaje: 0,
                 departamentos: [],
+                salario: 0,
+                periodo_pago: null,
             },
             accessOptions: [
                 { value: 0, text: "Empleado" },
@@ -112,6 +131,12 @@ export default {
                 { value: 'variable', text: "Variable" },
                 { value: 'fija', text: "Fija" },
                 { value: 'porcentaje', text: "Porcentaje" },
+            ],
+            periodoOptions: [
+                { value: null, text: "Seleccione un periodo de pago" },
+                { value: 'semanal', text: "Semanal" },
+                { value: 'quincenal', text: "Quincenal" },
+                { value: 'mensual', text: "Mensual" },
             ],
             departamentOptions: this.depOptions,
             size: "md",
@@ -145,11 +170,14 @@ export default {
                 password: "",
                 nombre: "",
                 email: "",
+                telefono: "",
                 acceso: null,
                 comision: 0,
                 comsionTipo: null,
                 comisionPorcentaje: 0,
                 departamentos: [],
+                salario: 0,
+                periodo_pago: null,
             }
             this.overlay = false
         },
@@ -182,6 +210,27 @@ export default {
                 }
             }
 
+            // Validación para salario y periodo de pago
+            if (this.form.periodo_pago && (!this.form.salario || this.form.salario <= 0)) {
+                this.$fire({
+                    title: "Campo requerido",
+                    html: `<p>Si selecciona un periodo de pago, el salario debe ser mayor a 0</p>`,
+                    type: "warning",
+                })
+                this.overlay = false
+                return
+            }
+
+            if (!this.form.periodo_pago && this.form.salario > 0) {
+                this.$fire({
+                    title: "Campo requerido",
+                    html: `<p>Si ingresa un salario mayor a 0, debe seleccionar un periodo de pago</p>`,
+                    type: "warning",
+                })
+                this.overlay = false
+                return
+            }
+
             const data = new URLSearchParams()
             data.set("acceso", this.form.acceso)
             data.set("email", this.form.email)
@@ -192,6 +241,9 @@ export default {
             data.set("comision_porcentaje", this.form.comisionPorcentaje)
             data.set("username", this.form.username)
             data.set("departamentos", this.form.departamentos)
+            data.set("telefono", this.form.telefono)
+            data.set("salario", this.form.salario)
+            data.set("periodo_pago", this.form.periodo_pago)
 
             await this.$axios
                 .post(`${this.$config.API}/empleados/nuevo`, data)

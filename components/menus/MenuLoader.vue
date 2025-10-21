@@ -243,7 +243,22 @@ export default {
         });
     },
 
-    showComponent(
+    // Obtener token JWT para WhatsApp cuando se carga un menú
+    async ensureJWTToken() {
+      const token = this.$store.state.login.token || localStorage.getItem('jwt_token')
+      if (!token) {
+        try {
+          console.log('Obteniendo token JWT para WhatsApp...')
+          await this.getJWTToken()
+          console.log('Token JWT obtenido exitosamente')
+        } catch (error) {
+          console.error('Error obteniendo token JWT:', error)
+          // No mostrar error al usuario, solo loggear
+        }
+      }
+    },
+
+    async showComponent(
       component,
       departamento,
       id_departamento,
@@ -256,6 +271,10 @@ export default {
       } else {
         verifyOrdenProceso = orden_proceso;
       }
+
+      // Asegurar que tenemos token JWT antes de cambiar de componente
+      await this.ensureJWTToken();
+
       if (
         this.currentComponent != null &&
         this.currentDepartament != departamento
@@ -291,7 +310,10 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
+    // Asegurar que tenemos token JWT al cargar el componente
+    await this.ensureJWTToken();
+
     // VAlidar unicamente si es el modulo de empleados
     /* if (
       this.getDepartamentosEmpleadoSelect.length === 1

@@ -48,69 +48,114 @@ export default {
         });
     },
 
-    async sendMsgCustomIneterno(idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
-      if (this.$store.state.login.currentDepartamentId === null) {
-        this.$fire({
-          title: "Departamento",
-          html: `<p>seleccione un modulo de trabajo</p>`,
-          type: "info",
-        });
+    async getJWTToken() {
+      const username = process.env.JWT_USERNAME || 'admin'
+      const password = process.env.JWT_PASSWORD || 'Ninesys@2024'
 
-        return
+      try {
+        const response = await this.$axios.post(`${this.$config.WS_API}/login`, {
+          username,
+          password
+        })
+
+        if (response.data.token) {
+          this.$store.commit('login/setToken', response.data.token)
+          if (response.data.refreshToken) {
+            this.$store.commit('login/setRefreshToken', response.data.refreshToken)
+          }
+          return response.data.token
+        }
+      } catch (error) {
+        console.error('Error obteniendo token JWT:', error)
+        // Para errores de JWT, solo limpiar los tokens, no hacer logout completo
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          this.$store.commit('login/setToken', null)
+          this.$store.commit('login/setRefreshToken', null)
+        }
+        throw error
       }
-
-      this.overlay = true;
-      const data = new URLSearchParams();
-      data.set("id_departamento", this.$store.state.login.currentDepartamentId);
-      data.set("id_destino", idEmpleadoDestino);
-      data.set("id_remitente", idEmpleadoRemitente);
-      data.set("message", message);
-      data.set("nombre_empleado", this.$store.state.login.dataUser.nombre);
-
-      await this.$axios
-        .post(`${this.$config.API}/ws/build-message/interno`, data)
-        .then((res) => {
-          console.log('respuesta de envío de mensaje interno', res);
-          if (!res.data.node_api_response.success) {
-
-            this.$fire({
-              title: "No se pudo enviar el mensaje",
-              html: `<p>${res.data.node_api_response.error}</p>`,
-              type: "error",
-            });
-          } else {
-            this.$fire({
-              title: "El mensaje ha sido enviado",
-              html: `<p></p>`,
-              type: "success",
-            });
-          }
-        })
-        .catch((err) => {
-          // Cuando Axios recibe una respuesta de error del servidor (ej. 404, 500),
-          // los detalles, incluido el cuerpo de la respuesta, están en `err.response`.
-          console.error('Error al enviar mensaje interno:', err.response || err);
-
-          let errorMessage = 'No se pudo enviar el mensaje.'; // Mensaje por defecto
-
-          if (err.response && err.response.data && err.response.data.error) {
-            // Usar el mensaje de error específico que envía tu API
-            errorMessage = err.response.data.error;
-          } else if (err.message) {
-            // Si no hay un mensaje específico, usar el mensaje genérico de Axios
-            errorMessage = err.message;
-          }
-
-          this.$fire({
-            title: "Error",
-            html: `<p>${errorMessage}</p>`,
-            type: "error",
-          });
-        })
-        .finally(() => {
-          this.overlay = false;
-        });
     },
+
+    async sendMsgCustomIneterno(idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
+       // Verificar si tenemos token, si no, obtener uno
+       let token = this.$store.state.login.token || localStorage.getItem('jwt_token')
+       if (!token) {
+         try {
+           token = await this.getJWTToken()
+         } catch (error) {
+           if (this.$store.state.login.currentDepartamentId === null) {
+             this.$fire({
+               title: "Departamento",
+               html: `<p>seleccione un modulo de trabajo</p>`,
+               type: "info",
+             });
+           }
+           return
+         }
+       }
+
+       if (this.$store.state.login.currentDepartamentId === null) {
+         this.$fire({
+           title: "Departamento",
+           html: `<p>seleccione un modulo de trabajo</p>`,
+           type: "info",
+         });
+
+         return
+       }
+
+       this.overlay = true;
+       const data = new URLSearchParams();
+       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
+       data.set("id_destino", idEmpleadoDestino);
+       data.set("id_remitente", idEmpleadoRemitente);
+       data.set("message", message);
+       data.set("nombre_empleado", this.$store.state.login.dataUser.nombre);
+
+       await this.$axios
+         .post(`${this.$config.API}/ws/build-message/interno`, data)
+         .then((res) => {
+           console.log('respuesta de envío de mensaje interno', res);
+           if (!res.data.node_api_response.success) {
+
+             this.$fire({
+               title: "No se pudo enviar el mensaje",
+               html: `<p>${res.data.node_api_response.error}</p>`,
+               type: "error",
+             });
+           } else {
+             this.$fire({
+               title: "El mensaje ha sido enviado",
+               html: `<p></p>`,
+               type: "success",
+             });
+           }
+         })
+         .catch((err) => {
+           // Cuando Axios recibe una respuesta de error del servidor (ej. 404, 500),
+           // los detalles, incluido el cuerpo de la respuesta, están en `err.response`.
+           console.error('Error al enviar mensaje interno:', err.response || err);
+
+           let errorMessage = 'No se pudo enviar el mensaje.'; // Mensaje por defecto
+
+           if (err.response && err.response.data && err.response.data.error) {
+             // Usar el mensaje de error específico que envía tu API
+             errorMessage = err.response.data.error;
+           } else if (err.message) {
+             // Si no hay un mensaje específico, usar el mensaje genérico de Axios
+             errorMessage = err.message;
+           }
+
+           this.$fire({
+             title: "Error",
+             html: `<p>${errorMessage}</p>`,
+             type: "error",
+           });
+         })
+         .finally(() => {
+           this.overlay = false;
+         });
+     },
 
     async sendMessage(idOrden, message) {
       // this.overlay = true

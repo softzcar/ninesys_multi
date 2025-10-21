@@ -7,27 +7,25 @@
 
         <b-modal :id="modal" :title="title" hide-footer size="lg">
             <b-overlay :show="overlay" spinner-small>
-                <b-alert show variant="info" class="mb-4">
-                    <strong>Variables Dinámicas Disponibles:</strong>
-                    <p class="mb-0">
-                        Puedes usar las siguientes variables entre corchetes
-                        <code>[]</code> en tus mensajes. Serán reemplazadas
-                        automáticamente con los datos de la orden y el cliente
-                        al enviar el mensaje:
+                <b-button v-b-toggle.ayuda-variables variant="outline-info" size="sm" class="mb-4">
+                    <b-icon icon="question-circle" class="mr-1"></b-icon>
+                    Ayuda: Variables Disponibles
+                </b-button>
+                <b-collapse id="ayuda-variables">
+                    <p class="mb-2 text-muted">
+                        Las variables se reemplazan automáticamente al enviar el mensaje. Usa corchetes <code>[]</code> para insertarlas.
                     </p>
-                    <ul>
-                        <li><code>[CLIENTE]</code>: Nombre del cliente.</li>
-                        <li><code>[ORDEN_ID]</code>: Número de la orden.</li>
-                        <li>
-                            <code>[DEPARTAMENTO]</code>: Nombre del departamento
-                            actual.
-                        </li>
-                        <li>
-                            <code>[MONTO_PENDIENTE]</code>: Monto pendiente
-                            (solo para mensajes de cobro).
-                        </li>
-                    </ul>
-                </b-alert>
+                    <div v-for="(dep, index) in form" :key="`ayuda-${index}`">
+                        <b-alert show variant="info" class="mt-2">
+                            <strong>{{ dep.nombre }}:</strong>
+                            <ul class="mb-0">
+                                <li v-for="variable in getVariablesForDep(dep.nombre)" :key="variable.variable">
+                                    <code>[{{ variable.variable }}]</code>: {{ variable.descripcion }}
+                                </li>
+                            </ul>
+                        </b-alert>
+                    </div>
+                </b-collapse>
 
                 <div class="text-right mb-4">
                     <b-button
@@ -117,6 +115,49 @@ export default {
             // Asegurarse de que el suffix sea seguro para IDs (ej: convertir a string y limpiar)
             const safeSuffix = String(suffix).replace(/[^a-zA-Z0-9-_]/g, "");
             return `${prefix}${safeSuffix}`;
+        },
+
+        // Método para obtener variables disponibles por departamento
+        getVariablesForDep(nombre) {
+            const nombreLower = nombre.toLowerCase();
+
+            // Variables comunes a todos
+            const comunes = [
+                { variable: 'CLIENTE', descripcion: 'Nombre del cliente.' },
+                { variable: 'ORDEN_ID', descripcion: 'Número de la orden.' },
+                { variable: 'DEPARTAMENTO', descripcion: 'Nombre del departamento actual.' }
+            ];
+
+            // Variables específicas por tipo de mensaje
+            if (nombreLower.includes('inicio') || nombreLower.includes('welcome') || nombreLower.includes('bienvenida')) {
+                return [
+                    ...comunes,
+                    { variable: 'FECHA_ENTREGA', descripcion: 'Fecha de entrega de la orden.' },
+                    { variable: 'PRODUCTOS', descripcion: 'Lista de productos de la orden.' },
+                    { variable: 'TOTAL_ORDEN', descripcion: 'Monto total de la orden.' }
+                ];
+            } else if (nombreLower.includes('saldo') || nombreLower.includes('cobro') || nombreLower.includes('pendiente')) {
+                return [
+                    ...comunes,
+                    { variable: 'MONTO_PENDIENTE', descripcion: 'Monto pendiente (solo para mensajes de cobro).' },
+                    { variable: 'FECHA_ENTREGA', descripcion: 'Fecha de entrega de la orden.' },
+                    { variable: 'PRODUCTOS', descripcion: 'Lista de productos de la orden.' },
+                    { variable: 'TOTAL_ORDEN', descripcion: 'Monto total de la orden, descuentos y saldo pendiente.' },
+                    { variable: 'TOTAL_ABONOS', descripcion: 'Total de los abonos hechos a la orden.' },
+                    { variable: 'TOTAL_DESCUENTOS', descripcion: 'Total de los descuentos hechos a la orden.' },
+                    { variable: 'TOTAL_DEUDA', descripcion: 'Total de la deuda pendiente.' }
+                ];
+            } else if (nombreLower.includes('fin') || nombreLower.includes('bye') || nombreLower.includes('terminar')) {
+                return [
+                    ...comunes,
+                    { variable: 'FECHA_ENTREGA', descripcion: 'Fecha de entrega de la orden.' },
+                    { variable: 'PRODUCTOS', descripcion: 'Lista de productos de la orden.' },
+                    { variable: 'TOTAL_ORDEN', descripcion: 'Monto total de la orden.' }
+                ];
+            } else {
+                // Para departamentos sin patrón claro, mostrar variables comunes
+                return comunes;
+            }
         },
 
         // *** NUEVA FUNCIÓN: Guardar la configuración (mensaje y checkbox) de un departamento ***
