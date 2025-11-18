@@ -139,13 +139,15 @@ export default {
   methods: {
     empleadosFiltered() {
       let options = [];
-      options = this.$store.state.disenos.empleados
-        .map((el) => {
-          return {
-            value: el.id_usuario,
-            text: `${el.nombre}`,
-          };
-        });
+      if (Array.isArray(this.$store.state.disenos.empleados)) {
+        options = this.$store.state.disenos.empleados
+          .map((el) => {
+            return {
+              value: el.id_usuario,
+              text: `${el.nombre}`,
+            };
+          });
+      }
 
       options.unshift({
         value: null,

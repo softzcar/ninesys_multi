@@ -385,6 +385,20 @@
                     Nueva Tinta
                   </span>
                 </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/catalogo-insumos-productos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Catálogo de Insumos de Productos
+                  </span>
+                </router-link>
               </b-nav-item-dropdown>
 
               <!-- <b-nav-item-dropdown
@@ -443,6 +457,21 @@
                     role="link"
                   >
                     Gestión de Departamentos
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
+                  to="/empleados/activacion"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Activación de Empleados
                   </span>
                 </router-link>
 
@@ -530,7 +559,7 @@
                   </span>
                 </router-link>
 
-                <router-link
+                <!-- <router-link
                   class="nav-link"
                   to="/insumos"
                   custom
@@ -543,7 +572,7 @@
                   >
                     Insumos
                   </span>
-                </router-link>
+                </router-link> -->
 
                 <router-link
                   class="nav-link"

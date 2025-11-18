@@ -668,10 +668,13 @@ export default {
     },
     countryOptions() {
       const countries = this.countryCodes.map(country => {
+        const codeMatch = country.text.match(/\+(\d+)/);
+        const code = codeMatch ? codeMatch[1] : country.value;
         const nameMatch = country.text.match(/\(([^)]+)\)/);
-        return nameMatch ? nameMatch[1] : country.value;
+        const name = nameMatch ? nameMatch[1] : country.value;
+        return { value: code, text: name };
       });
-      countries.sort();
+      countries.sort((a, b) => a.text.localeCompare(b.text));
       return [{ value: null, text: "Seleccione un país" }, ...countries];
     },
     startIndex() {

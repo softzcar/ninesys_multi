@@ -48,33 +48,8 @@ export default {
         });
     },
 
-    async getJWTToken() {
-      const username = process.env.JWT_USERNAME || 'admin'
-      const password = process.env.JWT_PASSWORD || 'Ninesys@2024'
-
-      try {
-        const response = await this.$axios.post(`${this.$config.WS_API}/login`, {
-          username,
-          password
-        })
-
-        if (response.data.token) {
-          this.$store.commit('login/setToken', response.data.token)
-          if (response.data.refreshToken) {
-            this.$store.commit('login/setRefreshToken', response.data.refreshToken)
-          }
-          return response.data.token
-        }
-      } catch (error) {
-        console.error('Error obteniendo token JWT:', error)
-        // Para errores de JWT, solo limpiar los tokens, no hacer logout completo
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          this.$store.commit('login/setToken', null)
-          this.$store.commit('login/setRefreshToken', null)
-        }
-        throw error
-      }
-    },
+    // Esta función se movió al axios-interceptor.js para evitar duplicación
+    // y asegurar consistencia en la gestión de tokens JWT
 
     async sendMsgCustomIneterno(idEmpleadoDestino, idEmpleadoRemitente, idDep, message) {
        // Verificar si tenemos token, si no, obtener uno

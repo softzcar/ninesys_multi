@@ -123,7 +123,7 @@ export default {
   },
   computed: {
     insumosOptions() {
-      const insumosCorte = this.insumos.filter((i) => i.departamento === 'Telas')
+      const insumosCorte = this.insumos.filter((i) => ['Telas', 'Estampado', 'Corte'].includes(i.departamento))
       if (!insumosCorte || insumosCorte.length === 0) return []
       const options = insumosCorte.map((insumo) => {
         return {

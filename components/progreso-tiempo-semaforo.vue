@@ -13,7 +13,7 @@
       @show="$emit('modal-shown')"
       @hide="$emit('modal-hidden')"
     >
-      <b-overlay :show="!ordenReactiva" spinner-small>
+      <b-overlay :show="isLoading" spinner-small>
         <!-- El contenido del modal ahora depende de 'ordenReactiva' y 'textList' -->
         <div v-if="ordenReactiva">
           <h3 class="mb-4 mt-2">

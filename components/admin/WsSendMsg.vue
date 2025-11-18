@@ -191,6 +191,12 @@ export default {
       ],
       ordenesActivas: [],
       ordenesLength: [],
+      // Propiedades para la paginación y filtrado de la tabla
+      totalRows: 0,
+      perPage: 10,
+      currentPage: 1,
+      filter: null,
+      includedFields: null,
     };
   },
 
@@ -203,6 +209,12 @@ export default {
   },
 
   methods: {
+    onFiltered(filteredItems) {
+      // Actualizar totalRows cuando se filtra la tabla
+      this.totalRows = filteredItems.length;
+      this.currentPage = 1; // Resetear a la primera página
+    },
+
     sendStepMsg(idDep, idOren) {
       console.log("ID departamento", idDep);
       console.log("ID ordem", idOren);
@@ -217,6 +229,7 @@ export default {
           this.dataTable = res.data.items;
           this.ordenesActivas = res.data.items;
           this.ordenesLength = this.ordenesActivas.length;
+          this.totalRows = this.ordenesActivas.length; // Actualizar totalRows para la paginación
         });
     },
 

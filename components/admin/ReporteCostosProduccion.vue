@@ -78,10 +78,12 @@
                 />
               </template>
               <template #cell(material_consumido)="data">
-                <reporte-costos-produccion-material
+                <!-- <reporte-costos-produccion-material
                   :id_orden="data.item.id_orden"
                   :valor="data.item.material_consumido"
-                />
+                /> -->
+
+                {{ calcularTiempoEmpleados(data.item) }}
               </template>
               <template #cell(eficiencia)="data">
                 {{ data.item.eficiencia.toFixed(2) }} %
@@ -208,7 +210,10 @@ import ReporteCostosProduccionInsumos from "./ReporteCostosDeProduccionInsumos.v
 import ReporteCostosProduccionManoObra from "./ReporteCostosProduccionManoObra.vue";
 import ReporteCostosProduccionMaterial from "./ReporteCostosProduccionMaterial.vue";
 
+import mixintime from "~/mixins/mixin-time.js";
+
 export default {
+  mixins: [mixintime],
   components: {
     ReporteCostosProduccionProductos,
     ReporteCostosProduccionInsumos,
@@ -217,6 +222,9 @@ export default {
   },
   data() {
     return {
+      horaEmpleadosPrecios: [],
+      horaEmpleadosTiempos: [],
+      salariosEmpleados: [],
       overlay: true,
       reportData: [],
       filteredReportData: [],
@@ -305,6 +313,13 @@ export default {
     },
   },
   methods: {
+    // calcularTiempoEmpleados(id_empleado, id_orden, fecha_incio, fecha_fin) {
+    calcularTiempoEmpleados(id_empleado) {
+      const emp = this.salariosEmpleados.find((e) => e.id_empleado === id_empleado);
+      return id_empleado
+
+    },
+
     onFiltered(filteredItems) {
       this.filteredReportData = filteredItems;
     },
@@ -341,6 +356,10 @@ export default {
         this.reportData = data.reporte_data;
         this.filteredReportData = data.reporte_data;
         this.costosOperativos = data.costos_operativos;
+
+        this.horaEmpleadosPrecios = data.horario_laboral;
+        this.horaEmpleadosTiempos = data.horario_laboral_empleados;
+        this.salariosEmpleados = data.salarios_data;
       } catch (error) {
         console.error("Error al obtener el reporte:", error);
         this.$bvToast.toast("No se pudo cargar el reporte.", {

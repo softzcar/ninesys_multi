@@ -3,7 +3,9 @@
     <b-button variant="primary" size="sm" @click="showModal">
       Atributos ({{ (product.atributos_seleccionados || []).length }})
     </b-button>
-    <b-modal :ref="modalRef" title="Seleccionar Atributos" @ok="handleOk" @hidden="resetSelection">
+    <b-modal :ref="modalRef" title="Seleccionar Atributos" @ok="handleOk" @hidden="resetSelection" size="lg">
+      <AtributosNuevo @reload="reloadAttributes" />
+      <hr />
       <b-form-group>
         <b-form-checkbox-group
           v-model="selectedAttributes"
@@ -18,7 +20,12 @@
 </template>
 
 <script>
+import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
+
 export default {
+  components: {
+    AtributosNuevo,
+  },
   props: {
     product: {
       type: Object,
@@ -76,6 +83,10 @@ export default {
     resetSelection() {
         // If the user cancels, reset the selection to the original state
         this.selectedAttributes = this.product.atributos_seleccionados ? [...this.product.atributos_seleccionados] : [];
+    },
+    reloadAttributes() {
+      // Emit event to parent to reload attributes
+      this.$emit('reload-attributes');
     }
   },
 };

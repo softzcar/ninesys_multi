@@ -317,6 +317,7 @@
                                           {{ form.fechaEntrega }}</b-list-group-item>
                                       </b-list-group>
                                       <br />
+                                      <AtributosNuevo @reload="loadProductAttributes" />
                                     </b-col>
                                   </b-row>
       
@@ -470,6 +471,7 @@
                                             :product-index="data.index"
                                             :attributes="productAttributes"
                                             @attributes-updated="handleAttributesUpdate"
+                                            @reload-attributes="loadProductAttributes"
                                           />
                                         </template>
       
@@ -1049,6 +1051,7 @@ import quillOptions from "~/plugins/nuxt-quill-plugin";
 import procesamientoOrdenes from "~/mixins/procesamientoOrdenes.js";
 import FormMonedas from "~/components/formMonedas.vue";
 import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
+import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
 
 export default {
   data() {
@@ -3354,7 +3357,7 @@ export default {
     },
   },
 
-  components: { FormMonedas, CargarOrdenesNoAsignadas },
+  components: { FormMonedas, CargarOrdenesNoAsignadas, AtributosNuevo },
   created() {
     // this.loadDataComercializacion()
   },

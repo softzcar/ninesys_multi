@@ -18,7 +18,7 @@
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <inventario-InsumoNuevo @reload="getInsumos" :catalogoProductosData="catalogoInsumosProductos" />
+                                <inventario-InsumoNuevo @reload="getInsumos" :catalogoProductosData="catalogoInsumosProductos" @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                 <LazyInventarioBulkLoad @upload-success="getInsumos" />
                             </b-col>
                         </b-row>
@@ -59,7 +59,7 @@
                                     sort-icon-left>
                                     <template #cell(_id)="data">
                                         <span class="floatme">
-                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item" :catalogoProductosData="catalogoInsumosProductos" />
+                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item" :catalogoProductosData="catalogoInsumosProductos" @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>
                                         <span class="floatme">
                                             <b-button variant="danger" v-on:click="

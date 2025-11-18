@@ -243,22 +243,10 @@ export default {
         });
     },
 
-    // Obtener token JWT para WhatsApp cuando se carga un menú
-    async ensureJWTToken() {
-      const token = this.$store.state.login.token || localStorage.getItem('jwt_token')
-      if (!token) {
-        try {
-          console.log('Obteniendo token JWT para WhatsApp...')
-          await this.getJWTToken()
-          console.log('Token JWT obtenido exitosamente')
-        } catch (error) {
-          console.error('Error obteniendo token JWT:', error)
-          // No mostrar error al usuario, solo loggear
-        }
-      }
-    },
+    // El token JWT se obtiene automáticamente cuando es necesario
+    // gracias al interceptor de axios configurado específicamente para WhatsApp
 
-    async showComponent(
+    showComponent(
       component,
       departamento,
       id_departamento,
@@ -272,8 +260,8 @@ export default {
         verifyOrdenProceso = orden_proceso;
       }
 
-      // Asegurar que tenemos token JWT antes de cambiar de componente
-      await this.ensureJWTToken();
+      // El token JWT se obtiene automáticamente cuando es necesario
+      // gracias al interceptor de axios configurado específicamente para WhatsApp
 
       if (
         this.currentComponent != null &&
@@ -310,9 +298,9 @@ export default {
     },
   },
 
-  async mounted() {
-    // Asegurar que tenemos token JWT al cargar el componente
-    await this.ensureJWTToken();
+  mounted() {
+    // El token JWT se obtiene automáticamente cuando es necesario
+    // gracias al interceptor de axios configurado específicamente para WhatsApp
 
     // VAlidar unicamente si es el modulo de empleados
     /* if (

@@ -332,6 +332,71 @@ export default {
             } else {
                 return `${segundosTotales} segundos`;
             }
+        },
+
+        /**
+         * Calcula las horas laboradas reales entre dos fechas considerando el horario laboral.
+         *
+         * @param {string} fechaInicioStr - Fecha de inicio en formato "YYYY-MM-DD HH:MM:SS"
+         * @param {string} fechaTerminadoStr - Fecha de terminado en formato "YYYY-MM-DD HH:MM:SS"
+         * @param {Object} horarioLaboral - Objeto con horario laboral: {horaInicioManana, horaFinManana, horaInicioTarde, horaFinTarde, diasLaborales: []}
+         * @returns {number} Horas laboradas reales en formato decimal (ej: 8.5 para 8 horas y 30 minutos)
+         */
+        calcularHorasLaboradasReales(fechaInicioStr, fechaTerminadoStr, horarioLaboral) {
+            const fechaInicio = new Date(fechaInicioStr);
+            const fechaTerminado = new Date(fechaTerminadoStr);
+
+            if (fechaInicio >= fechaTerminado) {
+                return 0; // Si la fecha de inicio es posterior o igual a la de terminado, no hay tiempo laborado
+            }
+
+            let horasTotales = 0;
+            let fechaActual = new Date(fechaInicio);
+
+            while (fechaActual < fechaTerminado) {
+                const diaSemana = fechaActual.getDay(); // 0 = Domingo, 1 = Lunes, etc.
+
+                // Verificar si es día laboral
+                if (horarioLaboral.diasLaborales.includes(diaSemana)) {
+                    // Calcular tiempo en horario de mañana
+                    const inicioManana = new Date(fechaActual);
+                    inicioManana.setHours(Math.floor(horarioLaboral.horaInicioManana), (horarioLaboral.horaInicioManana % 1) * 60, 0, 0);
+
+                    const finManana = new Date(fechaActual);
+                    finManana.setHours(Math.floor(horarioLaboral.horaFinManana), (horarioLaboral.horaFinManana % 1) * 60, 0, 0);
+
+                    // Intersección con el período de trabajo
+                    const inicioTrabajoManana = new Date(Math.max(fechaInicio, inicioManana));
+                    const finTrabajoManana = new Date(Math.min(fechaTerminado, finManana));
+
+                    if (inicioTrabajoManana < finTrabajoManana) {
+                        const tiempoMananaMs = differenceInMilliseconds(finTrabajoManana, inicioTrabajoManana);
+                        horasTotales += tiempoMananaMs / (1000 * 60 * 60); // Convertir a horas
+                    }
+
+                    // Calcular tiempo en horario de tarde
+                    const inicioTarde = new Date(fechaActual);
+                    inicioTarde.setHours(Math.floor(horarioLaboral.horaInicioTarde), (horarioLaboral.horaInicioTarde % 1) * 60, 0, 0);
+
+                    const finTarde = new Date(fechaActual);
+                    finTarde.setHours(Math.floor(horarioLaboral.horaFinTarde), (horarioLaboral.horaFinTarde % 1) * 60, 0, 0);
+
+                    // Intersección con el período de trabajo
+                    const inicioTrabajoTarde = new Date(Math.max(fechaInicio, inicioTarde));
+                    const finTrabajoTarde = new Date(Math.min(fechaTerminado, finTarde));
+
+                    if (inicioTrabajoTarde < finTrabajoTarde) {
+                        const tiempoTardeMs = differenceInMilliseconds(finTrabajoTarde, inicioTrabajoTarde);
+                        horasTotales += tiempoTardeMs / (1000 * 60 * 60); // Convertir a horas
+                    }
+                }
+
+                // Pasar al siguiente día
+                fechaActual.setDate(fechaActual.getDate() + 1);
+                fechaActual.setHours(0, 0, 0, 0);
+            }
+
+            return Math.round(horasTotales * 100) / 100; // Redondear a 2 decimales
         }
     }
 }

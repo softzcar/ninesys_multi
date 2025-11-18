@@ -332,7 +332,7 @@ export default {
     },
 
     formatInsumosForSelect(insumos) {
-      const options = insumos.map((insumo) => ({
+      const options = insumos.data.map((insumo) => ({
         value: insumo._id,
         text: insumo.nombre,
       }));

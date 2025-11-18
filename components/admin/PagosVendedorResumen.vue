@@ -1,28 +1,44 @@
 <template>
   <div>
-    <a href="#" @click="$bvModal.show(modal)">
-      {{ item.nombre }}
-    </a>
+    <!-- <a href="#" @click="$bvModal.show(modal)"> -->
+    <!-- <a href="#" @click="$bvModal.show(modal)"> -->
+    <b-button
+      variant="info"
+      @click="$bvModal.show(modal)"
+      size="lg"
+    >
+      Ver Detalles
+    </b-button>
 
-    <b-modal :size="size" :title="title" :id="modal" hide-footer>
-      <b-overlay :show="overlay" spinner-small>
+    <b-modal
+      :size="size"
+      :title="title"
+      :id="modal"
+      hide-footer
+    >
+      <b-overlay
+        :show="overlay"
+        spinner-small
+      >
         <b-container fluid>
           <b-row>
             <b-col>
-              <div class="floatme" style="width: 100%; margin-bottom: 20px">
+              <div
+                class="floatme"
+                style="width: 100%; margin-bottom: 20px"
+              >
                 <span v-if="showbutton != 'false'">
-                  <b-button
-                    @click="pagarEmpleado(item.id_empleado)"
-                    variant="success"
-                    >PAGAR {{ item.pago }}</b-button
-                  >
                   <b-button
                     @click="imprimirReporte"
                     variant="primary"
-                    class="ml-2"
-                    >Imprimir</b-button
-                  >
+                  >Imprimir</b-button>
                 </span>
+                <div
+                  v-if="item.pago === '0.00'"
+                  class="alert alert-info mt-2"
+                >
+                  <small>Este empleado ya recibió su salario correspondiente al período actual.</small>
+                </div>
               </div>
             </b-col>
           </b-row>
@@ -43,12 +59,19 @@
                   ${{ data.item.pago }}
                 </template>
                 <template #cell(id_orden)="data">
-                  <linkSearch class="floatme" :id="data.item.id_orden" />
-                  <diseno-viewImage class="floatme" :id="data.item.id_orden" />
+                  <linkSearch
+                    class="floatme"
+                    :id="data.item.id_orden"
+                  />
+                  <diseno-viewImage
+                    class="floatme"
+                    :id="data.item.id_orden"
+                  />
                 </template>
               </b-table>
             </b-col>
           </b-row>
+
         </b-container>
       </b-overlay>
     </b-modal>
@@ -64,8 +87,8 @@
 </template>
 
 <script>
-import mixin from '~/mixins/mixins.js'
-import ReportePagoVendedor from '~/components/reportes/ReportePagoVendedor.vue'
+import mixin from "~/mixins/mixins.js";
+import ReportePagoVendedor from "~/components/reportes/ReportePagoVendedor.vue";
 
 export default {
   mixins: [mixin],
@@ -74,61 +97,62 @@ export default {
   },
   data() {
     return {
-      size: 'xl',
+      size: "xl",
       title: `Vendedor: ${this.item.nombre}`,
       overlay: false,
       dataTable: [],
       fields: [
         {
-          key: 'id_orden',
-          label: 'Orden',
-          thClass: 'text-center',
-          tdClass: 'text-center',
+          key: "id_orden",
+          label: "Orden",
+          thClass: "text-center",
+          tdClass: "text-center",
         },
         {
-          key: 'nombre',
-          label: 'Vendedor',
+          key: "nombre",
+          label: "Vendedor",
         },
         {
-          key: 'comision_tipo',
-          label: 'Tipo',
+          key: "comision_tipo",
+          label: "Tipo",
         },
         {
-          key: 'comision',
-          label: 'Comisión',
+          key: "comision",
+          label: "Comisión",
         },
         {
-          key: 'monto_abonado',
-          label: 'Monto',
-          thClass: 'text-right',
-          tdClass: 'text-right',
+          key: "monto_abonado",
+          label: "Monto",
+          thClass: "text-right",
+          tdClass: "text-right",
         },
         {
-          key: 'pago',
-          label: 'Monto Pagado',
-          thClass: 'text-right',
-          tdClass: 'text-right',
+          key: "pago",
+          label: "Monto Pagado",
+          thClass: "text-right",
+          tdClass: "text-right",
         },
         {
-          key: 'fecha_de_pago',
-          label: 'Fecha P',
+          key: "fecha_de_pago",
+          label: "Fecha P",
         },
       ],
-    }
+    };
   },
 
   methods: {
-    imprimirReporte() {
-      const printContent = this.$refs.reporteParaImprimir.$el.innerHTML
-      const today = new Date()
-      const day = String(today.getDate()).padStart(2, '0')
-      const month = String(today.getMonth() + 1).padStart(2, '0')
-      const year = today.getFullYear()
-      const reportDate = `${day}-${month}-${year}`
-      const employeeName = this.item.nombre
-      const reportTitle = `Reporte de Pago - ${employeeName} - ${reportDate}`
 
-      const newWindow = window.open('', '_blank', 'width=800,height=600')
+    imprimirReporte() {
+      const printContent = this.$refs.reporteParaImprimir.$el.innerHTML;
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0");
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const year = today.getFullYear();
+      const reportDate = `${day}-${month}-${year}`;
+      const employeeName = this.item.nombre;
+      const reportTitle = `Reporte de Pago - ${employeeName} - ${reportDate}`;
+
+      const newWindow = window.open("", "_blank", "width=800,height=600");
       newWindow.document.write(`
         <html>
           <head>
@@ -181,49 +205,22 @@ export default {
             ${printContent}
           </body>
         </html>
-      `)
-      newWindow.document.close()
-      newWindow.focus()
+      `);
+      newWindow.document.close();
+      newWindow.focus();
       setTimeout(() => {
-        newWindow.print()
-        newWindow.close()
-      }, 250)
-    },
-    async pagarEmpleado() {
-      this.overlay = true
-
-      const idPagos = this.detalles.map((el) => {
-        return el.id_pago
-      })
-      const data = new URLSearchParams()
-      data.set('id_pagos', idPagos)
-
-      await this.$axios
-        .post(`${this.$config.API}/pagos/pagar-a-empleados`, data)
-        .then((res) => {
-          console.log('$sql ejecutar pagos', res.data.sql)
-        })
-        .catch((err) => {
-          this.$fire({
-            title: 'Error en pago',
-            html: `<p>Algo salió mal al procesar los pagos</p><p>${err}</p>`,
-            type: 'warning',
-          })
-        })
-        .finally(() => {
-          this.overlay = false
-          this.reloadMe()
-          this.$bvModal.hide(this.modal)
-        })
+        newWindow.print();
+        newWindow.close();
+      }, 250);
     },
 
     reloadMe() {
-      this.$emit('reload')
+      this.$emit("reload");
     },
 
     filterProd(id_woo, campo) {
-      let myProd = this.products.filter((el) => el.cod === parseInt(id_woo))
-      return myProd[0][campo]
+      let myProd = this.products.filter((el) => el.cod === parseInt(id_woo));
+      return myProd[0][campo];
     },
   },
 
@@ -233,25 +230,25 @@ export default {
         nombreEmpleado: this.item.nombre,
         totalPagar: `${this.item.pago}`,
         detalles: this.detalles,
-      }
+      };
     },
     pagoTotal() {
       const total = this.detalles.reduce((acc, curr) => {
-        const pagoDecimal = parseFloat(curr.pago)
-        return acc + pagoDecimal
-      }, 0)
+        const pagoDecimal = parseFloat(curr.pago);
+        return acc + pagoDecimal;
+      }, 0);
 
-      return String.fromCharCode(36) + total.toFixed(2)
+      return String.fromCharCode(36) + total.toFixed(2);
     },
 
     modal: function () {
-      const rand = Math.random().toString(36).substring(2, 7)
-      return `modal-${rand}`
+      const rand = Math.random().toString(36).substring(2, 7);
+      return `modal-${rand}`;
     },
   },
 
-  props: ['item', 'detalles', 'products', 'reload', 'showbutton'],
-}
+  props: ["item", "detalles", "products", "reload", "showbutton"],
+};
 </script>
 
 <style>

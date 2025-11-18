@@ -54,12 +54,21 @@
                                     label="Producto del Catálogo:"
                                     label-for="input-product-catalog"
                                 >
-                                    <b-form-select
-                                        id="input-product-catalog"
-                                        v-model="selectedProduct"
-                                        :options="catalogoProductosOptions"
-                                        required
-                                    ></b-form-select>
+                                    <b-input-group>
+                                        <b-form-select
+                                            id="input-product-catalog"
+                                            v-model="selectedProduct"
+                                            :options="catalogoProductosOptions"
+                                            required
+                                        ></b-form-select>
+                                        <b-input-group-append>
+                                            <inventario-CatalogoInsumosProductosModal
+                                                :products="products"
+                                                :departamentos="departamentos"
+                                                @reload="reloadCatalogo"
+                                            />
+                                        </b-input-group-append>
+                                    </b-input-group>
                                 </b-form-group>
 
                                 <b-form-group
@@ -150,6 +159,8 @@ export default {
             },
             catalogoProductos: [],
             selectedProduct: null,
+            products: [],
+            departamentos: [],
             unidadesOptions: [
                 { value: "Mts", text: "Metros" },
                 { value: "Kg", text: "Kilos" },
@@ -166,11 +177,15 @@ export default {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
         },
+        catalogoModal: function () {
+            const rand = Math.random().toString(36).substring(2, 7)
+            return `modal-catalogo-${rand}`
+        },
         catalogoProductosOptions() {
-            if (!this.catalogoProductosData || this.catalogoProductosData.length === 0) {
+            if (!this.catalogoProductosData || !this.catalogoProductosData.data || this.catalogoProductosData.data.length === 0) {
                 return [{ value: null, text: "Cargando catálogo..." }];
             }
-            let options = this.catalogoProductosData.map(prod => {
+            let options = this.catalogoProductosData.data.map(prod => {
                 return { value: prod._id, text: prod.nombre };
             });
             options.unshift({ value: null, text: "Seleccione un producto" });
@@ -187,6 +202,18 @@ export default {
     },
 
     methods: {
+        async fetchData() {
+            try {
+                const [productsRes, depsRes] = await Promise.all([
+                    this.$axios.get(`${this.$config.API}/products`),
+                    this.$axios.get(`${this.$config.API}/departamentos`),
+                ]);
+                this.products = productsRes.data;
+                this.departamentos = depsRes.data;
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        },
         resetForm() {
             this.overlay = true
             this.form = {
@@ -200,6 +227,9 @@ export default {
             }
             this.overlay = false
             this.selectedProduct = null
+        },
+        reloadCatalogo() {
+            this.$emit('reloadCatalogo');
         },
         async guardarInsumo() {
             const requiredFields = {
@@ -310,5 +340,8 @@ export default {
     },
     
     props: ["catalogoProductosData"],
+    mounted() {
+        this.fetchData();
+    },
 }
 </script>

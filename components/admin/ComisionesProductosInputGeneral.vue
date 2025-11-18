@@ -68,7 +68,15 @@ export default {
       console.log("idExist", idExist);
 
       if (idExist === undefined) {
-        this.comision = 0;
+        // Buscar el nombre del departamento seleccionado
+        const depSeleccionado = this.seldep.find(dep => dep.value === val);
+        const esDiseno = depSeleccionado && depSeleccionado.text === "Diseño";
+        // Solo usar la comisión general si es producto de diseño y departamento es Diseño
+        if (this.item.es_diseno === 1 && esDiseno) {
+          this.comision = parseFloat(this.item.comision) || 0;
+        } else {
+          this.comision = 0;
+        }
       } else {
         this.comision = idExist.comision;
       }

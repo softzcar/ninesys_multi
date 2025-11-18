@@ -116,7 +116,7 @@ export default {
         this.tiemposProduccion = tiemposProdRes.data;
         this.insumosAsignados = insumosAsignadosRes.data;
         this.selectInsumos = this.formatInsumosForSelect(
-          catalogoInsumosRes.data
+          catalogoInsumosRes.data.data
         );
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -187,7 +187,7 @@ export default {
       ];
     },
     productsWithDepartmentData() {
-      return this.products.map(product => {
+      return this.products.filter(product => product.producto_fisico === 1).map(product => {
         const productData = { ...product };
         this.departamentosConPaso.forEach(dep => {
           productData[dep._id.toString()] = this.getTiempo(product, dep._id);

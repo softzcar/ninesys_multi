@@ -38,6 +38,7 @@
         hide-footer
         size="xl"
         @show="onModalShow"
+        @hide="onModalHide"
       >
         <div v-if="ws.error">
           <b-alert
@@ -352,6 +353,7 @@ export default {
       isActionLoading: false, // Estado para indicar si una acción (activate, restart, disconnect) está en curso
       currentAction: null, // Para rastrear qué acción está cargando
       companyIdToAction: null, // Para almacenar el companyId en diálogos de confirmación
+      modalOpen: false, // Para rastrear si el modal está abierto
     };
   },
 
@@ -380,8 +382,9 @@ export default {
       this.$store.state.login.dataUser &&
       this.$store.state.login.dataUser.acceso
     ) {
-      console.log("Componente mounted. Iniciando polling para WS info.");
-      this.startPolling();
+      console.log("Componente mounted. Obteniendo estado inicial de WhatsApp.");
+      // Obtener el estado inicial una sola vez al montar el componente
+      this.getWSInfo();
       // No necesitamos checkConnection() si usamos $nuxt.isOffline
       // this.checkConnection();
       document.addEventListener(
@@ -499,6 +502,12 @@ export default {
     restartPolling() {
       this.stopPolling(); // Detener el intervalo actual antes de reiniciarlo
 
+      // Solo continuar con polling si el modal está abierto
+      if (!this.modalOpen) {
+        console.log("Modal cerrado. Polling no se reinicia.");
+        return;
+      }
+
       let intervalToUse = this.longInterval; // Por defecto, intervalo largo
 
       if (this.ws.ws_ready && !this.ws.error) {
@@ -524,11 +533,17 @@ export default {
     },
 
     onModalShow() {
-      console.log("Modal abierto. Verificando estado si no está conectado.");
-      // Si no estamos ya conectados, busca la información más reciente (ej. un nuevo QR)
-      if (!this.ws.ws_ready) {
-        this.getWSInfo();
-      }
+      console.log("Modal abierto. Iniciando polling para verificar estado.");
+      this.modalOpen = true;
+      // Iniciar polling cuando el modal se abre
+      this.startPolling();
+    },
+
+    onModalHide() {
+      console.log("Modal cerrado. Deteniendo polling.");
+      this.modalOpen = false;
+      // Detener polling cuando el modal se cierra
+      this.stopPolling();
     },
 
     // --- NUEVAS FUNCIONES PARA ACCIONES ---

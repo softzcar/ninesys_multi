@@ -12,17 +12,14 @@
               <div class="floatme" style="width: 100%; margin-bottom: 20px">
                 <span v-if="showbutton != 'false'">
                   <b-button
-                    @click="pagarEmpleado(item.id_empleado)"
-                    variant="success"
-                    >PAGAR {{ pagoTotal }}</b-button
-                  >
-                  <b-button
                     @click="imprimirReporte"
                     variant="primary"
-                    class="ml-2"
                     >Imprimir</b-button
                   >
                 </span>
+                <div v-if="item.pago === '0.00'" class="alert alert-info mt-2">
+                  <small>Este empleado ya recibió su salario correspondiente al período actual.</small>
+                </div>
 
                 <span
                   style="font-size: 1.4rem; font-weight: bold; padding: 12px"
@@ -97,6 +94,7 @@
               </b-table>
             </b-col>
           </b-row>
+
         </b-container>
       </b-overlay>
     </b-modal>
@@ -150,6 +148,7 @@ export default {
   },
 
   methods: {
+
     imprimirReporte() {
       const printContent = this.$refs.reporteParaImprimir.$el.innerHTML;
       const today = new Date();
@@ -238,33 +237,6 @@ export default {
       this.$emit('reload')
     },
 
-    async pagarEmpleado() {
-      this.overlay = true
-
-      const idPagos = this.detalles.map((el) => {
-        return el.id_pago
-      })
-      const data = new URLSearchParams()
-      data.set('id_pagos', idPagos)
-
-      await this.$axios
-        .post(`${this.$config.API}/pagos/pagar-a-empleados`, data)
-        .then((res) => {
-          console.log('$sql ejecutar pagos', res.data.sql)
-        })
-        .catch((err) => {
-          this.$fire({
-            title: 'Error en pago',
-            html: `<p>Algo salió mal al procesar los pagos</p><p>${err}</p>`,
-            type: 'warning',
-          })
-        })
-        .finally(() => {
-          this.overlay = false
-          this.reloadMe()
-          this.$bvModal.hide(this.modal)
-        })
-    },
 
     filterProd(id_woo, campo) {
       // console.log("Props", this.$props);

@@ -122,7 +122,6 @@ export default {
             // ACTUALIZAR EL TITULO DEL DEPARTAMENTO SELECCIONADO
             const tmpDep = this.departamentosSelect.find(el => el.value === val)
             this.departamentoTit = tmpDep.text
-            this.selectedType = "todos"
             this.applyFilters()
         },
 

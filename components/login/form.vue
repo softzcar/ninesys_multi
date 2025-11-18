@@ -172,13 +172,8 @@ export default {
                         this.$store.commit("login/setModulos", res.data.modulos);
                         this.$store.commit("login/setAccess", res.data.data.access);
 
-                        // Obtener token JWT para WhatsApp inmediatamente después del login exitoso
-                        this.getJWTToken().then(() => {
-                          console.log('Token JWT obtenido exitosamente después del login')
-                        }).catch((error) => {
-                          console.error('Error obteniendo token JWT después del login:', error)
-                          // No mostrar error al usuario, solo continuar
-                        })
+                        // El token JWT se obtendrá automáticamente cuando sea necesario
+                        // gracias al interceptor de axios configurado específicamente para WhatsApp
 
                         // Guardar datos adicionales para que el wizard funcione tanto en config inicial como edición
                         this.$store.commit("login/setDatosUsuario", res.data.datos_usuario);
