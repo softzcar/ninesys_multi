@@ -153,6 +153,14 @@
           <buscar-BarraDeBusqueda />
         </b-col>
       </b-row>
+      <b-row>
+        <b-col
+          v-if="currentComponent"
+          class="mr-4 text-right mt-4"
+        >
+          <buscar-BusquedaHistoricoModal />
+        </b-col>
+      </b-row>
     </b-container>
 
     <!-- Modal para forzar el ingreso de tasas -->
@@ -193,10 +201,11 @@
 import { mapState, mapGetters } from "vuex";
 import mixin from "~/mixins/mixin-login.js";
 import FormMonedas from "~/components/formMonedas.vue";
+import BusquedaHistoricoModal from "~/components/buscar/BusquedaHistoricoModal.vue";
 
 export default {
   mixins: [mixin],
-  components: { FormMonedas },
+  components: { FormMonedas, BusquedaHistoricoModal },
   computed: {
     tasasEstanConfiguradas() {
       const depto = this.$store.state.login.dataUser.departamento;

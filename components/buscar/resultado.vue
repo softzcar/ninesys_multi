@@ -358,6 +358,14 @@ export default {
       type: [String, Number],
       default: null,
     },
+    customData: {
+      type: Object,
+      default: null,
+    },
+    observacionesCargadas: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -563,7 +571,21 @@ export default {
     const post = await this.getOrdenNow()
   }, */
   mounted() {
-    this.loadOrderData();
+    if (this.customData) {
+      this.$store.commit("buscar/setOrden", this.customData);
+      this.overlay = false;
+      this.overlayObservaciones = !this.observacionesCargadas;
+    } else {
+      this.loadOrderData();
+    }
+  },
+
+  watch: {
+    observacionesCargadas(newVal) {
+      if (this.customData) {
+        this.overlayObservaciones = !newVal;
+      }
+    }
   },
 
   mixins: [mixin],

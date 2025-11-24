@@ -48,7 +48,7 @@
                 >
                   <template #cell(acciones)="data">
                     <span class="floatme">
-                      <admin-categoriasEdit
+                      <admin-categoriasEditar
                         :key="data.item.id"
                         :item="data.item"
                         @reload="getCategorias()"

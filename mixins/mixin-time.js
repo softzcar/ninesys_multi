@@ -335,6 +335,63 @@ export default {
         },
 
         /**
+         * Calcula el costo total en salarios invertidos en una orden específica, considerando solo empleados que cobran salario.
+         *
+         * @param {number} idOrden - ID de la orden a calcular.
+         * @param {string} empleadosIds - Lista de IDs de empleados separados por comas (e.g., "422,423,424,425").
+         * @param {Array} empleadosData - Array de objetos con info de empleados: [{id_usuario, salario_tipo, costo_por_hora}].
+         * @param {Object} horarioLaboral - Objeto con horario laboral: {horaInicioManana, horaFinManana, horaInicioTarde, horaFinTarde, diasLaborales: []}.
+         * @param {Array} tareasData - Array de objetos con tareas: [{id_orden, id_empleado, fecha_inicio, fecha_terminado, minutos_transcurridos}].
+         * @returns {number} Costo total en salarios para la orden, redondeado a 2 decimales.
+         */
+        calcularCostoSalariosOrden(idOrden, empleadosIds, empleadosData, horarioLaboral, tareasData) {
+            console.log('DEBUG - idOrden:', idOrden);
+            console.log('DEBUG - empleadosIds:', empleadosIds);
+            console.log('DEBUG - empleadosData:', empleadosData);
+            console.log('DEBUG - horarioLaboral:', horarioLaboral);
+            console.log('DEBUG - tareasData:', tareasData);
+
+            try {
+                // Convertir empleadosIds a array de números, manejar si no es string
+                const empleadosIdsArray = empleadosIds && typeof empleadosIds === 'string' ? empleadosIds.split(',').map(id => parseInt(id.trim())) : [];
+
+            // Filtrar empleados que cobran salario y están en la lista
+            const empleadosSalario = empleadosData.filter(empleado =>
+                empleadosIdsArray.includes(empleado.id_usuario) &&
+                empleado.salario_tipo.includes('Salario')
+            );
+
+            // Crear mapa de id_usuario a costo_por_hora
+            const costoPorHoraMap = {};
+            empleadosSalario.forEach(empleado => {
+                costoPorHoraMap[empleado.id_usuario] = empleado.costo_por_hora;
+            });
+
+            // Filtrar tareas por orden y empleados relevantes
+            const tareasFiltradas = tareasData.filter(tarea =>
+                tarea.id_orden === idOrden &&
+                empleadosIdsArray.includes(tarea.id_empleado)
+            );
+
+            let costoTotal = 0;
+
+            // Calcular costo por cada tarea
+            tareasFiltradas.forEach(tarea => {
+                const horasLaboradas = this.calcularHorasLaboradasReales(tarea.fecha_inicio, tarea.fecha_terminado, horarioLaboral);
+                const costoPorHora = costoPorHoraMap[tarea.id_empleado];
+                if (costoPorHora) {
+                    costoTotal += horasLaboradas * costoPorHora;
+                }
+            });
+
+                return Math.round(costoTotal * 100) / 100; // Redondear a 2 decimales
+            } catch (error) {
+                console.error('Error en calcularCostoSalariosOrden:', error);
+                return 0; // Retornar 0 en caso de error
+            }
+        },
+
+        /**
          * Calcula las horas laboradas reales entre dos fechas considerando el horario laboral.
          *
          * @param {string} fechaInicioStr - Fecha de inicio en formato "YYYY-MM-DD HH:MM:SS"

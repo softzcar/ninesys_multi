@@ -52,7 +52,7 @@
                 </span>
               </router-link>
 
-              <router-link
+              <!-- <router-link
                 class="nav-link"
                 to="/empleados/ws"
                 custom
@@ -61,9 +61,9 @@
                 <span @click="navigate" @keypress.enter="navigate" role="link">
                   Websocket
                 </span>
-              </router-link>
+              </router-link> -->
 
-              <router-link
+              <!-- <router-link
                 class="nav-link"
                 to="/empleados/eficiencia-insumos"
                 custom
@@ -72,7 +72,7 @@
                 <span @click="navigate" @keypress.enter="navigate" role="link">
                   Test Eficiencia de Insumos
                 </span>
-              </router-link>
+              </router-link> -->
 
               <empleados-reporte-semanal-de-borradores />
 

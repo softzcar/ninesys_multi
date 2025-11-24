@@ -60,13 +60,16 @@
                 </template>
                 <template #cell(id_orden)="data">
                   <linkSearch
+                    v-if="data.item.orden || data.item.id_orden"
                     class="floatme"
-                    :id="data.item.id_orden"
+                    :id="data.item.orden || data.item.id_orden"
                   />
                   <diseno-viewImage
+                    v-if="data.item.orden || data.item.id_orden"
                     class="floatme"
-                    :id="data.item.id_orden"
+                    :id="data.item.orden || data.item.id_orden"
                   />
+                  <span v-else class="text-muted small">Sin orden</span>
                 </template>
               </b-table>
             </b-col>

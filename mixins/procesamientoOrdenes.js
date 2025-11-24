@@ -164,115 +164,102 @@ export default {
       if (!horarioLaboral) return ordenes;
 
       const ordenesAProcesar = JSON.parse(JSON.stringify(ordenes));
-      ordenesAProcesar.sort((a, b) => {
-        if (a.orden_fila_orden !== b.orden_fila_orden) return a.orden_fila_orden - b.orden_fila_orden;
-        return a.orden_proceso_departamento - b.orden_proceso_departamento;
+
+      // Agrupar tareas por id_departamento
+      const tareasPorDepartamento = {};
+      ordenesAProcesar.forEach(tarea => {
+        const idDepto = tarea.id_departamento;
+        if (!tareasPorDepartamento[idDepto]) {
+          tareasPorDepartamento[idDepto] = [];
+        }
+        tareasPorDepartamento[idDepto].push(tarea);
       });
 
-      let proximoInicioDisponible = this.ajustarInicioAlHorarioLaboral(fechaDeCalculo, horarioLaboral);
-      if (!proximoInicioDisponible) {
-        console.error("No se pudo determinar un punto de partida válido para el cálculo.");
-        return [];
-      }
+      // Procesar cada departamento por separado
+      for (const idDepto in tareasPorDepartamento) {
+        const tareasDepto = tareasPorDepartamento[idDepto];
 
-      for (const tarea of ordenesAProcesar) {
-        // Excluir ordenes pausadas
-        if (tarea.status !== 'pausada') {
-          const fechaInicioReal = tarea.fecha_inicio ? new Date(tarea.fecha_inicio.replace(' ', 'T')) : null;
-          const fechaTerminadoReal = tarea.fecha_terminado ? new Date(tarea.fecha_terminado.replace(' ', 'T')) : null;
+        // Ordenar tareas del departamento por orden_proceso_departamento
+        tareasDepto.sort((a, b) => a.orden_proceso_departamento - b.orden_proceso_departamento);
 
-          tarea.fecha_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
-          tarea.fecha_terminado_formateada = this.formatDateTime12h(fechaTerminadoReal);
-          tarea.tiempo_total_orden_depto_formateado = this.formatearTiempo(tarea.tiempo_total_orden_depto * 1000);
-          tarea.tiempo_real_empleado_segundos = null;
-          tarea.tiempo_real_empleado_formateado = null;
+        // Inicializar proximoInicioDisponible para este departamento
+        let proximoInicioDisponible = this.ajustarInicioAlHorarioLaboral(fechaDeCalculo, horarioLaboral);
+        if (!proximoInicioDisponible) {
+          console.error(`No se pudo determinar un punto de partida válido para el departamento ${idDepto}.`);
+          continue; // Saltar este departamento
+        }
 
-          if (fechaInicioReal && fechaTerminadoReal && !isNaN(fechaInicioReal) && !isNaN(fechaTerminadoReal)) {
-            const duracionMilisegundos = fechaTerminadoReal.getTime() - fechaInicioReal.getTime();
-            tarea.tiempo_real_empleado_segundos = Math.floor(duracionMilisegundos / 1000);
-            tarea.tiempo_real_empleado_formateado = this.formatearTiempo(duracionMilisegundos);
-          }
-
-          if (fechaTerminadoReal && !isNaN(fechaTerminadoReal)) {
-            tarea.fecha_estimada_inicio = fechaInicioReal;
-            tarea.fecha_estimada_fin = fechaTerminadoReal;
-            tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
-            tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaTerminadoReal);
-            proximoInicioDisponible = new Date(fechaTerminadoReal.getTime());
-          } else {
-            let fechaInicioCalculada;
-            if (fechaInicioReal && !isNaN(fechaInicioReal)) {
-              fechaInicioCalculada = fechaInicioReal;
-            } else {
-              fechaInicioCalculada = new Date(Math.max(proximoInicioDisponible.getTime(), fechaDeCalculo.getTime()));
-            }
-
-            const fechaEstimadaInicio = this.ajustarInicioAlHorarioLaboral(fechaInicioCalculada, horarioLaboral);
-            if (fechaEstimadaInicio) {
-              const fechaEstimadaFin = this.calcularFechaFinLaboral(fechaEstimadaInicio, tarea.tiempo_total_orden_depto, horarioLaboral);
-              if (fechaEstimadaFin) {
-                tarea.fecha_estimada_inicio = fechaEstimadaInicio;
-                tarea.fecha_estimada_fin = fechaEstimadaFin;
-                tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaEstimadaInicio);
-                tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaEstimadaFin);
-                proximoInicioDisponible = new Date(fechaEstimadaFin.getTime());
+        // Verificar si hay una tarea en curso en este departamento
+        const tareaEnCurso = tareasDepto.find(t => t.fecha_inicio && !t.fecha_terminado && t.status !== 'pausada');
+        if (tareaEnCurso) {
+          const fechaInicioReal = new Date(tareaEnCurso.fecha_inicio.replace(' ', 'T'));
+          if (!isNaN(fechaInicioReal)) {
+            const tiempoTranscurridoSegundos = Math.floor((fechaDeCalculo.getTime() - fechaInicioReal.getTime()) / 1000);
+            const tiempoRestanteSegundos = tareaEnCurso.tiempo_total_orden_depto - tiempoTranscurridoSegundos;
+            if (tiempoRestanteSegundos > 0) {
+              // Calcular fecha de fin estimada de la tarea en curso
+              const fechaFinCurso = this.calcularFechaFinLaboral(fechaInicioReal, tiempoRestanteSegundos, horarioLaboral);
+              if (fechaFinCurso) {
+                // Actualizar proximoInicioDisponible si la tarea en curso termina más tarde
+                proximoInicioDisponible = new Date(Math.max(proximoInicioDisponible.getTime(), fechaFinCurso.getTime()));
               }
             }
           }
+        }
 
-          const { variant, variant_text } = this._determinarVarianteTarea(tarea);
-          tarea.variant = variant;
-          tarea.variant_text = variant_text;
-        } else {
-          const fechaInicioReal = tarea.fecha_inicio ? new Date(tarea.fecha_inicio.replace(' ', 'T')) : null;
-          const fechaTerminadoReal = tarea.fecha_terminado ? new Date(tarea.fecha_terminado.replace(' ', 'T')) : null;
+        // Procesar cada tarea en el departamento
+        for (const tarea of tareasDepto) {
+          // Excluir ordenes pausadas
+          if (tarea.status !== 'pausada') {
+            const fechaInicioReal = tarea.fecha_inicio ? new Date(tarea.fecha_inicio.replace(' ', 'T')) : null;
+            const fechaTerminadoReal = tarea.fecha_terminado ? new Date(tarea.fecha_terminado.replace(' ', 'T')) : null;
 
-          /*tarea.fecha_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
-          tarea.fecha_terminado_formateada = this.formatDateTime12h(fechaTerminadoReal);
-          tarea.tiempo_total_orden_depto_formateado = this.formatearTiempo(tarea.tiempo_total_orden_depto * 1000);
-          tarea.tiempo_real_empleado_segundos = null;
-          tarea.tiempo_real_empleado_formateado = null;
-          
-          if (fechaInicioReal && fechaTerminadoReal && !isNaN(fechaInicioReal) && !isNaN(fechaTerminadoReal)) {
+            tarea.fecha_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
+            tarea.fecha_terminado_formateada = this.formatDateTime12h(fechaTerminadoReal);
+            tarea.tiempo_total_orden_depto_formateado = this.formatearTiempo(tarea.tiempo_total_orden_depto * 1000);
+            tarea.tiempo_real_empleado_segundos = null;
+            tarea.tiempo_real_empleado_formateado = null;
+
+            if (fechaInicioReal && fechaTerminadoReal && !isNaN(fechaInicioReal) && !isNaN(fechaTerminadoReal)) {
               const duracionMilisegundos = fechaTerminadoReal.getTime() - fechaInicioReal.getTime();
               tarea.tiempo_real_empleado_segundos = Math.floor(duracionMilisegundos / 1000);
               tarea.tiempo_real_empleado_formateado = this.formatearTiempo(duracionMilisegundos);
-          }
- 
-         if (fechaTerminadoReal && !isNaN(fechaTerminadoReal)) {
+            }
+
+            if (fechaTerminadoReal && !isNaN(fechaTerminadoReal)) {
               tarea.fecha_estimada_inicio = fechaInicioReal;
               tarea.fecha_estimada_fin = fechaTerminadoReal;
               tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
               tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaTerminadoReal);
               proximoInicioDisponible = new Date(fechaTerminadoReal.getTime());
-          }  else {
-              let fechaInicioCalculada;
-              if (fechaInicioReal && !isNaN(fechaInicioReal)) {
-                  fechaInicioCalculada = fechaInicioReal;
-              } else {
-                  fechaInicioCalculada = new Date(Math.max(proximoInicioDisponible.getTime(), fechaDeCalculo.getTime()));
-              }
- 
+            } else {
+              // Ignorar fecha_inicio programada y usar solo la calculada desde la cola del departamento
+              let fechaInicioCalculada = new Date(Math.max(proximoInicioDisponible.getTime(), fechaDeCalculo.getTime()));
+
               const fechaEstimadaInicio = this.ajustarInicioAlHorarioLaboral(fechaInicioCalculada, horarioLaboral);
               if (fechaEstimadaInicio) {
-                  const fechaEstimadaFin = this.calcularFechaFinLaboral(fechaEstimadaInicio, tarea.tiempo_total_orden_depto, horarioLaboral);
-                  if(fechaEstimadaFin) {
-                      tarea.fecha_estimada_inicio = fechaEstimadaInicio;
-                      tarea.fecha_estimada_fin = fechaEstimadaFin;
-                      tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaEstimadaInicio);
-                      tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaEstimadaFin);
-                      proximoInicioDisponible = new Date(fechaEstimadaFin.getTime());
-                  }
+                const fechaEstimadaFin = this.calcularFechaFinLaboral(fechaEstimadaInicio, tarea.tiempo_total_orden_depto, horarioLaboral);
+                if (fechaEstimadaFin) {
+                  tarea.fecha_estimada_inicio = fechaEstimadaInicio;
+                  tarea.fecha_estimada_fin = fechaEstimadaFin;
+                  tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaEstimadaInicio);
+                  tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaEstimadaFin);
+                  proximoInicioDisponible = new Date(fechaEstimadaFin.getTime());
+                }
               }
-          } */
+            }
 
-          const { variant, variant_text } = this._determinarVarianteTarea(tarea);
-          tarea.variant = variant;
-          tarea.variant_text = variant_text;
-
+            const { variant, variant_text } = this._determinarVarianteTarea(tarea);
+            tarea.variant = variant;
+            tarea.variant_text = variant_text;
+          } else {
+            const { variant, variant_text } = this._determinarVarianteTarea(tarea);
+            tarea.variant = variant;
+            tarea.variant_text = variant_text;
+          }
         }
-
       }
+
       return ordenesAProcesar;
     },
 
