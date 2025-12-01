@@ -66,12 +66,40 @@ export default {
     async cargarOrdenCompleta(idOrden) {
       this.overlay = true;
       try {
-        const response = await this.$axios.get(
-          `${this.$config.API}/buscar/${idOrden}`
-        );
+        const [resOrden, resObs] = await Promise.all([
+          this.$axios.get(`${this.$config.API}/buscar/${idOrden}`),
+          this.$axios.get(`${this.$config.API}/ordenes-observaciones/${idOrden}`),
+        ]);
+
+        const datosOrden = resOrden.data;
+
+        // Inyectar observaciones si existen
+        if (
+          resObs.data &&
+          resObs.data.length > 0 &&
+          datosOrden.orden &&
+          datosOrden.orden[0]
+        ) {
+          // Asumimos que queremos concatenar todas las observaciones encontradas
+          // o tomar la más reciente. Por ahora, tomaremos la descripción de la primera
+          // observación encontrada si es un array, o el campo directo si es objeto.
+          // Ajustar según estructura real: [{ id, id_orden, observacion, ... }]
+          
+          console.log("Observaciones extra cargadas:", resObs.data);
+          
+          // Estrategia: Si el campo observaciones original está vacío, lo llenamos.
+          // Si no, concatenamos.
+          // FIX: La propiedad devuelta por el API es 'observaciones' (plural), no 'observacion'.
+          const obsExtra = resObs.data.map(o => o.observaciones).join("\n");
+          
+          if (obsExtra) {
+             const obsOriginal = datosOrden.orden[0].observaciones || "";
+             datosOrden.orden[0].observaciones = obsOriginal ? `${obsOriginal}\n${obsExtra}` : obsExtra;
+          }
+        }
 
         // Emitimos un evento con los datos completos de la orden para que el padre los reciba.
-        this.$emit("orden-cargada", response.data);
+        this.$emit("orden-cargada", datosOrden);
 
         this.$fire({
           title: "Orden Cargada",

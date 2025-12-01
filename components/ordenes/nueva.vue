@@ -1470,6 +1470,13 @@ export default {
       this.clearForm({ form: true, formPrint: true });
       this.editingOrderId = datosDeLaOrden.orden[0]._id;
 
+      // Actualizar el endpoint para modo edición
+      if (this.categoriaDeLaORden === "custom") {
+        this.endpoint = `/ordenes/nueva/custom/edit`;
+      } else if (this.categoriaDeLaORden === "sport") {
+        this.endpoint = `/ordenes/nueva/sport/edit`;
+      }
+
       // 2. Poblar datos del cliente
       const customerData = datosDeLaOrden.customer.data[0];
       if (customerData) {
