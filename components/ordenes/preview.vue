@@ -117,7 +117,7 @@
                                 <!-- <td style="text-align: center">
                                     {{ product.cod }}
                                 </td> -->
-                                <td>{{ product.name }}</td>
+                                <td>{{ product.producto }}</td>
                                 <td style="text-align: right">
                                     {{ product.cantidad }}
                                 </td>

@@ -103,6 +103,7 @@
 
       <b-row>
         <b-col>
+          <h3 class="mb-3 text-primary">{{ filterName }} {{ totalRows }} Ordenes</h3>
           <b-pagination
             v-model="currentPage"
             :total-rows="totalRows"
@@ -399,19 +400,34 @@ export default {
     misOrdenes() {
       return this.ordenesActivas;
     },
+    ordenesLength() {
+      return this.ordenesActivas.length;
+    },
+    filterName() {
+      const option = this.optionsRadio.find(opt => opt.value === this.selectedRadio);
+      return option ? option.text : 'Todas';
+    },
     ordenesConEstadoDePago() {
         if (!this.ordenesActivas.length || !this.pagos.length) return [];
         
         return this.ordenesActivas.map(orden => {
-            const pagosDeOrden = this.pagos.filter(p => p.orden === orden.orden);
-            const totalAbonado = pagosDeOrden.reduce((acc, pago) => acc + parseFloat(pago.monto), 0);
+            const pagosDeOrden = this.pagos.filter(p => p.orden == orden.orden);
+            const totalAbonado = pagosDeOrden.reduce((acc, pago) => {
+                const monto = parseFloat(pago.monto) || 0;
+                const tasa = parseFloat(pago.tasa) || 1;
+                return acc + (monto / tasa);
+            }, 0);
+            
             const totalOrden = parseFloat(orden.total) || 0;
-            const montoPendiente = totalOrden - totalAbonado;
+            const totalDescuento = parseFloat(orden.descuento_total) || 0;
+            const montoPendiente = totalOrden - totalAbonado - totalDescuento;
 
             let payment_status = 'pendiente';
-            if (montoPendiente === 0) {
+            const epsilon = 0.1; // Tolerance for floating point errors
+
+            if (Math.abs(montoPendiente) < epsilon) {
                 payment_status = 'pagada';
-            } else if (montoPendiente < 0) {
+            } else if (montoPendiente < -epsilon) {
                 payment_status = 'sobrepagada';
             }
 

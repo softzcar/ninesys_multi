@@ -108,6 +108,62 @@
 
     <h3 class="mt-4">Ordenes en curso</h3>
 
+    <!-- Filtros -->
+    <b-row class="mb-3">
+      <b-col md="3">
+        <b-form-group label="Filtrar por Orden" label-for="filter-orden">
+          <b-form-input
+            id="filter-orden"
+            v-model="filterOrden"
+            placeholder="Ej: 1234"
+            type="text"
+            debounce="300"
+          ></b-form-input>
+        </b-form-group>
+      </b-col>
+      <b-col md="3">
+        <b-form-group label="Filtrar por Cliente" label-for="filter-cliente">
+          <b-form-input
+            id="filter-cliente"
+            v-model="filterCliente"
+            placeholder="Nombre del cliente"
+            debounce="300"
+          ></b-form-input>
+        </b-form-group>
+      </b-col>
+      <b-col md="3">
+        <b-form-group label="Filtrar por Estado" label-for="filter-estatus">
+          <b-form-input
+            id="filter-estatus"
+            v-model="filterEstatus"
+            placeholder="Estado de la orden"
+            debounce="300"
+          ></b-form-input>
+        </b-form-group>
+      </b-col>
+      <b-col md="3" class="d-flex align-items-end flex-column">
+        <b-button
+          v-if="isUserFiltering"
+          @click="clearFilters"
+          variant="outline-danger"
+          size="sm"
+          class="mb-2 w-100"
+        >
+          <b-icon icon="x-circle"></b-icon> Limpiar Filtros
+        </b-button>
+        <b-alert
+          :show="isUserFiltering"
+          variant="warning"
+          class="m-0 p-2 w-100 text-center"
+        >
+          <small
+            ><strong>Reordenamiento desactivado</strong> por filtros
+            activos.</small
+          >
+        </b-alert>
+      </b-col>
+    </b-row>
+
     <div v-if="isLoading">
       <b-alert
         show
@@ -136,6 +192,7 @@
           tag="ul"
           class="list-group"
           handle=".drag-handle-zone"
+          :disabled="isUserFiltering"
         >
           <li
             v-for="(el, index) in itemsFiltrados"
@@ -151,12 +208,13 @@
               >
                 <span
                   class="drag-handle-zone"
-                  style="
-                    cursor: grab;
-                    padding-top: 4px;
-                    padding-right: 16px;
-                    padding-top: 12px;
-                  "
+                  :style="{
+                    cursor: isUserFiltering ? 'not-allowed' : 'grab',
+                    paddingTop: '4px',
+                    paddingRight: '16px',
+                    paddingTop: '12px',
+                    opacity: isUserFiltering ? 0.3 : 1
+                  }"
                   >☰</span
                 >
               </b-list-group-item>
@@ -307,6 +365,11 @@ export default {
       currentPage: 1,
       ordenesLength: 0,
       filter: null,
+      // Nuevos filtros
+      filterOrden: '',
+      filterCliente: '',
+      filterEstatus: '',
+      
       overlay: true,
       items: [],
       pactivos: [],
@@ -527,6 +590,12 @@ export default {
       return this.lote_detalles.filter((el) => el.id_orden == id_orden);
     },
 
+    clearFilters() {
+      this.filterOrden = "";
+      this.filterCliente = "";
+      this.filterEstatus = "";
+    },
+
     async loadOrdersProduction() {
       await this.$axios
         .get(`${this.$config.API}/sse/produccion`)
@@ -570,38 +639,77 @@ export default {
       return parseInt(this.ordenesLength) + 1;
     },
 
+    isUserFiltering() {
+      return (
+        (this.filterOrden && this.filterOrden.length > 0) ||
+        (this.filterCliente && this.filterCliente.length > 0) ||
+        (this.filterEstatus && this.filterEstatus.length > 0)
+      );
+    },
+
     itemsFiltrados: {
       get() {
         if (!this.items.length || !this.orden_productos.length) {
           return [];
         }
 
-        return this.items.filter((order) => {
-          // Encontrar todos los productos para la orden actual
+        // 1. Filtrado base (Productos físicos)
+        let filtered = this.items.filter((order) => {
           const productosDeLaOrden = this.orden_productos.filter(
             (p) => p.id_orden === order.orden
           );
 
           if (productosDeLaOrden.length === 0) {
-            return false; // Si no tiene productos, no se puede verificar, se excluye.
+            return false;
           }
 
-          // La regla es mostrar la orden si tiene AL MENOS UN producto físico (fisico = 1)
           const tieneProductoFisico = productosDeLaOrden.some(
             (p) => p.fisico == 1
           );
 
           return tieneProductoFisico;
         });
+
+        // 2. Aplicar filtros de usuario si existen
+        if (this.filterOrden) {
+          const fOrden = this.filterOrden.toLowerCase();
+          filtered = filtered.filter(item => 
+            String(item.orden).toLowerCase().includes(fOrden)
+          );
+        }
+
+        if (this.filterCliente) {
+          const fCliente = this.filterCliente.toLowerCase();
+          filtered = filtered.filter(item => 
+            (item.cliente && item.cliente.toLowerCase().includes(fCliente))
+          );
+        }
+
+        if (this.filterEstatus) {
+          const fEstatus = this.filterEstatus.toLowerCase();
+          filtered = filtered.filter(item => 
+            (item.estatus && item.estatus.toLowerCase().includes(fEstatus))
+          );
+        }
+
+        return filtered;
       },
       set(reorderedItems) {
+        // Si el usuario está filtrando, NO permitimos reordenar (aunque el drag se haya disparado)
+        // Esto es una medida de seguridad adicional, aunque el UI debería estar bloqueado.
+        if (this.isUserFiltering) {
+            return; 
+        }
+
         // 1. Obtenemos los items que fueron filtrados (los que son solo no-físicos)
+        // NOTA: Aquí solo consideramos el filtro base de "no físicos" para la lógica de reordenamiento original.
+        // Si hubiera filtros de usuario activos, reorderedItems sería un subconjunto y perderíamos datos al guardar.
+        // Por eso bloqueamos el set si isUserFiltering es true.
+        
         const itemsNoFisicos = this.items.filter((order) => {
           const productosDeLaOrden = this.orden_productos.filter(
             (p) => p.id_orden === order.orden
           );
-          // Un item es "no físico" si ninguno de sus productos es físico.
-          // Si la orden no tiene productos, some() devuelve false, por lo que !some() es true, y se filtra correctamente.
           return !productosDeLaOrden.some((p) => p.fisico == 1);
         });
 
