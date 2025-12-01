@@ -399,9 +399,9 @@
                                         :items="form.productos"
                                         small
                                       >
-                                        <template #cell(nombre)="data">
+                                        <template #cell(producto)="data">
                                           <a :href="`#${data.item.producto}`">{{
-                                            data.item.item.producto
+                                            data.item.producto
                                           }}</a>
                                         </template>
       
@@ -2805,7 +2805,11 @@ export default {
     },
 
     async getProducts() {
-      await this.$axios.get(`${this.$config.API}/products`).then((res) => {
+      await this.$axios.get(`${this.$config.API}/products`, {
+        headers: {
+          Authorization: '152'
+        }
+      }).then((res) => {
         this.products = res.data;
 
         // Cargar Productos
@@ -3220,7 +3224,11 @@ export default {
 
     async loadDataProductos() {
       await this.$axios
-        .get(`${this.$config.API}/products`)
+        .get(`${this.$config.API}/products`, {
+          headers: {
+            Authorization: '152'
+          }
+        })
         .then((responseProductos) => {
           // Cargar Productos
           let productsSelect = responseProductos.data.map((prod) => {
