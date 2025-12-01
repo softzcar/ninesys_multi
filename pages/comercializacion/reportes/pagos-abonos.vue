@@ -282,8 +282,64 @@ export default {
       };
 
       this.pagosFiltrados.forEach((item) => {
-        const { metodo_pago, monto, tasa } = item;
-        const montoAjustado = monto / tasa;
+        const { metodo_pago, monto, tasa, product_categories } = item;
+        let montoAjustado = 0;
+
+        if (this.selectedCategory !== 'Todas' && this.selectedCategory && product_categories) {
+           const categoryData = product_categories.find(cat => cat.category_name === this.selectedCategory);
+           if (categoryData && categoryData.category_total) {
+               // Si hay un total de categoría, usamos ese.
+               // Nota: El category_total viene en la moneda base (dólares usualmente, o la moneda del producto).
+               // Aquí asumimos que category_total ya está normalizado o es el valor que queremos sumar directamente.
+               // Sin embargo, el código original dividía monto / tasa.
+               // Si category_total es el valor total del producto, ¿deberíamos ajustarlo por la tasa del pago?
+               // El usuario dijo: "se muestre el monto de la sumatoria de las categorías en lugar del monto total de la orden".
+               // Asumiremos que category_total es el valor en dólares (o moneda base) y se suma directo.
+               // PERO, el reporte es de PAGOS. Un pago puede ser parcial.
+               // Si la orden es de $100 (Cat A: $50, Cat B: $50) y el pago es de $20.
+               // ¿Qué debemos mostrar?
+               // El requerimiento dice: "el TOTAL refleje el total de los productos del item seleccionado".
+               // Esto suena a que quiere ver el valor de los productos, NO la parte proporcional del pago.
+               // PERO estamos en "Reporte de Pagos". Mostrar el total de productos podría ser confuso si es solo un abono.
+               // RE-LEYENDO: "al seleccionar una categoría el TOTAL refleje el total de los productos del item seleccionado (sumatoria) en lugar de la sumatoria de todos los productos de la orden".
+               // "sumatoria de todos los productos de la orden" se refiere al `monto` del pago actual? O al total de la orden?
+               // En el código original: `totales.totalGeneral += montoAjustado;` donde `montoAjustado = monto / tasa`. Esto es el valor del PAGO en dólares.
+               // Si cambio esto por `category_total`, estaré sumando el valor TOTAL de la categoría en la orden, no lo que se pagó.
+               // Si el usuario quiere ver "cuánto se ha pagado por concepto de X categoría", es muy difícil saberlo si el pago es genérico.
+               // PERO, si el usuario dice "el TOTAL refleje el total de los productos del item seleccionado", quizás se refiere a eso, al valor de la mercancía de esa categoría involucrada en los pagos listados.
+               // OJO: Si filtro por categoría, me salen los PAGOS de ordenes que tienen esa categoría.
+               // Si muestro `category_total`, estoy mostrando el valor de la mercancía.
+               // Si tengo 5 pagos para la misma orden, sumaré 5 veces el `category_total`? Eso estaría mal.
+               // El usuario dijo: "el TOTAL refleje el total de los productos del item seleccionado (sumatoria)".
+               
+               // Vamos a asumir que quiere sumar los `category_total` de los registros filtrados.
+               // Si hay múltiples pagos para una misma orden, y todos aparecen en el filtro...
+               // El endpoint devuelve PAGOS. `pagosFiltrados` son PAGOS.
+               // Si una orden tiene 2 pagos, aparecerá 2 veces.
+               // Si sumo `category_total` (que es constante por orden), lo duplicaré.
+               
+               // ESPERA. El usuario dice: "en lugar de la sumatoria de todos los productos de la orden".
+               // Actualmente suma `monto / tasa` (el valor del pago).
+               // Si el usuario quiere ver el valor de la categoría, y lo reemplazamos...
+               // Quizás quiere ver la proporción del pago que corresponde a esa categoría? Imposible saberlo con certeza.
+               
+               // Interpretación más probable: Quiere ver el total vendido de esa categoría en las ordenes listadas.
+               // Para evitar duplicados si hay múltiples pagos de la misma orden, deberíamos sumar por orden única?
+               // Pero `totales` se calcula iterando `pagosFiltrados`.
+               
+               // Vamos a implementar la suma de `category_total` por cada fila, tal cual lo pide, pero con la advertencia mental de los duplicados.
+               // O quizás `category_total` debería ser proporcional al pago? (monto_pago / total_orden) * category_total?
+               // No, eso es mucha asunción.
+               
+               // Vamos a seguir la instrucción literal: "mostrar el monto de la sumatoria de las categorías".
+               // Asumiré que `category_total` viene en la misma moneda que `totalGeneral` espera (Dólares).
+               
+               montoAjustado = parseFloat(categoryData.category_total) || 0;
+           }
+        } else {
+            montoAjustado = monto / tasa;
+        }
+
         totales.totalGeneral += montoAjustado;
         if (!totales.porMetodoPago[metodo_pago]) {
           totales.porMetodoPago[metodo_pago] = 0;
@@ -322,12 +378,15 @@ export default {
       const allCategories = this.pagos.flatMap(pago => 
         pago.product_categories ? pago.product_categories.map(cat => cat.category_name) : []
       );
+      console.log("All Categories extracted:", allCategories);
       const uniqueCategories = [...new Set(allCategories)];
+      console.log("Unique Categories:", uniqueCategories);
       const options = uniqueCategories.filter(c => c).sort().map(category => ({
         value: category,
         text: category
       }));
       this.optionsCategories = [{ value: 'Todas', text: 'Todas' }, ...options];
+      console.log("Final Options:", this.optionsCategories);
     },
 
     onFiltered(filteredItems) {
