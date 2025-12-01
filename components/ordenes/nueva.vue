@@ -1509,7 +1509,7 @@ export default {
         this.form.total = parseFloat(ordenData.pago_total) || 0;
         this.abonoHistorico = parseFloat(ordenData.pago_abono) || 0;
         this.form.abono = 0; // El 'form.abono' ahora solo registrará NUEVOS pagos
-        this.form.descuento = parseFloat(ordenData.pago_descuento) || 0;
+        this.form.descuento = 0; // Inicializar en 0 para agregar nuevos descuentos
       }
 
       // 4. Poblar productos

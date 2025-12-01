@@ -1,5 +1,7 @@
 # DIARIO
 - [X] Arregrlar pagos de empleados ne la planilla
+- [X] Corrección de Bug en Carga de Orden No Asignada
+- [X] Carga de Observaciones Adicionales
 - [ ] Reset de formaulaios en el modulo de empleados
 - [ ] Estimar tiempos de producción basado en los datos de las ordenes
 

@@ -34,5 +34,20 @@
 
 ### Tareas Pendientes
 
-- **Resolver Bug en Edición de Precios de Productos:**
   - A pesar de una larga sesión de depuración y la corrección de múltiples bugs secundarios en 4 componentes distintos, persiste el problema principal: la edición de un precio existente resulta en la creación de un duplicado porque el `id` se pierde en el flujo de datos. La tarea quedó pendiente para ser retomada.
+
+## domingo, 1 de diciembre de 2025
+
+### Tareas Realizadas
+
+#### 1. Corrección de Bug en Carga de Orden No Asignada
+- **Resumen:** Se solucionó un bug donde al cargar una orden no asignada para editarla, el sistema creaba una nueva orden duplicada al guardar. El problema se debía a que el frontend no actualizaba el endpoint de la API a la ruta de edición (`/edit`) al cargar los datos de una orden existente.
+- **Logro:** Ahora el sistema detecta correctamente que se está editando una orden y utiliza el endpoint adecuado, permitiendo actualizar la orden existente sin duplicarla.
+
+#### 2. Carga de Observaciones Adicionales
+- **Resumen:** Se implementó una funcionalidad para cargar observaciones adicionales desde un endpoint específico (`/ordenes-observaciones/{id}`) al momento de cargar una orden no asignada. Se modificó el componente para realizar peticiones paralelas y concatenar las observaciones recibidas con las existentes.
+- **Logro:** El usuario ahora visualiza el historial completo de observaciones al editar una orden, mejorando el contexto y la toma de decisiones.
+
+### Resumen General
+- Se han resuelto dos problemas críticos relacionados con la gestión de órdenes no asignadas, asegurando la integridad de los datos y mejorando la experiencia de usuario al editar órdenes.
+- El repositorio ha sido actualizado con todas las correcciones.
