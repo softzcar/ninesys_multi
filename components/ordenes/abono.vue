@@ -477,7 +477,14 @@
                       v-model="valueDescuento"
                       type="number"
                       placeholder="Descuento"
-                      class="mt-4 mb-4"
+                      class="mt-4 mb-2"
+                    ></b-form-input>
+                    <b-form-input
+                      :disabled="inputDisabled"
+                      v-model="valueDescuentoDetalle"
+                      type="text"
+                      placeholder="Detalle del descuento (Obligatorio)"
+                      class="mb-4"
                     ></b-form-input>
                   </div>
                   <b-button
@@ -532,6 +539,7 @@ export default {
         moment: null,
       },
       valueDescuento: 0,
+      valueDescuentoDetalle: "", // <-- Nuevo campo
       size: "md",
       title: `Abono a la Orden ${this.idorden}`,
       overlay: false,
@@ -872,6 +880,16 @@ export default {
     },
 
     hacerAbono() {
+      // Validar detalle de descuento
+      if (parseFloat(this.valueDescuento) > 0 && !this.valueDescuentoDetalle) {
+        this.$fire({
+          title: "Falta detalle del descuento",
+          html: `<p>El detalle del descuento es obligatorio cuando se aplica un monto.</p>`,
+          type: "warning",
+        });
+        return;
+      }
+
       let tmpAbono = parseFloat(this.form.abono); // Antiguamente se enviava un solo vaor ahora tenen=mos que envuar todo por semparado...
       let tmpDescuento = parseFloat(this.valueDescuento);
 
@@ -919,12 +937,11 @@ export default {
       this.overlay = true;
       this.inputDisabled = true;
       const data = new URLSearchParams();
-      data.set("descuento", this.valueDescuento);
       data.set("id", this.idorden);
       data.set("empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("responsable", this.$store.state.login.dataUser.id_empleado);
       //TODO aqui vamos a enviar cada metodod e pago por separado...
-      data.set("tasa_dolar", this.tasas.bolivar);
+      data.set("tasa_dolar", this.tasas.dolar); // Changed from bolivar to dolar
       data.set("tasa_peso", this.tasas.peso_colombiano);
       data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
       data.set("montoDolaresZelle", this.form.montoDolaresZelle);
@@ -938,7 +955,7 @@ export default {
         "montoBolivaresTransferencia",
         this.form.montoBolivaresTransferencia
       );
-      data.set("abono", this.form.abono);
+      data.set("abono", this.form.abono); // Assuming totalAbono is meant to be this.form.abono
       data.set("tipoAbono", "Abono a orden");
 
       data.set("detalleZelle", this.form.detalleZelle);
@@ -953,6 +970,14 @@ export default {
         this.form.detalleBolivaresTransferencia
       );
 
+      // Descuento y Detalle
+      if (!this.valueDescuento) {
+        data.set("descuento", 0);
+      } else {
+        data.set("descuento", this.valueDescuento);
+        data.set("descuentoDetalle", this.valueDescuentoDetalle); // <-- Enviar detalle
+      }
+
       console.log(`Data abono: ${data}`);
 
       await this.$axios
@@ -961,6 +986,7 @@ export default {
           this.getData().then((res) => {
             this.overlay = false;
             this.valueDescuento = 0;
+            this.valueDescuentoDetalle = "";
             this.form = {
               abono: 0,
               montoDolaresEfectivo: 0,

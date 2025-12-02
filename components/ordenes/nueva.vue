@@ -2164,6 +2164,13 @@ export default {
           html: "El monto pagadoe excede el total de la orden",
           type: "error",
         });
+      } else if (descuento > 0 && !this.form.descuentoDetalle) {
+        ok = false;
+        this.$fire({
+          title: "Falta detalle del descuento",
+          html: `<p>El detalle del descuento es obligatorio cuando se aplica un monto.</p>`,
+          type: "warning",
+        });
       } else {
         // Crear copia profunda y transformar datos para la vista previa
         // Hacemos una copia profunda para no mutar el formulario original que aún necesita los IDs.
@@ -2629,6 +2636,16 @@ export default {
     },
 
     async finishOrder() {
+      // Validar detalle de descuento
+      if (parseFloat(this.form.descuento) > 0 && !this.form.descuentoDetalle) {
+        this.$fire({
+          title: "Falta detalle del descuento",
+          html: `<p>El detalle del descuento es obligatorio cuando se aplica un monto.</p>`,
+          type: "warning",
+        });
+        return;
+      }
+
       const endpoint = this.endpoint;
 
       this.overlay = true;

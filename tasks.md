@@ -2,6 +2,8 @@
 - [X] Arregrlar pagos de empleados ne la planilla
 - [X] Corrección de Bug en Carga de Orden No Asignada
 - [X] Carga de Observaciones Adicionales
+- [X] Corrección de Persistencia y Lógica de Descuentos (Incremental)
+- [X] Corrección de Error 500 en Abonos y Actualización de Totales
 - [ ] Reset de formaulaios en el modulo de empleados
 - [ ] Estimar tiempos de producción basado en los datos de las ordenes
 

@@ -48,6 +48,15 @@
 - **Resumen:** Se implementó una funcionalidad para cargar observaciones adicionales desde un endpoint específico (`/ordenes-observaciones/{id}`) al momento de cargar una orden no asignada. Se modificó el componente para realizar peticiones paralelas y concatenar las observaciones recibidas con las existentes.
 - **Logro:** El usuario ahora visualiza el historial completo de observaciones al editar una orden, mejorando el contexto y la toma de decisiones.
 
+#### 3. Corrección de Persistencia y Lógica de Descuentos
+- **Resumen:** Se corrigió un problema donde los descuentos aplicados al editar una orden no se guardaban correctamente. Se cambió la lógica para que sea incremental (el usuario ingresa solo el monto adicional) y se modificó el backend para registrar estos cambios en la tabla `abonos`, asegurando la consistencia de los datos.
+- **Logro:** Los descuentos ahora se suman correctamente al historial de la orden y persisten tras guardar.
+
+#### 4. Corrección de Error 500 en Abonos
+- **Resumen:** Se solucionó un error crítico (500 Internal Server Error) en el endpoint `/orden/abono` que ocurría cuando se enviaba un descuento sin un pago monetario asociado. También se aseguró que este endpoint actualice los totales (`pago_abono`, `pago_descuento`) en la tabla principal de la orden.
+- **Logro:** El sistema ahora procesa correctamente abonos que consisten solo en descuentos y mantiene los saldos de la orden siempre actualizados.
+
 ### Resumen General
 - Se han resuelto dos problemas críticos relacionados con la gestión de órdenes no asignadas, asegurando la integridad de los datos y mejorando la experiencia de usuario al editar órdenes.
-- El repositorio ha sido actualizado con todas las correcciones.
+- Se ha robustecido el sistema de pagos y descuentos, corrigiendo errores de servidor y lógica de negocio.
+- Ambos repositorios (Frontend y Backend) han sido actualizados con todas las correcciones.
