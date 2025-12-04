@@ -246,12 +246,14 @@
                                           <b-form-group>
                                             <label for="input-telefono">Teléfono <span required>*</span></label>
                                             <b-form-input
-                                              id="input-telefono"
-                                              v-model="form.telefono"
-                                              type="tel"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Ingrese teléfono"
-                                            ></b-form-input>
+                                        id="input-telefono"
+                                        v-model="form.telefono"
+                                        type="tel"
+                                        class="mb-2 mr-sm-2 mb-sm-0"
+                                        placeholder="Ingrese teléfono (Ej: 0414...)"
+                                        @input="form.telefono = cleanPhoneInput($event)"
+                                        @blur="onPhoneBlur"
+                                      ></b-form-input>
                                           </b-form-group>
       
                                           <b-form-group>
@@ -1049,6 +1051,8 @@ import mixins from "~/mixins/mixins.js";
 import { mapState, mapGetters } from "vuex";
 import quillOptions from "~/plugins/nuxt-quill-plugin";
 import procesamientoOrdenes from "~/mixins/procesamientoOrdenes.js";
+import phoneValidation from "~/mixins/phoneValidation.js";
+
 import FormMonedas from "~/components/formMonedas.vue";
 import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
 import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
@@ -1413,6 +1417,20 @@ export default {
   },
 
   methods: {
+    onPhoneBlur() {
+      const result = this.validateAndFormatPhone(this.form.telefono);
+      if (result.isValid) {
+        this.form.telefono = result.formatted;
+      } else if (this.form.telefono && this.form.telefono.trim() !== '') {
+        this.$fire({
+          title: "Teléfono Inválido",
+          text: "Por favor ingrese un número de teléfono válido.",
+          type: "warning",
+          timer: 3000
+        });
+      }
+    },
+
     /* async loadProductAttributes() {
       await this.$axios
         .get(`${this.$config.API}/products-attributes`)
@@ -2026,9 +2044,12 @@ export default {
 
       console.log(`phoneExist`, phoneExist);
 
-      if (!this.form.telefono.trim()) {
+      const phoneCheck = this.validateAndFormatPhone(this.form.telefono);
+      if (!phoneCheck.isValid) {
         ok = false;
-        msg = msg + "<p>El teléfono es un campo obligatorio</p>";
+        msg = msg + `<p>${phoneCheck.error}</p>`;
+      } else {
+        this.form.telefono = phoneCheck.formatted;
       }
 
       if (!this.form.nombre.trim()) {
@@ -2526,35 +2547,28 @@ export default {
 
     phoneExist(telefono) {
       let result = { exist: false, msg: "" };
+      const formattedPhone = this.form.telefono; // Ya viene formateado por onPhoneBlur
 
-      if (this.form.telefono.trim().length) {
-        let clienteData = this.myCustomers.filter(
-          (item) => item.phone === this.form.telefono.trim()
+      if (formattedPhone && formattedPhone.trim().length) {
+        // Buscar si existe algún cliente con este teléfono
+        let existingCustomer = this.myCustomers.find(
+          (item) => item.phone === formattedPhone
         );
-        console.log("clientData", clienteData);
-        // Verificar exzistencia delcliente
-        if (!clienteData.length) {
-          result.exist = false;
-        } else {
-          // Buscar telefono en las registros
-          let emailData = this.myCustomers.find(
-            (item) => item.phone === this.form.telefono.trim()
-          );
 
-          /*  if (
-            (clienteData.cedula != emailData.cedula &&
-              this.form.cedula != emailData.cedula) ||
-            emailData.cedula != undefined
-          ) {
+        if (existingCustomer) {
+          // Si estamos editando (tenemos un ID de cliente en el form)
+          // y el cliente encontrado es el mismo, no es un error (es su propio número).
+          // Si el ID del formulario está vacío, asumimos que es un cliente nuevo,
+          // por lo tanto si encontramos uno existente, es un duplicado.
+          
+          // Nota: this.form.id puede ser numérico o string, aseguramos comparación laxa o conversión
+          const isSameCustomer = this.form.id && (String(this.form.id) === String(existingCustomer.id));
+
+          if (!isSameCustomer) {
             result.exist = true;
-            result.msg = `El telefono ${this.form.telefono} ya esta registrado al usuario ${emailData.first_name}`;
-          } */
-
-          console.log("Hemos encontrado el cliente ", clienteData);
-          console.log("Hemos encontrado el telefono ", emailData);
+            result.msg = `<p>El teléfono <strong>${formattedPhone}</strong> ya está registrado al cliente <strong>${existingCustomer.first_name} ${existingCustomer.last_name}</strong>.</p>`;
+          }
         }
-      } else {
-        result.msg = "<p>No ha ingresado un telefono</p>";
       }
 
       return result;
@@ -3436,7 +3450,8 @@ export default {
     window.removeEventListener("resize", this.handleResize);
   },
 
-  mixins: [mixins, procesamientoOrdenes],
+  mixins: [mixins, procesamientoOrdenes, phoneValidation],
+
 };
 </script>
 
