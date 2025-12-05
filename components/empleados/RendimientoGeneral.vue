@@ -146,7 +146,13 @@ export default {
 
         if (response.data) {
           const totalReal = response.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
-          const totalProjected = response.data.reduce((acc, item) => acc + (item.tiempo_proyectado_segundos || 0), 0);
+          const totalProjected = response.data.reduce((acc, item) => {
+              // Only include projected time if the order has started (has real time or start date)
+              if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
+                  return acc + (item.tiempo_proyectado_segundos || 0);
+              }
+              return acc;
+          }, 0);
           
           this.reporteData = {
             totalReal,
