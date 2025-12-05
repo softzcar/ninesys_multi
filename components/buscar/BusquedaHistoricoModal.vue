@@ -72,7 +72,7 @@ export default {
         `${this.$config.API}/buscar/${this.searchId}`,
         {
           headers: {
-            Authorization: '1' // Forzar búsqueda en empresa 1
+            Authorization: this.$store.state.login.dataEmpresa.id
           }
         }
       )
@@ -85,7 +85,7 @@ export default {
             `${this.$config.API}/ordenes-observaciones/${this.searchId}`,
             {
               headers: {
-                Authorization: '1' // Forzar empresa 1 también para observaciones
+                Authorization: this.$store.state.login.dataEmpresa.id
               }
             }
           )
