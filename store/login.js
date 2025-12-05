@@ -84,6 +84,9 @@ export const mutations = {
     setDataUser(state, data) {
         state.dataUser = data
     },
+    setDatosUsuario(state, data) {
+        state.dataUser = { ...state.dataUser, ...data }
+    },
     setDatosPersonalizacion(state, data) {
         state.datos_personalizacion = data
     },
@@ -205,7 +208,7 @@ export const getters = {
     getDepartamentosEmpleadoSelect(state) {
         return state.empleado.departamentos.map((el) => {
             // console.log('getDepartamentosEmpleadoSelect', el);
-            
+
             return {
                 value: el.id,
                 text: el.nombre,
@@ -215,7 +218,7 @@ export const getters = {
             }
         }).sort((a, b) => a.orden_proceso - b.orden_proceso)
     },
-    
+
     getDepartamentosOrdenProceso(state) {
         if (state.currentDepartamentId && state.departamentos.length) {
             return state.departamentos.filter(el => el._id === state.currentDepartamentId).map((el) => {
