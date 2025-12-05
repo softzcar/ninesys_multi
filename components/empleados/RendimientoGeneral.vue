@@ -62,7 +62,7 @@ import mixintime from "~/mixins/mixin-time.js";
 export default {
   mixins: [mixintime],
 
-  props: ["ordenes", "pausas"],
+  props: ["ordenes", "pausas", "departmentId"],
 
   data() {
     return {
@@ -175,25 +175,20 @@ export default {
             let countItems = 0;
 
             inputResponse.data.forEach(item => {
+                // Filter by Department if provided
+                if (this.departmentId && parseInt(item.id_departamento) !== parseInt(this.departmentId)) {
+                    return;
+                }
+
                 const standard = parseFloat(item.cantidad_estandar) || 0;
                 const real = parseFloat(item.cantidad_real) || 0;
 
                 if (standard > 0) {
-                    // Si no hay consumo real (0), la eficiencia es 100% (o más, teóricamente infinito ahorro, pero lo limitamos a 100 para no romper la media? 
-                    // No, si real es 0, significa que no gastó nada. Eficiencia máxima.
-                    // Pero si real es 0, la división es infinita.
-                    // Asumamos que si real es 0, la eficiencia es 100% (ideal) o tal vez deberíamos ignorarlo?
-                    // El usuario dijo: "no nos interesa saber cuanta tela hay... solo la eficiencia".
-                    // Si standard es 10 y real es 0 -> Eficiencia 100% (o más).
-                    // Vamos a usar la fórmula: (Standard / Real) * 100.
-                    // Si Real es 0, usemos Standard como divisor para que de 100%? No.
-                    // Si Real es 0, asumamos que es muy eficiente. Pongamos 100%.
-                    
                     let efficiency = 0;
                     if (real > 0) {
                         efficiency = (standard / real) * 100;
                     } else {
-                        efficiency = 100; // Sin consumo = 100% eficiente (o tal vez pendiente?)
+                        efficiency = 100; // Sin consumo = 100% eficiente
                     }
                     
                     totalEfficiency += efficiency;

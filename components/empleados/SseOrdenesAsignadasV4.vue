@@ -23,6 +23,7 @@
             <empleados-RendimientoGeneral
               :ordenes="ordenes"
               :pausas="pausas"
+              :departmentId="$store.state.login.currentDepartamentId"
             />
           </b-col>
         </b-row>
@@ -80,6 +81,7 @@
               <empleados-RendimientoGeneral
                 :ordenes="ordenes"
                 :pausas="pausas"
+                :departmentId="$store.state.login.currentDepartamentId"
               />
             </b-col>
           </b-row>
