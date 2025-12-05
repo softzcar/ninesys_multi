@@ -152,17 +152,18 @@ export default {
             totalReal,
             totalProjected,
             // Calculate total elapsed time from the earliest start date
-            totalElapsed: response.data.reduce((acc, item) => {
-                if (!item.fecha_inicio_primer_proceso) return acc;
-                const start = new Date(item.fecha_inicio_primer_proceso).getTime();
-                const now = new Date().getTime();
-                const elapsed = (now - start) / 1000; // seconds
-                // We want the MAX elapsed time if multiple orders are selected? 
-                // Or sum? Logic: "Idle time" is usually per order. 
-                // If we view multiple orders, summing elapsed times might be weird if they run in parallel.
-                // Let's sum for now as per "totalReal" logic.
-                return acc + (elapsed > 0 ? elapsed : 0);
-            }, 0)
+            totalElapsed: (() => {
+                const processedOrders = new Set();
+                return response.data.reduce((acc, item) => {
+                    if (!item.fecha_inicio_primer_proceso || processedOrders.has(item.id_orden)) return acc;
+                    
+                    processedOrders.add(item.id_orden);
+                    const start = new Date(item.fecha_inicio_primer_proceso).getTime();
+                    const now = new Date().getTime();
+                    const elapsed = (now - start) / 1000; // seconds
+                    return acc + (elapsed > 0 ? elapsed : 0);
+                }, 0);
+            })()
           };
 
           this.calculateEfficiencyText(totalReal, totalProjected);
