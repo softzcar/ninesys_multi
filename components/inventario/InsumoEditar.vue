@@ -175,6 +175,7 @@ export default {
                 { value: "Mts", text: "Metros" },
                 { value: "Kg", text: "Kilos" },
                 { value: "Und", text: "Unidades" },
+                { value: "Ml", text: "Mililitros" },
             ],
             size: "md",
             title: "Editar Insumo",
