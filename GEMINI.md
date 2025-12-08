@@ -30,6 +30,18 @@
 - **Framework:** Slim Framework
 - **Rutas de la API:** `https://raw.githubusercontent.com/softzcar/ninesys-apidev/refs/heads/main/app/routes.php` (Usar `curl` para leer el contenido)
 
+## Repositorios Git (IMPORTANTE):
+
+### Frontend (Nuxt.js)
+- **Repositorio:** `https://github.com/softzcar/ninesys_multi.git`
+- **Rama:** `main`
+- **Despliegue en VPS:** `git fetch origin && git checkout main && git pull origin main`
+
+### Backend (Slim Framework - API)
+- **Repositorio:** `https://github.com/softzcar/ninesys-apidev.git`
+- **Rama:** `refactor/modular-routes`
+- **Despliegue en VPS:** `git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes`
+
 ## Elaboración de Reportes:
 
 - Al final de cada sesión de trabajo, o cuando el usuario lo solicite, se deberá generar un reporte en un archivo `reporte.md`.
