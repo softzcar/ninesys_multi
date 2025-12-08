@@ -62,6 +62,31 @@
 6. Sube archivos al VPS via `rsync`
 7. Limpia backups locales antiguos (conserva los últimos 12)
 
+## Acceso al VPS
+
+### Conexión SSH
+- **Alias SSH:** `vps-ninesys` (configurado en `~/.ssh/config`)
+- **Host:** `194.195.86.253`
+- **Usuario:** `root`
+- **Clave SSH:** `~/.ssh/id_ed25519_vps`
+
+### Rutas en el VPS
+| Aplicación | Ruta en VPS |
+|------------|-------------|
+| Frontend (Nuxt.js) | `/home/app.nineteencustom.com/public_html/` |
+| Backend (Slim API) | `/home/apidev.nineteengreen.com/public_html/` |
+
+### Comandos de Actualización Remota
+**Actualizar API en VPS:**
+```bash
+ssh vps-ninesys "cd /home/apidev.nineteengreen.com/public_html && git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes"
+```
+
+**Verificar estado del VPS:**
+```bash
+ssh vps-ninesys "uptime && df -h"
+```
+
 ## Elaboración de Reportes:
 
 - Al final de cada sesión de trabajo, o cuando el usuario lo solicite, se deberá generar un reporte en un archivo `reporte.md`.
