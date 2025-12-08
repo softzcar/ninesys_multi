@@ -48,9 +48,9 @@
       show
       :variant="inputEfficiencyVariant"
     >
-      <h4 class="alert-heading" style="margin: 1rem">
+      <h2 class="alert-heading" style="margin: 2rem">
         {{ inputEfficiencyText }}
-      </h4>
+      </h2>
     </b-alert>
   </div>
 </template>
@@ -249,7 +249,7 @@ export default {
         const efficiency = (projected / real) * 100;
         const efficiencyFormatted = efficiency.toFixed(0);
 
-        this.text = `Eficiencia ${efficiencyFormatted}%`;
+        this.text = `Eficiencia Tiempo ${efficiencyFormatted}%`;
 
         // Color logic for the banner (based on efficiency)
         // > 100% is excellent (Green)
