@@ -307,19 +307,20 @@ export default {
         }
 
         const efficiency = (projected / real) * 100;
-        const efficiencyFormatted = efficiency.toFixed(0);
+        // Redondear al entero más cercano para mostrar y para determinar variant
+        const efficiencyRounded = Math.round(efficiency);
 
-        this.text = `Eficiencia Tiempo ${efficiencyFormatted}%`;
+        this.text = `Eficiencia Tiempo ${efficiencyRounded}%`;
 
-        // Color logic for the banner (based on efficiency)
-        // > 100% is excellent (Green)
-        // 80-100% is good (Success/Info)
-        // < 50% is bad (Danger)
+        // Color logic for the banner (basado en valor redondeado para consistencia)
+        // >= 100% is excellent (Green)
+        // 80-99% is good (Warning)
+        // < 80% is bad (Danger)
         
-        if (efficiency >= 100) {
+        if (efficiencyRounded >= 100) {
             this.variant = "success";
-        } else if (efficiency >= 80) {
-            this.variant = "warning"; // Or a lighter green
+        } else if (efficiencyRounded >= 80) {
+            this.variant = "warning";
         } else {
             this.variant = "danger";
         }
@@ -340,12 +341,14 @@ export default {
             return;
         }
 
-        const efficiencyFormatted = averageEfficiency.toFixed(0);
-        this.inputEfficiencyText = `Eficiencia Insumos ${efficiencyFormatted}%`;
+        // Redondear al entero más cercano para mostrar y para determinar variant
+        const efficiencyRounded = Math.round(averageEfficiency);
+        this.inputEfficiencyText = `Eficiencia Insumos ${efficiencyRounded}%`;
 
-        if (averageEfficiency >= 100) {
+        // Usar el valor redondeado para que el variant sea consistente con lo mostrado
+        if (efficiencyRounded >= 100) {
             this.inputEfficiencyVariant = "success";
-        } else if (averageEfficiency >= 80) {
+        } else if (efficiencyRounded >= 80) {
             this.inputEfficiencyVariant = "warning";
         } else {
             this.inputEfficiencyVariant = "danger";
