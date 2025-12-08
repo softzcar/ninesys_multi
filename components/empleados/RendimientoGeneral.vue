@@ -51,6 +51,27 @@
       <h2 class="alert-heading" style="margin: 2rem">
         {{ inputEfficiencyText }}
       </h2>
+
+      <!-- Input Efficiency Bullet Graph -->
+      <div v-if="inputEfficiencyData" class="mt-3 mb-2 px-4">
+         <div class="d-flex justify-content-between mb-1 small">
+            <span>Utilizado: {{ inputEfficiencyData.totalReal.toFixed(2) }} {{ inputEfficiencyData.unidad }}</span>
+            <span>Estimado: {{ inputEfficiencyData.totalEstimado.toFixed(2) }} {{ inputEfficiencyData.unidad }}</span>
+         </div>
+         <div class="position-relative" style="height: 20px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+            <div 
+                class="position-absolute h-100" 
+                :class="inputBulletGraphColor"
+                :style="{ width: inputBulletGraphBarWidth + '%' }"
+                style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
+            ></div>
+            <div 
+                class="position-absolute h-100"
+                style="width: 2px; background-color: #000; z-index: 10;"
+                :style="{ left: inputBulletGraphMarkerPosition + '%' }"
+            ></div>
+         </div>
+      </div>
     </b-alert>
   </div>
 </template>
@@ -78,6 +99,7 @@ export default {
       // Input Efficiency Data
       inputEfficiencyText: null,
       inputEfficiencyVariant: "light",
+      inputEfficiencyData: null,  // { totalReal, totalEstimado, unidad }
     };
   },
 
@@ -114,6 +136,26 @@ export default {
       // If Real <= Projected, it's good (Green). If Real > Projected, it's bad (Red).
       // Note: This logic assumes "Real" is "Time Spent".
       return this.reporteData.totalReal <= this.reporteData.totalProjected ? 'bg-success' : 'bg-danger';
+    },
+
+    // Computed properties for Input Efficiency Bullet Graph
+    inputBulletGraphMax() {
+      if (!this.inputEfficiencyData) return 100;
+      return Math.max(this.inputEfficiencyData.totalReal, this.inputEfficiencyData.totalEstimado) * 1.2 || 100;
+    },
+    inputBulletGraphBarWidth() {
+      if (!this.inputEfficiencyData) return 0;
+      return (this.inputEfficiencyData.totalReal / this.inputBulletGraphMax) * 100;
+    },
+    inputBulletGraphMarkerPosition() {
+      if (!this.inputEfficiencyData) return 0;
+      return (this.inputEfficiencyData.totalEstimado / this.inputBulletGraphMax) * 100;
+    },
+    inputBulletGraphColor() {
+      if (!this.inputEfficiencyData) return 'bg-secondary';
+      // If Real <= Estimado, it's good (Green - usaste menos o igual). 
+      // If Real > Estimado, it's bad (Red - usaste más del estimado).
+      return this.inputEfficiencyData.totalReal <= this.inputEfficiencyData.totalEstimado ? 'bg-success' : 'bg-danger';
     }
   },
 
@@ -191,6 +233,9 @@ export default {
         if (inputResponse.data && inputResponse.data.length > 0) {
             let totalEfficiency = 0;
             let countItems = 0;
+            let totalEstimado = 0;
+            let totalReal = 0;
+            let unidad = 'Mt';
 
             inputResponse.data.forEach(item => {
                 // Filter by Department if provided
@@ -200,6 +245,11 @@ export default {
 
                 const standard = parseFloat(item.cantidad_estandar) || 0;
                 const real = parseFloat(item.cantidad_real) || 0;
+
+                // Acumular totales para la barra
+                totalEstimado += standard;
+                totalReal += real;
+                unidad = item.unidad || 'Mt';
 
                 // Solo calcular eficiencia si hay datos de consumo real
                 // Sin datos de consumo, no podemos calcular eficiencia
@@ -213,11 +263,21 @@ export default {
                 // Si real === 0, no incluimos en el cálculo (falta información)
             });
 
+            // Guardar datos para la barra de eficiencia de insumos
+            if (totalEstimado > 0 || totalReal > 0) {
+                this.inputEfficiencyData = {
+                    totalEstimado,
+                    totalReal,
+                    unidad
+                };
+            }
+
             const averageEfficiency = countItems > 0 ? (totalEfficiency / countItems) : 0;
             this.calculateInputEfficiencyText(averageEfficiency, countItems);
         } else {
             this.inputEfficiencyText = "Sin datos de insumos";
             this.inputEfficiencyVariant = "light";
+            this.inputEfficiencyData = null;
         }
         // ------------------------------------------
 
