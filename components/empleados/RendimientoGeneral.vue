@@ -24,7 +24,7 @@
          <div class="position-relative" style="height: 20px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
             <div 
                 class="position-absolute h-100" 
-                :class="bulletGraphColor"
+                :class="'bg-' + variant"
                 :style="{ width: bulletGraphBarWidth + '%' }"
                 style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
             ></div>
@@ -61,7 +61,7 @@
          <div class="position-relative" style="height: 20px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
             <div 
                 class="position-absolute h-100" 
-                :class="inputBulletGraphColor"
+                :class="'bg-' + inputEfficiencyVariant"
                 :style="{ width: inputBulletGraphBarWidth + '%' }"
                 style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
             ></div>
