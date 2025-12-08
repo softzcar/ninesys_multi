@@ -147,9 +147,20 @@ export default {
         if (response.data) {
           const totalReal = response.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
           const totalProjected = response.data.reduce((acc, item) => {
-              // Only include projected time if the order has started (has real time or start date)
+              // Only include projected time if the order has started
               if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
-                  return acc + (item.tiempo_proyectado_segundos || 0);
+                  const projected = parseFloat(item.tiempo_proyectado_segundos || 0);
+                  const real = parseFloat(item.tiempo_total_segundos || 0);
+                  
+                  // Safe Meta Logic:
+                  // If order is finished, use full projected time.
+                  // If order is in progress, cap projected time at real time (assume 100% efficiency until over budget).
+                  // This prevents artificial inflation (e.g. 112%) when starting a new task.
+                  if (item.status === 'terminado') {
+                      return acc + projected;
+                  } else {
+                      return acc + Math.min(real, projected);
+                  }
               }
               return acc;
           }, 0);
@@ -190,17 +201,16 @@ export default {
                 const standard = parseFloat(item.cantidad_estandar) || 0;
                 const real = parseFloat(item.cantidad_real) || 0;
 
-                if (standard > 0) {
-                    let efficiency = 0;
-                    if (real > 0) {
-                        efficiency = (standard / real) * 100;
-                    } else {
-                        efficiency = 100; // Sin consumo = 100% eficiente
-                    }
-                    
+                // Solo calcular eficiencia si hay datos de consumo real
+                // Sin datos de consumo, no podemos calcular eficiencia
+                if (standard > 0 && real > 0) {
+                    // Fórmula: (Estimado / Utilizado) * 100
+                    // Igual que en el modal "Datos Extra Impresión"
+                    const efficiency = (standard / real) * 100;
                     totalEfficiency += efficiency;
                     countItems++;
                 }
+                // Si real === 0, no incluimos en el cálculo (falta información)
             });
 
             const averageEfficiency = countItems > 0 ? (totalEfficiency / countItems) : 0;

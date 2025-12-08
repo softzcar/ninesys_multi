@@ -173,35 +173,28 @@
             </b-form-group>
           </div> -->
 
-          <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (SOLO PARA ESTAMPADO Y CORTE PAPEL CUANDO ESTÉ CONFIGURADO) -->
+          <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (PARA IMPRESIÓN, ESTAMPADO Y CORTE PAPEL CUANDO ESTÉ CONFIGURADO) -->
           <div v-if="showSelect && (
+              $store.state.login.currentDepartament === 'Impresión' ||
               $store.state.login.currentDepartament === 'Estampado' ||
               $store.state.login.currentDepartament === 'Corte papel'
             )">
             <p>
-              <strong>Papel Utilizado:</strong>
-              {{ papelUtilizado }} Metros
-            </p>
-
-            <p>
-              <strong>Material Estimado:</strong>
-              {{ eficienciaEstimada }} Metros
+              <strong>Material Estimado (Sistema):</strong>
+              {{ materialEstimadoDepartamento.total }} {{ materialEstimadoDepartamento.unidad }}
             </p>
 
             <p>
               <strong>Material Utilizado:</strong>
-              {{ materialUtilizado }} Metros
+              {{ materialUtilizado }} {{ materialEstimadoDepartamento.unidad }}
             </p>
 
-            <p>
-              <empleados-materialesLista
-                :items="eficienciaDetalles"
-                :idorden="idorden"
-                :datainsumos="dataInsumosFiltrado"
-                :papel="papelUtilizado"
-                :eficiencia_estimada="eficienciaEstimada"
-                :form="form"
-              />
+            <p v-if="parseFloat(materialUtilizado) > 0">
+              <strong>Eficiencia:</strong>
+              <span :class="eficienciaPorcentaje >= 100 ? 'text-success' : 'text-danger'">
+                {{ eficienciaPorcentaje }}%
+              </span>
+              <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado' }})</small>
             </p>
           </div>
 
@@ -388,6 +381,66 @@ export default {
     },
     papelUtilizado() {
       return (this.item.valor_inicial - this.item.valor_final).toFixed(2);
+    },
+
+    /**
+     * Calcula el material estimado para el departamento actual
+     * usando los datos de product_insumos_asignados (dataInsumos)
+     */
+    materialEstimadoDepartamento() {
+      if (!this.dataInsumos || this.dataInsumos.length === 0) {
+        return { total: '0.00', unidad: 'Metros' };
+      }
+
+      const currentDeptId = this.$store.state.login.currentDepartamentId;
+      
+      // Filtrar por departamento actual y agrupar por id_ordenes_productos para evitar duplicados
+      const insumosDept = this.dataInsumos.filter(
+        (el) => el.id_departamento == currentDeptId
+      );
+
+      if (insumosDept.length === 0) {
+        return { total: '0.00', unidad: 'Metros' };
+      }
+
+      // Usar un Map para evitar contar el mismo producto múltiples veces
+      const productosUnicos = new Map();
+      insumosDept.forEach((item) => {
+        const key = item.id_ordenes_productos;
+        if (!productosUnicos.has(key)) {
+          productosUnicos.set(key, {
+            cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
+            unidades: parseInt(item.unidades) || 0,
+            unidad: item.unidad_de_medida || 'Metros'
+          });
+        }
+      });
+
+      // Calcular el total: cantidad_estimada * unidades para cada producto
+      let total = 0;
+      let unidad = 'Metros';
+      productosUnicos.forEach((value) => {
+        total += value.cantidad_estimada * value.unidades;
+        unidad = value.unidad; // Tomar la última unidad (asumiendo que son iguales)
+      });
+
+      return { total: total.toFixed(2), unidad: unidad };
+    },
+
+    /**
+     * Calcula el porcentaje de eficiencia: (Estimado / Utilizado) * 100
+     * >100% significa que usamos menos del estimado (bueno)
+     * <100% significa que usamos más del estimado (malo)
+     */
+    eficienciaPorcentaje() {
+      const estimado = parseFloat(this.materialEstimadoDepartamento.total);
+      const utilizado = parseFloat(this.materialUtilizado);
+
+      if (utilizado === 0 || estimado === 0) {
+        return '0.00';
+      }
+
+      return ((estimado / utilizado) * 100).toFixed(2);
     },
 
     modal: function () {
