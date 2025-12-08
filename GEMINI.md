@@ -42,6 +42,26 @@
 - **Rama:** `refactor/modular-routes`
 - **Despliegue en VPS:** `git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes`
 
+## Despliegue en Producción
+
+### ⚠️ IMPORTANTE - NO DESPLEGAR AUTOMÁTICAMENTE
+**NUNCA desplegar la aplicación frontend automáticamente.** Solo desplegar cuando el usuario lo solicite explícitamente. Esto es porque no es conveniente subir cambios cada vez que se hace alguna modificación en el entorno de desarrollo.
+
+### Frontend (Nuxt.js) - Script de Despliegue
+- **Script:** `./deploy.sh` (en la raíz del proyecto)
+- **Host VPS:** `194.195.86.253`
+- **Usuario:** `root`
+- **Ruta remota:** `/home/app.nineteencustom.com/public_html`
+
+**Proceso del script:**
+1. Solicita confirmación del usuario
+2. Elimina el directorio `./dist` anterior
+3. Ejecuta `npm run generate` para transpilar
+4. Crea backup local en `./backups_transpilaciones`
+5. Crea backup remoto en `/home/app.nineteencustom.com/backups_deploys`
+6. Sube archivos al VPS via `rsync`
+7. Limpia backups locales antiguos (conserva los últimos 12)
+
 ## Elaboración de Reportes:
 
 - Al final de cada sesión de trabajo, o cuando el usuario lo solicite, se deberá generar un reporte en un archivo `reporte.md`.
