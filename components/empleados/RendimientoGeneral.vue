@@ -105,12 +105,13 @@ export default {
 
   watch: {
     ordenes: {
-      handler(val) {
+      async handler(val) {
         if (val && val.length > 0) {
+          // Hay órdenes activas, calcular eficiencia normalmente
           this.fetchGlobalEfficiency();
         } else {
-           this.text = "Sin órdenes activas";
-           this.variant = "light";
+          // No hay órdenes activas, buscar órdenes no pagadas del empleado
+          await this.fetchUnpaidOrdersEfficiency();
         }
       },
       deep: true,
@@ -286,6 +287,111 @@ export default {
         // Fallback to old mixin logic if API fails?
         // For now, just show error or keep "Calculando..."
         this.text = "Error al calcular";
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchUnpaidOrdersEfficiency() {
+      this.isLoading = true;
+      
+      try {
+        // Obtener ID del empleado y departamento del store
+        const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
+        const idDepartamento = this.$store.state.login.currentDepartamentId;
+
+        if (!idEmpleado || !idDepartamento) {
+          this.text = "Sin datos de empleado";
+          this.variant = "light";
+          this.inputEfficiencyText = null;
+          this.isLoading = false;
+          return;
+        }
+
+        // Llamar a endpoint que devuelve IDs de órdenes no pagadas del empleado
+        const unpaidResponse = await this.$axios.get(
+          `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
+        );
+
+        if (!unpaidResponse.data || unpaidResponse.data.length === 0) {
+          this.text = "Sin órdenes pendientes de pago";
+          this.variant = "light";
+          this.inputEfficiencyText = null;
+          this.isLoading = false;
+          return;
+        }
+
+        // Extraer IDs de órdenes
+        const ids = unpaidResponse.data.map(o => o.id_orden).join(',');
+
+        // Reutilizar la misma lógica de fetchGlobalEfficiency
+        const params = { id_ordenes: ids };
+        if (idEmpleado) params.id_empleado = idEmpleado;
+
+        // Eficiencia de tiempo
+        const response = await this.$axios.get(`${this.$config.API}/reports/efficiency`, { params });
+        
+        if (response.data && response.data.length > 0) {
+          // Calcular totales (misma lógica que fetchGlobalEfficiency)
+          const totalReal = response.data.reduce((acc, item) => acc + (parseFloat(item.tiempo_real) || 0), 0);
+          const totalProjected = response.data.reduce((acc, item) => {
+            const real = parseFloat(item.tiempo_real) || 0;
+            const projected = parseFloat(item.tiempo_estimado) || 0;
+            if (real > 0 || projected > 0) {
+              if (item.status === 'terminado') {
+                return acc + projected;
+              } else {
+                return acc + Math.min(real, projected);
+              }
+            }
+            return acc;
+          }, 0);
+
+          this.reporteData = { totalReal, totalProjected, totalElapsed: 0 };
+          this.calculateEfficiencyText(totalReal, totalProjected);
+        }
+
+        // Eficiencia de insumos
+        const inputResponse = await this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`);
+        if (inputResponse.data && inputResponse.data.length > 0) {
+          let totalEfficiency = 0;
+          let countItems = 0;
+          let totalEstimado = 0;
+          let totalReal = 0;
+          let unidad = 'Mt';
+
+          inputResponse.data.forEach(item => {
+            if (this.departmentId && parseInt(item.id_departamento) !== parseInt(this.departmentId)) {
+              return;
+            }
+
+            const standard = parseFloat(item.cantidad_estandar) || 0;
+            const real = parseFloat(item.cantidad_real) || 0;
+
+            totalEstimado += standard;
+            totalReal += real;
+            unidad = item.unidad || 'Mt';
+
+            if (real > 0) {
+              const efficiency = (standard / real) * 100;
+              totalEfficiency += efficiency;
+              countItems++;
+              this.inputEfficiencyData = { totalEstimado, totalReal, unidad };
+            }
+          });
+
+          const averageEfficiency = countItems > 0 ? (totalEfficiency / countItems) : 0;
+          this.calculateInputEfficiencyText(averageEfficiency, countItems);
+        } else {
+          this.inputEfficiencyText = "Sin datos de insumos";
+          this.inputEfficiencyVariant = "light";
+          this.inputEfficiencyData = null;
+        }
+
+      } catch (error) {
+        console.error("Error fetching unpaid orders efficiency:", error);
+        this.text = "Error al calcular";
+        this.variant = "danger";
       } finally {
         this.isLoading = false;
       }

@@ -175,16 +175,24 @@
             </b-form-group>
           </div> -->
 
-          <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (PARA IMPRESIÓN, ESTAMPADO Y CORTE PAPEL CUANDO ESTÉ CONFIGURADO) -->
-          <div v-if="showSelect && (
-              $store.state.login.currentDepartament === 'Impresión' ||
-              $store.state.login.currentDepartament === 'Estampado' ||
-              $store.state.login.currentDepartament === 'Corte papel'
-            )">
-            <p>
-              <strong>Material Estimado (Sistema):</strong>
-              {{ materialEstimadoDepartamento.total }} {{ materialEstimadoDepartamento.unidad }}
-            </p>
+          <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (PARA TODOS LOS DEPARTAMENTOS CONFIGURADOS) -->
+          <div v-if="showSelect">
+            <!-- Material Estimado (desglosado por catálogo si hay múltiples insumos) -->
+            <div v-if="materialEstimadoPorCatalogo.length === 1">
+              <p>
+                <strong>Material Estimado (Sistema):</strong>
+                {{ materialEstimadoPorCatalogo[0].total }} {{ materialEstimadoPorCatalogo[0].unidad }} 
+                de {{ materialEstimadoPorCatalogo[0].catalogo }}
+              </p>
+            </div>
+            <div v-else-if="materialEstimadoPorCatalogo.length > 1">
+              <p><strong>Material Estimado (Sistema):</strong></p>
+              <ul>
+                <li v-for="(item, index) in materialEstimadoPorCatalogo" :key="index">
+                  <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
+                </li>
+              </ul>
+            </div>
 
             <p>
               <strong>Material Utilizado:</strong>
@@ -429,6 +437,68 @@ export default {
       });
 
       return { total: total.toFixed(2), unidad: unidad };
+    },
+
+    /**
+     * Calcula el material estimado AGRUPADO POR CATÁLOGO DE INSUMO
+     * Devuelve un array con {catalogo, total, unidad} para mostrar desglosado
+     */
+    materialEstimadoPorCatalogo() {
+      if (!this.dataInsumos || this.dataInsumos.length === 0) {
+        return [];
+      }
+
+      const currentDeptId = this.$store.state.login.currentDepartamentId;
+      
+      // Filtrar por departamento actual
+      const insumosDept = this.dataInsumos.filter(
+        (el) => el.id_departamento == currentDeptId
+      );
+
+      if (insumosDept.length === 0) {
+        return [];
+      }
+
+      // PASO 1: Deduplicar por id_ordenes_productos + catalogo
+      // Usamos clave compuesta para evitar contar el mismo producto múltiples veces
+      const productosUnicos = new Map();
+      
+      insumosDept.forEach((item) => {
+        const key = `${item.id_ordenes_productos}_${item.catalogo}`;
+        if (!productosUnicos.has(key)) {
+          productosUnicos.set(key, {
+            catalogo: item.catalogo || 'Sin catálogo',
+            cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
+            unidades: parseInt(item.unidades) || 0,
+            unidad: item.unidad_de_medida || 'Metros'
+          });
+        }
+      });
+
+      // PASO 2: Agrupar por catálogo y sumar totales
+      const catalogoMap = new Map();
+      
+      productosUnicos.forEach((producto) => {
+        const catalogoNombre = producto.catalogo;
+        const totalItem = producto.cantidad_estimada * producto.unidades;
+        
+        if (catalogoMap.has(catalogoNombre)) {
+          catalogoMap.get(catalogoNombre).total += totalItem;
+        } else {
+          catalogoMap.set(catalogoNombre, {
+            catalogo: catalogoNombre,
+            total: totalItem,
+            unidad: producto.unidad
+          });
+        }
+      });
+
+      // Convertir a array y formatear totales
+      return Array.from(catalogoMap.values()).map(item => ({
+        catalogo: item.catalogo,
+        total: item.total.toFixed(2),
+        unidad: item.unidad
+      }));
     },
 
     /**
