@@ -5,6 +5,7 @@
         @click="$bvModal.show(modal)"
         variant="success"
         :disabled="ButtonDisabled"
+        data-testid="btn-terminar-todo"
       >{{ btnText }}</b-button>
     </span>
 
@@ -24,6 +25,7 @@
       :title="title"
       hide-footer
       size="lg"
+      data-testid="modal-datos-extra"
     >
       <b-overlay
         :show="overlay"
@@ -273,11 +275,13 @@
             :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
             @click="validateForm"
             variant="primary"
+            data-testid="btn-enviar-datos-extra"
           >Enviar</b-button>
           <b-button
             :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
             type="reset"
             variant="danger"
+            data-testid="btn-borrar-datos-extra"
           >Borrar</b-button>
         </b-form>
       </b-overlay>

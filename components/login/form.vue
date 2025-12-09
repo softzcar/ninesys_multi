@@ -32,6 +32,7 @@
                   placeholder="Ingrese su email"
                   required
                   autocomplete="username"
+                  data-testid="input-email"
                 ></b-form-input>
               </b-form-group>
 
@@ -47,10 +48,11 @@
                   placeholder="Ingrese su clave"
                   required
                   autocomplete="current-password"
+                  data-testid="input-password"
                 ></b-form-input>
               </b-form-group>
 
-              <b-button type="submit" variant="primary" @click="letMeIn($event)"
+              <b-button type="submit" variant="primary" @click="letMeIn($event)" data-testid="btn-entrar"
                 >Entrar</b-button
               >
             </b-form>

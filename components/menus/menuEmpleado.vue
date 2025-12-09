@@ -19,7 +19,7 @@
                 custom
                 v-slot="{ navigate }"
               >
-                <span @click="navigate" @keypress.enter="navigate" role="link">
+                <span @click="navigate" @keypress.enter="navigate" role="link" data-testid="nav-ordenes-asignadas">
                   Ordenes Asignadas
                 </span>
               </router-link>
@@ -47,7 +47,7 @@
                 custom
                 v-slot="{ navigate }"
               >
-                <span @click="navigate" @keypress.enter="navigate" role="link">
+                <span @click="navigate" @keypress.enter="navigate" role="link" data-testid="nav-relacion-trabajos">
                   Relación de Trabajos
                 </span>
               </router-link>
