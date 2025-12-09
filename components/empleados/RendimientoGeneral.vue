@@ -329,22 +329,27 @@ export default {
         if (idEmpleado) params.id_empleado = idEmpleado;
 
         // Eficiencia de tiempo
-        const response = await this.$axios.get(`${this.$config.API}/reports/efficiency`, { params });
+        const response = await this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, { params });
         
         if (response.data && response.data.length > 0) {
-          // Calcular totales (misma lógica que fetchGlobalEfficiency)
-          const totalReal = response.data.reduce((acc, item) => acc + (parseFloat(item.tiempo_real) || 0), 0);
+          const totalReal = response.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
           const totalProjected = response.data.reduce((acc, item) => {
-            const real = parseFloat(item.tiempo_real) || 0;
-            const projected = parseFloat(item.tiempo_estimado) || 0;
-            if (real > 0 || projected > 0) {
-              if (item.status === 'terminado') {
-                return acc + projected;
-              } else {
-                return acc + Math.min(real, projected);
+              // Only include projected time if the order has started
+              if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
+                  const projected = parseFloat(item.tiempo_proyectado_segundos || 0);
+                  const real = parseFloat(item.tiempo_total_segundos || 0);
+                  
+                  // Safe Meta Logic:
+                  // If order is finished, use full projected time.
+                  // If order is in progress, cap projected time at real time (assume 100% efficiency until over budget).
+                  if (item.status === 'terminado' || item.prioridad === 'Completado') {
+                      return acc + projected;
+                  } else {
+                      // In progress: cap metProj at atual time
+                      return acc + Math.min(real, projected);
+                  }
               }
-            }
-            return acc;
+              return acc;
           }, 0);
 
           this.reporteData = { totalReal, totalProjected, totalElapsed: 0 };
