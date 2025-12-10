@@ -26,24 +26,27 @@ export default {
 
   methods: {
     async getOrdenesVinculadas() {
+      // Solo hacer la llamada si tenemos id_orden definido y no tenemos datos
+      if (!this.id_orden || this.ordenes_vinculadas?.length > 0) {
+        return;
+      }
+      
       await this.$axios
         .get(`${this.$config.API}/ordenes/vinculadas/${this.id_orden}`)
         .then((res) => {
           this.vinculadas = res.data;
-          console.log(`Ordenes vinculdas a la orden ${this.id_orden}`);
-          
         })
         .catch((err) => {
           console.error(`Error al obtener ordene vinculadas de la orden ${this.id_orden}`, err);
-          
         })
     },
   },
  
   mounted() {
-    console.log('ordenes vinculadas recibidas', this.ordenes_vinculadas);
-    
-    this.getOrdenesVinculadas()
+    // Solo llamar si no recibimos ordenes_vinculadas como prop
+    if (!this.ordenes_vinculadas || this.ordenes_vinculadas.length === 0) {
+      this.getOrdenesVinculadas()
+    }
   },
   props: ['ordenes_vinculadas', 'id_orden'],
 }
@@ -55,3 +58,4 @@ export default {
   margin-right: 4px;
 }
 </style>
+
