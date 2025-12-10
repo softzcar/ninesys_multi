@@ -175,18 +175,13 @@ export default {
       }
 
       try {
-        const params = {
-          id_ordenes: ids
+        // Use POST to handle many IDs (avoid URL length limit)
+        const postData = {
+          id_ordenes: uniqueIds,
+          id_empleado: this.$store.state.login?.dataUser?.id_empleado || null
         };
 
-        // Pass employee ID if available (to filter projected time)
-        if (this.$store.state.login && this.$store.state.login.dataUser && this.$store.state.login.dataUser.id_empleado) {
-            params.id_empleado = this.$store.state.login.dataUser.id_empleado;
-        }
-
-        const response = await this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, {
-          params: params
-        });
+        const response = await this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData);
 
         if (response.data) {
           const totalReal = response.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
@@ -326,12 +321,14 @@ export default {
         const uniqueIds = [...new Set(unpaidResponse.data.map(o => o.id_orden).filter(id => id))];
         const ids = uniqueIds.join(',');
 
-        // Reutilizar la misma lógica de fetchGlobalEfficiency
-        const params = { id_ordenes: ids };
-        if (idEmpleado) params.id_empleado = idEmpleado;
+        // Use POST to handle many IDs
+        const postData = {
+          id_ordenes: uniqueIds,
+          id_empleado: idEmpleado
+        };
 
         // Eficiencia de tiempo
-        const response = await this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, { params });
+        const response = await this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData);
         
         if (response.data && response.data.length > 0) {
           const totalReal = response.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
