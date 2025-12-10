@@ -165,8 +165,9 @@ export default {
       if (!this.ordenes || this.ordenes.length === 0) return;
       
       this.isLoading = true;
-      // Extract IDs
-      const ids = this.ordenes.map(o => o.orden || o.id_orden).filter(id => id).join(',');
+      // Extract unique IDs (using Set to avoid duplicates)
+      const uniqueIds = [...new Set(this.ordenes.map(o => o.orden || o.id_orden).filter(id => id))];
+      const ids = uniqueIds.join(',');
       
       if (!ids) {
           this.isLoading = false;
@@ -321,8 +322,9 @@ export default {
           return;
         }
 
-        // Extraer IDs de órdenes
-        const ids = unpaidResponse.data.map(o => o.id_orden).join(',');
+        // Extraer IDs de órdenes únicos (usando Set para evitar duplicados)
+        const uniqueIds = [...new Set(unpaidResponse.data.map(o => o.id_orden).filter(id => id))];
+        const ids = uniqueIds.join(',');
 
         // Reutilizar la misma lógica de fetchGlobalEfficiency
         const params = { id_ordenes: ids };
