@@ -238,7 +238,7 @@ export default {
         async fetchCatalogoProductos() {
             try {
                 const response = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
-                this.catalogoProductos = response.data;
+                this.catalogoProductos = response.data.data;
             } catch (error) {
                 console.error("Error al obtener el catálogo de productos:", error);
             }

@@ -10,7 +10,7 @@
       :title="title"
       hide-footer
       size="xl"
-      @show="$emit('modal-shown')"
+      @show="handleModalShowInternal"
       @hide="$emit('modal-hidden')"
     >
       <b-overlay :show="isLoading" spinner-small>
@@ -22,6 +22,77 @@
               {{ ordenReactiva.variant_text }}
             </b-badge>
           </h3>
+
+          <!-- BULLET GRAPH SECTION -->
+          <div v-if="reporteData" class="mb-4 p-3 border rounded bg-light">
+            <h5 class="mb-3">Eficiencia de Producción (Tiempo Real vs Proyectado)</h5>
+            
+            <div class="d-flex justify-content-between mb-1">
+              <span><strong>Tiempo Real:</strong> {{ formatSeconds(reporteData.tiempo_total_segundos) }}</span>
+              <span><strong>Meta (Proyectado):</strong> {{ formatSeconds(reporteData.tiempo_proyectado_segundos) }}</span>
+            </div>
+
+            <!-- Bullet Graph Container -->
+            <div class="position-relative" style="height: 40px; background-color: #e9ecef; border-radius: 4px;">
+              
+              <!-- Background Zones (Optional, simplified to just grey for now) -->
+              
+              <!-- Actual Value Bar -->
+              <div 
+                class="position-absolute h-100" 
+                :class="bulletGraphColor"
+                :style="{ width: bulletGraphBarWidth + '%' }"
+                style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
+              ></div>
+
+              <!-- Projected Value Marker -->
+              <div 
+                class="position-absolute h-100"
+                style="width: 4px; background-color: #000; z-index: 10;"
+                :style="{ left: bulletGraphMarkerPosition + '%' }"
+              ></div>
+
+            </div>
+            
+            <div class="d-flex justify-content-between mt-1 text-muted small">
+              <span>0s</span>
+              <span v-if="bulletGraphMax > 0">{{ formatSeconds(bulletGraphMax) }}</span>
+            </div>
+          </div>
+          <div v-else-if="isLoadingReport" class="text-center mb-4">
+             <b-spinner small label="Cargando reporte..."></b-spinner> Calculando eficiencia...
+          </div>
+          <!-- END BULLET GRAPH SECTION -->
+
+          <!-- INPUT EFFICIENCY SECTION -->
+          <div v-if="inputEfficiencyData && inputEfficiencyData.length > 0" class="mb-4 p-3 border rounded bg-light">
+             <h5 class="mb-3">Eficiencia de Insumos</h5>
+             <b-table-lite
+                small
+                striped
+                hover
+                :items="inputEfficiencyData"
+                :fields="[
+                    { key: 'nombre_insumo', label: 'Insumo' },
+                    { key: 'cantidad_estandar', label: 'Meta', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
+                    { key: 'cantidad_real', label: 'Real', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
+                    { key: 'eficiencia', label: 'Eficiencia', formatter: (val, key, item) => {
+                        const est = parseFloat(item.cantidad_estandar);
+                        const real = parseFloat(item.cantidad_real);
+                        if (est === 0) return 'N/A';
+                        const eff = ((est / real) * 100).toFixed(1);
+                        return `${eff}%`;
+                    }}
+                ]"
+             >
+                <template #cell(eficiencia)="data">
+                    <b-badge :variant="parseFloat(data.item.cantidad_real) > parseFloat(data.item.cantidad_estandar) ? 'danger' : 'success'">
+                        {{ data.value }}
+                    </b-badge>
+                </template>
+             </b-table-lite>
+          </div>
+          <!-- END INPUT EFFICIENCY SECTION -->
 
           <b-list-group>
             <b-list-group-item :variant="ordenReactiva.variant">
@@ -101,6 +172,12 @@ export default {
       ahora: new Date(),
       intervaloReloj: null,
       isLoading: true, // Nueva propiedad para el estado de carga
+      
+      // Reporte Data
+      reporteData: null,
+      inputEfficiencyData: null,
+      isLoadingReport: false,
+
       fieldsTareas: [
         { key: "nombre_departamento", label: "Departamento" },
         { key: "fecha_inicio_formateada", label: "Inicio Real" },
@@ -120,6 +197,36 @@ export default {
     modal() {
       const rand = Math.random().toString(36).substring(2, 7);
       return `modal-${rand}`;
+    },
+
+    // Bullet Graph Computed Properties
+    bulletGraphMax() {
+      if (!this.reporteData) return 100;
+      const real = this.reporteData.tiempo_total_segundos || 0;
+      const projected = this.reporteData.tiempo_proyectado_segundos || 0;
+      // Scale max is slightly larger than the biggest value
+      return Math.max(real, projected) * 1.2 || 100; // Default to 100 if both are 0
+    },
+
+    bulletGraphBarWidth() {
+      if (!this.reporteData) return 0;
+      const real = this.reporteData.tiempo_total_segundos || 0;
+      return (real / this.bulletGraphMax) * 100;
+    },
+
+    bulletGraphMarkerPosition() {
+      if (!this.reporteData) return 0;
+      const projected = this.reporteData.tiempo_proyectado_segundos || 0;
+      return (projected / this.bulletGraphMax) * 100;
+    },
+
+    bulletGraphColor() {
+      if (!this.reporteData) return 'bg-secondary';
+      const real = this.reporteData.tiempo_total_segundos || 0;
+      const projected = this.reporteData.tiempo_proyectado_segundos || 0;
+      
+      if (projected === 0) return 'bg-warning'; // No projection available
+      return real <= projected ? 'bg-success' : 'bg-danger';
     },
 
     ordenReactiva() {
@@ -220,6 +327,69 @@ export default {
         fechaEntregaEstimada: fechaEntregaEstimadaFinal,
       };
     },
+  },
+
+  methods: {
+    handleModalShowInternal() {
+      this.$emit('modal-shown');
+      this.fetchManufacturingReport();
+    },
+
+    async fetchManufacturingReport() {
+      this.isLoadingReport = true;
+      this.reporteData = null;
+      this.inputEfficiencyData = null; // Reset input efficiency data
+
+      try {
+        const [timeResponse, inputResponse] = await Promise.all([
+            this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, { params: { id_orden: this.id_orden } }),
+            this.$axios.get(`${this.$config.API}/reports/input-efficiency/${this.id_orden}`)
+        ]);
+        
+        // Process Time Report
+        if (timeResponse.data && timeResponse.data.length > 0) {
+          const totalReal = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
+          const totalProjected = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_proyectado_segundos || 0), 0);
+          
+          this.reporteData = {
+            tiempo_total_segundos: totalReal,
+            tiempo_proyectado_segundos: totalProjected
+          };
+        } else {
+           this.reporteData = {
+            tiempo_total_segundos: 0,
+            tiempo_proyectado_segundos: 0
+          };
+        }
+
+        // Process Input Efficiency Report
+        if (inputResponse.data) {
+            this.inputEfficiencyData = inputResponse.data;
+        }
+
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+        this.$bvToast.toast("Error al cargar reportes de eficiencia", {
+          variant: "warning",
+          solid: true
+        });
+      } finally {
+        this.isLoadingReport = false;
+      }
+    },
+
+    formatSeconds(seconds) {
+      if (!seconds) return '0s';
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      
+      let res = '';
+      if (h > 0) res += `${h}h `;
+      if (m > 0) res += `${m}m `;
+      res += `${s}s`;
+      return res;
+    }
   },
 
   mounted() {

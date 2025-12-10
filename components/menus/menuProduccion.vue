@@ -124,13 +124,12 @@
                                         @keypress.enter="navigate"
                                         role="link"
                                     >
-                                        Gestión de inventario
+                                        Inventario
                                     </span>
                                 </router-link>
-                                <hr />
                                 <router-link
                                     class="nav-link"
-                                    to="/inventario/reportes/orden"
+                                    to="/impresoras/gestion"
                                     custom
                                     v-slot="{ navigate }"
                                 >
@@ -139,13 +138,12 @@
                                         @keypress.enter="navigate"
                                         role="link"
                                     >
-                                        Reporte por orden
+                                        Gestión de Impresoras
                                     </span>
                                 </router-link>
-
                                 <router-link
                                     class="nav-link"
-                                    to="/inventario/reportes/insumo"
+                                    to="/inventario/recarga-tintas"
                                     custom
                                     v-slot="{ navigate }"
                                 >
@@ -154,12 +152,12 @@
                                         @keypress.enter="navigate"
                                         role="link"
                                     >
-                                        Reporte por insumo
+                                        Recarga de Tintas
                                     </span>
                                 </router-link>
                                 <router-link
                                     class="nav-link"
-                                    to="/inventario/reportes/producto"
+                                    to="/inventario/nueva-tinta"
                                     custom
                                     v-slot="{ navigate }"
                                 >
@@ -168,13 +166,12 @@
                                         @keypress.enter="navigate"
                                         role="link"
                                     >
-                                        Reporte por producto
+                                        Nueva Tinta
                                     </span>
                                 </router-link>
-
                                 <router-link
                                     class="nav-link"
-                                    to="/impresoras/tintas-actual"
+                                    to="/catalogo-insumos-productos"
                                     custom
                                     v-slot="{ navigate }"
                                 >
@@ -183,24 +180,7 @@
                                         @keypress.enter="navigate"
                                         role="link"
                                     >
-                                        Reporte de Tintas Actuales
-                                    </span>
-                                </router-link>
-
-                                <router-link
-                                    class="nav-link"
-                                    to="/inventario/reportes/empleado"
-                                    custom
-                                    v-slot="{ navigate }"
-                                >
-                                    <span
-                                        por
-                                        empleadon
-                                        @click="navigate"
-                                        @keypress.enter="navigate"
-                                        role="link"
-                                    >
-                                        Reporte
+                                        Catálogo de Insumos de Productos
                                     </span>
                                 </router-link>
                             </b-nav-item-dropdown>

@@ -79,6 +79,8 @@
                       type="number"
                       placeholder="Ej: 4141234567"
                       required
+                      @input="adminData.phoneNumber = cleanPhoneInput($event)"
+                      @blur="handlePhoneBlur('admin')"
                     ></b-form-input>
                   </b-input-group>
                 </b-form-group>
@@ -185,6 +187,8 @@
                       type="number"
                       placeholder="Ej: 2121234567"
                       required
+                      @input="empresaData.phoneNumber = cleanPhoneInput($event)"
+                      @blur="handlePhoneBlur('empresa')"
                     ></b-form-input>
                   </b-input-group>
                 </b-form-group>
@@ -328,6 +332,8 @@ import { mapState } from "vuex";
 import MonedasManager from "./MonedasManager.vue";
 import HorarioLaboralEditor from "./HorarioLaboralEditor.vue";
 import GastosManager from "./GastosManager.vue";
+import phoneValidation from "~/mixins/phoneValidation.js";
+
 
 export default {
   name: "ConfiguracionWizard",
@@ -338,6 +344,8 @@ export default {
     HorarioLaboralEditor,
     GastosManager,
   },
+  mixins: [phoneValidation],
+
   props: {
     isFullConfigMode: {
       type: Boolean,
@@ -809,6 +817,47 @@ export default {
       }
     },
 
+    handlePhoneBlur(type) {
+      const data = type === 'admin' ? this.adminData : this.empresaData;
+      if (!data.phoneNumber) return;
+
+      // Construir número completo para validar
+      const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
+      const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
+      
+      // Si el usuario pegó el número completo con código de país, intentamos limpiarlo
+      let rawNumber = data.phoneNumber;
+      
+      // Validar usando el mixin
+      // Pasamos el número concatenado con el código si es necesario, 
+      // pero si el usuario ya puso el código en el input, el mixin debería manejarlo si pasamos todo.
+      // Vamos a intentar pasar el código + número.
+      const fullNumberToValidate = `+${phoneCode}${rawNumber}`;
+      
+      const result = this.validateAndFormatPhone(fullNumberToValidate, data.countryCode);
+
+      if (result.isValid) {
+        // El resultado viene sin +, ej: 58414...
+        // Necesitamos separar el código de país del número nacional para actualizar la UI
+        // Usamos parseAndSetPhoneNumber que ya existe en el componente
+        this.parseAndSetPhoneNumber(type, result.formatted);
+      } else {
+        // Si falló con el código concatenado, probamos solo el número (quizás el usuario puso el código en el input)
+        const resultRaw = this.validateAndFormatPhone(rawNumber, data.countryCode);
+        if (resultRaw.isValid) {
+           this.parseAndSetPhoneNumber(type, resultRaw.formatted);
+        } else {
+           this.$fire({
+            title: "Teléfono Inválido",
+            text: "Por favor ingrese un número de teléfono válido.",
+            type: "warning",
+            timer: 3000
+          });
+        }
+      }
+    },
+
+
     async validateAdminStep() {
       const errors = [];
       const data = this.adminData;
@@ -817,11 +866,18 @@ export default {
       if (!data.nombre.trim()) errors.push("El nombre completo es obligatorio.");
 
       // 2. Validar Teléfono
-      const phoneRegex = /^\d{7,15}$/;
       if (!data.phoneNumber.trim()) {
         errors.push("El número de teléfono es obligatorio.");
-      } else if (!phoneRegex.test(data.phoneNumber.trim())) {
-        errors.push("El número de teléfono no es válido. Ingrese solo números, sin espacios ni símbolos.");
+      } else {
+        // Validar usando el mixin
+        const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
+        const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
+        const fullPhoneNumber = `+${phoneCode}${data.phoneNumber}`;
+        const result = this.validateAndFormatPhone(fullPhoneNumber, data.countryCode);
+        
+        if (!result.isValid) {
+           errors.push("El número de teléfono no es válido.");
+        }
       }
 
       // 3. Validar Contraseña
@@ -911,8 +967,15 @@ export default {
       const phoneRegex = /^\d{7,15}$/;
       if (!data.phoneNumber || !String(data.phoneNumber).trim()) {
         errors.push("El número de teléfono de la empresa es obligatorio.");
-      } else if (!phoneRegex.test(String(data.phoneNumber).trim())) {
-        errors.push("El número de teléfono de la empresa no es válido.");
+      } else {
+         const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
+        const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
+        const fullPhoneNumber = `+${phoneCode}${data.phoneNumber}`;
+        const result = this.validateAndFormatPhone(fullPhoneNumber, data.countryCode);
+        
+        if (!result.isValid) {
+           errors.push("El número de teléfono de la empresa no es válido.");
+        }
       }
 
       console.log('Validation errors:', errors);

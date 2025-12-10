@@ -152,7 +152,8 @@
           <b-icon icon="x-circle"></b-icon> Limpiar Filtros
         </b-button>
         <b-alert
-          :show="isUserFiltering"
+          v-if="isUserFiltering"
+          show
           variant="warning"
           class="m-0 p-2 w-100 text-center"
         >
@@ -641,9 +642,9 @@ export default {
 
     isUserFiltering() {
       return (
-        (this.filterOrden && this.filterOrden.length > 0) ||
-        (this.filterCliente && this.filterCliente.length > 0) ||
-        (this.filterEstatus && this.filterEstatus.length > 0)
+        (this.filterOrden && this.filterOrden.trim().length > 0) ||
+        (this.filterCliente && this.filterCliente.trim().length > 0) ||
+        (this.filterEstatus && this.filterEstatus.trim().length > 0)
       );
     },
 

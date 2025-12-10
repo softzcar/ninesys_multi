@@ -109,28 +109,37 @@
       
                     <!-- Guardar Orden para terminarla después -->
                     <div class="mb-4">
-                      <div class="d-flex flex-column flex-md-row flex-wrap justify-content-md-start justify-content-center gap-4" style="max-width: 600px;">
+                      <div class="d-flex flex-column flex-md-row flex-wrap">
                         <b-button
                           @click="guardarOrden"
                           variant="success"
-                          class="w-100 w-md-auto"
-                        >Guardar</b-button>
+                          class="mb-2 mb-md-0 mr-md-2"
+                        >
+                          Guardar Orden
+                        </b-button>
+                        
                         <b-button
                           @click="cargarOrden"
                           variant="info"
-                          class="w-100 w-md-auto"
-                        >Cargar Orden</b-button>
-                        <div class="w-100 w-md-auto">
+                          class="mb-2 mb-md-0 mr-md-2"
+                        >
+                          Cargar Orden
+                        </b-button>
+                        
+                        <div class="mb-2 mb-md-0 mr-md-2">
                           <cargar-ordenes-no-asignadas
                             :ordenes-sin-asignar="ordenesSinAsignar"
                             @orden-cargada="manejarOrdenCargada"
                           />
                         </div>
+                        
                         <b-button
                           @click="clearForm"
                           variant="danger"
-                          class="w-100 w-md-auto"
-                        >Limpiar formulario</b-button>
+                          class="mb-2 mb-md-0"
+                        >
+                          Limpiar formulario
+                        </b-button>
                       </div>
                     </div>
                     <b-row>
@@ -2845,7 +2854,7 @@ export default {
     async getProducts() {
       await this.$axios.get(`${this.$config.API}/products`, {
         headers: {
-          Authorization: '152'
+          Authorization: this.$store.state.login.dataEmpresa.id
         }
       }).then((res) => {
         this.products = res.data;
@@ -3264,7 +3273,7 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/products`, {
           headers: {
-            Authorization: '152'
+            Authorization: this.$store.state.login.dataEmpresa.id
           }
         })
         .then((responseProductos) => {

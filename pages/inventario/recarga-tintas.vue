@@ -6,7 +6,7 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Administración'">
+      <div v-if="dataUser.departamento === 'Administración' || dataUser.departamento === 'Producción'">
         <AdminRecargaTintas />
       </div>
       <div v-else>

@@ -87,6 +87,23 @@ ssh vps-ninesys "cd /home/apidev.nineteengreen.com/public_html && git fetch orig
 ssh vps-ninesys "uptime && df -h"
 ```
 
+## Bases de Datos por Empresa
+
+### Empresa 152 (NineteenCustom)
+| Campo | Valor |
+|-------|-------|
+| Base de datos | `api_emp_152` |
+| Usuario | `api_user_152` |
+| Password | `cf747993a6231d6e0a15f731` |
+| Host | `localhost` |
+
+**Consulta via SSH:**
+```bash
+ssh vps-ninesys "mysql -u api_user_152 -pcf747993a6231d6e0a15f731 api_emp_152 -e 'SELECT * FROM tabla LIMIT 10;'"
+```
+
+---
+
 ## Elaboración de Reportes:
 
 - Al final de cada sesión de trabajo, o cuando el usuario lo solicite, se deberá generar un reporte en un archivo `reporte.md`.
