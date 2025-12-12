@@ -30,9 +30,9 @@
                 <div class="col-8"><strong>Salario Base:</strong></div>
                 <div class="col-4 text-right">${{ salarioBase }}</div>
               </div>
-              <div class="row" v-if="totalComisionesTabla > 0">
+              <div class="row" v-if="comisionEfectiva > 0">
                 <div class="col-8"><strong>Comisiones:</strong></div>
-                <div class="col-4 text-right">${{ totalComisionesTabla.toFixed(2) }}</div>
+                <div class="col-4 text-right">${{ comisionEfectiva.toFixed(2) }}</div>
               </div>
               <div class="row" v-if="totalBonosCompletos > 0">
                 <div class="col-8"><strong>Bonos:</strong></div>
@@ -332,14 +332,36 @@ export default {
       }, 0)
     },
     salarioBase() {
-      // El salario base debería ser solo el salario sin comisiones
-      // totalBase ya incluye salario + comisiones, así que necesitamos extraer solo el salario
+      // Regla estricta: Si es tipo 'Comisión', el salario base es 0
+      if (this.empleado.salario_tipo === 'Comisión') {
+        return '0.00'
+      }
+
+      // Si tenemos un salario calculado explícito (pasado por prop), lo usamos
+      if (this.salarioCalculado && parseFloat(this.salarioCalculado) > 0) {
+        return parseFloat(this.salarioCalculado).toFixed(2)
+      }
+
       const totalBaseNum = parseFloat(this.totalBase.toString().replace('$', '')) || 0
+      
+      // Regla estricta: Si es tipo 'Salario', el total base es EXCLUSIVAMENTE salario
+      if (this.empleado.salario_tipo === 'Salario') {
+         return totalBaseNum.toFixed(2)
+      }
+
+      // Fallback para 'Salario más Comisión' o legacy (Total - Comisiones)
       return (totalBaseNum - this.totalComisionesTabla).toFixed(2)
+    },
+    comisionEfectiva() {
+      // Regla estricta: Si es tipo 'Salario', las comisiones son 0 para efectos de pago
+      if (this.empleado.salario_tipo === 'Salario') {
+        return 0
+      }
+      return this.totalComisionesTabla
     },
     totalFinal() {
       const salario = parseFloat(this.salarioBase)
-      const comisiones = this.totalComisionesTabla
+      const comisiones = this.comisionEfectiva
       const bonos = this.totalBonosCompletos
       const descuentos = this.totalDescuentos
       return (salario + comisiones + bonos - descuentos).toFixed(2)
