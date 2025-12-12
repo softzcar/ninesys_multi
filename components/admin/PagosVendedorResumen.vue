@@ -55,8 +55,29 @@
                   $ {{ formatNumber(data.item.pago) }}
                 </template>
 
-                <template #cell(comsion_vendedor)="data">
-                  ${{ data.item.pago }}
+                <template #cell(comision_tipo)="data">
+                  <div>{{ data.item.salario_tipo }}</div>
+                  <small v-if="data.item.comision_tipo" class="text-muted">
+                    ({{ data.item.comision_tipo }})
+                  </small>
+                </template>
+
+                <template #cell(comision)="data">
+                  <span v-if="data.item.comision_tipo === 'porcentaje'">
+                    {{ data.item.comision }}%
+                  </span>
+                  <span v-else>
+                     $ {{ formatNumber(data.item.comision) }}
+                  </span>
+                </template>
+
+                <template #cell(monto_abonado)="data">
+                  <span v-if="tipoEmpleado === 'Vendedor'">
+                    ${{ formatNumber(data.item.monto_abonado) }}
+                  </span>
+                  <span v-else>
+                    ${{ formatNumber(data.item.monto_orden) }}
+                  </span>
                 </template>
                 <template #cell(id_orden)="data">
                   <linkSearch
@@ -116,27 +137,25 @@ export default {
       overlay: false,
       dataTable: [],
       fields: [
+      fields: [
         {
           key: "id_orden",
           label: "Orden",
           thClass: "text-center",
           tdClass: "text-center",
         },
-        {
-          key: "nombre",
-          label: "Vendedor",
-        },
+        // Eliminada columna Vendedor (redundante)
         {
           key: "comision_tipo",
-          label: "Tipo",
+          label: "Tipo Pago",
         },
         {
           key: "comision",
           label: "Comisión",
         },
         {
-          key: "monto_abonado",
-          label: "Monto",
+          key: "monto_abonado", // Usamos esta misma key pero cambiamos el contenido visualmente
+          label: "Monto Orden",
           thClass: "text-right",
           tdClass: "text-right",
         },
