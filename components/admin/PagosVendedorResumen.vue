@@ -51,7 +51,7 @@
                 responsive
                 small
                 striped
-                :items="detalles"
+                :items="detallesAgrupados"
                 :fields="fields"
               >
                 <template #cell(pago)="data">
@@ -261,11 +261,49 @@ export default {
       return {
         nombreEmpleado: this.item.nombre,
         totalPagar: `${this.item.pago}`,
-        detalles: this.detalles,
+        detalles: this.detallesAgrupados,
       };
     },
+    detallesAgrupados() {
+      if (!this.detalles || !Array.isArray(this.detalles)) return [];
+      
+      const agrupados = {};
+      const sinOrden = [];
+
+      this.detalles.forEach(detalle => {
+        // Si no tiene orden, lo dejamos tal cual (ej. bonos, ajustes sin orden)
+        if (!detalle.id_orden) {
+          sinOrden.push(detalle);
+          return;
+        }
+
+        const key = detalle.id_orden;
+        
+        if (!agrupados[key]) {
+          agrupados[key] = { ...detalle };
+          agrupados[key].pago = parseFloat(detalle.pago) || 0;
+          // Asumimos que monto_orden es el mismo para la orden
+        } else {
+          agrupados[key].pago += parseFloat(detalle.pago) || 0;
+          // Si hay otras sumatorias necesarias, agregarlas aqui
+        }
+      });
+
+      // Convertir de vuelta a array y formatear el pago a string para consistencia de visualización si es necesario
+      // O mantenerlo numérico, pero el template usa formatNumber.
+      // formatNumber espera string o numero, el sumatorio es numero.
+      
+      const listaAgrupada = Object.values(agrupados).map(item => {
+        return {
+          ...item,
+          pago: item.pago.toFixed(2) // Convertir a string con 2 decimales para consistencia
+        };
+      });
+
+      return [...listaAgrupada, ...sinOrden];
+    },
     pagoTotal() {
-      const total = this.detalles.reduce((acc, curr) => {
+      const total = this.detallesAgrupados.reduce((acc, curr) => {
         const pagoDecimal = parseFloat(curr.pago);
         return acc + pagoDecimal;
       }, 0);
