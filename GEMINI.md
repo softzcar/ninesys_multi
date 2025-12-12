@@ -102,6 +102,39 @@ ssh vps-ninesys "uptime && df -h"
 ssh vps-ninesys "mysql -u api_user_152 -pcf747993a6231d6e0a15f731 api_emp_152 -e 'SELECT * FROM tabla LIMIT 10;'"
 ```
 
+### Empresa 159 (Pruebas)
+| Campo | Valor |
+|-------|-------|
+| Base de datos | `api_emp_159` |
+| Usuario | `api_user_159` |
+| Password | `18a5d8dbf1bf95463e3aff10` |
+| Host | `localhost` |
+
+**Consulta via SSH:**
+```bash
+ssh vps-ninesys "mysql -u api_user_159 -p'18a5d8dbf1bf95463e3aff10' api_emp_159 -e 'SELECT * FROM tabla LIMIT 10;'"
+```
+
+### Base de Datos Central (api_empresas)
+Contiene la tabla `empresas` con credenciales de todas las empresas y `empresas_usuarios` con todos los empleados.
+
+| Campo | Valor |
+|-------|-------|
+| Base de datos | `api_empresas` |
+| Usuario | `api_adminemp` |
+| Password | `rkyaFy!dAs8L5Lq8` |
+| Host | `localhost` |
+
+**Obtener credenciales de cualquier empresa:**
+```bash
+ssh vps-ninesys "mysql -u root api_empresas -e 'SELECT id_empresa, nombre, db_name, db_user, db_password FROM empresas WHERE id_empresa = [ID];'"
+```
+
+**Consultar empleados de una empresa:**
+```bash
+ssh vps-ninesys "mysql -u root api_empresas -e 'SELECT id_usuario, nombre, departamento, comision, comision_tipo, salario_tipo FROM empresas_usuarios WHERE id_empresa = [ID];'"
+```
+
 ---
 
 ## Elaboración de Reportes:

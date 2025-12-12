@@ -248,7 +248,7 @@ export default {
           const index = acc.findIndex((el) => el.nombre === curr.nombre);
           if (index === -1) {
             // Calcular comisión
-            const comisionPago = parseFloat(curr.cantidad) * parseFloat(curr.comision);
+            const comisionPago = (parseFloat(curr.cantidad) || 0) * (parseFloat(curr.comision) || 0);
 
             // Calcular salario según período
             const empleado = this.empleados.find(emp => emp._id === curr.id_empleado);
@@ -256,9 +256,16 @@ export default {
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
             // Determinar el tipo de pago según salario_tipo
-            let totalPago = salarioPago; // Siempre incluir salario si corresponde
-            if (comisionPago > 0) {
-              // Siempre incluir comisión si existe
+            let totalPago = 0;
+            const tipoSalario = empleado?.salario_tipo || 'No configurado';
+            
+            // Incluir salario solo si el tipo lo permite
+            if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
+              totalPago += salarioPago;
+            }
+            
+            // Incluir comisión solo si el tipo lo permite
+            if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
               totalPago += comisionPago;
             }
 
@@ -274,10 +281,15 @@ export default {
             });
           } else {
             // Calcular comisión adicional
-            const comisionPago = parseFloat(curr.cantidad) * parseFloat(curr.comision);
+            const comisionPago = (parseFloat(curr.cantidad) || 0) * (parseFloat(curr.comision) || 0);
+            const tipoSalario = acc[index].salario_tipo;
             acc[index].cantidad += parseInt(curr.cantidad);
-            acc[index].pago += comisionPago; // Siempre sumar comisión
             acc[index].monto_comision += comisionPago; // Acumular comisión
+            
+            // Solo sumar comisión al pago si el tipo lo permite
+            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
+              acc[index].pago += comisionPago;
+            }
           }
           return acc;
         }, []);
@@ -313,27 +325,38 @@ export default {
             console.log('DEBUG VENDEDOR - Datos completos del registro actual:', curr);
 
             // Determinar el tipo de pago según salario_tipo
-            let totalPago = salarioPago; // Siempre incluir salario si corresponde
-            if (parseFloat(curr.pago) > 0) {
-              // Siempre incluir comisión si existe
-              totalPago += parseFloat(curr.pago);
-              if (empleado && empleado.salario_tipo === 'Salario más Comisión') {
-                console.log('DEBUG VENDEDOR - Total pago (Salario + Comisión):', totalPago, '=', parseFloat(curr.pago), '+', salarioPago);
-              }
+            let totalPago = 0;
+            const tipoSalario = empleado?.salario_tipo || 'No configurado';
+            
+            // Incluir salario solo si el tipo lo permite
+            if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
+              totalPago += salarioPago;
+            }
+            
+            // Incluir comisión solo si el tipo lo permite
+            const comisionPago = parseFloat(curr.pago) || 0;
+            if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
+              totalPago += comisionPago;
             }
 
             acc.push({
               nombre: curr.nombre,
               id_empleado: curr.id_empleado,
               departamento: curr.departamento,
-              salario_tipo: empleado?.salario_tipo || 'No configurado', // Agregar salario_tipo
+              salario_tipo: tipoSalario,
               pago: totalPago,
               monto_salario: salarioPago, // Salario calculado (0 si no corresponde)
-              monto_comision: parseFloat(curr.pago), // Comisión ya viene calculada de la API
+              monto_comision: comisionPago, // Comisión ya viene calculada de la API
             });
           } else {
-            acc[index].pago += parseFloat(curr.pago); // Siempre sumar comisión
-            acc[index].monto_comision += parseFloat(curr.pago); // Acumular comisión
+            const tipoSalario = acc[index].salario_tipo;
+            const comisionPago = parseFloat(curr.pago) || 0;
+            acc[index].monto_comision += comisionPago; // Acumular comisión
+            
+            // Solo sumar comisión al pago si el tipo lo permite
+            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
+              acc[index].pago += comisionPago;
+            }
           }
           return acc;
         }, []);
@@ -359,10 +382,18 @@ export default {
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
             // Determinar el tipo de pago según salario_tipo
-            let totalPago = salarioPago; // Siempre incluir salario si corresponde
-            if (parseFloat(curr.pago) > 0) {
-              // Siempre incluir comisión si existe
-              totalPago += parseFloat(curr.pago);
+            let totalPago = 0;
+            const tipoSalario = empleado?.salario_tipo || 'No configurado';
+            
+            // Incluir salario solo si el tipo lo permite
+            if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
+              totalPago += salarioPago;
+            }
+            
+            // Incluir comisión solo si el tipo lo permite
+            const comisionPago = parseFloat(curr.pago) || 0;
+            if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
+              totalPago += comisionPago;
             }
 
 
@@ -371,17 +402,23 @@ export default {
               nombre: curr.nombre,
               id_orden: curr.id_orden,
               departamento: curr.departamento,
-              salario_tipo: empleado?.salario_tipo || 'No configurado', // Agregar salario_tipo
+              salario_tipo: tipoSalario,
               cantidad: 1,
               producto: curr.producto,
               pago: totalPago,
               monto_salario: salarioPago, // Salario calculado (0 si no corresponde)
-              monto_comision: parseFloat(curr.pago), // Comisión ya viene calculada de la API
+              monto_comision: comisionPago, // Comisión ya viene calculada de la API
             });
           } else {
+            const tipoSalario = acc[index].salario_tipo;
+            const comisionPago = parseFloat(curr.pago) || 0;
             acc[index].cantidad += 1;
-            acc[index].pago += parseFloat(curr.pago); // Siempre sumar comisión
-            acc[index].monto_comision += parseFloat(curr.pago); // Acumular comisión
+            acc[index].monto_comision += comisionPago; // Acumular comisión
+            
+            // Solo sumar comisión al pago si el tipo lo permite
+            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
+              acc[index].pago += comisionPago;
+            }
           }
           return acc;
         }, []);
