@@ -313,17 +313,7 @@ export default {
             const fechaReferencia = this.form.fechaConsultaFin ? new Date(this.form.fechaConsultaFin) : new Date();
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
-            // DEBUG: Agregar logs para diagnosticar el problema
-            console.log('DEBUG VENDEDOR - Empleado encontrado:', empleado);
-            console.log('DEBUG VENDEDOR - ID empleado:', curr.id_empleado);
-            console.log('DEBUG VENDEDOR - Salario tipo:', empleado?.salario_tipo);
-            console.log('DEBUG VENDEDOR - Salario monto:', empleado?.salario_monto);
-            console.log('DEBUG VENDEDOR - Salario periodo:', empleado?.salario_periodo);
-            console.log('DEBUG VENDEDOR - Ultima semana pagada:', empleado?.ultima_semana_pagada);
-            console.log('DEBUG VENDEDOR - Fecha referencia:', fechaReferencia);
-            console.log('DEBUG VENDEDOR - Salario calculado:', salarioPago);
-            console.log('DEBUG VENDEDOR - Comisión del pago actual:', curr.pago);
-            console.log('DEBUG VENDEDOR - Datos completos del registro actual:', curr);
+
 
             // Determinar el tipo de pago según salario_tipo
             let totalPago = 0;
@@ -334,9 +324,9 @@ export default {
               totalPago += salarioPago;
             }
             
-            // Incluir comisión solo si el tipo lo permite
+            // Incluir comisión siempre que venga en el pago
             const comisionPago = parseFloat(curr.pago) || 0;
-            if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
+            if (comisionPago > 0) {
               totalPago += comisionPago;
             }
 
@@ -354,10 +344,8 @@ export default {
             const comisionPago = parseFloat(curr.pago) || 0;
             acc[index].monto_comision += comisionPago; // Acumular comisión
             
-            // Solo sumar comisión al pago si el tipo lo permite
-            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
-              acc[index].pago += comisionPago;
-            }
+            // Sumar comisión al pago siempre
+            acc[index].pago += comisionPago;
           }
           return acc;
         }, []);
