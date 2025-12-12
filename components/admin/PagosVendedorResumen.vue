@@ -33,8 +33,10 @@
                     variant="primary"
                   >Imprimir</b-button>
                 </span>
-                <div class="mt-3">
-                  <h5>Total a Pagar: <strong>{{ pagoTotal }}</strong></h5>
+                <div class="mt-3 text-right">
+                  <p class="mb-1">Monto Comisiones: <strong>$ {{ formatNumber(item.monto_comision || 0) }}</strong></p>
+                  <p class="mb-1">Monto Salario: <strong>$ {{ formatNumber(item.monto_salario || 0) }}</strong></p>
+                  <h5>Total a Pagar: <strong>$ {{ item.pago }}</strong></h5>
                 </div>
                 <div
                   v-if="item.pago === '0.00'"
@@ -306,14 +308,7 @@ export default {
 
       return [...listaAgrupada, ...sinOrden];
     },
-    pagoTotal() {
-      const total = this.detallesAgrupados.reduce((acc, curr) => {
-        const pagoDecimal = parseFloat(curr.pago);
-        return acc + pagoDecimal;
-      }, 0);
 
-      return String.fromCharCode(36) + total.toFixed(2);
-    },
 
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7);
