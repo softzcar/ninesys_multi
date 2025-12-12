@@ -248,7 +248,8 @@ export default {
           const index = acc.findIndex((el) => el.nombre === curr.nombre);
           if (index === -1) {
             // Calcular comisión
-            const comisionPago = (parseFloat(curr.cantidad) || 0) * (parseFloat(curr.comision) || 0);
+            // Usar el pago que viene del backend (ya calculado y guardado en BD)
+            const comisionPago = parseFloat(curr.pago) || 0;
 
             // Calcular salario según período
             const empleado = this.empleados.find(emp => emp._id === curr.id_empleado);
@@ -281,7 +282,7 @@ export default {
             });
           } else {
             // Calcular comisión adicional
-            const comisionPago = (parseFloat(curr.cantidad) || 0) * (parseFloat(curr.comision) || 0);
+            const comisionPago = parseFloat(curr.pago) || 0;
             const tipoSalario = acc[index].salario_tipo;
             acc[index].cantidad += parseInt(curr.cantidad);
             acc[index].monto_comision += comisionPago; // Acumular comisión
