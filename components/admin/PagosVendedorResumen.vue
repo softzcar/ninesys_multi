@@ -33,6 +33,9 @@
                     variant="primary"
                   >Imprimir</b-button>
                 </span>
+                <div class="mt-3">
+                  <h5>Total a Pagar: <strong>{{ pagoTotal }}</strong></h5>
+                </div>
                 <div
                   v-if="item.pago === '0.00'"
                   class="alert alert-info mt-2"
