@@ -319,23 +319,52 @@ export default {
             let totalPago = 0;
             const tipoSalario = empleado?.salario_tipo || 'No configurado';
             
-            // Reglas de negocio para Vendedores:
-            // 1. Salario: Recibe Salario + Comisiones (según validación del usuario)
-            // 2. Salario más Comisión: Recibe Salario + Comisiones
-            // 3. Comisión: Recibe solo Comisiones
+            // Reglas de negocio Estrictas para Vendedores:
             
-            // Verificación de Salario
-            if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
-              totalPago += salarioPago;
+            // 1. Salario: Solo recibe salario base
+            if (tipoSalario === 'Salario') {
+                totalPago += salarioPago;
+                // No sumamos comisiones
             }
+            // 2. Comisión: Solo recibe comisiones
+            else if (tipoSalario === 'Comisión') {
+                const comisionPago = parseFloat(curr.pago) || 0;
+                if (comisionPago > 0) {
+                    totalPago += comisionPago;
+                }
+                // No sumamos salario
+            }
+            // 3. Salario más Comisión: Recibe ambos
+            else if (tipoSalario === 'Salario más Comisión') {
+                totalPago += salarioPago;
+                const comisionPago = parseFloat(curr.pago) || 0;
+                if (comisionPago > 0) {
+                    totalPago += comisionPago;
+                }
+            }
+            // Caso por defecto (No configurado u otro): Comportamiento seguro
+            // Podríamos decidir no pagar nada o asumir solo comisiones.
+            // Por consistencia con la versión anterior si no está configurado, no sumamos nada o solo comisiones?
+            // "No configurado" -> Asumiremos solo comisiones para evitar bloqueos, o 0.
+            // Dejaremos 0 si no hay config clara, o solo comisiones.
+            // Para seguridad, si no tiene tipo, no pagamos salario, ¿pagamos comisión?
+            // El código original decía || 'No configurado'.
+            else {
+                 // Fallback: Si no tiene tipo, tratamos como 'Comisión' (solo lo que viene en el pago)
+                 const comisionPago = parseFloat(curr.pago) || 0;
+                 totalPago += comisionPago;
+            }
+
+            // Calculamos monto_comision para mostrar en el desglose, AUNQUE no se sume al pago total
+            // Esto permite ver "lo que hubiera ganado" o simplemente 0 si no aplica.
+            // Para no confundir, si el tipo es 'Salario', monto_comision debería ser 0 en el objeto visual?
+            // O mejor: monto_comision es lo que viene de la API, pero 'pago' es lo que realmente se paga.
+            // Pero el desglose en el modal usa item.monto_comision. Si mostramos $5.52 pero no lo sumamos, el usuario preguntará por qué.
+            // Así que si es 'Salario', monto_comision debe ser 0 para el reporte.
             
-            // Verificación de Comisión
-            // Se asume que para Vendedores, 'Salario' también habilita comisiones de venta si existen
-            const comisionPago = parseFloat(curr.pago) || 0;
-            if (comisionPago > 0) {
-               // Si es 'Comisión', 'Salario más Comisión' o 'Salario' (permisivo), se suma.
-               // Básicamente siempre se suman comisiones si el pago las trae.
-              totalPago += comisionPago;
+            let comisionParaRegistro = parseFloat(curr.pago) || 0;
+            if (tipoSalario === 'Salario') {
+                comisionParaRegistro = 0;
             }
 
             acc.push({
@@ -344,16 +373,26 @@ export default {
               departamento: curr.departamento,
               salario_tipo: tipoSalario,
               pago: totalPago,
-              monto_salario: salarioPago, // Salario calculado (0 si no corresponde)
-              monto_comision: comisionPago, // Comisión ya viene calculada de la API
+              monto_salario: salarioPago,
+              monto_comision: comisionParaRegistro, 
             });
           } else {
             const tipoSalario = acc[index].salario_tipo;
             const comisionPago = parseFloat(curr.pago) || 0;
-            acc[index].monto_comision += comisionPago; // Acumular comisión
             
-            // Sumar comisión al pago siempre
-            acc[index].pago += comisionPago;
+            // Acumulamos dependiendo del tipo
+             if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
+                acc[index].monto_comision += comisionPago;
+                acc[index].pago += comisionPago;
+             } else if (tipoSalario === 'Salario') {
+                // Si es Salario, NO sumamos comisión al pago TOTAL
+                // Y tampoco al monto_comision visible (para que coincida el desglose)
+                // acc[index].monto_comision += comisionPago; // <--- NO
+             } else {
+                // Caso fallback
+                acc[index].monto_comision += comisionPago;
+                acc[index].pago += comisionPago;
+             }
           }
           return acc;
         }, []);
