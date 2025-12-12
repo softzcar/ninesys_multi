@@ -163,6 +163,7 @@
         <admin-pagos-vendedor-resumen
           :item="empleado"
           :detalles="detalles"
+          :tipo-empleado="tipoEmpleado"
           :showbutton="false"
         />
         <b-button variant="secondary" @click="cancel">Cancelar</b-button>
@@ -604,8 +605,13 @@ export default {
   }, */
 
   mounted() {
-  this.totalItemsPagos = this.detalles.length
-}
+    this.totalItemsPagos = this.detalles.length;
+    console.log("=== PagosConfirmacionModal PROPS ===");
+    console.log("tipoEmpleado:", this.tipoEmpleado);
+    console.log("empleado:", this.empleado);
+    console.log("detalles (filtrados):", this.detalles);
+    console.log("totalBase:", this.totalBase);
+  }
 }
 </script>
 
