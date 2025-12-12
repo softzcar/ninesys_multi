@@ -137,7 +137,6 @@ export default {
       overlay: false,
       dataTable: [],
       fields: [
-
         {
           key: "id_orden",
           label: "Orden",
@@ -154,20 +153,16 @@ export default {
           label: "Comisión",
         },
         {
-          key: "monto_abonado", // Usamos esta misma key pero cambiamos el contenido visualmente
-          label: "Monto Orden",
-          thClass: "text-right",
-          tdClass: "text-right",
-        },
-        {
           key: "pago",
           label: "Monto Pagado",
           thClass: "text-right",
           tdClass: "text-right",
         },
         {
-          key: "fecha_de_pago",
-          label: "Fecha P",
+          key: "monto_abonado", // Usamos esta misma key pero cambiamos el contenido visualmente
+          label: "Monto Orden",
+          thClass: "text-right",
+          tdClass: "text-right",
         },
       ],
     };
