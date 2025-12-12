@@ -319,14 +319,22 @@ export default {
             let totalPago = 0;
             const tipoSalario = empleado?.salario_tipo || 'No configurado';
             
-            // Incluir salario solo si el tipo lo permite
+            // Reglas de negocio para Vendedores:
+            // 1. Salario: Recibe Salario + Comisiones (según validación del usuario)
+            // 2. Salario más Comisión: Recibe Salario + Comisiones
+            // 3. Comisión: Recibe solo Comisiones
+            
+            // Verificación de Salario
             if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
               totalPago += salarioPago;
             }
             
-            // Incluir comisión siempre que venga en el pago
+            // Verificación de Comisión
+            // Se asume que para Vendedores, 'Salario' también habilita comisiones de venta si existen
             const comisionPago = parseFloat(curr.pago) || 0;
             if (comisionPago > 0) {
+               // Si es 'Comisión', 'Salario más Comisión' o 'Salario' (permisivo), se suma.
+               // Básicamente siempre se suman comisiones si el pago las trae.
               totalPago += comisionPago;
             }
 
