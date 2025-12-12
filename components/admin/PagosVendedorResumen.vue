@@ -137,7 +137,7 @@ export default {
       overlay: false,
       dataTable: [],
       fields: [
-      fields: [
+
         {
           key: "id_orden",
           label: "Orden",
