@@ -272,17 +272,21 @@ export default {
 
       this.detalles.forEach(detalle => {
         // Si no tiene orden, lo dejamos tal cual (ej. bonos, ajustes sin orden)
-        if (!detalle.id_orden) {
+        const orderId = detalle.id_orden || detalle.orden;
+        
+        if (!orderId) {
           sinOrden.push(detalle);
           return;
         }
 
-        const key = detalle.id_orden;
+        const key = orderId;
         
         if (!agrupados[key]) {
           agrupados[key] = { ...detalle };
           agrupados[key].pago = parseFloat(detalle.pago) || 0;
-          // Asumimos que monto_orden es el mismo para la orden
+          // Aseguramos que id_orden esté presente para el template si faltaba
+          agrupados[key].id_orden = key; 
+
         } else {
           agrupados[key].pago += parseFloat(detalle.pago) || 0;
           // Si hay otras sumatorias necesarias, agregarlas aqui
