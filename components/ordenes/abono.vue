@@ -941,7 +941,7 @@ export default {
       data.set("empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("responsable", this.$store.state.login.dataUser.id_empleado);
       //TODO aqui vamos a enviar cada metodod e pago por separado...
-      data.set("tasa_dolar", this.tasas.dolar); // Changed from bolivar to dolar
+      data.set("tasa_dolar", this.tasas.bolivar); // Changed from bolivar to dolar
       data.set("tasa_peso", this.tasas.peso_colombiano);
       data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
       data.set("montoDolaresZelle", this.form.montoDolaresZelle);

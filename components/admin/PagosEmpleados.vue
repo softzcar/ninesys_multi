@@ -252,7 +252,7 @@ export default {
             const comisionPago = parseFloat(curr.pago) || 0;
 
             // Calcular salario según período
-            const empleado = this.empleados.find(emp => emp._id === curr.id_empleado);
+            const empleado = this.empleados.find(emp => emp._id == curr.id_empleado);
             const fechaReferencia = this.form.fechaConsultaFin ? new Date(this.form.fechaConsultaFin) : new Date();
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
@@ -309,7 +309,7 @@ export default {
           const index = acc.findIndex((el) => el.nombre === curr.nombre);
           if (index === -1) {
             // Calcular salario para vendedores
-            const empleado = this.empleados.find(emp => emp._id === curr.id_empleado);
+            const empleado = this.empleados.find(emp => emp._id == curr.id_empleado);
             const fechaReferencia = this.form.fechaConsultaFin ? new Date(this.form.fechaConsultaFin) : new Date();
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
