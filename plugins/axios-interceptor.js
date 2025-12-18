@@ -1,38 +1,38 @@
 // plugins/axios.js
 export default function ({ $axios, store }) {
-  // Función auxiliar para verificar si una URL pertenece al servicio WhatsApp
-  const isWhatsAppService = (url) => {
-    return url && url.includes(store.$config?.WS_API)
-  }
-
-  // Función para obtener token JWT
-  const getJWTToken = async () => {
-    const username = process.env.JWT_USERNAME || 'admin'
-    const password = process.env.JWT_PASSWORD || 'Ninesys@2024'
-
-    try {
-      const response = await $axios.post(`${store.$config?.WS_API}/login`, {
-        username,
-        password
-      })
-
-      if (response.data.token) {
-        store.commit('login/setToken', response.data.token)
-        if (response.data.refreshToken) {
-          store.commit('login/setRefreshToken', response.data.refreshToken)
-        }
-        return response.data.token
-      }
-    } catch (error) {
-      console.error('Error obteniendo token JWT:', error)
-      // Para errores de JWT, solo limpiar los tokens, no hacer logout completo
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        store.commit('login/setToken', null)
-        store.commit('login/setRefreshToken', null)
-      }
-      throw error
+    // Función auxiliar para verificar si una URL pertenece al servicio WhatsApp
+    const isWhatsAppService = (url) => {
+        return url && url.includes(store.$config?.WS_API)
     }
-  }
+
+    // Función para obtener token JWT
+    const getJWTToken = async () => {
+        const username = process.env.JWT_USERNAME || 'admin'
+        const password = process.env.JWT_PASSWORD || 'Ninesys@2024'
+
+        try {
+            const response = await $axios.post(`${store.$config?.WS_API}/login`, {
+                username,
+                password
+            })
+
+            if (response.data.token) {
+                store.commit('login/setToken', response.data.token)
+                if (response.data.refreshToken) {
+                    store.commit('login/setRefreshToken', response.data.refreshToken)
+                }
+                return response.data.token
+            }
+        } catch (error) {
+            console.error('Error obteniendo token JWT:', error)
+            // Para errores de JWT, solo limpiar los tokens, no hacer logout completo
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                store.commit('login/setToken', null)
+                store.commit('login/setRefreshToken', null)
+            }
+            throw error
+        }
+    }
     if (!$axios) {
         throw new Error("Instance of $axios is undefined")
     }
@@ -69,6 +69,46 @@ export default function ({ $axios, store }) {
         config.headers["Accept"] = "application/json"
 
         return config
+    })
+
+    // ========== INTERCEPTOR DE RESPUESTAS EXITOSAS ==========
+    // Detecta automáticamente el campo 'success' y muestra notificaciones
+    $axios.onResponse((response) => {
+        // Solo procesar respuestas JSON de nuestra API
+        if (response.data && typeof response.data === 'object') {
+
+            // Si la respuesta tiene el campo 'success'
+            if ('success' in response.data && response.data.message) {
+                const message = response.data.message
+
+                if (response.data.success === true) {
+                    // Mostrar notificación de éxito
+                    if (window.$nuxt?.$bvToast) {
+                        window.$nuxt.$bvToast.toast(message, {
+                            title: 'Operación exitosa',
+                            variant: 'success',
+                            solid: true,
+                            autoHideDelay: 5000
+                        })
+                    } else if (window.$nuxt?.$toast) {
+                        window.$nuxt.$toast.success(message)
+                    }
+                } else if (response.data.success === false) {
+                    // Mostrar notificación de error
+                    if (window.$nuxt?.$bvToast) {
+                        window.$nuxt.$bvToast.toast(message, {
+                            title: 'Error',
+                            variant: 'danger',
+                            solid: true,
+                            autoHideDelay: 8000
+                        })
+                    } else if (window.$nuxt?.$toast) {
+                        window.$nuxt.$toast.error(message)
+                    }
+                }
+            }
+        }
+        return response
     })
 
     $axios.onResponseError(async (error) => {
