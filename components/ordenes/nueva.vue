@@ -2182,31 +2182,84 @@ export default {
 
     step3() {
       let ok = true;
-      // Veerificar el monto pagado
-      let abono = parseFloat(this.form.abono);
-      let descuento = parseFloat(this.form.descuento);
-      let total = parseFloat(this.form.total);
+      let errores = [];
+      
+      // Obtener valores numéricos
+      let abono = parseFloat(this.form.abono) || 0;
+      let descuento = parseFloat(this.form.descuento) || 0;
+      let total = parseFloat(this.form.total) || 0;
 
+      // ========== VALIDACIONES DE MONTOS ==========
+      
+      // 1. El abono no puede ser negativo
+      if (abono < 0) {
+        ok = false;
+        errores.push('El monto del abono no puede ser negativo');
+      }
+
+      // 2. El descuento no puede ser negativo
+      if (descuento < 0) {
+        ok = false;
+        errores.push('El monto del descuento no puede ser negativo');
+      }
+
+      // 3. La suma de abono + descuento no puede exceder el total
       if (abono + descuento > total) {
         ok = false;
-        this.$fire({
-          title: "Monto",
-          html: "El monto pagadoe excede el total de la orden",
-          type: "error",
-        });
-      } else if (descuento > 0 && !this.form.descuentoDetalle) {
+        errores.push('La suma de abono + descuento no puede exceder el total de la orden');
+      }
+
+      // ========== VALIDACIONES DE DETALLES OBLIGATORIOS ==========
+      // Campos que requieren detalle cuando tienen monto > 0
+      // (Efectivo en cualquier moneda NO requiere detalle)
+      
+      // Dólares Zelle
+      if (parseFloat(this.form.montoDolaresZelle) > 0 && !this.form.montoDolaresZelleDetalle?.trim()) {
         ok = false;
+        errores.push('El detalle de Zelle es obligatorio');
+      }
+
+      // Dólares Panamá
+      if (parseFloat(this.form.montoDolaresPanama) > 0 && !this.form.montoDolaresPanamaDetalle?.trim()) {
+        ok = false;
+        errores.push('El detalle de Panamá es obligatorio');
+      }
+
+      // Pesos Transferencia
+      if (parseFloat(this.form.montoPesosTransferencia) > 0 && !this.form.montoPesosTransferenciaDetalle?.trim()) {
+        ok = false;
+        errores.push('El detalle de transferencia en pesos es obligatorio');
+      }
+
+      // Bolívares Pagomovil
+      if (parseFloat(this.form.montoBolivaresPagomovil) > 0 && !this.form.montoBolivaresPagomovilDetalle?.trim()) {
+        ok = false;
+        errores.push('El detalle de pago móvil es obligatorio');
+      }
+
+      // Bolívares Transferencia
+      if (parseFloat(this.form.montoBolivaresTransferencia) > 0 && !this.form.montoBolivaresTransferenciaDetalle?.trim()) {
+        ok = false;
+        errores.push('El detalle de transferencia en bolívares es obligatorio');
+      }
+
+      // Descuento
+      if (descuento > 0 && !this.form.descuentoDetalle?.trim()) {
+        ok = false;
+        errores.push('El detalle del descuento es obligatorio');
+      }
+
+      // ========== MOSTRAR ERRORES O CONTINUAR ==========
+      if (!ok) {
         this.$fire({
-          title: "Falta detalle del descuento",
-          html: `<p>El detalle del descuento es obligatorio cuando se aplica un monto.</p>`,
+          title: "Datos incompletos",
+          html: `<ul style="text-align:left">${errores.map(e => `<li>${e}</li>`).join('')}</ul>`,
           type: "warning",
         });
       } else {
-        // Crear copia profunda y transformar datos para la vista previa
-        // Hacemos una copia profunda para no mutar el formulario original que aún necesita los IDs.
+        // Solo preparar formPrint si todas las validaciones pasaron
         const formCopy = JSON.parse(JSON.stringify(this.form));
 
-        // Crear mapas para una búsqueda eficiente de los nombres de tallas y telas.
         const tallasMap = this.$store.state.comerce.dataTallas.reduce(
           (map, talla) => {
             map[talla.value] = talla.text;
@@ -2223,13 +2276,10 @@ export default {
           {}
         );
 
-        // Mapear los productos para reemplazar los IDs de talla y tela por sus nombres correspondientes.
         formCopy.productos = formCopy.productos.map((producto) => {
-          // Si el producto tiene una talla y existe en nuestro mapa, la reemplazamos por el nombre.
           if (producto.talla && tallasMap[producto.talla]) {
             producto.talla = tallasMap[producto.talla];
           }
-          // Hacemos lo mismo para la tela.
           if (producto.tela && telasMap[producto.tela]) {
             producto.tela = telasMap[producto.tela];
           }
@@ -2237,17 +2287,17 @@ export default {
         });
 
         this.formPrint = formCopy;
+
+        // Mostrar aviso informativo si la orden es totalmente a crédito
+        if (abono === 0 && this.editingOrderId === null) {
+          this.$fire({
+            title: "Información",
+            html: "La orden se emitirá totalmente a crédito",
+            type: "info",
+          });
+        }
       }
 
-      // if (this.form.metodoDePago.length === 0) {
-      if (parseFloat(this.form.abono) === 0 && this.editingOrderId === null) {
-        ok = true;
-        this.$fire({
-          title: "Método de pago",
-          html: "La orden se emitirá totalmente a crédito",
-          type: "warning",
-        });
-      }
       return ok;
     },
 
