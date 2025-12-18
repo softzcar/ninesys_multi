@@ -303,7 +303,7 @@
               <b-list-group-item>
                 <div class="floatme">
                   <ordenes-vinculadas-v2
-                    :vinculadas="filterVinculadas(el.acciones)"
+                    :ordenes_vinculadas="filterVinculadas(el.acciones)"
                     :key="el.orden"
                     :id_orden="el.orden"
                   />

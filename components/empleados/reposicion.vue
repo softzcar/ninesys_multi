@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="display: inline-flex; gap: 0.5rem; align-items: center;">
     <b-button
       :disabled="disableBtns.backward"
       variant="warning"

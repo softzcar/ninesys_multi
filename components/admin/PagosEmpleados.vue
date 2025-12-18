@@ -478,13 +478,16 @@ export default {
       };
 
       // Mostrar confirmación para imprimir recibo
-      const imprimirRecibo = await this.$confirm({
-        title: "Pago realizado",
-        html: `<p>El pago de ${nombreEmpleado} ha sido procesado correctamente</p><p>¿Desea imprimir el recibo de pago?</p>`,
-        type: "success",
-        confirmButtonText: "Sí, imprimir",
-        cancelButtonText: "No, gracias"
-      })
+      // Mostrar confirmación para imprimir recibo
+      const imprimirRecibo = await this.$confirm(
+        `<p>El pago de ${nombreEmpleado} ha sido procesado correctamente</p><p>¿Desea imprimir el recibo de pago?</p>`,
+        "Pago realizado",
+        "success",
+        {
+            confirmButtonText: "Sí, imprimir",
+            cancelButtonText: "No, gracias"
+        }
+      )
 
       if (imprimirRecibo) {
         // Usar el componente PagosVendedorResumen para imprimir el recibo

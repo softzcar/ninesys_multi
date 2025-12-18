@@ -1,9 +1,6 @@
 <template>
   <div>
-    <b-overlay
-      :show="overlay"
-      spinner-small
-    >
+
       <div v-if="ordenesSize < 1">
         <b-row>
           <b-col>
@@ -20,11 +17,16 @@
         <!-- Eficiencia -->
         <b-row>
           <b-col>
-            <empleados-RendimientoGeneral
-              :ordenes="ordenes"
-              :pausas="pausas"
-              :departmentId="$store.state.login.currentDepartamentId"
-            />
+            <b-overlay :show="loadingEfficiency" spinner-small rounded="sm">
+              <empleados-RendimientoGeneral
+                :ordenes="ordenes"
+                :pausas="pausas"
+                :departmentId="$store.state.login.currentDepartamentId"
+                :reporteData="reporteData"
+                :inputEfficiencyData="inputEfficiencyData"
+                :isLoading="loadingEfficiency"
+              />
+            </b-overlay>
           </b-col>
         </b-row>
 
@@ -75,14 +77,20 @@
             </b-col>
           </b-row>
 
+
           <!-- Eficiencia -->
           <b-row>
             <b-col>
-              <empleados-RendimientoGeneral
-                :ordenes="ordenes"
-                :pausas="pausas"
-                :departmentId="$store.state.login.currentDepartamentId"
-              />
+                <b-overlay :show="loadingEfficiency" spinner-small rounded="sm">
+                  <empleados-RendimientoGeneral
+                    :ordenes="ordenes"
+                    :pausas="pausas"
+                    :departmentId="$store.state.login.currentDepartamentId"
+                    :reporteData="reporteData"
+                    :inputEfficiencyData="inputEfficiencyData"
+                    :isLoading="loadingEfficiency"
+                  />
+               </b-overlay>
             </b-col>
           </b-row>
 
@@ -106,8 +114,8 @@
                     </template>
 
                     <b-list-group flush>
-                      <b-list-group-item 
-                        v-for="orden in lote.ordenes" 
+                      <b-list-group-item
+                        v-for="orden in lote.ordenes"
                         :key="orden.id_orden"
                         class="d-flex align-items-center"
                       >
@@ -141,13 +149,13 @@
           <!-- Reposiciones -->
           <b-row>
             <b-col>
+              <b-overlay :show="loadingOrders" spinner-small rounded="sm">
               <b-card
                 class="mb-4"
                 :header="contarItems(dataTableReposiciones.length)"
               >
                 <h3>Reposiciones</h3>
 
-                
                 <b-alert
                   class="text-center"
                   v-if="dataTableReposiciones.length < 1"
@@ -167,16 +175,15 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div>
-                      <span class="floatme">
+                    <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
+                      <b-col cols="auto">
                         <linkSearch
-                          class="floatme mb-2"
                           :id="row.item.orden"
                         />
-                      </span>
+                      </b-col>
 
                       <!-- Terminar -->
-                      <span class="floatme">
+                      <b-col cols="auto">
                         <empleados-SseOrdenesAsignadasModalExtra
                           :pausas="pausas"
                           :departamento="
@@ -184,7 +191,6 @@
                           "
                           :item="row.item"
                           :items="filterOrder(row.item.orden, 'en curso')"
-                          class="floatme"
                           :esreposicion="1"
                           :idlotesdetalles="row.item.id_lotes_detalles"
                           :impresoras="impresoras"
@@ -201,36 +207,32 @@
                           :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe"
                         />
-                      </span>
-
-                      <!-- Ver Diseño -->
-                      <span class="floatme">
-                        <diseno-view-image
-                          class="floatme mb-2"
-                          :id="row.item.orden"
-                        />
-                      </span>
+                      </b-col>
 
                       <!-- ProgressBar -->
-                      <span
-                        class="floatme"
-                        style="width: 160px"
-                      >
+                      <b-col cols="auto">
                         <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
-                      </span>
+                      </b-col>
 
                       <!-- Reposición -->
-                      <span class="floatme">
+                      <b-col cols="auto" style="margin-left: 0.3rem;">
                         <empleados-reposicion
                           @reload_this="reloadMe"
                           :id_orden="row.item.orden"
                           :itemRep="row.item"
                           :productos="productsFilter(row.item.orden)"
                         />
-                      </span>
+                      </b-col>
+
+                      <!-- Ver Diseño -->
+                      <b-col cols="auto">
+                        <diseno-view-image
+                          :id="row.item.orden"
+                        />
+                      </b-col>
 
                       <!-- Detalles productos -->
-                      <span class="floatme">
+                      <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor
                           esreposicion="true"
                           :idorden="row.item.orden"
@@ -238,19 +240,21 @@
                           :detalle_empleado="row.item.detalle_empleado"
                           :productos="productsFilter(row.item.orden)"
                         />
-                      </span>
-                    </div>
+                      </b-col>
+                    </b-row>
                   </template>
 
                   <!-- Lista de productos -->
-                </b-table>                
+                </b-table>
               </b-card>
+              </b-overlay>
             </b-col>
           </b-row>
 
           <!-- En curso -->
           <b-row>
             <b-col>
+              <b-overlay :show="loadingOrders" spinner-small rounded="sm">
               <b-card
                 class="mb-4"
                 :header="contarItems(dataTableEnCurso.length)"
@@ -273,16 +277,16 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div>
-                      <span class="floatme">
+                    <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
+                      <!-- Número de orden -->
+                      <b-col cols="auto">
                         <linkSearch
-                          class="floatme mb-2"
                           :id="row.item.orden"
                         />
-                      </span>
+                      </b-col>
 
-                      <!-- Terminar -->
-                      <span class="floatme">
+                      <!-- Terminar Todo + PAUSAR -->
+                      <b-col cols="auto">
                         <empleados-SseOrdenesAsignadasModalExtra
                           :pausas="pausas"
                           :departamento="
@@ -290,7 +294,6 @@
                           "
                           :item="row.item"
                           :items="filterOrder(row.item.orden, 'en curso')"
-                          class="floatme"
                           :esreposicion="0"
                           :impresoras="impresoras"
                           :insumosTodos="insumos"
@@ -306,35 +309,31 @@
                           @reload="reloadMe()"
                           :orden_proceso_departamento="row.item.orden_proceso_departamento"
                         />
-                      </span>
+                      </b-col>
 
-                      <!-- Ver Diseño -->
-                      <span class="floatme">
-                        <diseno-view-image
-                          class="floatme mb-2"
-                          :id="row.item.orden"
-                        />
-                      </span>
-
-                      <!-- ProgressBar -->
-                      <span
-                        class="floatme"
-                        style="width: 160px"
-                      >
+                      <!-- ProgressBar (después de PAUSAR) -->
+                      <b-col cols="auto">
                         <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
-                      </span>
+                      </b-col>
 
                       <!-- Reposición -->
-                      <span class="floatme">
+                      <b-col cols="auto" style="margin-left: 0.3rem;">
                         <empleados-reposicion
                           @reload_this="reloadMe"
                           :id_orden="row.item.orden"
                           :itemRep="row.item"
                         />
-                      </span>
+                      </b-col>
+
+                      <!-- Ver Diseño -->
+                      <b-col cols="auto">
+                        <diseno-view-image
+                          :id="row.item.orden"
+                        />
+                      </b-col>
 
                       <!-- Detalles -->
-                      <span class="floatme">
+                      <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor
                           esreposicion="false"
                           :idorden="row.item.orden"
@@ -342,12 +341,12 @@
                           :detalle_empleado="row.item.detalle_empleado"
                           :productos="productsFilter(row.item.orden)"
                         />
-                      </span>
+                      </b-col>
 
-                      <!-- Vinculadas -->
-                      <span class="floatme">
+                      <!-- Vinculadas (último) -->
+                      <b-col cols="auto">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
-                      </span>
+                      </b-col>
 
                       <!-- <span class="floatme">
                         <b-alert
@@ -365,10 +364,11 @@
                           </h4> mmmmm
                         </b-alert>
                       </span> -->
-                    </div>
+                    </b-row>
                   </template>
                 </b-table>
               </b-card>
+              </b-overlay>
             </b-col>
           </b-row>
 
@@ -388,6 +388,7 @@
           <!-- ORDENES PENDIENTES -->
           <b-row>
             <b-col>
+              <b-overlay :show="loadingOrders" spinner-small rounded="sm">
               <b-card :header="contarItems(dataTablePendiente.length)">
                 <h3>Pendientes</h3>
 
@@ -409,25 +410,26 @@
                   :filter="filter"
                 >
                   <template #cell(orden)="row">
-                    <div>
+                    <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Checkbox de selección -->
-                      <span v-if="esDepartamentoDeMateriales" class="floatme mr-2">
+                      <b-col v-if="esDepartamentoDeMateriales" cols="auto">
                         <b-form-checkbox
                           v-model="ordenesSeleccionadas"
                           :value="row.item.id_orden"
                           size="lg"
                           :disabled="verificarOrdenProceso(row.item.orden_proceso, row.item.orden_proceso_min)"
                         />
-                      </span>
+                      </b-col>
 
-                      <span class="floatme">
+                      <!-- Número de orden -->
+                      <b-col cols="auto">
                         <linkSearch
-                          class="floatme mb-2"
                           :id="row.item.orden"
                         />
-                      </span>
+                      </b-col>
 
-                      <span class="floatme">
+                      <!-- Iniciar Todo -->
+                      <b-col cols="auto">
                         <b-button
                           block
                           size="xl"
@@ -443,24 +445,22 @@
                           "
                         >Iniciar Todo
                         </b-button>
-                      </span>
+                      </b-col>
 
-                      <span class="floatme">
+                      <!-- ProgressBar (después de Iniciar Todo) -->
+                      <b-col cols="auto">
+                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
+                      </b-col>
+
+                      <!-- Ver Diseño -->
+                      <b-col cols="auto">
                         <diseno-view-image
-                          class="floatme mb-2"
                           :id="row.item.orden"
                         />
-                      </span>
-
-                      <span
-                        class="floatme"
-                        style="width: 160px"
-                      >
-                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
-                      </span>
+                      </b-col>
 
                       <!-- Detalles -->
-                      <span class="floatme">
+                      <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor
                           esreposicion="false"
                           :idorden="row.item.orden"
@@ -468,14 +468,10 @@
                           :detalle_empleado="row.item.detalle_empleado"
                           :productos="productsFilter(row.item.orden)"
                         />
-                      </span>
+                      </b-col>
 
-                      <!-- Vinculadas -->
-                      <span class="floatme">
-                        <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
-                      </span>
-
-                      <span class="floatme">
+                      <!-- Tiempo estimado -->
+                      <b-col cols="auto">
                         <b-alert
                           :variant="filterFechaEstimada(row.item.orden).variant"
                           show
@@ -490,16 +486,22 @@
                             }}
                           </h4>
                         </b-alert>
-                      </span>
-                    </div>
+                      </b-col>
+
+                      <!-- Vinculadas (último) -->
+                      <b-col cols="auto">
+                        <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
+                      </b-col>
+                    </b-row>
                   </template>
                 </b-table>
               </b-card>
+              </b-overlay>
             </b-col>
           </b-row>
         </b-container>
       </div>
-    </b-overlay>
+
 
     <!-- MODAL PARA FINALIZAR LOTE -->
     <FinalizarLoteModal
@@ -521,6 +523,7 @@
       :insumos="insumos"
       :impresoras="impresoras"
       :ordenes="ordenesParaFinalizar"
+      :es-reposicion="esReposicionParaFinalizar"
       @close="showFinalizarImpresionModal = false"
       @lote-finalizado="handleLoteFinalizado"
     />
@@ -561,6 +564,7 @@ export default {
       showFinalizarCorteModal: false,
       loteParaFinalizar: null,
       ordenesParaFinalizar: [],
+      esReposicionParaFinalizar: false,
       papelUtilizadoLote: 0,
 
       // Propiedades para la nueva funcionalidad de lotes
@@ -600,6 +604,14 @@ export default {
         },
       ],
       impresoras: [],
+
+      
+      // New loading states and data for sectioned loading
+      loadingEfficiency: false,
+      loadingOrders: false,
+      reporteData: null,
+      inputEfficiencyData: null,
+
       fields2: [
         {
           key: "orden",
@@ -708,52 +720,56 @@ export default {
     },
 
     insumosImpresion() {
+      if (!Array.isArray(this.insumos)) return [];
       let options = this.insumos.filter(
         (item) => item.departamento === "Impresión"
       );
-      options.concat({ value: 0, text: "Seleccion insumo" });
+      options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
     insumosEstampado() {
-      console.log('DEBUG - SseOrdenesAsignadasV4 - insumos:', this.insumos);
+      if (!Array.isArray(this.insumos)) return [];
       let options = this.insumos.filter(
         (item) => item.departamento === "Telas" || item.departamento === "Estampado"
       );
-      console.log('DEBUG - SseOrdenesAsignadasV4 - insumosEstampado filtrados:', options);
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
     insumosCostura() {
+      if (!Array.isArray(this.insumos)) return [];
       let options = this.insumos.filter(
         (item) => item.departamento === "Costura"
       );
-      options.concat({ value: 0, text: "Seleccion insumo" });
+      options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
     insumosRevision() {
+      if (!Array.isArray(this.insumos)) return [];
       let options = this.insumos.filter(
         (item) => item.departamento === "Producción"
       );
-      options.concat({ value: 0, text: "Seleccion insumo" });
+      options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
     insumosLimpieza() {
+      if (!Array.isArray(this.insumos)) return [];
       let options = this.insumos.filter(
         (item) => item.departamento === "Producción"
       );
-      options.concat({ value: 0, text: "Seleccion insumo" });
+      options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
     insumosCorte() {
+      if (!Array.isArray(this.insumos)) return [];
       let options = this.insumos.filter(
         (item) => item.departamento === "Telas"
       );
-      options.concat({ value: 0, text: "Seleccion insumo" });
+      options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
     },
 
@@ -1217,6 +1233,8 @@ export default {
 
       this.loteParaFinalizar = lote
       this.ordenesParaFinalizar = lote.ordenes
+      // Detectar si es un lote de reposiciones (si alguna orden tiene en_reposiciones === 1)
+      this.esReposicionParaFinalizar = lote.ordenes.some(o => o.en_reposiciones === 1 || o.esreposicion === true)
       const depto = this.$store.state.login.currentDepartament
 
       if (depto === 'Impresión') {
@@ -1269,6 +1287,8 @@ export default {
     },
 
     filterFechaEstimada(idOrden) {
+      if (!Array.isArray(this.fechasResult)) return { variant: '' };
+      
       const filtrado = this.fechasResult.filter((el) => el.id_orden == idOrden);
       if (filtrado.length) {
         const fechaEstimada = filtrado[0].tareas
@@ -1284,9 +1304,9 @@ export default {
               variant_text: el.variant_text,
             };
           });
-        return fechaEstimada[0];
+        return fechaEstimada[0] || { variant: '', variant_text: 'No est.', fecha_estimada_fin_formateada: '' };
       } else {
-        return "NO hay registros";
+        return { variant: '', variant_text: 'No reg.', fecha_estimada_fin_formateada: '' };
       }
     },
     contarItems(cantidad) {
@@ -1484,6 +1504,7 @@ export default {
     },
 
     async getOrdenesAsignadas() {
+      this.loadingOrders = true; // Start loading orders
       await this.$axios
         .get(
           `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}/${this.$store.state.login.currentOrdenProceso}`
@@ -1497,7 +1518,128 @@ export default {
           this.vinculadas = resp.data.vinculadas;
           this.productos = resp.data.productos;
           this.pausas = resp.data.pausas;
+          
+          // After orders are loaded, fetch efficiency data
+          this.fetchEfficiency();
+        })
+        .finally(() => {
+            this.loadingOrders = false; // Stop loading orders
         });
+    },
+
+    async fetchEfficiency() {
+      this.loadingEfficiency = true;
+      try {
+        let itemsForEfficiency = [];
+        
+        // If we have orders, use them. Otherwise check for unpaid orders.
+        if (this.ordenes && this.ordenes.length > 0) {
+            itemsForEfficiency = this.ordenes;
+        } else {
+             // Fetch unpaid orders logic
+             const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
+             const idDepartamento = this.$store.state.login.currentDepartamentId;
+
+             if (!idEmpleado || !idDepartamento) {
+                 this.loadingEfficiency = false;
+                 return;
+             }
+
+             const unpaidResponse = await this.$axios.get(
+               `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
+             );
+             
+             if (unpaidResponse.data && unpaidResponse.data.length > 0) {
+                 itemsForEfficiency = unpaidResponse.data;
+             }
+        }
+
+        if (itemsForEfficiency.length === 0) {
+            this.reporteData = null;
+            this.inputEfficiencyData = null;
+            this.loadingEfficiency = false;
+            return;
+        }
+
+        // Extract IDs
+        const uniqueIds = [...new Set(itemsForEfficiency.map(o => o.orden || o.id_orden).filter(id => id))];
+        const ids = uniqueIds.join(',');
+
+        if (!ids) {
+            this.loadingEfficiency = false;
+            return;
+        }
+
+        const postData = {
+          id_ordenes: uniqueIds,
+          id_empleado: this.$store.state.login?.dataUser?.id_empleado || null
+        };
+        
+        // Parallel requests for Manufacturing Time and Input Efficiency
+        const [timeResponse, inputResponse] = await Promise.all([
+             this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData),
+             this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`)
+        ]);
+
+        // Process Manufacturing Time
+        if (timeResponse.data) {
+          const totalReal = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
+          const totalProjected = timeResponse.data.reduce((acc, item) => {
+              if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
+                  const projected = parseFloat(item.tiempo_proyectado_segundos || 0);
+                  const real = parseFloat(item.tiempo_total_segundos || 0);
+                  if (item.status === 'terminado' || item.prioridad === 'Completado') {
+                      return acc + projected;
+                  } else {
+                      return acc + Math.min(real, projected);
+                  }
+              }
+              return acc;
+          }, 0);
+          
+          this.reporteData = {
+              totalReal,
+              totalProjected,
+              totalElapsed: 0 // Simplification: we may not need exact elapsed for the bar if using real vs projected
+          };
+        }
+
+        // Process Input Efficiency
+        if (inputResponse.data && inputResponse.data.length > 0) {
+             let totalEstimado = 0;
+             let totalReal = 0;
+             let unidad = 'Mt';
+             
+             inputResponse.data.forEach(item => {
+                 if (this.$store.state.login.currentDepartamentId && parseInt(item.id_departamento) !== parseInt(this.$store.state.login.currentDepartamentId)) {
+                     return;
+                 }
+                 const standard = parseFloat(item.cantidad_estandar) || 0;
+                 const real = parseFloat(item.cantidad_real) || 0;
+                 totalEstimado += standard;
+                 totalReal += real;
+                 unidad = item.unidad || 'Mt';
+             });
+
+             if (totalEstimado > 0 || totalReal > 0) {
+                 this.inputEfficiencyData = {
+                     totalEstimado,
+                     totalReal,
+                     unidad
+                 };
+             } else {
+                 this.inputEfficiencyData = null;
+             }
+        } else {
+            this.inputEfficiencyData = null;
+        }
+
+      } catch (error) {
+          console.error("Error fetching efficiency data:", error);
+          this.reporteData = null; // Reset on error or keep previous? Reset is safer to avoid stale data
+      } finally {
+          this.loadingEfficiency = false;
+      }
     },
 
     async getOrdenesFechas() {

@@ -6,12 +6,9 @@
         <b-overlay :show="overlay" spinner-small>
             <div>
                 <div class="floatme">
-                    <span class="capital"
-                        ><strong> {{ this.item.paso }}</strong>
-                    </span>
-                    <b-progress :max="max" variant="success">
+                    <b-progress min="100" :max="max" variant="success">
                         <b-progress-bar class="my-bar" :value="miPorcentaje">
-                            <strong>{{ miPorcentaje }}%</strong>
+                            <strong>{{ this.item.paso }} - {{ miPorcentaje }}%</strong>
                         </b-progress-bar>
                     </b-progress>
                 </div>

@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <span class="floatme">
+  <div style="display: inline-flex; gap: 0.5rem; align-items: center;">
+    <span style="display: inline-block;">
       <b-button
         @click="$bvModal.show(modal)"
         variant="success"
@@ -10,7 +10,7 @@
     </span>
 
     <!-- Pausas -->
-    <span class="floatme">
+    <span style="display: inline-block;">
       <empleados-pausasEmpleados
         :pausas="filterPausa(item.orden)"
         :pausasRaw="pausas"
@@ -70,82 +70,153 @@
                 > -->
         <b-form @reset="onReserForm">
           <div v-if="$store.state.login.currentDepartament === 'Impresión'">
-            <b-form-group
-              label="Impresora:"
-              label-for="impresora-select"
+            <!-- Iteración sobre impresoras seleccionadas -->
+            <b-card
+              v-for="(impresora, index) in impresorasSeleccionadas"
+              :key="impresora.id"
+              class="mb-3"
+              :header="'Impresora ' + (index + 1)"
+              header-bg-variant="light"
             >
-              <!-- Impresoras -->
-              <b-form-select
-                id="impresora-select"
-                v-model="formImp.id_impresora"
-                :options="impresorasOptions"
-                :disabled="!puedeUsarModalImpresion"
-                required
-              ></b-form-select>
-            </b-form-group>
+              <template #header>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span><strong>Impresora {{ index + 1 }}</strong></span>
+                  <b-button
+                    v-if="impresorasSeleccionadas.length > 1"
+                    variant="danger"
+                    size="sm"
+                    @click="removeImpresora(index)"
+                    aria-label="Eliminar impresora"
+                  >
+                    <b-icon icon="trash"></b-icon>
+                  </b-button>
+                </div>
+              </template>
 
-            <!-- Tintas -->
-            <b-form-group
-              id="input-group-1"
-              label="Tintas:"
-              label-for="input-1"
+
+              <b-form-group
+                label="Impresora Utilizada"
+                :label-for="'impresora-select-' + index"
+              >
+                <b-form-select
+                  :id="'impresora-select-' + index"
+                  v-model="impresora.id_impresora"
+                  :options="getImpresorasOptionsForIndex(index)"
+                  :disabled="!puedeUsarModalImpresion"
+                  required
+                ></b-form-select>
+              </b-form-group>
+
+              <!-- Tintas en layout horizontal -->
+              <b-row>
+                <b-col>
+                  <b-form-group label="C">
+                    <b-form-input
+                      :id="'input-cyan-' + index"
+                      v-model="impresora.colorCyan"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                      :style="{
+                        backgroundColor: colorMap.c,
+                        color: 'black',
+                        fontWeight: 'bold'
+                      }"
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
+                <b-col>
+                  <b-form-group label="M">
+                    <b-form-input
+                      :id="'input-magenta-' + index"
+                      v-model="impresora.colorMagenta"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                      :style="{
+                        backgroundColor: colorMap.m,
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }"
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
+                <b-col>
+                  <b-form-group label="Y">
+                    <b-form-input
+                      :id="'input-yellow-' + index"
+                      v-model="impresora.colorYellow"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                      :style="{
+                        backgroundColor: colorMap.y,
+                        color: 'black',
+                        fontWeight: 'bold'
+                      }"
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
+                <b-col>
+                  <b-form-group label="K">
+                    <b-form-input
+                      :id="'input-black-' + index"
+                      v-model="impresora.colorBlack"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                      :style="{
+                        backgroundColor: colorMap.k,
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }"
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
+                <b-col v-if="showWhiteInkFieldForIndex(index)">
+                  <b-form-group label="W">
+                    <b-form-input
+                      :id="'input-white-' + index"
+                      v-model="impresora.colorWhite"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                      :style="{
+                        backgroundColor: colorMap.w,
+                        color: 'black',
+                        fontWeight: 'bold'
+                      }"
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
+              </b-row>
+            </b-card>
+
+            <!-- Botón para añadir impresora -->
+            <b-button
+              variant="outline-primary"
+              size="sm"
+              class="mb-3"
+              :disabled="!puedeAnadirImpresora || todasImpresorasSeleccionadas"
+              @click="addImpresora"
             >
-              <b-form-input
-                id="input-1"
-                v-model="formImp.colorCyan"
-                placeholder="Cyan"
-                type="number"
-                step="0.01"
-                min="0"
-                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
-                class="cyan-label"
-              ></b-form-input>
+              <b-icon icon="plus-lg"></b-icon> Añadir Impresora
+            </b-button>
 
-              <b-form-input
-                id="input-2"
-                v-model="formImp.colorMagenta"
-                placeholder="Magenta"
-                type="number"
-                step="0.01"
-                min="0"
-                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
-                class="magenta-label"
-              ></b-form-input>
-
-              <b-form-input
-                id="input-3"
-                v-model="formImp.colorYellow"
-                placeholder="Yellow"
-                type="number"
-                step="0.01"
-                min="0"
-                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
-                class="yellow-label"
-              ></b-form-input>
-
-              <b-form-input
-                id="input-4"
-                v-model="formImp.colorBlack"
-                placeholder="Black"
-                type="number"
-                step="0.01"
-                min="0"
-                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
-                class="black-label"
-              ></b-form-input>
-
-              <b-form-input
-                v-if="showWhiteInkField"
-                id="input-5"
-                v-model="formImp.colorWhite"
-                placeholder="White"
-                type="number"
-                step="0.01"
-                min="0"
-                :disabled="!puedeUsarModalImpresion || formImp.id_impresora === null"
-                class="white-label"
-              ></b-form-input>
-            </b-form-group>
+            <!-- Alerta cuando todas las impresoras están seleccionadas -->
+            <b-alert
+              v-if="todasImpresorasSeleccionadas && impresorasSeleccionadas.length > 0"
+              show
+              variant="info"
+              class="mb-3"
+            >
+              Ha seleccionado todas las impresoras disponibles.
+            </b-alert>
           </div>
           <!-- INPUT DE DESPERDICIO PARA CORTE (SIEMPRE VISIBLE) -->
           <div v-if="$store.state.login.currentDepartament === 'Corte'">
@@ -175,37 +246,44 @@
             </b-form-group>
           </div> -->
 
+
           <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (PARA TODOS LOS DEPARTAMENTOS CONFIGURADOS) -->
-          <div v-if="showSelect">
-            <!-- Material Estimado (desglosado por catálogo si hay múltiples insumos) -->
-            <div v-if="materialEstimadoPorCatalogo.length === 1">
-              <p>
-                <strong>Material Estimado (Sistema):</strong>
-                {{ materialEstimadoPorCatalogo[0].total }} {{ materialEstimadoPorCatalogo[0].unidad }} 
-                de {{ materialEstimadoPorCatalogo[0].catalogo }}
-              </p>
-            </div>
-            <div v-else-if="materialEstimadoPorCatalogo.length > 1">
-              <p><strong>Material Estimado (Sistema):</strong></p>
-              <ul>
-                <li v-for="(item, index) in materialEstimadoPorCatalogo" :key="index">
-                  <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
-                </li>
-              </ul>
-            </div>
+          <!-- Ocultar para reposiciones porque no aplica el cálculo por pieza -->
+          <div v-if="showSelect && !esReposicion" class="mb-4">
+            <h5><strong>📊 Resumen de Material</strong></h5>
+            <b-card bg-variant="light" class="mb-3">
+              <!-- Material Estimado (desglosado por catálogo si hay múltiples insumos) -->
+              <h6><strong>Material Estimado (Sistema):</strong></h6>
+              <div v-if="materialEstimadoPorCatalogo.length === 1">
+                <p class="mb-2">
+                  {{ materialEstimadoPorCatalogo[0].total }} {{ materialEstimadoPorCatalogo[0].unidad }} 
+                  de {{ materialEstimadoPorCatalogo[0].catalogo }}
+                </p>
+              </div>
+              <div v-else-if="materialEstimadoPorCatalogo.length > 1">
+                <ul class="mb-2">
+                  <li v-for="(item, index) in materialEstimadoPorCatalogo" :key="index">
+                    <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
+                  </li>
+                </ul>
+              </div>
 
-            <p>
-              <strong>Material Utilizado:</strong>
-              {{ materialUtilizado }} {{ materialEstimadoDepartamento.unidad }}
-            </p>
+              <!-- Material Utilizado y Eficiencia -->
+              <div>
+                <p class="mb-2">
+                  <strong>Material Utilizado:</strong>
+                  {{ materialUtilizado }} {{ materialEstimadoDepartamento.unidad }}
+                </p>
 
-            <p v-if="parseFloat(materialUtilizado) > 0">
-              <strong>Eficiencia:</strong>
-              <span :class="eficienciaPorcentaje >= 100 ? 'text-success' : 'text-danger'">
-                {{ eficienciaPorcentaje }}%
-              </span>
-              <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado' }})</small>
-            </p>
+                <p v-if="parseFloat(materialUtilizado) > 0" class="mb-0">
+                  <strong>Eficiencia:</strong>
+                  <span :class="eficienciaPorcentaje >= 100 ? 'text-success' : 'text-danger'">
+                    {{ eficienciaPorcentaje }}%
+                  </span>
+                  <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado' }})</small>
+                </p>
+              </div>
+            </b-card>
           </div>
 
           <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
@@ -325,14 +403,10 @@ export default {
       formCor: {
         input: 0,
       },
-      formImp: {
-        colorCyan: "",
-        colorMagenta: "",
-        colorYellow: "",
-        colorBlack: "",
-        id_impresora: null,
-        colorWhite: "",
-      },
+      // Array para múltiples impresoras
+      impresorasSeleccionadas: [
+        { id: 1, id_impresora: null, colorCyan: '', colorMagenta: '', colorYellow: '', colorBlack: '', colorWhite: '' }
+      ],
       campos: [
         { key: "input", label: "" },
         { key: "id", label: "" },
@@ -341,6 +415,14 @@ export default {
       eficienciaCalculada: null,
       intentoDeCalculo: false,
       desperdicioCorte: 0,
+      // Mapa de colores para inputs de tinta
+      colorMap: {
+        c: '#00FFFF',    // Cyan
+        m: '#FF00FF',    // Magenta
+        y: '#FFFF00',    // Yellow
+        k: '#343A40',    // Black
+        w: '#F8F9FA',    // White
+      },
     };
   },
 
@@ -573,21 +655,31 @@ export default {
         return {
           value: imp._id,
           text: `${imp.codigo_interno} - ${imp.marca} ${imp.modelo}`,
-          tipo_tecnologia: imp.tipo_tecnologia, // Añadir tipo_tecnologia aquí
+          tipo_tecnologia: imp.tipo_tecnologia,
         };
       });
       options.unshift({ value: null, text: "Seleccione una impresora" });
       return options;
     },
 
-    showWhiteInkField() {
-      if (!this.impresoras || this.impresoras.length === 0) {
-        return false;
-      }
-      const selectedPrinter = this.impresoras.find(
-        (imp) => imp._id === this.formImp.id_impresora
-      );
-      return selectedPrinter && selectedPrinter.tipo_tecnologia === "CMYKW";
+    // Devuelve true si la última impresora del array tiene una impresora seleccionada
+    puedeAnadirImpresora() {
+      if (!this.impresorasSeleccionadas || this.impresorasSeleccionadas.length === 0) return false;
+      const ultimaImpresora = this.impresorasSeleccionadas[this.impresorasSeleccionadas.length - 1];
+      return ultimaImpresora.id_impresora !== null;
+    },
+
+    // Devuelve true si ya se han seleccionado todas las impresoras disponibles
+    todasImpresorasSeleccionadas() {
+      if (!this.impresoras || this.impresoras.length === 0) return true;
+      return this.impresorasSeleccionadas.length >= this.impresoras.length;
+    },
+
+    // Devuelve los IDs de impresoras ya seleccionadas (excluyendo el index actual)
+    impresorasYaSeleccionadas() {
+      return this.impresorasSeleccionadas
+        .filter(imp => imp.id_impresora !== null)
+        .map(imp => imp.id_impresora);
     },
 
     hayImpresoras() {
@@ -680,6 +772,77 @@ export default {
       this.form.splice(index, 1);
     },
 
+    // --- MÉTODOS PARA MÚLTIPLES IMPRESORAS ---
+    addImpresora() {
+      // Verificar que la última impresora tenga una seleccionada
+      if (!this.puedeAnadirImpresora) {
+        this.$fire({
+          type: 'warning',
+          title: 'Selección requerida',
+          html: '<p>Debe seleccionar una impresora antes de añadir otra.</p>',
+        });
+        return;
+      }
+      
+      if (this.todasImpresorasSeleccionadas) {
+        this.$fire({
+          type: 'info',
+          title: 'Límite alcanzado',
+          html: '<p>Ya ha seleccionado todas las impresoras disponibles.</p>',
+        });
+        return;
+      }
+      const newId = Math.floor(Math.random() * 1000000);
+      this.impresorasSeleccionadas.push({
+        id: newId,
+        id_impresora: null,
+        colorCyan: '',
+        colorMagenta: '',
+        colorYellow: '',
+        colorBlack: '',
+        colorWhite: '',
+      });
+    },
+
+    removeImpresora(index) {
+      if (this.impresorasSeleccionadas.length > 1) {
+        this.impresorasSeleccionadas.splice(index, 1);
+      }
+    },
+
+    // Devuelve opciones de impresora con las ya seleccionadas deshabilitadas (excepto la actual)
+    getImpresorasOptionsForIndex(index) {
+      if (!this.impresoras || this.impresoras.length === 0) {
+        return [{ value: null, text: 'No hay impresoras disponibles' }];
+      }
+      const currentSelection = this.impresorasSeleccionadas[index]?.id_impresora;
+      const otherSelections = this.impresorasSeleccionadas
+        .filter((_, i) => i !== index)
+        .map(imp => imp.id_impresora)
+        .filter(id => id !== null);
+
+      let options = this.impresoras.map((imp) => {
+        return {
+          value: imp._id,
+          text: `${imp.codigo_interno} - ${imp.marca} ${imp.modelo}`,
+          tipo_tecnologia: imp.tipo_tecnologia,
+          disabled: otherSelections.includes(imp._id),
+        };
+      });
+      options.unshift({ value: null, text: 'Seleccione una impresora' });
+      return options;
+    },
+
+    // Determina si mostrar el campo de tinta blanca para una impresora específica
+    showWhiteInkFieldForIndex(index) {
+      if (!this.impresoras || this.impresoras.length === 0) return false;
+      const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
+      if (!selectedId) return false;
+      const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
+      return selectedPrinter && selectedPrinter.tipo_tecnologia === 'CMYKW';
+    },
+    // --- FIN MÉTODOS PARA MÚLTIPLES IMPRESORAS ---
+
     terminarRollo(index) {
       this.$confirm(
         `¿Desea terminar el rollo Index: ${this.form[index]}?`,
@@ -752,14 +915,10 @@ export default {
     clearForms() {
       this.form = [];
       this.desperdicioCorte = 0;
-      this.formImp = {
-        colorCyan: "",
-        colorMagenta: "",
-        colorYellow: "",
-        colorBlack: "",
-        id_impresora: null,
-        colorWhite: "",
-      };
+      // Reset array de impresoras a estado inicial
+      this.impresorasSeleccionadas = [
+        { id: 1, id_impresora: null, colorCyan: '', colorMagenta: '', colorYellow: '', colorBlack: '', colorWhite: '' }
+      ];
 
       this.formEst = {
         input: 0,
@@ -796,52 +955,59 @@ export default {
                 "<p>No hay insumos de impresión disponibles en el inventario. Contacte al administrador.</p>";
             }
           } else {
-            console.log("valor de select impresora", this.formImp.id_impresora);
-            if (this.formImp.id_impresora === null) {
-              ok = false;
-              msg = msg + "<p>Seleccione una impresora</p>";
+            // Validar cada impresora en el array
+            for (let i = 0; i < this.impresorasSeleccionadas.length; i++) {
+              const impresora = this.impresorasSeleccionadas[i];
+              const numImp = i + 1;
+              
+              if (impresora.id_impresora === null) {
+                ok = false;
+                msg = msg + `<p>Impresora ${numImp}: Seleccione una impresora</p>`;
+              }
+
+              if (
+                parseFloat(impresora.colorCyan) <= 0 ||
+                impresora.colorCyan.toString().trim() === ""
+              ) {
+                ok = false;
+                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Cyan</p>`;
+              }
+
+              if (
+                parseFloat(impresora.colorMagenta) <= 0 ||
+                impresora.colorMagenta.toString().trim() === ""
+              ) {
+                ok = false;
+                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Magenta</p>`;
+              }
+
+              if (
+                parseFloat(impresora.colorYellow) <= 0 ||
+                impresora.colorYellow.toString().trim() === ""
+              ) {
+                ok = false;
+                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Yellow</p>`;
+              }
+
+              if (
+                impresora.colorBlack.toString().trim() === "" ||
+                parseFloat(impresora.colorBlack) <= 0
+              ) {
+                ok = false;
+                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Black</p>`;
+              }
+
+              // Verificar tinta blanca si la impresora la soporta
+              if (this.showWhiteInkFieldForIndex(i)) {
+                if (
+                  impresora.colorWhite.toString().trim() === "" ||
+                  parseFloat(impresora.colorWhite) <= 0
+                ) {
+                  ok = false;
+                  msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta White</p>`;
+                }
+              }
             }
-          }
-
-          if (
-            parseFloat(this.formImp.colorCyan) <= 0 ||
-            this.formImp.colorCyan.trim() === ""
-          ) {
-            ok = false;
-            msg = msg + "<p>Ingrese la cantidad de tinta Cyan</p>";
-          }
-
-          if (
-            parseFloat(this.formImp.colorMagenta) <= 0 ||
-            this.formImp.colorMagenta.trim() === ""
-          ) {
-            ok = false;
-            msg = msg + "<p>Ingrese la cantidad de tinta Magenta</p>";
-          }
-
-          if (
-            parseFloat(this.formImp.colorYellow) <= 0 ||
-            this.formImp.colorYellow.trim() === ""
-          ) {
-            ok = false;
-            msg = msg + "<p>Ingrese la cantidad de tinta Yellow</p>";
-          }
-
-          if (
-            this.formImp.colorBlack.trim() === "" ||
-            parseFloat(this.formImp.colorBlack) <= 0
-          ) {
-            ok = false;
-            msg = msg + "<p>Ingrese la cantidad de tinta Black</p>";
-          }
-
-          if (
-            this.showWhiteInkField &&
-            (this.formImp.colorWhite.trim() === "" ||
-              parseFloat(this.formImp.colorWhite) <= 0)
-          ) {
-            ok = false;
-            msg = msg + "<p>Ingrese la cantidad de tinta White</p>";
           }
         }
 
@@ -906,40 +1072,47 @@ export default {
               this.postImp();
             }
             this.terminarTodo();
-            this.$emit("reload");
+            this.terminarTodo();
+
           }
         }
       } else {
         // Enviar solo el formulario aqui
         this.terminarTodo();
-        this.$emit("reload");
+        this.terminarTodo();
+
       }
 
       return ok;
     },
 
     async postImp() {
-      // this.overlay = true
-      const data = new URLSearchParams();
-      data.set("id_orden", this.idorden);
-      data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-      data.set("c", this.formImp.colorCyan);
-      data.set("m", this.formImp.colorMagenta);
-      data.set("y", this.formImp.colorYellow);
-      data.set("k", this.formImp.colorBlack);
-      data.set("id_impresora", this.formImp.id_impresora);
-      data.set("w", this.showWhiteInkField ? this.formImp.colorWhite : null);
+      // Iterar sobre todas las impresoras seleccionadas
+      const promises = this.impresorasSeleccionadas.map(async (impresora, index) => {
+        const data = new URLSearchParams();
+        data.set("id_orden", this.idorden);
+        data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
+        data.set("c", impresora.colorCyan);
+        data.set("m", impresora.colorMagenta);
+        data.set("y", impresora.colorYellow);
+        data.set("k", impresora.colorBlack);
+        data.set("id_impresora", impresora.id_impresora);
+        data.set("w", this.showWhiteInkFieldForIndex(index) ? impresora.colorWhite : null);
 
-      await this.$axios
-        .post(`${this.$config.API}/empleados/tintas`, data)
-        .then((res) => {
-          // this.overlay = false
-          // this.clearForms();
-          this.$emit("reload", "true");
-          // this.urlLink = res.data.linkdrive
+        return this.$axios.post(`${this.$config.API}/empleados/tintas`, data);
+      });
+
+      try {
+        await Promise.all(promises);
+        console.log(`Se registraron ${this.impresorasSeleccionadas.length} impresora(s) para la orden ${this.idorden}`);
+      } catch (error) {
+        console.error('Error al registrar tintas:', error);
+        this.$fire({
+          type: 'error',
+          title: 'Error',
+          html: '<p>Ocurrió un error al registrar las tintas de una o más impresoras.</p>',
         });
-
-      // this.terminarTodo()
+      }
     },
 
     async postEst() {
@@ -1204,7 +1377,7 @@ export default {
                 }); */
       }
       // this.clearForms()
-      this.$emit("reload");
+      this.$bvModal.hide(this.modal);
       this.$bvModal.hide(this.modal);
       // this.clearForms();
     },
@@ -1329,10 +1502,6 @@ export default {
 
     this.esReposicion = parseInt(this.esreposicion);
     this.clearForms();
-    console.log(
-      "formImp.id_impresora after clearForms:",
-      this.formImp.id_impresora
-    );
 
     this.$root.$on("bv::modal::show", (bvEvent, modal) => {
       if (modal === this.modal) {

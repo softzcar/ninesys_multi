@@ -133,6 +133,22 @@ export default {
     tipoEmpleado: {
       type: String,
       default: 'Vendedor'
+    },
+    bonos: {
+       type: Array,
+       default: () => []
+    },
+    descuentos: {
+       type: Array,
+       default: () => []
+    },
+    salario: {
+       type: [Number, String],
+       default: 0
+    },
+    comision: {
+       type: [Number, String],
+       default: 0
     }
   },
   data() {
@@ -262,8 +278,13 @@ export default {
     datosParaElReporte() {
       return {
         nombreEmpleado: this.item.nombre,
-        totalPagar: `${this.item.pago}`,
+        totalPagar: this.totalFinalCalculado, // Usar el calculado para el reporte
         detalles: this.detallesAgrupados,
+        bonos: this.bonos || [],
+        descuentos: this.descuentos || [],
+        salarioBase: this.salario || 0,
+        comision: this.comision || 0,
+        fechaPago: this.fechaPagoReporte
       };
     },
     detallesAgrupados() {
@@ -314,6 +335,30 @@ export default {
       const rand = Math.random().toString(36).substring(2, 7);
       return `modal-${rand}`;
     },
+    
+    totalFinalCalculado() {
+       // Si nos pasan un total ya calculado (implícitamente vía props si quisiéramos), podríamos usarlo.
+       // Pero mejor recalculamos o usamos item.pago si no hay props extras.
+       
+       if (this.salario !== undefined) {
+         // Estamos en contexto de ConfirmacionModal con datos frescos
+         const s = parseFloat(this.salario) || 0;
+         const c = parseFloat(this.comision) || 0;
+         const b = (this.bonos || []).reduce((acc, el) => acc + parseFloat(el.monto || 0), 0);
+         const d = (this.descuentos || []).reduce((acc, el) => acc + parseFloat(el.monto || 0), 0);
+         return (s + c + b - d).toFixed(2);
+       }
+       
+       return this.item.pago; 
+    },
+
+    fechaPagoReporte() {
+         const today = new Date();
+         const day = String(today.getDate()).padStart(2, "0");
+         const month = String(today.getMonth() + 1).padStart(2, "0");
+         const year = today.getFullYear();
+         return `${day}-${month}-${year}`;
+    }
   },
 };
 </script>

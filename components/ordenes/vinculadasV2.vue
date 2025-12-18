@@ -1,7 +1,6 @@
 <template>
   <div>
     <div v-if="!ordenes_vinculadas || ordenes_vinculadas.length == 0">
-      N/A
     </div>
     <div v-else>
       <div class="link_vinculada" v-for="orden in ordenes_vinculadas" :key="orden.id_child">
@@ -44,7 +43,7 @@ export default {
  
   mounted() {
     // Solo llamar si no recibimos ordenes_vinculadas como prop
-    if (!this.ordenes_vinculadas || this.ordenes_vinculadas.length === 0) {
+    if (this.ordenes_vinculadas === undefined || this.ordenes_vinculadas === null) {
       this.getOrdenesVinculadas()
     }
   },

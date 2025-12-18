@@ -1,41 +1,34 @@
 <template>
     <div>
-        <b-container>
-            <b-row>
-                <b-col>
-                    <div class="input-label">{{ msg }}</div>
+        <b-row>
+            <b-col>
+                <div class="input-label">{{ msg }}</div>
+            </b-col>
+        </b-row>
+        <b-overlay :show="overlay" spinner-small>
+            <b-row v-if="showControl">
+                <b-col class="text-center">
+                    <b-progress
+                        :max="max"
+                        variant="success"
+                        class="my-bar"
+                        style="
+                            min-width: 200px;
+                            height: 50px;
+                            margin-top: -14px;
+                            position: relative;
+                        "
+                    >
+                        <b-progress-bar :value="miValue">
+                        </b-progress-bar>
+                        <div style="position: absolute; width: 100%; text-align: center; top: 50%; transform: translateY(-50%); z-index: 10; line-height: 1.2;">
+                            <div style="color: #333; font-size: 0.85rem;"><strong>{{ departamento }}</strong></div>
+                            <div style="color: #333; font-size: 0.95rem;"><strong>{{ value.toFixed(0) }}%</strong></div>
+                        </div>
+                    </b-progress>
                 </b-col>
             </b-row>
-            <b-overlay :show="overlay" spinner-small>
-                <b-row v-if="showControl">
-                    <b-col style="text-center">
-                        <p style="margin-top: -12px; text-transform: uppercase">
-                            {{ responseData.paso }}
-                        </p>
-                        <b-progress
-                            :max="max"
-                            variant="success"
-                            style="
-                                width: 100% !important;
-                                height: 20px;
-                                margin-top: -14px;
-                            "
-                        >
-                            <b-progress-bar :value="miValue">
-                                <span class="floatme"
-                                    ><strong style="padding: 0 6px"
-                                        >{{ value.toFixed(0) }}%
-                                    </strong>
-                                </span>
-                                <span class="floatme">
-                                    {{ departamento }}
-                                </span>
-                            </b-progress-bar>
-                        </b-progress>
-                    </b-col>
-                </b-row>
-            </b-overlay>
-        </b-container>
+        </b-overlay>
     </div>
 </template>
 

@@ -210,7 +210,7 @@ rif: 'J-00000000-0', */
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-    analyze: true,
+    // analyze: true,
     transpile: ['date-fns', 'quill-image-resize-module'],
     extractCSS: true,
     splitChunks: {

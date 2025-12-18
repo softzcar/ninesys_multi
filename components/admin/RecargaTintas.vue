@@ -217,7 +217,7 @@ export default {
       let options = this.supplies.map((supply) => {
         return {
           value: supply.id_insumo,
-          text: `ID: ${supply.id_insumo} - Color: ${supply.color}`,
+          text: `ID: ${supply.id_insumo} - Color: ${supply.color} - ${supply.insumo}`,
         };
       });
       options.unshift({ value: null, text: "Seleccione un insumo" });

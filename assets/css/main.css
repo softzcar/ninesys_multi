@@ -2,6 +2,7 @@ body * {
     /* font-size: 99.75% !important;   */
     font-size: 99% !important;
 }
+
 html {
     overflow-x: hidden !important;
 }
@@ -49,8 +50,9 @@ pre {
 }
 
 .list-group-draggable {
-    width: 100% !important;   
+    width: 100% !important;
 }
+
 .list-group-draggable-item {
     width: inherit !important;
     min-width: 10% !important;
@@ -70,19 +72,20 @@ pre {
 .izquierda {
     text-align: left !important;
 }
+
 .derecha {
     text-align: right !important;
 }
 
 img {
-    background: transparent url(https://www.leeparts.com/images/ajax-loader.gif)
-        center no-repeat;
+    background: transparent url(https://www.leeparts.com/images/ajax-loader.gif) center no-repeat;
     background-size: 20%;
 }
 
 em {
     color: grey;
 }
+
 [info-form] {
     border-top: 1px solid lightgrey;
     padding-top: 6px;
@@ -90,6 +93,7 @@ em {
     font-style: italic;
     color: grey;
 }
+
 [required] {
     color: red;
     font-weight: 800;
@@ -110,14 +114,17 @@ em {
 .nav-link {
     cursor: pointer;
 }
+
 .dropdown-menu {
     /* background-color: #17a2b8 !important; */
     border: none !important;
 }
+
 .dropdown-menu .nav-link {
     color: black !important;
     padding-left: 1.4rem !important;
 }
+
 .blue-link {
     color: #17a2b8;
     text-transform: lowercase;
@@ -137,7 +144,8 @@ em {
     border-radius: 50% !important;
     background-color: #17a2b8 !important;
 }
-.vue-form-wizard .wizard-nav-pills > li > a .wizard-icon {
+
+.vue-form-wizard .wizard-nav-pills>li>a .wizard-icon {
     color: white !important;
 }
 
@@ -151,8 +159,9 @@ em {
 /* Separar botones */
 .floatme {
     float: left;
-    margin-right: 0.8rem !important;    
+    margin-right: 0.8rem !important;
 }
+
 .float-badget .badge {
     float: right !important;
     position: static;
@@ -160,16 +169,19 @@ em {
 }
 
 /* Mobile */
-.mobile > * {
+.mobile>* {
     font-size: -20px;
 }
+
 /** otros */
 .with_ampm::-webkit-datetime-edit-ampm-field {
     display: inline;
 }
+
 .capital {
     text-transform: capitalize;
 }
+
 .money-result {
     background-color: lightgreen;
     padding: 0.12rem 0.42rem;
@@ -183,73 +195,89 @@ em {
 
 /* Quill Blot Formatter styles */
 .blot-formatter__container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  box-sizing: border-box;
-  border: 1px solid #444; /* Example border for selection */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-sizing: border-box;
+    border: 1px solid #444;
+    /* Example border for selection */
 }
 
 .blot-formatter__resize-handle {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background-color: #444;
-  border: 1px solid #fff;
-  box-sizing: border-box;
-  opacity: 0.8;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #444;
+    border: 1px solid #fff;
+    box-sizing: border-box;
+    opacity: 0.8;
 }
 
 .blot-formatter__resize-handle.blot-formatter__resize-handle--nw {
-  top: -6px;
-  left: -6px;
-  cursor: nwse-resize;
+    top: -6px;
+    left: -6px;
+    cursor: nwse-resize;
 }
 
 .blot-formatter__resize-handle.blot-formatter__resize-handle--ne {
-  top: -6px;
-  right: -6px;
-  cursor: nesw-resize;
+    top: -6px;
+    right: -6px;
+    cursor: nesw-resize;
 }
 
 .blot-formatter__resize-handle.blot-formatter__resize-handle--se {
-  bottom: -6px;
-  right: -6px;
-  cursor: nwse-resize;
+    bottom: -6px;
+    right: -6px;
+    cursor: nwse-resize;
 }
 
 .blot-formatter__resize-handle.blot-formatter__resize-handle--sw {
-  bottom: -6px;
-  left: -6px;
-  cursor: nesw-resize;
+    bottom: -6px;
+    left: -6px;
+    cursor: nesw-resize;
 }
 
 .blot-formatter__toolbar {
-  position: absolute;
-  top: -30px; /* Adjust as needed */
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 5px;
-  border-radius: 3px;
-  white-space: nowrap;
+    position: absolute;
+    top: -30px;
+    /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    white-space: nowrap;
 }
 
 .blot-formatter__toolbar-button {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 0 5px;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 0 5px;
 }
 
 .blot-formatter__toolbar-button:hover {
-  background-color: #555;
+    background-color: #555;
 }
 
 .swal2-container {
-  z-index: 9999 !important;
+    z-index: 9999 !important;
 }
+
+/* PRogress bar */
+.my-bar {
+    height: 50px !important;
+    min-width: 200px !important;
+}
+
+@media (max-width: 768px) {
+    .my-bar {
+        width: 100% !important;
+        min-width: auto !important;
+    }
+}
+

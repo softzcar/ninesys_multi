@@ -165,6 +165,10 @@
           :detalles="detalles"
           :tipo-empleado="tipoEmpleado"
           :showbutton="false"
+          :bonos="datosPago.bonos"
+          :descuentos="datosPago.descuentos"
+          :salario="salarioBase"
+          :comision="comisionEfectiva"
         />
         <b-button variant="secondary" @click="cancel">Cancelar</b-button>
         <b-button variant="primary" @click="ok">

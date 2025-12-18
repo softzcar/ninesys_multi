@@ -352,37 +352,49 @@ export default {
             console.log('DEBUG - tareasData:', tareasData);
 
             try {
-                // Convertir empleadosIds a array de números, manejar si no es string
-                const empleadosIdsArray = empleadosIds && typeof empleadosIds === 'string' ? empleadosIds.split(',').map(id => parseInt(id.trim())) : [];
-
-            // Filtrar empleados que cobran salario y están en la lista
-            const empleadosSalario = empleadosData.filter(empleado =>
-                empleadosIdsArray.includes(empleado.id_usuario) &&
-                empleado.salario_tipo.includes('Salario')
-            );
-
-            // Crear mapa de id_usuario a costo_por_hora
-            const costoPorHoraMap = {};
-            empleadosSalario.forEach(empleado => {
-                costoPorHoraMap[empleado.id_usuario] = empleado.costo_por_hora;
-            });
-
-            // Filtrar tareas por orden y empleados relevantes
-            const tareasFiltradas = tareasData.filter(tarea =>
-                tarea.id_orden === idOrden &&
-                empleadosIdsArray.includes(tarea.id_empleado)
-            );
-
-            let costoTotal = 0;
-
-            // Calcular costo por cada tarea
-            tareasFiltradas.forEach(tarea => {
-                const horasLaboradas = this.calcularHorasLaboradasReales(tarea.fecha_inicio, tarea.fecha_terminado, horarioLaboral);
-                const costoPorHora = costoPorHoraMap[tarea.id_empleado];
-                if (costoPorHora) {
-                    costoTotal += horasLaboradas * costoPorHora;
+                // Convertir empleadosIds a array de números, manejar string, número o vacío
+                let empleadosIdsArray = [];
+                if (empleadosIds) {
+                    if (typeof empleadosIds === 'string' && empleadosIds.trim() !== '') {
+                        empleadosIdsArray = empleadosIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+                    } else if (typeof empleadosIds === 'number') {
+                        empleadosIdsArray = [empleadosIds];
+                    }
                 }
-            });
+
+                // Validar que tenemos datos necesarios
+                if (empleadosIdsArray.length === 0 || !empleadosData || empleadosData.length === 0 || !tareasData || tareasData.length === 0 || !horarioLaboral) {
+                    return 0;
+                }
+
+                // Filtrar empleados que cobran salario y están en la lista
+                const empleadosSalario = empleadosData.filter(empleado =>
+                    empleadosIdsArray.includes(empleado.id_usuario) &&
+                    empleado.salario_tipo.includes('Salario')
+                );
+
+                // Crear mapa de id_usuario a costo_por_hora
+                const costoPorHoraMap = {};
+                empleadosSalario.forEach(empleado => {
+                    costoPorHoraMap[empleado.id_usuario] = empleado.costo_por_hora;
+                });
+
+                // Filtrar tareas por orden y empleados relevantes
+                const tareasFiltradas = tareasData.filter(tarea =>
+                    tarea.id_orden === idOrden &&
+                    empleadosIdsArray.includes(tarea.id_empleado)
+                );
+
+                let costoTotal = 0;
+
+                // Calcular costo por cada tarea
+                tareasFiltradas.forEach(tarea => {
+                    const horasLaboradas = this.calcularHorasLaboradasReales(tarea.fecha_inicio, tarea.fecha_terminado, horarioLaboral);
+                    const costoPorHora = costoPorHoraMap[tarea.id_empleado];
+                    if (costoPorHora) {
+                        costoTotal += horasLaboradas * costoPorHora;
+                    }
+                });
 
                 return Math.round(costoTotal * 100) / 100; // Redondear a 2 decimales
             } catch (error) {

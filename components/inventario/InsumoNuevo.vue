@@ -286,7 +286,7 @@ export default {
 
             try {
                 const response = await this.$axios.post(`${this.$config.API}/insumos/nuevo`, data);
-                if (response.data && response.data.length > 0 && response.data[0].last_insert_id) {
+                if (response.data && !response.data.error) {
                     this.$fire({
                         title: "Insumo Guardado",
                         html: `<p>El insumo <strong>${this.form.insumo}</strong> ha sido guardado exitosamente.</p>`,

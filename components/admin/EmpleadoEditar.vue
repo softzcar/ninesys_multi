@@ -73,7 +73,7 @@
                                 <b-row>
                                     <b-col md="6">
                                         <b-form-group label="Tipo de comisión:" label-for="input-comision-tipo">
-                                            <b-form-select id="input-comision-tipo" v-model="form.comsionTipo" :options="comisionOptions" required></b-form-select>
+                                            <b-form-select id="input-comision-tipo" v-model="form.comsionTipo" :options="dynamicComisionOptions" required></b-form-select>
                                         </b-form-group>
                                     </b-col>
                                     <b-col md="6">
@@ -226,6 +226,33 @@ export default {
                 }
             })
             return options
+        },
+        esComisionVariableDeshabilitada() {
+            if (!this.form.departamentos || this.form.departamentos.length === 0) return false;
+            
+            // Departamentos restringidos
+            // Check for both correct spelling and the typo found in DB ("Comecialización")
+            const restricted = ['Administración', 'Comercialización', 'Comecialización'];
+            
+            // Filtrar departamentos seleccionados (this.departamentos viene via props)
+            // Aseguramos que tenemos objetos de departamento completos
+            const selectedDeps = this.departamentos.filter(dep => 
+                this.form.departamentos.includes(dep._id)
+            );
+            
+            // Verificar si alguno coincide con la lista restringida
+            return selectedDeps.some(dep => restricted.includes(dep.departamento));
+        },
+        dynamicComisionOptions() {
+            return this.comisionOptions.map(option => {
+                if (option.value === 'variable') {
+                    return { 
+                        ...option, 
+                        disabled: this.esComisionVariableDeshabilitada 
+                    };
+                }
+                return option;
+            });
         },
     },
 
@@ -526,6 +553,20 @@ export default {
         removerDependiente(index) {
             this.form.dependientes.splice(index, 1)
         },
+    },
+
+    watch: {
+        'form.departamentos': function () {
+            if (this.esComisionVariableDeshabilitada && this.form.comsionTipo === 'variable') {
+                 this.form.comsionTipo = null;
+                 this.$fire({
+                     title: "Aviso",
+                     text: "La comisión variable no está permitida para los departamentos de Administración o Comercialización.",
+                     type: "info",
+                     timer: 4000
+                 });
+            }
+        }
     },
 
     mounted() {

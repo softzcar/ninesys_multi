@@ -36,17 +36,18 @@
             :fields="fields"
           >
             <template #cell(nombre)="data">
-              <admin-PagosVendedorResumen
-                showbutton="false"
-                :item="data.item"
-                @reload="reloadMe"
+              <PagosHistoricoModal
+                :empleado="data.item"
                 :detalles="filterVendedor(data.item.id_empleado)"
+                :salario="filterSalario(data.item.id_empleado)"
+                :bonos="filterBonos(data.item.id_empleado)"
+                :descuentos="filterDescuentos(data.item.id_empleado)"
+                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
               />
             </template>
 
             <template #cell(fecha_pago)="data">
-              <!-- {{ formatTimestampDate(data.item.fecha_pago) }} -->
-              {{ data.item.fecha_pago }}
+              {{ formatTimestampDate(data.item.fecha_pago) }}
             </template>
 
             <template #cell(pago)="data">
@@ -73,12 +74,13 @@
             :fields="fields"
           >
             <template #cell(nombre)="data">
-              <admin-PagosEmpleadoResumen
-                showbutton="false"
-                :item="data.item"
-                :products="products"
-                @reload="reloadMe"
+              <PagosHistoricoModal
+                :empleado="data.item"
                 :detalles="filterEmpleado(data.item.id_empleado)"
+                :salario="filterSalario(data.item.id_empleado)"
+                :bonos="filterBonos(data.item.id_empleado)"
+                :descuentos="filterDescuentos(data.item.id_empleado)"
+                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
               />
             </template>
 
@@ -110,12 +112,13 @@
             :fields="fields"
           >
             <template #cell(nombre)="data">
-              <admin-PagosDisenioResumen
-                showbutton="false"
-                :item="data.item"
-                @reload="reloadMe"
+              <PagosHistoricoModal
+                :empleado="data.item"
                 :detalles="filterDesigner(data.item.id_empleado)"
-                :adicionales="pagosTrabajosAdicionales"
+                :salario="filterSalario(data.item.id_empleado)"
+                :bonos="filterBonos(data.item.id_empleado)"
+                :descuentos="filterDescuentos(data.item.id_empleado)"
+                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
               />
             </template>
 
@@ -137,12 +140,17 @@
     </div>
   </div>
 </template>
+</template>
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import PagosHistoricoModal from "~/components/admin/PagosHistoricoModal.vue";
 
 export default {
   mixins: [mixin],
+  components: {
+    PagosHistoricoModal
+  },
 
   data() {
     return {
@@ -151,10 +159,18 @@ export default {
       pagosVendedores: [],
       pagosEmpleados: [],
       pagosDiseno: [],
+      salariosDetalles: [],
+      bonosDetalles: [],
+      descuentosDetalles: [],
       pagosTrabajosAdicionales: [],
       value: "",
       context: null,
       dataReporte: [],
+      infoModal: {
+        id: 'info-modal',
+        title: '',
+        content: ''
+      },
       fields: [
         {
           key: "nombre",
@@ -200,6 +216,14 @@ export default {
           return acc;
         }, []);
         return result.map((item) => {
+          // No sobreescribir pago con string aquí si queremos sumar después, pero bueno, el componente espera props.
+          // El cálculo final del total se hace en el modal.
+          // Aquí 'pago' es la suma de solo lo que viene de la tabla pagos (comisiones/salarios por registro que no sea desglose)
+          // Pero espera, en historico el 'monto_pago' ya incluye todo si fue guardado asi?
+          // No necesariamente.
+          // En pagos_empleados (planilla), sumamos dinamicamente.
+          // En el backend 'pagos' tabla tiene 'monto_pago' que es el valor final de ese registro.
+          // Si guardamos el pago ya dividido, la suma de los registros de pago debería dar el total.
           item.pago = item.pago.toFixed(2);
           return item;
         });
@@ -278,12 +302,11 @@ export default {
       const totalDiseno = data.diseno ? sumarPagos(data.diseno) : 0;
       const totalGeneral = totalVendedores + totalEmpleados + totalDiseno;
 
-      // Retornar el resultado como un JSON
       return {
-        totalGeneral: totalGeneral.toFixed(2), // Total general de pagos
-        totalVendedores: totalVendedores.toFixed(2), // Total de pagos a vendedores
-        totalEmpleados: totalEmpleados.toFixed(2), // Total de pagos a empleados
-        totalDiseno: totalDiseno.toFixed(2), // Total de pagos a diseñadores
+        totalGeneral: totalGeneral.toFixed(2), 
+        totalVendedores: totalVendedores.toFixed(2), 
+        totalEmpleados: totalEmpleados.toFixed(2), 
+        totalDiseno: totalDiseno.toFixed(2), 
       };
     },
 
@@ -292,52 +315,68 @@ export default {
     },
 
     filterEmpleado(id_empleado) {
-      let emp = this.pagosEmpleados.filter(
+      return this.pagosEmpleados.filter(
         (el) => el.id_empleado === id_empleado
       );
-      return emp;
     },
 
     filterVendedor(id_empleado) {
-      let emp = this.pagosVendedores.filter(
+      return this.pagosVendedores.filter(
         (el) => el.id_empleado === id_empleado
       );
-      return emp;
     },
 
     filterDesigner(id_empleado) {
-      let emp = this.pagosDiseno.filter((el) => el.id_empleado === id_empleado);
-      return emp;
+      return this.pagosDiseno.filter((el) => el.id_empleado === id_empleado);
     },
 
-    pagosResumenVendedores() {
-      if (this.pagosVendedores.length > 0) {
-        const result = this.pagosVendedores.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-          if (index === -1) {
-            acc.push({
-              nombre: curr.nombre,
-              id_empleado: curr.id_empleado,
-              departamento: curr.departamento,
-              pago: parseFloat(curr.pago),
-            });
-          } else {
-            acc[index].cantidad += parseInt(curr.cantidad);
-            acc[index].pago += parseFloat(curr.pago);
-          }
-          return acc;
-        }, []);
-        return result.map((item) => {
-          item.pago = item.pago.toFixed(2);
-          return item;
-        });
-      } else {
-        return [];
-      }
+    // Métodos para filtrar detalles extra
+    filterSalario(id_empleado) {
+      const sal = this.salariosDetalles.find(el => el.id_empleado === id_empleado);
+      // El salario ya viene sumado o es un registro único por periodo?
+      // La query agrupa por empleado.
+      return sal ? parseFloat(sal.monto) : 0;
+    },
+
+    filterBonos(id_empleado) {
+       return this.bonosDetalles.filter(el => el.id_empleado === id_empleado);
+    },
+
+    filterDescuentos(id_empleado) {
+       return this.descuentosDetalles.filter(el => el.id_empleado === id_empleado);
+    },
+    
+    // Obtener la comisión total sumando los pagos individuales (que corresponden a comisiones en el historial)
+    // CUIDADO: En el historial, 'pago' es el monto total que se le pagó por ese registro.
+    // Si el 'monto_pago' en BD incluye salario prorrateado, entonces 'pago' NO es solo comisión.
+    // Analizando el backend:
+    // $montoTotalPago = ($salario + $comision + $totalBonos) - $totalDescuentos;
+    // $montoPorRegistroDePago = $montoTotalPago / $cantidadDePagos;
+    // UPDATE pagos SET monto_pago = $montoPorRegistroDePago...
+    //
+    // ENTONCES: 'pago' en la tabla histórica es (Total / N).
+    // Si sumamos 'pago' de todos los registros, obtenemos el TOTAL PAGADO (Neto).
+    //
+    // PERO el componente PagosHistoricoModal recompone el total sumando: Salario + Comision + Bonos - Descuentos.
+    // Si le pasamos Salario, Bonos y Descuentos explicitamente...
+    // ¿Qué le pasamos como 'Comisión'?
+    //
+    // Si Total = Salario + Comision + Bonos - Descuentos
+    // Entonces Comision = Total - Salario - Bonos + Descuentos
+    //
+    // El 'Total' lo tenemos sumando los pagos individuales (this.pagosResumen... item.pago).
+    //
+    calculateComisionReal(totalPagado, id_empleado) {
+       const salario = this.filterSalario(id_empleado);
+       const bonos = this.filterBonos(id_empleado).reduce((s, b) => s + parseFloat(b.monto), 0);
+       const descuentos = this.filterDescuentos(id_empleado).reduce((s, d) => s + parseFloat(d.monto), 0);
+       
+       // Comision = TotalPagado - Salario - Bonos + Descuentos
+       const comision = totalPagado - salario - bonos + descuentos;
+       return comision > 0 ? comision : 0; // Evitar negativos por redondeo
     },
 
     async getPagosHistorico() {
-      // this.overlay = true
       await this.$axios
         .get(
           `${this.$config.API}/pagos/historico/${this.obtenerNumeroSemana(
@@ -346,39 +385,38 @@ export default {
         )
         .then((res) => {
           this.dataReporte = res.data;
-          this.pagosVendedores = res.data.data.vendedores;
-          this.pagosEmpleados = res.data.data.empleados;
-          this.pagosDiseno = res.data.data.diseno;
+          this.pagosVendedores = res.data.data.vendedores || [];
+          this.pagosEmpleados = res.data.data.empleados || [];
+          this.pagosDiseno = res.data.data.diseno || [];
+          
+          // Nuevos datos
+          this.salariosDetalles = res.data.data.salarios_detalles || [];
+          this.bonosDetalles = res.data.data.bonos_detalles || [];
+          this.descuentosDetalles = res.data.data.descuentos_detalles || [];
+
           this.totalCancelado = this.totalPagos(res.data.data);
         });
     },
 
     obtenerNumeroSemana(fechaStr) {
-      // Convertir la cadena de fecha a un objeto Date
       const fecha = new Date(fechaStr);
-
-      // Verificar si la fecha es válida
       if (isNaN(fecha.getTime())) {
         throw new Error("Fecha no válida. Formato esperado: YYYY-MM-DD");
       }
-
-      // Obtener el primer día del año
       const inicioAño = new Date(fecha.getFullYear(), 0, 1);
-
-      // Calcular la diferencia en milisegundos entre la fecha y el inicio del año
       const diferenciaTiempo = fecha - inicioAño;
-
-      // Convertir la diferencia a días
       const diferenciaDias = Math.floor(
         diferenciaTiempo / (1000 * 60 * 60 * 24)
       );
-
-      // Calcular el número de la semana
       const numeroSemana = Math.ceil(
         (diferenciaDias + inicioAño.getDay() + 1) / 7
       );
-
       return numeroSemana;
+    },
+    
+    resetInfoModal() {
+      this.infoModal.title = ''
+      this.infoModal.content = ''
     },
   },
 };

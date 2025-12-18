@@ -65,7 +65,7 @@ export default {
       required: true,
     },
     empleadosAsignados: {
-      type: String,
+      type: [String, Number],
       required: true,
     },
     horaEmpleadosPrecios: {
@@ -109,10 +109,15 @@ export default {
       this.isLoading = true;
 
       try {
-        // Convertir empleados asignados a array
-        const empleadosIds = this.empleadosAsignados && typeof this.empleadosAsignados === 'string'
-          ? this.empleadosAsignados.split(',').map(id => parseInt(id.trim()))
-          : [];
+        // Convertir empleados asignados a array (puede venir como string "500,501" o como número 500)
+        let empleadosIds = [];
+        if (this.empleadosAsignados) {
+          if (typeof this.empleadosAsignados === 'number') {
+            empleadosIds = [this.empleadosAsignados];
+          } else if (typeof this.empleadosAsignados === 'string') {
+            empleadosIds = this.empleadosAsignados.split(',').map(id => parseInt(id.trim()));
+          }
+        }
 
         // Filtrar empleados que cobran salario
         const empleadosSalario = this.horaEmpleadosPrecios.filter(empleado =>

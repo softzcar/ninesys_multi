@@ -247,6 +247,11 @@ export default {
     },
 
     async guararComisiones() {
+      // Si no hay empleados, no hay nada que guardar ni validar
+      if (this.form.length === 0) {
+        return false;
+      }
+
       const ceroVerify = this.form.find(
         (el) =>
           el.comision == 0 ||
