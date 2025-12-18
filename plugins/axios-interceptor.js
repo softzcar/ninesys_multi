@@ -166,8 +166,87 @@ export default function ({ $axios, store }) {
         return Promise.reject(error)
     })
 
+    // ========== MANEJO GLOBAL DE ERRORES DE CONEXIÓN ==========
+    // Variable para evitar notificaciones duplicadas (debounce)
+    let lastErrorNotification = { type: null, timestamp: 0 };
+    const DEBOUNCE_TIME = 5000; // 5 segundos entre notificaciones iguales
+
+    const showConnectionError = (type, title, message) => {
+        const now = Date.now();
+
+        // Evitar mostrar la misma notificación múltiples veces
+        if (lastErrorNotification.type === type &&
+            (now - lastErrorNotification.timestamp) < DEBOUNCE_TIME) {
+            return;
+        }
+
+        lastErrorNotification = { type, timestamp: now };
+
+        // Usar $bvToast si está disponible
+        if (window.$nuxt?.$bvToast) {
+            window.$nuxt.$bvToast.toast(message, {
+                title: title,
+                variant: 'danger',
+                solid: true,
+                autoHideDelay: 8000,
+                toaster: 'b-toaster-top-right'
+            });
+        } else if (window.$nuxt?.$toast) {
+            window.$nuxt.$toast.error(`${title}: ${message}`);
+        } else {
+            console.error(`[${title}] ${message}`);
+        }
+    };
+
     $axios.onError((error) => {
-        console.error("Axios Error:", error)
-        return Promise.reject(error)
-    })
+        // 1. Error de red (sin conexión, servidor no disponible, CORS)
+        if (!error.response && error.request) {
+            // Verificar si es un error de timeout
+            if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+                showConnectionError(
+                    'timeout',
+                    'Tiempo de espera agotado',
+                    'El servidor tardó demasiado en responder. Por favor, intenta de nuevo.'
+                );
+            } else {
+                // Error de red genérico (sin internet, servidor caído)
+                showConnectionError(
+                    'network',
+                    'Error de conexión',
+                    'No se pudo conectar con el servidor. Verifica tu conexión a internet.'
+                );
+            }
+        }
+        // 2. Error del servidor (5xx)
+        else if (error.response?.status >= 500) {
+            const serverMessage = error.response.data?.message ||
+                'Ocurrió un error interno en el servidor. Intenta más tarde.';
+            showConnectionError(
+                'server_error',
+                'Error del servidor',
+                serverMessage
+            );
+        }
+        // 3. Error 404 - Recurso no encontrado
+        else if (error.response?.status === 404) {
+            showConnectionError(
+                'not_found',
+                'Recurso no encontrado',
+                'El recurso solicitado no existe o fue eliminado.'
+            );
+        }
+        // 4. Error de validación (400) - solo si no tiene el formato ApiResponse
+        else if (error.response?.status === 400 && !error.response.data?.success === false) {
+            const validationMessage = error.response.data?.message ||
+                'Los datos enviados no son válidos.';
+            showConnectionError(
+                'validation',
+                'Error de validación',
+                validationMessage
+            );
+        }
+
+        console.error("Axios Error:", error);
+        return Promise.reject(error);
+    });
 }
