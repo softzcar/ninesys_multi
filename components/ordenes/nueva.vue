@@ -2790,13 +2790,12 @@ export default {
         );
 
 
-        // Handle both 'sport' and 'custom' endpoint response structures
-        if ((res.data.response && res.data.response.status !== "error") || res.data.orden_creada === true) {
+        // Verificar respuesta usando formato estandarizado ApiResponse
+        if (res.data.success === true) {
           // Éxito
           this.$fire({
             title: "¡Éxito!",
-            // Use a generic message or one from the response if available
-            html: `<p>${res.data.response ? res.data.response.message : 'Orden creada con éxito'}</p>`,
+            html: `<p>${res.data.message || 'Orden creada con éxito'}</p>`,
             type: "success",
           });
 
@@ -2815,11 +2814,10 @@ export default {
 
           this.clearForm(); // Limpiar el formulario para la siguiente orden
         } else {
-          // Error
+          // Error - usar mensaje del servidor o genérico
           this.$fire({
             title: "Error",
-            // Use a generic message or one from the response if available
-            html: `<p>Ocurrió un error al procesar la orden.</p><p>${res.data.response ? res.data.response.message : 'La respuesta del servidor no indicó éxito.'}</p>`,
+            html: `<p>${res.data.message || 'Ocurrió un error al procesar la orden.'}</p>`,
             type: "error",
           });
         }
