@@ -578,17 +578,13 @@ export default {
           ? JSON.parse(responseData) 
           : responseData
         
-        // Guardar el request original
-        this.orderRequest = orderData.data
-        
         // Mostrar mensaje de procesamiento
         this.messages.push({
           sender: 'bot',
-          text: '📋 Procesando solicitud de orden...',
+          text: '📋 Creando orden...',
           time: this.getCurrentTime()
         })
         
-        // Llamar al endpoint de prevalidación
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
         const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
         const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
@@ -601,10 +597,12 @@ export default {
           return
         }
         
-        const prevalidateResponse = await this.$axios.post(
-          `${apiUrl}/ordenes/prevalidar`,
+        // Crear la orden DIRECTAMENTE (sin modal)
+        const createResponse = await this.$axios.post(
+          `${apiUrl}/ordenes/nueva/simple`,
           {
             cliente_nombre: orderData.data.cliente?.nombre || orderData.data.cliente_nombre,
+            cliente_id: orderData.data.cliente?.id,
             productos: orderData.data.productos,
             observaciones: orderData.data.observaciones || '',
             responsable_id: userId
@@ -617,30 +615,33 @@ export default {
           }
         )
         
-        if (prevalidateResponse.data.success) {
-          // Inicializar selecciones de productos
-          this.orderPreview = prevalidateResponse.data
-          this.initializeProductSelections()
+        if (createResponse.data.success) {
+          // Resetear contexto de orden
+          this.orderContext.active = false
+          this.orderContext.cliente = null
+          this.orderContext.productos = []
+          this.orderContext.ultimoContextoBD = null
           
-          // Actualizar mensaje
+          // Mensaje de éxito
           this.messages[this.messages.length - 1].text = 
-            '📋 **Se encontró la información.** Por favor revisa y confirma los detalles de la orden en el modal.'
-          
-          // Abrir modal
-          this.showOrderModal = true
+            `✅ **¡Orden #${createResponse.data.orden_id} creada exitosamente!**\n\n` +
+            `👤 Cliente: ${createResponse.data.cliente?.nombre || 'N/A'}\n` +
+            `📦 Productos: ${createResponse.data.productos_count || orderData.data.productos.length} items\n` +
+            `💰 Total: $${createResponse.data.total || '0.00'}\n` +
+            `📅 Entrega estimada: ${createResponse.data.fecha_entrega || 'Por confirmar'}`
         } else {
           this.messages[this.messages.length - 1].text = 
-            '❌ ' + (prevalidateResponse.data.message || 'Error al validar la orden')
+            '❌ Error al crear la orden: ' + (createResponse.data.message || 'Error desconocido')
         }
         
         this.scrollToBottom()
       } catch (error) {
-        console.error('Error prevalidando orden:', error)
-        this.messages.push({
+        console.error('Error creando orden:', error)
+        this.messages[this.messages.length - 1] = {
           sender: 'bot',
-          text: '❌ Error al procesar la solicitud de orden: ' + (error.response?.data?.message || error.message),
+          text: '❌ Error al crear la orden: ' + (error.response?.data?.message || error.message),
           time: this.getCurrentTime()
-        })
+        }
         this.scrollToBottom()
       }
     },
