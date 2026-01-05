@@ -589,7 +589,7 @@ export default {
         
         // Llamar al endpoint de prevalidación
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
-        const userId = this.$store?.state?.login?.idUsuario
+        const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
         const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
         
         // Validar que el usuario esté logueado
@@ -700,7 +700,7 @@ export default {
       
       try {
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
-        const userId = this.$store?.state?.login?.idUsuario
+        const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
         const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
         
         // Preparar productos con las selecciones del usuario
