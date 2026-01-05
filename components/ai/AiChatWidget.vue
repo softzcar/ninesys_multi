@@ -592,6 +592,14 @@ export default {
         const userId = this.$store?.state?.login?.idUsuario
         const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
         
+        // Validar que el usuario esté logueado
+        if (!userId) {
+          this.messages[this.messages.length - 1].text = 
+            '❌ Error: Debes estar logueado para crear órdenes.'
+          this.scrollToBottom()
+          return
+        }
+        
         const prevalidateResponse = await this.$axios.post(
           `${apiUrl}/ordenes/prevalidar`,
           {
