@@ -285,6 +285,7 @@ export default {
         }
         await this.enviarMensajeOrden(query)
         this.isLoading = false
+        this.userInput = ''  // Asegurar que está limpio
         this.scrollToBottom()
         this.$nextTick(() => {
           if (this.$refs.chatInput) {
