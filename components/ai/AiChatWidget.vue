@@ -224,7 +224,9 @@ export default {
         cliente: null,
         productos: [],
         ultimoContextoBD: null  // Guardar último contexto para reutilizar
-      }
+      },
+      // Estado para confirmación de orden
+      orderValidationPending: null  // Guarda datos de validación esperando confirmación
     }
   },
 
@@ -520,9 +522,28 @@ export default {
         const data = response.data
         
         if (data.success) {
-          // Verificar si hay acción create_order
-          if (data.is_action && data.action === 'create_order' && data.ready) {
-            // Orden lista para crear
+          // DETECTAR SI ES UNA CONFIRMACIÓN Y HAY VALIDACIÓN PENDIENTE
+          const esConfirmacion = /^(s[íí]|si|crear|ok|confirmar|dale|adelante)$/i.test(query.trim())
+          
+          if (esConfirmacion && this.orderValidationPending) {
+            // Usuario confirmó - crear orden directamente
+            await this.crearOrdenDirecta(this.orderValidationPending)
+            this.orderValidationPending = null
+            return
+          }
+          
+          // Si la respuesta tiene puede_crear: true, guardar validación
+          if (data.puede_crear === true && data.data) {
+            this.orderValidationPending = data.data
+            
+            const textoRespuesta = this.parsearRespuestaIA(data.response)
+            this.messages.push({
+              sender: 'bot',
+              text: textoRespuesta,
+              time: this.getCurrentTime()
+            })
+          } else if (data.is_action && data.action === 'create_order' && data.ready) {
+            // Orden lista para crear (flujo antiguo)
             await this.handleCreateOrderResponse(data.response)
           } else if (data.is_action && data.action === 'create_order') {
             // Orden en progreso, mostrar pregunta
@@ -800,6 +821,90 @@ export default {
         time: this.getCurrentTime()
       })
       this.scrollToBottom()
+    },
+
+    async crearOrdenDirecta(validacionData) {
+      // Crear orden directamente usando datos de validación
+      try {
+        this.messages.push({
+          sender: 'bot',
+          text: '📋 Creando orden...',
+          time: this.getCurrentTime()
+        })
+        
+        const empresaId = this.$store?.state?.login?.idEmpresa || 163
+        const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
+        const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+        
+        if (!userId) {
+          this.messages[this.messages.length - 1].text = 
+            '❌ Error: Debes estar logueado para crear órdenes.'
+          this.scrollToBottom()
+          return
+        }
+        
+        const cliente = validacionData.cliente?.datos
+        if (!cliente) {
+          this.messages[this.messages.length - 1].text = '❌ Error: Datos de cliente no válidos.'
+          this.scrollToBottom()
+          return
+        }
+        
+        // Preparar productos con datos validados
+        const productosParaCrear = validacionData.productos
+          .filter(p => !p.tiene_errores)
+          .map(p => ({
+            product: p.original.product,
+            cantidad: p.original.cantidad,
+            talla: p.original.talla || '',
+            tipo_corte: p.original.tipo_corte || '',
+            tela: p.original.tela || ''
+          }))
+        
+        // Llamar al endpoint de creación con Function Calling
+        const result = await this.$axios.post(
+          `${apiUrl}/ai/chat-orden`,
+          {
+            query: `Crear orden para cliente ID ${cliente.id} con ${productosParaCrear.length} productos`,
+            history: [],
+            orden_confirmada: {
+              cliente_id: cliente.id,
+              cliente_nombre: cliente.nombre_completo,
+              productos: productosParaCrear
+            }
+          },
+          {
+            headers: {
+              'Authorization': empresaId.toString(),
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        
+        // Actualizar último mensaje con el resultado
+        if (result.data.success) {
+          this.messages[this.messages.length - 1].text = 
+            `✅ **¡Orden creada exitosamente!**\n\n` +
+            `👤 Cliente: ${cliente.nombre_completo}\n` +
+            `📦 Productos: ${productosParaCrear.length} items`
+          
+          // Resetear contexto
+          this.orderContext.active = false
+          this.orderContext.cliente = null
+          this.orderContext.productos = []
+          this.orderContext.ultimoContextoBD = null
+        } else {
+          this.messages[this.messages.length - 1].text = 
+            '❌ Error: ' + (result.data.error || result.data.response || 'No se pudo crear la orden')
+        }
+        
+      } catch (error) {
+        console.error('Error creando orden directa:', error)
+        this.messages[this.messages.length - 1].text = 
+          '❌ Error al crear la orden: ' + (error.response?.data?.error || error.message)
+      } finally {
+        this.scrollToBottom()
+      }
     }
   }
 }
