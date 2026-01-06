@@ -275,7 +275,12 @@ export default {
       // ============================================================
       
       // Detectar si el mensaje parece ser sobre crear una orden
-      const esIntencionOrden = /(?:crea|generar?|hacer?|nueva?)\s*(?:una?)?\s*orden/i.test(query)
+      // Versión robusta: detecta typos, listas de productos, y patrones
+      const palabrasClave = ['orden', 'ordenes', 'roden', 'orde', 'ordne', 'pedido', 'pedidos', 'crear', 'crea', 'cree', 'nueva', 'nuevo', 'hacer', 'hace', 'haz', 'generar', 'genera']
+      const tienePalabraClave = palabrasClave.some(p => query.toLowerCase().includes(p))
+      const tieneFormatoLista = /\d+\s*(franela|gorra|camisa|pantalon|chemise|short|sudadera)/i.test(query)
+      const tieneCliente = /para\s+[\w\s]+:/i.test(query)
+      const esIntencionOrden = tienePalabraClave || tieneFormatoLista || tieneCliente
       
       if (this.orderContext.active || esIntencionOrden) {
         // Si hay orden activa O si parece querer crear una orden, usar endpoint con contexto
