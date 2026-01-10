@@ -2,27 +2,11 @@
   <div>
 
     <!-- modal de ordenes guardadas -->
-    <b-modal
-      :id="modal"
-      title="Ordenes guardadas"
-      hide-footer
-      size="lg"
-    >
+    <b-modal :id="modal" title="Ordenes guardadas" hide-footer size="lg">
       <div class="mb-4">
-        <b-table
-          ref="table"
-          responsive
-          stacked
-          small
-          :fields="fieldsGuardadas"
-          :items="ordenesGuardadas"
-          class="mb-4"
-        >
+        <b-table ref="table" responsive stacked small :fields="fieldsGuardadas" :items="ordenesGuardadas" class="mb-4">
           <template #cell(form)="data">
-            <b-button
-              variant="link"
-              @click="loadFormGuardadas(data.index, data.item._id)"
-            >
+            <b-button variant="link" @click="loadFormGuardadas(data.index, data.item._id)">
               {{ data.item.form.nombre }}
               {{ data.item.form.apellido }}
             </b-button>
@@ -33,10 +17,7 @@
           </template>
 
           <template #cell(_id)="data">
-            <b-button
-              @click="deleteOrdenGuardada(data.item._id)"
-              variant="danger"
-            >
+            <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger">
               <b-icon icon="trash"></b-icon>
             </b-button>
           </template>
@@ -44,868 +25,532 @@
       </div>
     </b-modal>
 
-    <b-overlay
-      :show="mainOverlay"
-      rounded="sm"
-    >
+    <b-overlay :show="mainOverlay" rounded="sm">
       <b-container>
         <b-row>
-          <b-col
-            xs="12"
-            sm="12"
-            md="3"
-            lg="3"
-            xl="3"
-            offset-md="9"
-            offset-lg="9"
-            offset-xl="9"
-          >
+          <b-col xs="12" sm="12" md="3" lg="3" xl="3" offset-md="9" offset-lg="9" offset-xl="9">
             <form-monedas />
           </b-col>
         </b-row>
       </b-container>
       <div v-if="areRatesLoaded">
-              <hr />
-              <b-container>
-                <b-row v-if="ordenVinculada">
-                  <b-col>
-                    <b-alert
-                      show
-                      variant="warning"
-                    >
-                      <h4 class="alert-heading">
-                        Orden Vinculada {{ ordenVinculada }}
-                      </h4>
-                      <p>
-                        Este orden estará vinculada con la orden número
-                        {{ ordenVinculada }}.
-                      </p>
-                      <p>
-                        Si desea desvincularla seleccione la opción desde la pestaña
-                        <strong>Clientes</strong>
-                      </p>
-                    </b-alert>
-                  </b-col>
-                </b-row>
-      
-                <b-row>
-                  <b-col>
-                    <!-- Control buttons-->
-                    <div class="text-right mb-4">
-                      <b-button-group class="mt-2">
-                        <b-button
-                          :disabled="disableButtons"
-                          @click="prev"
-                        >Anterior
-                        </b-button>
-                        <b-button
-                          :disabled="disableButtons"
-                          @click="next"
-                        >{{
-                          nextText
-                        }}</b-button>
-                      </b-button-group>
-                    </div>
-      
-                    <!-- Guardar Orden para terminarla después -->
-                    <div class="mb-4">
-                      <div class="d-flex flex-column flex-md-row flex-wrap">
-                        <b-button
-                          @click="guardarOrden"
-                          variant="success"
-                          class="mb-2 mb-md-0 mr-md-2"
-                        >
-                          Guardar Orden
-                        </b-button>
-                        
-                        <b-button
-                          @click="cargarOrden"
-                          variant="info"
-                          class="mb-2 mb-md-0 mr-md-2"
-                        >
-                          Cargar Orden
-                        </b-button>
-                        
-                        <div class="mb-2 mb-md-0 mr-md-2">
-                          <cargar-ordenes-no-asignadas
-                            :ordenes-sin-asignar="ordenesSinAsignar"
-                            @orden-cargada="manejarOrdenCargada"
-                          />
-                        </div>
-                        
-                        <b-button
-                          @click="clearForm"
-                          variant="danger"
-                          class="mb-2 mb-md-0"
-                        >
-                          Limpiar formulario
-                        </b-button>
-                      </div>
-                    </div>
-                    <b-row>
-                      <b-col>
-                        <div>
-                          <!-- Tabs with card integration -->
-                          <b-card
-                            class="mt-4"
-                            no-body
-                          >
-                            <b-tabs
-                              v-model="tabIndex"
-                              @change="preventTabClick"
-                              small
-                              card
-                            >
-                              <b-tab
-                                title="Cliente"
-                                title-link-class="h5"
-                                :disabled="disable1"
-                              >
-                                <b-alert
-                                  v-if="fechaProximaDisponible"
-                                  show
-                                  variant="info"
-                                  class="mb-4"
-                                >
-                                  <h5 class="alert-heading">
-                                    <b-icon icon="calendar-check"></b-icon> Próxima Fecha de Entrega Sugerida
-                                  </h5>
-                                  <p class="mb-0">
-                                    Según la cola de producción actual, la próxima fecha disponible para finalizar una nueva orden es aproximadamente el
-                                    <strong>{{ fechaProximaFormateada }}</strong>.
-                                  </p>
-                                </b-alert>
-                                <div class="wizard-content">
-                                  <h3 class="mb-4">Datos del cliente</h3>
-                                  <b-overlay
-                                    :show="loading.show"
-                                    rounded
-                                    opacity="0.6"
-                                    spinner-small
-                                    spinner-variant="primary"
-                                    class="d-inline-block"
-                                    @hidden="onHidden"
-                                  >
-                                    <b-row>
-                                      <b-col>
-                                        <div class="buscador">
-                                          <h5>Buscar Cliente</h5>
-                                          <vue-typeahead-bootstrap
-                                            @hit="loadForm"
-                                            :data="
-                                              $store.state.comerce.customersSelect
-                                            "
-                                            size="lg"
-                                            v-model="query2"
-                                            placeholder="Nombre o teléfono"
-                                          />
-                                        </div>
-                                      </b-col>
-                                    </b-row>
-                                    <b-row>
-                                      <b-col lg="12">
-                                        <produccion-vincularOrden @reload="reloadVinculo" />
-                                        <hr class="my-4 pb-4" />
-                                      </b-col>
-                                    </b-row>
-                                    <b-row>
-                                      <b-col lg="12">
-                                        <b-form v-on:submit.prevent>
-                                          <b-form-group>
-                                            <label for="input-fecha">Fecha de entrega
-                                              <span required>*</span>
-                                              <small
-                                                v-if="fechaProximaDisponible"
-                                                class="d-block text-muted"
-                                              >
-                                                <strong>Sugerida a partir del: {{ fechaProximaFormateada }}</strong>
-                                              </small>
-                                            </label>
-                                            <b-form-datepicker
-                                              id="input-fecha"
-                                              v-model="form.fechaEntrega"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Selecciona una fecha"
-                                            ></b-form-datepicker>
-                                          </b-form-group>
-      
-                                          <b-form-group>
-                                            <label for="input-nombre">Nombre <span required>*</span></label>
-                                            <b-form-input
-                                              id="input-nombre"
-                                              ref="nombre"
-                                              v-model="form.nombre"
-                                              type="text"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Ingrese el nombre"
-                                            ></b-form-input>
-                                          </b-form-group>
-      
-                                          <b-form-group>
-                                            <label for="input-apellido">Apellido <span required>*</span></label>
-                                            <b-form-input
-                                              id="input-apellido"
-                                              v-model="form.apellido"
-                                              type="text"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Ingrese el apellido"
-                                            ></b-form-input>
-                                          </b-form-group>
-      
-                                          <b-form-group>
-                                            <label for="input-telefono">Teléfono <span required>*</span></label>
-                                            <b-form-input
-                                        id="input-telefono"
-                                        v-model="form.telefono"
-                                        type="tel"
+        <hr />
+        <b-container>
+          <b-row v-if="ordenVinculada">
+            <b-col>
+              <b-alert show variant="warning">
+                <h4 class="alert-heading">
+                  Orden Vinculada {{ ordenVinculada }}
+                </h4>
+                <p>
+                  Este orden estará vinculada con la orden número
+                  {{ ordenVinculada }}.
+                </p>
+                <p>
+                  Si desea desvincularla seleccione la opción desde la pestaña
+                  <strong>Clientes</strong>
+                </p>
+              </b-alert>
+            </b-col>
+          </b-row>
+
+          <b-row>
+            <b-col>
+              <!-- Control buttons-->
+              <div class="text-right mb-4">
+                <b-button-group class="mt-2">
+                  <b-button :disabled="disableButtons" @click="prev">Anterior
+                  </b-button>
+                  <b-button :disabled="disableButtons" @click="next">{{
+                    nextText
+                    }}</b-button>
+                </b-button-group>
+              </div>
+
+              <!-- Guardar Orden para terminarla después -->
+              <div class="mb-4">
+                <div class="d-flex flex-column flex-md-row flex-wrap">
+                  <b-button @click="guardarOrden" variant="success" class="mb-2 mb-md-0 mr-md-2">
+                    Guardar Orden
+                  </b-button>
+
+                  <b-button @click="cargarOrden" variant="info" class="mb-2 mb-md-0 mr-md-2">
+                    Cargar Orden o Presupuesto
+                  </b-button>
+
+                  <div class="mb-2 mb-md-0 mr-md-2">
+                    <cargar-ordenes-no-asignadas :ordenes-sin-asignar="ordenesSinAsignar"
+                      @orden-cargada="manejarOrdenCargada" />
+                  </div>
+
+                  <b-button @click="clearForm" variant="danger" class="mb-2 mb-md-0">
+                    Limpiar formulario
+                  </b-button>
+                </div>
+              </div>
+              <b-row>
+                <b-col>
+                  <div>
+                    <!-- Tabs with card integration -->
+                    <b-card class="mt-4" no-body>
+                      <b-tabs v-model="tabIndex" @change="preventTabClick" small card>
+                        <b-tab title="Cliente" title-link-class="h5" :disabled="disable1">
+                          <b-alert v-if="fechaProximaDisponible" show variant="info" class="mb-4">
+                            <h5 class="alert-heading">
+                              <b-icon icon="calendar-check"></b-icon> Próxima Fecha de Entrega Sugerida
+                            </h5>
+                            <p class="mb-0">
+                              Según la cola de producción actual, la próxima fecha disponible para finalizar una nueva
+                              orden
+                              es aproximadamente el
+                              <strong>{{ fechaProximaFormateada }}</strong>.
+                            </p>
+                          </b-alert>
+                          <div class="wizard-content">
+                            <h3 class="mb-4">Datos del cliente</h3>
+                            <b-overlay :show="loading.show" rounded opacity="0.6" spinner-small
+                              spinner-variant="primary" class="d-inline-block" @hidden="onHidden">
+                              <b-row>
+                                <b-col>
+                                  <div class="buscador">
+                                    <h5>Buscar Cliente</h5>
+                                    <vue-typeahead-bootstrap @hit="loadForm" :data="$store.state.comerce.customersSelect
+                                      " size="lg" v-model="query2" placeholder="Nombre o teléfono" />
+                                  </div>
+                                </b-col>
+                              </b-row>
+                              <b-row>
+                                <b-col lg="12">
+                                  <produccion-vincularOrden @reload="reloadVinculo" />
+                                  <hr class="my-4 pb-4" />
+                                </b-col>
+                              </b-row>
+                              <b-row>
+                                <b-col lg="12">
+                                  <b-form v-on:submit.prevent>
+                                    <b-form-group>
+                                      <label for="input-fecha">Fecha de entrega
+                                        <span required>*</span>
+                                        <small v-if="fechaProximaDisponible" class="d-block text-muted">
+                                          <strong>Sugerida a partir del: {{ fechaProximaFormateada }}</strong>
+                                        </small>
+                                      </label>
+                                      <b-form-datepicker id="input-fecha" v-model="form.fechaEntrega"
                                         class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese teléfono (Ej: 0414...)"
+                                        placeholder="Selecciona una fecha"></b-form-datepicker>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-nombre">Nombre <span required>*</span></label>
+                                      <b-form-input id="input-nombre" ref="nombre" v-model="form.nombre" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el nombre"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-apellido">Apellido <span required>*</span></label>
+                                      <b-form-input id="input-apellido" v-model="form.apellido" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el apellido"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-telefono">Teléfono <span required>*</span></label>
+                                      <b-form-input id="input-telefono" v-model="form.telefono" type="tel"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese teléfono (Ej: 0414...)"
                                         @input="form.telefono = cleanPhoneInput($event)"
-                                        @blur="onPhoneBlur"
-                                      ></b-form-input>
-                                          </b-form-group>
-      
-                                          <b-form-group>
-                                            <label for="input-cedula">Cedula</label>
-                                            <b-form-input
-                                              id="input-cedula"
-                                              v-model="form.cedula"
-                                              type="text"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Ingrese la Cédula"
-                                            ></b-form-input>
-                                          </b-form-group>
-      
-                                          <b-form-group>
-                                            <label for="input-email">Email</label>
-                                            <b-form-input
-                                              id="input-email"
-                                              v-model="form.email"
-                                              type="email"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Ingrese el email"
-                                            ></b-form-input>
-                                          </b-form-group>
-      
-                                          <b-form-group>
-                                            <label for="input-address">Dirección</label>
-                                            <b-form-input
-                                              id="input-address"
-                                              v-model="form.direccion"
-                                              type="text"
-                                              class="mb-2 mr-sm-2 mb-sm-0"
-                                              placeholder="Ingrese la dirección"
-                                            ></b-form-input>
-                                          </b-form-group>
-                                        </b-form>
-                                        <p info-form>
-                                          <span required>*</span>
-                                          Campos obligatorios
-                                        </p>
-                                      </b-col>
-                                    </b-row>
-                                  </b-overlay>
-                                </div>
-                              </b-tab>
-                              <b-tab
-                                title="Productos"
-                                title-link-class="h5"
-                                :disabled="disable2"
-                              >
-                                <div class="wizard-content">
+                                        @blur="onPhoneBlur"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-cedula">Cedula</label>
+                                      <b-form-input id="input-cedula" v-model="form.cedula" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la Cédula"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-email">Email</label>
+                                      <b-form-input id="input-email" v-model="form.email" type="email"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el email"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-address">Dirección</label>
+                                      <b-form-input id="input-address" v-model="form.direccion" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la dirección"></b-form-input>
+                                    </b-form-group>
+                                  </b-form>
+                                  <p info-form>
+                                    <span required>*</span>
+                                    Campos obligatorios
+                                  </p>
+                                </b-col>
+                              </b-row>
+                            </b-overlay>
+                          </div>
+                        </b-tab>
+                        <b-tab title="Productos" title-link-class="h5" :disabled="disable2">
+                          <div class="wizard-content">
+                            <b-row>
+                              <b-col lg="12">
+                                <b-list-group>
+                                  <b-list-group-item>Cédula:
+                                    {{ form.cedula }}</b-list-group-item>
+                                  <b-list-group-item>Nombre:
+                                    {{ form.nombre }}
+                                    {{ form.apellido }}</b-list-group-item>
+                                  <b-list-group-item>Teléfono:
+                                    {{ form.telefono }}</b-list-group-item>
+                                  <b-list-group-item>Email: {{ form.email }}</b-list-group-item>
+                                  <b-list-group-item>Entrega:
+                                    {{ form.fechaEntrega }}</b-list-group-item>
+                                </b-list-group>
+                                <br />
+                                <AtributosNuevo @reload="loadProductAttributes" />
+                              </b-col>
+                            </b-row>
+
+                            <b-row>
+                              <b-col lg="6">
+                                <b-list-group horizontal>
+                                  <b-list-group-item>
+                                    <h3>
+                                      TOTAL A PAGAR: $
+                                      {{ form.total }}
+                                    </h3>
+                                  </b-list-group-item>
+                                  <br />
+                                </b-list-group>
+                                <b-row>
+                                  <b-col lg="6" class="mt-4">
+                                    <products-new :attributescat="productAttributes"
+                                      :attributesval="productAttributesValues" @r="getResponseNewProduct" />
+                                  </b-col>
+                                </b-row>
+                                <br />
+
+                                <b-form-radio-group id="btn-radios-2" v-model="categoriaDeLaORden"
+                                  :options="categoriaDeLaORdenOptions" button-variant="outline-primary" size="lg"
+                                  name="radio-btn-outline" buttons class="mb-4"
+                                  @input="changeCategory"></b-form-radio-group>
+
+                                <b-form-checkbox v-model="form.guardarStock" :disabled="categoriaDeLaORden !== 'custom'"
+                                  class="mb-4">
+                                  Guardar en Stock
+                                </b-form-checkbox>
+
+                                <vue-typeahead-bootstrap @hit="loadProduct" :data="$store.state.comerce.dataProductosSelect
+                                  " v-model="query" placeholder="Seleccione los productos" />
+                              </b-col>
+                            </b-row>
+
+                            <b-row>
+                              <b-col>
+                                <h3 style="margin-top: 2rem">
+                                  TOTAL PRODUCTOS:
+                                  {{
+                                    totalProductos(form.productos, "cantidad")
+                                  }}
+                                </h3>
+                              </b-col>
+                            </b-row>
+
+                            <b-row>
+                              <b-col lg="12" class="mt-4">
+                                <b-table :stacked="isSmallScreen ? 'md' : false" :responsive="!isSmallScreen" borderless
+                                  striped :primary-key="form.productos.item" :fields="campos" :items="form.productos"
+                                  small>
+                                  <template #cell(producto)="data">
+                                    <a :href="`#${data.item.producto}`">{{
+                                      data.item.producto
+                                      }}</a>
+                                  </template>
+
+                                  <template #cell(item)="data">
+                                    {{ data.index + 1 }}
+                                  </template>
+
+                                  <template #cell(cantidad)="data">
+                                    <b-form-input v-model="form.productos[data.index].cantidad
+                                      " min="0" :max="1000" type="number" @change="montoTotalOrden"></b-form-input>
+                                  </template>
+
+                                  <template #cell(corte)="data">
+                                    <b-form-select :disabled="data.item.diseno"
+                                      v-model="form.productos[data.index].corte" :options="cortes"></b-form-select>
+                                  </template>
+
+                                  <template #cell(precio)="data">
+                                    <b-form-select v-model="form.productos[data.index].original_selected_price
+                                      " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, null)
+                                        ">
+                                    </b-form-select>
+                                  </template>
+
+                                  <template #cell(talla)="data">
+                                    <b-form-select :disabled="data.item.diseno"
+                                      v-model="form.productos[data.index].talla"
+                                      :options="$store.state.comerce.dataTallas" @change="
+                                        recalcularSegunTalla(
+                                          data.index,
+                                          form.productos[data.index],
+                                          data.item.cod
+                                        )
+                                        "></b-form-select>
+                                  </template>
+
+                                  <template #cell(tela)="data">
+                                    <b-form-select :disabled="data.item.diseno"
+                                      v-model="form.productos[data.index].tela"
+                                      :options="$store.state.comerce.dataTelas"></b-form-select>
+                                  </template>
+
+                                  <template #cell(atributo)="data">
+                                    <ordenes-asignacion-atributos :product="data.item" :product-index="data.index"
+                                      :attributes="productAttributes" @attributes-updated="handleAttributesUpdate"
+                                      @reload-attributes="loadProductAttributes" />
+                                  </template>
+
+                                  <template #cell(acciones)="data">
+                                    <div>
+                                      <span class="floatme">
+                                        <b-button :disabled="data.item.diseno" variant="primary" icon="ti-check" @click="
+                                          duplicateItem(data.index, data.item)
+                                          ">
+                                          <b-icon-box-arrow-in-left></b-icon-box-arrow-in-left>
+                                        </b-button>
+                                      </span>
+                                      <span class="floatme">
+                                        <b-button variant="danger" icon="ti-check" @click="removeItem(data.index)">
+                                          <b-icon-trash></b-icon-trash>
+                                        </b-button>
+                                      </span>
+                                    </div>
+                                  </template>
+                                </b-table>
+                              </b-col>
+
+                              <b-col lg="12">
+                                <h3 class="mb-4 mt-4">Observaciones</h3>
+                                <quill-editor ref="myQuillEditor" v-model="form.obs" :options="quillOptions"
+                                  @change="onEditorChange($event)"></quill-editor>
+                              </b-col>
+                            </b-row>
+                          </div>
+                        </b-tab>
+                        <b-tab title="Pago y asignación" title-link-class="h5" :disabled="disable3">
+                          <div class="wizard-content">
+                            <b-container>
+                              <b-row>
+                                <b-col class="mb-4">
+                                  <h2>Monto pagado y asignacion de diseño</h2>
+                                </b-col>
+                              </b-row>
+                              <b-row style="border: solid 1px lightgray">
+                                <b-col class="mt-4">
                                   <b-row>
-                                    <b-col lg="12">
-                                      <b-list-group>
-                                        <b-list-group-item>Cédula:
-                                          {{ form.cedula }}</b-list-group-item>
-                                        <b-list-group-item>Nombre:
-                                          {{ form.nombre }}
-                                          {{ form.apellido }}</b-list-group-item>
-                                        <b-list-group-item>Teléfono:
-                                          {{ form.telefono }}</b-list-group-item>
-                                        <b-list-group-item>Email: {{ form.email }}</b-list-group-item>
-                                        <b-list-group-item>Entrega:
-                                          {{ form.fechaEntrega }}</b-list-group-item>
-                                      </b-list-group>
-                                      <br />
-                                      <AtributosNuevo @reload="loadProductAttributes" />
+                                    <b-col xl="3" lg="3" md="3" sm="12" class="mb-4">
+                                      <h4 style="color: red">
+                                        TOTAL: $
+                                        {{ form.total }}
+                                      </h4>
                                     </b-col>
-                                  </b-row>
-      
-                                  <b-row>
-                                    <b-col lg="6">
-                                      <b-list-group horizontal>
-                                        <b-list-group-item>
-                                          <h3>
-                                            TOTAL A PAGAR: $ 
-                                            {{ form.total }}
-                                          </h3>
-                                        </b-list-group-item>
-                                        <br />
-                                      </b-list-group>
-                                      <b-row>
-                                        <b-col
-                                          lg="6"
-                                          class="mt-4"
-                                        >
-                                          <products-new :attributescat="productAttributes" :attributesval="productAttributesValues" @r="getResponseNewProduct" />
-                                        </b-col>
-                                      </b-row>
-                                      <br />
-      
-                                      <b-form-radio-group
-                                        id="btn-radios-2"
-                                        v-model="categoriaDeLaORden"
-                                        :options="categoriaDeLaORdenOptions"
-                                        button-variant="outline-primary"
-                                        size="lg"
-                                        name="radio-btn-outline"
-                                        buttons
-                                        class="mb-4"
-                                        @input="changeCategory"
-                                      ></b-form-radio-group>
-      
-                                      <b-form-checkbox
-                                        v-model="form.guardarStock"
-                                        :disabled="categoriaDeLaORden !== 'custom'"
-                                        class="mb-4"
-                                      >
-                                        Guardar en Stock
-                                      </b-form-checkbox>
-      
-                                      <vue-typeahead-bootstrap
-                                        @hit="loadProduct"
-                                        :data="
-                                          $store.state.comerce.dataProductosSelect
-                                        "
-                                        v-model="query"
-                                        placeholder="Seleccione los productos"
-                                      />
-                                    </b-col>
-                                  </b-row>
-      
-                                  <b-row>
-                                    <b-col>
-                                      <h3 style="margin-top: 2rem">
-                                        TOTAL PRODUCTOS:
-                                        {{
-                                          totalProductos(form.productos, "cantidad")
-                                        }}
-                                      </h3>
-                                    </b-col>
-                                  </b-row>
-      
-                                  <b-row>
-                                    <b-col
-                                      lg="12"
-                                      class="mt-4"
-                                    >
-                                      <b-table
-                                        :stacked="isSmallScreen ? 'md' : false"
-                                        :responsive="!isSmallScreen"
-                                        borderless
-                                        striped
-                                        :primary-key="form.productos.item"
-                                        :fields="campos"
-                                        :items="form.productos"
-                                        small
-                                      >
-                                        <template #cell(producto)="data">
-                                          <a :href="`#${data.item.producto}`">{{
-                                            data.item.producto
-                                          }}</a>
-                                        </template>
-      
-                                        <template #cell(item)="data">
-                                          {{ data.index + 1 }}
-                                        </template>
-      
-                                        <template #cell(cantidad)="data">
-                                          <b-form-input
-                                            v-model="
-                                              form.productos[data.index].cantidad
-                                            "
-                                            min="0"
-                                            :max="1000"
-                                            type="number"
-                                            @change="montoTotalOrden"
-                                          ></b-form-input>
-                                        </template>
-      
-                                        <template #cell(corte)="data">
-                                          <b-form-select
-                                            :disabled="data.item.diseno"
-                                            v-model="form.productos[data.index].corte"
-                                            :options="cortes"
-                                          ></b-form-select>
-                                        </template>
-      
-                                        <template #cell(precio)="data">
-                                          <b-form-select
-                                            v-model="
-                                              form.productos[data.index].original_selected_price
-                                            "
-                                            @change="setOriginalPriceAndRecalculate(data.index, $event)"
-                                            :options="
-                                              loadProductPrices(data.item.cod, null)
-                                            "
-                                          >
-                                          </b-form-select>
-                                        </template>
-      
-                                        <template #cell(talla)="data">
-                                          <b-form-select
-                                            :disabled="data.item.diseno"
-                                            v-model="form.productos[data.index].talla"
-                                            :options="$store.state.comerce.dataTallas"
-                                            @change="
-                                              recalcularSegunTalla(
-                                                data.index,
-                                                form.productos[data.index],
-                                                data.item.cod
-                                              )
-                                            "
-                                          ></b-form-select>
-                                        </template>
-      
-                                        <template #cell(tela)="data">
-                                          <b-form-select
-                                            :disabled="data.item.diseno"
-                                            v-model="form.productos[data.index].tela"
-                                            :options="$store.state.comerce.dataTelas"
-                                          ></b-form-select>
-                                        </template>
-      
-                                        <template #cell(atributo)="data">
-                                          <ordenes-asignacion-atributos
-                                            :product="data.item"
-                                            :product-index="data.index"
-                                            :attributes="productAttributes"
-                                            @attributes-updated="handleAttributesUpdate"
-                                            @reload-attributes="loadProductAttributes"
-                                          />
-                                        </template>
-      
-                                        <template #cell(acciones)="data">
-                                          <div>
-                                            <span class="floatme">
-                                              <b-button
-                                                :disabled="data.item.diseno"
-                                                variant="primary"
-                                                icon="ti-check"
-                                                @click="
-                                                  duplicateItem(data.index, data.item)
-                                                "
-                                              >
-                                                <b-icon-box-arrow-in-left></b-icon-box-arrow-in-left>
-                                              </b-button>
-                                            </span>
-                                            <span class="floatme">
-                                              <b-button
-                                                variant="danger"
-                                                icon="ti-check"
-                                                @click="removeItem(data.index)"
-                                              >
-                                                <b-icon-trash></b-icon-trash>
-                                              </b-button>
-                                            </span>
-                                          </div>
-                                        </template>
-                                      </b-table>
-                                    </b-col>
-      
-                                    <b-col lg="12">
-                                      <h3 class="mb-4 mt-4">Observaciones</h3>
-                                      <quill-editor
-                                        ref="myQuillEditor"
-                                        v-model="form.obs"
-                                        :options="quillOptions"
-                                        @change="onEditorChange($event)"
-                                      ></quill-editor>
-                                    </b-col>
-                                  </b-row>
-                                </div>
-                              </b-tab>
-                              <b-tab
-                                title="Pago y asignación"
-                                title-link-class="h5"
-                                :disabled="disable3"
-                              >
-                                <div class="wizard-content">
-                                  <b-container>
-                                    <b-row>
-                                      <b-col class="mb-4">
-                                        <h2>Monto pagado y asignacion de diseño</h2>
-                                      </b-col>
-                                    </b-row>
-                                    <b-row style="border: solid 1px lightgray">
-                                      <b-col class="mt-4">
-                                        <b-row>
-                                          <b-col
-                                            xl="3"
-                                            lg="3"
-                                            md="3"
-                                            sm="12"
-                                            class="mb-4"
-                                          >
-                                            <h4 style="color: red">
-                                              TOTAL: $ 
-                                              {{ form.total }}
-                                            </h4>
-                                          </b-col>
-      
-                                          <b-col
-                                            xl="3"
-                                            lg="3"
-                                            md="3"
-                                            sm="12"
-                                            class="mb-4"
-                                          >
-                                            <h4>
-                                              ABONO: $ 
-                                              {{ abonoTotalMostrado.toFixed(2) }}
-                                            </h4>
-                                            <!-- <b-form-input id="input-abono" min="0" v-model="form.abono" @keydown.enter.stop.prevent
+
+                                    <b-col xl="3" lg="3" md="3" sm="12" class="mb-4">
+                                      <h4>
+                                        ABONO: $
+                                        {{ abonoTotalMostrado.toFixed(2) }}
+                                      </h4>
+                                      <!-- <b-form-input id="input-abono" min="0" v-model="form.abono" @keydown.enter.stop.prevent
                                             type="number" class="mb-2 mr-sm-2 mb-sm-0"
                                             placeholder="Ingrese el monto pagado"></b-form-input> -->
-                                          </b-col>
-      
-                                          <b-col
-                                            xl="3"
-                                            lg="3"
-                                            md="3"
-                                            sm="12"
-                                            class="mb-4"
-                                          >
-                                            <h4>
-                                              DESC: $ 
-                                              {{ form.descuento }}
-                                            </h4>
-                                          </b-col>
-                                          <b-col
-                                            xl="3"
-                                            lg="3"
-                                            md="3"
-                                            sm="12"
-                                            class="mb-4"
-                                          >
-                                            <h4>
-                                              RESTA: $ 
-                                              {{ calculoPago }}
-                                            </h4>
-                                          </b-col>
-                                        </b-row>
-                                      </b-col>
-                                    </b-row>
-      
-                                    <b-row>
-                                      <b-col
-                                        xl="3"
-                                        lg="3"
-                                        md="3"
-                                        sm="12"
-                                      >
-                                        <b-row>
-                                          <b-col>
-                                            <hr />
-                                            <h4>
-                                              Dólares
-                                              {{ totalDolares }}
-                                            </h4>
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-1"
-                                              label="EFECTIVO"
-                                              label-for="input-dolares-efectivo"
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-dolares-efectivo"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                @change="updateMontoAbono"
-                                                v-model="form.montoDolaresEfectivo"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-2"
-                                              label="ZELLE"
-                                              label-for="input-dolares-zelle"
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-dolares-zelle"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                @change="updateMontoAbono"
-                                                v-model="form.montoDolaresZelle"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <b-form-input
-                                              v-model="form.montoDolaresZelleDetalle"
-                                              placeholder="Detalle de Zelle"
-                                            ></b-form-input>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-3"
-                                              label="BANESCO PANAMA"
-                                              label-for="input-dolares-zelle"
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-dolares-zelle"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                @change="updateMontoAbono"
-                                                v-model="form.montoDolaresPanama"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <b-form-input
-                                              v-model="form.montoDolaresPanamaDetalle"
-                                              placeholder="Detalle Banesco Panamá"
-                                            ></b-form-input>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-                                      </b-col>
-                                      <b-col
-                                        xl="3"
-                                        lg="3"
-                                        md="3"
-                                        sm="12"
-                                      >
-                                        <b-row>
-                                          <b-col>
-                                            <hr />
-                                            <h4>
-                                              Pesos
-                                              {{ totalPesos }}
-                                            </h4>
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-4"
-                                              label="EFECTIVO"
-                                              label-for="input-dolares-efectivo"
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-pesos-efectivo"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="form.montoPesosEfectivo"
-                                                @change="updateMontoAbono"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-5"
-                                              label="TRANSFERENCIA"
-                                              label-for="input-dolares-zelle"
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-pesos-dolares-zelle"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="form.montoPesosTransferencia"
-                                                @change="updateMontoAbono"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <b-form-input
-                                              v-model="
-                                                form.montoPesosTransferenciaDetalle
-                                              "
-                                              placeholder="Detalle Pesos transferencia"
-                                            ></b-form-input>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-                                      </b-col>
-                                      <b-col
-                                        xl="3"
-                                        lg="3"
-                                        md="3"
-                                        sm="12"
-                                      >
-                                        <b-row>
-                                          <b-col>
-                                            <hr />
-                                            <h4>
-                                              Bolívares
-                                              {{ totalBolivares }}
-                                            </h4>
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-6"
-                                              label="EFECTIVO"
-                                              label-for="input-bolivares-efectivo "
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-bolivares-efectivo"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="form.montoBolivaresEfectivo"
-                                                @change="updateMontoAbono"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-6"
-                                              label="PAGO MOVIL"
-                                              label-for="input-bolivares-pagomovil "
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-bolivares-pagomovil"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="form.montoBolivaresPagomovil"
-                                                @change="updateMontoAbono"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <b-form-input
-                                              v-model="
-                                                form.montoBolivaresPagomovilDetalle
-                                              "
-                                              placeholder="Detalle pago móvil"
-                                            ></b-form-input>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-6"
-                                              label="TRANSFERENCIA"
-                                              label-for="input-bolivares-transferencia "
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-bolivares-transferencia"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="
-                                                  form.montoBolivaresTransferencia
-                                                "
-                                                @change="updateMontoAbono"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <b-form-input
-                                              v-model="
-                                                form.montoBolivaresTransferenciaDetalle
-                                              "
-                                              placeholder="Detalle Bolívares transferecia"
-                                            ></b-form-input>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-6"
-                                              label="PUNTO"
-                                              label-for="input-bolivares-punto "
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-bolivares-punto"
-                                                type="number"
-                                                step="0.10"
-                                                min="0"
-                                                v-model="form.montoBolivaresPunto"
-                                                @change="updateMontoAbono"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                          </b-col>
-                                        </b-row>
-                                      </b-col>
-      
-                                      <b-col
-                                        xl="3"
-                                        lg="3"
-                                        md="3"
-                                        sm="12"
-                                      >
-                                        <b-row>
-                                          <b-col>
-                                            <hr />
-                                            <h4>DESCUENTO</h4>
-                                          </b-col>
-                                        </b-row>
-      
-                                        <b-row align-h="start">
-                                          <b-col>
-                                            <b-form-group
-                                              id="input-group-10"
-                                              label="DESCUENTO"
-                                              label-for="input-dolares-descuento"
-                                              class="pl-2"
-                                            >
-                                              <b-form-input
-                                                id="input-grpoup-10"
-                                                min="0"
-                                                step="0.10"
-                                                v-model="form.descuento"
-                                                @keydown.enter.stop.prevent
-                                                type="number"
-                                                class="mb-2 mr-sm-2 mb-sm-0"
-                                                placeholder="Ingrese el descuento"
-                                              ></b-form-input>
-                                            </b-form-group>
-                                            <b-form-input
-                                              v-model="form.descuentoDetalle"
-                                              placeholder="Detalle Descuento"
-                                            ></b-form-input>
-                                            <hr />
-                                          </b-col>
-                                        </b-row>
-                                      </b-col>
-                                    </b-row>
-                                  </b-container>
-      
-                                  <!-- <b-row>
+                                    </b-col>
+
+                                    <b-col xl="3" lg="3" md="3" sm="12" class="mb-4">
+                                      <h4>
+                                        DESC: $
+                                        {{ form.descuento }}
+                                      </h4>
+                                    </b-col>
+                                    <b-col xl="3" lg="3" md="3" sm="12" class="mb-4">
+                                      <h4>
+                                        RESTA: $
+                                        {{ calculoPago }}
+                                      </h4>
+                                    </b-col>
+                                  </b-row>
+                                </b-col>
+                              </b-row>
+
+                              <b-row>
+                                <b-col xl="3" lg="3" md="3" sm="12">
+                                  <b-row>
+                                    <b-col>
+                                      <hr />
+                                      <h4>
+                                        Dólares
+                                        {{ totalDolares }}
+                                      </h4>
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-1" label="EFECTIVO"
+                                        label-for="input-dolares-efectivo" class="pl-2">
+                                        <b-form-input id="input-dolares-efectivo" type="number" step="0.10" min="0"
+                                          @change="updateMontoAbono" v-model="form.montoDolaresEfectivo"></b-form-input>
+                                      </b-form-group>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-2" label="ZELLE" label-for="input-dolares-zelle"
+                                        class="pl-2">
+                                        <b-form-input id="input-dolares-zelle" type="number" step="0.10" min="0"
+                                          @change="updateMontoAbono" v-model="form.montoDolaresZelle"></b-form-input>
+                                      </b-form-group>
+                                      <b-form-input v-model="form.montoDolaresZelleDetalle"
+                                        placeholder="Detalle de Zelle"></b-form-input>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-3" label="BANESCO PANAMA"
+                                        label-for="input-dolares-zelle" class="pl-2">
+                                        <b-form-input id="input-dolares-zelle" type="number" step="0.10" min="0"
+                                          @change="updateMontoAbono" v-model="form.montoDolaresPanama"></b-form-input>
+                                      </b-form-group>
+                                      <b-form-input v-model="form.montoDolaresPanamaDetalle"
+                                        placeholder="Detalle Banesco Panamá"></b-form-input>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+                                </b-col>
+                                <b-col xl="3" lg="3" md="3" sm="12">
+                                  <b-row>
+                                    <b-col>
+                                      <hr />
+                                      <h4>
+                                        Pesos
+                                        {{ totalPesos }}
+                                      </h4>
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-4" label="EFECTIVO"
+                                        label-for="input-dolares-efectivo" class="pl-2">
+                                        <b-form-input id="input-pesos-efectivo" type="number" step="0.10" min="0"
+                                          v-model="form.montoPesosEfectivo" @change="updateMontoAbono"></b-form-input>
+                                      </b-form-group>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-5" label="TRANSFERENCIA"
+                                        label-for="input-dolares-zelle" class="pl-2">
+                                        <b-form-input id="input-pesos-dolares-zelle" type="number" step="0.10" min="0"
+                                          v-model="form.montoPesosTransferencia"
+                                          @change="updateMontoAbono"></b-form-input>
+                                      </b-form-group>
+                                      <b-form-input v-model="form.montoPesosTransferenciaDetalle
+                                        " placeholder="Detalle Pesos transferencia"></b-form-input>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+                                </b-col>
+                                <b-col xl="3" lg="3" md="3" sm="12">
+                                  <b-row>
+                                    <b-col>
+                                      <hr />
+                                      <h4>
+                                        Bolívares
+                                        {{ totalBolivares }}
+                                      </h4>
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-6" label="EFECTIVO"
+                                        label-for="input-bolivares-efectivo " class="pl-2">
+                                        <b-form-input id="input-bolivares-efectivo" type="number" step="0.10" min="0"
+                                          v-model="form.montoBolivaresEfectivo"
+                                          @change="updateMontoAbono"></b-form-input>
+                                      </b-form-group>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-6" label="PAGO MOVIL"
+                                        label-for="input-bolivares-pagomovil " class="pl-2">
+                                        <b-form-input id="input-bolivares-pagomovil" type="number" step="0.10" min="0"
+                                          v-model="form.montoBolivaresPagomovil"
+                                          @change="updateMontoAbono"></b-form-input>
+                                      </b-form-group>
+                                      <b-form-input v-model="form.montoBolivaresPagomovilDetalle
+                                        " placeholder="Detalle pago móvil"></b-form-input>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-6" label="TRANSFERENCIA"
+                                        label-for="input-bolivares-transferencia " class="pl-2">
+                                        <b-form-input id="input-bolivares-transferencia" type="number" step="0.10"
+                                          min="0" v-model="form.montoBolivaresTransferencia
+                                            " @change="updateMontoAbono"></b-form-input>
+                                      </b-form-group>
+                                      <b-form-input v-model="form.montoBolivaresTransferenciaDetalle
+                                        " placeholder="Detalle Bolívares transferecia"></b-form-input>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-6" label="PUNTO" label-for="input-bolivares-punto "
+                                        class="pl-2">
+                                        <b-form-input id="input-bolivares-punto" type="number" step="0.10" min="0"
+                                          v-model="form.montoBolivaresPunto" @change="updateMontoAbono"></b-form-input>
+                                      </b-form-group>
+                                    </b-col>
+                                  </b-row>
+                                </b-col>
+
+                                <b-col xl="3" lg="3" md="3" sm="12">
+                                  <b-row>
+                                    <b-col>
+                                      <hr />
+                                      <h4>DESCUENTO</h4>
+                                    </b-col>
+                                  </b-row>
+
+                                  <b-row align-h="start">
+                                    <b-col>
+                                      <b-form-group id="input-group-10" label="DESCUENTO"
+                                        label-for="input-dolares-descuento" class="pl-2">
+                                        <b-form-input id="input-grpoup-10" min="0" step="0.10" v-model="form.descuento"
+                                          @keydown.enter.stop.prevent type="number" class="mb-2 mr-sm-2 mb-sm-0"
+                                          placeholder="Ingrese el descuento"></b-form-input>
+                                      </b-form-group>
+                                      <b-form-input v-model="form.descuentoDetalle"
+                                        placeholder="Detalle Descuento"></b-form-input>
+                                      <hr />
+                                    </b-col>
+                                  </b-row>
+                                </b-col>
+                              </b-row>
+                            </b-container>
+
+                            <!-- <b-row>
                                       <b-col lg="12" class="mb-4">
                                         <b-row>
                                           <b-col lg="2">
@@ -915,8 +560,8 @@
                                         </b-row>
                                       </b-col>
                                     </b-row> -->
-      
-                                  <!-- <b-row>
+
+                            <!-- <b-row>
                                   <b-col lg="12" class="mb-4" style="vertical-align: baseline">
                                     <hr />
                                     <div>
@@ -950,104 +595,80 @@
                                     <hr />
                                   </b-col>
                                 </b-row> -->
+                          </div>
+                        </b-tab>
+                        <b-tab title="Emitir orden" title-link-class="h5" :disabled="disable4">
+                          <div class="wizard-content">
+                            <b-row>
+                              <b-col>
+                                <b-alert style="padding: 2.4rem" variant="success" show>
+                                  <h2>
+                                    Verifique todos los datos antes de emitir la
+                                    Orden
+                                  </h2>
+                                </b-alert>
+                              </b-col>
+                            </b-row>
+
+                            <b-row>
+                              <b-col>
+                                <b-form-group label="Notificaciones" class="mb-4 text-left">
+                                  <b-form-checkbox v-model="form.sendWhatsAppMessage" size="lg" name="check-ws">
+                                    <strong class="text-primary">Enviar mensaje de bienvenida al cliente por
+                                      WhatsApp.</strong>
+                                  </b-form-checkbox>
+                                </b-form-group>
+
+                                <div id="reporte">
+                                  <b-overlay :show="overlay">
+                                    <ordenes-preview :form="formPrint" :showpreview="true"
+                                      :editing-order-id="editingOrderId" @resetTabs="goToFirsTab" />
+                                  </b-overlay>
                                 </div>
-                              </b-tab>
-                              <b-tab
-                                title="Emitir orden"
-                                title-link-class="h5"
-                                :disabled="disable4"
-                              >
-                                <div class="wizard-content">
-                                  <b-row>
-                                    <b-col>
-                                      <b-alert
-                                        style="padding: 2.4rem"
-                                        variant="success"
-                                        show
-                                      >
-                                        <h2>
-                                          Verifique todos los datos antes de emitir la
-                                          Orden
-                                        </h2>
-                                      </b-alert>
-                                    </b-col>
-                                  </b-row>
-      
-                                  <b-row>
-                                    <b-col>
-                                      <b-form-group
-                                        label="Notificaciones"
-                                        class="mb-4 text-left"
-                                      >
-                                        <b-form-checkbox v-model="form.sendWhatsAppMessage" size="lg" name="check-ws">
-                                          <strong class="text-primary">Enviar mensaje de bienvenida al cliente por WhatsApp.</strong>
-                                        </b-form-checkbox>
-                                      </b-form-group>
-      
-                                      <div id="reporte">
-                                        <b-overlay :show="overlay">
-                                          <ordenes-preview
-                                            :form="formPrint"
-                                            :showpreview="true"
-                                            :editing-order-id="editingOrderId"
-                                            @resetTabs="goToFirsTab"
-                                          />
-                                        </b-overlay>
-                                      </div>
-                                    </b-col>
-                                  </b-row>
-                                </div>
-                              </b-tab>
-                            </b-tabs>
-                          </b-card>
-      
-                          <!-- <div class="text-right mt-4">
+                              </b-col>
+                            </b-row>
+                          </div>
+                        </b-tab>
+                      </b-tabs>
+                    </b-card>
+
+                    <!-- <div class="text-right mt-4">
                             <b-button-group>
                               <b-button @click="prev">Anterior</b-button>
                               <b-button @click="next">{{ nextText }}</b-button>
                             </b-button-group>
                           </div> -->
-                          <!-- Control buttons-->
-                          <div class="text-right mb-4">
-                            <b-button-group class="mt-2">
-                              <b-button
-                                :disabled="disableButtons"
-                                @click="prev"
-                              >Anterior
-                              </b-button>
-                              <b-button
-                                :disabled="disableButtons"
-                                @click="next"
-                              >{{
-                                nextText
-                              }}</b-button>
-                            </b-button-group>
-                          </div>
-                        </div>
-                      </b-col>
-                    </b-row>
-                  </b-col>
-                </b-row>
-              </b-container>
-            </div>
-            <b-container v-else-if="currencyConfigState === 'NO_CURRENCIES'">
-              <b-row>
-                <b-col>
-                  <b-alert show variant="warning">
-                    Debe configurar las monedas para poder continuar.
-                  </b-alert>
+                    <!-- Control buttons-->
+                    <div class="text-right mb-4">
+                      <b-button-group class="mt-2">
+                        <b-button :disabled="disableButtons" @click="prev">Anterior
+                        </b-button>
+                        <b-button :disabled="disableButtons" @click="next">{{
+                          nextText
+                          }}</b-button>
+                      </b-button-group>
+                    </div>
+                  </div>
                 </b-col>
               </b-row>
-            </b-container>
-      
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
+      <b-container v-else-if="currencyConfigState === 'NO_CURRENCIES'">
+        <b-row>
+          <b-col>
+            <b-alert show variant="warning">
+              Debe configurar las monedas para poder continuar.
+            </b-alert>
+          </b-col>
+        </b-row>
+      </b-container>
+
 
       <template #overlay>
         <div class="text-center">
-          <b-icon
-            icon="stopwatch"
-            font-scale="3"
-            animation="cylon"
-          ></b-icon>
+          <b-icon icon="stopwatch" font-scale="3" animation="cylon"></b-icon>
           <p id="cancel-label">{{ loadingMsg }}</p>
         </div>
       </template>
@@ -1073,6 +694,7 @@ export default {
       productAttributes: [], // <-- AÑADIDO
       productAttributesValues: [], // <-- AÑADIDO
       abonoHistorico: 0, // Abono existente al cargar la orden
+      descuentoHistorico: 0, // Descuento existente al cargar la orden
       proyeccionData: [], // Almacenará los datos de la cola de producción
       fechaProximaDisponible: null, // Almacenará la fecha calculada
       editingOrderId: null,
@@ -1359,6 +981,7 @@ export default {
         : parseFloat(this.form.descuento);
 
       // Usamos el nuevo abonoTotalMostrado para el cálculo del saldo restante
+      // Como form.descuento ahora cargará el acumulado, no restamos descuentoHistorico por separado
       saldo = total - this.abonoTotalMostrado - descuento;
 
       return saldo.toFixed(2);
@@ -1535,8 +1158,12 @@ export default {
         console.log('DEBUG: this.form.obs después de decode:', this.form.obs, typeof this.form.obs);
         this.form.total = parseFloat(ordenData.pago_total) || 0;
         this.abonoHistorico = parseFloat(ordenData.pago_abono) || 0;
+        this.descuentoHistorico = parseFloat(ordenData.pago_descuento) || 0;
         this.form.abono = 0; // El 'form.abono' ahora solo registrará NUEVOS pagos
-        this.form.descuento = 0; // Inicializar en 0 para agregar nuevos descuentos
+
+        // Poblar descuento y detalle con el histórico (Total)
+        this.form.descuento = parseFloat(ordenData.pago_descuento) || 0;
+        this.form.descuentoDetalle = ordenData.descuento_detalle || "";
       }
 
       // 4. Poblar productos
@@ -1594,7 +1221,36 @@ export default {
         });
       }
 
-      // 5. Recalcular totales y desbloquear el wizard
+      // 5. Poblar métodos de pago
+      if (datosDeLaOrden.metodos_pago) {
+        const metodosPago = datosDeLaOrden.metodos_pago;
+
+        // Poblar campos de dólares
+        this.form.montoDolaresEfectivo = metodosPago.montoDolaresEfectivo || 0;
+        this.form.montoDolaresEfectivoDetalle = metodosPago.montoDolaresEfectivoDetalle || '';
+        this.form.montoDolaresZelle = metodosPago.montoDolaresZelle || 0;
+        this.form.montoDolaresZelleDetalle = metodosPago.montoDolaresZelleDetalle || '';
+        this.form.montoDolaresPanama = metodosPago.montoDolaresPanama || 0;
+        this.form.montoDolaresPanamaDetalle = metodosPago.montoDolaresPanamaDetalle || '';
+
+        // Poblar campos de pesos
+        this.form.montoPesosEfectivo = metodosPago.montoPesosEfectivo || 0;
+        this.form.montoPesosEfectivoDetalle = metodosPago.montoPesosEfectivoDetalle || '';
+        this.form.montoPesosTransferencia = metodosPago.montoPesosTransferencia || 0;
+        this.form.montoPesosTransferenciaDetalle = metodosPago.montoPesosTransferenciaDetalle || '';
+
+        // Poblar campos de bolívares
+        this.form.montoBolivaresEfectivo = metodosPago.montoBolivaresEfectivo || 0;
+        this.form.montoBolivaresEfectivoDetalle = metodosPago.montoBolivaresEfectivoDetalle || '';
+        this.form.montoBolivaresPunto = metodosPago.montoBolivaresPunto || 0;
+        this.form.montoBolivaresPuntoDetalle = metodosPago.montoBolivaresPuntoDetalle || '';
+        this.form.montoBolivaresPagomovil = metodosPago.montoBolivaresPagomovil || 0;
+        this.form.montoBolivaresPagomovilDetalle = metodosPago.montoBolivaresPagomovilDetalle || '';
+        this.form.montoBolivaresTransferencia = metodosPago.montoBolivaresTransferencia || 0;
+        this.form.montoBolivaresTransferenciaDetalle = metodosPago.montoBolivaresTransferenciaDetalle || '';
+      }
+
+      // 6. Recalcular totales y desbloquear el wizard
       this.montoTotalOrden();
       this.disable1 = false;
       this.disable2 = false;
@@ -1625,7 +1281,7 @@ export default {
       }
       try {
         const res = await this.$axios.get(
-          `${this.$config.API}/ordenes/sin-asignacion/${idVendedor}`
+          `${this.$config.API}/ordenes-sin-asignar/${idVendedor}`
         );
         this.ordenesSinAsignar = res.data;
       } catch (error) {
@@ -1666,12 +1322,28 @@ export default {
         .get(`${this.$config.API}/ordenes/guardadas`)
         .then((res) => {
           console.log("response getOrdenesGuardadas", res.data.items);
-          // this.ordenesGuardadas = res.data.items
-          this.ordenesGuardadas = res.data.items.map((item) => {
-            const parsedForm = JSON.parse(item.form);
-            return { ...item, form: parsedForm };
-          });
-          // this.ordenesGuardadas = res.data.items
+
+          // Parsear y filtrar items, manejando errores de JSON corrupto
+          this.ordenesGuardadas = res.data.items
+            .map((item) => {
+              try {
+                const parsedForm = JSON.parse(item.form);
+                return { ...item, form: parsedForm };
+              } catch (error) {
+                console.error(`Error parseando form del item ID ${item._id}:`, error);
+                console.warn(`Form corrupto en posición:`, error.message);
+                // Retornar null para filtrar este item
+                return null;
+              }
+            })
+            .filter(item => item !== null); // Remover items corruptos
+
+          // Mostrar advertencia si hay datos corruptos
+          const corruptedCount = res.data.items.length - this.ordenesGuardadas.length;
+          if (corruptedCount > 0) {
+            console.warn(`${corruptedCount} orden(es) guardada(s) con datos corruptos fueron omitidas`);
+          }
+
           console.log("this.ordenesGuardadas", this.ordenesGuardadas);
         });
     },
@@ -1895,7 +1567,7 @@ export default {
       const product = this.form.productos[index];
       const basePrice = parseFloat(product.original_selected_price) || 0;
       const tallaPrice = parseFloat(product.xl) || 0;
-      
+
       const attributesPrice = (product.atributos_seleccionados || []).reduce((total, attr) => {
         return total + (parseFloat(attr.precio) || 0);
       }, 0);
@@ -2569,7 +2241,7 @@ export default {
           // y el cliente encontrado es el mismo, no es un error (es su propio número).
           // Si el ID del formulario está vacío, asumimos que es un cliente nuevo,
           // por lo tanto si encontramos uno existente, es un duplicado.
-          
+
           // Nota: this.form.id puede ser numérico o string, aseguramos comparación laxa o conversión
           const isSameCustomer = this.form.id && (String(this.form.id) === String(existingCustomer.id));
 
@@ -2620,6 +2292,8 @@ export default {
         montoBolivaresTransferencia: 0,
         montoBolivaresTransferenciaDetalle: "",
         abono: 0,
+        abonoHistorico: 0,
+        descuentoHistorico: 0,
         descuento: 0,
         descuentoDetalle: "",
         total: 0,
@@ -2647,6 +2321,7 @@ export default {
         console.log(`Limpiado formPrint`);
       }
       this.abonoHistorico = 0;
+      this.descuentoHistorico = 0;
       this.editingOrderId = null;
       // this.endpoint = "/ordenes/nueva/custom"; // FIX: Reset endpoint to default
       this.query2 = "";
@@ -2826,9 +2501,8 @@ export default {
       } catch (error) {
         this.$fire({
           title: "Error de Conexión",
-          html: `<p>No se pudo comunicar con el servidor.</p><p>${
-            error.message || error
-          }</p>`,
+          html: `<p>No se pudo comunicar con el servidor.</p><p>${error.message || error
+            }</p>`,
           type: "error",
         });
       } finally {
@@ -3424,7 +3098,7 @@ export default {
     });
 
     console.log('check WS', this.form.sendWhatsAppMessage);
-    
+
 
     this.mainOverlay = true;
     this.loadingMsg = "Cargando datos...";
