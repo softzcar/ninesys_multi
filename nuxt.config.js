@@ -26,10 +26,10 @@ export default {
     },
 
     // PRODUCCION
-    LOCAL_IP: `https://apidev.nineteengreen.com`,
-    LOCAL_IP_WOO: `https://apidev.nineteengreen.com`,
-    API: `https://apidev.nineteengreen.com`,
-    CDN: `https://cdn.nineteengreen.com`,
+    LOCAL_IP: process.env.API_URL || `https://apidev.nineteengreen.com`,
+    LOCAL_IP_WOO: process.env.API_URL || `https://apidev.nineteengreen.com`,
+    API: process.env.API_URL || `https://apidev.nineteengreen.com`,
+    CDN: process.env.CDN_URL || `https://cdn.nineteengreen.com`,
     LIVE: `https://live.nineteengreen.com`,
     APP_URL: `https://app.nineteencustom.com`,
     WS_API: `https://ws.nineteengreen.com`, // Produccion

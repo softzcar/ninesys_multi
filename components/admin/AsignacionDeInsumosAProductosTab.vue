@@ -1,157 +1,76 @@
 <template>
   <div>
     <h3>Tiempo Promedio</h3>
-    <b-form-group
-      id="input-group-4"
-      label-for="input-tiempo"
-      description="Indique el promedio de tiempo en minutos, por ejemplo 3.5 equivale a tres minutos y medio"
-    >
+    <b-form-group id="input-group-4" label-for="input-tiempo"
+      description="Indique el promedio de tiempo en minutos, por ejemplo 3.5 equivale a tres minutos y medio">
     </b-form-group>
     <b-form inline>
-      <b-form-input
-        id="input-tiempo"
-        type="text"
-        v-model="tiempoFormateado"
-        :state="tiempoValido"
-        :invalid-feedback="mensajeError"
-        style="width: 160px"
-      >
+      <b-form-input id="input-tiempo" type="text" v-model="tiempoFormateado" :state="tiempoValido"
+        :invalid-feedback="mensajeError" style="width: 160px">
         <template #append>
           <span class="input-group-text">minutos</span>
         </template>
       </b-form-input>
 
+
       <!-- {{ clacTimeProduction() }} -->
 
-      <b-button
-        @click="saveTime"
-        class="ml-2"
-        variant="success"
-      >
+      <b-button @click="saveTime" class="ml-2" variant="success">
         <b-icon icon="check-lg"></b-icon>
       </b-button>
     </b-form>
 
     <h3 class="mt-4">Asignación Masiva de Insumos por Talla</h3>
-    <b-form-group
-      id="input-group-insumo-base"
-      label="Seleccione Insumo Base:"
-      label-for="select-insumo-base"
-      description="Seleccione el insumo que desea asignar a todas las tallas."
-    >
-      <b-form-select
-        id="select-insumo-base"
-        v-model.lazy="selectedInsumoBase"
-        :options="selectinsumos"
-      ></b-form-select>
+    <b-form-group id="input-group-insumo-base" label="Seleccione Insumo Base:" label-for="select-insumo-base"
+      description="Seleccione el insumo que desea asignar a todas las tallas.">
+      <b-form-select id="select-insumo-base" v-model.lazy="selectedInsumoBase" :options="selectinsumos"></b-form-select>
     </b-form-group>
 
-    <b-button
-      variant="info"
-      @click="loadAllSizes"
-      :disabled="isButtonDisabled"
-      class="mb-4"
-    >
+    <b-button variant="info" @click="loadAllSizes" :disabled="isButtonDisabled" class="mb-4">
       <b-icon icon="plus-lg"></b-icon> Cargar Todas las Tallas
     </b-button>
 
-    <b-button
-      variant="success"
-      @click="saveAllAssignments"
-      :disabled="form.length === 0"
-      class="mb-4 ml-2"
-    >
+    <b-button variant="success" @click="saveAllAssignments" :disabled="form.length === 0" class="mb-4 ml-2">
       <b-icon icon="save"></b-icon> Guardar Todas las Asignaciones
     </b-button>
 
-    <b-button
-      @click="$bvModal.show(`modal-crear-insumo-${iddep}`)"
-      :id="`create-new-insumo-${iddep}`"
-      variant="info"
-      class="mb-4 ml-2"
-    >
+    <b-button @click="$bvModal.show(`modal-crear-insumo-${iddep}`)" :id="`create-new-insumo-${iddep}`" variant="info"
+      class="mb-4 ml-2">
       <b-icon icon="plus-lg"></b-icon> Crear Nuevo Insumo
     </b-button>
-    <b-popover
-      :target="`create-new-insumo-${iddep}`"
-      triggers="hover"
-      placement="top"
-    >
+    <b-popover :target="`create-new-insumo-${iddep}`" triggers="hover" placement="top">
       <template #title>Crear un nuevo insumo en el catálogo</template>
     </b-popover>
 
-    <b-form-group
-      id="input-group-mass-unit"
-      label="Asignar Unidad a Todos:"
-      label-for="select-mass-unit"
-      class="mb-4 ml-2"
-      style="display: inline-block;"
-    >
-      <b-form-select
-        id="select-mass-unit"
-        v-model="selectedUnitForMassAssignment"
-        :options="optionsUnidad"
-        class="mr-2"
-        :disabled="form.length === 0"
-      ></b-form-select>
-      <b-button
-        variant="secondary"
-        @click="assignAllUnits"
-        :disabled="!selectedUnitForMassAssignment || form.length === 0"
-      >
+    <b-form-group id="input-group-mass-unit" label="Asignar Unidad a Todos:" label-for="select-mass-unit"
+      class="mb-4 ml-2" style="display: inline-block;">
+      <b-form-select id="select-mass-unit" v-model="selectedUnitForMassAssignment" :options="optionsUnidad" class="mr-2"
+        :disabled="form.length === 0"></b-form-select>
+      <b-button variant="secondary" @click="assignAllUnits"
+        :disabled="!selectedUnitForMassAssignment || form.length === 0">
         Asignar Unidad
       </b-button>
     </b-form-group>
 
     <b-overlay :show="savingInProgress" rounded="sm">
-      <b-table
-        responsive
-        primary-key="id"
-        :fields="newCampos"
-        :items="form"
-        small
-        class="mt-4"
-      >
+      <b-table responsive primary-key="id" :fields="newCampos" :items="form" small class="mt-4">
         <template #cell(insumo)="row">
-          <b-form-select
-            v-model="row.item.insumo"
-            :options="selectinsumos"
-          ></b-form-select>
+          <b-form-select v-model="row.item.insumo" :options="selectinsumos"></b-form-select>
         </template>
         <template #cell(cantidad)="row">
-          <b-form-input
-            type="number"
-            v-model="row.item.cantidad"
-          />
+          <b-form-input type="number" v-model="row.item.cantidad" />
         </template>
         <template #cell(miTalla)="row">
-          <b-form-select
-            v-model="row.item.miTalla"
-            :options="selecttallas"
-          ></b-form-select>
+          <b-form-select v-model="row.item.miTalla" :options="selecttallas"></b-form-select>
         </template>
         <template #cell(unidadDeMedida)="row">
-          <b-form-select
-            v-model="row.item.unidadDeMedida"
-            :options="optionsUnidad"
-          ></b-form-select>
+          <b-form-select v-model="row.item.unidadDeMedida" :options="optionsUnidad"></b-form-select>
         </template>
         <template #cell(actions)="row">
-          <b-button
-            variant="danger"
-            @click="removeItem(row.index)"
-            aria-label="Eliminar insumo"
-            size="sm"
-            class="mr-1"
-          >
+          <b-button variant="danger" @click="removeItem(row.index)" aria-label="Eliminar insumo" size="sm" class="mr-1">
             <b-icon icon="trash"></b-icon>
           </b-button>
-          <b-button
-            variant="primary"
-            @click="duplicateItem(row.item)"
-            aria-label="Duplicar insumo"
-            size="sm"
-          >
+          <b-button variant="primary" @click="duplicateItem(row.item)" aria-label="Duplicar insumo" size="sm">
             <b-icon icon="files"></b-icon>
           </b-button>
         </template>
@@ -160,13 +79,7 @@
 
     <h3 class="mt-4">Insumos Asignados</h3>
 
-    <b-table
-      class="mt-4"
-      striped
-      hover
-      :fields="fields"
-      :items="filterInsumos"
-    >
+    <b-table class="mt-4" striped hover :fields="fields" :items="filterInsumos">
       <template #cell(tiempo)="data">
         {{ SegundosAMinutos(data.item.tiempo) }}
       </template>
@@ -177,42 +90,21 @@
       </template>
 
       <template #cell(id_product_insumos_asignados)="data">
-        <admin-AsignacionDeInsumosAProductosDelete
-          :key="data.item.id_product_insumos_asignados"
-          :idinsumo="data.item.id_product_insumos_asignados"
-          :insumo="data.item.insumo"
-          @reload="reloadMe()"
-        />
+        <admin-AsignacionDeInsumosAProductosDelete :key="data.item.id_product_insumos_asignados"
+          :idinsumo="data.item.id_product_insumos_asignados" :insumo="data.item.insumo" @reload="reloadMe()" />
       </template>
     </b-table>
 
-    <b-button
-      id="add-insumo"
-      variant="light"
-      @click="addItem(item._id)"
-      aria-label="Agregar Insumo"
-    >
+    <b-button id="add-insumo" variant="light" @click="addItem(item._id)" aria-label="Agregar Insumo">
       <b-icon icon="plus-lg"></b-icon>
     </b-button>
-    <b-popover
-      target="add-insumo"
-      triggers="hover"
-      placement="top"
-    >
+    <b-popover target="add-insumo" triggers="hover" placement="top">
       <template #title>Asignar nuevo insumo</template>
     </b-popover>
 
-    <b-modal
-      :id="`modal-crear-insumo-${iddep}`"
-      :ref="`modalCrearInsumo-${iddep}`"
-      title="Crear nuevo insumo"
-      @ok="crearInsumo"
-      @cancel="clearInput"
-    >
-      <b-form-input
-        v-model="nuevoInsumo"
-        placeholder="Nombre del insumo"
-      ></b-form-input>
+    <b-modal :id="`modal-crear-insumo-${iddep}`" :ref="`modalCrearInsumo-${iddep}`" title="Crear nuevo insumo"
+      @ok="crearInsumo" @cancel="clearInput">
+      <b-form-input v-model="nuevoInsumo" placeholder="Nombre del insumo"></b-form-input>
     </b-modal>
 
   </div>
@@ -355,12 +247,12 @@ export default {
 
     filterInsumos() {
       if (!this.item || !Array.isArray(this.insumosasignados)) {
-        return []; // Retornar un array vacío si item o insumosasignados no están disponibles
+        return [];
       }
       return this.insumosasignados.filter(
         (insumo) =>
-          parseInt(insumo.id_departamento) === parseInt(this.item._id) &&
-          parseInt(insumo.id_product) === parseInt(this.idprod)
+          insumo.id_departamento == this.item._id &&
+          insumo.id_product == this.idprod
       );
     },
     isButtonDisabled() {
@@ -557,27 +449,27 @@ export default {
       data.set("insumo", this.nuevoInsumo);
       data.set("id_product", this.item._id);
 
-        await this.$axios
-          .post(`${this.$config.API}/catalogo-insumos-productos`, data)
-          .then((res) => {
-            this.$fire({
-              title: "Nuevo Insumo",
-              html: `<p>el insumo "${this.nuevoInsumo}" se ha creado correctamente</p>`,
-              type: "success",
-            });
-            this.$emit("reload", true);
-          })
-          .catch((err) => {
-            this.$fire({
-              title: "Error",
-              html: `<p>No se pudo crear el insumo</p><p>${err}</p>`,
-              type: "error",
-            });
-          })
-          .finally(() => {
-            this.nuevoInsumo = "";
-            this.overlay = false;
+      await this.$axios
+        .post(`${this.$config.API}/catalogo-insumos-productos`, data)
+        .then((res) => {
+          this.$fire({
+            title: "Nuevo Insumo",
+            html: `<p>el insumo "${this.nuevoInsumo}" se ha creado correctamente</p>`,
+            type: "success",
           });
+          this.$emit("reload", true);
+        })
+        .catch((err) => {
+          this.$fire({
+            title: "Error",
+            html: `<p>No se pudo crear el insumo</p><p>${err}</p>`,
+            type: "error",
+          });
+        })
+        .finally(() => {
+          this.nuevoInsumo = "";
+          this.overlay = false;
+        });
     },
 
     async saveAllAssignments() {
@@ -731,5 +623,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

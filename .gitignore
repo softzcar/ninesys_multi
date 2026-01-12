@@ -46,3 +46,4 @@ task.md
 *.sh
 backups_transpilaciones/
 logs_deploys/
+.env

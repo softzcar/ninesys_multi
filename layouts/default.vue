@@ -1,19 +1,11 @@
 <template>
   <div class="app-wrapper">
     <!-- Sidebar - solo visible si está logueado y no está en páginas de auth -->
-    <AppSidebar 
-      v-if="showSidebar" 
-      @toggle="onSidebarToggle"
-      :class="{ 'show': sidebarVisible }"
-    />
-    
+    <AppSidebar v-if="showSidebar" @toggle="onSidebarToggle" :class="{ 'show': sidebarVisible }" />
+
     <!-- Overlay para móvil -->
-    <div 
-      v-if="showSidebar && sidebarVisible" 
-      class="sidebar-overlay d-lg-none"
-      @click="sidebarVisible = false"
-    />
-    
+    <div v-if="showSidebar && sidebarVisible" class="sidebar-overlay d-lg-none" @click="sidebarVisible = false" />
+
     <!-- Contenido Principal -->
     <div class="main-wrapper" :class="{ 'with-sidebar': showSidebar }">
       <!-- Header móvil con toggle -->
@@ -23,13 +15,13 @@
         </button>
         <span class="mobile-brand">{{ empresaNombre }}</span>
       </div>
-      
+
       <!-- Contenido de Nuxt -->
       <div class="main-content">
         <Nuxt />
       </div>
     </div>
-    
+
     <!-- AI Chat Widget - disponible en todas las páginas -->
     <AiChatWidget v-if="isLoggedIn" />
   </div>
@@ -63,11 +55,11 @@ export default {
       // No mostrar sidebar en páginas de auth
       const hiddenRoutes = ['/login', '/logout', '/registro', '/password-reset'];
       const currentPath = this.$route?.path || '';
-      
+
       // Solo mostrar si está logueado y tiene departamento asignado
-      return this.isLoggedIn && 
-             this.currentDepartament && 
-             !hiddenRoutes.some(route => currentPath.startsWith(route));
+      return this.isLoggedIn &&
+        this.currentDepartament &&
+        !hiddenRoutes.some(route => currentPath.startsWith(route));
     },
   },
   methods: {
@@ -114,7 +106,7 @@ $primary-color: #17a2b8;
 .mobile-header {
   position: sticky;
   top: 0;
-  z-index: 1040;
+  z-index: 1030;
   background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
   padding: 0.75rem 1rem;
   display: flex;
@@ -142,14 +134,14 @@ $primary-color: #17a2b8;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1045;
+  z-index: 1035;
 }
 
 // Mostrar sidebar en móvil
 @media (max-width: 991.98px) {
   .app-sidebar {
     transform: translateX(-100%);
-    
+
     &.show {
       transform: translateX(0);
     }
