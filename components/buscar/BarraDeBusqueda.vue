@@ -1,7 +1,7 @@
 <template>
-  <!-- <b-form class="input-search"> -->
-  <b-form-input class="input-search" autocomplete="off" v-model="value" placeholder="Buscar orden" v-on:keyup.enter="search" icon="search"></b-form-input>
-  <!-- </b-form> -->
+  <b-form class="form-search" @submit.prevent="search">
+    <b-form-input class="input-search" autocomplete="off" v-model="value" placeholder="Buscar orden" @keyup.enter="search" icon="search"></b-form-input>
+  </b-form>
 </template>
 
 <script>
@@ -32,8 +32,12 @@ export default {
 </script>
 
 <style scoped>
+.form-search {
+  float: right;
+  margin: 0;
+}
+
 .input-search {
-	width: 200px !important;
-	float: right;
+  width: 200px !important;
 }
 </style>

@@ -1,44 +1,22 @@
 <template>
   <div style="display: inline-flex; gap: 0.5rem; align-items: center;">
     <span style="display: inline-block;">
-      <b-button
-        @click="$bvModal.show(modal)"
-        variant="success"
-        :disabled="ButtonDisabled"
-        data-testid="btn-terminar-todo"
-      >{{ btnText }}</b-button>
+      <b-button @click="$bvModal.show(modal)" variant="success" :disabled="ButtonDisabled"
+        data-testid="btn-terminar-todo">{{ btnText }}</b-button>
     </span>
 
     <!-- Pausas -->
     <span style="display: inline-block;">
-      <empleados-pausasEmpleados
-        :pausas="filterPausa(item.orden)"
-        :pausasRaw="pausas"
-        :item="$props.item"
-        @reload="reloadMe"
-        @disBtnTodo="disBtnTodo"
-      />
+      <empleados-pausasEmpleados :pausas="filterPausa(item.orden)" :pausasRaw="pausas" :item="$props.item"
+        @reload="reloadMe" @disBtnTodo="disBtnTodo" />
     </span>
 
-    <b-modal
-      :id="modal"
-      :title="title"
-      hide-footer
-      size="lg"
-      data-testid="modal-datos-extra"
-    >
-      <b-overlay
-        :show="overlay"
-        spinner-small
-      >
+    <b-modal :id="modal" :title="title" hide-footer size="lg" data-testid="modal-datos-extra">
+      <b-overlay :show="overlay" spinner-small>
 
         <!-- Alerta cuando faltan impresoras o insumos -->
-        <b-alert
-          v-if="$store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion"
-          show
-          variant="warning"
-          class="mb-4"
-        >
+        <b-alert v-if="$store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion" show
+          variant="warning" class="mb-4">
           <h5 class="alert-heading">
             <b-icon icon="exclamation-triangle"></b-icon>
             {{ !hayImpresoras ? 'No hay impresoras configuradas' : 'No hay insumos de impresión disponibles' }}
@@ -71,166 +49,97 @@
         <b-form @reset="onReserForm">
           <div v-if="$store.state.login.currentDepartament === 'Impresión'">
             <!-- Iteración sobre impresoras seleccionadas -->
-            <b-card
-              v-for="(impresora, index) in impresorasSeleccionadas"
-              :key="impresora.id"
-              class="mb-3"
-              :header="'Impresora ' + (index + 1)"
-              header-bg-variant="light"
-            >
+            <b-card v-for="(impresora, index) in impresorasSeleccionadas" :key="impresora.id" class="mb-3"
+              :header="'Impresora ' + (index + 1)" header-bg-variant="light">
               <template #header>
                 <div class="d-flex justify-content-between align-items-center">
                   <span><strong>Impresora {{ index + 1 }}</strong></span>
-                  <b-button
-                    v-if="impresorasSeleccionadas.length > 1"
-                    variant="danger"
-                    size="sm"
-                    @click="removeImpresora(index)"
-                    aria-label="Eliminar impresora"
-                  >
+                  <b-button v-if="impresorasSeleccionadas.length > 1" variant="danger" size="sm"
+                    @click="removeImpresora(index)" aria-label="Eliminar impresora">
                     <b-icon icon="trash"></b-icon>
                   </b-button>
                 </div>
               </template>
 
 
-              <b-form-group
-                label="Impresora Utilizada"
-                :label-for="'impresora-select-' + index"
-              >
-                <b-form-select
-                  :id="'impresora-select-' + index"
-                  v-model="impresora.id_impresora"
-                  :options="getImpresorasOptionsForIndex(index)"
-                  :disabled="!puedeUsarModalImpresion"
-                  required
-                ></b-form-select>
+              <b-form-group label="Impresora Utilizada" :label-for="'impresora-select-' + index">
+                <b-form-select :id="'impresora-select-' + index" v-model="impresora.id_impresora"
+                  :options="getImpresorasOptionsForIndex(index)" :disabled="!puedeUsarModalImpresion"
+                  required></b-form-select>
               </b-form-group>
 
               <!-- Tintas en layout horizontal -->
               <b-row>
                 <b-col>
                   <b-form-group label="C">
-                    <b-form-input
-                      :id="'input-cyan-' + index"
-                      v-model="impresora.colorCyan"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
-                      :style="{
+                    <b-form-input :id="'input-cyan-' + index" v-model="impresora.colorCyan" type="number" step="0.1"
+                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
                         backgroundColor: colorMap.c,
                         color: 'black',
                         fontWeight: 'bold'
-                      }"
-                    ></b-form-input>
+                      }"></b-form-input>
                   </b-form-group>
                 </b-col>
                 <b-col>
                   <b-form-group label="M">
-                    <b-form-input
-                      :id="'input-magenta-' + index"
-                      v-model="impresora.colorMagenta"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
-                      :style="{
+                    <b-form-input :id="'input-magenta-' + index" v-model="impresora.colorMagenta" type="number"
+                      step="0.1" min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
                         backgroundColor: colorMap.m,
                         color: 'white',
                         fontWeight: 'bold'
-                      }"
-                    ></b-form-input>
+                      }"></b-form-input>
                   </b-form-group>
                 </b-col>
                 <b-col>
                   <b-form-group label="Y">
-                    <b-form-input
-                      :id="'input-yellow-' + index"
-                      v-model="impresora.colorYellow"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
-                      :style="{
+                    <b-form-input :id="'input-yellow-' + index" v-model="impresora.colorYellow" type="number" step="0.1"
+                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
                         backgroundColor: colorMap.y,
                         color: 'black',
                         fontWeight: 'bold'
-                      }"
-                    ></b-form-input>
+                      }"></b-form-input>
                   </b-form-group>
                 </b-col>
                 <b-col>
                   <b-form-group label="K">
-                    <b-form-input
-                      :id="'input-black-' + index"
-                      v-model="impresora.colorBlack"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
-                      :style="{
+                    <b-form-input :id="'input-black-' + index" v-model="impresora.colorBlack" type="number" step="0.1"
+                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
                         backgroundColor: colorMap.k,
                         color: 'white',
                         fontWeight: 'bold'
-                      }"
-                    ></b-form-input>
+                      }"></b-form-input>
                   </b-form-group>
                 </b-col>
                 <b-col v-if="showWhiteInkFieldForIndex(index)">
                   <b-form-group label="W">
-                    <b-form-input
-                      :id="'input-white-' + index"
-                      v-model="impresora.colorWhite"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
-                      :style="{
+                    <b-form-input :id="'input-white-' + index" v-model="impresora.colorWhite" type="number" step="0.1"
+                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
                         backgroundColor: colorMap.w,
                         color: 'black',
                         fontWeight: 'bold'
-                      }"
-                    ></b-form-input>
+                      }"></b-form-input>
                   </b-form-group>
                 </b-col>
               </b-row>
             </b-card>
 
             <!-- Botón para añadir impresora -->
-            <b-button
-              variant="outline-primary"
-              size="sm"
-              class="mb-3"
-              :disabled="!puedeAnadirImpresora || todasImpresorasSeleccionadas"
-              @click="addImpresora"
-            >
+            <b-button variant="outline-primary" size="sm" class="mb-3"
+              :disabled="!puedeAnadirImpresora || todasImpresorasSeleccionadas" @click="addImpresora">
               <b-icon icon="plus-lg"></b-icon> Añadir Impresora
             </b-button>
 
             <!-- Alerta cuando todas las impresoras están seleccionadas -->
-            <b-alert
-              v-if="todasImpresorasSeleccionadas && impresorasSeleccionadas.length > 0"
-              show
-              variant="info"
-              class="mb-3"
-            >
+            <b-alert v-if="todasImpresorasSeleccionadas && impresorasSeleccionadas.length > 0" show variant="info"
+              class="mb-3">
               Ha seleccionado todas las impresoras disponibles.
             </b-alert>
           </div>
           <!-- INPUT DE DESPERDICIO PARA CORTE (SIEMPRE VISIBLE) -->
           <div v-if="$store.state.login.currentDepartament === 'Corte'">
             <p>Peso del desperdicio en kilos</p>
-            <b-form-input
-              id="input-13"
-              v-model="desperdicioCorte"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="Peso desperdicio"
-              required
-              class="mb-2"
-            ></b-form-input>
+            <b-form-input id="input-13" v-model="desperdicioCorte" type="number" step="0.01" min="0"
+              placeholder="Peso desperdicio" required class="mb-2"></b-form-input>
           </div>
           <!-- <div v-if="$store.state.login.currentDepartament === 'Corte'">
             <b-form-group label="Peso del desperdicio en kilos" label-for="desperdicio-corte">
@@ -253,19 +162,27 @@
             <h5><strong>📊 Resumen de Material</strong></h5>
             <b-card bg-variant="light" class="mb-3">
               <!-- Material Estimado (desglosado por catálogo si hay múltiples insumos) -->
-              <h6><strong>Material Estimado (Sistema):</strong></h6>
               <div v-if="materialEstimadoPorCatalogo.length === 1">
                 <p class="mb-2">
-                  {{ materialEstimadoPorCatalogo[0].total }} {{ materialEstimadoPorCatalogo[0].unidad }} 
+                  <strong>Material Estimado (Sistema):</strong>
+                  {{ materialEstimadoPorCatalogo[0].total }} {{ materialEstimadoPorCatalogo[0].unidad }}
                   de {{ materialEstimadoPorCatalogo[0].catalogo }}
                 </p>
               </div>
               <div v-else-if="materialEstimadoPorCatalogo.length > 1">
+                <p class="mb-2"><strong>Material Estimado (Sistema):</strong></p>
                 <ul class="mb-2">
                   <li v-for="(item, index) in materialEstimadoPorCatalogo" :key="index">
                     <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
                   </li>
                 </ul>
+              </div>
+              <!-- Mostrar mensaje cuando no hay datos -->
+              <div v-else>
+                <p class="mb-2">
+                  <strong>Material Estimado (Sistema):</strong>
+                  <span class="text-muted">No hay datos de insumos disponibles</span>
+                </p>
               </div>
 
               <!-- Material Utilizado y Eficiencia -->
@@ -280,7 +197,8 @@
                   <span :class="eficienciaPorcentaje >= 100 ? 'text-success' : 'text-danger'">
                     {{ eficienciaPorcentaje }}%
                   </span>
-                  <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado' }})</small>
+                  <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado'
+                  }})</small>
                 </p>
               </div>
             </b-card>
@@ -288,68 +206,34 @@
 
           <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
           <div v-if="showSelect">
-            <b-button
-              variant="light"
-              @click="addItem"
-              aria-label="Agregar insumo"
-            >
+            <b-button variant="light" @click="addItem" aria-label="Agregar insumo">
               <b-icon icon="plus-lg"></b-icon>
             </b-button>
-            <b-table
-              responsive
-              :primary-key="form.id"
-              :fields="campos"
-              :items="form"
-              small
-            >
+            <b-table responsive :primary-key="form.id" :fields="campos" :items="form" small>
               <template #cell(input)="row">
-                <!-- Eficiencia de Insumo -->
-                <empleados-eficienciaInsumos
-                  class="mt-4 mb-4"
-                  :idorden="idorden"
-                  :idinsumo="getId(form[row.index].select)"
-                  :datainsumos="getCatalogosUnicos"
-                  @update_catalogo="updateCatalogo(row.index, $event)"
-                />
+                <div v-if="form[row.index]">
+                  <!-- Eficiencia de Insumo -->
+                  <empleados-eficienciaInsumos class="mt-4 mb-4" :idorden="idorden"
+                    :idinsumo="getId(form[row.index].select)" :datainsumos="getCatalogosUnicos"
+                    @update_catalogo="updateCatalogo(row.index, $event)" />
 
-                <vue-typeahead-bootstrap
-                  @hit="loadInsumos(row.index)"
-                  :data="dataSearchInsumo"
-                  size="lg"
-                  v-model="form[row.index].select"
-                  placeholder="Buscar Insumo"
-                />
+                  <vue-typeahead-bootstrap @hit="loadInsumos(row.index)" :data="dataSearchInsumo" size="lg"
+                    v-model="form[row.index].select" placeholder="Buscar Insumo" />
 
-                <!-- <b-form-select id="input-6" v-model="form[row.index].select"
-                                        :options="selectOptions" required></b-form-select> -->
-                <b-form-input
-                  id="input-7"
-                  v-model="form[row.index].input"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Peso"
-                  required
-                  class="mt-2 mb-4"
-                ></b-form-input>
-
+                  <!-- <b-form-select id="input-6" v-model="form[row.index].select"
+                                          :options="selectOptions" required></b-form-select> -->
+                  <b-form-input id="input-7" v-model="form[row.index].input" type="number" step="0.01" min="0"
+                    placeholder="Peso" required class="mt-2 mb-4"></b-form-input>
+                </div>
               </template>
 
               <template #cell(id)="row">
                 <div class="mt-4 mb-4 pt-2">
-                  <b-button
-                    variant="danger"
-                    @click="removeItem(row.index)"
-                    aria-label="Agregar insumo"
-                  >
+                  <b-button variant="danger" @click="removeItem(row.index)" aria-label="Agregar insumo">
                     <b-icon icon="trash"></b-icon>
                   </b-button>
 
-                  <b-button
-                    variant="primary"
-                    @click="terminarRollo(row.index)"
-                    aria-label="Agregar insumo"
-                  >
+                  <b-button variant="primary" @click="terminarRollo(row.index)" aria-label="Agregar insumo">
                     <b-icon icon="stoplights"></b-icon>
                   </b-button>
                 </div>
@@ -359,16 +243,10 @@
 
           <b-button
             :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
-            @click="validateForm"
-            variant="primary"
-            data-testid="btn-enviar-datos-extra"
-          >Enviar</b-button>
+            @click="validateForm" variant="primary" data-testid="btn-enviar-datos-extra">Enviar</b-button>
           <b-button
             :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
-            type="reset"
-            variant="danger"
-            data-testid="btn-borrar-datos-extra"
-          >Borrar</b-button>
+            type="reset" variant="danger" data-testid="btn-borrar-datos-extra">Borrar</b-button>
         </b-form>
       </b-overlay>
     </b-modal>
@@ -390,7 +268,7 @@ export default {
       ButtonDisabled: false,
       form: [],
       insumos: [],
-      dataInsumos: [],
+      dataInsumosLocal: [], // Insumos cargados del API localmente
       eficienciaEstimada: 0,
       // materialUtilizado: 0,
       fields: {},
@@ -427,9 +305,18 @@ export default {
   },
 
   computed: {
+    // Computed que combina datos del prop y datos locales del API
+    dataInsumosComputed() {
+      // Priorizar datos del prop si existen, sino usar los locales
+      if (this.dataInsumos && this.dataInsumos.length > 0) {
+        return this.dataInsumos;
+      }
+      return this.dataInsumosLocal;
+    },
+
     dataInsumosFiltrado() {
       // return this.$store.state.login.currentDepartamentId;
-      return this.dataInsumos.filter(
+      return this.dataInsumosComputed.filter(
         (el) =>
           el.id_departamento == this.$store.state.login.currentDepartamentId
       );
@@ -482,14 +369,14 @@ export default {
      * usando los datos de product_insumos_asignados (dataInsumos)
      */
     materialEstimadoDepartamento() {
-      if (!this.dataInsumos || this.dataInsumos.length === 0) {
+      if (!this.dataInsumosComputed || this.dataInsumosComputed.length === 0) {
         return { total: '0.00', unidad: 'Metros' };
       }
 
       const currentDeptId = this.$store.state.login.currentDepartamentId;
-      
+
       // Filtrar por departamento actual y agrupar por id_ordenes_productos para evitar duplicados
-      const insumosDept = this.dataInsumos.filter(
+      const insumosDept = this.dataInsumosComputed.filter(
         (el) => el.id_departamento == currentDeptId
       );
 
@@ -526,14 +413,14 @@ export default {
      * Devuelve un array con {catalogo, total, unidad} para mostrar desglosado
      */
     materialEstimadoPorCatalogo() {
-      if (!this.dataInsumos || this.dataInsumos.length === 0) {
+      if (!this.dataInsumosComputed || this.dataInsumosComputed.length === 0) {
         return [];
       }
 
       const currentDeptId = this.$store.state.login.currentDepartamentId;
-      
+
       // Filtrar por departamento actual
-      const insumosDept = this.dataInsumos.filter(
+      const insumosDept = this.dataInsumosComputed.filter(
         (el) => el.id_departamento == currentDeptId
       );
 
@@ -544,7 +431,7 @@ export default {
       // PASO 1: Deduplicar por id_ordenes_productos + catalogo
       // Usamos clave compuesta para evitar contar el mismo producto múltiples veces
       const productosUnicos = new Map();
-      
+
       insumosDept.forEach((item) => {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
@@ -559,11 +446,11 @@ export default {
 
       // PASO 2: Agrupar por catálogo y sumar totales
       const catalogoMap = new Map();
-      
+
       productosUnicos.forEach((producto) => {
         const catalogoNombre = producto.catalogo;
         const totalItem = producto.cantidad_estimada * producto.unidades;
-        
+
         if (catalogoMap.has(catalogoNombre)) {
           catalogoMap.get(catalogoNombre).total += totalItem;
         } else {
@@ -783,7 +670,7 @@ export default {
         });
         return;
       }
-      
+
       if (this.todasImpresorasSeleccionadas) {
         this.$fire({
           type: 'info',
@@ -959,7 +846,7 @@ export default {
             for (let i = 0; i < this.impresorasSeleccionadas.length; i++) {
               const impresora = this.impresorasSeleccionadas[i];
               const numImp = i + 1;
-              
+
               if (impresora.id_impresora === null) {
                 ok = false;
                 msg = msg + `<p>Impresora ${numImp}: Seleccione una impresora</p>`;
@@ -1465,10 +1352,10 @@ export default {
         .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`)
         .then((res) => {
           this.eficienciaDetalles = res.data.detalles;
-          this.dataInsumos = res.data.insumos_asignados;
+          this.dataInsumosLocal = res.data.insumos_asignados;
           this.eficienciaEstimada =
             res.data.total_eficiencia[0].eficiencia_estimada;
-          console.log("insumos_Asigandos_Eficiencia", this.dataInsumos);
+          console.log("insumos_Asigandos_Eficiencia", this.dataInsumosComputed);
         })
         .catch((err) => {
           this.$fire({
@@ -1524,24 +1411,13 @@ export default {
         this.$store.state.datasys.dataSys
       );
 
-      const showEstampado =
-        this.$store.state.datasys.dataSys
-          .sys_mostrar_rollo_en_empleado_estampado;
+      const dataSys = this.$store.state.datasys.dataSys || {};
 
-      const showCorte =
-        this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_corte;
-
-      const showCostura =
-        this.$store.state.datasys.dataSys
-          .sys_mostrar_insumo_en_empleado_costura;
-
-      const showLimpieza =
-        this.$store.state.datasys.dataSys
-          .sys_mostrar_insumo_en_empleado_limpieza;
-
-      const showRevision =
-        this.$store.state.datasys.dataSys
-          .sys_mostrar_insumo_en_empleado_revision;
+      const showEstampado = dataSys.sys_mostrar_rollo_en_empleado_estampado;
+      const showCorte = dataSys.sys_mostrar_rollo_en_empleado_corte;
+      const showCostura = dataSys.sys_mostrar_insumo_en_empleado_costura;
+      const showLimpieza = dataSys.sys_mostrar_insumo_en_empleado_limpieza;
+      const showRevision = dataSys.sys_mostrar_insumo_en_empleado_revision;
 
       console.log("DEBUG - Modal Extra - showEstampado:", showEstampado);
       console.log("DEBUG - Modal Extra - insumosest:", this.insumosest);
@@ -1597,6 +1473,7 @@ export default {
     "reload",
     "orden_proceso_departamento",
     "impresoras",
+    "dataInsumos",
   ],
 };
 </script>

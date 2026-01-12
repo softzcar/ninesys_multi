@@ -1,11 +1,7 @@
 <template>
   <div>
-    <b-button
-      @click="initTiemposDeProduccion"
-      :variant="buttonState.variant"
-      :disabled="buttonState.disabled"
-      class="mb-3"
-    >
+    <b-button @click="initTiemposDeProduccion" :variant="buttonState.variant" :disabled="buttonState.disabled"
+      class="mb-3">
       <b-icon icon="arrow-clockwise" :animation="isLoading ? 'spin' : ''"></b-icon>
       {{ buttonState.text }}
     </b-button>
@@ -13,75 +9,39 @@
     <h3 class="mt-4">Reposiciones</h3>
 
     <div v-if="isLoading">
-      <b-alert
-        class="text-cetner mb-4"
-        show
-        variant="info"
-      >
+      <b-alert class="text-cetner mb-4" show variant="info">
         <h3>Cargando reposiciones...</h3>
       </b-alert>
     </div>
 
     <div v-else-if="reposiciones_solicitadas.length === 0">
-      <b-alert
-        class="text-cetner mb-4"
-        show
-        variant="info"
-      >
+      <b-alert class="text-cetner mb-4" show variant="info">
         <h3>No hay reposiciones para revisar</h3>
       </b-alert>
     </div>
 
     <div v-else>
       <b-container fluid>
-        <draggable
-          v-model="reposiciones_solicitadas"
-          @end="afterDragRep"
-          tag="ul"
-          class="list-group reposiciones-grid-container"
-        >
-          <b-list-group
-            v-for="(el, index) in reposiciones_solicitadas"
-            class=""
-            :key="index"
-            horizontal
-          >
-            <b-list-group-item
-              style="cursor: grab"
-              class="pb-3 drag-handle d-flex align-items-left list-group-draggable-item"
-            >
+        <draggable v-model="reposiciones_solicitadas" @end="afterDragRep" tag="ul"
+          class="list-group reposiciones-grid-container">
+          <b-list-group v-for="(el, index) in reposiciones_solicitadas" class="" :key="index" horizontal>
+            <b-list-group-item style="cursor: grab"
+              class="pb-3 drag-handle d-flex align-items-left list-group-draggable-item">
               <span style="padding-top: 4px; padding-right: 8px; padding-top: 12px">☰</span>
             </b-list-group-item>
 
             <b-list-group-item style="min-width: 15%; max-width: 15%">
               <!-- Orden {{ el.id_orden }} -->
-              <div
-                v-if="el.estatus_revision === 'Aprobado'"
-                class="h1 mt-2"
-              >
+              <div v-if="el.estatus_revision === 'Aprobado'" class="h1 mt-2">
                 <b-button variant="outline-light">
-                  <b-icon
-                    icon="exclamation-circle-fill"
-                    variant="success"
-                    @click="showDesigner(el.disenador)"
-                    :key="el.orden"
-                  ></b-icon>
+                  <b-icon icon="exclamation-circle-fill" variant="success" @click="showDesigner(el.disenador)"
+                    :key="el.orden"></b-icon>
                 </b-button>
               </div>
 
-              <div
-                v-else
-                class="h1 mt-2"
-              >
-                <b-button
-                  variant="outline-light"
-                  @click="showDesigner(el.disenador)"
-                  :key="el.orden"
-                >
-                  <b-icon
-                    icon="exclamation-circle-fill"
-                    style="color: lightgray"
-                  ></b-icon>
+              <div v-else class="h1 mt-2">
+                <b-button variant="outline-light" @click="showDesigner(el.disenador)" :key="el.orden">
+                  <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
                 </b-button>
               </div>
             </b-list-group-item>
@@ -95,11 +55,7 @@
             </b-list-group-item>
 
             <b-list-group-item>
-              <produccionsse-reposicionesPendientes
-                :empleados="empleados"
-                :item="el"
-                :key="index"
-              />
+              <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index" />
             </b-list-group-item>
           </b-list-group>
         </draggable>
@@ -112,224 +68,148 @@
     <b-row class="mb-3">
       <b-col md="3">
         <b-form-group label="Filtrar por Orden" label-for="filter-orden">
-          <b-form-input
-            id="filter-orden"
-            v-model="filterOrden"
-            placeholder="Ej: 1234"
-            type="text"
-            debounce="300"
-          ></b-form-input>
+          <b-form-input id="filter-orden" v-model="filterOrden" placeholder="Ej: 1234" type="text"
+            debounce="300"></b-form-input>
         </b-form-group>
       </b-col>
       <b-col md="3">
         <b-form-group label="Filtrar por Cliente" label-for="filter-cliente">
-          <b-form-input
-            id="filter-cliente"
-            v-model="filterCliente"
-            placeholder="Nombre del cliente"
-            debounce="300"
-          ></b-form-input>
+          <b-form-input id="filter-cliente" v-model="filterCliente" placeholder="Nombre del cliente"
+            debounce="300"></b-form-input>
         </b-form-group>
       </b-col>
       <b-col md="3">
         <b-form-group label="Filtrar por Estado" label-for="filter-estatus">
-          <b-form-input
-            id="filter-estatus"
-            v-model="filterEstatus"
-            placeholder="Estado de la orden"
-            debounce="300"
-          ></b-form-input>
+          <b-form-input id="filter-estatus" v-model="filterEstatus" placeholder="Estado de la orden"
+            debounce="300"></b-form-input>
         </b-form-group>
       </b-col>
       <b-col md="3" class="d-flex align-items-end flex-column">
-        <b-button
-          v-if="isUserFiltering"
-          @click="clearFilters"
-          variant="outline-danger"
-          size="sm"
-          class="mb-2 w-100"
-        >
+        <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="mb-2 w-100">
           <b-icon icon="x-circle"></b-icon> Limpiar Filtros
         </b-button>
-        <b-alert
-          v-if="isUserFiltering"
-          show
-          variant="warning"
-          class="m-0 p-2 w-100 text-center"
-        >
-          <small
-            ><strong>Reordenamiento desactivado</strong> por filtros
-            activos.</small
-          >
+        <b-alert v-if="isUserFiltering" show variant="warning" class="m-0 p-2 w-100 text-center">
+          <small><strong>Reordenamiento desactivado</strong> por filtros
+            activos.</small>
         </b-alert>
       </b-col>
     </b-row>
 
     <div v-if="isLoading">
-      <b-alert
-        show
-        class="mt-2 mb-4"
-        variant="info"
-      >
+      <b-alert show class="mt-2 mb-4" variant="info">
         <h3>Cargando ordenes...</h3>
       </b-alert>
     </div>
 
     <div v-else-if="items.length === 0">
-      <b-alert
-        show
-        class="mt-2 mb-4"
-        variant="info"
-      >
+      <b-alert show class="mt-2 mb-4" variant="info">
         <h3>No hay ordenes en curso</h3>
       </b-alert>
     </div>
 
     <div v-else>
       <b-container fluid>
-        <draggable
-          v-model="itemsFiltrados"
-          @end="afterDrag"
-          tag="ul"
-          class="list-group"
-          handle=".drag-handle-zone"
-          :disabled="isUserFiltering"
-        >
-          <li
-            v-for="(el, index) in itemsFiltrados"
-            :key="index"
-            class="list-group-item"
-            style="list-style: none; padding: 0; margin: 0; border: none"
-          >
-            <b-list-group
-              class="list-group-draggable"
-            >
-              <b-list-group-item
-                class="pb-3 drag-handle d-flex align-items-left"
-              >
-                <span
-                  class="drag-handle-zone"
-                  :style="{
-                    cursor: isUserFiltering ? 'not-allowed' : 'grab',
-                    paddingTop: '4px',
-                    paddingRight: '16px',
-                    paddingTop: '12px',
-                    opacity: isUserFiltering ? 0.3 : 1
-                  }"
-                  >☰</span
-                >
+        <!-- Cabeceras fijas con el mismo grid -->
+        <div class="list-group-header">
+          <div class="list-group-header-item">⋮</div>
+          <div class="list-group-header-item">Orden</div>
+          <div class="list-group-header-item">Cliente</div>
+          <div class="list-group-header-item">Und.</div>
+          <div class="list-group-header-item">Progreso</div>
+          <div class="list-group-header-item">Entrega</div>
+          <div class="list-group-header-item">Vinc.</div>
+          <div class="list-group-header-item">Estatus</div>
+          <div class="list-group-header-item">Detalles</div>
+          <div class="list-group-header-item">Acciones</div>
+        </div>
+
+        <draggable v-model="itemsFiltrados" @end="afterDrag" tag="ul" class="list-group" handle=".drag-handle-zone"
+          :disabled="isUserFiltering">
+          <li v-for="(el, index) in itemsFiltrados" :key="index" class="list-group-item"
+            style="list-style: none; padding: 0; margin: 0; border: none">
+            <b-list-group class="list-group-draggable">
+              <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
+                <span class="drag-handle-zone" :style="{
+                  cursor: isUserFiltering ? 'not-allowed' : 'grab',
+                  paddingTop: '4px',
+                  paddingRight: '16px',
+                  paddingTop: '12px',
+                  opacity: isUserFiltering ? 0.3 : 1
+                }">☰</span>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Orden">
                 <div>
                   <link-search :id="el.orden" :key="el.orden" />
                 </div>
-                <div
-                  v-if="el.estatus_revision === 'Aprobado'"
-                  class="h1 mt-2"
-                >
+                <div v-if="el.estatus_revision === 'Aprobado'" class="h1 mt-2">
                   <b-button variant="outline-light">
-                    <b-icon
-                      icon="exclamation-circle-fill"
-                      variant="success"
-                      @click="showDesigner(el.disenador)"
-                      :key="el.orden"
-                    ></b-icon>
+                    <b-icon icon="exclamation-circle-fill" variant="success" @click="showDesigner(el.disenador)"
+                      :key="el.orden"></b-icon>
                   </b-button>
                 </div>
 
                 <div v-else class="h1 mt-2">
-                  <b-button
-                    variant="outline-light"
-                    @click="showDesigner(el.disenador)"
-                    :key="el.orden"
-                  >
-                    <b-icon
-                      icon="exclamation-circle-fill"
-                      style="color: lightgray"
-                    ></b-icon>
+                  <b-button variant="outline-light" @click="showDesigner(el.disenador)" :key="el.orden">
+                    <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
                   </b-button>
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Cliente">
                 {{ el.cliente }}
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Unidades">
                 <div>
                   {{ el.unidades }}
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Progreso">
                 <div>
-                  <produccionsse-progress-bar
-                    :pasos="pasos"
-                    :asignacion="asignacion"
-                    :emp_asignados="empleadosAsignados"
-                    :empleados="empleados"
-                    :por_asignar="por_asignar"
-                    :depart="pActivo(el.orden)"
-                    :item="el"
-                    :orden_productos="filterOrdenProductos(el.orden)"
-                    :reposicion_ordenes_productos="
-                      reposicion_ordenes_productos
-                    "
-                    :lote_detalles="filterLoteDetalles(el.orden)"
-                    :lotes_fisicos="lotes_fisicos"
-                    :key="el.orden"
-                    @reload="initTiemposDeProduccion"
-                  />
+                  <produccionsse-progress-bar :pasos="pasos" :asignacion="asignacion"
+                    :emp_asignados="empleadosAsignados" :empleados="empleados" :por_asignar="por_asignar"
+                    :depart="pActivo(el.orden)" :item="el" :orden_productos="filterOrdenProductos(el.orden)"
+                    :reposicion_ordenes_productos="reposicion_ordenes_productos
+                      " :lote_detalles="filterLoteDetalles(el.orden)" :lotes_fisicos="lotes_fisicos" :key="el.orden"
+                    @reload="initTiemposDeProduccion" />
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Entrega">
                 <div style="margin-top: 32px">
                   <!-- ===================== INICIO DE MODIFICACIÓN ==================== -->
                   <!-- Se reemplaza @reload por los eventos de modal -->
-                  <progreso-tiempo-semaforo
-                    :key="el.orden"
-                    @modal-shown="handleModalShown"
-                    @modal-hidden="handleModalHidden"
-                    :ordenesTodas="fechas"
-                    :id_orden="el.orden"
-                    :ordenesProyectadas2="ordenesProyectadas2"
-                  />
+                  <progreso-tiempo-semaforo :key="el.orden" @modal-shown="handleModalShown"
+                    @modal-hidden="handleModalHidden" :ordenesTodas="fechas" :id_orden="el.orden"
+                    :ordenesProyectadas2="ordenesProyectadas2" />
                   <!-- ====================== FIN DE MODIFICACIÓN ====================== -->
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Vinculada">
                 <div class="floatme">
-                  <ordenes-vinculadas-v2
-                    :ordenes_vinculadas="filterVinculadas(el.acciones)"
-                    :key="el.orden"
-                    :id_orden="el.orden"
-                  />
+                  <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculadas(el.acciones)" :key="el.orden"
+                    :id_orden="el.orden" />
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Estatus">
                 <div>
                   {{ el.estatus }}
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Detalles">
                 <div>
-                  <produccion-control-de-produccion-detalles-editor
-                    :idorden="el.orden"
-                    :item="el"
-                    :detalles="el.detalles"
-                    :detalle_empleado="el.detalle_empleado"
-                    :key="el.orden"
-                    :productos="productsFilter(el.orden)"
-                  />
+                  <produccion-control-de-produccion-detalles-editor :idorden="el.orden" :item="el"
+                    :detalles="el.detalles" :detalle_empleado="el.detalle_empleado" :key="el.orden"
+                    :productos="productsFilter(el.orden)" />
                 </div>
               </b-list-group-item>
 
-              <b-list-group-item>
+              <b-list-group-item data-label="Acciones">
                 <div>
                   <ordenes-editar :data="el" :key="el.orden" />
                 </div>
@@ -341,8 +221,8 @@
     </div>
   </div>
 </template>
-  
-  <script>
+
+<script>
 import mixin from "~/mixins/mixins.js";
 import mixin3 from "~/mixins/procesamientoOrdenes.js";
 import draggable from "vuedraggable";
@@ -370,7 +250,7 @@ export default {
       filterOrden: '',
       filterCliente: '',
       filterEstatus: '',
-      
+
       overlay: true,
       items: [],
       pactivos: [],
@@ -674,21 +554,21 @@ export default {
         // 2. Aplicar filtros de usuario si existen
         if (this.filterOrden) {
           const fOrden = this.filterOrden.toLowerCase();
-          filtered = filtered.filter(item => 
+          filtered = filtered.filter(item =>
             String(item.orden).toLowerCase().includes(fOrden)
           );
         }
 
         if (this.filterCliente) {
           const fCliente = this.filterCliente.toLowerCase();
-          filtered = filtered.filter(item => 
+          filtered = filtered.filter(item =>
             (item.cliente && item.cliente.toLowerCase().includes(fCliente))
           );
         }
 
         if (this.filterEstatus) {
           const fEstatus = this.filterEstatus.toLowerCase();
-          filtered = filtered.filter(item => 
+          filtered = filtered.filter(item =>
             (item.estatus && item.estatus.toLowerCase().includes(fEstatus))
           );
         }
@@ -699,14 +579,14 @@ export default {
         // Si el usuario está filtrando, NO permitimos reordenar (aunque el drag se haya disparado)
         // Esto es una medida de seguridad adicional, aunque el UI debería estar bloqueado.
         if (this.isUserFiltering) {
-            return; 
+          return;
         }
 
         // 1. Obtenemos los items que fueron filtrados (los que son solo no-físicos)
         // NOTA: Aquí solo consideramos el filtro base de "no físicos" para la lógica de reordenamiento original.
         // Si hubiera filtros de usuario activos, reorderedItems sería un subconjunto y perderíamos datos al guardar.
         // Por eso bloqueamos el set si isUserFiltering es true.
-        
+
         const itemsNoFisicos = this.items.filter((order) => {
           const productosDeLaOrden = this.orden_productos.filter(
             (p) => p.id_orden === order.orden
@@ -758,28 +638,163 @@ export default {
   mixins: [mixin, mixin3],
 };
 </script>
-  
-  <style scoped>
+
+<style scoped>
 .float-me {
   float: left;
   margin-right: 4px;
   margin-top: 4px;
 }
+
 .reposiciones-grid-container {
   display: grid;
   grid-template-columns: auto auto auto auto 1fr;
 }
 
-.list-group-draggable {
+/* Cabecera de la tabla list-group */
+.list-group-header {
   display: grid;
-  /* Define 10 columnas: Handle, Orden, Diseño, Cliente, Unidades, Progreso, Entrega, Vinculada, Estatus, Detalles, Acciones */
-  grid-template-columns: auto 1fr 4fr 1fr 2fr 2fr 1fr 1fr auto auto;
-  /* Ajusta las columnas según necesites. '1fr' para la columna de cliente que tomará el espacio restante */
+  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 80px;
+  background-color: #375a7f;
+  border: 1px solid #4e5d6c;
+  border-bottom: 2px solid #00bc8c;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  margin-bottom: 0;
 }
 
-.list-group-draggable > .list-group-item {
-  border-bottom: 1px solid #4e5d6c; /* Simula el borde de la fila */
+.list-group-header-item {
+  padding: 0 0.75rem;
   display: flex;
   align-items: center;
+  color: #fff;
+}
+
+.list-group-draggable {
+  display: grid;
+  /* Define 10 columnas: Handle, Orden, Cliente, Unidades, Progreso, Entrega, Vinculada, Estatus, Detalles, Acciones */
+  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 80px;
+  /* Ajusta las columnas según necesites. '1fr' para la columna de cliente que tomará el espacio restante */
+  padding: 0;
+  margin: 0;
+}
+
+.list-group-draggable .list-group-item {
+  padding: 0.5rem 0.5rem;
+  /* Reducir padding predeterminado de Bootstrap para mejor densidad */
+  border: none;
+  background-color: transparent;
+  /* Importante si hay fondo en filas alternas */
+  display: flex;
+  align-items: center;
+  /* Centrar contenido verticalmente */
+  overflow: hidden;
+  /* Evitar desbordes */
+  border-bottom: 1px solid #4e5d6c;
+  /* Simula el borde de la fila */
+}
+
+/* Handle de arrastre */
+.drag-handle-zone {
+  user-select: none;
+  touch-action: none;
+}
+
+@media (max-width: 1350px) {
+
+  /* Ocultar cabeceras en móvil */
+  .list-group-header {
+    display: none;
+  }
+
+  /* Transformar la fila en tarjeta */
+  .list-group-draggable {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    /* Borde suave claro */
+    margin-bottom: 1rem;
+    background-color: #fff;
+    /* Fondo blanco */
+    border-radius: 8px;
+    /* Bordes redondeados */
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* Sombra sutil */
+  }
+
+  /* Estilar cada celda como una fila de la tarjeta */
+  .list-group-draggable .list-group-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+    /* Separador muy sutil */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    /* Permitir que el contenido baje si es necesario */
+    width: 100%;
+    /* Ocupar todo el ancho */
+    min-height: 50px;
+    /* Altura mínima para facilidad táctil */
+    color: #333;
+    /* Texto oscuro */
+  }
+
+  /* Quitar borde del último item */
+  .list-group-draggable .list-group-item:last-child {
+    border-bottom: none;
+  }
+
+  /* Mostrar etiquetas usando data-label */
+  .list-group-draggable .list-group-item::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #00bc8c;
+    /* Verde del tema (se mantiene bien) */
+    margin-right: auto;
+    /* Empujar el contenido a la derecha */
+    padding-right: 1rem;
+    display: block;
+    /* Asegurar que se comporte bien */
+  }
+
+  /* Excepciones */
+
+  /* Handle: Ocultar o mostrar diferente */
+  .list-group-draggable .list-group-item:first-child {
+    background-color: #375a7f;
+    /* Color de cabecera manteniendo identidad */
+    justify-content: center;
+    padding: 0.5rem;
+    color: white;
+  }
+
+  .list-group-draggable .list-group-item:first-child::before {
+    display: none;
+    /* No mostrar label para el handle */
+  }
+
+  /* Progreso: Dar más espacio */
+  .list-group-draggable .list-group-item[data-label="Progreso"] {
+    flex-direction: column;
+    align-items: stretch;
+    /* Ocupar todo el ancho */
+  }
+
+  .list-group-draggable .list-group-item[data-label="Progreso"]::before {
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    width: 100%;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Cliente: Resaltar */
+  .list-group-draggable .list-group-item[data-label="Cliente"] {
+    font-size: 1.1em;
+    font-weight: bold;
+    background-color: #f8f9fa;
+    /* Gris muy claro para resaltar */
+  }
 }
 </style>

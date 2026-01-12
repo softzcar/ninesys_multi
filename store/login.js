@@ -1,3 +1,5 @@
+import { obtenerTasasConFallback } from '~/plugins/currency-rates'
+
 export const state = () => ({
     currentComponent: null,
     currentDepartament: "",
@@ -18,6 +20,10 @@ export const state = () => ({
     configuracionFaltante: [],
     token: null, // Token JWT
     refreshToken: null, // Token de refresco
+    // Nuevos campos para tasas automáticas
+    ultimaActualizacionTasas: null, // timestamp ISO
+    fuenteTasas: 'manual', // 'manual' | 'automatica' | 'fallback'
+    metadataTasas: null, // metadata de la última carga automática
 })
 
 export const mutations = {
@@ -126,11 +132,50 @@ export const mutations = {
     setAccess(state, value) {
         state.access = value
     },
+    setMetadataTasas(state, { timestamp, fuente, metadata }) {
+        state.ultimaActualizacionTasas = timestamp
+        state.fuenteTasas = fuente
+        state.metadataTasas = metadata
+    },
 }
 
 export const actions = {
     getLoading({ commit }, data) {
         commit("loading", data)
+    },
+    async cargarTasasAutomaticas({ commit }) {
+        try {
+            // Llamar a la función importada directamente
+            const resultado = await obtenerTasasConFallback()
+
+            if (resultado.success && resultado.tasas) {
+                // Actualizar todas las tasas en el store
+                Object.entries(resultado.tasas).forEach(([moneda, valor]) => {
+                    commit('setTasa', { moneda, valor })
+                })
+
+                // Actualizar metadata
+                commit('setMetadataTasas', {
+                    timestamp: resultado.timestamp,
+                    fuente: resultado.fallback ? 'fallback' : 'automatica',
+                    metadata: resultado.metadata
+                })
+
+                return {
+                    success: true,
+                    metadata: resultado.metadata,
+                    fallback: resultado.fallback || false
+                }
+            }
+
+            return resultado
+        } catch (error) {
+            console.error('Error en cargarTasasAutomaticas:', error)
+            return {
+                success: false,
+                error: error.message
+            }
+        }
     },
 }
 export const getters = {
@@ -184,6 +229,27 @@ export const getters = {
         }
 
         return false // No active currencies.
+    },
+
+    // Verifica si el usuario puede editar tasas según su departamento
+    puedeEditarTasas(state) {
+        const departamento = state.dataUser.departamento
+        const departamentosPermitidos = ['Administración', 'Comercialización']
+        return departamentosPermitidos.includes(departamento)
+    },
+
+    // Retorna información sobre la última actualización de tasas
+    infoUltimaActualizacionTasas(state) {
+        if (!state.ultimaActualizacionTasas) {
+            return null
+        }
+
+        return {
+            timestamp: state.ultimaActualizacionTasas,
+            fuente: state.fuenteTasas,
+            metadata: state.metadataTasas,
+            fecha_formateada: new Date(state.ultimaActualizacionTasas).toLocaleString('es-VE')
+        }
     },
 
     // E X I S T I N G   G E T T E R S

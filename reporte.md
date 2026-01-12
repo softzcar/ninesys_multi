@@ -60,3 +60,31 @@
 - Se han resuelto dos problemas críticos relacionados con la gestión de órdenes no asignadas, asegurando la integridad de los datos y mejorando la experiencia de usuario al editar órdenes.
 - Se ha robustecido el sistema de pagos y descuentos, corrigiendo errores de servidor y lógica de negocio.
 - Ambos repositorios (Frontend y Backend) han sido actualizados con todas las correcciones.
+
+## Domingo, 29 de Diciembre de 2025
+
+### Tareas Realizadas
+
+#### 1. Implementación de Dashboard de Comercialización
+- **Resumen:** Se implementó el dashboard completo para el módulo de Comercialización. Se integraron gráficos de ApexCharts para mostrar el resumen semanal de órdenes, el estado de las órdenes y los pagos de la semana.
+- **Logro:** El personal de comercialización ahora cuenta con una herramienta visual para monitorizar su desempeño y el estado de sus órdenes en tiempo real.
+
+#### 2. Nuevo Gráfico de Distribución de Procesos
+- **Resumen:** A solicitud del usuario, se añadió un gráfico de barras horizontal que visualiza la cantidad de órdenes activas (y en espera) en cada departamento del proceso productivo, ordenado secuencialmente.
+- **Logro:** Facilita la identificación de cuellos de botella y la carga de trabajo por departamento.
+
+#### 3. Solución de Persistencia de Sidebar (Bugfix)
+- **Resumen:** Se corrigió un error crítico donde el menú lateral desaparecía al recargar la página. Se implementó un plugin de persistencia (`vuex-persist.js`) para mantener la sesión del usuario.
+- **Logro:** La navegación es estable y robusta frente a recargas.
+
+#### 4. Corrección de Lógica de Estados y Datos
+- **Resumen:** Se corrigieron discrepancias en el backend donde las órdenes "En espera" no se contabilizaban en los gráficos debido a sensibilidad de mayúsculas (PHP) y filtros SQL estrictos. Además, se implementó un filtrado estricto por `id_empleado` (responsable) en todas las consultas para asegurar que cada usuario vea únicamente sus propios datos.
+- **Logro:** Los datos visualizados en los gráficos ahora coinciden exactamente con los registros reales de la base de datos y respetan la propiedad de las órdenes.
+
+#### 5. Corrección de Error 500 y Validación por Departamento
+- **Resumen:** Se resolvió un error crítico (500) causado por el uso de un método deprecado (`withJson`) y accesos inválidos a respuestas de error SQL. Se reestructuró el endpoint del dashboard para aceptar explícitamente el `id_departamento`, permitiendo validaciones contextuales requeridas por el usuario.
+- **Logro:** El dashboard carga correctamente validando el contexto del empleado (ID + Departamento) y manejando errores de base de datos de manera segura (JSON detallado en lugar de crash).
+
+### Resumen General
+- Se completó la entrega del Dashboard de Comercialización con funcionalidades extendidas (persistencia, nuevos gráficos).
+- Se realizaron despliegues en backend y ajustes en frontend para asegurar la integridad de los datos visualizados.

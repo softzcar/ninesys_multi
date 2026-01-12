@@ -28,15 +28,39 @@
                 > -->
             <div v-if="accessModule.access || accessModule.access === null">
                 
-                <!-- Si es comercialización -->
+                <!-- Si es comercialización - Dashboard con gráficos -->
                 <b-container
                     v-if="accessModule.accessData.id_modulo === 2"
+                    fluid
                 >
-                    <b-row>
-                        <b-col>
-                            <ordenes-nueva />
-                        </b-col>
-                    </b-row>
+                    <comercializacion-DashboardComercializacion />
+                </b-container>
+
+                <!-- Dashboard Administración (módulo 1) -->
+                <b-container
+                    v-else-if="accessModule.accessData.id_modulo === 1"
+                    fluid
+                >
+                    <administracion-DashboardAdministracion />
+                </b-container>
+
+                <!-- Dashboard Empleado (módulos 3 y 4) -->
+                <b-container
+                    v-else-if="
+                        accessModule.accessData.id_modulo === 3 ||
+                        accessModule.accessData.id_modulo === 4
+                    "
+                    fluid
+                >
+                    <empleados-DashboardEmpleado :showTasks="false" />
+                </b-container>
+
+                <!-- Si es Producción (módulo 5) - Dashboard con gráficos de producción -->
+                <b-container
+                    v-else-if="accessModule.accessData.id_modulo === 5"
+                    fluid
+                >
+                    <produccion-DashboardProduccion />
                 </b-container>
 
                 <b-container v-else>

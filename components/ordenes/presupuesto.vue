@@ -1,28 +1,12 @@
 <template>
   <div>
+
     <!-- modal de ordenes guardadas -->
-    <b-modal
-      :id="modal"
-      title="Ordenes guardadas"
-      hide-footer
-      size="lg"
-    >
+    <b-modal :id="modal" title="Presupuestos guardados" hide-footer size="lg">
       <div class="mb-4">
-        <b-table
-          ref="table"
-          responsive
-          small
-          :fields="fieldsGuardadas"
-          :items="ordenesGuardadas"
-          class="mb-4"
-        >
+        <b-table ref="table" responsive stacked small :fields="fieldsGuardadas" :items="ordenesGuardadas" class="mb-4">
           <template #cell(form)="data">
-            <b-button
-              variant="link"
-              @click="
-                            loadFormGuardadas(data.index, data.item._id)
-                            "
-            >
+            <b-button variant="link" @click="loadFormGuardadas(data.index, data.item._id)">
               {{ data.item.form.nombre }}
               {{ data.item.form.apellido }}
             </b-button>
@@ -33,10 +17,7 @@
           </template>
 
           <template #cell(_id)="data">
-            <b-button
-              @click="deleteOrdenGuardada(data.item._id)"
-              variant="danger"
-            >
+            <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger">
               <b-icon icon="trash"></b-icon>
             </b-button>
           </template>
@@ -44,46 +25,107 @@
       </div>
     </b-modal>
 
-    <b-overlay
-      :show="mainOverlay"
-      rounded="sm"
-    >
+    <!-- Modal para conversion a orden con datos de pago -->
+    <b-modal id="modal-conversion-pago" title="Convertir a Orden - Agregar Datos de Pago" size="xl" hide-footer
+      @hidden="cancelarConversion">
       <b-container>
+        <b-row class="mb-4">
+          <b-col>
+            <h5>Total del Presupuesto: ${{ form.total }}</h5>
+            <p class="text-muted">Ingrese los datos de pago para crear la orden</p>
+          </b-col>
+        </b-row>
+
         <b-row>
-          <b-col
-            xs="12"
-            sm="12"
-            md="3"
-            lg="3"
-            xl="3"
-            offset-md="9"
-            offset-lg="9"
-            offset-xl="9"
-          >
-            <h5>Tasas del día</h5>
-            <b-form>
-              <b-form-group label="Peso">
-                <b-form-input
-                  type="number"
-                  v-model="peso"
-                  @change="guardarPeso"
-                />
-              </b-form-group>
-              <b-form-group label="Dólar">
-                <b-form-input
-                  type="number"
-                  v-model="dolar"
-                  @change="guardarDolar"
-                />
-              </b-form-group>
-            </b-form>
+          <!-- DÓLARES -->
+          <b-col xl="4" lg="4" md="6" sm="12" class="mb-3">
+            <h5>Dólares</h5>
+            <hr />
+
+            <b-form-group label="EFECTIVO">
+              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoDolaresEfectivo"
+                placeholder="0.00"></b-form-input>
+            </b-form-group>
+
+            <b-form-group label="ZELLE">
+              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoDolaresZelle"
+                placeholder="0.00"></b-form-input>
+              <b-form-input v-model="formConversion.montoDolaresZelleDetalle" placeholder="Detalle de Zelle (opcional)"
+                class="mt-2"></b-form-input>
+            </b-form-group>
+
+            <b-form-group label="BANESCO PANAMÁ">
+              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoDolaresPanama"
+                placeholder="0.00"></b-form-input>
+              <b-form-input v-model="formConversion.montoDolaresPanamaDetalle" placeholder="Detalle (opcional)"
+                class="mt-2"></b-form-input>
+            </b-form-group>
+          </b-col>
+
+          <!-- PESOS -->
+          <b-col xl="4" lg="4" md="6" sm="12" class="mb-3">
+            <h5>Pesos</h5>
+            <hr />
+
+            <b-form-group label="EFECTIVO">
+              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoPesosEfectivo"
+                placeholder="0.00"></b-form-input>
+            </b-form-group>
+
+            <b-form-group label="PAGO MÓVIL">
+              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoPesosPago"
+                placeholder="0.00"></b-form-input>
+              <b-form-input v-model="formConversion.montoPesosPagoDetalle" placeholder="Detalle (opcional)"
+                class="mt-2"></b-form-input>
+            </b-form-group>
+          </b-col>
+
+          <!-- DESCUENTO Y RESUMEN -->
+          <b-col xl="4" lg="4" md="12" sm="12" class="mb-3">
+            <h5>Descuento</h5>
+            <hr />
+
+            <b-form-group label="DESCUENTO ($)">
+              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.descuento"
+                placeholder="0.00"></b-form-input>
+            </b-form-group>
+
+            <div class="mt-4 p-3 bg-light rounded">
+              <h6>Resumen</h6>
+              <p><strong>Total:</strong> ${{ form.total }}</p>
+              <p><strong>Abono:</strong> ${{ calculoAbonoConversion }}</p>
+              <p><strong>Descuento:</strong> ${{ formConversion.descuento || 0 }}</p>
+              <p class="text-primary"><strong>Resta:</strong> ${{ calculoRestanteConversion }}</p>
+            </div>
+          </b-col>
+        </b-row>
+
+        <b-row class="mt-4">
+          <b-col class="text-right">
+            <b-button @click="$bvModal.hide('modal-conversion-pago')" variant="secondary" class="mr-2">
+              Cancelar
+            </b-button>
+            <b-button @click="confirmarConversion" variant="success">
+              <b-icon-check-circle></b-icon-check-circle>
+              Confirmar y Crear Orden
+            </b-button>
           </b-col>
         </b-row>
       </b-container>
-      <div v-if="tasasCargadas">
+    </b-modal>
+
+    <b-overlay :show="mainOverlay" rounded="sm">
+      <b-container>
+        <b-row>
+          <b-col xs="12" sm="12" md="3" lg="3" xl="3" offset-md="9" offset-lg="9" offset-xl="9">
+            <form-monedas />
+          </b-col>
+        </b-row>
+      </b-container>
+      <div v-if="areRatesLoaded">
         <hr />
         <b-container>
-          <!-- <b-row v-if="ordenVinculada">
+          <b-row v-if="ordenVinculada">
             <b-col>
               <b-alert show variant="warning">
                 <h4 class="alert-heading">
@@ -99,245 +141,160 @@
                 </p>
               </b-alert>
             </b-col>
-          </b-row> -->
+          </b-row>
 
           <b-row>
             <b-col>
               <!-- Control buttons-->
               <div class="text-right mb-4">
                 <b-button-group class="mt-2">
-                  <b-button
-                    :disabled="disableButtons"
-                    @click="prev"
-                  >Anterior
+                  <b-button :disabled="disableButtons" @click="prev">Anterior
                   </b-button>
-                  <b-button
-                    :disabled="disableButtons"
-                    @click="next"
-                  >{{ nextText }}</b-button>
+                  <b-button :disabled="disableButtons" @click="next">{{
+                    nextText
+                  }}</b-button>
                 </b-button-group>
               </div>
 
-              <!-- Guardar Presupuesto para terminarlao después -->
-              <b-row>
-                <b-col>
-                  <b-button
-                    @click="guardarPresupuesto"
-                    class="floatme"
-                    variant="success"
-                  >Guardar</b-button>
-                  <b-button
-                    @click="cargarPresupuesto"
-                    class="floatme"
-                    variant="info"
-                  >Cargar</b-button>
-                  <b-button
-                    @click="clearForm"
-                    class="floatme"
-                    variant="danger"
-                  >Limpiar
-                    formulario</b-button>
-                </b-col>
-              </b-row>
+              <!-- Guardar Presupuesto para terminarla después -->
+              <div class="mb-4">
+                <div class="d-flex flex-column flex-md-row flex-wrap">
+                  <b-button @click="guardarPresupuesto" variant="success" class="mb-2 mb-md-0 mr-md-2">
+                    Guardar Presupuesto
+                  </b-button>
+
+                  <b-button v-if="presupuestoCargadoId !== null" @click="iniciarConversionAOrden" variant="warning"
+                    class="mb-2 mb-md-0 mr-md-2">
+                    <b-icon-arrow-right-circle></b-icon-arrow-right-circle>
+                    Convertir a Orden
+                  </b-button>
+
+                  <b-button @click="cargarOrden" variant="info" class="mb-2 mb-md-0 mr-md-2">
+                    Cargar Orden o Presupuesto
+                  </b-button>
+
+
+                  <b-button @click="clearForm" variant="danger" class="mb-2 mb-md-0">
+                    Limpiar formulario
+                  </b-button>
+                </div>
+              </div>
               <b-row>
                 <b-col>
                   <div>
                     <!-- Tabs with card integration -->
-                    <b-card
-                      class="mt-4"
-                      no-body
-                    >
-                      <b-tabs
-                        v-model="tabIndex"
-                        @change="preventTabClick"
-                        small
-                        card
-                      >
-                        <b-tab
-                          title="Cliente"
-                          title-link-class="h5"
-                          :disabled="disable1"
-                        >
+                    <b-card class="mt-4" no-body>
+                      <b-tabs v-model="tabIndex" @change="preventTabClick" small card>
+                        <b-tab title="Cliente" title-link-class="h5" :disabled="disable1">
+                          <b-alert v-if="fechaProximaDisponible" show variant="info" class="mb-4">
+                            <h5 class="alert-heading">
+                              <b-icon icon="calendar-check"></b-icon> Próxima Fecha de Entrega Sugerida
+                            </h5>
+                            <p class="mb-0">
+                              Según la cola de producción actual, la próxima fecha disponible para finalizar una nueva
+                              orden
+                              es aproximadamente el
+                              <strong>{{ fechaProximaFormateada }}</strong>.
+                            </p>
+                          </b-alert>
                           <div class="wizard-content">
-                            <h3 class="mb-4">
-                              Datos del cliente
-                            </h3>
-                            <b-overlay
-                              :show="loading.show"
-                              rounded
-                              opacity="0.6"
-                              spinner-small
-                              spinner-variant="primary"
-                              class="d-inline-block"
-                              @hidden="onHidden"
-                            >
+                            <h3 class="mb-4">Datos del cliente</h3>
+                            <b-overlay :show="loading.show" rounded opacity="0.6" spinner-small
+                              spinner-variant="primary" class="d-inline-block" @hidden="onHidden">
                               <b-row>
                                 <b-col>
                                   <div class="buscador">
-                                    <h5>
-                                      Buscar
-                                      Cliente
-                                    </h5>
-                                    <vue-typeahead-bootstrap
-                                      @hit="loadForm
-                                                                            "
-                                      :data="$store
-                                                                                .state
-                                                                                .comerce
-                                                                                .customersSelect
-                                                                                "
-                                      size="lg"
-                                      v-model="query2
-                                                                                    "
-                                      placeholder="Nombre o teléfono"
-                                    />
+                                    <h5>Buscar Cliente</h5>
+                                    <vue-typeahead-bootstrap @hit="loadForm" :data="$store.state.comerce.customersSelect
+                                      " size="lg" v-model="query2" placeholder="Nombre o teléfono" />
                                   </div>
                                 </b-col>
                               </b-row>
-                              <!-- <b-row>
+                              <b-row>
                                 <b-col lg="12">
-                                  <produccion-vincularOrden
-                                    @reload="reloadVinculo"
-                                  />
+                                  <produccion-vincularOrden @reload="reloadVinculo" />
                                   <hr class="my-4 pb-4" />
                                 </b-col>
-                              </b-row> -->
+                              </b-row>
                               <b-row>
                                 <b-col lg="12">
                                   <b-form v-on:submit.prevent>
-                                    <!-- <b-form-group>
-                                      <label for="input-fecha"
-                                        >Fecha de entega
-                                        <span required>*</span></label
-                                      >
-                                      <b-form-datepicker
-                                        id="input-fecha"
-                                        v-model="form.fechaEntrega"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Selecciona una fecha"
-                                      ></b-form-datepicker>
-                                    </b-form-group> -->
-
                                     <b-form-group>
-                                      <label for="input-nombre">Nombre
-                                        <span required>*</span></label>
-                                      <b-form-input
-                                        id="input-nombre"
-                                        ref="nombre"
-                                        v-model="form.nombre
-                                                                                    "
-                                        type="text"
+                                      <label for="input-fecha">Fecha de entrega
+                                        <span required>*</span>
+                                        <small v-if="fechaProximaDisponible" class="d-block text-muted">
+                                          <strong>Sugerida a partir del: {{ fechaProximaFormateada }}</strong>
+                                        </small>
+                                      </label>
+                                      <b-form-datepicker id="input-fecha" v-model="form.fechaEntrega"
                                         class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese el nombre"
-                                      ></b-form-input>
+                                        placeholder="Selecciona una fecha"></b-form-datepicker>
                                     </b-form-group>
 
                                     <b-form-group>
-                                      <label for="input-apellido">Apellido
-                                        <span required>*</span></label>
-                                      <b-form-input
-                                        id="input-apellido"
-                                        v-model="form.apellido
-                                                                                "
-                                        type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese el apellido"
-                                      ></b-form-input>
+                                      <label for="input-nombre">Nombre <span required>*</span></label>
+                                      <b-form-input id="input-nombre" ref="nombre" v-model="form.nombre" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el nombre"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
-                                      <label for="input-telefono">Teléfono
-                                        <span required>*</span></label>
-                                      <b-form-input
-                                        id="input-telefono"
-                                        v-model="form.telefono
-                                                                                "
-                                        type="tel"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese teléfono"
-                                      ></b-form-input>
+                                      <label for="input-apellido">Apellido <span required>*</span></label>
+                                      <b-form-input id="input-apellido" v-model="form.apellido" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el apellido"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
+                                      <label for="input-telefono">Teléfono <span required>*</span></label>
+                                      <b-form-input id="input-telefono" v-model="form.telefono" type="tel"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese teléfono (Ej: 0414...)"
+                                        @input="form.telefono = cleanPhoneInput($event)"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-cedula">Cedula</label>
-                                      <b-form-input
-                                        id="input-cedula"
-                                        v-model="form.cedula
-                                                                                "
-                                        type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese la Cédula"
-                                      ></b-form-input>
+                                      <b-form-input id="input-cedula" v-model="form.cedula" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la Cédula"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-email">Email</label>
-                                      <b-form-input
-                                        id="input-email"
-                                        v-model="form.email
-                                                                                "
-                                        type="email"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese el email"
-                                      ></b-form-input>
+                                      <b-form-input id="input-email" v-model="form.email" type="email"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el email"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-address">Dirección</label>
-                                      <b-form-input
-                                        id="input-address"
-                                        v-model="form.direccion
-                                                                                "
-                                        type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Ingrese la dirección"
-                                      ></b-form-input>
+                                      <b-form-input id="input-address" v-model="form.direccion" type="text"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la dirección"></b-form-input>
                                     </b-form-group>
                                   </b-form>
                                   <p info-form>
                                     <span required>*</span>
-                                    Campos
-                                    obligatorios
+                                    Campos obligatorios
                                   </p>
                                 </b-col>
                               </b-row>
                             </b-overlay>
                           </div>
                         </b-tab>
-                        <b-tab
-                          title="Productos"
-                          title-link-class="h5"
-                          :disabled="disable2"
-                        >
+                        <b-tab title="Productos" title-link-class="h5" :disabled="disable2">
                           <div class="wizard-content">
                             <b-row>
                               <b-col lg="12">
                                 <b-list-group>
                                   <b-list-group-item>Cédula:
-                                    {{
-                                                                            form.cedula
-                                                                        }}</b-list-group-item>
+                                    {{ form.cedula }}</b-list-group-item>
                                   <b-list-group-item>Nombre:
-                                    {{
-                                                                            form.nombre
-                                                                        }}
-                                    {{
-                                                                            form.apellido
-                                                                        }}</b-list-group-item>
+                                    {{ form.nombre }}
+                                    {{ form.apellido }}</b-list-group-item>
                                   <b-list-group-item>Teléfono:
-                                    {{
-                                                                            form.telefono
-                                                                        }}</b-list-group-item>
-                                  <b-list-group-item>Email:
-                                    {{
-                                                                            form.email
-                                                                        }}</b-list-group-item>
+                                    {{ form.telefono }}</b-list-group-item>
+                                  <b-list-group-item>Email: {{ form.email }}</b-list-group-item>
                                   <b-list-group-item>Entrega:
-                                    {{
-                                                                            form.fechaEntrega
-                                                                        }}</b-list-group-item>
+                                    {{ form.fechaEntrega }}</b-list-group-item>
                                 </b-list-group>
                                 <br />
+                                <AtributosNuevo @reload="loadProductAttributes" />
                               </b-col>
                             </b-row>
 
@@ -346,223 +303,113 @@
                                 <b-list-group horizontal>
                                   <b-list-group-item>
                                     <h3>
-                                      TOTAL
-                                      PRESUPUESTO:
-                                      $
-                                      {{
-                                                                                form.total
-                                                                            }}
+                                      TOTAL PRESUPUESTO: $
+                                      {{ form.total }}
                                     </h3>
                                   </b-list-group-item>
                                   <br />
                                 </b-list-group>
                                 <b-row>
-                                  <b-col
-                                    lg="6"
-                                    class="mt-4"
-                                  >
-                                    <products-new @r="getResponseNewProduct
-                                                                            " />
+                                  <b-col lg="6" class="mt-4">
+                                    <products-new :attributescat="productAttributes"
+                                      :attributesval="productAttributesValues" @r="getResponseNewProduct" />
                                   </b-col>
                                 </b-row>
                                 <br />
 
-                                <!-- Opciones para sekeccuibar si es Custom o Sport -->
-                                <!-- <b-form-radio-group
-                                  id="btn-radios-2"
-                                  v-model="categoriaDeLaORden"
-                                  :options="categoriaDeLaORdenOptions"
-                                  button-variant="outline-primary"
-                                  size="lg"
-                                  name="radio-btn-outline"
-                                  buttons
-                                  class="mb-4"
-                                  @input="changeCategory"
-                                ></b-form-radio-group> -->
+                                <b-form-radio-group id="btn-radios-2" v-model="categoriaDeLaORden"
+                                  :options="categoriaDeLaORdenOptions" button-variant="outline-primary" size="lg"
+                                  name="radio-btn-outline" buttons class="mb-4"
+                                  @input="changeCategory"></b-form-radio-group>
 
-                                <vue-typeahead-bootstrap
-                                  @hit="loadProduct
-                                                                    "
-                                  :data="$store
-                                                                        .state
-                                                                        .comerce
-                                                                        .dataProductosSelect
-                                                                        "
-                                  v-model="query
-                                                                            "
-                                  placeholder="Seleccione los productos"
-                                />
+                                <b-form-checkbox v-model="form.guardarStock" :disabled="categoriaDeLaORden !== 'custom'"
+                                  class="mb-4">
+                                  Guardar en Stock
+                                </b-form-checkbox>
+
+                                <vue-typeahead-bootstrap @hit="loadProduct" :data="$store.state.comerce.dataProductosSelect
+                                  " v-model="query" placeholder="Seleccione los productos" />
                               </b-col>
                             </b-row>
 
                             <b-row>
-                              <b-col
-                                lg="12"
-                                class="mt-4"
-                              >
-                                <b-table
-                                  :stacked="isSmallScreen
-                                                                    ? 'md'
-                                                                    : false"
-                                  :responsive="!isSmallScreen"
-                                  borderless
-                                  striped
-                                  :primary-key="form
-                                                                        .productos
-                                                                        .item
-                                                                        "
-                                  :fields="campos
-                                                                        "
-                                  :items="form.productos
-                                                                            "
-                                  small
-                                >
-                                  <template #cell(nombre)="data">
+                              <b-col>
+                                <h3 style="margin-top: 2rem">
+                                  TOTAL PRODUCTOS:
+                                  {{
+                                    totalProductos(form.productos, "cantidad")
+                                  }}
+                                </h3>
+                              </b-col>
+                            </b-row>
+
+                            <b-row>
+                              <b-col lg="12" class="mt-4">
+                                <b-table :stacked="isSmallScreen ? 'md' : false" :responsive="!isSmallScreen" borderless
+                                  striped :primary-key="form.productos.item" :fields="campos" :items="form.productos"
+                                  small>
+                                  <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
-                                                                            data
-                                                                                .item
-                                                                                .item
-                                                                                .producto
-                                                                        }}</a>
+                                      data.item.producto
+                                    }}</a>
                                   </template>
 
                                   <template #cell(item)="data">
-                                    {{
-                                                                            data.index +
-                                                                            1
-                                                                        }}
+                                    {{ data.index + 1 }}
                                   </template>
 
                                   <template #cell(cantidad)="data">
-                                    <b-form-input
-                                      v-model="form
-                                                                            .productos[
-                                                                            data
-                                                                                .index
-                                                                        ]
-                                                                            .cantidad
-                                                                            "
-                                      min="0"
-                                      :max="maxDesignLimit(
-                                                                                data
-                                                                                    .item
-                                                                                    .cod
-                                                                            )
-                                                                                "
-                                      type="number"
-                                      @change="montoTotalOrden
-                                                                                    "
-                                    ></b-form-input>
+                                    <b-form-input v-model="form.productos[data.index].cantidad
+                                      " min="0" :max="1000" type="number" @change="montoTotalOrden"></b-form-input>
                                   </template>
 
                                   <template #cell(corte)="data">
-                                    <b-form-select
-                                      :disabled="checkDesignForDiseabled(
-                                                                            data
-                                                                                .item
-                                                                                .cod
-                                                                        )
-                                                                            "
-                                      v-model="form
-                                                                                .productos[
-                                                                                data
-                                                                                    .index
-                                                                            ]
-                                                                                .corte
-                                                                                "
-                                      :options="cortes
-                                                                                    "
-                                    ></b-form-select>
+                                    <b-form-select :disabled="data.item.diseno"
+                                      v-model="form.productos[data.index].corte" :options="cortes"></b-form-select>
+                                  </template>
+
+                                  <template #cell(precio)="data">
+                                    <b-form-select v-model="form.productos[data.index].original_selected_price
+                                      " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, null)
+                                        ">
+                                    </b-form-select>
                                   </template>
 
                                   <template #cell(talla)="data">
-                                    <b-form-select
-                                      :disabled="checkDesignForDiseabled(
-                                                                            data
-                                                                                .item
-                                                                                .cod
-                                                                        )
-                                                                            "
-                                      v-model="form
-                                                                                .productos[
-                                                                                data
-                                                                                    .index
-                                                                            ]
-                                                                                .talla
-                                                                                "
-                                      :options="$store
-                                                                                    .state
-                                                                                    .comerce
-                                                                                    .dataTallas
-                                                                                    "
-                                      @change="
-                                                                                        recalcularSegunTalla(
-                                                                                            data.index,
-                                                                                            form
-                                                                                                .productos[
-                                                                                            data
-                                                                                                .index
-                                                                                            ]
-                                                                                        )
-                                                                                        "
-                                    ></b-form-select>
+                                    <b-form-select :disabled="data.item.diseno"
+                                      v-model="form.productos[data.index].talla"
+                                      :options="$store.state.comerce.dataTallas" @change="
+                                        recalcularSegunTalla(
+                                          data.index,
+                                          form.productos[data.index],
+                                          data.item.cod
+                                        )
+                                        "></b-form-select>
                                   </template>
 
                                   <template #cell(tela)="data">
-                                    <b-form-select
-                                      :disabled="checkDesignForDiseabled(
-                                                                            data
-                                                                                .item
-                                                                                .cod
-                                                                        )
-                                                                            "
-                                      v-model="form
-                                                                                .productos[
-                                                                                data
-                                                                                    .index
-                                                                            ]
-                                                                                .tela
-                                                                                "
-                                      :options="$store
-                                                                                    .state
-                                                                                    .comerce
-                                                                                    .dataTelas
-                                                                                    "
-                                    ></b-form-select>
+                                    <b-form-select :disabled="data.item.diseno"
+                                      v-model="form.productos[data.index].tela"
+                                      :options="$store.state.comerce.dataTelas"></b-form-select>
+                                  </template>
+
+                                  <template #cell(atributo)="data">
+                                    <ordenes-asignacion-atributos :product="data.item" :product-index="data.index"
+                                      :attributes="productAttributes" @attributes-updated="handleAttributesUpdate"
+                                      @reload-attributes="loadProductAttributes" />
                                   </template>
 
                                   <template #cell(acciones)="data">
                                     <div>
                                       <span class="floatme">
-                                        <b-button
-                                          :disabled="checkDesignForDiseabled(
-                                                                                    data
-                                                                                        .item
-                                                                                        .cod
-                                                                                )
-                                                                                    "
-                                          variant="primary"
-                                          icon="ti-check"
-                                          @click="
-                                                                                        duplicateItem(
-                                                                                            data.index,
-                                                                                            data.item
-                                                                                        )
-                                                                                        "
-                                        >
+                                        <b-button :disabled="data.item.diseno" variant="primary" icon="ti-check" @click="
+                                          duplicateItem(data.index, data.item)
+                                          ">
                                           <b-icon-box-arrow-in-left></b-icon-box-arrow-in-left>
                                         </b-button>
                                       </span>
                                       <span class="floatme">
-                                        <b-button
-                                          variant="danger"
-                                          icon="ti-check"
-                                          @click="
-                                                                                        removeItem(
-                                                                                            data.index
-                                                                                        )
-                                                                                        "
-                                        >
+                                        <b-button variant="danger" icon="ti-check" @click="removeItem(data.index)">
                                           <b-icon-trash></b-icon-trash>
                                         </b-button>
                                       </span>
@@ -572,389 +419,21 @@
                               </b-col>
 
                               <b-col lg="12">
-                                <h3 class="mb-4 mt-4">
-                                  Observaciones
-                                </h3>
-                                <quill-editor
-                                  v-model="form.obs
-                                                                    "
-                                  @change="
-                                                                        onEditorChange(
-                                                                            $event
-                                                                        )
-                                                                        "
-                                  :options="quillOptions"
-                                ></quill-editor>
+                                <h3 class="mb-4 mt-4">Observaciones</h3>
+                                <quill-editor ref="myQuillEditor" v-model="form.obs" :options="quillOptions"
+                                  @change="onEditorChange($event)"></quill-editor>
                               </b-col>
                             </b-row>
                           </div>
                         </b-tab>
-                        <!-- <b-tab
-                          title="Pago y asignación"
-                          title-link-class="h5"
-                          :disabled="disable3"
-                        >
-                          <div class="wizard-content">
-                            <b-container>
-                              <b-row>
-                                <b-col class="mb-4">
-                                  <h2>Monto pagado y asignacion de diseño</h2>
-                                </b-col>
-                              </b-row>
-                              <b-row style="border: solid 1px lightgray">
-                                <b-col class="mt-4">
-                                  <b-row>
-                                    <b-col
-                                      xl="3"
-                                      lg="3"
-                                      md="3"
-                                      sm="12"
-                                      class="mb-4"
-                                    >
-                                      <h4 style="color: red">
-                                        TOTAL: $
-                                        {{ form.total }}
-                                      </h4>
-                                    </b-col>
-
-                                    <b-col
-                                      xl="3"
-                                      lg="3"
-                                      md="3"
-                                      sm="12"
-                                      class="mb-4"
-                                    >
-                                      <h4>ABONO: $ {{ form.abono }}</h4>
-                                    </b-col>
-
-                                    <b-col
-                                      xl="3"
-                                      lg="3"
-                                      md="3"
-                                      sm="12"
-                                      class="mb-4"
-                                    >
-                                      <h4>DESC: $ {{ form.descuento }}</h4>
-                                    </b-col>
-                                    <b-col
-                                      xl="3"
-                                      lg="3"
-                                      md="3"
-                                      sm="12"
-                                      class="mb-4"
-                                    >
-                                      <h4>
-                                        RESTA: $
-                                        {{ calculoPago }}
-                                      </h4>
-                                    </b-col>
-                                  </b-row>
-                                </b-col>
-                              </b-row>
-
-                              <b-row>
-                                <b-col xl="3" lg="3" md="3" sm="12">
-                                  <b-row>
-                                    <b-col>
-                                      <hr />
-                                      <h4>Dólares {{ totalDolares }}</h4>
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-1"
-                                        label="EFECTIVO"
-                                        label-for="input-dolares-efectivo"
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-dolares-efectivo"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          @change="updateMontoAbono"
-                                          v-model="form.montoDolaresEfectivo"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-2"
-                                        label="ZELLE"
-                                        label-for="input-dolares-zelle"
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-dolares-zelle"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          @change="updateMontoAbono"
-                                          v-model="form.montoDolaresZelle"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <b-form-input
-                                        v-model="form.montoDolaresZelleDetalle"
-                                        placeholder="Detalle de Zelle"
-                                      ></b-form-input>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-3"
-                                        label="BANESCO PANAMA"
-                                        label-for="input-dolares-zelle"
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-dolares-zelle"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          @change="updateMontoAbono"
-                                          v-model="form.montoDolaresPanama"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <b-form-input
-                                        v-model="form.montoDolaresPanamaDetalle"
-                                        placeholder="Detalle Banesco Panamá"
-                                      ></b-form-input>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-                                </b-col>
-                                <b-col xl="3" lg="3" md="3" sm="12">
-                                  <b-row>
-                                    <b-col>
-                                      <hr />
-                                      <h4>Pesos {{ totalPesos }}</h4>
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-4"
-                                        label="EFECTIVO"
-                                        label-for="input-dolares-efectivo"
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-pesos-efectivo"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          v-model="form.montoPesosEfectivo"
-                                          @change="updateMontoAbono"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-5"
-                                        label="TRANSFERENCIA"
-                                        label-for="input-dolares-zelle"
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-pesos-dolares-zelle"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          v-model="form.montoPesosTransferencia"
-                                          @change="updateMontoAbono"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <b-form-input
-                                        v-model="
-                                          form.montoPesosTransferenciaDetalle
-                                        "
-                                        placeholder="Detalle Pesos transferencia"
-                                      ></b-form-input>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-                                </b-col>
-                                <b-col xl="3" lg="3" md="3" sm="12">
-                                  <b-row>
-                                    <b-col>
-                                      <hr />
-                                      <h4>Bolívares {{ totalBolivares }}</h4>
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-6"
-                                        label="EFECTIVO"
-                                        label-for="input-bolivares-efectivo "
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-bolivares-efectivo"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          v-model="form.montoBolivaresEfectivo"
-                                          @change="updateMontoAbono"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-6"
-                                        label="PAGO MOVIL"
-                                        label-for="input-bolivares-pagomovil "
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-bolivares-pagomovil"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          v-model="form.montoBolivaresPagomovil"
-                                          @change="updateMontoAbono"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <b-form-input
-                                        v-model="
-                                          form.montoBolivaresPagomovilDetalle
-                                        "
-                                        placeholder="Detalle pago móvil"
-                                      ></b-form-input>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-6"
-                                        label="TRANSFERENCIA"
-                                        label-for="input-bolivares-transferencia "
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-bolivares-transferencia"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          v-model="
-                                            form.montoBolivaresTransferencia
-                                          "
-                                          @change="updateMontoAbono"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <b-form-input
-                                        v-model="
-                                          form.montoBolivaresTransferenciaDetalle
-                                        "
-                                        placeholder="Detalle Bolívares transferecia"
-                                      ></b-form-input>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-6"
-                                        label="PUNTO"
-                                        label-for="input-bolivares-punto "
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-bolivares-punto"
-                                          type="number"
-                                          step="0.10"
-                                          min="0"
-                                          v-model="form.montoBolivaresPunto"
-                                          @change="updateMontoAbono"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                    </b-col>
-                                  </b-row>
-                                </b-col>
-
-                                <b-col xl="3" lg="3" md="3" sm="12">
-                                  <b-row>
-                                    <b-col>
-                                      <hr />
-                                      <h4>DESCUENTO</h4>
-                                    </b-col>
-                                  </b-row>
-
-                                  <b-row align-h="start">
-                                    <b-col>
-                                      <b-form-group
-                                        id="input-group-10"
-                                        label="DESCUENTO"
-                                        label-for="input-dolares-descuento"
-                                        class="pl-2"
-                                      >
-                                        <b-form-input
-                                          id="input-grpoup-10"
-                                          min="0"
-                                          step="0.10"
-                                          v-model="form.descuento"
-                                          @keydown.enter.stop.prevent
-                                          type="number"
-                                          class="mb-2 mr-sm-2 mb-sm-0"
-                                          placeholder="Ingrese el descuento"
-                                        ></b-form-input>
-                                      </b-form-group>
-                                      <b-form-input
-                                        v-model="form.descuentoDetalle"
-                                        placeholder="Detalle Descuento"
-                                      ></b-form-input>
-                                      <hr />
-                                    </b-col>
-                                  </b-row>
-                                </b-col>
-                              </b-row>
-                            </b-container>
-                          </div>
-                        </b-tab> -->
-                        <b-tab
-                          title="Emitir Presupuesto"
-                          title-link-class="h5"
-                          :disabled="disable3"
-                        >
+                        <b-tab title="Emitir Presupuesto" title-link-class="h5" :disabled="disable3">
                           <div class="wizard-content">
                             <b-row>
                               <b-col>
-                                <b-alert
-                                  style="
-                                                                        padding: 2.4rem;
-                                                                    "
-                                  variant="success"
-                                  show
-                                >
+                                <b-alert style="padding: 2.4rem" variant="success" show>
                                   <h2>
-                                    Verifique
-                                    todos
-                                    los
-                                    datos
-                                    antes de
-                                    emitir
-                                    el
-                                    presupuesto
+                                    Verifique todos los datos antes de emitir el
+                                    Presupuesto
                                   </h2>
                                 </b-alert>
                               </b-col>
@@ -962,15 +441,20 @@
 
                             <b-row>
                               <b-col>
+                                <!-- Notificaciones WhatsApp deshabilitadas para presupuestos -->
+                                <!-- <b-form-group
+                                        label="Notificaciones"
+                                        class="mb-4 text-left"
+                                      >
+                                        <b-form-checkbox v-model="form.sendWhatsAppMessage" size="lg" name="check-ws">
+                                          <strong class="text-primary">Enviar mensaje de bienvenida al cliente por WhatsApp.</strong>
+                                        </b-form-checkbox>
+                                      </b-form-group> -->
+
                                 <div id="reporte">
-                                  <b-overlay :show="overlay
-                                                                        ">
-                                    <ordenes-presupuestoPreview
-                                      :form="form
-                                                                            "
-                                      :showpreview="true
-                                                                                "
-                                    />
+                                  <b-overlay :show="overlay">
+                                    <ordenes-presupuesto-preview :form="formPrint" :showpreview="true"
+                                      :editing-order-id="editingOrderId" @resetTabs="goToFirsTab" />
                                   </b-overlay>
                                 </div>
                               </b-col>
@@ -981,24 +465,19 @@
                     </b-card>
 
                     <!-- <div class="text-right mt-4">
-                      <b-button-group>
-                        <b-button @click="prev">Anterior</b-button>
-                        <b-button @click="next">{{ nextText }}</b-button>
-                      </b-button-group>
-                    </div> -->
+                            <b-button-group>
+                              <b-button @click="prev">Anterior</b-button>
+                              <b-button @click="next">{{ nextText }}</b-button>
+                            </b-button-group>
+                          </div> -->
                     <!-- Control buttons-->
                     <div class="text-right mb-4">
                       <b-button-group class="mt-2">
-                        <b-button
-                          :disabled="disableButtons"
-                          @click="prev"
-                        >Anterior
+                        <b-button :disabled="disableButtons" @click="prev">Anterior
                         </b-button>
-                        <b-button
-                          :disabled="disableButtons"
-                          @click="next"
-                        >{{ nextText
-                                                    }}</b-button>
+                        <b-button :disabled="disableButtons" @click="next">{{
+                          nextText
+                        }}</b-button>
                       </b-button-group>
                     </div>
                   </div>
@@ -1008,26 +487,20 @@
           </b-row>
         </b-container>
       </div>
-
-      <b-container v-else>
+      <b-container v-else-if="currencyConfigState === 'NO_CURRENCIES'">
         <b-row>
           <b-col>
-            <b-alert
-              show
-              variant="warning"
-            >Por favor asigne las tasas del dólar y el
-              peso</b-alert>
+            <b-alert show variant="warning">
+              Debe configurar las monedas para poder continuar.
+            </b-alert>
           </b-col>
         </b-row>
       </b-container>
 
+
       <template #overlay>
         <div class="text-center">
-          <b-icon
-            icon="stopwatch"
-            font-scale="3"
-            animation="cylon"
-          ></b-icon>
+          <b-icon icon="stopwatch" font-scale="3" animation="cylon"></b-icon>
           <p id="cancel-label">{{ loadingMsg }}</p>
         </div>
       </template>
@@ -1037,18 +510,35 @@
 
 <script>
 import mixins from "~/mixins/mixins.js";
-import axios from "axios";
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
+import quillOptions from "~/plugins/nuxt-quill-plugin";
+import procesamientoOrdenes from "~/mixins/procesamientoOrdenes.js";
+import phoneValidation from "~/mixins/phoneValidation.js";
+
+import FormMonedas from "~/components/formMonedas.vue";
+import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
+import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
+import PresupuestoPreview from "~/components/ordenes/presupuesto-preview.vue";
 
 export default {
   data() {
     return {
       isSmallScreen: false,
-      endpoint: "/presupuesto/nuevo", // Opciones: `/presupuesto/nuevo` - `/presupuesto/nuevo`
+      productAttributes: [], // <-- AÑADIDO
+      productAttributesValues: [], // <-- AÑADIDO
+      abonoHistorico: 0, // Abono existente al cargar la orden
+      descuentoHistorico: 0, // Descuento existente al cargar la orden
+      proyeccionData: [], // Almacenará los datos de la cola de producción
+      fechaProximaDisponible: null, // Almacenará la fecha calculada
+      editingOrderId: null,
+      presupuestoCargadoId: null, // ID del presupuesto cargado para conversión
+      modoConversion: false, // true cuando estamos en modo conversión a orden
+      quillOptions: quillOptions,
+      endpoint: "/presupuesto/nuevo", // Opciones: `/presupuesto/nuevo` - `/ordenes/nueva/sport`
       categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`
       categoriaDeLaORdenOptions: [
-        { text: "Custom", value: "custom" },
-        { text: "Sport", value: "sport" },
+        { text: "Fábrica", value: "custom" },
+        { text: "Tienda", value: "sport" },
       ],
       opcionesDePago: [
         { value: "Dólares", text: "Dólares" },
@@ -1080,10 +570,6 @@ export default {
       customersSelect: [],
       responseClientes: [],
       tasasLoaded: false,
-      dolar: 1,
-      peso: 1,
-      // dolar: this.$store.state.comerce.dolar,
-      // peso: this.$store.state.comerce.peso,
       formPrint: {
         id: "",
         cedula: "", // Datos del cliente
@@ -1169,7 +655,25 @@ export default {
         sales_commision: null,
         next: 0,
         disableControl: false,
+        sendWhatsAppMessage: false,
+        guardarStock: false, // Nuevo campo para "Guardar en Stock"
       },
+      formConversion: {
+        montoDolaresEfectivo: 0,
+        montoDolaresZelle: 0,
+        montoDolaresZelleDetalle: "",
+        montoDolaresPanama: 0,
+        montoDolaresPanamaDetalle: "",
+        montoPesosEfectivo: 0,
+        montoPesosPago: 0,
+        montoPesosPagoDetalle: "",
+        montoBolivaresEfectivo: 0,
+        montoBolivaresPago: 0,
+        descuento: 0,
+        tasa_dolar: 1,
+        tasa_peso: 0.025,
+      },
+      modal: "presupuestos-guardados",
       cortes: [
         {
           value: "No aplica",
@@ -1198,6 +702,8 @@ export default {
         { key: "talla", label: "talla", tdClass: "min-width" },
         { key: "corte", label: "corte" },
         { key: "tela", label: "tela" },
+        { key: "atributo", label: "Atributo" },
+        { key: "color", label: "color" },
         { key: "acciones", label: "acciones" },
       ],
       fieldsGuardadas: [
@@ -1213,29 +719,47 @@ export default {
         show: false,
         text: "",
       },
+      productAttributes: [],
     };
   },
 
   computed: {
-    modal: function () {
-      const rand = Math.random().toString(36).substring(2, 7);
-      return `modal-${rand}`;
-    },
+    ...mapState("login", ["tasas"]),
+    /* tableClass() {
+            return {
+                "table-stacked": this.isSmallScreen,
+                "table-responsive": !this.isSmallScreen,
+            }
+        }, */
 
-    ...mapState("comerce", ["dolar, peso"]),
 
     ...mapGetters("comerce", ["getProductsSport", "getProductsCustom"]),
 
-    typeHeadData() {
-      return this.$store.getters["comerce/getCustomersSelect"];
+    ...mapGetters("login", ["areRatesLoaded", "currencyConfigState"]),
+
+    // Computed para modal de conversión
+    calculoAbonoConversion() {
+      const { formConversion } = this;
+      return (
+        parseFloat(formConversion.montoDolaresEfectivo || 0) +
+        parseFloat(formConversion.montoDolaresZelle || 0) +
+        parseFloat(formConversion.montoDolaresPanama || 0) +
+        parseFloat(formConversion.montoPesosEfectivo || 0) +
+        parseFloat(formConversion.montoPesosPago || 0) +
+        parseFloat(formConversion.montoBolivaresEfectivo || 0) +
+        parseFloat(formConversion.montoBolivaresPago || 0)
+      ).toFixed(2);
     },
 
-    tasasCargadas() {
-      let cargadas = false;
-      if (this.dolar > 0 && this.peso > 0) {
-        cargadas = true;
-      }
-      return cargadas;
+    calculoRestanteConversion() {
+      const total = parseFloat(this.form.total || 0);
+      const abono = parseFloat(this.calculoAbonoConversion || 0);
+      const descuento = parseFloat(this.formConversion.descuento || 0);
+      return (total - abono - descuento).toFixed(2);
+    },
+
+    typeHeadData() {
+      return this.$store.getters["comerce/getCustomersSelect"];
     },
 
     miMonto() {
@@ -1259,7 +783,6 @@ export default {
       }
 
       totalDolares = dolaresEfectivo + dolaresPanama + dolaresZelle;
-      this.updateMontoAbono();
       return totalDolares.toFixed(2);
     },
 
@@ -1276,7 +799,9 @@ export default {
       }
 
       totalPesos = pesosEfectivo + pesosTransferencia;
-      return totalPesos.toFixed(2);
+      const tasaPeso = parseFloat(this.tasas.peso_colombiano) || 1;
+      const totalEnDolares = totalPesos / tasaPeso;
+      return totalEnDolares.toFixed(2);
     },
 
     totalBolivares() {
@@ -1309,30 +834,38 @@ export default {
         bolivaresPagomovil +
         bolivaresTransferencia +
         bolivaresPunto;
-      return totalBolivares.toFixed(2);
+      const tasaBolivar = parseFloat(this.tasas.bolivar) || 1;
+      const totalEnDolares = totalBolivares / tasaBolivar;
+      return totalEnDolares.toFixed(2);
     },
 
     // ANTERIOR DESADE AQUI
     calculoPago() {
       let saldo;
-      if (isNaN(this.form.abono)) {
-        this.form.abono = 0;
+      const total = isNaN(this.form.total) ? 0 : parseFloat(this.form.total);
+      const descuento = isNaN(this.form.descuento)
+        ? 0
+        : parseFloat(this.form.descuento);
+
+      // Usamos el nuevo abonoTotalMostrado para el cálculo del saldo restante
+      // Como form.descuento ahora cargará el acumulado, no restamos descuentoHistorico por separado
+      saldo = total - this.abonoTotalMostrado - descuento;
+
+      return saldo.toFixed(2);
+    },
+
+    abonoTotalMostrado() {
+      const abonoActual = this.form.abono ? parseFloat(this.form.abono) : 0;
+      return this.abonoHistorico + abonoActual;
+    },
+
+    fechaProximaFormateada() {
+      if (!this.fechaProximaDisponible) {
+        return "Calculando...";
       }
-
-      if (isNaN(this.form.total)) {
-        this.form.total = 0;
-      }
-
-      if (isNaN(this.form.descuento)) {
-        this.form.descuento = 0;
-      }
-
-      saldo =
-        parseFloat(this.form.total) -
-        parseFloat(this.form.abono) -
-        parseFloat(this.form.descuento).toFixed(2);
-
-      return saldo;
+      // Usamos el método del mixin 'mixins.js' que ya formatea la fecha y hora
+      // El método se llama formatDateTime12h, pero en tu mixin está como formatTimestamp. Asumo que es el mismo.
+      return this.formatDateTime12h(this.fechaProximaDisponible);
     },
   },
 
@@ -1362,6 +895,28 @@ export default {
 
         let x
         if (comision.length > 0 && comision[0].key === 'sales_commission') {
+
+// ===== MÉTODOS PARA CONVERSIÓN A ORDEN =====
+
+            confirmButtonText: 'Ver Orden'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Redirigir a la lista de órdenes o limpiar formulario
+                this.clearForm({ form: true, formPrint: true });
+                this.presupuestoCargadoId = null;
+                this.modoConversion = false;
+            }
+        });
+
+    } catch (error) {
+        this.loading.show = false;
+        this.$fire({
+            type: 'error',
+            title: 'Error al convertir',
+            html: error.response?.data?.error || error.message || 'Ocurrió un error inesperado'
+        });
+    }
+},
           console.log('comission_key', comision[0].key)
           const booleanValue = Boolean(comision[0].value)
           x = booleanValue
@@ -1383,12 +938,362 @@ export default {
   },
 
   methods: {
+    iniciarConversionAOrden() {
+      // Limpiar formulario de conversión
+      this.formConversion = {
+        montoDolaresEfectivo: 0,
+        montoDolaresZelle: 0,
+        montoDolaresZelleDetalle: "",
+        montoDolaresPanama: 0,
+        montoDolaresPanamaDetalle: "",
+        montoPesosEfectivo: 0,
+        montoPesosPago: 0,
+        montoPesosPagoDetalle: "",
+        montoBolivaresEfectivo: 0,
+        montoBolivaresPago: 0,
+        descuento: 0,
+        tasa_dolar: this.tasas?.dolar || 1,
+        tasa_peso: this.tasas?.peso_colombiano || 0.025,
+      };
+
+      // Activar modo conversión
+      this.modoConversion = true;
+
+      // Abrir modal de pagos
+      this.$bvModal.show('modal-conversion-pago');
+    },
+
+    cancelarConversion() {
+      this.modoConversion = false;
+      // Limpiar formulario de conversión
+      this.formConversion = {
+        montoDolaresEfectivo: 0,
+        montoDolaresZelle: 0,
+        montoDolaresZelleDetalle: "",
+        montoDolaresPanama: 0,
+        montoDolaresPanamaDetalle: "",
+        montoPesosEfectivo: 0,
+        montoPesosPago: 0,
+        montoPesosPagoDetalle: "",
+        montoBolivaresEfectivo: 0,
+        montoBolivaresPago: 0,
+        descuento: 0,
+        tasa_dolar: 1,
+        tasa_peso: 0.025,
+      };
+    },
+
+    async confirmarConversion() {
+      // Validar que haya al menos un monto de pago
+      const totalAbono = parseFloat(this.calculoAbonoConversion);
+
+      if (totalAbono === 0) {
+        this.$fire({
+          type: 'warning',
+          title: 'Datos de pago requeridos',
+          text: 'Debe ingresar al menos un método de pago'
+        });
+        return;
+      }
+
+      try {
+        // Preparar payload con datos de pago
+        const payload = {
+          total: this.form.total,
+          descuento: this.formConversion.descuento,
+          montoDolaresEfectivo: this.formConversion.montoDolaresEfectivo,
+          montoDolaresZelle: this.formConversion.montoDolaresZelle,
+          montoDolaresZelleDetalle: this.formConversion.montoDolaresZelleDetalle,
+          montoDolaresPanama: this.formConversion.montoDolaresPanama,
+          montoDolaresPanamaDetalle: this.formConversion.montoDolaresPanamaDetalle,
+          montoPesosEfectivo: this.formConversion.montoPesosEfectivo,
+          montoPesosPago: this.formConversion.montoPesosPago,
+          montoPesosPagoDetalle: this.formConversion.montoPesosPagoDetalle,
+          montoBolivaresEfectivo: this.formConversion.montoBolivaresEfectivo,
+          montoBolivaresPago: this.formConversion.montoBolivaresPago,
+          tasa_dolar: this.formConversion.tasa_dolar,
+          tasa_peso: this.formConversion.tasa_peso,
+        };
+
+        // Mostrar loading
+        this.$bvModal.hide('modal-conversion-pago');
+        this.loading.show = true;
+        this.loading.message = 'Convirtiendo presupuesto a orden...';
+
+        // Llamar al endpoint
+        const response = await this.$axios.post(
+          `${this.$config.API}/presupuesto/${this.presupuestoCargadoId}/convertir-a-orden`,
+          payload
+        );
+
+        this.loading.show = false;
+
+        // Mostrar mensaje de éxito
+        this.$fire({
+          type: 'success',
+          title: '¡Orden creada!',
+          html: `<p>El presupuesto fue convertido exitosamente a la orden <strong>#${response.data.id_orden}</strong></p>`,
+          onClose: () => { // Se cambió a arrow function para mantener el contexto de 'this'
+            const result = this.validateAndFormatPhone(this.form.telefono);
+            if (result.isValid) {
+              this.form.telefono = result.formatted;
+            } else if (this.form.telefono && this.form.telefono.trim() !== '') {
+              this.$fire({
+                title: "Teléfono Inválido",
+                text: "Por favor ingrese un número de teléfono válido.",
+                type: "warning",
+                timer: 3000
+              });
+            }
+          }
+        });
+
+      } catch (error) {
+        this.loading.show = false;
+        console.error(error);
+        this.$fire({
+          type: 'error',
+          title: 'Error',
+          text: 'Hubo un problema al procesar la conversión.'
+        });
+      }
+    },
+
+    /* async loadProductAttributes() {
+      await this.$axios
+        .get(`${this.$config.API}/products-attributes`)
+        .then((resp) => {
+          this.productAttributes = resp.data.products_attributes;
+          this.productAttributesValues = resp.data.products_attributes_values;
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de los atributos",
+            html: err,
+          });
+          throw err;
+        });
+    }, */
+
+    async getProyeccionEntrega() {
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/ordenes/proyeccion-entrega`
+        );
+        this.proyeccionData = res.data;
+
+        // Una vez tenemos los datos, calculamos la próxima fecha disponible
+        const horarioLaboral =
+          this.$store.state.login.dataEmpresa.horario_laboral;
+        if (horarioLaboral) {
+          this.fechaProximaDisponible = this.getProximaFechaDisponible(
+            this.proyeccionData,
+            horarioLaboral
+          );
+        }
+      } catch (error) {
+        console.error("Error cargando la proyección de entrega:", error);
+        // No mostramos un error fatal, simplemente no se mostrará la fecha sugerida.
+      }
+    },
+
+    checkPrices() {
+      let checking = this.form.productos.filter((el) => el.precio === 0);
+
+      if (checking.length) {
+        return false;
+      } else {
+        return true;
+      }
+    },
+
+    updateTotal(item) {
+      console.log("updateTotal", item);
+    },
+
+    manejarOrdenCargada(datosDeLaOrden) {
+      // 1. Limpiar el formulario y establecer el modo de edición
+      this.clearForm({ form: true, formPrint: true });
+      this.editingOrderId = datosDeLaOrden.orden[0]._id;
+
+      // Actualizar el endpoint para modo edición
+      if (this.categoriaDeLaORden === "custom") {
+        this.endpoint = `/presupuesto/nuevo/edit`;
+      } else if (this.categoriaDeLaORden === "sport") {
+        this.endpoint = `/ordenes/nueva/sport/edit`;
+      }
+
+      // 2. Poblar datos del cliente
+      const customerData = datosDeLaOrden.customer.data[0];
+      if (customerData) {
+        const nombre = customerData.billing_first_name;
+        const apellido = customerData.billing_last_name;
+        const telefono = this.formatPhoneNumber(customerData.billing_phone);
+
+        this.form.id = customerData.id;
+        this.form.nombre = nombre;
+        this.form.apellido = apellido;
+        this.form.cedula = customerData.billing_postcode;
+        this.form.telefono = telefono;
+        this.form.email = customerData.billing_email.startsWith("none_")
+          ? ""
+          : customerData.billing_email;
+        this.form.direccion = customerData.billing_address_1;
+
+        // FIX: Poblar `query2` para que el `watcher` no borre los datos del formulario.
+        // Esto también actualiza la UI para mostrar el cliente cargado en el buscador.
+        this.query2 = `${customerData.id} | ${nombre} ${apellido} - ${telefono}`;
+      }
+
+      // 3. Poblar datos de la orden
+      const ordenData = datosDeLaOrden.orden[0];
+      if (ordenData) {
+        this.form.fechaEntrega = ordenData.fecha_entrega;
+        console.log('DEBUG: asignando this.form.obs en manejarOrdenCargada:', ordenData.observaciones, typeof ordenData.observaciones);
+        this.form.obs = this.decodeHtmlEntities(ordenData.observaciones) || "";
+        console.log('DEBUG: this.form.obs después de decode:', this.form.obs, typeof this.form.obs);
+        this.form.total = parseFloat(ordenData.pago_total) || 0;
+        this.abonoHistorico = parseFloat(ordenData.pago_abono) || 0;
+        this.descuentoHistorico = parseFloat(ordenData.pago_descuento) || 0;
+        this.form.abono = 0; // El 'form.abono' ahora solo registrará NUEVOS pagos
+
+        // Poblar descuento y detalle con el histórico (Total)
+        this.form.descuento = parseFloat(ordenData.pago_descuento) || 0;
+        this.form.descuentoDetalle = ordenData.descuento_detalle || "";
+      }
+
+      // 4. Poblar productos
+      if (datosDeLaOrden.productos && datosDeLaOrden.productos.length > 0) {
+        this.form.productos = datosDeLaOrden.productos.map((apiProd, index) => {
+          const fullProduct = this.$store.state.comerce.dataProductos.find(
+            (p) => p.cod === apiProd.cod
+          );
+
+          // Calculate xl
+          let xl = 0;
+          if (apiProd.id_talla) {
+            const tallaSeleccionada = this.$store.state.comerce.dataTallas.find(
+              (t) => t.value === apiProd.id_talla
+            );
+            if (tallaSeleccionada) {
+              const nombreTalla = tallaSeleccionada.text;
+              const esTallaXL = nombreTalla.toUpperCase().startsWith("XL");
+              if (esTallaXL) {
+                const numeroTalla = nombreTalla.toUpperCase().replace("XL", "");
+                xl = numeroTalla === "" ? 1 : parseInt(numeroTalla) || 0;
+              }
+            }
+          }
+
+          const atributos_seleccionados = apiProd.atributos_seleccionados || [];
+          const attributesPrice = atributos_seleccionados.reduce((total, attr) => {
+            return total + (parseFloat(attr.precio) || 0);
+          }, 0);
+
+          const finalPrice = parseFloat(apiProd.precio) || 0;
+          const original_selected_price = finalPrice - xl - attributesPrice;
+
+          return {
+            _id: apiProd._id,
+            item: index,
+            cod: apiProd.cod,
+            producto: apiProd.name,
+            existencia: fullProduct ? fullProduct.stock_quantity : "N/A",
+            tela: apiProd.id_tela || null,
+            atributos_seleccionados: atributos_seleccionados,
+            cantidad: apiProd.cantidad,
+            corte: apiProd.corte || "No aplica",
+            talla: apiProd.id_talla || null,
+            colores: [],
+            xl: xl,
+            categoria: fullProduct
+              ? this.getCategory(fullProduct.categories)
+              : null,
+            diseno: apiProd.producto_fisico === 0,
+            precio: finalPrice,
+            original_selected_price:
+              original_selected_price > 0 ? original_selected_price : finalPrice,
+          };
+        });
+      }
+
+      // 5. Poblar métodos de pago
+      if (datosDeLaOrden.metodos_pago) {
+        const metodosPago = datosDeLaOrden.metodos_pago;
+
+        // Poblar campos de dólares
+        this.form.montoDolaresEfectivo = metodosPago.montoDolaresEfectivo || 0;
+        this.form.montoDolaresEfectivoDetalle = metodosPago.montoDolaresEfectivoDetalle || '';
+        this.form.montoDolaresZelle = metodosPago.montoDolaresZelle || 0;
+        this.form.montoDolaresZelleDetalle = metodosPago.montoDolaresZelleDetalle || '';
+        this.form.montoDolaresPanama = metodosPago.montoDolaresPanama || 0;
+        this.form.montoDolaresPanamaDetalle = metodosPago.montoDolaresPanamaDetalle || '';
+
+        // Poblar campos de pesos
+        this.form.montoPesosEfectivo = metodosPago.montoPesosEfectivo || 0;
+        this.form.montoPesosEfectivoDetalle = metodosPago.montoPesosEfectivoDetalle || '';
+        this.form.montoPesosTransferencia = metodosPago.montoPesosTransferencia || 0;
+        this.form.montoPesosTransferenciaDetalle = metodosPago.montoPesosTransferenciaDetalle || '';
+
+        // Poblar campos de bolívares
+        this.form.montoBolivaresEfectivo = metodosPago.montoBolivaresEfectivo || 0;
+        this.form.montoBolivaresEfectivoDetalle = metodosPago.montoBolivaresEfectivoDetalle || '';
+        this.form.montoBolivaresPunto = metodosPago.montoBolivaresPunto || 0;
+        this.form.montoBolivaresPuntoDetalle = metodosPago.montoBolivaresPuntoDetalle || '';
+        this.form.montoBolivaresPagomovil = metodosPago.montoBolivaresPagomovil || 0;
+        this.form.montoBolivaresPagomovilDetalle = metodosPago.montoBolivaresPagomovilDetalle || '';
+        this.form.montoBolivaresTransferencia = metodosPago.montoBolivaresTransferencia || 0;
+        this.form.montoBolivaresTransferenciaDetalle = metodosPago.montoBolivaresTransferenciaDetalle || '';
+      }
+
+      // 6. Recalcular totales y desbloquear el wizard
+      this.montoTotalOrden();
+      this.disable1 = false;
+      this.disable2 = false;
+      this.disable3 = false;
+      this.disable4 = false;
+
+      this.$fire({
+        title: "Formulario Poblado",
+        html: `<p>Los datos de la orden #${this.editingOrderId} están listos para ser editados.</p>`,
+        type: "info",
+      });
+
+      // Forzar el cambio a la primera pestaña después de que todos los datos se hayan cargado.
+      // Usamos $nextTick para asegurarnos de que Vue haya procesado los cambios de datos
+      // antes de intentar cambiar la pestaña.
+      this.$nextTick(() => {
+        this.tabIndex = 0;
+      });
+    },
+
+
+    decodeHtmlEntities(text) {
+      if (typeof text !== "string") return text;
+      const textArea = document.createElement("textarea");
+      textArea.innerHTML = text;
+      return textArea.value;
+    },
+    checkScreenSize() {
+      this.isSmallScreen = window.innerWidth < 768; // Cambia el valor según tu necesidad
+    },
+
+    handleResize() {
+      this.checkScreenSize();
+    },
+
     loadFormGuardadas(idArray, idTable) {
       this.form = this.ordenesGuardadas[idArray].form;
+
+      // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
+      if (typeof this.form.sendWhatsAppMessage === 'undefined') {
+        this.$set(this.form, 'sendWhatsAppMessage', true);
+      }
+
+      console.log("cargar orden:", this.ordenesGuardadas[idArray].form);
       this.clearSearch();
-      this.deleteOrdenGuardada(idTable).then(() => {
-        this.$bvModal.hide(this.modal);
-      });
+      this.$bvModal.hide(this.modal);
     },
 
     async getOrdenesGuardadas() {
@@ -1406,9 +1311,7 @@ export default {
         });
     },
 
-    async postPresupuesto() {
-      this.form.obs = this.form.obs.replace('"', '"');
-
+    async postOrden() {
       const data = new URLSearchParams();
       data.set("form", JSON.stringify(this.form));
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
@@ -1465,28 +1368,36 @@ export default {
           type: "warning",
         });
       } else {
-        this.$confirm("", `¿Desea guardar el presupuesto?`, "question")
+        this.$confirm(
+          "",
+          `¿Desea guardar la orden que está creando?`,
+          "question"
+        )
           .then(() => {
-            this.postPresupuesto();
+            this.postOrden();
           })
           .catch(() => {
             return false;
           });
       }
     },
-    cargarPresupuesto() {
+    cargarOrden() {
       this.$bvModal.show(this.modal);
     },
     changeCategory() {
       // Definir el endpoint para crear la orden
       if (this.categoriaDeLaORden === "custom") {
-        this.endpoint = `/presupuesto/nuevo`;
+        this.endpoint = this.editingOrderId
+          ? `/presupuesto/nuevo/edit`
+          : `/presupuesto/nuevo`;
         const productsSelect = this.getProductsCustom.map((prod) => {
           return `${prod.cod} | ${prod.name}`;
         });
         this.$store.commit("comerce/setDataProductosSelect", productsSelect);
       } else if (this.categoriaDeLaORden === "sport") {
-        this.endpoint = `/presupuesto/nuevo`;
+        this.endpoint = this.editingOrderId
+          ? `/ordenes/nueva/sport/edit`
+          : `/ordenes/nueva/sport`;
         const productsSelect = this.getProductsSport.map((prod) => {
           return `${prod.cod} | ${prod.name}`;
         });
@@ -1494,40 +1405,10 @@ export default {
       }
 
       this.form.productos = [];
-    },
-
-    maxDesignLimit(cod) {
-      let limit;
-      if (this.validatDesign(cod)) {
-        limit = 1;
-      } else {
-        limit = 1000;
+      // Si se selecciona "Tienda", deseleccionar "Guardar en Stock"
+      if (this.categoriaDeLaORden === 'sport') {
+        this.form.guardarStock = false;
       }
-      return limit;
-    },
-
-    checkDesignForDiseabled(cod) {
-      let ok;
-      if (this.validatDesign(cod)) {
-        ok = true;
-      } else {
-        ok = false;
-      }
-      console.log(`validar codigo es`, ok, cod);
-      return ok;
-    },
-
-    // ...mapMutations('comerce', ['getDolar, getPeso']),
-    guardarPeso(val) {
-      // this.peso = val
-      this.$store.commit("comerce/setPeso", val);
-      // Realiza alguna otra acción, como enviar los datos al servidor
-    },
-
-    guardarDolar(val) {
-      // this.dolar = val
-      this.$store.commit("comerce/setDolar", val);
-      // Realiza alguna otra acción, como enviar los datos al servidor
     },
 
     checkTallasTelas() {
@@ -1599,27 +1480,24 @@ export default {
         parseFloat(this.form.montoDolaresZelle);
 
       // CALCULO EN PESOS
+      const tasaPeso = parseFloat(this.tasas.peso_colombiano) || 1;
       montoPesos =
         (parseFloat(this.form.montoPesosEfectivo) +
           parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.peso);
+        tasaPeso;
 
       // CALCULO EN BOLIVARES
+      const tasaBolivar = parseFloat(this.tasas.bolivar) || 1;
       montoBolivares =
         (parseFloat(this.form.montoBolivaresEfectivo) +
           parseFloat(this.form.montoBolivaresPagomovil) +
           parseFloat(this.form.montoBolivaresPunto) +
           parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.dolar);
+        tasaBolivar;
 
-      // crear
-      // SUMATOORIA DE TODAS LAS MONEDAS
-      console.log("dolares", montoDolares);
-      console.log("pesos", montoPesos);
-      console.log("bolivares", montoBolivares);
+      // SUMATORIA DE TODAS LAS MONEDAS
       newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
       this.form.abono = newVal;
-      console.log("this.form.abono = ", newVal);
       return newVal;
     },
 
@@ -1641,28 +1519,78 @@ export default {
       this.query2 = "";
     },
 
-    recalcularSegunTalla(index, item) {
-      // verificar si la talla es XL
-      let miTalla = item.talla.split("XL");
-      let montoXL = 0;
-      let finlaPrice = 0;
+    handleAttributesUpdate({ productIndex, selectedAttributes }) {
+      const product = this.form.productos[productIndex];
+      this.$set(product, 'atributos_seleccionados', selectedAttributes);
+      this.recalculateProductPrice(productIndex);
+      this.montoTotalOrden();
+    },
 
-      if (miTalla.length === 2) {
-        if (!miTalla[1]) {
-          montoXL = 1; // Un dolar adiconal por la talla XL
-        } else {
-          montoXL = parseInt(miTalla[1]);
-        }
-        // this.form.productos[index].xl = montoXL
-        finlaPrice = (
-          parseFloat(this.form.productos[index].precioWoo) + montoXL
-        ).toFixed(0);
-      } else {
-        finlaPrice = this.form.productos[index].precioWoo;
+    recalculateProductPrice(index) {
+      const product = this.form.productos[index];
+      const basePrice = parseFloat(product.original_selected_price) || 0;
+      const tallaPrice = parseFloat(product.xl) || 0;
+
+      const attributesPrice = (product.atributos_seleccionados || []).reduce((total, attr) => {
+        return total + (parseFloat(attr.precio) || 0);
+      }, 0);
+
+      product.precio = (basePrice + tallaPrice + attributesPrice).toFixed(2);
+    },
+
+    recalcularSegunTalla(index, item, idProd) {
+      const tallaSeleccionada = this.$store.state.comerce.dataTallas.find(
+        (t) => t.value === item.talla
+      );
+
+      // Validar que original_selected_price esté definido y sea válido
+      if (
+        typeof item.original_selected_price === "undefined" ||
+        item.original_selected_price <= 0
+      ) {
+        this.$fire({
+          title: "Precio Requerido",
+          html: `<p>Primero debe seleccionar un precio para el producto.</p>`,
+          type: "info",
+        }).then(() => {
+          item.talla = null; // Resetear la selección de talla
+        });
+        return;
       }
 
-      this.form.productos[index].precio = finlaPrice;
+      // Si no hay talla seleccionada, restablecer el precio y salir.
+      if (!tallaSeleccionada) {
+        item.xl = 0;
+        this.recalculateProductPrice(index);
+        this.montoTotalOrden();
+        return;
+      }
+
+      const nombreTalla = tallaSeleccionada.text;
+      const esTallaXL = nombreTalla.toUpperCase().startsWith("XL");
+
+      if (esTallaXL) {
+        const numeroTalla = nombreTalla.toUpperCase().replace("XL", "");
+        item.xl = numeroTalla === "" ? 1 : parseInt(numeroTalla) || 0;
+      } else {
+        item.xl = 0;
+      }
+
+      this.recalculateProductPrice(index);
       this.montoTotalOrden();
+    },
+
+    setOriginalPriceAndRecalculate(index, newPrice) {
+      const parsedPrice = parseFloat(newPrice);
+      if (!isNaN(parsedPrice)) {
+        this.form.productos[index].original_selected_price = parsedPrice; // Guardar el precio original seleccionado
+        this.recalcularSegunTalla(
+          index,
+          this.form.productos[index],
+          this.form.productos[index].cod
+        ); // Recalcular por si hay talla XL
+        this.montoTotalOrden(); // Recalcular el total de la orden
+      }
     },
 
     reloadVinculo(val) {
@@ -1703,9 +1631,9 @@ export default {
         this.validateStep3();
       }
 
-      /* if (this.tabIndex === 3) {
-        this.validateStep4()
-      } */
+      if (this.tabIndex === 3) {
+        this.validateStep4();
+      }
     },
 
     validateStep1() {
@@ -1728,6 +1656,56 @@ export default {
       if (this.step2()) {
         this.disable2 = true;
         this.disable3 = false;
+
+        // Poblar formPrint para el preview (paso 3 en presupuestos)
+        const formCopy = JSON.parse(JSON.stringify(this.form));
+
+        console.log('DEBUG - form.productos ANTES de mapear:', formCopy.productos);
+
+        // Crear mapas para tallas y telas
+        const tallasMap = this.$store.state.comerce.dataTallas.reduce(
+          (map, talla) => {
+            map[talla.value] = talla.text;
+            return map;
+          },
+          {}
+        );
+
+        const telasMap = this.$store.state.comerce.dataTelas.reduce(
+          (map, tela) => {
+            map[tela.value] = tela.text;
+            return map;
+          },
+          {}
+        );
+
+        // Mapear productos para reemplazar IDs por nombres
+        formCopy.productos = formCopy.productos.map((producto) => {
+          if (producto.talla && tallasMap[producto.talla]) {
+            producto.talla = tallasMap[producto.talla];
+          }
+          if (producto.tela && telasMap[producto.tela]) {
+            producto.tela = telasMap[producto.tela];
+          }
+
+          // Agregar nombre del atributo si existe
+          if (producto.atributos_seleccionados && producto.atributos_seleccionados.length > 0) {
+            const atributosNombres = producto.atributos_seleccionados
+              .map(attr => attr.nombre || attr.name)
+              .filter(Boolean)
+              .join(', ');
+            producto.atributo_nombre = atributosNombres || 'N/A';
+          } else {
+            producto.atributo_nombre = 'N/A';
+          }
+
+          return producto;
+        });
+
+        console.log('DEBUG validateStep2 - formCopy antes de asignar:', formCopy);
+        this.formPrint = formCopy;
+        console.log('DEBUG validateStep2 - formPrint después de asignar:', this.formPrint);
+
         setTimeout(() => {
           this.tabIndex = 2;
         }, 100);
@@ -1739,11 +1717,8 @@ export default {
 
     validateStep3() {
       if (this.step3()) {
-        this.disable3 = true;
-        this.disable4 = false;
-        setTimeout(() => {
-          this.tabIndex = 3;
-        }, 100);
+        // En presupuestos no hay pestaña 4, ejecutar directamente la confirmación
+        this.validateStep4();
       }
     },
 
@@ -1756,13 +1731,16 @@ export default {
     step1() {
       let ok = true;
       let msg = "";
-      let emailExist = this.emailExist(this.form.email);
+      let phoneExist = this.phoneExist(this.form.email);
 
-      console.log(`emailExist`, emailExist);
+      console.log(`phoneExist`, phoneExist);
 
-      if (!this.form.telefono.trim()) {
+      const phoneCheck = this.validateAndFormatPhone(this.form.telefono);
+      if (!phoneCheck.isValid) {
         ok = false;
-        msg = msg + "<p>El teléfono es un campo obligatorio</p>";
+        msg = msg + `<p>${phoneCheck.error}</p>`;
+      } else {
+        this.form.telefono = phoneCheck.formatted;
       }
 
       if (!this.form.nombre.trim()) {
@@ -1775,17 +1753,17 @@ export default {
         msg = msg + "<p>El apellido es un campo obligatorio</p>";
       }
 
-      /* if (!this.form.fechaEntrega.trim()) {
-        ok = false
-        msg = msg + '<p>La fecha de entrega es un campo obligatorio</p>'
-      } */
+      if (!this.form.fechaEntrega.trim()) {
+        ok = false;
+        msg = msg + "<p>La fecha de entrega es un campo obligatorio</p>";
+      }
 
-      if (!this.validarEmail(this.form.email)) {
+      if (!this.validarEmail(this.form.email) && this.form.email.trim() != "") {
         ok = false;
         msg = "El email que introdujo no es válido: " + this.form.email;
-      } else if (emailExist.exist) {
+      } else if (phoneExist.exist) {
         ok = false;
-        msg = msg + emailExist.msg;
+        msg = msg + phoneExist.msg;
       }
 
       if (!ok) {
@@ -1826,10 +1804,16 @@ export default {
           item.cod != 20266
         ) */
       });
+
+      let cehckPrecios = this.form.productos.filter((item) => {
+        return item.precio === null;
+      });
+
       console.log("cantidades de productos", checkCantidad);
 
       if (this.form.productos.length) {
         console.log("(checkCantidad.length", checkCantidad.length);
+
         if (checkCantidad.length > 0) {
           ceroPrice = true;
         } else {
@@ -1841,12 +1825,25 @@ export default {
 
       let checkingTallaTela = this.checkTallasTelas();
 
-      if (!this.form.productos.length || ceroPrice || !checkingTallaTela) {
+      if (
+        !this.form.productos.length ||
+        ceroPrice ||
+        !checkingTallaTela ||
+        cehckPrecios.length
+      ) {
         let errors = "";
         ok = false;
 
+        if (!this.checkPrices()) {
+          errors =
+            errors + `<p>Debe asignar el precio de todos los productos</p>`;
+        }
+
         if (!checkingTallaTela)
           errors = errors + `<p>Debe seleccionar a Talla y la Tela</p>`;
+
+        if (cehckPrecios.length)
+          errors = errors + `<p>Debe seleccionar todos los precios</p>`;
 
         if (!this.form.productos.length)
           errors = errors + `<p>Debe seleccionar al menos un producto</p>`;
@@ -1866,43 +1863,98 @@ export default {
     },
 
     step3() {
-      this.formPrint = this.form;
+      let ok = true;
+      // Veerificar el monto pagado
+      let abono = parseFloat(this.form.abono);
+      let descuento = parseFloat(this.form.descuento);
+      let total = parseFloat(this.form.total);
 
-      this.$confirm("¿Desea emitir el presupuesto?", "Emitir", "success").then(
-        () => {
-          this.overlay = true;
-          this.disableButtons = true;
-          this.finishOrder().then(() => {
-            this.postPresupuesto().then(() => {
-              this.$confirm(
-                "¿Desea imprimir una copia del presupuesto?",
-                "Imprimir",
-                "info"
-              )
-                .then(() => {
-                  this.printOrder("reporte").then(() => {
-                    this.clearForm({
-                      form: true,
-                      formPrint: true,
-                    });
-                  });
-                })
-                .catch(() => {
-                  this.overlay = false;
-                  this.disableButtons = false;
-                  this.clearForm({
-                    form: true,
-                    formPrint: true,
-                  });
-                })
-                .finally(() => {
-                  this.overlay = false;
-                  this.disableButtons = false;
-                });
-            });
-          });
-        }
-      );
+      if (abono + descuento > total) {
+        ok = false;
+        this.$fire({
+          title: "Monto",
+          html: "El monto pagadoe excede el total de la orden",
+          type: "error",
+        });
+      } else if (descuento > 0 && !this.form.descuentoDetalle) {
+        ok = false;
+        this.$fire({
+          title: "Falta detalle del descuento",
+          html: `<p>El detalle del descuento es obligatorio cuando se aplica un monto.</p>`,
+          type: "warning",
+        });
+      } else {
+        // Crear copia profunda y transformar datos para la vista previa
+        // Hacemos una copia profunda para no mutar el formulario original que aún necesita los IDs.
+        const formCopy = JSON.parse(JSON.stringify(this.form));
+
+        // Crear mapas para una búsqueda eficiente de los nombres de tallas y telas.
+        const tallasMap = this.$store.state.comerce.dataTallas.reduce(
+          (map, talla) => {
+            map[talla.value] = talla.text;
+            return map;
+          },
+          {}
+        );
+
+        const telasMap = this.$store.state.comerce.dataTelas.reduce(
+          (map, tela) => {
+            map[tela.value] = tela.text;
+            return map;
+          },
+          {}
+        );
+
+        // Mapear los productos para reemplazar los IDs de talla y tela por sus nombres correspondientes.
+        formCopy.productos = formCopy.productos.map((producto) => {
+          // Si el producto tiene una talla y existe en nuestro mapa, la reemplazamos por el nombre.
+          if (producto.talla && tallasMap[producto.talla]) {
+            producto.talla = tallasMap[producto.talla];
+          }
+          // Hacemos lo mismo para la tela.
+          if (producto.tela && telasMap[producto.tela]) {
+            producto.tela = telasMap[producto.tela];
+          }
+
+          // Agregar nombre del atributo si existe
+          if (producto.atributos_seleccionados && producto.atributos_seleccionados.length > 0) {
+            const atributosNombres = producto.atributos_seleccionados
+              .map(attr => attr.nombre || attr.name)
+              .filter(Boolean)
+              .join(', ');
+            producto.atributo_nombre = atributosNombres || 'N/A';
+          } else {
+            producto.atributo_nombre = 'N/A';
+          }
+
+          return producto;
+        });
+
+        console.log('DEBUG presupuesto.vue - formCopy antes de asignar:', formCopy);
+        this.formPrint = formCopy;
+        console.log('DEBUG presupuesto.vue - formPrint después de asignar:', this.formPrint);
+      }
+
+      return ok;
+    },
+
+    step4() {
+      // Define el mensaje, el título y el ícono dinámicamente
+      const confirmMessage = this.editingOrderId
+        ? `¿Desea guardar los cambios en el presupuesto #${this.editingOrderId}?`
+        : "¿Desea emitir el nuevo presupuesto?";
+
+      const confirmTitle = this.editingOrderId
+        ? "Actualizar Presupuesto"
+        : "Finalizar Presupuesto";
+
+      const confirmIcon = this.editingOrderId ? "info" : "success";
+
+      this.$confirm(confirmMessage, confirmTitle, confirmIcon).then(() => {
+        this.overlay = true;
+        this.disableButtons = true;
+        this.finishOrder();
+      });
 
       return true;
     },
@@ -2045,7 +2097,6 @@ export default {
 
     async getCustomers() {
       await this.$axios(`${this.$config.API}/customers`)
-        .then((res) => res.json())
         .then((res) => {
           this.customers = res;
           this.loading.show = false;
@@ -2118,7 +2169,9 @@ export default {
       let ok = false;
       await this.$axios(url, { method: method })
         .then((res) => {
-          this.form.id = res.id;
+          console.log("respuesta de actualizar - crear cliente", res);
+          // this.form.id = res.id
+          // this.form.id = 99
           ok = true;
         })
         .catch((err) => {
@@ -2148,6 +2201,13 @@ export default {
                 "comerce/setDataCustomersSelect",
                 customersSelect
               );
+
+              if (!this.form.id) {
+                const currCustomer = responseClientes.data.data.find(
+                  (el) => el.cedula === this.form.cedula
+                );
+                this.form.id = currCustomer.id;
+              }
             });
           this.loading.show = false;
           console.log(`Terminada al carga de Cliente`);
@@ -2181,85 +2241,53 @@ export default {
       return email;
     },
 
-    emailExist(email) {
+    phoneExist(telefono) {
       let result = { exist: false, msg: "" };
+      const formattedPhone = this.form.telefono; // Ya viene formateado por onPhoneBlur
 
-      if (this.form.email.trim().length) {
-        if (this.form.cedula.trim().length) {
-          let clienteData = this.myCustomers.filter(
-            (item) => item.cedula === this.form.cedula.trim()
-          );
-          console.log("clientData", clienteData);
-          // Verificar exzistencia delcliente
-          if (!clienteData.length) {
-            result.exist = false;
-          } else {
-            // Buscar email en las registros
-            let emailData = this.myCustomers.find(
-              (item) => item.email === this.form.email.trim()
-            );
+      if (formattedPhone && formattedPhone.trim().length) {
+        // Buscar si existe algún cliente con este teléfono
+        let existingCustomer = this.myCustomers.find(
+          (item) => item.phone === formattedPhone
+        );
 
-            if (
-              clienteData.cedula != emailData.cedula &&
-              this.form.cedula != emailData.cedula
-            ) {
-              result.exist = true;
-              result.msg = `El email ${this.form.email} ya esta registrado al usuario ${emailData.first_name}`;
-            }
+        if (existingCustomer) {
+          // Si estamos editando (tenemos un ID de cliente en el form)
+          // y el cliente encontrado es el mismo, no es un error (es su propio número).
+          // Si el ID del formulario está vacío, asumimos que es un cliente nuevo,
+          // por lo tanto si encontramos uno existente, es un duplicado.
 
-            console.log("Hemos encontrado el cliente ", clienteData);
-            console.log("Hemos encontrado el email ", emailData);
+          // Nota: this.form.id puede ser numérico o string, aseguramos comparación laxa o conversión
+          const isSameCustomer = this.form.id && (String(this.form.id) === String(existingCustomer.id));
+
+          if (!isSameCustomer) {
+            result.exist = true;
+            result.msg = `<p>El teléfono <strong>${formattedPhone}</strong> ya está registrado al cliente <strong>${existingCustomer.first_name} ${existingCustomer.last_name}</strong>.</p>`;
           }
         }
-      } else {
-        result.msg = "<p>No ha ingresado un email</p>";
       }
 
       return result;
-
-      /* if (this.form.email.trim().length) { // Se ha ingresado un email
-        // Verificar si es un cliente nuevo
-        let foundCedula = this.myCustomers.filter(
-          (item) => item.cedula === this.form.cedula
-        )
-
-        console.log(`FoundCedula ::: `, foundCedula.length)
-        console.log(`Registro ::: `, foundCedula[0])
-        if (foundCedula.length && foundCedula[0].email != this.form.email) { // el cliente ya existe,
-        }
-
-        // VErificamos si el cliente ya ha sido creado o no
-
-        if (email.trim() === '') {
-          result = false
-        } else {
-          let exist = this.myCustomers.filter((item) => {
-            return item.email === email
-          })
-          if (exist) result = true
-        }
-      } else {
-        console.log('no prodceamos elemail porque no hay cedula para comparar')
-      }
- */
     },
 
     clearForm(obj) {
+      // Objeto 'limpio' que replica la estructura inicial del formulario.
+      // Es crucial que tenga TODAS las propiedades del 'form' original en data()
+      // para evitar que la reactividad de Vue se rompa al limpiar el formulario.
       let clean = {
         id: "",
-        cedula: "", // Datos del cliente
+        cedula: "",
         nombre: "",
         apellido: "",
         telefono: "",
         email: "",
         direccion: "",
         fechaEntrega: "",
-        productos: [], // Datos para la tabla de productos
-        obs: "", // LIMPIAR OBSERVACIONES
-        abono: 0, // Pago total o parcial
-        total: 0, // Pago total o parcial
-        diseno_grafico: false,
-        diseno_modas: false,
+        productos: [],
+        metodoDePago: [],
+        obs: "",
+        tasaDolar: 0,
+        tasaPeso: 0,
         montoDolaresEfectivo: 0,
         montoDolaresEfectivoDetalle: "",
         montoDolaresZelle: 0,
@@ -2278,28 +2306,63 @@ export default {
         montoBolivaresPagomovilDetalle: "",
         montoBolivaresTransferencia: 0,
         montoBolivaresTransferenciaDetalle: "",
+        abono: 0,
+        abonoHistorico: 0,
+        descuentoHistorico: 0,
         descuento: 0,
         descuentoDetalle: "",
+        total: 0,
+        diseno_grafico: false,
+        diseno_grafico_cantidad: 0,
+        diseno_modas: false,
+        diseno_modas_cantidad: 0,
+        sales_commision: null,
+        next: 0,
+        disableControl: false,
+        sendWhatsAppMessage: true, // <-- THE FIX
+        obs: "", // Asegurar que obs esté definido
       };
-      if (obj.form) {
-        this.form = clean;
+
+      // Si se llama desde el evento de un clic, obj será un MouseEvent.
+      // Si no se pasa obj o es un evento, asumimos que se quiere una limpieza completa.
+      const isFullClear = !obj || obj instanceof MouseEvent;
+
+      if (isFullClear || (obj && obj.form)) {
+        this.form = { ...clean };
         console.log(`Limpiado form`);
       }
-      if (obj.formPrint) {
-        this.formPrint = clean;
+      if (isFullClear || (obj && obj.formPrint)) {
+        this.formPrint = { ...clean };
         console.log(`Limpiado formPrint`);
       }
+      this.abonoHistorico = 0;
+      this.descuentoHistorico = 0;
+      this.editingOrderId = null;
+      // this.endpoint = "/presupuesto/nuevo"; // FIX: Reset endpoint to default
       this.query2 = "";
       this.ordenVinculada = 0;
       this.disable1 = false;
       this.disable2 = true;
       this.disable3 = true;
       this.disable4 = true;
-      this.tabIndex = 0;
+      this.tabIndex = 0; // Volver a la primera pestaña
     },
 
     async finishOrder() {
+      // Validar detalle de descuento
+      if (parseFloat(this.form.descuento) > 0 && !this.form.descuentoDetalle) {
+        this.$fire({
+          title: "Falta detalle del descuento",
+          html: `<p>El detalle del descuento es obligatorio cuando se aplica un monto.</p>`,
+          type: "warning",
+        });
+        return;
+      }
+
+      const endpoint = this.endpoint;
+
       this.overlay = true;
+      this.disableButtons = true;
       // VERIFICAR SI HAY PAGO PARA EL VENDEDOR
 
       // METODO CON AXIOS
@@ -2318,6 +2381,7 @@ export default {
       // CREAR OBJETO DE DATOS PARA EL ENVIO
       const data = new URLSearchParams();
       data.set("id", this.form.id);
+      data.set("id_orden_edit", this.editingOrderId);
       data.set("vinculada", this.ordenVinculada);
       data.set("nombre", this.form.nombre);
       data.set("apellido", this.form.apellido);
@@ -2327,7 +2391,9 @@ export default {
       data.set("direccion", this.form.direccion);
       data.set("fechaEntrega", this.form.fechaEntrega);
       data.set("fechaInicio", this.nowDate());
-      data.set("obs", this.form.obs);
+      // data.set('obs', this.form.obs)
+      console.log('DEBUG: this.form.obs antes de replace:', this.form.obs, typeof this.form.obs);
+      data.set("obs", (this.form.obs || "").replace('"', '"'));
       data.set("abono", this.form.abono);
       data.set("descuento", this.form.descuento);
       data.set("sales_commission", this.form.sales_commision);
@@ -2338,12 +2404,21 @@ export default {
       data.set("diseno_modas", this.form.diseno_modas);
       data.set("diseno_modas_cantidad", this.form.diseno_modas_cantidad);
       data.set("responsable", this.$store.state.login.dataUser.id_empleado);
-      data.set("productos", JSON.stringify(this.form.productos));
+      const productosPayload = this.form.productos.map(p => ({
+        ...p,
+        atributos_seleccionados: p.atributos_seleccionados || []
+      }));
+      data.set("productos", JSON.stringify(productosPayload));
+
+      const productosLotesDetallesPayload = this.form.productos
+        .filter((prod) => !prod.diseno)
+        .map(p => ({
+          ...p,
+          atributos_seleccionados: p.atributos_seleccionados || []
+        }));
       data.set(
         "productos_lotes_detalles",
-        JSON.stringify(
-          this.form.productos.filter((prod) => this.filterDesign(prod.cod))
-        )
+        JSON.stringify(productosLotesDetallesPayload)
       );
       data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
       data.set(
@@ -2390,33 +2465,69 @@ export default {
         "montoBolivaresTransferenciaDetalle",
         this.form.montoBolivaresTransferenciaDetalle
       );
-      data.set("tasa_dolar", this.dolar);
-      data.set("tasa_peso", this.peso);
+      data.set("tasa_dolar", this.tasas.bolivar || 200);
+      data.set("tasa_peso", this.tasas.peso_colombiano || 1);
+      data.set("sendWhatsAppMessage", this.form.sendWhatsAppMessage);
+      data.set("guardar_stock", this.form.guardarStock || false);
+
+      console.log("data para crear nueva orden", data);
 
       // ENVIAR DATOS AL SERVIDOR PARA CREAR UNA NUEVA ORDEN
-      await this.$axios
-        .post(`${this.$config.API}${this.endpoint}`, data)
-        .then((data) => {
-          console.log(`El presupuesto ${data.orden_nro} ha sido creado`);
-          console.dir(data);
+      try {
+        const res = await this.$axios.post(
+          `${this.$config.API}${endpoint}`,
+          data
+        );
 
-          this.$confirm("¿Desea imprimir el presupuesto?").then(() => {
-            this.printOrder("reporte").then(() => {
-              this.clearForm({
-                form: true,
-                formPrint: true,
-              });
-            });
+
+        // Handle both 'sport' and 'custom' endpoint response structures
+        if ((res.data.response && res.data.response.status !== "error") || res.data.orden_creada === true) {
+          // Éxito
+          this.$fire({
+            title: "¡Éxito!",
+            // Use a generic message or one from the response if available
+            html: `<p>${res.data.response ? res.data.response.message : 'Presupuesto creado con éxito'}</p>`,
+            type: "success",
           });
-        })
-        .catch((error) => {
+
+          this.loadDataProductos(); // ACTUALIZAR LA EXISTENCIA DE PRODUCTOS
+
+          const wantsToPrint = await this.$confirm(
+            "¿Desea imprimir una copia del presupuesto?",
+            "Imprimir",
+            "info"
+          ).catch(() => false);
+
+          if (wantsToPrint) {
+            await this.printOrder("reporte");
+          }
+
+          this.clearForm(); // Limpiar el formulario para la siguiente presupuesto
+        } else {
+          // Error
           this.$fire({
             title: "Error",
-            html: `<p>Ocurrió un error al crear el presupuesto: ${error}</p>`,
-            type: "warning",
+            // Use a generic message or one from the response if available
+            html: `<p>Ocurrió un error al procesar la presupuesto.</p><p>${res.data.response ? res.data.response.message : 'La respuesta del servidor no indicó éxito.'}</p>`,
+            type: "error",
           });
-        })
-        .finally(() => (this.overlay = false));
+        }
+      } catch (error) {
+        this.$fire({
+          title: "Error de Conexión",
+          html: `<p>No se pudo comunicar con el servidor.</p><p>${error.message || error
+            }</p>`,
+          type: "error",
+        });
+      } finally {
+        // Este bloque se ejecuta siempre, haya éxito o error
+        this.overlay = false;
+        this.disableButtons = false;
+      }
+    },
+
+    goToFirsTab() {
+      this.tabIndex = 0;
     },
 
     clearStep1() {
@@ -2429,7 +2540,11 @@ export default {
     },
 
     async getProducts() {
-      await this.$axios.get(`${this.$config.API}/products`).then((res) => {
+      await this.$axios.get(`${this.$config.API}/products`, {
+        headers: {
+          Authorization: this.$store.state.login.dataEmpresa.id
+        }
+      }).then((res) => {
         this.products = res.data;
 
         // Cargar Productos
@@ -2439,7 +2554,7 @@ export default {
         /* let productsSelect = res.data.map((prod) => {
           return `${prod.cod} | ${prod.name}`
         })
-
+ 
         this.$store.commit('comerce/setDataProductosSelect', productsSelect) */
       });
     },
@@ -2461,7 +2576,6 @@ export default {
 
     async getProducts_fetch() {
       await this.$axios(`${this.$config.API}/products`)
-        .then((res) => res.json())
         .then((res) => {
           this.products = res;
           this.productsSelect = res.map((prod) => {
@@ -2494,7 +2608,8 @@ export default {
     getCategory(categories) {
       let cats;
       if (categories.length) {
-        cats = categories.filter((el) => el.id != 35);
+        // cats = categories.filter((el) => el.id != 35)
+        cats = categories;
       } else {
         cats[0].id = null;
       }
@@ -2504,13 +2619,40 @@ export default {
       }
     },
 
-    checkDesign(categories) {
-      let cats = categories.filter((el) => el.name === "Diseños");
-      if (cats.length) {
-        return true;
-      } else {
-        return false;
+    loadProductPrices(idProduct, newItem) {
+      const tmpProd = this.$store.state.comerce.dataProductos.find(
+        (el) => el.cod === idProduct
+      );
+
+      // **FIX:** Verificamos si el producto fue encontrado antes de intentar usarlo.
+      if (!tmpProd) {
+        console.warn(
+          `[loadProductPrices] No se encontró el producto con código: ${idProduct} en el store. No se pueden cargar los precios.`
+        );
+        // Devolvemos un array vacío para que el <b-form-select> no falle.
+        return [];
       }
+
+      const options = tmpProd.prices.map((el) => {
+        return {
+          value: parseFloat(el.price), // Aseguramos que el valor sea un número flotante
+          text: `${el.price} ${el.description}`,
+        };
+      });
+
+      if (newItem != null) {
+        console.log("insertar el precio XL(n) en ", newItem);
+        options.unshift(newItem);
+      }
+
+      options.unshift({
+        value: null,
+        text: "",
+      });
+
+      this.montoTotalOrden();
+      console.log("options precios producto", options);
+      return options;
     },
 
     loadProduct(val) {
@@ -2525,14 +2667,18 @@ export default {
             existencia: product.stock_quantity,
             cantidad: 0,
             tela: null,
+            atributos_seleccionados: [],
             corte: "No aplica",
-            tela: null,
             talla: null,
+            colores: [],
             xl: 0,
             categoria: this.getCategory(product.categories),
-            diseno: this.checkDesign(product.categories),
-            precio: product.regular_price,
-            precioWoo: product.regular_price,
+            // Si producto_fisico es 0, no es físico (es un diseño), por lo tanto diseno = true.
+            diseno: product.producto_fisico === 0,
+            // precio: product.regular_price || 0,
+            precio: product.price,
+            original_selected_price: product.price, // Inicializar original_selected_price
+            // precioWoo: product.regular_price,
           };
         })
         .find((product) => product.cod == exploited[0]);
@@ -2541,7 +2687,7 @@ export default {
 
       // PRECARAGAR DATOS PARA DISEÑOS
       console.log("YO SOY DATAPROD", dataProd);
-      if (this.validatDesign(dataProd.cod)) {
+      if (dataProd.diseno) {
         dataProd.cantidad = 0;
       }
 
@@ -2567,12 +2713,15 @@ export default {
         cantidad: item.cantidad,
         talla: item.talla,
         tela: item.tela,
+        atributos_seleccionados: item.atributos_seleccionados ? [...item.atributos_seleccionados] : [],
+        colores: [],
         corte: item.corte,
-        precio: item.precio,
+        precio: item.precio || null,
+        original_selected_price: item.original_selected_price, // Copiar el precio original seleccionado
         categoria: item.categoria,
         diseno: item.diseno,
-        precioWoo: item.precioWoo,
-        xl: 0,
+        // precioWoo: item.precioWoo,
+        xl: item.xl,
       };
 
       this.form.productos.push(copy);
@@ -2628,6 +2777,7 @@ export default {
 
     onEditorChange({ editor, html, text }) {
       console.log("editor change!", editor, html, text);
+      console.log('DEBUG: asignando this.form.obs en onEditorChange:', html, typeof html);
       this.form.obs = html;
     },
 
@@ -2636,20 +2786,25 @@ export default {
     },
 
     checkDesigner() {
+      // Resetear valores antes de recalcular
+      this.form.diseno_grafico = false;
+      this.form.diseno_grafico_cantidad = 0;
+      this.form.diseno_modas = false;
+      this.form.diseno_modas_cantidad = 0;
+
       const designs = this.form.productos
-        .filter((el) => this.validatDesign(el.cod))
+        .filter((el) => el.diseno) // Usar la bandera 'diseno'
         .map((el) => {
           let tipo;
+          // Esta lógica hardcodeada es un punto a mejorar en el futuro
           if (el.cod === 20237 || el.cod === 20266) {
             tipo = "modas";
             this.form.diseno_modas = true;
-            this.form.diseno_modas_cantidad = parseInt(el.cantidad);
-          }
-
-          if (this.validatDesign(el.cod)) {
+            this.form.diseno_modas_cantidad += parseInt(el.cantidad) || 0;
+          } else {
             tipo = "gráfico";
             this.form.diseno_grafico = true;
-            this.form.diseno_grafico_cantidad = parseInt(el.cantidad);
+            this.form.diseno_grafico_cantidad += parseInt(el.cantidad) || 0;
           }
           return {
             cod: el.cod,
@@ -2674,11 +2829,13 @@ export default {
         this.form.total = 0;
         this.form.total = this.form.productos
           .map((item) => {
-            console.log(`item pago:`, item);
-
-            return parseFloat(item.precio) * parseInt(item.cantidad);
+            let miPrecio = item.precio;
+            if (miPrecio === undefined || miPrecio === null) item.precio = 0;
+            return parseFloat(miPrecio) * parseInt(item.cantidad);
           })
-          .reduce((acc, curr) => (acc = acc + curr));
+          .reduce((acc, item) => acc + item);
+      } else {
+        this.form.total = 0;
       }
     },
 
@@ -2721,23 +2878,143 @@ export default {
           });
         })
         .finally(() => {
-          console.log(
-            "Recargado los clientes y mapeados",
-            this.$store.state.comerce.customersSelect
+          console.log("Recargado los clientes y mapeados");
+        });
+    },
+    async loadDataTallas() {
+      await this.$axios
+        .get(`${this.$config.API}/sizes`)
+        .then((responseTallas) => {
+          // Cargar Tallas
+          let mySizes = responseTallas.data.data.map((item) => {
+            return {
+              value: item._id,
+              text: item.name,
+            };
+          });
+          this.$store.commit("comerce/setDataTallas", mySizes);
+
+          console.log("ordenes guardadas", this.ordenesGuardadas);
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de las tallas",
+            html: err,
+          });
+        })
+        .finally(() => {
+          console.log("Tallas recargadas y mapeadas");
+        });
+    },
+    async loadDataTelas() {
+      await this.$axios
+        .get(`${this.$config.API}/telas`)
+        .then((responseTelas) => {
+          // Cargar Telas
+          let myTelas = responseTelas.data.data.map((item) => {
+            return {
+              value: item._id, // FIX: Usar el ID como valor para el select
+              text: item.tela,
+            };
+          });
+
+          this.$store.commit("comerce/setDataTelas", myTelas);
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de las telas",
+            html: err,
+          });
+        })
+        .finally(() => {
+          console.log("Telas recargadas y mapeadas");
+        });
+    },
+
+    async loadProductAttributes() {
+      await this.$axios
+        .get(`${this.$config.API}/products-attributes`)
+        .then((response) => {
+          this.productAttributes = response.data.data.map((item) => {
+            return {
+              value: item._id,
+              text: `${item.name} (${item.precio})`,
+              precio: item.precio,
+            };
+          });
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de los atributos",
+            html: err,
+          });
+          // Re-lanzamos el error para que el bloque try/catch en mounted() lo capture
+          // y el flujo de carga se detenga correctamente.
+          throw err;
+        });
+    },
+
+    async loadDataProductos() {
+      await this.$axios
+        .get(`${this.$config.API}/products`, {
+          headers: {
+            Authorization: this.$store.state.login.dataEmpresa.id
+          }
+        })
+        .then((responseProductos) => {
+          // Cargar Productos
+          let productsSelect = responseProductos.data.map((prod) => {
+            return `${prod.cod} | ${prod.name}`;
+          });
+          this.$store.commit(
+            "comerce/setDataProductos",
+            responseProductos.data
           );
+          this.$store.commit("comerce/setDataProductosSelect", productsSelect);
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos delos productos",
+            html: err,
+          });
+        })
+        .finally(() => {
+          console.log("Productos recargados y mapeados");
+        });
+    },
+    async loadDataCategories() {
+      await this.$axios
+        .get(`${this.$config.API}/categories`)
+        .then((responseCategories) => {
+          // Cargar categorias
+          let myCategories = responseCategories.data;
+          this.$store.commit("comerce/setDataCategories", myCategories);
+        })
+        .catch((err) => {
+          this.$fire({
+            type: "error",
+            title: "Error obteniendo datos de las catagorías",
+            html: err,
+          });
+        })
+        .finally(() => {
+          console.log("Categorias recargadas y mapeadas");
         });
     },
 
     async loadDataComercializacion() {
       await this.$axios
         .all([
-          this.$axios.get(`${this.$config.API}/customers`),
-          this.$axios.get(`${this.$config.API}/products`),
-          this.$axios.get(`${this.$config.API}/categories`),
-          this.$axios.get(`${this.$config.API}/telas`),
-          this.$axios.get(`${this.$config.API}/sizes`),
-          //   this.$axios.get(`${this.$config.API}/ordenes/guardadas`),
-          this.$axios.get(`${this.$config.API}/ordenes/guardadas`),
+          this.$axios(`${this.$config.API}/customers`),
+          this.$axios(`${this.$config.API}/sizes`),
+          this.$axios(`${this.$config.API}/telas`),
+          this.$axios(`${this.$config.API}/products`),
+          this.$axios(`${this.$config.API}/categories`),
+          this.$axios(`${this.$config.API}/ordenes/guardadas`),
         ])
         .then(
           this.$axios.spread(
@@ -2783,22 +3060,12 @@ export default {
               // Cargar Tallas
               let mySizes = responseTallas.data.data.map((item) => {
                 return {
-                  value: item.name,
+                  value: item._id,
                   text: item.name,
                 };
               });
               this.$store.commit("comerce/setDataTallas", mySizes);
 
-              // Cargar Guardadas
-              /*this.ordenesGuardadas = responseGuardadas.data.items.map(item => {
-                const parsedForm = JSON.parse(item.form);
-                return { ...item, form: parsedForm };
-              });*/
-              /*this.ordenesGuardadas = responseGuardadas.data.map(item => {
-                const parsedForm = JSON.parse(item.form);
-                return { ...item, form: parsedForm };
-              });*/
-              this.getOrdenesGuardadas();
               console.log("ordenes guardadas", this.ordenesGuardadas);
 
               // Cargar Productos
@@ -2816,10 +3083,11 @@ export default {
             }
           )
         )
-        /* .then(() => {
-          this.mainOverlay = false
-        }) */
+        .then(() => {
+          this.mainOverlay = false;
+        })
         .catch((err) => {
+          console.log(`Error: ${err}`);
           this.$fire({
             type: "error",
             title: "Error obteniendo datos, por favor recargue el módulo ",
@@ -2827,21 +3095,64 @@ export default {
           });
           this.loadingMsg =
             "No se cargaron todos los datos, por favor recargue este módulo";
-          this.mainOverlay = true;
+          this.mainOverlay = false;
         });
     },
   },
 
+  components: {
+    FormMonedas,
+    CargarOrdenesNoAsignadas,
+    AtributosNuevo,
+    'ordenes-presupuesto-preview': PresupuestoPreview
+  },
   created() {
-    this.loadDataComercializacion();
-    this.getOrdenesGuardadas();
+    // this.loadDataComercializacion()
   },
 
-  mounted() {
-    this.$bvModal.hide(this.modal);
+  async mounted() {
+    this.clearForm({
+      form: true,
+      formPrint: true,
+    });
+
+    console.log('check WS', this.form.sendWhatsAppMessage);
+
+
+    this.mainOverlay = true;
+    this.loadingMsg = "Cargando datos...";
+
+    this.checkScreenSize();
+    window.addEventListener("resize", this.handleResize);
+
+    try {
+      // Promise.all ejecuta todas las cargas de datos en paralelo para mayor eficiencia
+      await Promise.all([
+        this.loadDataCustomers(),
+        this.loadDataTallas(),
+        this.loadDataTelas(),
+        this.loadDataProductos(),
+        this.loadDataCategories(), // <-- AÑADIDO PARA CORREGIR EL BUG
+        this.loadProductAttributes(),
+        this.getProyeccionEntrega(),
+        this.getOrdenesGuardadas(),
+      ]);
+      // Si todo tiene éxito, ocultamos el overlay
+      this.mainOverlay = false;
+    } catch (error) {
+      console.error("Fallo en la carga de datos iniciales:", error);
+      // Si algo falla, el overlay se queda visible con un mensaje de error
+      this.loadingMsg =
+        "Ocurrió un error al cargar los datos. Por favor, recargue la página.";
+    }
   },
 
-  mixins: [mixins],
+  beforeDestroy() {
+    window.removeEventListener("resize", this.handleResize);
+  },
+
+  mixins: [mixins, procesamientoOrdenes, phoneValidation],
+
 };
 </script>
 

@@ -63,7 +63,7 @@
                   </b-button>
                   <b-button :disabled="disableButtons" @click="next">{{
                     nextText
-                    }}</b-button>
+                  }}</b-button>
                 </b-button-group>
               </div>
 
@@ -214,7 +214,7 @@
                                   <b-list-group-item>
                                     <h3>
                                       TOTAL A PAGAR: $
-                                      {{ form.total }}
+                                      {{ parseFloat(form.total || 0).toFixed(2) }}
                                     </h3>
                                   </b-list-group-item>
                                   <br />
@@ -261,7 +261,7 @@
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
                                       data.item.producto
-                                      }}</a>
+                                    }}</a>
                                   </template>
 
                                   <template #cell(item)="data">
@@ -316,6 +316,13 @@
                                           duplicateItem(data.index, data.item)
                                           ">
                                           <b-icon-box-arrow-in-left></b-icon-box-arrow-in-left>
+                                        </b-button>
+                                      </span>
+                                      <span class="floatme">
+                                        <b-button :variant="data.item.multiplicador_aplicado ? 'success' : 'warning'"
+                                          @click="aplicarMultiplicadorProducto(data.index, data.item)" v-b-tooltip.hover
+                                          :title="data.item.multiplicador_aplicado ? 'Multiplicador aplicado' : 'Aplicar multiplicador de empresa'">
+                                          <b-icon-calculator></b-icon-calculator>
                                         </b-button>
                                       </span>
                                       <span class="floatme">
@@ -377,6 +384,51 @@
                                       </h4>
                                     </b-col>
                                   </b-row>
+                                </b-col>
+                              </b-row>
+
+                              <!-- Multiplicador de Precio USD → VES -->
+                              <b-row class="mt-3">
+                                <b-col>
+                                  <b-card title="Multiplicador de Precio (USD → VES)" border-variant="primary"
+                                    class="shadow-sm">
+                                    <b-row>
+                                      <b-col md="6">
+                                        <b-form-group label="Precio en USD (Total de la Orden):"
+                                          label-for="input-precio-usd-readonly">
+                                          <b-input-group prepend="$">
+                                            <b-form-input id="input-precio-usd-readonly" :value="form.total"
+                                              type="number" readonly disabled />
+                                          </b-input-group>
+                                          <small class="text-muted">Este valor se carga automáticamente del total de la
+                                            orden</small>
+                                        </b-form-group>
+                                        <b-form-group label="Margen de Reposición:" label-for="input-margen"
+                                          description="Protección contra fluctuación cambiaria">
+                                          <b-form-select id="input-margen" v-model="multiplicador.margen"
+                                            :options="opcionesMargen" />
+                                        </b-form-group>
+                                        <b-form-checkbox v-model="multiplicador.redondear" switch size="lg">Redondeo
+                                          psicológico (hacia arriba)</b-form-checkbox>
+                                      </b-col>
+                                      <b-col md="6">
+                                        <div class="resultado-multiplicador px-3 py-4 bg-light rounded">
+                                          <h5 class="text-muted mb-3">Resultado de Conversión:</h5>
+                                          <p class="mb-2"><strong>Tasa BCV:</strong> {{
+                                            resultadoMultiplicador.tasaBCV.toFixed(2) }} Bs/$</p>
+                                          <p class="mb-3"><strong>Tasa con margen ({{ multiplicador.margen
+                                          }}%):</strong> {{
+                                                resultadoMultiplicador.tasaAplicada.toFixed(2) }} Bs/$</p>
+                                          <hr>
+                                          <h3 class="text-success mb-0">{{ resultadoMultiplicador.valorFormateado }}
+                                          </h3>
+                                          <small class="text-muted">({{ multiplicador.redondear ? 'Con' : 'Sin' }}
+                                            redondeo
+                                            psicológico)</small>
+                                        </div>
+                                      </b-col>
+                                    </b-row>
+                                  </b-card>
                                 </b-col>
                               </b-row>
 
@@ -595,6 +647,7 @@
                                     <hr />
                                   </b-col>
                                 </b-row> -->
+
                           </div>
                         </b-tab>
                         <b-tab title="Emitir orden" title-link-class="h5" :disabled="disable4">
@@ -645,7 +698,7 @@
                         </b-button>
                         <b-button :disabled="disableButtons" @click="next">{{
                           nextText
-                          }}</b-button>
+                        }}</b-button>
                       </b-button-group>
                     </div>
                   </div>
@@ -853,7 +906,6 @@ export default {
         { key: "corte", label: "corte" },
         { key: "tela", label: "tela" },
         { key: "atributo", label: "Atributo" },
-        { key: "color", label: "color" },
         { key: "acciones", label: "acciones" },
       ],
       fieldsGuardadas: [
@@ -870,6 +922,18 @@ export default {
         text: "",
       },
       productAttributes: [],
+      // Multiplicador de precios USD → VES
+      multiplicador: {
+        precioUSD: 0,
+        margen: 0, // 0%, 1%, 2%, 3%
+        redondear: true
+      },
+      opcionesMargen: [
+        { value: 0, text: 'Sin margen (0%)' },
+        { value: 1, text: 'Margen bajo (1%)' },
+        { value: 2, text: 'Margen estándar (2%)' },
+        { value: 3, text: 'Margen alto (3%)' }
+      ]
     };
   },
 
@@ -1000,6 +1064,25 @@ export default {
       // El método se llama formatDateTime12h, pero en tu mixin está como formatTimestamp. Asumo que es el mismo.
       return this.formatDateTime12h(this.fechaProximaDisponible);
     },
+
+    // Resultado del multiplicador USD → VES (usa automáticamente el total de la orden)
+    resultadoMultiplicador() {
+      const precioUSD = parseFloat(this.form.total) || 0
+
+      if (!precioUSD || precioUSD <= 0) {
+        return {
+          valorVES: 0,
+          valorFormateado: 'Bs. 0',
+          tasaAplicada: 0,
+          tasaBCV: 0
+        }
+      }
+
+      return this.calcularPrecioVES(precioUSD, {
+        margen: this.multiplicador.margen,
+        redondear: this.multiplicador.redondear
+      })
+    }
   },
 
   watch: {
@@ -1049,6 +1132,44 @@ export default {
   },
 
   methods: {
+    /**
+     * Convierte precio USD a VES aplicando margen de reposición y redondeo
+     * @param {number} precioUSD - Precio en dólares
+     * @param {object} opciones - { margen: 0, redondear: true }
+     * @returns {object} - { valorVES, valorFormateado, tasaAplicada, tasaBCV }
+     */
+    calcularPrecioVES(precioUSD, opciones = {}) {
+      const { margen = 0, redondear = true } = opciones
+
+      // 1. Obtener tasa BCV del store (this.tasas viene de mapState)
+      const tasaBCV = parseFloat(this.tasas.bolivar) || 1
+
+      // 2. Aplicar margen de reposición (1%, 2%, 3%)
+      const tasaConMargen = tasaBCV * (1 + margen / 100)
+
+      // 3. Calcular precio en VES
+      let precioVES = precioUSD * tasaConMargen
+
+      // 4. Redondeo psicológico (hacia arriba)
+      if (redondear) {
+        precioVES = Math.ceil(precioVES)
+      }
+
+      // 5. Formatear como moneda venezolana
+      const valorFormateado = new Intl.NumberFormat('es-VE', {
+        style: 'currency',
+        currency: 'VES',
+        minimumFractionDigits: redondear ? 0 : 2
+      }).format(precioVES)
+
+      return {
+        valorVES: precioVES,
+        valorFormateado,
+        tasaAplicada: tasaConMargen,
+        tasaBCV
+      }
+    },
+
     onPhoneBlur() {
       const result = this.validateAndFormatPhone(this.form.telefono);
       if (result.isValid) {
@@ -2706,6 +2827,7 @@ export default {
         original_selected_price: item.original_selected_price, // Copiar el precio original seleccionado
         categoria: item.categoria,
         diseno: item.diseno,
+        multiplicador_aplicado: item.multiplicador_aplicado || false, // Copiar estado del multiplicador
         // precioWoo: item.precioWoo,
         xl: item.xl,
       };
@@ -2731,6 +2853,132 @@ export default {
     removeItem(index) {
       this.form.productos.splice(index, 1);
       this.montoTotalOrden();
+    },
+
+    async aplicarMultiplicadorProducto(index, item) {
+      // Obtener multiplicador de empresa desde Vuex
+      const multiplicadorEmpresa = this.$store.state.login.datos_personalizacion?.multiplicador_precio
+
+      if (!multiplicadorEmpresa || multiplicadorEmpresa <= 0) {
+        this.$bvToast.toast('No hay multiplicador configurado para la empresa', {
+          title: 'Advertencia',
+          variant: 'warning',
+          solid: true
+        })
+        return
+      }
+
+      // Si ya fue aplicado, permitir removerlo
+      if (item.multiplicador_aplicado) {
+        const confirmed = await this.$bvModal.msgBoxConfirm(
+          `¿Desea eliminar el multiplicador de este producto?\n\nPrecio actual: $${item.precio}\nPrecio sin multiplicador: $${(item.precio / (1 + multiplicadorEmpresa / 100)).toFixed(2)}`,
+          {
+            title: 'Confirmar eliminación de multiplicador',
+            size: 'md',
+            buttonSize: 'sm',
+            okVariant: 'danger',
+            okTitle: 'Sí, eliminar',
+            cancelTitle: 'Cancelar',
+            footerClass: 'p-2',
+            hideHeaderClose: false,
+            centered: true
+          }
+        )
+
+        if (!confirmed) {
+          return
+        }
+
+        try {
+          // Calcular precio original (revertir multiplicación)
+          const precioConMultiplicador = parseFloat(item.precio)
+          const precioOriginal = precioConMultiplicador / (1 + parseFloat(multiplicadorEmpresa) / 100)
+
+          // Actualizar precio del item
+          this.form.productos[index].precio = parseFloat(precioOriginal.toFixed(2))
+          this.form.productos[index].multiplicador_aplicado = false
+
+          // Recalcular total de la orden
+          this.montoTotalOrden()
+
+          // Mostrar toast de éxito
+          this.$bvToast.toast(
+            `Multiplicador eliminado. Precio: $${precioConMultiplicador.toFixed(2)} → $${precioOriginal.toFixed(2)}`,
+            {
+              title: 'Multiplicador eliminado correctamente',
+              variant: 'success',
+              solid: true,
+              autoHideDelay: 3000
+            }
+          )
+        } catch (error) {
+          console.error('Error al eliminar multiplicador:', error)
+          this.$bvToast.toast(
+            'Ocurrió un error al eliminar el multiplicador.',
+            {
+              title: 'Error',
+              variant: 'danger',
+              solid: true
+            }
+          )
+        }
+
+        return
+      }
+
+      // Aplicar multiplicador (lógica original)
+      const confirmed = await this.$bvModal.msgBoxConfirm(
+        `¿Desea aplicar el multiplicador de empresa (${multiplicadorEmpresa}%) al precio de este producto?\n\nPrecio actual: $${item.precio}\nPrecio con multiplicador: $${(item.precio * (1 + multiplicadorEmpresa / 100)).toFixed(2)}`,
+        {
+          title: 'Confirmar aplicación de multiplicador',
+          size: 'md',
+          buttonSize: 'sm',
+          okVariant: 'success',
+          okTitle: 'Sí, aplicar',
+          cancelTitle: 'Cancelar',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true
+        }
+      )
+
+      if (!confirmed) {
+        return
+      }
+
+      try {
+        // Calcular nuevo precio
+        const precioOriginal = parseFloat(item.precio)
+        const nuevoPrecio = precioOriginal * (1 + parseFloat(multiplicadorEmpresa) / 100)
+
+        // Actualizar precio del item
+        this.form.productos[index].precio = parseFloat(nuevoPrecio.toFixed(2))
+        this.form.productos[index].multiplicador_aplicado = true
+
+        // Recalcular total de la orden
+        this.montoTotalOrden()
+
+        // Mostrar toast de éxito
+        this.$bvToast.toast(
+          `Precio actualizado: $${precioOriginal.toFixed(2)} → $${nuevoPrecio.toFixed(2)}`,
+          {
+            title: 'Multiplicador aplicado correctamente',
+            variant: 'success',
+            solid: true,
+            autoHideDelay: 3000
+          }
+        )
+      } catch (error) {
+        console.error('Error al aplicar multiplicador:', error)
+        this.$bvToast.toast(
+          'Ocurrió un error al aplicar el multiplicador. Por favor, intente nuevamente.',
+          {
+            title: 'Error',
+            variant: 'danger',
+            solid: true
+          }
+        )
+      }
     },
 
     getResponseNewProduct(res) {
@@ -3162,5 +3410,15 @@ export default {
 .buscador {
   width: 100% !important;
   margin: 1rem 0 4rem 0;
+}
+
+/* Make action buttons display horizontally */
+.floatme {
+  display: inline-block;
+  margin-right: 0.25rem;
+}
+
+.floatme:last-child {
+  margin-right: 0;
 }
 </style>

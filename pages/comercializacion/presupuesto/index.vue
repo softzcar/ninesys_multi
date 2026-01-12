@@ -15,7 +15,8 @@
         <b-container
           v-if="
             this.accessModule.accessData.id_modulo === 2 ||
-            dataUseraccessModule.accessData.id_modulo === 1        "
+            this.accessModule.accessData.id_modulo === 1
+          "
         >
           <b-row>
             <b-col>

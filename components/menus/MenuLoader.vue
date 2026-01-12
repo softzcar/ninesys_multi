@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <!-- <div class="p-6 text-center">
@@ -12,17 +11,10 @@
 
         </div> -->
 
-    <b-container
-      style="padding: 0px"
-      class="mb-4"
-      fluid
-    >
+    <b-container style="padding: 0px" class="mb-4" fluid>
       <b-row>
         <b-col>
-          <component
-            :is="asyncComponent"
-            v-if="currentComponent"
-          />
+          <!-- Los menús ahora se cargan desde el AppSidebar en el layout -->
         </b-col>
 
         <!-- <b-col v-if="dataUser.departamento === 'Comercialización'">
@@ -74,70 +66,36 @@
                 </b-col> -->
       </b-row>
 
-      <b-row>
-        <b-col class="mt-3 mb-3 mr-4 pt-2">
-          <b-row>
-            <b-col>
-              <div class="text-right nombre-empresa">
-                <span class="tit-departament">{{ currentDepartament }}</span>
-                {{ $store.state.login.dataEmpresa.nombre }}
-              </div>
-              <div v-if="
-                  $store.state.login.currentDepartament === 'Administración'
-                ">
-                <div class="text-right">
-                  <checkConnection style="float: right; margin-left: 12px" />
-                </div>
-              </div>
+      <!-- Navbar superior con buscador y WhatsApp -->
+      <b-navbar type="light" variant="light" class="shadow-sm mb-3">
+        <b-navbar-nav class="ml-auto">
+          <!-- Buscador de órdenes -->
+          <b-nav-form v-if="currentComponent" class="mr-3">
+            <buscar-BarraDeBusqueda />
+          </b-nav-form>
 
-              <div v-else>
-                <div class="text-right">
-                  <admin-WsSendMsgCustomInterno style="float: right; margin-left: 12px" />
-                </div>
-              </div>
+          <!-- Búsqueda histórica -->
+          <b-nav-item v-if="currentComponent" class="mr-2">
+            <buscar-BusquedaHistoricoModal />
+          </b-nav-item>
 
-              <div class="user-info text-right">
-                <b-icon icon="person" />
-                {{ dataUser.nombre }} |
-                {{ dataUser.departamento }}
-                <!-- <div class="mt-3"> -->
-                <div class="mt-3">
-                  <b-button-group size="lg">
-                    <b-button
-                      @click="
-                        showComponent(
-                          departamento.modulo,
-                          departamento.text,
-                          departamento.value,
-                          departamento.orden_proceso,
-                          currentMinOrdenProcesoId //
-                        )
-                      "
-                      v-for="(
-                        departamento, index
-                      ) in getDepartamentosEmpleadoSelect"
-                      :key="index"
-                      variant="info"
-                    >{{ departamento.text }}</b-button>
+          <!-- Botón WhatsApp (solo si no es Administración) -->
+          <b-nav-item v-if="$store.state.login.currentDepartament !== 'Administración'">
+            <admin-WsSendMsgCustomInterno />
+          </b-nav-item>
 
-                    <b-button
-                      variant="info"
-                      @click="goOut()"
-                    >Salir</b-button>
-                  </b-button-group>
-                </div>
-              </div>
-            </b-col>
-          </b-row>
-        </b-col>
-      </b-row>
+          <!-- Check Connection (solo para Administración) -->
+          <b-nav-item v-if="$store.state.login.currentDepartament === 'Administración'">
+            <checkConnection />
+          </b-nav-item>
+        </b-navbar-nav>
+      </b-navbar>
+
+      <!-- Alerta si no hay módulos asignados -->
       <b-row>
         <b-col>
           <div v-if="getDepartamentosEmpleadoSelect.length === 0">
-            <b-alert
-              variant="warning"
-              show
-            >
+            <b-alert variant="warning" show>
               <h4 class="text-center alert-heading">
                 No se encontraron modulos asignados
               </h4>
@@ -145,37 +103,12 @@
           </div>
         </b-col>
       </b-row>
-      <b-row>
-        <b-col
-          v-if="currentComponent"
-          class="mr-4 text-right"
-        >
-          <buscar-BarraDeBusqueda />
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col
-          v-if="currentComponent"
-          class="mr-4 text-right mt-4"
-        >
-          <buscar-BusquedaHistoricoModal />
-        </b-col>
-      </b-row>
     </b-container>
 
     <!-- Modal para forzar el ingreso de tasas -->
-    <b-modal
-      id="modal-tasas-iniciales"
-      title="Configuración Inicial de Tasas"
-      centered
-      no-close-on-backdrop
-      no-close-on-esc
-      hide-header-close
-    >
-      <b-alert
-        show
-        variant="info"
-      >
+    <b-modal id="modal-tasas-iniciales" title="Configuración Inicial de Tasas" centered no-close-on-backdrop
+      no-close-on-esc hide-header-close>
+      <b-alert show variant="info">
         <h4 class="alert-heading">¡Atención!</h4>
         <p>
           Para continuar, es necesario que establezca las tasas de cambio para
@@ -185,11 +118,7 @@
       </b-alert>
       <form-monedas />
       <template #modal-footer>
-        <b-button
-          variant="primary"
-          :disabled="!tasasEstanConfiguradas"
-          @click="aceptarTasas"
-        >
+        <b-button variant="primary" :disabled="!tasasEstanConfiguradas" @click="aceptarTasas">
           Aceptar
         </b-button>
       </template>
@@ -307,26 +236,45 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
     // El token JWT se obtiene automáticamente cuando es necesario
     // gracias al interceptor de axios configurado específicamente para WhatsApp
 
-    // VAlidar unicamente si es el modulo de empleados
-    /* if (
-      this.getDepartamentosEmpleadoSelect.length === 1
+    // Auto-cargar el menú del primer departamento (por orden de proceso)
+    // Los departamentos ya vienen ordenados por orden_proceso en getDepartamentosEmpleadoSelect
+    if (
+      this.getDepartamentosEmpleadoSelect.length >= 1 &&
+      !this.currentComponent
     ) {
+      const depto = this.getDepartamentosEmpleadoSelect[0]; // Primer depto por orden_proceso
       this.showComponent(
-        this.getDepartamentosEmpleadoSelect[0].modulo,
-        this.getDepartamentosEmpleadoSelect[0].text,
-        this.getDepartamentosEmpleadoSelect[0].value,
-        this.getDepartamentosEmpleadoSelect[0].value,
-        this.getDepartamentosEmpleadoSelect[0].orden_proceso,
-        this.getDepartamentosEmpleadoSelect[0].orden_proceso_min
+        depto.modulo,           // component
+        depto.text,             // departamento (nombre)
+        depto.value,            // id_departamento
+        depto.orden_proceso,    // orden_proceso
+        depto.orden_proceso_min // orden_proceso_min
       );
-    } */
+    }
 
+    // 🔄 CARGA AUTOMÁTICA DE TASAS AL INICIAR
     if (!this.tasasEstanConfiguradas) {
-      this.$bvModal.show("modal-tasas-iniciales");
+      try {
+        // Intentar cargar automáticamente las tasas
+        const resultado = await this.$store.dispatch('login/cargarTasasAutomaticas');
+
+        if (resultado.success) {
+          // Tasas cargadas correctamente, no mostrar el modal
+          console.log('✅ Tasas cargadas automáticamente:', resultado.fallback ? 'desde caché' : 'desde APIs');
+        } else {
+          // Falló la carga automática, mostrar modal para ingreso manual
+          console.warn('⚠️ No se pudieron cargar las tasas automáticamente. Mostrando modal.');
+          this.$bvModal.show("modal-tasas-iniciales");
+        }
+      } catch (error) {
+        // Error inesperado, mostrar modal para ingreso manual
+        console.error('❌ Error al cargar tasas automáticamente:', error);
+        this.$bvModal.show("modal-tasas-iniciales");
+      }
     }
   },
 };

@@ -127,6 +127,8 @@ rif: 'J-00000000-0', */
     // '~/plugins/socketPlugin.js',
     // { src: '~/plugins/socketPlugin.js', options: { socketServerURL: 'http://localhost' } },
     { src: "~plugins/nuxt-quill-plugin", ssr: false },
+    { src: "~/plugins/apexcharts.js", ssr: false },
+    { src: "~/plugins/vuex-persist.js", ssr: false },
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -211,7 +213,7 @@ rif: 'J-00000000-0', */
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
     // analyze: true,
-    transpile: ['date-fns', 'quill-image-resize-module'],
+    transpile: ['date-fns', 'quill-image-resize-module', 'apexcharts', 'vue-apexcharts'],
     extractCSS: true,
     splitChunks: {
       layouts: true,

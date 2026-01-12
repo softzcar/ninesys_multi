@@ -1,22 +1,10 @@
 <template>
   <div>
-    <b-button
-      variant="primary"
-      @click="$bvModal.show(modal)"
-    >
+    <b-button variant="primary" @click="$bvModal.show(modal)">
       <b-icon icon="person-plus"></b-icon>
     </b-button>
-    <b-modal
-      :size="size"
-      :title="title"
-      :id="modal"
-      hide-footer
-      @hide="onModalHide"
-    >
-      <b-overlay
-        :show="overlay"
-        spinner-small
-      >
+    <b-modal :size="size" :title="title" :id="modal" hide-footer @hide="onModalHide">
+      <b-overlay :show="overlay" spinner-small>
         <b-container>
           <!-- <b-row>
             <b-col>
@@ -37,12 +25,12 @@
                     @reload="setReload"
                   />
                 </template>
-              </b-table>
-              <p>
-                Cantidad productos {{ orden_productos.length }}
-              </p>
-            </b-col>
-          </b-row> -->
+</b-table>
+<p>
+  Cantidad productos {{ orden_productos.length }}
+</p>
+</b-col>
+</b-row> -->
           <b-row>
             <b-col>
               <h5 class="mt-4">
@@ -50,10 +38,7 @@
               </h5>
               <b-card no-body>
                 <b-tabs card>
-                  <div
-                    v-for="(dep, index) in tabsDeps"
-                    :key="index"
-                  >
+                  <div v-for="(dep, index) in tabsDeps" :key="index">
                     <b-tab :title="dep.departamento">
                       <b-card-text>
                         <b-row>
@@ -61,31 +46,22 @@
                             <h3>
                               Asignación General
                               {{
-                                                                dep.departamento
-                                                            }}
+                                dep.departamento
+                              }}
                             </h3>
 
-                            <produccionsse-asignar-empleado-multi
-                              :item="dep"
-                              @assignments-updated="handleAssignmentsUpdated"
-                              :idorden="id"
-                              :emp_asignados="
-                                                                filterAsigandos(
-                                                                    dep._id,
-                                                                    id
-                                                                )
-                                                            "
-                              :products="
-                                                                filterProducts(
-                                                                    id
-                                                                )
-                                                            "
-                              :options="
-                                                                filterOptiosnEmp(
-                                                                    dep._id
-                                                                )
-                                                            "
-                            />
+                            <produccionsse-asignar-empleado-multi :item="dep"
+                              @assignments-updated="handleAssignmentsUpdated" :idorden="id" :emp_asignados="filterAsigandos(
+                                dep._id,
+                                id
+                              )
+                                " :products="filterProducts(
+                                  id
+                                )
+                                  " :options="filterOptiosnEmp(
+                                    dep._id
+                                  )
+                                    " />
 
                             <!-- <template
                                                                 #cell(_id)="data"
@@ -139,20 +115,8 @@
                                                                 ></b-icon>
                                                             </b-button> -->
 
-                              <b-form-checkbox
-                                v-model="
-                                                                    switches.switchEstampado
-                                                                "
-                                @change="
-                                                                    postSwitch(
-                                                                        'Estampado',
-                                                                        switches.switchEstampado
-                                                                    )
-                                                                "
-                                calss="mt-2"
-                                switch
-                                size="lg"
-                              >Habilitar
+                              <b-form-checkbox v-model="switches[dep._id]"
+                                @change="postSwitch(dep._id, switches[dep._id])" calss="mt-2" switch size="lg">Habilitar
                                 selección de
                                 insumos</b-form-checkbox>
                             </b-form>
@@ -706,14 +670,7 @@ export default {
       assignmentsChanged: false,
       local_emp_asignados: [],
       asignados: [],
-      switches: {
-        switchImpresion: true,
-        switchEstampado: true,
-        switchCorte: true,
-        switchCostura: true,
-        switchLimpieza: true,
-        switchRevision: true,
-      },
+      switches: {},
       form: {},
       overlay: false,
       size: "xl",
@@ -829,7 +786,7 @@ export default {
       );
     },
 
-    async postSwitch(departamento, estado) {
+    async postSwitch(id_departamento, estado) {
       const data = new URLSearchParams();
       let miEstado = null;
       if (estado) {
@@ -839,7 +796,7 @@ export default {
       }
 
       data.set("estado", miEstado);
-      data.set("departamento", departamento);
+      data.set("id_departamento", id_departamento);
 
       await this.$axios
         .post(`${this.$config.API}/config/select-empleados`, data)
@@ -1216,21 +1173,26 @@ export default {
       this.$set(this.form, dep._id, null); // Inicializa con null o un valor por defecto
     });
 
-    this.switches.switchEstampado = this.evalTF(
-      this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_estampado
-    );
-    this.switches.switchCorte = this.evalTF(
-      this.$store.state.datasys.dataSys.sys_mostrar_rollo_en_empleado_corte
-    );
-    this.switches.switchCostura = this.evalTF(
-      this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_costura
-    );
-    this.switches.switchLimpieza = this.evalTF(
-      this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_limpieza
-    );
-    this.switches.switchRevision = this.evalTF(
-      this.$store.state.datasys.dataSys.sys_mostrar_insumo_en_empleado_revision
-    );
+    // Mapeo de departamentos a sus campos de configuración
+    const departamentoConfigMap = {
+      'Estampado': 'sys_mostrar_rollo_en_empleado_estampado',
+      'Corte': 'sys_mostrar_rollo_en_empleado_corte',
+      'Costura': 'sys_mostrar_insumo_en_empleado_costura',
+      'Limpieza': 'sys_mostrar_insumo_en_empleado_limpieza',
+      'Revisión': 'sys_mostrar_insumo_en_empleado_revision'
+    };
+
+    // Inicializar switches dinámicamente basados en los IDs de departamentos
+    tabsDeps.forEach((dep) => {
+      const configField = departamentoConfigMap[dep.departamento];
+      if (configField) {
+        this.$set(
+          this.switches,
+          dep._id,
+          this.evalTF(this.$store.state.datasys.dataSys?.[configField] ?? 0)
+        );
+      }
+    });
 
     this.$root.$on("bv::modal::show", (bvEvent, modalId) => {
       if (this.modal === modalId) {

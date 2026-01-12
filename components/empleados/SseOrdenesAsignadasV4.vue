@@ -1,212 +1,142 @@
 <template>
   <div>
 
-      <div v-if="ordenesSize < 1">
+    <div v-if="ordenesSize < 1">
+      <b-row>
+        <b-col>
+          <b-alert :show="showAlert" class="text-center" variant="info">
+            <h3>{{ msg }}</h3>
+          </b-alert>
+        </b-col>
+      </b-row>
+
+      <!-- Eficiencia -->
+      <b-row>
+        <b-col>
+          <b-overlay :show="loadingEfficiency" spinner-small rounded="sm">
+            <empleados-RendimientoGeneral :ordenes="ordenes" :pausas="pausas"
+              :departmentId="$store.state.login.currentDepartamentId" :reporteData="reporteData"
+              :inputEfficiencyData="inputEfficiencyData" :isLoading="loadingEfficiency" />
+          </b-overlay>
+        </b-col>
+      </b-row>
+
+    </div>
+
+    <div v-else>
+      <b-container fluid>
+        <!-- Filtro de busqueda -->
         <b-row>
-          <b-col>
-            <b-alert
-              :show="showAlert"
-              class="text-center"
-              variant="info"
-            >
-              <h3>{{ msg }}</h3>
-            </b-alert>
+          <b-col offset-lg="8" offset-xl="8">
+            <b-input-group class="mb-4" size="sm">
+              <b-form-input id="filter-input" v-model="filter" type="search"
+                placeholder="Filtrar Resultados"></b-form-input>
+
+              <b-input-group-append>
+                <b-button :disabled="!filter" @click="filter = ''">
+                  Limpiar
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
           </b-col>
         </b-row>
+
+        <!-- Botón recargar  -->
+        <b-row>
+          <b-col>
+            <b-row class="text-center mb-4">
+              <b-col>
+                <b-button variant="success" @click="reloadMe">Recargar</b-button>
+              </b-col>
+            </b-row>
+          </b-col>
+        </b-row>
+
 
         <!-- Eficiencia -->
         <b-row>
           <b-col>
             <b-overlay :show="loadingEfficiency" spinner-small rounded="sm">
-              <empleados-RendimientoGeneral
-                :ordenes="ordenes"
-                :pausas="pausas"
-                :departmentId="$store.state.login.currentDepartamentId"
-                :reporteData="reporteData"
-                :inputEfficiencyData="inputEfficiencyData"
-                :isLoading="loadingEfficiency"
-              />
+              <empleados-RendimientoGeneral :ordenes="ordenes" :pausas="pausas"
+                :departmentId="$store.state.login.currentDepartamentId" :reporteData="reporteData"
+                :inputEfficiencyData="inputEfficiencyData" :isLoading="loadingEfficiency" />
             </b-overlay>
           </b-col>
         </b-row>
 
-      </div>
+        <!-- Lotes en Proceso -->
+        <b-row v-if="lotesActivos.length > 0">
+          <b-col>
+            <b-card class="mb-4" header="Lotes en Proceso" header-tag="header">
+              <div v-for="lote in lotesActivos" :key="lote.id" class="mb-3">
+                <b-card no-body>
+                  <template #header>
+                    <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                      <span>
+                        Lote #{{ lote.id }} <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{
+                          lote.estado }}</b-badge>
+                      </span>
+                      <small>Órdenes: {{ lote.ordenes.length }}</small>
+                    </h5>
+                  </template>
 
-      <div v-else>
-        <b-container fluid>
-          <!-- Filtro de busqueda -->
-          <b-row>
-            <b-col
-              offset-lg="8"
-              offset-xl="8"
-            >
-              <b-input-group
-                class="mb-4"
-                size="sm"
-              >
-                <b-form-input
-                  id="filter-input"
-                  v-model="filter"
-                  type="search"
-                  placeholder="Filtrar Resultados"
-                ></b-form-input>
+                  <b-list-group flush>
+                    <b-list-group-item v-for="orden in lote.ordenes" :key="orden.id_orden"
+                      class="d-flex align-items-center">
+                      <linkSearch :id="orden.id_orden" size="sm" class="mr-3" />
+                      <span>
+                        <strong>Orden #{{ orden.id_orden }}</strong> - {{ orden.cliente_nombre }}
+                      </span>
+                    </b-list-group-item>
+                  </b-list-group>
 
-                <b-input-group-append>
-                  <b-button
-                    :disabled="!filter"
-                    @click="filter = ''"
-                  >
-                    Limpiar
-                  </b-button>
-                </b-input-group-append>
-              </b-input-group>
-            </b-col>
-          </b-row>
+                  <template #footer>
+                    <div class="text-left">
+                      <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success"
+                        size="sm" class="mr-2">
+                        Iniciar Lote
+                      </b-button>
+                      <b-button v-if="lote.estado === 'en_curso'" @click="finalizarLotePorDepartamento(lote.id)"
+                        variant="success" size="sm">
+                        Finalizar Lote
+                      </b-button>
+                    </div>
+                  </template>
+                </b-card>
+              </div>
+            </b-card>
+          </b-col>
+        </b-row>
 
-          <!-- Botón recargar  -->
-          <b-row>
-            <b-col>
-              <b-row class="text-center mb-4">
-                <b-col>
-                  <b-button
-                    variant="success"
-                    @click="reloadMe"
-                  >Recargar</b-button>
-                </b-col>
-              </b-row>
-            </b-col>
-          </b-row>
-
-
-          <!-- Eficiencia -->
-          <b-row>
-            <b-col>
-                <b-overlay :show="loadingEfficiency" spinner-small rounded="sm">
-                  <empleados-RendimientoGeneral
-                    :ordenes="ordenes"
-                    :pausas="pausas"
-                    :departmentId="$store.state.login.currentDepartamentId"
-                    :reporteData="reporteData"
-                    :inputEfficiencyData="inputEfficiencyData"
-                    :isLoading="loadingEfficiency"
-                  />
-               </b-overlay>
-            </b-col>
-          </b-row>
-
-          <!-- Lotes en Proceso -->
-          <b-row v-if="lotesActivos.length > 0">
-            <b-col>
-              <b-card
-                class="mb-4"
-                header="Lotes en Proceso"
-                header-tag="header"
-              >
-                <div v-for="lote in lotesActivos" :key="lote.id" class="mb-3">
-                  <b-card no-body>
-                    <template #header>
-                      <h5 class="mb-0 d-flex justify-content-between align-items-center">
-                        <span>
-                          Lote #{{ lote.id }} <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{ lote.estado }}</b-badge>
-                        </span>
-                        <small>Órdenes: {{ lote.ordenes.length }}</small>
-                      </h5>
-                    </template>
-
-                    <b-list-group flush>
-                      <b-list-group-item
-                        v-for="orden in lote.ordenes"
-                        :key="orden.id_orden"
-                        class="d-flex align-items-center"
-                      >
-                        <linkSearch
-                          :id="orden.id_orden"
-                          size="sm"
-                          class="mr-3"
-                        />
-                        <span>
-                          <strong>Orden #{{ orden.id_orden }}</strong> - {{ orden.cliente_nombre }}
-                        </span>
-                      </b-list-group-item>
-                    </b-list-group>
-
-                    <template #footer>
-                      <div class="text-left">
-                        <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" size="sm" class="mr-2">
-                           Iniciar Lote
-                        </b-button>
-                        <b-button v-if="lote.estado === 'en_curso'" @click="finalizarLotePorDepartamento(lote.id)" variant="success" size="sm">
-                          Finalizar Lote
-                        </b-button>
-                      </div>
-                    </template>
-                  </b-card>
-                </div>
-              </b-card>
-            </b-col>
-          </b-row>
-
-          <!-- Reposiciones -->
-          <b-row>
-            <b-col>
-              <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card
-                class="mb-4"
-                :header="contarItems(dataTableReposiciones.length)"
-              >
+        <!-- Reposiciones -->
+        <b-row>
+          <b-col>
+            <b-overlay :show="loadingOrders" spinner-small rounded="sm">
+              <b-card class="mb-4" :header="contarItems(dataTableReposiciones.length)">
                 <h3>Reposiciones</h3>
 
-                <b-alert
-                  class="text-center"
-                  v-if="dataTableReposiciones.length < 1"
-                  show
-                  variant="info"
-                >
+                <b-alert class="text-center" v-if="dataTableReposiciones.length < 1" show variant="info">
                   No tienes reposiciones en curso</b-alert>
 
                 <!-- TABLA DE REPOSICIONES -->
-                <b-table
-                  v-else
-                  stacked
-                  :items="dataTableReposiciones"
-                  :fields="filedsLista"
-                  :filter-included-fields="includedFields"
-                  @filtered="onFiltered"
-                  :filter="filter"
-                >
+                <b-table v-else stacked :items="dataTableReposiciones" :fields="filedsLista"
+                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <b-col cols="auto">
-                        <linkSearch
-                          :id="row.item.orden"
-                        />
+                        <linkSearch :id="row.item.orden" />
                       </b-col>
 
                       <!-- Terminar -->
                       <b-col cols="auto">
-                        <empleados-SseOrdenesAsignadasModalExtra
-                          :pausas="pausas"
-                          :departamento="
-                            $store.state.login.dataUser.departamento
-                          "
-                          :item="row.item"
-                          :items="filterOrder(row.item.orden, 'en curso')"
-                          :esreposicion="1"
-                          :idlotesdetalles="row.item.id_lotes_detalles"
-                          :impresoras="impresoras"
-                          :insumosTodos="insumos"
-                          :insumosimp="insumosImpresion"
-                          :insumosest="insumosEstampado"
-                          :insumoscor="insumosCorte"
-                          :insumoscos="insumosCostura"
-                          :insumoslim="insumosLimpieza"
-                          :insumosrev="insumosRevision"
-                          :orden_proceso_departamento="row.item.orden_proceso_departamento"
-                          tipo="todo"
-                          :idorden="row.item.orden"
-                          :id_ordenes_productos="row.item.id_ordenes_productos"
-                          @reload="reloadMe"
-                        />
+                        <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento
+                          " :item="row.item" :items="filterOrder(row.item.orden, 'en curso')" :esreposicion="1"
+                          :idlotesdetalles="row.item.id_lotes_detalles" :impresoras="impresoras" :insumosTodos="insumos"
+                          :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscor="insumosCorte"
+                          :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision"
+                          :datainsumos="dataInsumos" :orden_proceso_departamento="row.item.orden_proceso_departamento"
+                          tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
+                          @reload="reloadMe" />
                       </b-col>
 
                       <!-- ProgressBar -->
@@ -216,30 +146,20 @@
 
                       <!-- Reposición -->
                       <b-col cols="auto" style="margin-left: 0.3rem;">
-                        <empleados-reposicion
-                          @reload_this="reloadMe"
-                          :id_orden="row.item.orden"
-                          :itemRep="row.item"
-                          :productos="productsFilter(row.item.orden)"
-                        />
+                        <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" :itemRep="row.item"
+                          :productos="productsFilter(row.item.orden)" />
                       </b-col>
 
                       <!-- Ver Diseño -->
                       <b-col cols="auto">
-                        <diseno-view-image
-                          :id="row.item.orden"
-                        />
+                        <diseno-view-image :id="row.item.orden" />
                       </b-col>
 
                       <!-- Detalles productos -->
                       <b-col cols="auto">
-                        <produccion-control-de-produccion-detalles-editor
-                          esreposicion="true"
-                          :idorden="row.item.orden"
-                          :detalles="row.item.observaciones"
-                          :detalle_empleado="row.item.detalle_empleado"
-                          :productos="productsFilter(row.item.orden)"
-                        />
+                        <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
+                          :detalles="row.item.observaciones" :detalle_empleado="row.item.detalle_empleado"
+                          :productos="productsFilter(row.item.orden)" />
                       </b-col>
                     </b-row>
                   </template>
@@ -247,68 +167,37 @@
                   <!-- Lista de productos -->
                 </b-table>
               </b-card>
-              </b-overlay>
-            </b-col>
-          </b-row>
+            </b-overlay>
+          </b-col>
+        </b-row>
 
-          <!-- En curso -->
-          <b-row>
-            <b-col>
-              <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card
-                class="mb-4"
-                :header="contarItems(dataTableEnCurso.length)"
-              >
+        <!-- En curso -->
+        <b-row>
+          <b-col>
+            <b-overlay :show="loadingOrders" spinner-small rounded="sm">
+              <b-card class="mb-4" :header="contarItems(dataTableEnCurso.length)">
                 <h3>En Curso</h3>
-                <b-alert
-                  class="text-center"
-                  v-if="dataTableEnCurso.length < 1"
-                  show
-                  variant="info"
-                >No tienes tareas en curso</b-alert>
+                <b-alert class="text-center" v-if="dataTableEnCurso.length < 1" show variant="info">No tienes tareas en
+                  curso</b-alert>
                 <!-- BOTONES EN CURSO -->
-                <b-table
-                  v-else
-                  stacked
-                  :items="dataTableEnCurso"
-                  :fields="filedsLista"
-                  :filter-included-fields="includedFields"
-                  @filtered="onFiltered"
-                  :filter="filter"
-                >
+                <b-table v-else stacked :items="dataTableEnCurso" :fields="filedsLista"
+                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Número de orden -->
                       <b-col cols="auto">
-                        <linkSearch
-                          :id="row.item.orden"
-                        />
+                        <linkSearch :id="row.item.orden" />
                       </b-col>
 
                       <!-- Terminar Todo + PAUSAR -->
                       <b-col cols="auto">
-                        <empleados-SseOrdenesAsignadasModalExtra
-                          :pausas="pausas"
-                          :departamento="
-                            $store.state.login.dataUser.departamento
-                          "
-                          :item="row.item"
-                          :items="filterOrder(row.item.orden, 'en curso')"
-                          :esreposicion="0"
-                          :impresoras="impresoras"
-                          :insumosTodos="insumos"
-                          :insumosimp="insumosImpresion"
-                          :insumosest="insumosEstampado"
-                          :insumoscos="insumosCostura"
-                          :insumoslim="insumosLimpieza"
-                          :insumosrev="insumosRevision"
-                          :insumoscor="insumosCorte"
-                          tipo="todo"
-                          :idorden="row.item.orden"
-                          :id_ordenes_productos="row.item.id_ordenes_productos"
-                          @reload="reloadMe()"
-                          :orden_proceso_departamento="row.item.orden_proceso_departamento"
-                        />
+                        <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento
+                          " :item="row.item" :items="filterOrder(row.item.orden, 'en curso')" :esreposicion="0"
+                          :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion"
+                          :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza"
+                          :insumosrev="insumosRevision" :insumoscor="insumosCorte" :datainsumos="dataInsumos"
+                          tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
+                          @reload="reloadMe()" :orden_proceso_departamento="row.item.orden_proceso_departamento" />
                       </b-col>
 
                       <!-- ProgressBar (después de PAUSAR) -->
@@ -318,29 +207,19 @@
 
                       <!-- Reposición -->
                       <b-col cols="auto" style="margin-left: 0.3rem;">
-                        <empleados-reposicion
-                          @reload_this="reloadMe"
-                          :id_orden="row.item.orden"
-                          :itemRep="row.item"
-                        />
+                        <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" :itemRep="row.item" />
                       </b-col>
 
                       <!-- Ver Diseño -->
                       <b-col cols="auto">
-                        <diseno-view-image
-                          :id="row.item.orden"
-                        />
+                        <diseno-view-image :id="row.item.orden" />
                       </b-col>
 
                       <!-- Detalles -->
                       <b-col cols="auto">
-                        <produccion-control-de-produccion-detalles-editor
-                          esreposicion="false"
-                          :idorden="row.item.orden"
-                          :detalles="row.item.observaciones"
-                          :detalle_empleado="row.item.detalle_empleado"
-                          :productos="productsFilter(row.item.orden)"
-                        />
+                        <produccion-control-de-produccion-detalles-editor esreposicion="false" :idorden="row.item.orden"
+                          :detalles="row.item.observaciones" :detalle_empleado="row.item.detalle_empleado"
+                          :productos="productsFilter(row.item.orden)" />
                       </b-col>
 
                       <!-- Vinculadas (último) -->
@@ -368,82 +247,54 @@
                   </template>
                 </b-table>
               </b-card>
-              </b-overlay>
-            </b-col>
-          </b-row>
+            </b-overlay>
+          </b-col>
+        </b-row>
 
-          <!-- Botón para Crear Lote -->
-          <b-row v-if="esDepartamentoDeMateriales">
-            <b-col class="mb-3">
-              <b-button
-                variant="primary"
-                :disabled="ordenesSeleccionadas.length === 0"
-                @click="crearLote"
-              >
-                Crear Lote ({{ ordenesSeleccionadas.length }} seleccionadas)
-              </b-button>
-            </b-col>
-          </b-row>
+        <!-- Botón para Crear Lote -->
+        <b-row v-if="esDepartamentoDeMateriales">
+          <b-col class="mb-3">
+            <b-button variant="primary" :disabled="ordenesSeleccionadas.length === 0" @click="crearLote">
+              Crear Lote ({{ ordenesSeleccionadas.length }} seleccionadas)
+            </b-button>
+          </b-col>
+        </b-row>
 
-          <!-- ORDENES PENDIENTES -->
-          <b-row>
-            <b-col>
-              <b-overlay :show="loadingOrders" spinner-small rounded="sm">
+        <!-- ORDENES PENDIENTES -->
+        <b-row>
+          <b-col>
+            <b-overlay :show="loadingOrders" spinner-small rounded="sm">
               <b-card :header="contarItems(dataTablePendiente.length)">
                 <h3>Pendientes</h3>
 
 
-                <b-alert
-                  class="text-center"
-                  v-if="dataTablePendiente.length < 1"
-                  show
-                  variant="info"
-                >No tienes tareas pendientes</b-alert>
+                <b-alert class="text-center" v-if="dataTablePendiente.length < 1" show variant="info">No tienes tareas
+                  pendientes</b-alert>
 
-                <b-table
-                  v-else
-                  stacked
-                  :items="dataTablePendiente"
-                  :fields="filedsLista"
-                  :filter-included-fields="includedFields"
-                  @filtered="onFiltered"
-                  :filter="filter"
-                >
+                <b-table v-else stacked :items="dataTablePendiente" :fields="filedsLista"
+                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Checkbox de selección -->
                       <b-col v-if="esDepartamentoDeMateriales" cols="auto">
-                        <b-form-checkbox
-                          v-model="ordenesSeleccionadas"
-                          :value="row.item.id_orden"
-                          size="lg"
-                          :disabled="verificarOrdenProceso(row.item.orden_proceso, row.item.orden_proceso_min)"
-                        />
+                        <b-form-checkbox v-model="ordenesSeleccionadas" :value="row.item.id_orden" size="lg"
+                          :disabled="verificarOrdenProceso(row.item.orden_proceso, row.item.orden_proceso_min)" />
                       </b-col>
 
                       <!-- Número de orden -->
                       <b-col cols="auto">
-                        <linkSearch
-                          :id="row.item.orden"
-                        />
+                        <linkSearch :id="row.item.orden" />
                       </b-col>
 
                       <!-- Iniciar Todo -->
                       <b-col cols="auto">
-                        <b-button
-                          block
-                          size="xl"
-                          variant="info"
-                          :disabled="
-                            verificarOrdenProceso(
-                              row.item.orden_proceso,
-                              row.item.orden_proceso_min
-                            )
-                          "
-                          @click="
+                        <b-button block size="xl" variant="info" :disabled="verificarOrdenProceso(
+                          row.item.orden_proceso,
+                          row.item.orden_proceso_min
+                        )
+                          " @click="
                             iniciarTodo(row.item.orden, row.item.unidades)
-                          "
-                        >Iniciar Todo
+                            ">Iniciar Todo
                         </b-button>
                       </b-col>
 
@@ -454,28 +305,19 @@
 
                       <!-- Ver Diseño -->
                       <b-col cols="auto">
-                        <diseno-view-image
-                          :id="row.item.orden"
-                        />
+                        <diseno-view-image :id="row.item.orden" />
                       </b-col>
 
                       <!-- Detalles -->
                       <b-col cols="auto">
-                        <produccion-control-de-produccion-detalles-editor
-                          esreposicion="false"
-                          :idorden="row.item.orden"
-                          :detalles="row.item.observaciones"
-                          :detalle_empleado="row.item.detalle_empleado"
-                          :productos="productsFilter(row.item.orden)"
-                        />
+                        <produccion-control-de-produccion-detalles-editor esreposicion="false" :idorden="row.item.orden"
+                          :detalles="row.item.observaciones" :detalle_empleado="row.item.detalle_empleado"
+                          :productos="productsFilter(row.item.orden)" />
                       </b-col>
 
                       <!-- Tiempo estimado -->
                       <b-col cols="auto">
-                        <b-alert
-                          :variant="filterFechaEstimada(row.item.orden).variant"
-                          show
-                        >
+                        <b-alert :variant="filterFechaEstimada(row.item.orden).variant" show>
                           <h4 class="alert-heading">
                             {{
                               filterFechaEstimada(row.item.orden).variant_text
@@ -496,48 +338,28 @@
                   </template>
                 </b-table>
               </b-card>
-              </b-overlay>
-            </b-col>
-          </b-row>
-        </b-container>
-      </div>
+            </b-overlay>
+          </b-col>
+        </b-row>
+      </b-container>
+    </div>
 
 
     <!-- MODAL PARA FINALIZAR LOTE -->
-    <FinalizarLoteModal
-      v-if="loteParaFinalizar"
-      :show="showFinalizarLoteModal"
-      :lote-id="loteParaFinalizar.id"
-      :total-papel-utilizado="papelUtilizadoLote"
-      :insumos="insumos"
-      :ordenes="ordenesParaFinalizar"
-      @close="showFinalizarLoteModal = false"
-      @lote-finalizado="handleLoteFinalizado"
-    />
+    <FinalizarLoteModal v-if="loteParaFinalizar" :show="showFinalizarLoteModal" :lote-id="loteParaFinalizar.id"
+      :total-papel-utilizado="papelUtilizadoLote" :insumos="insumos" :ordenes="ordenesParaFinalizar"
+      @close="showFinalizarLoteModal = false" @lote-finalizado="handleLoteFinalizado" />
 
     <!-- MODAL PARA FINALIZAR LOTE DE IMPRESIÓN -->
-    <FinalizarLoteImpresionModal
-      v-if="loteParaFinalizar"
-      :show="showFinalizarImpresionModal"
-      :lote-id="loteParaFinalizar.id"
-      :insumos="insumos"
-      :impresoras="impresoras"
-      :ordenes="ordenesParaFinalizar"
-      :es-reposicion="esReposicionParaFinalizar"
-      @close="showFinalizarImpresionModal = false"
-      @lote-finalizado="handleLoteFinalizado"
-    />
+    <FinalizarLoteImpresionModal v-if="loteParaFinalizar" :show="showFinalizarImpresionModal"
+      :lote-id="loteParaFinalizar.id" :insumos="insumos" :impresoras="impresoras" :ordenes="ordenesParaFinalizar"
+      :es-reposicion="esReposicionParaFinalizar" @close="showFinalizarImpresionModal = false"
+      @lote-finalizado="handleLoteFinalizado" />
 
     <!-- MODAL PARA FINALIZAR LOTE DE CORTE -->
-    <FinalizarLoteCorteModal
-      v-if="loteParaFinalizar"
-      :show="showFinalizarCorteModal"
-      :lote-id="loteParaFinalizar.id"
-      :insumos="insumos"
-      :ordenes="ordenesParaFinalizar"
-      @close="showFinalizarCorteModal = false"
-      @lote-finalizado="handleLoteFinalizado"
-    />
+    <FinalizarLoteCorteModal v-if="loteParaFinalizar" :show="showFinalizarCorteModal" :lote-id="loteParaFinalizar.id"
+      :insumos="insumos" :ordenes="ordenesParaFinalizar" @close="showFinalizarCorteModal = false"
+      @lote-finalizado="handleLoteFinalizado" />
   </div>
 </template>
 
@@ -605,7 +427,7 @@ export default {
       ],
       impresoras: [],
 
-      
+
       // New loading states and data for sectioned loading
       loadingEfficiency: false,
       loadingOrders: false,
@@ -1085,7 +907,7 @@ export default {
       const payload = new URLSearchParams();
       payload.append('id_empleado', this.$store.state.login.dataUser.id_empleado);
       payload.append('id_departamento', this.$store.state.login.currentDepartamentId);
-      
+
       await this.$axios.post(`${this.$config.API}/lotes/activos`, payload)
         .then(res => {
           this.lotesActivos = res.data;
@@ -1182,7 +1004,7 @@ export default {
             // Usamos $nextTick para darle tiempo a la UI a que se actualice si es necesario,
             // aunque la lógica ahora no depende de `lotesActivos` para el inicio inmediato.
             this.$nextTick(() => {
-                this._ejecutarInicioDeLote(newLoteId, ordenesParaLote);
+              this._ejecutarInicioDeLote(newLoteId, ordenesParaLote);
             });
           })
           .catch(err => {
@@ -1193,7 +1015,7 @@ export default {
             });
             this.overlay = false;
           });
-      }).catch(()=>{
+      }).catch(() => {
         // User cancelled
       });
     },
@@ -1212,7 +1034,7 @@ export default {
         'question'
       ).then(() => {
         this._ejecutarInicioDeLote(loteId, ordenesDelLote);
-      }).catch(()=>{
+      }).catch(() => {
         // El usuario canceló
       });
     },
@@ -1288,7 +1110,7 @@ export default {
 
     filterFechaEstimada(idOrden) {
       if (!Array.isArray(this.fechasResult)) return { variant: '' };
-      
+
       const filtrado = this.fechasResult.filter((el) => el.id_orden == idOrden);
       if (filtrado.length) {
         const fechaEstimada = filtrado[0].tareas
@@ -1382,22 +1204,22 @@ export default {
         .then(() => {
           this.overlay = true;
           this.registrarEstado("inicio", idOrden, unidades, false, this.ordenes.find(o => o.id_orden === idOrden).lotes_detalles_empleados_asignados)
-          .then(() => {
-            if (!this.isLastDepartment()) {
-              this.sendMsgCustom(idOrden, 'paso', this.$store.state.login.currentDepartamentId);
-            }
-            this.reloadMe();
-          })
-          .catch((err) => {
-             this.$fire({
+            .then(() => {
+              if (!this.isLastDepartment()) {
+                this.sendMsgCustom(idOrden, 'paso', this.$store.state.login.currentDepartamentId);
+              }
+              this.reloadMe();
+            })
+            .catch((err) => {
+              this.$fire({
                 title: "Error",
                 html: `<p>No se pudo registrar la acción.</p><p>${err}</p>`,
                 type: "warning",
               });
-          })
-          .finally(() => {
-            this.overlay = false;
-          });
+            })
+            .finally(() => {
+              this.overlay = false;
+            });
         })
     },
 
@@ -1509,7 +1331,7 @@ export default {
         .get(
           `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}/${this.$store.state.login.currentOrdenProceso}`
         )
-        .then((resp) => {
+        .then(async (resp) => {
           if (resp.data.ordenes.length === 0) {
             this.msg = "Usted no tiene ordenes asignadas";
           }
@@ -1518,47 +1340,83 @@ export default {
           this.vinculadas = resp.data.vinculadas;
           this.productos = resp.data.productos;
           this.pausas = resp.data.pausas;
-          
+
+          // Load dataInsumos for all assigned orders
+          await this.loadDataInsumos();
+
           // After orders are loaded, fetch efficiency data
           this.fetchEfficiency();
         })
         .finally(() => {
-            this.loadingOrders = false; // Stop loading orders
+          this.loadingOrders = false; // Stop loading orders
         });
+    },
+
+    async loadDataInsumos() {
+      try {
+        // Get unique order IDs from ordenes and reposiciones
+        const ordenesIds = [...new Set(this.ordenes.map(o => o.id_orden))];
+
+        if (ordenesIds.length === 0) {
+          this.dataInsumos = [];
+          return;
+        }
+
+        // Fetch insumos data for each order
+        const insumosPromises = ordenesIds.map(idOrden =>
+          this.$axios.get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
+            .then(resp => resp.data.insumos_asignados || [])
+            .catch(err => {
+              console.error(`Error loading insumos for order ${idOrden}:`, err);
+              return [];
+            })
+        );
+
+        // Wait for all requests to complete
+        const insumosArrays = await Promise.all(insumosPromises);
+
+        // Flatten the array of arrays into a single array
+        this.dataInsumos = insumosArrays.flat();
+
+        console.log('DataInsumos loaded:', this.dataInsumos.length, 'items');
+      } catch (error) {
+        console.error('Error in loadData Insumos:', error);
+        this.dataInsumos = [];
+      }
     },
 
     async fetchEfficiency() {
       this.loadingEfficiency = true;
       try {
         let itemsForEfficiency = [];
-        
+
         // If we have orders, use them. Otherwise check for unpaid orders.
         if (this.ordenes && this.ordenes.length > 0) {
-            itemsForEfficiency = this.ordenes;
+          itemsForEfficiency = this.ordenes;
         } else {
-             // Fetch unpaid orders logic
-             const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
-             const idDepartamento = this.$store.state.login.currentDepartamentId;
+          // Fetch unpaid orders logic
+          const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
+          const idDepartamento = this.$store.state.login.currentDepartamentId;
 
-             if (!idEmpleado || !idDepartamento) {
-                 this.loadingEfficiency = false;
-                 return;
-             }
+          if (!idEmpleado || !idDepartamento) {
+            this.loadingEfficiency = false;
+            return;
+          }
 
-             const unpaidResponse = await this.$axios.get(
-               `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
-             );
-             
-             if (unpaidResponse.data && unpaidResponse.data.length > 0) {
-                 itemsForEfficiency = unpaidResponse.data;
-             }
+          const unpaidResponse = await this.$axios.get(
+            `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
+          );
+
+          if (unpaidResponse.data && unpaidResponse.data.length > 0) {
+            itemsForEfficiency = unpaidResponse.data;
+          }
         }
 
         if (itemsForEfficiency.length === 0) {
-            this.reporteData = null;
-            this.inputEfficiencyData = null;
-            this.loadingEfficiency = false;
-            return;
+          this.reporteData = null;
+          this.inputEfficiencyData = null;
+          this.loadingEfficiency = false;
+          return;
         }
 
         // Extract IDs
@@ -1566,79 +1424,79 @@ export default {
         const ids = uniqueIds.join(',');
 
         if (!ids) {
-            this.loadingEfficiency = false;
-            return;
+          this.loadingEfficiency = false;
+          return;
         }
 
         const postData = {
           id_ordenes: uniqueIds,
           id_empleado: this.$store.state.login?.dataUser?.id_empleado || null
         };
-        
+
         // Parallel requests for Manufacturing Time and Input Efficiency
         const [timeResponse, inputResponse] = await Promise.all([
-             this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData),
-             this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`)
+          this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData),
+          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`)
         ]);
 
         // Process Manufacturing Time
         if (timeResponse.data) {
           const totalReal = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
           const totalProjected = timeResponse.data.reduce((acc, item) => {
-              if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
-                  const projected = parseFloat(item.tiempo_proyectado_segundos || 0);
-                  const real = parseFloat(item.tiempo_total_segundos || 0);
-                  if (item.status === 'terminado' || item.prioridad === 'Completado') {
-                      return acc + projected;
-                  } else {
-                      return acc + Math.min(real, projected);
-                  }
+            if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
+              const projected = parseFloat(item.tiempo_proyectado_segundos || 0);
+              const real = parseFloat(item.tiempo_total_segundos || 0);
+              if (item.status === 'terminado' || item.prioridad === 'Completado') {
+                return acc + projected;
+              } else {
+                return acc + Math.min(real, projected);
               }
-              return acc;
+            }
+            return acc;
           }, 0);
-          
+
           this.reporteData = {
-              totalReal,
-              totalProjected,
-              totalElapsed: 0 // Simplification: we may not need exact elapsed for the bar if using real vs projected
+            totalReal,
+            totalProjected,
+            totalElapsed: 0 // Simplification: we may not need exact elapsed for the bar if using real vs projected
           };
         }
 
         // Process Input Efficiency
         if (inputResponse.data && inputResponse.data.length > 0) {
-             let totalEstimado = 0;
-             let totalReal = 0;
-             let unidad = 'Mt';
-             
-             inputResponse.data.forEach(item => {
-                 if (this.$store.state.login.currentDepartamentId && parseInt(item.id_departamento) !== parseInt(this.$store.state.login.currentDepartamentId)) {
-                     return;
-                 }
-                 const standard = parseFloat(item.cantidad_estandar) || 0;
-                 const real = parseFloat(item.cantidad_real) || 0;
-                 totalEstimado += standard;
-                 totalReal += real;
-                 unidad = item.unidad || 'Mt';
-             });
+          let totalEstimado = 0;
+          let totalReal = 0;
+          let unidad = 'Mt';
 
-             if (totalEstimado > 0 || totalReal > 0) {
-                 this.inputEfficiencyData = {
-                     totalEstimado,
-                     totalReal,
-                     unidad
-                 };
-             } else {
-                 this.inputEfficiencyData = null;
-             }
-        } else {
+          inputResponse.data.forEach(item => {
+            if (this.$store.state.login.currentDepartamentId && parseInt(item.id_departamento) !== parseInt(this.$store.state.login.currentDepartamentId)) {
+              return;
+            }
+            const standard = parseFloat(item.cantidad_estandar) || 0;
+            const real = parseFloat(item.cantidad_real) || 0;
+            totalEstimado += standard;
+            totalReal += real;
+            unidad = item.unidad || 'Mt';
+          });
+
+          if (totalEstimado > 0 || totalReal > 0) {
+            this.inputEfficiencyData = {
+              totalEstimado,
+              totalReal,
+              unidad
+            };
+          } else {
             this.inputEfficiencyData = null;
+          }
+        } else {
+          this.inputEfficiencyData = null;
         }
 
       } catch (error) {
-          console.error("Error fetching efficiency data:", error);
-          this.reporteData = null; // Reset on error or keep previous? Reset is safer to avoid stale data
+        console.error("Error fetching efficiency data:", error);
+        this.reporteData = null; // Reset on error or keep previous? Reset is safer to avoid stale data
       } finally {
-          this.loadingEfficiency = false;
+        this.loadingEfficiency = false;
       }
     },
 

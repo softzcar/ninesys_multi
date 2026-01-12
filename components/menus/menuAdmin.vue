@@ -48,6 +48,20 @@
                     Nueva Orden
                   </span>
                 </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/comercializacion/presupuesto"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Nuevo Presupuesto
+                  </span>
+                </router-link>
 
                 <router-link
                   class="nav-link"
@@ -64,20 +78,6 @@
                   </span>
                 </router-link>
 
-                <!-- <router-link
-                  class="nav-link"
-                  to="/comercializacion/presupuesto"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    Nuevo Presupuesto
-                  </span>
-                </router-link> -->
                 <router-link
                   class="nav-link"
                   to="/comercializacion/ordenes/activas"

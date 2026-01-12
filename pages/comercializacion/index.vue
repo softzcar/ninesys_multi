@@ -6,20 +6,12 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Comercialización' ||
-        dataUser.departamento === 'Administración'
+      <!-- Si es Administración (1) o Comercialización (2) -->
+      <div v-if="accessModule.accessData.id_modulo === 2 ||
+        accessModule.accessData.id_modulo === 1
         ">
-        <div v-if="this.dataUser.departamento === 'Comercialización'">
-          <b-container>
-            <b-row>
-              <b-col>
-                <h1 class="mb-4">{{ titulo }}</h1>
-              </b-col>
-            </b-row>
-          </b-container>
-
-          <ordenes-nueva />
-        </div>
+        <!-- Dashboard con gráficos -->
+        <comercializacion-DashboardComercializacion />
       </div>
 
       <div v-else>
@@ -30,16 +22,16 @@
 </template>
 
 <script>
+import mixin from '~/mixins/mixins.js'
+import mixinLogin from '~/mixins/mixin-login.js'
 import { mapState } from 'vuex'
 
 export default {
-  data() {
-    return {
-      titulo: 'Nueva Orden',
-    }
-  },
   computed: {
-    ...mapState('login', ['dataUser', 'access']),
+    ...mapState('login', ['access', 'dataUser']),
   },
+  mixins: [mixin, mixinLogin],
 }
 </script>
+
+
