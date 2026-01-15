@@ -165,51 +165,80 @@ export default {
 
       const ordenesAProcesar = JSON.parse(JSON.stringify(ordenes));
 
-      // Agrupar tareas por id_departamento
+      // 1. Agrupar tareas por id_departamento y obtener información del departamento para ordenar
       const tareasPorDepartamento = {};
+      const infoDepartamentos = {}; // Mapa para guardar orden_proceso de cada departamento
+
       ordenesAProcesar.forEach(tarea => {
         const idDepto = tarea.id_departamento;
         if (!tareasPorDepartamento[idDepto]) {
           tareasPorDepartamento[idDepto] = [];
+          // Asumimos que todas las tareas del mismo departamento tienen el mismo orden_proceso_departamento
+          // Si no viene definido, usamos un valor alto para ponerlo al final
+          infoDepartamentos[idDepto] = tarea.orden_proceso_departamento !== undefined
+            ? parseInt(tarea.orden_proceso_departamento)
+            : 9999;
         }
         tareasPorDepartamento[idDepto].push(tarea);
       });
 
-      // Procesar cada departamento por separado
-      for (const idDepto in tareasPorDepartamento) {
+      // 2. Ordenar los IDs de departamentos según su secuencia de proceso
+      const departamentosOrdenados = Object.keys(tareasPorDepartamento).sort((a, b) => {
+        return infoDepartamentos[a] - infoDepartamentos[b];
+      });
+
+      // 3. Mapa para rastrear el tiempo de finalización del paso anterior para cada orden
+      // Clave: id_orden, Valor: Date (fecha estimada fin del paso anterior)
+      const ordenFinishTimes = {};
+
+      // 4. Procesar departamentos en orden secuencial
+      for (const idDepto of departamentosOrdenados) {
         const tareasDepto = tareasPorDepartamento[idDepto];
 
-        // Ordenar tareas del departamento por orden_proceso_departamento
-        tareasDepto.sort((a, b) => a.orden_proceso_departamento - b.orden_proceso_departamento);
+        // Ordenar tareas del departamento por orden_fila (prioridad) dentro del departamento
+        // Nota: orden_fila es global de la orden, así que sirve de prioridad relativa
+        tareasDepto.sort((a, b) => {
+          const prioA = a.orden_fila_orden !== undefined ? a.orden_fila_orden : 9999;
+          const prioB = b.orden_fila_orden !== undefined ? b.orden_fila_orden : 9999;
+          return prioA - prioB;
+        });
 
-        // Inicializar proximoInicioDisponible para este departamento
-        let proximoInicioDisponible = this.ajustarInicioAlHorarioLaboral(fechaDeCalculo, horarioLaboral);
-        if (!proximoInicioDisponible) {
+        // Inicializar proximoInicioDisponible para los RECURSOS de este departamento
+        // Esto representa cuándo el departamento está libre para tomar la siguiente tarea
+        let proximoInicioDisponibleRecurso = this.ajustarInicioAlHorarioLaboral(fechaDeCalculo, horarioLaboral);
+        if (!proximoInicioDisponibleRecurso) {
           console.error(`No se pudo determinar un punto de partida válido para el departamento ${idDepto}.`);
-          continue; // Saltar este departamento
+          continue;
         }
 
-        // Verificar si hay una tarea en curso en este departamento
+        // --- Manejo de la tarea en curso (si existe) ---
+        // Si el departamento ya tiene una tarea 'en curso', el recurso no estará libre hasta que termine.
         const tareaEnCurso = tareasDepto.find(t => t.fecha_inicio && !t.fecha_terminado && t.status !== 'pausada');
         if (tareaEnCurso) {
           const fechaInicioReal = new Date(tareaEnCurso.fecha_inicio.replace(' ', 'T'));
           if (!isNaN(fechaInicioReal)) {
             const tiempoTranscurridoSegundos = Math.floor((fechaDeCalculo.getTime() - fechaInicioReal.getTime()) / 1000);
             const tiempoRestanteSegundos = tareaEnCurso.tiempo_total_orden_depto - tiempoTranscurridoSegundos;
+
             if (tiempoRestanteSegundos > 0) {
-              // Calcular fecha de fin estimada de la tarea en curso
               const fechaFinCurso = this.calcularFechaFinLaboral(fechaInicioReal, tiempoRestanteSegundos, horarioLaboral);
               if (fechaFinCurso) {
-                // Actualizar proximoInicioDisponible si la tarea en curso termina más tarde
-                proximoInicioDisponible = new Date(Math.max(proximoInicioDisponible.getTime(), fechaFinCurso.getTime()));
+                proximoInicioDisponibleRecurso = new Date(Math.max(proximoInicioDisponibleRecurso.getTime(), fechaFinCurso.getTime()));
+
+                // Actualizamos el finish time de esta orden para que el siguiente departamento espere
+                ordenFinishTimes[tareaEnCurso.id_orden] = fechaFinCurso;
               }
+            } else {
+              // Si teóricamente ya terminó, asumimos que está libre "ahora" o mantenemos la fecha de cálculo?
+              // Mantendremos fechaDeCalculo como base mínima.
+              ordenFinishTimes[tareaEnCurso.id_orden] = fechaDeCalculo;
             }
           }
         }
 
-        // Procesar cada tarea en el departamento
+        // --- Procesar cada tarea en el departamento ---
         for (const tarea of tareasDepto) {
-          // Excluir ordenes pausadas
+          // Excluir ordenes pausadas de la planificación activa (se muestran pero no consumen hueco nuevo si no están en curso)
           if (tarea.status !== 'pausada') {
             const fechaInicioReal = tarea.fecha_inicio ? new Date(tarea.fecha_inicio.replace(' ', 'T')) : null;
             const fechaTerminadoReal = tarea.fecha_terminado ? new Date(tarea.fecha_terminado.replace(' ', 'T')) : null;
@@ -217,34 +246,74 @@ export default {
             tarea.fecha_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
             tarea.fecha_terminado_formateada = this.formatDateTime12h(fechaTerminadoReal);
             tarea.tiempo_total_orden_depto_formateado = this.formatearTiempo(tarea.tiempo_total_orden_depto * 1000);
-            tarea.tiempo_real_empleado_segundos = null;
-            tarea.tiempo_real_empleado_formateado = null;
 
+            // Calculo tiempo real si existe
             if (fechaInicioReal && fechaTerminadoReal && !isNaN(fechaInicioReal) && !isNaN(fechaTerminadoReal)) {
               const duracionMilisegundos = fechaTerminadoReal.getTime() - fechaInicioReal.getTime();
               tarea.tiempo_real_empleado_segundos = Math.floor(duracionMilisegundos / 1000);
               tarea.tiempo_real_empleado_formateado = this.formatearTiempo(duracionMilisegundos);
+            } else {
+              tarea.tiempo_real_empleado_segundos = null;
+              tarea.tiempo_real_empleado_formateado = null;
             }
 
+            // CASO 1: Tarea ya terminada
             if (fechaTerminadoReal && !isNaN(fechaTerminadoReal)) {
               tarea.fecha_estimada_inicio = fechaInicioReal;
               tarea.fecha_estimada_fin = fechaTerminadoReal;
               tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
               tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaTerminadoReal);
-              proximoInicioDisponible = new Date(fechaTerminadoReal.getTime());
-            } else {
-              // Ignorar fecha_inicio programada y usar solo la calculada desde la cola del departamento
-              let fechaInicioCalculada = new Date(Math.max(proximoInicioDisponible.getTime(), fechaDeCalculo.getTime()));
 
+              // El recurso ya se liberó en el pasado, así que no empujamos `proximoInicioDisponibleRecurso`
+              // Pero SÍ actualizamos el tiempo de fin de la orden para el siguiente departamento
+              ordenFinishTimes[tarea.id_orden] = fechaTerminadoReal;
+
+            } else {
+              // CASO 2: Tarea pendiente o en curso (si es en curso, ya ajustamos el recurso arriba, pero aquí definimos sus fechas estimadas)
+
+              // Determinar cuándo está disponible el recurso del departamento
+              let inicioPorRecurso = proximoInicioDisponibleRecurso;
+
+              // Determinar cuándo llega la orden del departamento anterior
+              let inicioPorDependencia = ordenFinishTimes[tarea.id_orden];
+
+              // Si no hay paso anterior registrado, asume que llega "ahora" (o fecha de cálculo)
+              if (!inicioPorDependencia) {
+                inicioPorDependencia = fechaDeCalculo;
+              }
+
+              // Si la tarea ya tiene fecha de inicio (está en curso), su "inicio estimado" es su inicio real.
+              if (fechaInicioReal) {
+                inicioPorRecurso = fechaInicioReal;
+                // Ignoramos dependencia porque ya empezó físicamente
+              }
+
+              // EL INICIO ESTIMADO ES EL MAYOR DE: (Disponibilidad Recurso, Llegada de Orden, Fecha Actual/Cálculo)
+              let fechaInicioCalculada = new Date(Math.max(
+                inicioPorRecurso.getTime(),
+                inicioPorDependencia.getTime(),
+                fechaDeCalculo.getTime()
+              ));
+
+              // Ajustar al horario laboral (si cae de noche, mover a la mañana siguiente)
               const fechaEstimadaInicio = this.ajustarInicioAlHorarioLaboral(fechaInicioCalculada, horarioLaboral);
+
               if (fechaEstimadaInicio) {
+                // Calcular Fin Estimado
                 const fechaEstimadaFin = this.calcularFechaFinLaboral(fechaEstimadaInicio, tarea.tiempo_total_orden_depto, horarioLaboral);
+
                 if (fechaEstimadaFin) {
                   tarea.fecha_estimada_inicio = fechaEstimadaInicio;
                   tarea.fecha_estimada_fin = fechaEstimadaFin;
                   tarea.fecha_estimada_inicio_formateada = this.formatDateTime12h(fechaEstimadaInicio);
                   tarea.fecha_estimada_fin_formateada = this.formatDateTime12h(fechaEstimadaFin);
-                  proximoInicioDisponible = new Date(fechaEstimadaFin.getTime());
+
+                  // Actualizar disponibilidad del recurso: queda ocupado hasta que termine esta tarea
+                  // Solo si NO estaba ya terminada (que es este bloque else)
+                  proximoInicioDisponibleRecurso = new Date(fechaEstimadaFin.getTime());
+
+                  // Actualizar traza de la orden: el siguiente departamento debe esperar hasta fechaEstimadaFin
+                  ordenFinishTimes[tarea.id_orden] = fechaEstimadaFin;
                 }
               }
             }
@@ -253,9 +322,12 @@ export default {
             tarea.variant = variant;
             tarea.variant_text = variant_text;
           } else {
+            // Tarea Pausada
             const { variant, variant_text } = this._determinarVarianteTarea(tarea);
             tarea.variant = variant;
             tarea.variant_text = variant_text;
+            // No actualizamos recurso ni ordenFinishTimes (o deberíamos? si se pausa, bloquea el flujo?)
+            // Por simplicidad, si está pausada, no "pasa" al siguiente dpto en la simulación hasta que se reactive.
           }
         }
       }

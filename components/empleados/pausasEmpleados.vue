@@ -1,17 +1,8 @@
 <template>
   <div>
-    <b-button
-      :disabled="disableMe"
-      @click="$bvModal.show(modal)"
-      variant="primary"
-    >{{ btnText }}</b-button>
+    <b-button :disabled="disableMe" @click="$bvModal.show(modal)" variant="primary">{{ btnText }}</b-button>
 
-    <b-modal
-      :id="modal"
-      title="Rendimiento"
-      hide-footer
-      size="md"
-    >
+    <b-modal :id="modal" title="Rendimiento" hide-footer size="md">
       <b-row v-if="lengthPausa">
         <b-col>
           <h3>Reanudar Tarea</h3>
@@ -21,10 +12,7 @@
           </p>
           <p v-if="lengthPausa">Motivo: {{ pausas[0].motivo }}</p>
           <b-form>
-            <b-button
-              @click="reanudarPausa"
-              variant="primary"
-            >Reanudar</b-button>
+            <b-button @click="reanudarPausa" variant="primary">Reanudar</b-button>
           </b-form>
         </b-col>
       </b-row>
@@ -33,23 +21,12 @@
         <b-col>
           <h3>Iniciar Pausa</h3>
           <b-form>
-            <b-form-group
-              id="input-group-1"
-              label="Motivo:"
-              label-for="textarea-small"
-              description="Indique el motivo de la pausa"
-            >
-              <b-form-textarea
-                id="textarea-small"
-                size="sm"
-                v-model="form.motivo"
-              ></b-form-textarea>
+            <b-form-group id="input-group-1" label="Motivo:" label-for="textarea-small"
+              description="Indique el motivo de la pausa">
+              <b-form-textarea id="textarea-small" size="sm" v-model="form.motivo"></b-form-textarea>
             </b-form-group>
 
-            <b-button
-              @click="iniciarPausa"
-              variant="primary"
-            >Iniciar</b-button>
+            <b-button @click="iniciarPausa" variant="primary">Iniciar</b-button>
           </b-form>
         </b-col>
       </b-row>
@@ -125,6 +102,7 @@ export default {
               html: `<p>La pausa ha sido creada</p>`,
               type: "success",
             });
+            this.$bvModal.hide(this.modal);
           })
           .catch((err) => {
             this.$fire({
@@ -170,6 +148,7 @@ export default {
           });
 
           this.$emit("reload", "true");
+          this.$bvModal.hide(this.modal);
         })
         .catch((err) => {
           this.$fire({
@@ -224,6 +203,34 @@ export default {
         // Acciones al abrir modal
       }
     });
+  },
+
+  watch: {
+    pausas(newVal) {
+      if (newVal.length) {
+        // Validar pausa de empleado
+        const pausasAsignadas = newVal.filter(
+          (el) =>
+            el.id_departamento === this.$store.state.login.currentDepartamentId &&
+            el.id_empleado === this.$store.state.login.dataUser.id_empleado
+        );
+
+        if (pausasAsignadas.length) {
+          this.hayPausas = false;
+          this.btnText = "REANUDAR";
+          this.$emit("disBtnTodo", true);
+        } else {
+          this.hayPausas = true;
+          this.disableMe = true;
+          this.btnText = "PAUSADA";
+          this.$emit("disBtnTodo", true);
+        }
+      } else {
+        this.hayPausas = false;
+        this.btnText = "PAUSAR";
+        this.$emit("disBtnTodo", false);
+      }
+    },
   },
 
   props: [

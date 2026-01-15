@@ -198,7 +198,7 @@
                     {{ eficienciaPorcentaje }}%
                   </span>
                   <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado'
-                  }})</small>
+                    }})</small>
                 </p>
               </div>
             </b-card>
@@ -583,6 +583,50 @@ export default {
   },
 
   methods: {
+    async refreshConfig() {
+      try {
+        console.log("DEBUG - Modal Extra - Refrescando configuración...");
+        const res = await this.$axios.get(`${this.$config.API}/config`);
+        const configData = Array.isArray(res.data) ? res.data[0] : res.data;
+
+        if (configData) {
+          this.$store.commit("login/setDatosPersonalizacion", configData);
+
+          console.log("DEBUG - Modal Extra - Configuración recargada:", configData);
+          this.evaluateShowSelect();
+        }
+      } catch (e) {
+        console.error("Error al recargar configuración en Modal Extra:", e);
+      }
+    },
+
+    evaluateShowSelect() {
+      if (this.$store.state.login.currentDepartament === "Impresión") {
+        this.showSelect = true;
+      } else {
+        const dep = this.$store.state.login.currentDepartament;
+        // Use login.datos_personalizacion as source of truth
+        const dataSys = this.$store.state.login.datos_personalizacion || {};
+
+        const showEstampado = dataSys.sys_mostrar_rollo_en_empleado_estampado;
+        const showCorte = dataSys.sys_mostrar_rollo_en_empleado_corte;
+        const showCostura = dataSys.sys_mostrar_insumo_en_empleado_costura;
+        const showLimpieza = dataSys.sys_mostrar_insumo_en_empleado_limpieza;
+        const showRevision = dataSys.sys_mostrar_insumo_en_empleado_revision;
+
+        // Reset showSelect antes de re-evaluar
+        this.showSelect = false;
+
+        if (dep === "Estampado" && showEstampado) this.showSelect = true;
+        if (dep === "Corte" && showCorte) this.showSelect = true;
+        if (dep === "Costura" && showCostura) this.showSelect = true;
+        if (dep === "Limpieza" && showLimpieza) this.showSelect = true;
+        if (dep === "Revisión" && showRevision) this.showSelect = true;
+
+        console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
+      }
+    },
+
     reloadMe() {
       this.$emit("reload", "true");
     },
@@ -824,7 +868,13 @@ export default {
     // VALIDACIÓN DE FORMULARIOS
     validateForm() {
       let ok = true;
-      if (this.showSelect) {
+
+      // CONDITION MODIFIED: Check if there are actually insumos available to select.
+      // selectOptions always has at least 1 item ("Seleccione una opción").
+      // If it has > 1, it means there are insumos populated for this department.
+      const hayInsumosDisponibles = this.selectOptions && this.selectOptions.length > 1;
+
+      if (this.showSelect && hayInsumosDisponibles) {
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
@@ -1393,64 +1443,13 @@ export default {
     this.$root.$on("bv::modal::show", (bvEvent, modal) => {
       if (modal === this.modal) {
         this.getEficienciaEstimada();
+        this.refreshConfig();
       }
     });
 
     if (this.tipo === "todo") this.btnText = `Terminar Todo`;
-    // this.departamento = this.$store.state.login.currentDepartament
 
-    if (this.$store.state.login.currentDepartament === "Impresión") {
-      this.showSelect = true;
-    } else {
-      //  VEERIFICAR DEPARTAMENTOS
-      const dep = this.$store.state.login.currentDepartament;
-
-      console.log("DEBUG - Modal Extra - Departamento actual:", dep);
-      console.log(
-        "DEBUG - Modal Extra - Configuración del sistema:",
-        this.$store.state.datasys.dataSys
-      );
-
-      const dataSys = this.$store.state.datasys.dataSys || {};
-
-      const showEstampado = dataSys.sys_mostrar_rollo_en_empleado_estampado;
-      const showCorte = dataSys.sys_mostrar_rollo_en_empleado_corte;
-      const showCostura = dataSys.sys_mostrar_insumo_en_empleado_costura;
-      const showLimpieza = dataSys.sys_mostrar_insumo_en_empleado_limpieza;
-      const showRevision = dataSys.sys_mostrar_insumo_en_empleado_revision;
-
-      console.log("DEBUG - Modal Extra - showEstampado:", showEstampado);
-      console.log("DEBUG - Modal Extra - insumosest:", this.insumosest);
-      console.log(
-        "DEBUG - Modal Extra - insumosest length:",
-        this.insumosest ? this.insumosest.length : "undefined"
-      );
-
-      if (dep === "Estampado" && showEstampado) {
-        console.log(
-          "DEBUG - Modal Extra - Activando showSelect para Estampado"
-        );
-        this.showSelect = true;
-      }
-
-      if (dep === "Corte" && showCorte) {
-        this.showSelect = true;
-      }
-
-      if (dep === "Costura" && showCostura) {
-        this.showSelect = true;
-      }
-
-      if (dep === "Limpieza" && showLimpieza) {
-        this.showSelect = true;
-      }
-
-      if (dep === "Revisión" && showRevision) {
-        this.showSelect = true;
-      }
-    }
-
-    console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
+    this.evaluateShowSelect();
   },
 
   props: [

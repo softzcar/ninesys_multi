@@ -10,36 +10,37 @@
                 RELACIÓN DE PAGOS
               </h3>
             </b-list-group-item>
-            
+
             <!-- Badge de tipo de compensación -->
             <b-list-group-item v-if="tipoCompensacion" variant="light">
               <b-badge :variant="tipoCompensacion.variant" class="p-2" style="font-size: 1rem;">
                 {{ tipoCompensacion.icono }} {{ tipoCompensacion.texto }}
               </b-badge>
             </b-list-group-item>
-            
+
             <b-list-group-item variant="info">
               <h3>{{ horasTrabajadas }} HORAS</h3>
-            <!-- Mostrar comisiones solo si el tipo de compensación lo incluye -->
-            <template v-if="debesMostrarComisiones">
             </b-list-group-item>
 
-            <!-- Mostrar salario fijo si aplica -->
-            <b-list-group-item v-if="parseFloat(salarioFijo) > 0" variant="warning">
-              <strong>SALARIO FIJO ({{ datosEmpleado?.salario_periodo.toUpperCase() || 'SEMANAL' }})</strong> ${{
+            <!-- Mostrar salario fijo solo si el tipo de compensación lo incluye -->
+            <b-list-group-item v-if="debesMostrarSalario && parseFloat(salarioFijo) > 0" variant="warning">
+              <strong>SALARIO PENDIENTE ({{ datosEmpleado?.salario_periodo.toUpperCase() || 'SEMANAL' }})</strong> ${{
                 salarioFijo }}
             </b-list-group-item>
 
-            </template>
-            <!-- Comisiones Terminadas -->
-            <b-list-group-item variant="success">
-              <strong>COMISIONES TERMINADAS</strong> ${{ totalComisionesTerminadas }}
-            </b-list-group-item>
 
-            <!-- Comisiones Pendientes -->
-            <b-list-group-item variant="danger">
-              <strong>COMISIONES PENDIENTES</strong> ${{ totalComisionesPendientes }}
-            </b-list-group-item>
+            <!-- Mostrar comisiones solo si el tipo de compensación lo incluye -->
+            <div v-if="debesMostrarComisiones">
+              <!-- Comisiones Terminadas -->
+              <b-list-group-item variant="success">
+                <strong>COMISIONES TERMINADAS</strong> ${{ totalComisionesTerminadas }}
+              </b-list-group-item>
+
+              <!-- Comisiones Pendientes -->
+              <b-list-group-item variant="danger">
+                <strong>COMISIONES PENDIENTES</strong> ${{ totalComisionesPendientes }}
+              </b-list-group-item>
+            </div>
 
             <!-- Total -->
             <b-list-group-item variant="primary">

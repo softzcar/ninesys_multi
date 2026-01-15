@@ -108,18 +108,18 @@
           </b-col>
         </b-row>
 
-        <!-- Reposiciones -->
+        <!-- Reposiciones Pendientes -->
         <b-row>
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card class="mb-4" :header="contarItems(dataTableReposiciones.length)">
-                <h3>Reposiciones</h3>
+              <b-card class="mb-4" :header="contarItems(reposicionesPendientes.length)">
+                <h3>Reposiciones Pendientes</h3>
 
-                <b-alert class="text-center" v-if="dataTableReposiciones.length < 1" show variant="info">
-                  No tienes reposiciones en curso</b-alert>
+                <b-alert class="text-center" v-if="reposicionesPendientes.length < 1" show variant="info">
+                  No tienes reposiciones pendientes</b-alert>
 
-                <!-- TABLA DE REPOSICIONES -->
-                <b-table v-else stacked :items="dataTableReposiciones" :fields="filedsLista"
+                <!-- TABLA DE REPOSICIONES PENDIENTES -->
+                <b-table v-else stacked :items="reposicionesPendientes" :fields="filedsLista"
                   :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
@@ -127,16 +127,9 @@
                         <linkSearch :id="row.item.orden" />
                       </b-col>
 
-                      <!-- Terminar -->
+                      <!-- Iniciar Reposicion -->
                       <b-col cols="auto">
-                        <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento
-                          " :item="row.item" :items="filterOrder(row.item.orden, 'en curso')" :esreposicion="1"
-                          :idlotesdetalles="row.item.id_lotes_detalles" :impresoras="impresoras" :insumosTodos="insumos"
-                          :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscor="insumosCorte"
-                          :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision"
-                          :datainsumos="dataInsumos" :orden_proceso_departamento="row.item.orden_proceso_departamento"
-                          tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
-                          @reload="reloadMe" />
+                        <b-button variant="info" @click="iniciarReposicion(row.item)">Iniciar</b-button>
                       </b-col>
 
                       <!-- ProgressBar -->
@@ -165,6 +158,57 @@
                   </template>
 
                   <!-- Lista de productos -->
+                </b-table>
+              </b-card>
+            </b-overlay>
+          </b-col>
+        </b-row>
+
+        <!-- Reposiciones En Curso -->
+        <b-row v-if="reposicionesEnCurso.length > 0">
+          <b-col>
+            <b-overlay :show="loadingOrders" spinner-small rounded="sm">
+              <b-card class="mb-4" :header="contarItems(reposicionesEnCurso.length)">
+                <h3>Reposiciones En Curso</h3>
+
+                <!-- TABLA DE REPOSICIONES EN CURSO -->
+                <b-table stacked :items="reposicionesEnCurso" :fields="filedsLista"
+                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                  <template #cell(orden)="row">
+                    <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
+                      <b-col cols="auto">
+                        <linkSearch :id="row.item.orden" />
+                      </b-col>
+
+                      <!-- Terminar/Pausar -->
+                      <b-col cols="auto">
+                        <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento
+                          " :item="row.item" :items="filterOrder(row.item.orden, 'en curso')" :esreposicion="1"
+                          :idlotesdetalles="row.item.id_lotes_detalles" :impresoras="impresoras" :insumosTodos="insumos"
+                          :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscor="insumosCorte"
+                          :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision"
+                          :datainsumos="dataInsumos" :orden_proceso_departamento="row.item.orden_proceso_departamento"
+                          tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
+                          @reload="reloadMe" />
+                      </b-col>
+
+                      <!-- ProgressBar -->
+                      <b-col cols="auto">
+                        <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
+                      </b-col>
+
+                      <!-- Ver Diseño -->
+                      <b-col cols="auto">
+                        <diseno-view-image :id="row.item.orden" />
+                      </b-col>
+
+                      <!-- Detalles -->
+                      <b-col cols="auto">
+                        <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
+                          :productos="productsFilter(row.item.orden)" />
+                      </b-col>
+                    </b-row>
+                  </template>
                 </b-table>
               </b-card>
             </b-overlay>
@@ -609,7 +653,7 @@ export default {
               el.fecha_inicio != null &&
               el.fecha_terminado == null &&
               el.en_tintas === 0 &&
-              el.en_reposiciones === 0
+              el.en_reposiciones === 0 || el.status === 'pausada' // Include paused orders
           )
           .map((el) => {
             return {
@@ -645,7 +689,7 @@ export default {
         enCurso = this.ordenes
           .filter(
             (el) =>
-              !ordenesEnLotes.includes(el.id_orden) && el.progreso === 'en curso'
+              !ordenesEnLotes.includes(el.id_orden) && (el.progreso === 'en curso' || el.status === 'pausada')
           )
           .map((el) => {
             return {
@@ -679,7 +723,7 @@ export default {
           .filter(
             (el) =>
               !ordenesEnLotes.includes(el.id_orden) &&
-              el.progreso === 'en curso' &&
+              (el.progreso === 'en curso' || el.status === 'pausada') &&
               el.en_reposiciones === 0
           )
           .map((el) => {
@@ -714,7 +758,7 @@ export default {
           .filter(
             (el) =>
               !ordenesEnLotes.includes(el.id_orden) &&
-              el.progreso === 'en curso' &&
+              (el.progreso === 'en curso' || el.status === 'pausada') &&
               el.en_reposiciones === 0 &&
               el.fecha_inicio != null
           )
@@ -787,11 +831,14 @@ export default {
     },
 
     dataTableReposiciones() {
+      // DEBUG: Ver qué llega del backend
+      console.log('REPOSICIONES RAW:', this.reposiciones);
+
       return (
         this.reposiciones
-          // .filter((el) => el.fecha_inicio === null)
-          //   .filter((el) => el.en_reposiciones === 1)
           .map((el) => {
+            // DEBUG: Ver fechas individuales
+            // console.log(`Repo ID ${el.id_reposicion}: Inicio=${el.fecha_inicio}, Fin=${el.fecha_terminado}`);
             return {
               ...el,
               esreposicion: true,
@@ -806,6 +853,9 @@ export default {
               detalle_empleado: el.detalle_empleado,
               detalle_reposicion: el.detalle_reposicion,
               id_ordenes_productos: el.id_ordenes_productos,
+              fecha_inicio: el.fecha_inicio,
+              fecha_terminado: el.fecha_terminado,
+              id_reposicion: el.id_reposicion,
             };
           })
         /* .reduce((acc, item) => {
@@ -817,6 +867,16 @@ export default {
             return acc;
           }, []) */
       );
+    },
+
+    // Reposiciones Pendientes: sin fecha de inicio
+    reposicionesPendientes() {
+      return this.dataTableReposiciones.filter(r => !r.fecha_inicio);
+    },
+
+    // Reposiciones En Curso: con fecha de inicio pero sin fecha de término
+    reposicionesEnCurso() {
+      return this.dataTableReposiciones.filter(r => r.fecha_inicio && !r.fecha_terminado);
     },
 
     ordersListPendiente() {
@@ -1168,7 +1228,7 @@ export default {
       }
     },
 
-    async registrarEstado(tipo, id_orden, unidades, es_reposicion = false, id_lotes_detalles_param = null) {
+    async registrarEstado(tipo, id_orden, unidades, es_reposicion = false, id_lotes_detalles_param = null, id_reposicion = null) {
       const data = new URLSearchParams();
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
@@ -1176,6 +1236,7 @@ export default {
       data.set("id_lotes_detalles", id_lotes_detalles_param);
       data.set("tipo", tipo);
       data.set("es_reposicion", es_reposicion);
+      data.set("id_reposicion", id_reposicion);
       data.set("unidades", unidades);
       data.set("departamento", this.$store.state.login.currentDepartament);
       data.set("orden_proceso", this.$store.state.login.currentOrdenProceso);
@@ -1208,6 +1269,31 @@ export default {
               if (!this.isLastDepartment()) {
                 this.sendMsgCustom(idOrden, 'paso', this.$store.state.login.currentDepartamentId);
               }
+              this.reloadMe();
+            })
+            .catch((err) => {
+              this.$fire({
+                title: "Error",
+                html: `<p>No se pudo registrar la acción.</p><p>${err}</p>`,
+                type: "warning",
+              });
+            })
+            .finally(() => {
+              this.overlay = false;
+            });
+        })
+    },
+
+    iniciarReposicion(item) {
+      this.$confirm(
+        ``,
+        `¿Desea iniciar la reposición de la Orden ${item.orden}?`,
+        "question"
+      )
+        .then(() => {
+          this.overlay = true;
+          this.registrarEstado("inicio", item.orden, item.unidades, true, null, item.id_reposicion)
+            .then(() => {
               this.reloadMe();
             })
             .catch((err) => {
@@ -1310,7 +1396,7 @@ export default {
           );
         } else {
           products = this.ordenes.filter(
-            (item) => item.id_orden === id_orden && item.progreso === tipo
+            (item) => item.id_orden === id_orden && (item.progreso === tipo || item.status === "pausada")
           );
         }
       } else if (tipo === "todo") {

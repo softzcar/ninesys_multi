@@ -8,12 +8,8 @@
       </div>
 
       <div class="floatme">
-        <produccionsse-reposicionChecker
-          ref="repoControl"
-          style="margin-top: 6px"
-          :showControl="showControl"
-          :item="item"
-        />
+        <produccionsse-reposicionChecker ref="repoControl" style="margin-top: 6px" :showControl="showControl"
+          :item="item" />
       </div>
     </b-overlay>
 
@@ -23,135 +19,75 @@
           <b-row>
             <b-col xl="12" lg="12" md="12" sm="12">
               <b-list-group style="margin: 20px 0">
-                <b-list-group-item
-                  ><strong class="mb-4">{{
-                    item.item.Producto
-                  }}</strong></b-list-group-item
-                >
-                <b-list-group-item
-                  ><strong class="mb-4">Talla:</strong>
-                  {{ item.item.Talla }}</b-list-group-item
-                >
-                <b-list-group-item
-                  ><strong class="mb-4">Corte:</strong>
-                  {{ item.item.Corte }}</b-list-group-item
-                >
-                <b-list-group-item
-                  ><strong class="mb-4">Tela:</strong>
-                  {{ item.item.Tela }}</b-list-group-item
-                >
+                <b-list-group-item><strong class="mb-4">{{
+                  item.item.Producto
+                    }}</strong></b-list-group-item>
+                <b-list-group-item><strong class="mb-4">Talla:</strong>
+                  {{ item.item.Talla }}</b-list-group-item>
+                <b-list-group-item><strong class="mb-4">Corte:</strong>
+                  {{ item.item.Corte }}</b-list-group-item>
+                <b-list-group-item><strong class="mb-4">Tela:</strong>
+                  {{ item.item.Tela }}</b-list-group-item>
               </b-list-group>
 
               <b-form @submit="onSubmit">
-                <b-form-group
-                  id="input-group-1"
-                  label="Cantidad:"
-                  label-for="input-1"
-                  description="Cantidad de piezas a reponer."
-                >
-                  <b-form-input
-                    style="width: 90px"
-                    id="input-1"
-                    step="1"
-                    min="0"
-                    v-model="form.cantidad"
-                    type="number"
-                  >
+                <b-form-group id="input-group-1" label="Cantidad:" label-for="input-1"
+                  description="Cantidad de piezas a reponer.">
+                  <b-form-input style="width: 90px" id="input-1" step="1" min="0" v-model="form.cantidad" type="number">
                   </b-form-input>
                 </b-form-group>
 
                 <hr />
 
                 <!-- Nuevo Selector de Empleado Inicio Reposición -->
-                <b-form-group
-                  id="input-group-empleado-inicio"
-                  label="Empleado Inicio Reposición:"
+                <b-form-group id="input-group-empleado-inicio" label="Empleado Inicio Reposición:"
                   label-for="select-empleado-inicio"
-                  description="Seleccione el empleado que inició la reposición (causó el error)."
-                >
-                  <b-form-select
-                    id="select-empleado-inicio"
-                    v-model="emp_inicio_reposicion"
-                    :options="selectEmpleados"
-                  ></b-form-select>
+                  description="Seleccione el empleado que inició la reposición (causó el error).">
+                  <b-form-select id="select-empleado-inicio" v-model="emp_inicio_reposicion"
+                    :options="selectEmpleados"></b-form-select>
                 </b-form-group>
 
                 <!-- Nuevo Selector de Departamento para Visibilidad -->
-                <b-form-group
-                  v-if="
-                    emp_inicio_reposicion &&
-                    emp_inicio_reposicion !== 0 &&
-                    inicioEmployeeDepartments.length > 0
-                  "
-                  id="input-group-departamento-visibilidad"
-                  label="Departamento Inicio Reposición:"
+                <b-form-group v-if="
+                  emp_inicio_reposicion &&
+                  emp_inicio_reposicion !== 0 &&
+                  inicioEmployeeDepartments.length > 0
+                " id="input-group-departamento-visibilidad" label="Departamento Inicio Reposición:"
                   label-for="select-departamento-visibilidad"
-                  description="Seleccione el departamento donde esta reposición será visible."
-                >
-                  <b-form-select
-                    id="select-departamento-visibilidad"
-                    v-model="form.id_departamento_visibilidad"
-                    :options="selectVisibilidadDepartmentOptions"
-                  >
+                  description="Seleccione el departamento donde esta reposición será visible.">
+                  <b-form-select id="select-departamento-visibilidad" v-model="form.id_departamento_visibilidad"
+                    :options="selectVisibilidadDepartmentOptions">
                   </b-form-select>
                 </b-form-group>
 
                 <hr />
 
-                <b-form-group
-                  id="input-group-empleado-fin"
-                  label="Empleado Fin Reposición:"
-                  label-for="select-empleado"
-                  description="Empleado involucrado en la reposición."
-                >
-                  <b-form-select
-                    id="select-empleado"
-                    v-model="emp"
-                    :options="selectEmpleados"
-                    :value="emp"
-                  ></b-form-select>
+                <b-form-group id="input-group-empleado-fin" label="Empleado Fin Reposición:" label-for="select-empleado"
+                  description="Empleado involucrado en la reposición.">
+                  <b-form-select id="select-empleado" v-model="emp" :options="selectEmpleados"
+                    :value="emp"></b-form-select>
                 </b-form-group>
 
                 <!-- Nuevo Selector de Departamento -->
-                <b-form-group
-                  v-if="
-                    emp && emp !== 0 && selectedEmployeeDepartments.length > 0
-                  "
-                  id="input-group-departamento-reposicion-form"
-                  label="Departamento Fin Reposición:"
+                <b-form-group v-if="
+                  emp && emp !== 0 && selectedEmployeeDepartments.length > 0
+                " id="input-group-departamento-reposicion-form" label="Departamento Fin Reposición:"
                   label-for="select-departamento-reposicion-form"
-                  description="Departamento del empleado para la reposición."
-                >
-                  <b-form-select
-                    id="select-departamento-reposicion-form"
-                    v-model="form.id_departamento_asignado"
-                    :options="selectDepartmentOptions"
-                  ></b-form-select>
+                  description="Departamento del empleado para la reposición.">
+                  <b-form-select id="select-departamento-reposicion-form" v-model="form.id_departamento_asignado"
+                    :options="selectDepartmentOptions"></b-form-select>
                 </b-form-group>
 
                 <hr />
 
-                <b-form-group
-                  id="input-group-2"
-                  label="Detalle:"
-                  label-for="input-2"
-                  description="Describa el motivo de la reposición."
-                >
-                  <b-form-textarea
-                    id="textarea"
-                    v-model="form.detalle"
-                    no-auto-shrink
-                    size="sm"
-                    no-resize
-                    rows="3"
-                    max-rows="20"
-                  >
+                <b-form-group id="input-group-2" label="Detalle:" label-for="input-2"
+                  description="Describa el motivo de la reposición.">
+                  <b-form-textarea id="textarea" v-model="form.detalle" no-auto-shrink size="sm" no-resize rows="3"
+                    max-rows="20">
                   </b-form-textarea>
                 </b-form-group>
 
-                <b-button type="submit" variant="primary"
-                  >Reponer Piezas</b-button
-                >
+                <b-button type="submit" variant="primary">Reponer Piezas</b-button>
               </b-form>
             </b-col>
           </b-row>
@@ -326,12 +262,15 @@ export default {
           `${this.$config.API}/departamentos-empleado/${employeeId}`
         );
         this.inicioEmployeeDepartments = response.data || [];
+        console.log("DEBUG - Departamentos empleado inicio:", this.inicioEmployeeDepartments);
 
         if (this.inicioEmployeeDepartments.length === 1) {
           this.form.id_departamento_visibilidad =
             this.inicioEmployeeDepartments[0].id_departamento;
+          console.log("DEBUG - Auto-seleccionado departamento:", this.form.id_departamento_visibilidad);
         } else {
           this.form.id_departamento_visibilidad = null;
+          console.log("DEBUG - No auto-seleccionado, cantidad de departamentos:", this.inicioEmployeeDepartments.length);
         }
       } catch (error) {
         console.error(
@@ -437,12 +376,29 @@ export default {
       if (this.emp_inicio_reposicion && this.emp_inicio_reposicion !== 0) {
         data.set("id_empleado_emisor", this.emp_inicio_reposicion); // Empleado que inició la reposición
       }
-      data.set(
-        "id_departamento_solicitante", // Renombrado
-        this.$store.state.login.currentDepartamentId
-      );
+      // id_departamento: Departamento donde se cometió el error (Empleado Inicio Reposición)
+      // Este es el departamento donde INICIA la reposición en el flujo de producción
+      console.log("DEBUG createReposicion - form.id_departamento_visibilidad:", this.form.id_departamento_visibilidad);
+      console.log("DEBUG createReposicion - inicioEmployeeDepartments:", this.inicioEmployeeDepartments);
+
       if (this.form.id_departamento_visibilidad) {
-        data.set("id_departamento", this.form.id_departamento_visibilidad); // Este es el nuevo campo para la tabla reposiciones
+        data.set("id_departamento", this.form.id_departamento_visibilidad);
+      } else if (this.inicioEmployeeDepartments && this.inicioEmployeeDepartments.length > 0) {
+        // Fallback 1: Usar el primer departamento del empleado inicio si está disponible
+        data.set("id_departamento", this.inicioEmployeeDepartments[0].id_departamento);
+      } else {
+        // Fallback 2: departamento del usuario logueado
+        console.warn("No se encontró departamento para empleado inicio, usando departamento del usuario logueado");
+        data.set("id_departamento", this.$store.state.login.currentDepartamentId);
+      }
+
+      // id_departamento_solicitante: Departamento que detectó el error (Empleado Fin Reposición)
+      // Este es el departamento donde TERMINA la reposición en el flujo de producción
+      if (this.form.id_departamento_asignado) {
+        data.set("id_departamento_solicitante", this.form.id_departamento_asignado);
+      } else {
+        // Fallback al departamento del usuario logueado
+        data.set("id_departamento_solicitante", this.$store.state.login.currentDepartamentId);
       }
 
       await this.$axios

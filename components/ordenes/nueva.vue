@@ -63,7 +63,7 @@
                   </b-button>
                   <b-button :disabled="disableButtons" @click="next">{{
                     nextText
-                  }}</b-button>
+                    }}</b-button>
                 </b-button-group>
               </div>
 
@@ -261,7 +261,7 @@
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
                                       data.item.producto
-                                    }}</a>
+                                      }}</a>
                                   </template>
 
                                   <template #cell(item)="data">
@@ -417,7 +417,7 @@
                                           <p class="mb-2"><strong>Tasa BCV:</strong> {{
                                             resultadoMultiplicador.tasaBCV.toFixed(2) }} Bs/$</p>
                                           <p class="mb-3"><strong>Tasa con margen ({{ multiplicador.margen
-                                          }}%):</strong> {{
+                                              }}%):</strong> {{
                                                 resultadoMultiplicador.tasaAplicada.toFixed(2) }} Bs/$</p>
                                           <hr>
                                           <h3 class="text-success mb-0">{{ resultadoMultiplicador.valorFormateado }}
@@ -698,7 +698,7 @@
                         </b-button>
                         <b-button :disabled="disableButtons" @click="next">{{
                           nextText
-                        }}</b-button>
+                          }}</b-button>
                       </b-button-group>
                     </div>
                   </div>
@@ -1693,7 +1693,17 @@ export default {
         return total + (parseFloat(attr.precio) || 0);
       }, 0);
 
-      product.precio = (basePrice + tallaPrice + attributesPrice).toFixed(2);
+      let finalPrice = basePrice + tallaPrice + attributesPrice;
+
+      // Apply multiplier if active
+      if (product.multiplicador_aplicado) {
+        const multiplicadorEmpresa = this.$store.state.login.datos_personalizacion?.multiplicador_precio || 0;
+        if (multiplicadorEmpresa > 0) {
+          finalPrice = finalPrice * (1 + parseFloat(multiplicadorEmpresa) / 100);
+        }
+      }
+
+      product.precio = finalPrice.toFixed(2);
     },
 
     recalcularSegunTalla(index, item, idProd) {
@@ -2868,10 +2878,19 @@ export default {
         return
       }
 
+      // Pre-calculate prices for the confirmation dialog
+      const basePrice = parseFloat(item.original_selected_price) || 0;
+      const tallaPrice = parseFloat(item.xl) || 0;
+      const attributesPrice = (item.atributos_seleccionados || []).reduce((total, attr) => {
+        return total + (parseFloat(attr.precio) || 0);
+      }, 0);
+      const rawPrice = basePrice + tallaPrice + attributesPrice;
+      const priceWithMultiplier = rawPrice * (1 + parseFloat(multiplicadorEmpresa) / 100);
+
       // Si ya fue aplicado, permitir removerlo
       if (item.multiplicador_aplicado) {
         const confirmed = await this.$bvModal.msgBoxConfirm(
-          `¿Desea eliminar el multiplicador de este producto?\n\nPrecio actual: $${item.precio}\nPrecio sin multiplicador: $${(item.precio / (1 + multiplicadorEmpresa / 100)).toFixed(2)}`,
+          `¿Desea eliminar el multiplicador de este producto?\n\nPrecio con multiplicador: $${item.precio}\nNuevo precio sin multiplicador: $${rawPrice.toFixed(2)}`,
           {
             title: 'Confirmar eliminación de multiplicador',
             size: 'md',
@@ -2890,20 +2909,18 @@ export default {
         }
 
         try {
-          // Calcular precio original (revertir multiplicación)
-          const precioConMultiplicador = parseFloat(item.precio)
-          const precioOriginal = precioConMultiplicador / (1 + parseFloat(multiplicadorEmpresa) / 100)
-
-          // Actualizar precio del item
-          this.form.productos[index].precio = parseFloat(precioOriginal.toFixed(2))
+          // Actualizar estado
           this.form.productos[index].multiplicador_aplicado = false
+
+          // Recalcular usando la función centralizada
+          this.recalculateProductPrice(index)
 
           // Recalcular total de la orden
           this.montoTotalOrden()
 
           // Mostrar toast de éxito
           this.$bvToast.toast(
-            `Multiplicador eliminado. Precio: $${precioConMultiplicador.toFixed(2)} → $${precioOriginal.toFixed(2)}`,
+            `Multiplicador eliminado. Precio: $${item.precio}`,
             {
               title: 'Multiplicador eliminado correctamente',
               variant: 'success',
@@ -2928,7 +2945,7 @@ export default {
 
       // Aplicar multiplicador (lógica original)
       const confirmed = await this.$bvModal.msgBoxConfirm(
-        `¿Desea aplicar el multiplicador de empresa (${multiplicadorEmpresa}%) al precio de este producto?\n\nPrecio actual: $${item.precio}\nPrecio con multiplicador: $${(item.precio * (1 + multiplicadorEmpresa / 100)).toFixed(2)}`,
+        `¿Desea aplicar el multiplicador de empresa (${multiplicadorEmpresa}%) al precio de este producto?\n\nPrecio actual: $${item.precio}\nPrecio con multiplicador: $${priceWithMultiplier.toFixed(2)}`,
         {
           title: 'Confirmar aplicación de multiplicador',
           size: 'md',
@@ -2947,20 +2964,18 @@ export default {
       }
 
       try {
-        // Calcular nuevo precio
-        const precioOriginal = parseFloat(item.precio)
-        const nuevoPrecio = precioOriginal * (1 + parseFloat(multiplicadorEmpresa) / 100)
-
-        // Actualizar precio del item
-        this.form.productos[index].precio = parseFloat(nuevoPrecio.toFixed(2))
+        // Actualizar estado
         this.form.productos[index].multiplicador_aplicado = true
+
+        // Recalcular usando la función centralizada
+        this.recalculateProductPrice(index)
 
         // Recalcular total de la orden
         this.montoTotalOrden()
 
         // Mostrar toast de éxito
         this.$bvToast.toast(
-          `Precio actualizado: $${precioOriginal.toFixed(2)} → $${nuevoPrecio.toFixed(2)}`,
+          `Precio actualizado: $${this.form.productos[index].precio}`,
           {
             title: 'Multiplicador aplicado correctamente',
             variant: 'success',
