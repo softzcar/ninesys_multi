@@ -9,39 +9,37 @@
       <b-modal :id="modal" :title="title" size="lg" ok-only>
         <b-row class="mt-2">
           <b-col>
-            <div class="floatme">
+            <!-- Contenedor flex para botones -->
+            <div class="d-flex flex-wrap gap-2 mb-3" style="gap: 0.5rem;">
               <diseno-viewImage :id="idorden" />
-            </div>
-
-            <div class="floatme">
               <b-button v-b-toggle.collapse-1 variant="primary">Ver original</b-button>
-              <b-collapse id="collapse-1" class="mt-2">
-                <b-card>
-                  <div v-html="detalles_orden"></div>
-                </b-card>
-              </b-collapse>
-            </div>
-
-            <div class="floatme">
               <b-button v-b-toggle.collapse-2 variant="primary">Productos</b-button>
-              <!-- {{ $props }} -->
-              <b-collapse id="collapse-2" class="mt-2">
-                <b-card>
-                  <b-table striped hover :fields="fields" :items="productos">
-                    <template #cell(terminado)="row">
-                      <empleados-check-tarea :id_orden="row.item.id_orden"
-                        :id_ordenes_productos="row.item.id_ordenes_productos"
-                        :id_lotes_detalles="row.item.id_lotes_detalles" :terminado="row.item.terminado"
-                        :key="row.item.id_lotes_detalles" />
-                    </template>
-
-                    <template #cell(detalle_reposicion)="row">
-                      <produccion-control-de-produccion-detalle-reposicion :detalle="row.item.detalle_reposicion" />
-                    </template>
-                  </b-table>
-                </b-card>
-              </b-collapse>
             </div>
+
+            <!-- Collapse Ver original -->
+            <b-collapse id="collapse-1" class="mt-2">
+              <b-card>
+                <div v-html="detalles_orden"></div>
+              </b-card>
+            </b-collapse>
+
+            <!-- Collapse Productos -->
+            <b-collapse id="collapse-2" class="mt-2">
+              <b-card>
+                <b-table striped hover :fields="fields" :items="productos">
+                  <template #cell(terminado)="row">
+                    <empleados-check-tarea :id_orden="row.item.id_orden"
+                      :id_ordenes_productos="row.item.id_ordenes_productos"
+                      :id_lotes_detalles="row.item.id_lotes_detalles" :terminado="row.item.terminado"
+                      :key="row.item.id_lotes_detalles" />
+                  </template>
+
+                  <template #cell(detalle_reposicion)="row">
+                    <produccion-control-de-produccion-detalle-reposicion :detalle="row.item.detalle_reposicion" />
+                  </template>
+                </b-table>
+              </b-card>
+            </b-collapse>
           </b-col>
         </b-row>
 
