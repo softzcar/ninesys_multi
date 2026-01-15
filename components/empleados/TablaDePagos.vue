@@ -424,10 +424,21 @@ export default {
 
         const salarioTipo = this.datosEmpleado.salario_tipo;
 
-        // Solo mostrar salario si el empleado tiene "Salario" o "Salario más Comisión"
+        // Solo mostrar salario si tiene configurado salario
         if (salarioTipo === "Salario" || salarioTipo === "Salario más Comisión") {
-          const monto = parseFloat(this.datosEmpleado.salario_monto || 0);
-          return monto.toFixed(2);
+          const montoBase = parseFloat(this.datosEmpleado.salario_monto || 0);
+          const periodo = (this.datosEmpleado.salario_periodo || 'mensual').toLowerCase();
+          
+          // Dividir el salario mensual según el periodo configurado
+          let divisor = 1; // Mensual por defecto
+          if (periodo === 'semanal') {
+            divisor = 4; // 4 semanas en un mes
+          } else if (periodo === 'quincenal') {
+            divisor = 2; // 2 quincenas en un mes
+          }
+          
+          const montoPeriodo = montoBase / divisor;
+          return montoPeriodo.toFixed(2);
         }
 
         return "0.00";
