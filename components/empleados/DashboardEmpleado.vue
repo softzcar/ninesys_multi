@@ -1,49 +1,48 @@
 <template>
     <div>
-        <div
-            v-if="
-                accessModule.accessData.id_modulo === 1 ||
-                accessModule.accessData.id_modulo === 3 ||
-                accessModule.accessData.id_modulo === 4
-            "
-        >
+        <div v-if="
+            accessModule.accessData.id_modulo === 1 ||
+            accessModule.accessData.id_modulo === 3 ||
+            accessModule.accessData.id_modulo === 4
+        ">
             <b-overlay :show="overlay" spinner-small>
                 <b-container fluid>
-                        <!-- Estadísticas y Gráficos -->
+                    <!-- Estadísticas y Gráficos -->
                     <b-row class="mb-4 mt-4" v-if="showCharts">
                         <!-- Gráfico de Estado de Órdenes -->
                         <b-col md="4" sm="12" class="mb-4">
                             <b-card :title="currentDepartamentId === 7 ? 'Estado de Diseños' : 'Estado de Órdenes'">
+                                <charts-OrdersStatusChart :finished="stats.status.terminadas"
+                                    :pending="stats.status.pendientes" :actives="stats.status.activas" />
+                            </b-card>
+                        </b-col>
+
+                        <!-- Gráfico de Estado de Reposiciones -->
+                        <b-col md="4" sm="12" class="mb-4">
+                            <b-card title="Estado de Reposiciones">
                                 <charts-OrdersStatusChart 
-                                    :finished="stats.status.terminadas"
-                                    :pending="stats.status.pendientes"
-                                    :actives="stats.status.activas"
+                                    :finished="stats.reposiciones.terminadas"
+                                    :pending="stats.reposiciones.pendientes"
+                                    :actives="stats.reposiciones.en_curso"
                                 />
                             </b-card>
                         </b-col>
 
                         <!-- Gráfico de Eficiencia - Oculto para Impresión y Diseño -->
-                        <b-col md="4" sm="12" class="mb-4" v-if="currentDepartamentId !== 7 && currentDepartamentId !== 1">
+                        <b-col md="4" sm="12" class="mb-4"
+                            v-if="currentDepartamentId !== 7 && currentDepartamentId !== 1">
                             <b-card title="Eficiencia de Tiempo">
-                                <charts-EfficiencyChart 
-                                    :realTime="stats.eficiencia.tiempo_real"
-                                    :estimatedTime="stats.eficiencia.tiempo_estimado"
-                                />
+                                <charts-EfficiencyChart :realTime="stats.eficiencia.tiempo_real"
+                                    :estimatedTime="stats.eficiencia.tiempo_estimado" />
                             </b-card>
                         </b-col>
-                        
-                            <!-- Gráfico de Pagos Semanales - Oculto para Producción -->
+
+                        <!-- Gráfico de Pagos Semanales - Oculto para Producción -->
                         <b-col md="4" sm="12" class="mb-4" v-if="accessModule.accessData.id_modulo !== 5">
                             <b-card title="Pagos Semanales">
-                                    <charts-BarChart
-                                    title=""
-                                    :seriesData="pagosSemana.valores"
-                                    :categories="pagosSemana.dias"
-                                    seriesName="Pago"
-                                    color="#00E396"
-                                    valuePrefix="$"
-                                    :height="300"
-                                />
+                                <charts-BarChart title="" :seriesData="pagosSemana.valores"
+                                    :categories="pagosSemana.dias" seriesName="Pago" color="#00E396" valuePrefix="$"
+                                    :height="300" />
                             </b-card>
                         </b-col>
                     </b-row>
@@ -53,10 +52,7 @@
                             <h3 class="mb-4 text-center">
                                 {{ titulo }}
                             </h3>
-                            <empleados-SseOrdenesAsignadasV4
-                                :updatedata="updateData"
-                                :emp="dataUser.id_empleado"
-                            />
+                            <empleados-SseOrdenesAsignadasV4 :updatedata="updateData" :emp="dataUser.id_empleado" />
                         </b-col>
                     </b-row>
                 </b-container>
@@ -91,12 +87,13 @@ export default {
     data() {
         return {
             titulo: "Mis Tareas Asignadas",
-                activas: 0,
+            activas: 0,
             overlay: true,
             dataTable: [],
             tareaEnCurso: null,
             stats: {
-                status: { terminadas: 0, pendientes: 0 },
+                status: { terminadas: 0, pendientes: 0, activas: 0 },
+                reposiciones: { terminadas: 0, en_curso: 0, pendientes: 0 },
                 eficiencia: { tiempo_real: 0, tiempo_estimado: 0 },
             },
             pagosSemana: {
@@ -133,7 +130,7 @@ export default {
                 // Usar departamento actual si existe, sino intentar obtenerlo de dataUser
                 // dataUser tiene departamentos como array a veces, o departamento como string.
                 // currentDepartamentId viene del SelectDepartament.vue que guarda en Vuex
-                
+
                 let idDepartamento = this.currentDepartamentId;
 
                 if (!idDepartamento) {
@@ -145,23 +142,26 @@ export default {
                 console.log(`Fetching dashboard stats for Emp: ${idEmpleado}, Dept: ${idDepartamento}`);
 
                 const response = await this.$axios.get(`${this.$config.API}/empleados/dashboard-stats/${idEmpleado}/${idDepartamento}`);
-                
+
                 if (response.data) {
                     const data = response.data;
                     console.log("Stats received:", data);
-                    
+
                     // Actualizar status
                     if (data.status) this.stats.status = data.status;
-                    
+
+                    // Actualizar reposiciones
+                    if (data.reposiciones) this.stats.reposiciones = data.reposiciones;
+
                     // Actualizar eficiencia
                     if (data.eficiencia) this.stats.eficiencia = data.eficiencia;
-                    
+
                     // Actualizar pagos
                     if (data.pagos_semana && Array.isArray(data.pagos_semana)) {
                         // Configuración de categorías para el gráfico (Lun-Dom)
                         const diasEtiquetas = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
                         const valores = [0, 0, 0, 0, 0, 0, 0];
-                        
+
                         // Llenar datos usando la fecha para ser agnóstico del idioma del servidor
                         data.pagos_semana.forEach(item => {
                             if (item.fecha) {
@@ -170,18 +170,18 @@ export default {
                                 // Usamos constructor seguro para evitar timezone shifts locales inesperados con strings simples
                                 const partes = item.fecha.split('-');
                                 const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
-                                
+
                                 const dayOfWeek = fecha.getDay(); // 0 = Domingo, 1 = Lunes...
-                                
+
                                 // Convertir a índice 0=Lunes, ..., 6=Domingo
                                 // Lunes (1) -> 0
                                 // Domingo (0) -> 6
                                 const chartIndex = (dayOfWeek + 6) % 7;
-                                
+
                                 valores[chartIndex] = parseFloat(item.total_pagado);
                             }
                         });
-                        
+
                         this.pagosSemana.valores = valores;
                         this.pagosSemana.dias = diasEtiquetas;
                     }
