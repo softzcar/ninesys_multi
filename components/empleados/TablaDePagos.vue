@@ -10,16 +10,27 @@
                 RELACIÓN DE PAGOS
               </h3>
             </b-list-group-item>
+            
+            <!-- Badge de tipo de compensación -->
+            <b-list-group-item v-if="tipoCompensacion" variant="light">
+              <b-badge :variant="tipoCompensacion.variant" class="p-2" style="font-size: 1rem;">
+                {{ tipoCompensacion.icono }} {{ tipoCompensacion.texto }}
+              </b-badge>
+            </b-list-group-item>
+            
             <b-list-group-item variant="info">
               <h3>{{ horasTrabajadas }} HORAS</h3>
+            <!-- Mostrar comisiones solo si el tipo de compensación lo incluye -->
+            <template v-if="debesMostrarComisiones">
             </b-list-group-item>
 
             <!-- Mostrar salario fijo si aplica -->
             <b-list-group-item v-if="parseFloat(salarioFijo) > 0" variant="warning">
               <strong>SALARIO FIJO ({{ datosEmpleado?.salario_periodo.toUpperCase() || 'SEMANAL' }})</strong> ${{
-              salarioFijo }}
+                salarioFijo }}
             </b-list-group-item>
 
+            </template>
             <!-- Comisiones Terminadas -->
             <b-list-group-item variant="success">
               <strong>COMISIONES TERMINADAS</strong> ${{ totalComisionesTerminadas }}
@@ -411,6 +422,35 @@ export default {
       }
 
       return "0.00";
+    },
+
+    // Determinar si se debe mostrar el salario según el tipo de compensación
+    debesMostrarSalario() {
+      if (!this.datosEmpleado) return false;
+      const tipo = this.datosEmpleado.salario_tipo;
+      return tipo === "Salario" || tipo === "Salario más Comisión";
+    },
+
+    // Determinar si se deben mostrar las comisiones según el tipo de compensación
+    debesMostrarComisiones() {
+      if (!this.datosEmpleado) return true; // Por defecto mostrar si no hay datos
+      const tipo = this.datosEmpleado.salario_tipo;
+      return tipo === "Comisión" || tipo === "Salario más Comisión";
+    },
+
+    // Información del tipo de compensación para el badge
+    tipoCompensacion() {
+      if (!this.datosEmpleado) return null;
+
+      const tipo = this.datosEmpleado.salario_tipo;
+
+      const config = {
+        'Salario': { texto: 'Salario Fijo', variant: 'warning', icono: '💰' },
+        'Comisión': { texto: 'Por Comisión', variant: 'success', icono: '📈' },
+        'Salario más Comisión': { texto: 'Salario + Comisión', variant: 'info', icono: '💼' }
+      };
+
+      return config[tipo] || null;
     },
 
     diferencia() {
