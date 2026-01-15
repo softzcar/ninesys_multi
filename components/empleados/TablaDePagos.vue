@@ -1,10 +1,7 @@
 <template>
   <div>
     <!-- <h1 class="mb-4">{{ this.$store.state.login.dataUser.departamento }}</h1> -->
-    <b-overlay
-      :show="overlay"
-      spinner-small
-    >
+    <b-overlay :show="overlay" spinner-small>
       <b-row>
         <b-col>
           <b-list-group class="mb-4">
@@ -16,11 +13,27 @@
             <b-list-group-item variant="info">
               <h3>{{ horasTrabajadas }} HORAS</h3>
             </b-list-group-item>
-            <b-list-group-item variant="success"><strong>TERMINADO</strong> $
-              {{ totalTerminado }}</b-list-group-item>
-            <b-list-group-item variant="danger"><strong>PENDIENTE</strong> $
-              {{ totalPendiente }}</b-list-group-item>
-            <b-list-group-item variant="primary"><strong>TOTAL</strong> $ {{ total }}</b-list-group-item>
+
+            <!-- Mostrar salario fijo si aplica -->
+            <b-list-group-item v-if="parseFloat(salarioFijo) > 0" variant="warning">
+              <strong>SALARIO FIJO ({{ datosEmpleado?.salario_periodo.toUpperCase() || 'SEMANAL' }})</strong> ${{
+              salarioFijo }}
+            </b-list-group-item>
+
+            <!-- Comisiones Terminadas -->
+            <b-list-group-item variant="success">
+              <strong>COMISIONES TERMINADAS</strong> ${{ totalComisionesTerminadas }}
+            </b-list-group-item>
+
+            <!-- Comisiones Pendientes -->
+            <b-list-group-item variant="danger">
+              <strong>COMISIONES PENDIENTES</strong> ${{ totalComisionesPendientes }}
+            </b-list-group-item>
+
+            <!-- Total -->
+            <b-list-group-item variant="primary">
+              <strong>TOTAL</strong> $ {{ total }}
+            </b-list-group-item>
           </b-list-group>
         </b-col>
       </b-row>
@@ -28,19 +41,8 @@
       <b-row>
         <b-col class="mt-4">
           <b-tabs>
-            <b-tab
-              v-if="departamento != 'Comercialización'"
-              title="PENDIENTES"
-              active
-            >
-              <b-table-lite
-                bordered
-                responsive
-                small
-                striped
-                :items="trabajosPendientes()"
-                :fields="fields.pendientes"
-              >
+            <b-tab v-if="departamento != 'Comercialización'" title="PENDIENTES" active>
+              <b-table-lite bordered responsive small striped :items="trabajosPendientes()" :fields="fields.pendientes">
                 <template #cell(id_orden)="data">
                   <linkSearch :id="data.item.id_orden" />
                 </template>
@@ -61,15 +63,8 @@
             </b-tab>
 
             <b-tab title="TERMINADOS">
-              <b-table-lite
-                bordered
-                responsive
-                small
-                striped
-                hover
-                :items="trabajosTerminados"
-                :fields="fields.terminadas"
-              >
+              <b-table-lite bordered responsive small striped hover :items="trabajosTerminados"
+                :fields="fields.terminadas">
                 <template #cell(id_orden)="data">
                   <linkSearch :id="data.item.id_orden" />
                 </template>
@@ -121,6 +116,7 @@ export default {
       ordenesTerminadas: [],
       ordenesPendientes: [],
       departamento: this.$store.state.login.dataUser.departamento,
+      datosEmpleado: null, // salario_tipo, salario_monto, salario_periodo, comision, comision_tipo
     };
   },
 
@@ -382,6 +378,41 @@ export default {
       return comision.toFixed(2);
     },
 
+    totalComisionesTerminadas() {
+      let comision = 0;
+      if (
+        this.departamento === "Comercialización" ||
+        this.departamento === "Administración"
+      ) {
+        comision = this.ordenesTerminadas.reduce((total, orden) => {
+          total += parseFloat(orden.monto_pago);
+          return total;
+        }, 0);
+      } else {
+        comision = this.ordenesTerminadas.reduce((total, orden) => {
+          if (orden.fecha_terminado !== null) {
+            total += parseFloat(orden.monto_pago);
+          }
+          return total;
+        }, 0);
+      }
+      return comision.toFixed(2);
+    },
+
+    salarioFijo() {
+      if (!this.datosEmpleado) return "0.00";
+
+      const salarioTipo = this.datosEmpleado.salario_tipo;
+
+      // Solo mostrar salario si el empleado tiene "Salario" o "Salario más Comisión"
+      if (salarioTipo === "Salario" || salarioTipo === "Salario más Comisión") {
+        const monto = parseFloat(this.datosEmpleado.salario_monto || 0);
+        return monto.toFixed(2);
+      }
+
+      return "0.00";
+    },
+
     diferencia() {
       return this.totalTerminado - this.totalPendiente;
     },
@@ -419,9 +450,43 @@ export default {
 
       return comision.toFixed(2);
     },
+
+    totalComisionesPendientes() {
+      let comision = 0;
+      if (this.departamento === "Diseño") {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          if (orden.progreso !== "terminada") {
+            total += parseFloat(orden.monto_pago || 0);
+          }
+          return total;
+        }, 0);
+      } else if (
+        this.departamento === "Comercialización" ||
+        this.departamento === "Administración"
+      ) {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          total += parseFloat(orden.monto_pago || 0);
+          return total;
+        }, 0);
+      } else {
+        var total = 0;
+        this.ordenesPendientes.forEach((orden) => {
+          if (orden.progreso !== "terminada") {
+            total += this.montoComisionEmpelado(
+              orden.comision_tipo,
+              orden.total_comision_variable,
+              orden.total_comision_fija
+            );
+          }
+        });
+        comision = total;
+      }
+      return comision.toFixed(2);
+    },
     total() {
-      const tot =
-        parseFloat(this.totalPendiente) + parseFloat(this.totalTerminado);
+      const comisiones = parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
+      const salario = parseFloat(this.salarioFijo);
+      const tot = comisiones + salario;
       return tot.toFixed(2);
     },
 
@@ -532,6 +597,7 @@ export default {
         this.ordenesSemana = resp.data.ordenes_semana;
         this.ordenesTerminadas = resp.data.ordenes_terminadas;
         this.ordenesPendientes = resp.data.ordenes_pendientes;
+        this.datosEmpleado = resp.data.datos_empleado; // Capturar datos salariales del empleado
         this.overlay = false;
       });
     },
