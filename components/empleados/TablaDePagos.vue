@@ -289,15 +289,19 @@ export default {
           {
             key: 'tiempo_transcurrido',
             label: 'TIEMPO',
-          },*/
-          {
+            },*/
+        ];
+        
+        // Solo agregar columna de $ si el empleado gana comisiones
+        if (this.debesMostrarComisiones) {
+          fields.pendientes.push({
             key: "calculo_pago",
             label: "$",
             class: "text-right",
             thClass: "text-center",
             tdClass: "pr-4",
-          },
-        ];
+          });
+        }
         fields.terminadas = [
           {
             key: "id_orden",
@@ -325,14 +329,18 @@ export default {
             key: "rendimiento",
             label: "Minutos",
           },
-          {
+        ];
+        
+        // Solo agregar columna de $ si el empleado gana comisiones
+        if (this.debesMostrarComisiones) {
+          fields.terminadas.push({
             key: "calculo_pago",
             label: "$",
             class: "text-right",
             thClass: "text-center",
             tdClass: "pr-4",
-          },
-        ];
+          });
+        }
       }
 
       return fields;
@@ -371,291 +379,291 @@ export default {
           return total;
         }, 0);
       } else  */ if (
-        this.departamento === "Comercialización" ||
-        this.departamento === "Administración"
-      ) {
-        comision = this.ordenesTerminadas.reduce((total, orden) => {
-          total += parseFloat(orden.monto_pago);
-          return total;
-        }, 0);
-      } else {
-        comision = this.ordenesTerminadas.reduce((total, orden) => {
-          if (orden.fecha_terminado !== null) {
+          this.departamento === "Comercialización" ||
+          this.departamento === "Administración"
+        ) {
+          comision = this.ordenesTerminadas.reduce((total, orden) => {
             total += parseFloat(orden.monto_pago);
-          }
-          return total;
-        }, 0);
-      }
-
-      return comision.toFixed(2);
-    },
-
-    totalComisionesTerminadas() {
-      let comision = 0;
-      if (
-        this.departamento === "Comercialización" ||
-        this.departamento === "Administración"
-      ) {
-        comision = this.ordenesTerminadas.reduce((total, orden) => {
-          total += parseFloat(orden.monto_pago);
-          return total;
-        }, 0);
-      } else {
-        comision = this.ordenesTerminadas.reduce((total, orden) => {
-          if (orden.fecha_terminado !== null) {
-            total += parseFloat(orden.monto_pago);
-          }
-          return total;
-        }, 0);
-      }
-      return comision.toFixed(2);
-    },
-
-    salarioFijo() {
-      if (!this.datosEmpleado) return "0.00";
-
-      const salarioTipo = this.datosEmpleado.salario_tipo;
-
-      // Solo mostrar salario si el empleado tiene "Salario" o "Salario más Comisión"
-      if (salarioTipo === "Salario" || salarioTipo === "Salario más Comisión") {
-        const monto = parseFloat(this.datosEmpleado.salario_monto || 0);
-        return monto.toFixed(2);
-      }
-
-      return "0.00";
-    },
-
-    // Determinar si se debe mostrar el salario según el tipo de compensación
-    debesMostrarSalario() {
-      if (!this.datosEmpleado) return false;
-      const tipo = this.datosEmpleado.salario_tipo;
-      return tipo === "Salario" || tipo === "Salario más Comisión";
-    },
-
-    // Determinar si se deben mostrar las comisiones según el tipo de compensación
-    debesMostrarComisiones() {
-      if (!this.datosEmpleado) return true; // Por defecto mostrar si no hay datos
-      const tipo = this.datosEmpleado.salario_tipo;
-      return tipo === "Comisión" || tipo === "Salario más Comisión";
-    },
-
-    // Información del tipo de compensación para el badge
-    tipoCompensacion() {
-      if (!this.datosEmpleado) return null;
-
-      const tipo = this.datosEmpleado.salario_tipo;
-
-      const config = {
-        'Salario': { texto: 'Salario Fijo', variant: 'warning', icono: '💰' },
-        'Comisión': { texto: 'Por Comisión', variant: 'success', icono: '📈' },
-        'Salario más Comisión': { texto: 'Salario + Comisión', variant: 'info', icono: '💼' }
-      };
-
-      return config[tipo] || null;
-    },
-
-    diferencia() {
-      return this.totalTerminado - this.totalPendiente;
-    },
-
-    totalPendiente() {
-      let comision = 0;
-      if (this.departamento === "Diseño") {
-        comision = this.ordenesPendientes.reduce((total, orden) => {
-          if (orden.progreso !== "terminada") {
-            total += parseFloat(orden.monto_pago || 0);
-          }
-          return total;
-        }, 0);
-      } else if (
-        this.departamento === "Comercialización" ||
-        this.departamento === "Administración"
-      ) {
-        comision = this.ordenesPendientes.reduce((total, orden) => {
-          total += parseFloat(orden.monto_pago || 0);
-          return total;
-        }, 0);
-      } else {
-        var total = 0;
-        this.ordenesPendientes.forEach((orden) => {
-          if (orden.progreso !== "terminada") {
-            total += this.montoComisionEmpelado(
-              orden.comision_tipo,
-              orden.total_comision_variable,
-              orden.total_comision_fija
-            );
-          }
-        });
-        comision = total;
-      }
-
-      return comision.toFixed(2);
-    },
-
-    totalComisionesPendientes() {
-      let comision = 0;
-      if (this.departamento === "Diseño") {
-        comision = this.ordenesPendientes.reduce((total, orden) => {
-          if (orden.progreso !== "terminada") {
-            total += parseFloat(orden.monto_pago || 0);
-          }
-          return total;
-        }, 0);
-      } else if (
-        this.departamento === "Comercialización" ||
-        this.departamento === "Administración"
-      ) {
-        comision = this.ordenesPendientes.reduce((total, orden) => {
-          total += parseFloat(orden.monto_pago || 0);
-          return total;
-        }, 0);
-      } else {
-        var total = 0;
-        this.ordenesPendientes.forEach((orden) => {
-          if (orden.progreso !== "terminada") {
-            total += this.montoComisionEmpelado(
-              orden.comision_tipo,
-              orden.total_comision_variable,
-              orden.total_comision_fija
-            );
-          }
-        });
-        comision = total;
-      }
-      return comision.toFixed(2);
-    },
-    total() {
-      const comisiones = parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
-      const salario = parseFloat(this.salarioFijo);
-      const tot = comisiones + salario;
-      return tot.toFixed(2);
-    },
-
-    trabajosTerminados() {
-      if (this.departamento === "Diseño") {
-        // return this.ordenesTerminadas.filter((el) => el.estatus === "Aprobado");
-        return this.ordenesTerminadas;
-      } else if (
-        this.departamento === "Comercialización" ||
-        this.departamento === "Administración"
-      ) {
-        // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
-        return this.ordenesTerminadas;
-      } else {
-        // return this.ordenesTerminadas
-        // return this.ordenesTerminadas
-        return this.ordenesTerminadas
-          .filter((el) => el.progreso === "terminada")
-          .map((obj) => ({
-            ...obj,
-            calculo_pago: obj.nomto_pago,
-          }));
-      }
-    },
-
-    /* trabajosTerminados() {
-            if (this.departamento === "Diseño") {
-                return this.ordenesTerminadas.filter(
-                    (el) => el.estatus === "Aprobado"
-                );
-            } else if (
-                this.departamento === "Comercialización" ||
-                this.departamento === "Administración"
-            ) {
-                // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
-                return this.ordenesTerminadas;
-            } else {
-                // return this.ordenesTerminadas
-                return this.ordenesTerminadas
-                    .filter((el) => el.progreso === "terminada")
-                    .map((obj) => ({
-                        ...obj,
-                        calculo_pago: obj.nomto_pago,
-                    }));
+            return total;
+          }, 0);
+        } else {
+          comision = this.ordenesTerminadas.reduce((total, orden) => {
+            if (orden.fecha_terminado !== null) {
+              total += parseFloat(orden.monto_pago);
             }
-        }, */
-  },
+            return total;
+          }, 0);
+        }
 
-  methods: {
-    tiempoTranscurridoEnMinutos(fecha_inicio, fecha_terminado) {
-      const fechaInicioStr = fecha_inicio;
-      const fechaTerminadoStr = fecha_terminado;
+        return comision.toFixed(2);
+      },
 
-      if (!fechaInicioStr || !fechaTerminadoStr) {
-        return 0; // O algún otro valor que indique que las fechas no están definidas
-      }
+      totalComisionesTerminadas() {
+        let comision = 0;
+        if (
+          this.departamento === "Comercialización" ||
+          this.departamento === "Administración"
+        ) {
+          comision = this.ordenesTerminadas.reduce((total, orden) => {
+            total += parseFloat(orden.monto_pago);
+            return total;
+          }, 0);
+        } else {
+          comision = this.ordenesTerminadas.reduce((total, orden) => {
+            if (orden.fecha_terminado !== null) {
+              total += parseFloat(orden.monto_pago);
+            }
+            return total;
+          }, 0);
+        }
+        return comision.toFixed(2);
+      },
 
-      const fechaInicio = new Date(fechaInicioStr);
-      const fechaTerminado = new Date(fechaTerminadoStr);
+      salarioFijo() {
+        if (!this.datosEmpleado) return "0.00";
 
-      // Calcular la diferencia en milisegundos
-      const diferenciaMs = fechaTerminado.getTime() - fechaInicio.getTime();
+        const salarioTipo = this.datosEmpleado.salario_tipo;
 
-      // Convertir milisegundos a minutos
-      const diferenciaMinutos = diferenciaMs / (1000 * 60);
+        // Solo mostrar salario si el empleado tiene "Salario" o "Salario más Comisión"
+        if (salarioTipo === "Salario" || salarioTipo === "Salario más Comisión") {
+          const monto = parseFloat(this.datosEmpleado.salario_monto || 0);
+          return monto.toFixed(2);
+        }
 
-      return diferenciaMinutos.toFixed(2);
+        return "0.00";
+      },
+
+      // Determinar si se debe mostrar el salario según el tipo de compensación
+      debesMostrarSalario() {
+        if (!this.datosEmpleado) return false;
+        const tipo = this.datosEmpleado.salario_tipo;
+        return tipo === "Salario" || tipo === "Salario más Comisión";
+      },
+
+      // Determinar si se deben mostrar las comisiones según el tipo de compensación
+      debesMostrarComisiones() {
+        if (!this.datosEmpleado) return true; // Por defecto mostrar si no hay datos
+        const tipo = this.datosEmpleado.salario_tipo;
+        return tipo === "Comisión" || tipo === "Salario más Comisión";
+      },
+
+      // Información del tipo de compensación para el badge
+      tipoCompensacion() {
+        if (!this.datosEmpleado) return null;
+
+        const tipo = this.datosEmpleado.salario_tipo;
+
+        const config = {
+          'Salario': { texto: 'Salario Fijo', variant: 'warning', icono: '💰' },
+          'Comisión': { texto: 'Por Comisión', variant: 'success', icono: '📈' },
+          'Salario más Comisión': { texto: 'Salario + Comisión', variant: 'info', icono: '💼' }
+        };
+
+        return config[tipo] || null;
+      },
+
+      diferencia() {
+        return this.totalTerminado - this.totalPendiente;
+      },
+
+      totalPendiente() {
+        let comision = 0;
+        if (this.departamento === "Diseño") {
+          comision = this.ordenesPendientes.reduce((total, orden) => {
+            if (orden.progreso !== "terminada") {
+              total += parseFloat(orden.monto_pago || 0);
+            }
+            return total;
+          }, 0);
+        } else if (
+          this.departamento === "Comercialización" ||
+          this.departamento === "Administración"
+        ) {
+          comision = this.ordenesPendientes.reduce((total, orden) => {
+            total += parseFloat(orden.monto_pago || 0);
+            return total;
+          }, 0);
+        } else {
+          var total = 0;
+          this.ordenesPendientes.forEach((orden) => {
+            if (orden.progreso !== "terminada") {
+              total += this.montoComisionEmpelado(
+                orden.comision_tipo,
+                orden.total_comision_variable,
+                orden.total_comision_fija
+              );
+            }
+          });
+          comision = total;
+        }
+
+        return comision.toFixed(2);
+      },
+
+      totalComisionesPendientes() {
+        let comision = 0;
+        if (this.departamento === "Diseño") {
+          comision = this.ordenesPendientes.reduce((total, orden) => {
+            if (orden.progreso !== "terminada") {
+              total += parseFloat(orden.monto_pago || 0);
+            }
+            return total;
+          }, 0);
+        } else if (
+          this.departamento === "Comercialización" ||
+          this.departamento === "Administración"
+        ) {
+          comision = this.ordenesPendientes.reduce((total, orden) => {
+            total += parseFloat(orden.monto_pago || 0);
+            return total;
+          }, 0);
+        } else {
+          var total = 0;
+          this.ordenesPendientes.forEach((orden) => {
+            if (orden.progreso !== "terminada") {
+              total += this.montoComisionEmpelado(
+                orden.comision_tipo,
+                orden.total_comision_variable,
+                orden.total_comision_fija
+              );
+            }
+          });
+          comision = total;
+        }
+        return comision.toFixed(2);
+      },
+      total() {
+        const comisiones = parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
+        const salario = parseFloat(this.salarioFijo);
+        const tot = comisiones + salario;
+        return tot.toFixed(2);
+      },
+
+      trabajosTerminados() {
+        if (this.departamento === "Diseño") {
+          // return this.ordenesTerminadas.filter((el) => el.estatus === "Aprobado");
+          return this.ordenesTerminadas;
+        } else if (
+          this.departamento === "Comercialización" ||
+          this.departamento === "Administración"
+        ) {
+          // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
+          return this.ordenesTerminadas;
+        } else {
+          // return this.ordenesTerminadas
+          // return this.ordenesTerminadas
+          return this.ordenesTerminadas
+            .filter((el) => el.progreso === "terminada")
+            .map((obj) => ({
+              ...obj,
+              calculo_pago: obj.nomto_pago,
+            }));
+        }
+      },
+
+      /* trabajosTerminados() {
+              if (this.departamento === "Diseño") {
+                  return this.ordenesTerminadas.filter(
+                      (el) => el.estatus === "Aprobado"
+                  );
+              } else if (
+                  this.departamento === "Comercialización" ||
+                  this.departamento === "Administración"
+              ) {
+                  // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
+                  return this.ordenesTerminadas;
+              } else {
+                  // return this.ordenesTerminadas
+                  return this.ordenesTerminadas
+                      .filter((el) => el.progreso === "terminada")
+                      .map((obj) => ({
+                          ...obj,
+                          calculo_pago: obj.nomto_pago,
+                      }));
+              }
+          }, */
     },
-    montoComisionEmpelado(
-      comision_tipo,
-      total_comision_variable,
-      total_comision_fija
-    ) {
-      let comision = 0;
-      if (comision_tipo === "fija") {
-        comision = total_comision_fija;
+
+    methods: {
+      tiempoTranscurridoEnMinutos(fecha_inicio, fecha_terminado) {
+        const fechaInicioStr = fecha_inicio;
+        const fechaTerminadoStr = fecha_terminado;
+
+        if (!fechaInicioStr || !fechaTerminadoStr) {
+          return 0; // O algún otro valor que indique que las fechas no están definidas
+        }
+
+        const fechaInicio = new Date(fechaInicioStr);
+        const fechaTerminado = new Date(fechaTerminadoStr);
+
+        // Calcular la diferencia en milisegundos
+        const diferenciaMs = fechaTerminado.getTime() - fechaInicio.getTime();
+
+        // Convertir milisegundos a minutos
+        const diferenciaMinutos = diferenciaMs / (1000 * 60);
+
+        return diferenciaMinutos.toFixed(2);
+      },
+      montoComisionEmpelado(
+        comision_tipo,
+        total_comision_variable,
+        total_comision_fija
+      ) {
+        let comision = 0;
+        if (comision_tipo === "fija") {
+          comision = total_comision_fija;
+        } else {
+          comision = total_comision_variable;
+        }
+
+        return comision;
+      },
+
+      trabajosPendientes() {
+        // return null;
+        if (this.departamento === "Diseño") {
+          return this.ordenesPendientes.filter(
+            (el) => el.progreso !== "terminada"
+          );
+        } else {
+          return this.ordenesPendientes.filter(
+            (el) => el.progreso !== "terminada"
+          );
+        }
+      },
+
+      async getOrdenesAsignadas(tipo = "empleado") {
+        // tipo puede ser 'empleado' o 'disenador'
+        let url = "";
+        if (tipo === "disenador") {
+          url = `${this.$config.API}/reportes/resumen/disenadores/${this.emp}/${this.$store.state.login.currentDepartamentId}`;
+        } else {
+          url = `${this.$config.API}/reportes/resumen/empleados/${this.emp}/${this.$store.state.login.currentDepartamentId}`;
+        }
+
+        await this.$axios.get(url).then((resp) => {
+          this.ordenes = resp.data.ordenes;
+          this.ordenesSemana = resp.data.ordenes_semana;
+          this.ordenesTerminadas = resp.data.ordenes_terminadas;
+          this.ordenesPendientes = resp.data.ordenes_pendientes;
+          this.datosEmpleado = resp.data.datos_empleado; // Capturar datos salariales del empleado
+          this.overlay = false;
+        });
+      },
+    },
+
+    mounted() {
+      let tipo = "";
+
+      if (this.$store.state.login.currentDepartament === "Diseño") {
+        tipo = "disenador";
       } else {
-        comision = total_comision_variable;
+        tipo = "empleado";
       }
 
-      return comision;
+      this.getOrdenesAsignadas(tipo);
     },
 
-    trabajosPendientes() {
-      // return null;
-      if (this.departamento === "Diseño") {
-        return this.ordenesPendientes.filter(
-          (el) => el.progreso !== "terminada"
-        );
-      } else {
-        return this.ordenesPendientes.filter(
-          (el) => el.progreso !== "terminada"
-        );
-      }
-    },
-
-    async getOrdenesAsignadas(tipo = "empleado") {
-      // tipo puede ser 'empleado' o 'disenador'
-      let url = "";
-      if (tipo === "disenador") {
-        url = `${this.$config.API}/reportes/resumen/disenadores/${this.emp}/${this.$store.state.login.currentDepartamentId}`;
-      } else {
-        url = `${this.$config.API}/reportes/resumen/empleados/${this.emp}/${this.$store.state.login.currentDepartamentId}`;
-      }
-
-      await this.$axios.get(url).then((resp) => {
-        this.ordenes = resp.data.ordenes;
-        this.ordenesSemana = resp.data.ordenes_semana;
-        this.ordenesTerminadas = resp.data.ordenes_terminadas;
-        this.ordenesPendientes = resp.data.ordenes_pendientes;
-        this.datosEmpleado = resp.data.datos_empleado; // Capturar datos salariales del empleado
-        this.overlay = false;
-      });
-    },
-  },
-
-  mounted() {
-    let tipo = "";
-
-    if (this.$store.state.login.currentDepartament === "Diseño") {
-      tipo = "disenador";
-    } else {
-      tipo = "empleado";
-    }
-
-    this.getOrdenesAsignadas(tipo);
-  },
-
-  props: ["emp"],
-};
+    props: ["emp"],
+  };
 </script>
