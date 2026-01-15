@@ -533,10 +533,19 @@ export default {
         return comision.toFixed(2);
       },
       total() {
-        const comisiones = parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
-        const salario = parseFloat(this.salarioFijo);
-        const tot = comisiones + salario;
-        return tot.toFixed(2);
+        let total = 0;
+        
+        // Agregar salario si el empleado tiene salario configurado
+        if (this.debesMostrarSalario) {
+          total += parseFloat(this.salarioFijo);
+        }
+        
+        // Agregar comisiones si el empleado tiene comisiones configuradas
+        if (this.debesMostrarComisiones) {
+          total += parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
+        }
+        
+        return total.toFixed(2);
       },
 
       trabajosTerminados() {
