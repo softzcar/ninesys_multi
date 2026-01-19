@@ -24,7 +24,7 @@
             <div class="d-flex justify-content-between mb-1">
               <span><strong>Tiempo Real:</strong> {{ formatSeconds(reporteData.tiempo_total_segundos) }}</span>
               <span><strong>Meta (Proyectado):</strong> {{ formatSeconds(reporteData.tiempo_proyectado_segundos)
-                }}</span>
+              }}</span>
             </div>
 
             <!-- Bullet Graph Container -->
@@ -78,11 +78,13 @@
                   </b-badge>
 
                   <div class="d-flex">
-                    <!-- Botón + Insumos (Configurar Producto) -->
-                    <b-button size="sm" variant="primary" class="mr-1" @click="openAsignacionModal(data.item)"
-                      v-b-tooltip.hover title="Configurar Insumos del Producto">
-                      <b-icon icon="plus-lg"></b-icon> Insumos
-                    </b-button>
+                    <!-- Componente Asignación Insumos (Botón incluido + Modal Interno) -->
+                    <div v-if="productInfo && catalogsLoaded" class="mr-1">
+                      <admin-AsignacionDeInsumosAProductos :item="productInfo" :departamentos="departamentos"
+                        :selectinsumos="selectInsumos" :insumosasignados="insumosAsignados"
+                        :tiemposprod="tiemposProduccion" :idprod="productInfo.cod" @reload="handleAsignacionReload" />
+                    </div>
+                    <!-- Spinner mientras cargan catálogos (opcional, o solo ocultar botón) -->
 
                     <!-- Integración del modal de consumo -->
                     <inventario-ConsumoMaterialModal v-if="data.item.id_insumo" :idInsumo="data.item.id_insumo"
@@ -130,13 +132,6 @@
         </div>
       </b-overlay>
 
-      <!-- Modal de Asignación de Insumos (Lazy Loaded / On Demand) -->
-      <b-modal v-if="showAsignacionModal" v-model="showAsignacionModal" size="xl"
-        title="Configuración de Insumos del Producto" hide-footer>
-        <admin-AsignacionDeInsumosAProductos :item="currentProductForAsignacion" :departamentos="departamentos"
-          :selectinsumos="selectInsumos" :insumosasignados="insumosAsignados" :tiemposprod="tiemposProduccion"
-          :idprod="currentProductForAsignacion.cod" @reload="handleAsignacionReload" />
-      </b-modal>
     </b-modal>
   </div>
 </template>
@@ -329,6 +324,27 @@ export default {
         fechaEntregaEstimada: fechaEntregaEstimadaFinal,
       };
     },
+
+    // Computar información del producto para el componente de asignación
+    productInfo() {
+      if (this.reporteData && this.reporteData.id_product) {
+        return {
+          cod: this.reporteData.id_product,
+          name: this.reporteData.product_name
+        };
+      }
+
+      // Fallback: Buscar en ordenesProyectadas2 si el reporte aún no carga o falla
+      const orden = this.ordenesProyectadas2.find(o => o.id_orden === this.id_orden);
+      if (orden && orden.id_woo) {
+        return {
+          cod: orden.id_woo,
+          name: orden.producto
+        };
+      }
+
+      return null;
+    },
   },
 
   methods: {
@@ -375,41 +391,6 @@ export default {
       }
     },
 
-    async openAsignacionModal(item) {
-      // ID Producto proviene del reporte manufacturing-time
-
-      let idProductWoo = null;
-      let productName = "";
-
-      // Obtener producto del reporte de tiempos
-      if (this.reporteData && this.reporteData.id_product) {
-        idProductWoo = this.reporteData.id_product;
-        productName = this.reporteData.product_name;
-      } else {
-        // Fallback: Buscar en ordenesProyectadas2
-        const orden = this.ordenesProyectadas2.find(o => o.id_orden === this.id_orden);
-        if (orden) {
-          idProductWoo = orden.id_woo;
-          productName = orden.producto;
-        }
-      }
-
-      if (!idProductWoo) {
-        this.$bvToast.toast("No se encontró información del producto para esta orden.", { variant: "warning" });
-        return;
-      }
-
-      await this.loadAsignacionData();
-
-      this.currentProductForAsignacion = {
-        cod: idProductWoo,
-        name: productName,
-        // Requerido por el componente Asignacion
-      };
-
-      this.showAsignacionModal = true;
-    },
-
     async fetchManufacturingReport() {
       this.isLoadingReport = true;
       this.reporteData = null;
@@ -446,6 +427,9 @@ export default {
         if (inputResponse.data) {
           this.inputEfficiencyData = inputResponse.data;
         }
+
+        // Cargar datos de asignación automáticamente
+        await this.loadAsignacionData();
 
       } catch (error) {
         console.error("Error fetching reports:", error);
