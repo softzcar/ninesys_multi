@@ -24,7 +24,7 @@
             <div class="d-flex justify-content-between mb-1">
               <span><strong>Tiempo Real:</strong> {{ formatSeconds(reporteData.tiempo_total_segundos) }}</span>
               <span><strong>Meta (Proyectado):</strong> {{ formatSeconds(reporteData.tiempo_proyectado_segundos)
-              }}</span>
+                }}</span>
             </div>
 
             <!-- Bullet Graph Container -->
@@ -138,6 +138,7 @@
           :idprod="currentProductForAsignacion.cod" @reload="handleAsignacionReload" />
       </b-modal>
     </b-modal>
+  </div>
 </template>
 
 <script>
