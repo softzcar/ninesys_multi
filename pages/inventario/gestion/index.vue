@@ -18,7 +18,9 @@
                         <b-row>
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
-                                <inventario-InsumoNuevo @reload="getInsumos" :catalogoProductosData="catalogoInsumosProductos" @reloadCatalogo="fetchCatalogoInsumosProductos" />
+                                <inventario-InsumoNuevo @reload="getInsumos"
+                                    :catalogoProductosData="catalogoInsumosProductos"
+                                    @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                 <LazyInventarioBulkLoad @upload-success="getInsumos" />
                             </b-col>
                         </b-row>
@@ -57,9 +59,16 @@
                                     :fields="fields" :per-page="perPage" :current-page="currentPage"
                                     @filtered="onFiltered" :filter="filter" :filter-included-fields="includedFields"
                                     sort-icon-left>
+                                    <template #cell(ver_consumo)="data">
+                                        <inventario-ConsumoMaterialModal :idInsumo="data.item._id"
+                                            :nombreInsumo="data.item.insumo" @reload="getInsumos" />
+                                    </template>
+
                                     <template #cell(_id)="data">
                                         <span class="floatme">
-                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item" :catalogoProductosData="catalogoInsumosProductos" @reloadCatalogo="fetchCatalogoInsumosProductos" />
+                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item"
+                                                :catalogoProductosData="catalogoInsumosProductos"
+                                                @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>
                                         <span class="floatme">
                                             <b-button variant="danger" v-on:click="
@@ -147,6 +156,11 @@ export default {
                 {
                     key: "costo",
                     label: "Costo",
+                    sortable: false,
+                },
+                {
+                    label: "Consumo",
+                    key: "ver_consumo",
                     sortable: false,
                 },
                 {
@@ -279,6 +293,11 @@ export default {
                         sortable: false,
                     },
                     {
+                        label: "Consumo",
+                        key: "ver_consumo",
+                        sortable: false,
+                    },
+                    {
                         label: "",
                         key: "_id",
                         sortable: false,
@@ -319,6 +338,11 @@ export default {
                     {
                         key: "costo",
                         label: "Costo",
+                        sortable: false,
+                    },
+                    {
+                        label: "Consumo",
+                        key: "ver_consumo",
                         sortable: false,
                     },
                     {
