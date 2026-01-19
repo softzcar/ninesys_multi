@@ -225,7 +225,9 @@ export default {
                 .then((resp) => {
                     this.dataTable = []
                     this.dataTable = resp.data
+                    this.dataTable = resp.data
                     this.dataTableDyn = resp.data.items
+                    this.totalRows = this.dataTableDyn.length
 
                     const departamentosUnicos = new Set(
                         resp.data.items.map((item) => item.departamento)
@@ -365,6 +367,7 @@ export default {
                     this.dataTableDyn
                 )
             }
+            this.totalRows = this.dataTableDyn.length
         },
 
         onFiltered(filteredItems) {
