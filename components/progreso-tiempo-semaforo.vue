@@ -376,30 +376,22 @@ export default {
     },
 
     async openAsignacionModal(item) {
-      // ID Producto puede venir del reporte o buscarlo en la orden
-      // Como el reporte input-efficiency no tiene id_product por fila (aun), 
-      // usaremos el id_product principal de la orden o intentaremos deducirlo.
-      // Si no hay producto claro, usamos el primero de la orden.
+      // ID Producto proviene del reporte manufacturing-time
 
       let idProductWoo = null;
       let productName = "";
 
-      // Intentar obtener producto del reporte de tiempos si existe
-      if (this.reporteData && this.reporteData.producto) { // Asumiendo que reporteData guardó info del producto
-        // Wait, fetchManufacturingReport guarda reporteData con campos del endpoint.
-        // El endpoint devuelve un array rows. this.reporteData es un objeto resumen NO el array.
-        // Necesito guardar la info del producto en fetchManufacturingReport.
-      }
-
-      // Estrategia fallback: Buscar en la info de la orden (this.ordenReactiva no tiene info de producto woo detallada)
-      // Mejor opción: Buscar en this.inputEfficiencyData si logramos traer el id_product, o usar el endpoint auxiliar.
-
-      // Temporarily, we need to fetch order details to get product info if not available
-      // Usaremos el id_product disponible en ordenesProyectadas2 si está
-      const orden = this.ordenesProyectadas2.find(o => o.id_orden === this.id_orden);
-      if (orden) {
-        idProductWoo = orden.id_woo;
-        productName = orden.producto;
+      // Obtener producto del reporte de tiempos
+      if (this.reporteData && this.reporteData.id_product) {
+        idProductWoo = this.reporteData.id_product;
+        productName = this.reporteData.product_name;
+      } else {
+        // Fallback: Buscar en ordenesProyectadas2
+        const orden = this.ordenesProyectadas2.find(o => o.id_orden === this.id_orden);
+        if (orden) {
+          idProductWoo = orden.id_woo;
+          productName = orden.producto;
+        }
       }
 
       if (!idProductWoo) {
@@ -434,9 +426,14 @@ export default {
           const totalReal = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
           const totalProjected = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_proyectado_segundos || 0), 0);
 
+          // Extraer info de producto del primer item (asumiendo 1 orden = 1 tipo producto principal)
+          const firstItem = timeResponse.data[0];
+
           this.reporteData = {
             tiempo_total_segundos: totalReal,
-            tiempo_proyectado_segundos: totalProjected
+            tiempo_proyectado_segundos: totalProjected,
+            id_product: firstItem ? firstItem.id_product_woo : null,
+            product_name: firstItem ? firstItem.producto : ''
           };
         } else {
           this.reporteData = {
