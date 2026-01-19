@@ -9,31 +9,15 @@
         <h3 class="mb-4 mt-4 pb-2">Producto: {{ item.name }}</h3>
 
         <b-tabs content-class="mt-3">
-          <b-tab
-            :title="dep.departamento"
-            v-for="(dep, index) in filterDeps"
-            :key="index"
-            @click="loadDataTab(dep._id)"
-          >
-            <b-alert v-if="showDom === false" show variant="info"
-              ><a href="#" class="alert-link"
-                >Seleccione un departamento</a
-              ></b-alert
-            >
+          <b-tab :title="dep.departamento" v-for="(dep, index) in filterDeps" :key="index"
+            @click="loadDataTab(dep._id)">
+            <b-alert v-if="showDom === false" show variant="info"><a href="#" class="alert-link">Seleccione un
+                departamento</a></b-alert>
             <div v-else>
-              <admin-AsignacionDeInsumosAProductosTab
-                :key="dep._id"
-                :form="form"
-                :item="dep"
-                :idprod="item.cod"
-                :iddep="dep._id"
-                :tiemposprod="tiemposprod"
-                :insumosasignados="insumosasignados"
-                :selectinsumos="selectinsumos"
-                :selecttallas="selectTallas"
-                :tiempoInicial="getTiempo(item, dep._id)"
-                @reload="reloadParent"
-              />
+              <admin-AsignacionDeInsumosAProductosTab :key="dep._id" :form="form" :item="dep" :idprod="item.cod"
+                :iddep="dep._id" :tiemposprod="tiemposprod" :insumosasignados="insumosasignados"
+                :selectinsumos="selectinsumos" :selecttallas="selectTallas" :tiempoInicial="getTiempo(item, dep._id)"
+                @reload="reloadParent" />
             </div>
           </b-tab>
         </b-tabs>
@@ -75,7 +59,7 @@ export default {
       this.$emit("reload");
     },
     loadDataTab(idDepartamento) {
-      this.$emit("reload");
+      // this.$emit("reload"); // Eliminado para evitar recarga del padre al abrir modal/tab
       this.showDom = true;
     },
     getTiempo(product, depId) {
