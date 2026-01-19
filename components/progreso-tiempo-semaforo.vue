@@ -5,14 +5,8 @@
       {{ textButton }}
     </b-button>
 
-    <b-modal
-      :id="modal"
-      :title="title"
-      hide-footer
-      size="xl"
-      @show="handleModalShowInternal"
-      @hide="$emit('modal-hidden')"
-    >
+    <b-modal :id="modal" :title="title" hide-footer size="xl" @show="handleModalShowInternal"
+      @hide="$emit('modal-hidden')">
       <b-overlay :show="isLoading" spinner-small>
         <!-- El contenido del modal ahora depende de 'ordenReactiva' y 'textList' -->
         <div v-if="ordenReactiva">
@@ -26,71 +20,69 @@
           <!-- BULLET GRAPH SECTION -->
           <div v-if="reporteData" class="mb-4 p-3 border rounded bg-light">
             <h5 class="mb-3">Eficiencia de Producción (Tiempo Real vs Proyectado)</h5>
-            
+
             <div class="d-flex justify-content-between mb-1">
               <span><strong>Tiempo Real:</strong> {{ formatSeconds(reporteData.tiempo_total_segundos) }}</span>
-              <span><strong>Meta (Proyectado):</strong> {{ formatSeconds(reporteData.tiempo_proyectado_segundos) }}</span>
+              <span><strong>Meta (Proyectado):</strong> {{ formatSeconds(reporteData.tiempo_proyectado_segundos)
+                }}</span>
             </div>
 
             <!-- Bullet Graph Container -->
             <div class="position-relative" style="height: 40px; background-color: #e9ecef; border-radius: 4px;">
-              
+
               <!-- Background Zones (Optional, simplified to just grey for now) -->
-              
+
               <!-- Actual Value Bar -->
-              <div 
-                class="position-absolute h-100" 
-                :class="bulletGraphColor"
+              <div class="position-absolute h-100" :class="bulletGraphColor"
                 :style="{ width: bulletGraphBarWidth + '%' }"
-                style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
-              ></div>
+                style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"></div>
 
               <!-- Projected Value Marker -->
-              <div 
-                class="position-absolute h-100"
-                style="width: 4px; background-color: #000; z-index: 10;"
-                :style="{ left: bulletGraphMarkerPosition + '%' }"
-              ></div>
+              <div class="position-absolute h-100" style="width: 4px; background-color: #000; z-index: 10;"
+                :style="{ left: bulletGraphMarkerPosition + '%' }"></div>
 
             </div>
-            
+
             <div class="d-flex justify-content-between mt-1 text-muted small">
               <span>0s</span>
               <span v-if="bulletGraphMax > 0">{{ formatSeconds(bulletGraphMax) }}</span>
             </div>
           </div>
           <div v-else-if="isLoadingReport" class="text-center mb-4">
-             <b-spinner small label="Cargando reporte..."></b-spinner> Calculando eficiencia...
+            <b-spinner small label="Cargando reporte..."></b-spinner> Calculando eficiencia...
           </div>
           <!-- END BULLET GRAPH SECTION -->
 
           <!-- INPUT EFFICIENCY SECTION -->
           <div v-if="inputEfficiencyData && inputEfficiencyData.length > 0" class="mb-4 p-3 border rounded bg-light">
-             <h5 class="mb-3">Eficiencia de Insumos</h5>
-             <b-table-lite
-                small
-                striped
-                hover
-                :items="inputEfficiencyData"
-                :fields="[
-                    { key: 'nombre_insumo', label: 'Insumo' },
-                    { key: 'cantidad_estandar', label: 'Meta', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
-                    { key: 'cantidad_real', label: 'Real', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
-                    { key: 'eficiencia', label: 'Eficiencia', formatter: (val, key, item) => {
-                        const est = parseFloat(item.cantidad_estandar);
-                        const real = parseFloat(item.cantidad_real);
-                        if (est === 0) return 'N/A';
-                        const eff = ((est / real) * 100).toFixed(1);
-                        return `${eff}%`;
-                    }}
-                ]"
-             >
-                <template #cell(eficiencia)="data">
-                    <b-badge :variant="parseFloat(data.item.cantidad_real) > parseFloat(data.item.cantidad_estandar) ? 'danger' : 'success'">
-                        {{ data.value }}
-                    </b-badge>
-                </template>
-             </b-table-lite>
+            <h5 class="mb-3">Eficiencia de Insumos</h5>
+            <b-table-lite small striped hover :items="inputEfficiencyData" :fields="[
+              { key: 'nombre_insumo', label: 'Insumo' },
+              { key: 'cantidad_estandar', label: 'Meta', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
+              { key: 'cantidad_real', label: 'Real', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
+              {
+                key: 'eficiencia', label: 'Eficiencia', formatter: (val, key, item) => {
+                  const est = parseFloat(item.cantidad_estandar);
+                  const real = parseFloat(item.cantidad_real);
+                  if (est === 0) return 'N/A';
+                  const eff = ((est / real) * 100).toFixed(1);
+                  return `${eff}%`;
+                }
+              }
+            ]">
+              <template #cell(eficiencia)="data">
+                <div class="d-flex align-items-center justify-content-between">
+                  <b-badge
+                    :variant="parseFloat(data.item.cantidad_real) > parseFloat(data.item.cantidad_estandar) ? 'danger' : 'success'">
+                    {{ data.value }}
+                  </b-badge>
+
+                  <!-- Integración del modal de consumo -->
+                  <inventario-ConsumoMaterialModal v-if="data.item.id_insumo" :idInsumo="data.item.id_insumo"
+                    :nombreInsumo="data.item.nombre_insumo" @reload="fetchManufacturingReport" size="sm" />
+                </div>
+              </template>
+            </b-table-lite>
           </div>
           <!-- END INPUT EFFICIENCY SECTION -->
 
@@ -121,28 +113,19 @@
           <h3 class="mt-4">Resumen de Tareas</h3>
 
           <!-- La tabla ahora usa 'ordenReactiva.tareas' -->
-          <b-table-lite
-            bordered
-            responsive
-            small
-            striped
-            :items="ordenReactiva.tareas"
-            :fields="fieldsTareas"
-          >
+          <b-table-lite bordered responsive small striped :items="ordenReactiva.tareas" :fields="fieldsTareas">
           </b-table-lite>
         </div>
 
         <div v-else>
-          <b-alert show
-            >La orden aún no tiene personal asignado o no se encuentra.</b-alert
-          >
+          <b-alert show>La orden aún no tiene personal asignado o no se encuentra.</b-alert>
         </div>
       </b-overlay>
     </b-modal>
   </div>
 </template>
-    
-  <script>
+
+<script>
 // Importa el mixin
 import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js"; // Asegúrate de que la ruta sea correcta
 
@@ -162,7 +145,7 @@ export default {
     },
     reload: {
       type: Function,
-      default: () => {},
+      default: () => { },
     },
   },
 
@@ -172,7 +155,7 @@ export default {
       ahora: new Date(),
       intervaloReloj: null,
       isLoading: true, // Nueva propiedad para el estado de carga
-      
+
       // Reporte Data
       reporteData: null,
       inputEfficiencyData: null,
@@ -224,7 +207,7 @@ export default {
       if (!this.reporteData) return 'bg-secondary';
       const real = this.reporteData.tiempo_total_segundos || 0;
       const projected = this.reporteData.tiempo_proyectado_segundos || 0;
-      
+
       if (projected === 0) return 'bg-warning'; // No projection available
       return real <= projected ? 'bg-success' : 'bg-danger';
     },
@@ -304,7 +287,7 @@ export default {
       const fechaEntregaEstimadaFinal =
         this.ordenReactiva.tareas.length > 0
           ? this.ordenReactiva.tareas[this.ordenReactiva.tareas.length - 1]
-              .fecha_estimada_fin_formateada
+            .fecha_estimada_fin_formateada
           : "N/D";
 
       return {
@@ -332,21 +315,21 @@ export default {
 
       try {
         const [timeResponse, inputResponse] = await Promise.all([
-            this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, { params: { id_orden: this.id_orden } }),
-            this.$axios.get(`${this.$config.API}/reports/input-efficiency/${this.id_orden}`)
+          this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, { params: { id_orden: this.id_orden } }),
+          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${this.id_orden}`)
         ]);
-        
+
         // Process Time Report
         if (timeResponse.data && timeResponse.data.length > 0) {
           const totalReal = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
           const totalProjected = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_proyectado_segundos || 0), 0);
-          
+
           this.reporteData = {
             tiempo_total_segundos: totalReal,
             tiempo_proyectado_segundos: totalProjected
           };
         } else {
-           this.reporteData = {
+          this.reporteData = {
             tiempo_total_segundos: 0,
             tiempo_proyectado_segundos: 0
           };
@@ -354,7 +337,7 @@ export default {
 
         // Process Input Efficiency Report
         if (inputResponse.data) {
-            this.inputEfficiencyData = inputResponse.data;
+          this.inputEfficiencyData = inputResponse.data;
         }
 
       } catch (error) {
@@ -373,7 +356,7 @@ export default {
       const h = Math.floor(seconds / 3600);
       const m = Math.floor((seconds % 3600) / 60);
       const s = Math.floor(seconds % 60);
-      
+
       let res = '';
       if (h > 0) res += `${h}h `;
       if (m > 0) res += `${m}m `;
