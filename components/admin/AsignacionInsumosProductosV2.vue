@@ -7,12 +7,8 @@
         <b-col md="6">
           <b-form-group label="Buscar producto:" label-for="filter-input">
             <b-input-group>
-              <b-form-input
-                id="filter-input"
-                v-model="filter"
-                type="search"
-                placeholder="Escriba para buscar..."
-              ></b-form-input>
+              <b-form-input id="filter-input" v-model="filter" type="search"
+                placeholder="Escriba para buscar..."></b-form-input>
               <b-input-group-append>
                 <b-button :disabled="!filter" @click="filter = ''">Limpiar</b-button>
               </b-input-group-append>
@@ -21,51 +17,42 @@
         </b-col>
         <b-col md="6">
           <b-form-group label="Filtrar por departamento:">
-            <b-form-radio-group
-                v-model="selectedDepartment"
-                :options="departmentOptions"
-                button-variant="outline-primary"
-                name="radio-btn-outline"
-                buttons
-            ></b-form-radio-group>
+            <b-form-radio-group v-model="selectedDepartment" :options="departmentOptions"
+              button-variant="outline-primary" name="radio-btn-outline" buttons></b-form-radio-group>
           </b-form-group>
         </b-col>
       </b-row>
 
-      <b-table
-        :key="tableKey"
-        :items="filteredProducts"
-        :fields="fields"
-        :per-page="perPage"
-        :current-page="currentPage"
-        striped
-        hover
-        responsive
-        show-empty
-        empty-text="No hay productos para mostrar."
-        @filtered="onFiltered"
-      >
+      <div class="d-flex align-items-center mb-3">
+        <span class="mr-2 font-weight-bold">Leyenda:</span>
+        <div class="mr-3 d-flex align-items-center">
+          <div class="bg-success rounded border mr-1" style="width: 20px; height: 20px;"></div>
+          <span>Con Insumos Asignados</span>
+        </div>
+        <div class="d-flex align-items-center">
+          <span class="text-danger font-weight-bold mr-1">0 min</span>
+          <span>Tiempo No Asignado</span>
+        </div>
+      </div>
+
+      <b-table :key="tableKey" :items="filteredProducts" :fields="fields" :per-page="perPage"
+        :current-page="currentPage" striped hover responsive show-empty empty-text="No hay productos para mostrar."
+        @filtered="onFiltered">
+        <template v-for="dep in departamentosConPaso" v-slot:[`cell(${dep._id})`]="data">
+          <span :class="{ 'text-danger font-weight-bold': data.value === '0 min' }" :key="dep._id">
+            {{ data.value }}
+          </span>
+        </template>
+
         <template #cell(asignacion)="row">
-          <admin-AsignacionDeInsumosAProductos
-            :item="row.item"
-            :departamentos="departamentos"
-            :selectinsumos="selectInsumos"
-            :insumosasignados="insumosAsignados"
-            :tiemposprod="tiemposProduccion"
-            :selected-department="selectedDepartment"
-            @reload="fetchData"
-          />
+          <admin-AsignacionDeInsumosAProductos :item="row.item" :departamentos="departamentos"
+            :selectinsumos="selectInsumos" :insumosasignados="insumosAsignados" :tiemposprod="tiemposProduccion"
+            :selected-department="selectedDepartment" @reload="fetchData" />
         </template>
       </b-table>
 
-      <b-pagination
-        v-if="totalRows > perPage"
-        v-model="currentPage"
-        :total-rows="totalRows"
-        :per-page="perPage"
-        aria-controls="my-table"
-        align="center"
-      ></b-pagination>
+      <b-pagination v-if="totalRows > perPage" v-model="currentPage" :total-rows="totalRows" :per-page="perPage"
+        aria-controls="my-table" align="center"></b-pagination>
     </b-overlay>
   </b-container>
 </template>
@@ -188,9 +175,18 @@ export default {
     },
     productsWithDepartmentData() {
       return this.products.filter(product => product.producto_fisico === 1).map(product => {
-        const productData = { ...product };
+        const productData = { ...product, _cellVariants: {} };
         this.departamentosConPaso.forEach(dep => {
-          productData[dep._id.toString()] = this.getTiempo(product, dep._id);
+          const tiempo = this.getTiempo(product, dep._id);
+          productData[dep._id.toString()] = tiempo;
+
+          const hasInsumos = this.insumosAsignados.some(i =>
+            i.id_departamento == dep._id && i.id_product == product.cod
+          );
+
+          if (hasInsumos) {
+            productData._cellVariants[dep._id.toString()] = 'success';
+          }
         });
         return productData;
       });

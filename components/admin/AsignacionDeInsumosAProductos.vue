@@ -79,7 +79,11 @@ export default {
         // Asumiendo que el endpoint devuelve un objeto { data: [...] }
         // y cada talla tiene 'id' y 'name'
         const tallas = response.data.data.map((talla) => {
-          return { value: talla._id, text: talla.name };
+          return {
+            value: talla._id,
+            text: talla.name,
+            variation_percentage: talla.variation_percentage
+          };
         });
         this.selectTallas = [
           { value: null, text: "No aplica / Seleccione" },

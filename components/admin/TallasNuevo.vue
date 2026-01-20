@@ -10,24 +10,18 @@
                     <b-row>
                         <b-col>
                             <b-form @submit="onSubmit">
-                                <b-form-group
-                                    id="input-group-1"
-                                    label="Talla:"
-                                    label-for="input-talla"
-                                >
-                                    <b-form-input
-                                        id="input-talla"
-                                        v-model="form.name"
-                                        placeholder="Ingrese el nombre de la talla"
-                                        required
-                                    ></b-form-input>
+                                <b-form-group id="input-group-1" label="Talla:" label-for="input-talla">
+                                    <b-form-input id="input-talla" v-model="form.name"
+                                        placeholder="Ingrese el nombre de la talla" required></b-form-input>
                                 </b-form-group>
-                                <b-button type="submit" variant="primary"
-                                    >Guardar</b-button
-                                >
-                                <b-button @click="resetForm" variant="danger"
-                                    >Limpiar</b-button
-                                >
+                                <b-form-group id="input-group-2" label="Porcentaje de Variación:"
+                                    label-for="input-variation"
+                                    description="Eje: 5 para +5%, -5 para -5%. 0 para sin variación.">
+                                    <b-form-input id="input-variation" v-model.number="form.variation_percentage"
+                                        type="number" step="0.01" placeholder="0.00"></b-form-input>
+                                </b-form-group>
+                                <b-button type="submit" variant="primary">Guardar</b-button>
+                                <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                             </b-form>
                         </b-col>
                     </b-row>
@@ -43,6 +37,7 @@ export default {
         return {
             form: {
                 name: "",
+                variation_percentage: 0,
             },
             size: "md",
             title: "Nueva Talla",
@@ -60,6 +55,7 @@ export default {
     methods: {
         resetForm() {
             this.form.name = "";
+            this.form.variation_percentage = 0;
         },
         async guardarTalla() {
             if (this.form.name.trim().length === 0) {
@@ -73,6 +69,7 @@ export default {
 
                 const data = new URLSearchParams()
                 data.set("name", this.form.name)
+                data.set("variation_percentage", this.form.variation_percentage)
 
                 await this.$axios
                     .post(`${this.$config.API}/sizes`, data)
@@ -85,7 +82,7 @@ export default {
                         this.overlay = false;
                         console.error("Error guardando la talla:", err);
                         this.$bvToast.toast("No se pudo guardar la talla", {
-                          variant: "danger",
+                            variant: "danger",
                         });
                     })
             }

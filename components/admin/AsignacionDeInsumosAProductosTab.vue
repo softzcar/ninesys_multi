@@ -21,8 +21,20 @@
     </b-form>
 
     <h3 class="mt-4">Asignación Masiva de Insumos por Talla</h3>
-    <b-form-group id="input-group-insumo-base" label="Seleccione Insumo Base:" label-for="select-insumo-base"
+    <b-form-group id="input-group-insumo-base" label-for="select-insumo-base"
       description="Seleccione el insumo que desea asignar a todas las tallas.">
+      <template #label>
+        <div class="d-flex justify-content-between align-items-center">
+          <span>Seleccione Insumo Base:</span>
+          <b-button @click="$bvModal.show(`modal-crear-insumo-${iddep}`)" :id="`create-new-insumo-${iddep}`"
+            variant="info" size="sm" class="ml-2">
+            <b-icon icon="plus-lg"></b-icon> Crear Nuevo Insumo
+          </b-button>
+          <b-popover :target="`create-new-insumo-${iddep}`" triggers="hover" placement="top">
+            <template #title>Crear un nuevo insumo en el catálogo</template>
+          </b-popover>
+        </div>
+      </template>
       <b-form-select id="select-insumo-base" v-model.lazy="selectedInsumoBase" :options="selectinsumos"></b-form-select>
     </b-form-group>
 
@@ -34,23 +46,9 @@
       <b-icon icon="save"></b-icon> Guardar Todas las Asignaciones
     </b-button>
 
-    <b-button @click="$bvModal.show(`modal-crear-insumo-${iddep}`)" :id="`create-new-insumo-${iddep}`" variant="info"
-      class="mb-4 ml-2">
-      <b-icon icon="plus-lg"></b-icon> Crear Nuevo Insumo
-    </b-button>
-    <b-popover :target="`create-new-insumo-${iddep}`" triggers="hover" placement="top">
-      <template #title>Crear un nuevo insumo en el catálogo</template>
-    </b-popover>
 
-    <b-form-group id="input-group-mass-unit" label="Asignar Unidad a Todos:" label-for="select-mass-unit"
-      class="mb-4 ml-2" style="display: inline-block;">
-      <b-form-select id="select-mass-unit" v-model="selectedUnitForMassAssignment" :options="optionsUnidad" class="mr-2"
-        :disabled="form.length === 0"></b-form-select>
-      <b-button variant="secondary" @click="assignAllUnits"
-        :disabled="!selectedUnitForMassAssignment || form.length === 0">
-        Asignar Unidad
-      </b-button>
-    </b-form-group>
+
+
 
     <b-overlay :show="savingInProgress" rounded="sm">
       <b-table responsive primary-key="id" :fields="newCampos" :items="form" small class="mt-4">
@@ -107,11 +105,19 @@
       <b-form-input v-model="nuevoInsumo" placeholder="Nombre del insumo"></b-form-input>
     </b-modal>
 
+    <admin-AsignacionMasivaModal :id="`modal-asignacion-masiva-${iddep}`" :insumoBaseName="insumoBaseName"
+      :insumoBaseId="selectedInsumoBase" :tallasDisponibles="selecttallas" :unitOptions="optionsUnidad"
+      @apply="handleMassAssignment" />
   </div>
 </template>
 
 <script>
+import AsignacionMasivaModal from "./AsignacionMasivaModal.vue";
+
 export default {
+  components: {
+    "admin-AsignacionMasivaModal": AsignacionMasivaModal,
+  },
   data() {
     return {
       tiempo: null,
@@ -258,6 +264,11 @@ export default {
     isButtonDisabled() {
       return this.selectedInsumoBase === null || this.selectedInsumoBase === undefined;
     },
+    insumoBaseName() {
+      if (!this.selectedInsumoBase) return "Insumo Seleccionado";
+      const found = this.selectinsumos.find(i => i.value === this.selectedInsumoBase);
+      return found ? found.text : "Insumo Seleccionado";
+    },
   },
 
   methods: {
@@ -372,28 +383,30 @@ export default {
     },
 
     loadAllSizes() {
-      this.form = []; // Limpiar el formulario actual
-      if (this.selectedInsumoBase && this.selecttallas.length > 0) {
-        this.selecttallas.forEach(talla => {
-          if (talla.value !== null) { // Ignorar la opción "No aplica / Seleccione"
-            const random_id = this.generateRandomId();
-            const obj = {
-              id: random_id,
-              insumo: this.selectedInsumoBase,
-              miTalla: talla.value,
-              cantidad: 1,
-              unidadDeMedida: null,
-            };
-            this.form.push(obj);
-          }
-        });
-      } else {
+      if (!this.selectedInsumoBase) {
         this.$fire({
           type: "warning",
-          title: "Seleccione un insumo base y asegúrese de que haya tallas disponibles.",
-          html: "",
+          title: "Seleccione Insumo",
+          text: "Por favor seleccione un insumo base antes de continuar.",
         });
+        return;
       }
+      this.$bvModal.show(`modal-asignacion-masiva-${this.iddep}`);
+    },
+
+    handleMassAssignment(items) {
+      this.form = []; // Limpiar antes de agregar
+      items.forEach(item => {
+        const random_id = this.generateRandomId();
+        const obj = {
+          id: random_id,
+          insumo: item.insumo,
+          miTalla: item.miTalla,
+          cantidad: item.cantidad,
+          unidadDeMedida: item.unidadDeMedida,
+        };
+        this.form.push(obj);
+      });
     },
 
     SegundosAMinutos(segundos) {
@@ -584,24 +597,7 @@ export default {
       });
     }, */
 
-    assignAllUnits() {
-      if (this.selectedUnitForMassAssignment) {
-        this.form.forEach(item => {
-          item.unidadDeMedida = this.selectedUnitForMassAssignment;
-        });
-        this.$fire({
-          title: "Unidad Asignada",
-          html: `<p>La unidad ${this.selectedUnitForMassAssignment} ha sido asignada a todos los ítems.</p>`,
-          type: "success",
-        });
-      } else {
-        this.$fire({
-          type: "warning",
-          title: "Seleccione una unidad",
-          html: "Debe seleccionar una unidad para asignar.",
-        });
-      }
-    },
+
   },
 
 

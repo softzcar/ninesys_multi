@@ -6,12 +6,10 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div
-                v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Producción'
-                "
-            >
+            <div v-if="
+                dataUser.departamento === 'Administración' ||
+                dataUser.departamento === 'Producción'
+            ">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container>
                         <b-row>
@@ -22,28 +20,18 @@
                         </b-row>
                         <b-row>
                             <b-col>
-                                <b-table
-                                    responsive
-                                    :fields="fields"
-                                    :items="dataTable.data"
-                                >
+                                <b-table responsive :fields="fields" :items="dataTable.data">
                                     <template #cell(_id)="data">
                                         <span class="floatme">
-                                            <AdminTallasEditar
-                                                :item="data.item"
-                                                @reload="getTallas"
-                                            />
+                                            <AdminTallasEditar :item="data.item" @reload="getTallas" />
                                         </span>
                                         <span class="floatme">
-                                            <b-button
-                                                variant="danger"
-                                                v-on:click="
-                                                    deleteTalla(
-                                                        data.item.name,
-                                                        data.item._id
-                                                    )
-                                                "
-                                            >
+                                            <b-button variant="danger" v-on:click="
+                                                deleteTalla(
+                                                    data.item.name,
+                                                    data.item._id
+                                                )
+                                                ">
                                                 <b-icon icon="trash"></b-icon>
                                             </b-button>
                                         </span>
@@ -55,7 +43,9 @@
                 </b-overlay>
             </div>
 
-            <div v-else><accessDenied /></div>
+            <div v-else>
+                <accessDenied />
+            </div>
         </div>
     </div>
 </template>
@@ -74,6 +64,11 @@ export default {
                 {
                     key: "name",
                     label: "Talla",
+                },
+                {
+                    key: "variation_percentage",
+                    label: "Variación (%)",
+                    sortable: true,
                 },
                 {
                     key: "_id",
@@ -95,7 +90,7 @@ export default {
                 this.overlay = false;
                 console.error("Error cargando las tallas:", error);
                 this.$bvToast.toast("No se pudieron cargar las tallas", {
-                  variant: "danger",
+                    variant: "danger",
                 });
             });
         },
