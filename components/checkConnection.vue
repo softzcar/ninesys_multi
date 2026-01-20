@@ -1,72 +1,36 @@
 <template>
   <div>
     <!-- {{ $store.state.login.currentDepartament }} -->
-    <div
-      v-if="$store.state.login.dataUser.acceso"
-      class="floatme"
-    >
-      <b-button
-        :disabled="disableBtnOnIdDep"
-        @click="$bvModal.show(modalId)"
-        variant="light"
-      >
+    <div v-if="$store.state.login.dataUser.acceso" class="floatme">
+      <b-button :disabled="disableBtnOnIdDep" @click="$bvModal.show(modalId)" variant="light">
 
-      <span style="margin-right: 10px">
-            <b-icon
-              icon="whatsapp"
-              :variant="statusWs.variant"
-              font-scale="1.2"
-            ></b-icon>
-          </span>
-          <span v-if="$nuxt.isOffline">
-            <b-icon
-              icon="wifi-off"
-              variant="danger"
-            ></b-icon>
-          </span>
-          <span v-else>
-            <b-icon
-              icon="wifi"
-              variant="success"
-            ></b-icon>
-          </span>        
+        <span style="margin-right: 10px">
+          <b-icon icon="whatsapp" :variant="statusWs.variant" font-scale="1.2"></b-icon>
+        </span>
+        <span v-if="$nuxt.isOffline">
+          <b-icon icon="wifi-off" variant="danger"></b-icon>
+        </span>
+        <span v-else>
+          <b-icon icon="wifi" variant="success"></b-icon>
+        </span>
       </b-button>
 
-      <b-modal
-        :id="modalId"
-        title="Estado del Servicio de WhatsApp"
-        hide-footer
-        size="xl"
-        @show="onModalShow"
-        @hide="onModalHide"
-      >
+      <b-modal :id="modalId" title="Estado del Servicio de WhatsApp" hide-footer size="xl" @show="onModalShow"
+        @hide="onModalHide">
         <div v-if="ws.error">
-          <b-alert
-            show
-            :variant="ws.ws_ready ? 'success' : 'danger'"
-          >
+          <b-alert show :variant="ws.ws_ready ? 'success' : 'danger'">
             <p>{{ ws.error }}</p>
             <p v-if="ws.details">Detalles: {{ ws.details }}</p>
           </b-alert>
           <div class="text-center mt-3">
-            <b-button
-              variant="primary"
-              @click="activateWhatsapp(getCompanyId)"
-              :disabled="isActionLoading"
-            >
-              <b-spinner
-                small
-                v-if="isActionLoading"
-              ></b-spinner>
+            <b-button variant="primary" @click="activateWhatsapp(getCompanyId)" :disabled="isActionLoading">
+              <b-spinner small v-if="isActionLoading"></b-spinner>
               Activar / Reintentar
             </b-button>
           </div>
         </div>
 
-        <b-container
-          v-else-if="ws.ws_ready"
-          class="pb-4"
-        >
+        <b-container v-else-if="ws.ws_ready" class="pb-4">
           <b-row>
             <b-col>
               <h2 class="mt-2 mb-4">
@@ -77,39 +41,25 @@
                 conexión desde el WhatsApp de tu teléfono.
               </p>
               <div class="mt-4">
-                <b-button
-                  variant="warning"
-                  class="mr-2"
-                  @click="confirmRestart(getCompanyId)"
-                  :disabled="isActionLoading"
-                >
+                <b-button variant="warning" class="mr-2" @click="confirmRestart(getCompanyId)"
+                  :disabled="isActionLoading">
                   <b-icon icon="arrow-clockwise" class="mr-2"></b-icon>
-                  <b-spinner
-                    small
-                    v-if="
-                                            isActionLoading &&
-                                            currentAction === 'restart'
-                                        "
-                  ></b-spinner>
+                  <b-spinner small v-if="
+                    isActionLoading &&
+                    currentAction === 'restart'
+                  "></b-spinner>
                   Reiniciar Cliente
                 </b-button>
-                <b-button
-                  variant="danger"
-                  class="mr-2"
-                  @click="confirmDisconnect(getCompanyId)"
-                  :disabled="isActionLoading"
-                >
+                <b-button variant="danger" class="mr-2" @click="confirmDisconnect(getCompanyId)"
+                  :disabled="isActionLoading">
                   <b-icon icon="power" class="mr-2"></b-icon>
-                  <b-spinner
-                    small
-                    v-if="
-                                            isActionLoading &&
-                                            currentAction === 'disconnect'
-                                        "
-                  ></b-spinner>
+                  <b-spinner small v-if="
+                    isActionLoading &&
+                    currentAction === 'disconnect'
+                  "></b-spinner>
                   Desconectar Cliente
                 </b-button>
-                
+
                 <span class="floatme mr-2">
                   <admin-departamentosEditWs />
                 </span>
@@ -149,33 +99,20 @@
                 </li>
               </ol>
             </b-col>
-            <b-col
-              md="6"
-              class="text-center"
-            >
+            <b-col md="6" class="text-center">
               <!-- Contenedor con tamaño fijo para evitar el salto de la interfaz -->
-              <div style="width: 300px; height: 300px;" class="d-flex justify-content-center align-items-center mx-auto my-0">
+              <div style="width: 300px; height: 300px;"
+                class="d-flex justify-content-center align-items-center mx-auto my-0">
                 <div v-if="isActionLoading && currentAction === 'fetchQR'">
-                  <b-spinner
-                    style="width: 3rem; height: 3rem"
-                    label="Cargando QR..."
-                  ></b-spinner>
+                  <b-spinner style="width: 3rem; height: 3rem" label="Cargando QR..."></b-spinner>
                   <p class="mt-2">Generando nuevo código...</p>
                 </div>
-                <b-img-lazy
-                  v-else-if="ws.qr"
-                  v-bind="wsImgProps"
-                  :src="ws.qr"
-                  alt="Código QR para WhatsApp"
-                ></b-img-lazy>
+                <b-img-lazy v-else-if="ws.qr" v-bind="wsImgProps" :src="ws.qr"
+                  alt="Código QR para WhatsApp"></b-img-lazy>
               </div>
 
               <div class="mt-2">
-                <b-button
-                  variant="success"
-                  @click="fetchQRCode(getCompanyId)"
-                  :disabled="isActionLoading"
-                >
+                <b-button variant="success" @click="fetchQRCode(getCompanyId)" :disabled="isActionLoading">
                   <b-icon icon="whatsapp" class="mr-2"></b-icon>
                   Recargar Código QR
                 </b-button>
@@ -190,24 +127,14 @@
               <h2 class="mt-2 mb-4">
                 Cargando estado del servicio...
               </h2>
-              <b-spinner
-                variant="primary"
-                label="Cargando..."
-              ></b-spinner>
+              <b-spinner variant="primary" label="Cargando..."></b-spinner>
               <p class="mt-2">
                 Por favor, espera mientras verificamos la
                 conexión.
               </p>
               <div class="mt-3">
-                <b-button
-                  variant="primary"
-                  @click="activateWhatsapp(getCompanyId)"
-                  :disabled="isActionLoading"
-                >
-                  <b-spinner
-                    small
-                    v-if="isActionLoading"
-                  ></b-spinner>
+                <b-button variant="primary" @click="activateWhatsapp(getCompanyId)" :disabled="isActionLoading">
+                  <b-spinner small v-if="isActionLoading"></b-spinner>
                   Activar / Reintentar
                 </b-button>
               </div>
@@ -216,11 +143,7 @@
         </b-container>
       </b-modal>
 
-      <b-modal
-        id="confirm-restart-modal"
-        title="Confirmar Reinicio"
-        hide-footer
-      >
+      <b-modal id="confirm-restart-modal" title="Confirmar Reinicio" hide-footer>
         <p class="my-4">
           ¿Estás seguro de que deseas reiniciar el servicio de
           WhatsApp para esta empresa? Esto podría requerir volver a
@@ -228,33 +151,19 @@
           automáticamente.
         </p>
         <div class="text-right">
-          <b-button
-            variant="secondary"
-            @click="$bvModal.hide('confirm-restart-modal')"
-            :disabled="isActionLoading"
-          >Cancelar</b-button>
-          <b-button
-            variant="warning"
-            @click="performRestartClient(companyIdToAction)"
-            :disabled="isActionLoading"
-            class="ml-2"
-          >
-            <b-spinner
-              small
-              v-if="
-                                isActionLoading && currentAction === 'restart'
-                            "
-            ></b-spinner>
+          <b-button variant="secondary" @click="$bvModal.hide('confirm-restart-modal')"
+            :disabled="isActionLoading">Cancelar</b-button>
+          <b-button variant="warning" @click="performRestartClient(companyIdToAction)" :disabled="isActionLoading"
+            class="ml-2">
+            <b-spinner small v-if="
+              isActionLoading && currentAction === 'restart'
+            "></b-spinner>
             Reiniciar
           </b-button>
         </div>
       </b-modal>
 
-      <b-modal
-        id="confirm-disconnect-modal"
-        title="Confirmar Desconexión"
-        hide-footer
-      >
+      <b-modal id="confirm-disconnect-modal" title="Confirmar Desconexión" hide-footer>
         <p class="my-4">
           ¿Estás seguro de que deseas desconectar el servicio de
           WhatsApp para esta empresa? Se eliminarán los datos de
@@ -262,48 +171,26 @@
           volver a conectar.
         </p>
         <div class="text-right">
-          <b-button
-            variant="secondary"
-            @click="$bvModal.hide('confirm-disconnect-modal')"
-            :disabled="isActionLoading"
-          >Cancelar</b-button>
-          <b-button
-            variant="danger"
-            @click="performDisconnectClient(companyIdToAction)"
-            :disabled="isActionLoading"
-            class="ml-2"
-          >
-            <b-spinner
-              small
-              v-if="
-                                isActionLoading &&
-                                currentAction === 'disconnect'
-                            "
-            ></b-spinner>
+          <b-button variant="secondary" @click="$bvModal.hide('confirm-disconnect-modal')"
+            :disabled="isActionLoading">Cancelar</b-button>
+          <b-button variant="danger" @click="performDisconnectClient(companyIdToAction)" :disabled="isActionLoading"
+            class="ml-2">
+            <b-spinner small v-if="
+              isActionLoading &&
+              currentAction === 'disconnect'
+            "></b-spinner>
             Desconectar
           </b-button>
         </div>
       </b-modal>
     </div>
 
-    <div
-      v-else
-      class="floatme"
-    >
-      <b-button
-        disabled
-        variant="light"
-      >
-        <b-icon
-          icon="whatsapp"
-          variant="secondary"
-          font-scale="1.2"
-        ></b-icon>
+    <div v-else class="floatme">
+      <b-button disabled variant="light">
+        <b-icon icon="whatsapp" variant="secondary" font-scale="1.2"></b-icon>
         <span style="margin-left: 10px">
-          <b-icon
-            :icon="$nuxt.isOffline ? 'wifi-off' : 'wifi'"
-            :variant="$nuxt.isOffline ? 'danger' : 'success'"
-          ></b-icon>
+          <b-icon :icon="$nuxt.isOffline ? 'wifi-off' : 'wifi'"
+            :variant="$nuxt.isOffline ? 'danger' : 'success'"></b-icon>
         </span>
       </b-button>
     </div>
@@ -317,10 +204,6 @@ import axios from "axios";
 import AdminWsSendMsgCustomInterno from "./admin/WsSendMsgCustomInterno.vue";
 export default {
   components: { AdminWsSendMsgCustomInterno },
-  // Registrar componentes si no están registrados globalmente
-  // components: {
-  //     BButton, BIcon, BModal, BAlert, BContainer, BRow, BCol, BImgLazy, BSpinner
-  // },
   data() {
     return {
       modalId: "whatsapp-status-modal", // ID fijo para el modal
@@ -328,10 +211,6 @@ export default {
         icon: "whatsapp",
         variant: "danger", // 'danger' por defecto, 'success' si está listo
       },
-      // statusWifi: { // Ya usas $nuxt.isOffline
-      //     icon: 'wifi',
-      //     variant: 'success',
-      // },
       ws: {
         // Estado de la conexión WhatsApp del backend
         ws_ready: false,
@@ -346,23 +225,16 @@ export default {
         width: 300,
         height: 300,
       },
-      pollingInterval: null, // Variable para almacenar el intervalo
-      shortInterval: 10000, // Intervalo corto (10 segundos) para cuando no está listo o hay error
-      longInterval: 30000, // Intervalo largo (30 segundos) para cuando está listo
 
       isActionLoading: false, // Estado para indicar si una acción (activate, restart, disconnect) está en curso
       currentAction: null, // Para rastrear qué acción está cargando
       companyIdToAction: null, // Para almacenar el companyId en diálogos de confirmación
       modalOpen: false, // Para rastrear si el modal está abierto
+      socketConnected: false, // Estado de conexión del socket
     };
   },
 
   computed: {
-    // No necesitamos una modalId dinámica si siempre usamos el mismo ID
-    // modal: function () {
-    //     const rand = Math.random().toString(36).substring(2, 7)
-    //     return `${this.id}-modal-${rand}`
-    // },
     getCompanyId() {
       // Obtener el ID de la empresa logueada desde el store
       return this.$store.state.login.dataEmpresa.id;
@@ -377,31 +249,23 @@ export default {
   },
 
   mounted() {
-    // Solo iniciar polling si el usuario tiene acceso (está logueado)
+    // Inicialización
     if (
       this.$store.state.login.dataUser &&
       this.$store.state.login.dataUser.acceso
     ) {
-      console.log("Componente mounted. Obteniendo estado inicial de WhatsApp.");
-      // Obtener el estado inicial una sola vez al montar el componente
-      this.getWSInfo();
-      // No necesitamos checkConnection() si usamos $nuxt.isOffline
-      // this.checkConnection();
+      console.log("Componente mounted. Listo para WebSocket.");
       document.addEventListener(
         "visibilitychange",
         this.handleVisibilityChange
-      );
-    } else {
-      console.log(
-        "Componente mounted. Usuario sin acceso, no se inicia polling."
       );
     }
   },
 
   beforeDestroy() {
-    // Detener el polling al destruir el componente
-    console.log("Componente beforeDestroy. Deteniendo polling.");
-    this.stopPolling();
+    // Limpieza
+    console.log("Componente beforeDestroy. Limpiando conexiones.");
+    this.disconnectSocket();
     document.removeEventListener(
       "visibilitychange",
       this.handleVisibilityChange
@@ -411,393 +275,228 @@ export default {
   methods: {
     handleVisibilityChange() {
       if (document.hidden) {
-        // Si la página se oculta, detener el sondeo
-        console.log("Página oculta, deteniendo polling.");
-        this.stopPolling();
+        // Si la página se oculta, desconectar WebSocket
+        console.log("[WS] Página oculta, desconectando socket.");
+        this.disconnectSocket();
       } else {
-        // Si la página se vuelve visible, reanudar el sondeo
-        console.log("Página visible, reanudando polling.");
-        this.startPolling();
-      }
-    },
-    async getWSInfo() {
-      // Evitar llamadas duplicadas si ya hay una en curso
-      if (this.isActionLoading) {
-        console.log("getWSInfo: Acción en curso, saltando polling.");
-        return;
-      }
-
-      console.log(`Fetching WS info for company ID: ${this.getCompanyId}`);
-      try {
-        // *** Usar la URL base de la API de WhatsApp configurada en nuxt.config.js ($config.WS_API) ***
-        const url = `${this.$config.WS_API}/session-info/${this.getCompanyId}`;
-        console.log(`Calling API: ${url}`);
-        const res = await this.$axios.get(url);
-
-        // La respuesta esperada es { qr: '...', ws_ready: boolean, message: '...' } o { error: '...', details: '...' }
-        this.ws = res.data;
-        this.statusWs.variant = this.ws.ws_ready ? "success" : "danger";
-        this.ws.error = res.data.error || null; // Asegurarse de limpiar error si la llamada fue exitosa
-        this.ws.details = res.data.error ? res.data.details : null; // Asegurarse de limpiar detalles
-
-        console.log("WS Info fetched:", this.ws);
-      } catch (error) {
-        console.error("Error al obtener información de WhatsApp:", error);
-        this.statusWs.variant = "danger"; // Si hay error, el estado es peligro
-
-        // Manejo de errores mejorado similar al backend
-        if (error.response) {
-          console.error(
-            "Detalles del error del servidor:",
-            error.response.data
-          );
-          console.error("Código de estado:", error.response.status);
-
-          this.ws = {
-            ws_ready: false,
-            qr: null, // Asegurarse de que no está listo ni hay QR en caso de error
-            error: error.response.data.message || "Error del servidor",
-            details: `Código: ${error.response.status}. ${
-              error.response.data.error || ""
-            }`.trim(),
-          };
-        } else if (error.request) {
-          console.error("No se recibió respuesta del servidor:", error.request);
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error: "No se pudo conectar con el servidor",
-            details: "Verifique la URL de la API y el estado del servidor.",
-          };
-        } else {
-          console.error("Error al configurar la solicitud:", error.message);
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error: "Error en la solicitud",
-            details: error.message,
-          };
+        // Si la página se vuelve visible, reconectar WebSocket si el modal está abierto
+        if (this.modalOpen) {
+          console.log("[WS] Página visible, reconectando socket.");
+          this.initSocket();
         }
-      } finally {
-        // Reiniciar el polling con el intervalo adecuado basado en el estado actual
-        this.restartPolling();
       }
     },
 
-    startPolling() {
-      this.stopPolling(); // Asegurarse de que no haya otro intervalo corriendo
-      this.getWSInfo(); // Obtener la información inicial inmediatamente
+    // --- MÉTODOS DE WEBSOCKET ---
 
-      // El intervalo se establece en restartPolling
-    },
-
-    stopPolling() {
-      if (this.pollingInterval) {
-        clearInterval(this.pollingInterval);
-        this.pollingInterval = null;
-        console.log("Polling detenido.");
-      }
-    },
-
-    restartPolling() {
-      this.stopPolling(); // Detener el intervalo actual antes de reiniciarlo
-
-      // Solo continuar con polling si el modal está abierto
-      if (!this.modalOpen) {
-        console.log("Modal cerrado. Polling no se reinicia.");
+    initSocket() {
+      if (!this.$socket) {
+        console.error('[WS] Plugin de socket no disponible');
+        this.ws.error = 'Error interno: Socket no disponible';
         return;
       }
 
-      let intervalToUse = this.longInterval; // Por defecto, intervalo largo
+      console.log('[WS] Iniciando conexión WebSocket...');
+      this.$socket.connect();
+      this.setupSocketListeners();
+    },
 
-      if (this.ws.ws_ready && !this.ws.error) {
-        intervalToUse = this.longInterval; // Conectado, sondeo menos frecuente
-        console.log(
-          `Conectado. Reiniciando polling cada ${intervalToUse / 1000} segundos.`
-        );
-      } else if (this.ws.qr && !this.ws.error) {
-        intervalToUse = this.shortInterval; // QR presente, sondeo más frecuente
-        console.log(
-          `QR presente. Reiniciando polling cada ${intervalToUse / 1000} segundos.`
-        );
-      } else {
-        // No conectado, sin QR o con error. Detener sondeo.
-        console.log("No conectado, sin QR o con error. Polling detenido.");
-        this.stopPolling(); // Asegurarse de que esté detenido
-        return; // Salir temprano
+    setupSocketListeners() {
+      if (!this.$socket) return;
+
+      // Limpiar listeners anteriores
+      this.$socket.off('connect');
+      this.$socket.off('disconnect');
+      this.$socket.off('status');
+      this.$socket.off('qr');
+      this.$socket.off('ready');
+      this.$socket.off('disconnected');
+      this.$socket.off('error');
+
+      this.$socket.on('connect', () => {
+        console.log('[WS] Conectado al servidor');
+        this.socketConnected = true;
+        this.ws.error = null;
+        // Suscribirse a eventos de la empresa
+        this.$socket.emit('subscribe', this.getCompanyId);
+      });
+
+      this.$socket.on('disconnect', (reason) => {
+        console.log('[WS] Desconectado:', reason);
+        this.socketConnected = false;
+        // Si se desconecta inesperadamente mientras el modal está abierto
+        if (this.modalOpen && reason === 'io server disconnect') {
+          this.ws.error = 'Desconectado por el servidor';
+        }
+      });
+
+      this.$socket.on('status', (data) => {
+        console.log('[WS] Estado recibido:', data);
+        this.updateState(data);
+      });
+
+      this.$socket.on('qr', (data) => {
+        console.log('[WS] QR recibido');
+        this.ws.qr = data.qr;
+        this.ws.ws_ready = false;
+        this.ws.error = null;
+        this.statusWs.variant = 'danger';
+
+        // Si estábamos esperando QR, limpiar carga
+        if (this.isActionLoading && (this.currentAction === 'activate' || this.currentAction === 'fetchQR' || this.currentAction === 'restart')) {
+          this.isActionLoading = false;
+          this.currentAction = null;
+        }
+      });
+
+      this.$socket.on('ready', (data) => {
+        console.log('[WS] Cliente listo');
+        this.ws.ws_ready = true;
+        this.ws.qr = null;
+        this.ws.error = null;
+        this.statusWs.variant = 'success';
+
+        // Limpiar estados de carga
+        this.isActionLoading = false;
+        this.currentAction = null;
+      });
+
+      this.$socket.on('disconnected', (data) => {
+        console.log('[WS] Cliente desconectado:', data.reason);
+        this.ws.ws_ready = false;
+        this.ws.qr = null;
+        this.ws.error = `Desconectado: ${data.reason || 'Desconocido'}`;
+        this.statusWs.variant = 'danger';
+
+        // Limpiar estados de carga
+        this.isActionLoading = false;
+        this.currentAction = null;
+      });
+
+      this.$socket.on('error', (error) => {
+        console.error('[WS] Error:', error);
+        this.ws.error = error.message || 'Error de conexión';
+        this.statusWs.variant = 'danger';
+        this.isActionLoading = false;
+        this.currentAction = null;
+      });
+    },
+
+    disconnectSocket() {
+      if (this.$socket && this.socketConnected) {
+        console.log('[WS] Desconectando socket...');
+        this.$socket.emit('unsubscribe', this.getCompanyId);
+        this.$socket.disconnect();
+        this.socketConnected = false;
       }
+    },
 
-      this.pollingInterval = setInterval(() => {
-        this.getWSInfo();
-      }, intervalToUse);
+    updateState(data) {
+      this.ws.ws_ready = data.ws_ready || false;
+      this.ws.qr = data.qr || null;
+      this.ws.error = data.error || null;
+      this.ws.details = data.message || null;
+      this.statusWs.variant = this.ws.ws_ready ? 'success' : 'danger';
     },
 
     onModalShow() {
-      console.log("Modal abierto. Iniciando polling para verificar estado.");
+      console.log("Modal abierto. Iniciando conexión WebSocket...");
       this.modalOpen = true;
-      // Iniciar polling cuando el modal se abre
-      this.startPolling();
+      this.initSocket();
     },
 
     onModalHide() {
-      console.log("Modal cerrado. Deteniendo polling.");
+      console.log("Modal cerrado. Desconectando WebSocket...");
       this.modalOpen = false;
-      // Detener polling cuando el modal se cierra
-      this.stopPolling();
+      this.disconnectSocket();
     },
 
-    // --- NUEVAS FUNCIONES PARA ACCIONES ---
+    // --- ACCIONES QUE AHORA USAN WEBSOCKET ---
 
-    // Inicia el proceso de activación (llama a /session-info, que inicializa el cliente en backend si no existe)
-    async activateWhatsapp(companyId) {
-      console.log(`Attempting to activate/get session info for ${companyId}`);
+    activateWhatsapp(companyId) {
+      console.log(`[WS] Activando cliente para ${companyId}`);
       this.isActionLoading = true;
       this.currentAction = "activate";
-      this.ws.error = null; // Limpiar errores anteriores al intentar activar
-      this.ws.details = null;
-      this.ws.qr = null; // Limpiar QR anterior
-      this.ws.ws_ready = false; // Asumir que no está listo hasta confirmación
+      this.ws.error = null;
+      this.ws.qr = null;
 
-      // Detener polling temporalmente durante la acción
-      this.stopPolling();
-
-      try {
-        // *** Usar la URL base de la API de WhatsApp ($config.WS_API) ***
-        const url = `${this.$config.WS_API}/session-info/${companyId}`;
-        console.log(`Calling API for activation: ${url}`);
-        const res = await this.$axios.get(url);
-
-        this.ws = res.data; // Actualizar estado con la respuesta (puede contener QR o ws_ready)
-        this.statusWs.variant = this.ws.ws_ready ? "success" : "danger";
-        this.ws.error = res.data.error || null;
-        this.ws.details = res.data.error ? res.data.details : null;
-
-        console.log("Activation/Session Info response:", this.ws);
-      } catch (error) {
-        console.error("Error during activation/session info fetch:", error);
-        this.statusWs.variant = "danger";
-        if (error.response) {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error:
-              error.response.data.message ||
-              "Error del servidor durante la activación",
-            details: `Código: ${error.response.status}. ${
-              error.response.data.error || ""
-            }`.trim(),
-          };
-        } else {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error: "Error de red o solicitud durante la activación",
-            details: error.message,
-          };
-        }
-      } finally {
+      if (this.$socket && this.socketConnected) {
+        this.$socket.emit('activate', companyId);
+        // Timeout de seguridad
+        setTimeout(() => {
+          if (this.isActionLoading && this.currentAction === 'activate') {
+            this.isActionLoading = false;
+            this.currentAction = null;
+            if (!this.ws.qr && !this.ws.ws_ready && !this.ws.error) {
+              this.ws.error = "Tiempo de espera agotado. Intente nuevamente.";
+            }
+          }
+        }, 15000);
+      } else {
+        this.ws.error = 'No conectado al servidor';
         this.isActionLoading = false;
-        this.currentAction = null;
-        // Reiniciar polling después de la acción
-        this.restartPolling();
       }
     },
 
-    // Función para recargar solo el código QR (si el cliente no está listo)
-    // Llama al endpoint que devuelve el base64 en JSON
-    async fetchQRCode(companyId) {
-      console.log(`Attempting to fetch QR code for ${companyId}`);
-      this.isActionLoading = true;
+    fetchQRCode(companyId) {
+      // En el backend, activar genera el QR si no está listo
+      this.activateWhatsapp(companyId);
       this.currentAction = "fetchQR";
-      this.ws.error = null; // Limpiar errores anteriores
-      this.ws.details = null;
-
-      // Detener polling temporalmente
-      this.stopPolling();
-
-      try {
-        // *** Usar la URL base de la API de WhatsApp ($config.WS_API) ***
-        const url = `${this.$config.WS_API}/qr/64/${companyId}`; // Usar el endpoint JSON
-        console.log(`Calling API: ${url}`);
-        const res = await this.$axios.get(url);
-
-        // Esperamos { qr: '...', message: '...' } o { message: '...' } o { error: '...' }
-        this.ws.qr = res.data.qr || null;
-        // Puedes usar res.data.message si quieres mostrarlo
-        // this.ws.message = res.data.message;
-        this.ws.error = res.data.error || null; // Capturar error si viene en la respuesta JSON
-        this.ws.details = res.data.error ? res.data.details : null;
-
-        if (this.ws.qr) {
-          console.log("QR code fetched successfully.");
-          this.statusWs.variant = "danger"; // Todavía requiere QR, no está listo
-        } else if (this.ws.error) {
-          console.warn("API returned an error instead of QR:", this.ws.error);
-          this.statusWs.variant = "danger";
-        } else {
-          console.warn("API returned no QR and no error. Status unknown.");
-          this.ws.error = res.data.message || "No se recibió QR ni error.";
-          this.statusWs.variant = "danger";
-        }
-      } catch (error) {
-        console.error(`Error fetching QR code for ${companyId}:`, error);
-        this.statusWs.variant = "danger";
-        if (error.response) {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error:
-              error.response.data.message || "Error del servidor al obtener QR",
-            details: `Código: ${error.response.status}. ${
-              error.response.data.error || ""
-            }`.trim(),
-          };
-        } else {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error: "Error de red o solicitud al obtener QR",
-            details: error.message,
-          };
-        }
-      } finally {
-        this.isActionLoading = false;
-        this.currentAction = null;
-        // Reiniciar polling después de la acción
-        this.restartPolling();
-      }
     },
 
-    // Muestra el diálogo de confirmación para reiniciar
     confirmRestart(companyId) {
       this.companyIdToAction = companyId;
       this.$bvModal.show("confirm-restart-modal");
     },
 
-    // Ejecuta la acción de reiniciar después de la confirmación
-    async performRestartClient(companyId) {
+    performRestartClient(companyId) {
       if (!companyId) return;
-      console.log(`Performing restart for ${companyId}`);
+      console.log(`[WS] Reiniciando cliente para ${companyId}`);
       this.isActionLoading = true;
       this.currentAction = "restart";
-      this.$bvModal.hide("confirm-restart-modal"); // Cerrar el diálogo de confirmación
-      this.ws.error = null; // Limpiar errores anteriores
-      this.ws.details = null;
-      this.ws.qr = null; // Limpiar QR
-      this.ws.ws_ready = false; // Asumir que no está listo
+      this.$bvModal.hide("confirm-restart-modal");
+      this.ws.error = null;
 
-      // Detener polling temporalmente
-      this.stopPolling();
-
-      try {
-        // *** Usar la URL base de la API de WhatsApp ($config.WS_API) ***
-        const url = `${this.$config.WS_API}/restart/${companyId}`;
-        console.log(`Calling API: ${url}`);
-        const response = await this.$axios.post(url);
-
-        // La respuesta esperada es { message: '...' }
-        console.log("Restart response:", response.data.message);
-        // Después de reiniciar, el polling se encargará de obtener el nuevo estado (QR o Ready)
-      } catch (err) {
-        console.error(`Error performing restart for ${companyId}:`, err);
-        this.statusWs.variant = "danger";
-        if (err.response) {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error:
-              err.response.data.message || "Error del servidor al reiniciar",
-            details: `Código: ${err.response.status}. ${
-              err.response.data.error || ""
-            }`.trim(),
-          };
-        } else {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error: "Error de red o solicitud al reiniciar",
-            details: err.message,
-          };
-        }
-      } finally {
+      if (this.$socket && this.socketConnected) {
+        this.$socket.emit('restart', companyId);
+        setTimeout(() => {
+          if (this.isActionLoading && this.currentAction === 'restart') {
+            this.isActionLoading = false;
+            this.currentAction = null;
+          }
+        }, 30000); // 30s timeout para reinicio
+      } else {
+        this.ws.error = 'No conectado al servidor';
         this.isActionLoading = false;
-        this.currentAction = null;
-        this.companyIdToAction = null;
-        this.getWSInfo(); // Obtener el estado más reciente inmediatamente
       }
     },
 
-    // Muestra el diálogo de confirmación para desconectar
     confirmDisconnect(companyId) {
       this.companyIdToAction = companyId;
       this.$bvModal.show("confirm-disconnect-modal");
     },
 
-    // Ejecuta la acción de desconectar después de la confirmación
-    async performDisconnectClient(companyId) {
+    performDisconnectClient(companyId) {
       if (!companyId) return;
-      console.log(`Performing disconnect for ${companyId}`);
+      console.log(`[WS] Desconectando cliente para ${companyId}`);
       this.isActionLoading = true;
       this.currentAction = "disconnect";
-      this.$bvModal.hide("confirm-disconnect-modal"); // Cerrar el diálogo de confirmación
-      this.ws.error = null; // Limpiar errores anteriores
-      this.ws.details = null;
-      this.ws.qr = null; // Limpiar QR
-      this.ws.ws_ready = false; // Asumir que no está listo
+      this.$bvModal.hide("confirm-disconnect-modal");
 
-      // Detener polling temporalmente
-      this.stopPolling();
-
-      try {
-        // *** Usar la URL base de la API de WhatsApp ($config.WS_API) ***
-        const url = `${this.$config.WS_API}/disconnect/${companyId}`;
-        console.log(`Calling API: ${url}`);
-        const response = await this.$axios.delete(url);
-
-        // La respuesta esperada es { message: '...' }
-        console.log("Disconnect response:", response.data.message);
-        // Después de desconectar, el polling obtendrá el estado (probablemente requiriendo QR)
-      } catch (err) {
-        console.error(`Error performing disconnect for ${companyId}:`, err);
-        this.statusWs.variant = "danger";
-        if (err.response) {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error:
-              err.response.data.message || "Error del servidor al desconectar",
-            details: `Código: ${err.response.status}. ${
-              err.response.data.error || ""
-            }`.trim(),
-          };
-        } else {
-          this.ws = {
-            ws_ready: false,
-            qr: null,
-            error: "Error de red o solicitud al desconectar",
-            details: err.message,
-          };
-        }
-      } finally {
+      if (this.$socket && this.socketConnected) {
+        this.$socket.emit('disconnect-client', companyId);
+        // La respuesta vendrá por el evento 'disconnected' o 'status'
+        setTimeout(() => {
+          if (this.isActionLoading && this.currentAction === 'disconnect') {
+            this.isActionLoading = false;
+            this.currentAction = null;
+          }
+        }, 10000);
+      } else {
+        this.ws.error = 'No conectado al servidor';
         this.isActionLoading = false;
-        this.currentAction = null;
-        this.companyIdToAction = null;
-        this.getWSInfo(); // Obtener el estado más reciente inmediatamente
       }
     },
-
-    // checkConnection() { // Ya no es necesario si usas $nuxt.isOffline
-    //     window.addEventListener('offline', () => {
-    //         console.log('offline');
-    //         // this.statusWifi.icon = 'wifi-off';
-    //         // this.statusWifi.variant = 'danger';
-    //     });
-    //     window.addEventListener('online', () => {
-    //         console.log('online');
-    //         // this.statusWifi.icon = 'wifi';
-    //         // this.statusWifi.variant = 'success';
-    //     });
-    // }
   },
 };
 </script>
@@ -807,6 +506,7 @@ export default {
   filter: brightness(0.4);
   transition: filter 0.2s ease-in-out;
 }
+
 .qr-overlay {
   position: absolute;
   top: 0;

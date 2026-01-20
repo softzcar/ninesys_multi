@@ -124,6 +124,8 @@ rif: 'J-00000000-0', */
       src: "~/plugins/socketPlugin.js",
       options: { socketServerURL: "http://localhost" },
     },
+    // Socket.io client for WhatsApp service
+    { src: "~/plugins/socket.client.js", mode: "client" },
     // '~/plugins/socketPlugin.js',
     // { src: '~/plugins/socketPlugin.js', options: { socketServerURL: 'http://localhost' } },
     { src: "~plugins/nuxt-quill-plugin", ssr: false },
@@ -213,7 +215,7 @@ rif: 'J-00000000-0', */
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
     // analyze: true,
-    transpile: ['date-fns', 'quill-image-resize-module', 'apexcharts', 'vue-apexcharts'],
+    transpile: ['date-fns', 'quill-image-resize-module', 'apexcharts', 'vue-apexcharts', 'jspdf', 'jspdf-autotable', 'fast-png', 'iobuffer', 'fflate'],
     extractCSS: true,
     splitChunks: {
       layouts: true,
