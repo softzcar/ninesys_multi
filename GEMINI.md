@@ -97,30 +97,30 @@ ssh vps-ninesys "uptime && df -h"
 
 ## Bases de Datos por Empresa
 
-### Empresa 152 (NineteenCustom)
+### Empresa 163 (NineteenCustom)
 | Campo | Valor |
 |-------|-------|
-| Base de datos | `api_emp_152` |
-| Usuario | `api_user_152` |
-| Password | `cf747993a6231d6e0a15f731` |
+| Base de datos | `api_emp_163` |
+| Usuario | `api_user_163` |
+| Password | `c45ff25ef00ce4ebb0fca422` |
 | Host | `localhost` |
 
 **Consulta via SSH:**
 ```bash
-ssh vps-ninesys "mysql -u api_user_152 -pcf747993a6231d6e0a15f731 api_emp_152 -e 'SELECT * FROM tabla LIMIT 10;'"
+ssh vps-ninesys "mysql -u api_user_163 -c45ff25ef00ce4ebb0fca422 api_emp_163 -e 'SELECT * FROM tabla LIMIT 10;'"
 ```
 
-### Empresa 159 (Pruebas)
+### Empresa 171 (Pruebas)
 | Campo | Valor |
 |-------|-------|
-| Base de datos | `api_emp_159` |
-| Usuario | `api_user_159` |
-| Password | `18a5d8dbf1bf95463e3aff10` |
+| Base de datos | `api_emp_171` |
+| Usuario | `api_user_171` |
+| Password | `f57f3765d314c3f25584bfb1` |
 | Host | `localhost` |
 
 **Consulta via SSH:**
 ```bash
-ssh vps-ninesys "mysql -u api_user_159 -p'18a5d8dbf1bf95463e3aff10' api_emp_159 -e 'SELECT * FROM tabla LIMIT 10;'"
+ssh vps-ninesys "mysql -u api_user_171 -p'18a5d8dbf1bf95463e3aff10' api_emp_171 -e 'SELECT * FROM tabla LIMIT 10;'"
 ```
 
 ### Base de Datos Central (api_empresas)
