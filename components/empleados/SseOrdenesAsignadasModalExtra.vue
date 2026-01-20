@@ -205,7 +205,7 @@
           </div>
 
           <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
-          <div v-if="showSelect">
+          <div v-if="showSelect && materialEstimadoPorCatalogo.length > 0">
             <b-button variant="light" @click="addItem" aria-label="Agregar insumo">
               <b-icon icon="plus-lg"></b-icon>
             </b-button>
@@ -874,7 +874,7 @@ export default {
       // If it has > 1, it means there are insumos populated for this department.
       const hayInsumosDisponibles = this.selectOptions && this.selectOptions.length > 1;
 
-      if (this.showSelect && hayInsumosDisponibles) {
+      if (this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) {
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
