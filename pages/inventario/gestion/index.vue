@@ -31,7 +31,13 @@
                                     button-variant="outline-primary" size="lg" name="radio-btn-outline"
                                     @input="showResultRadio()" buttons></b-form-radio-group>
                             </b-col>
-                            <b-col offset-lg="6" offset-xl="6">
+                            <b-col offset-lg="2" offset-xl="2" lg="4" xl="4">
+                                <b-input-group class="mb-4" size="sm">
+                                    <b-form-select v-model="selectedQuantity" :options="quantityOptions"
+                                        size="sm"></b-form-select>
+                                </b-input-group>
+                            </b-col>
+                            <b-col lg="6" xl="6">
                                 <b-input-group class="mb-4" size="sm">
                                     <b-form-input id="filter-input" v-model="filter" type="search"
                                         placeholder="Filtrar Resultados"></b-form-input>
@@ -39,6 +45,9 @@
                                     <b-input-group-append>
                                         <b-button :disabled="!filter" @click="filter = ''">
                                             Limpiar
+                                        </b-button>
+                                        <b-button variant="info" @click="generatePDF" title="Imprimir Reporte">
+                                            <b-icon icon="printer-fill"></b-icon>
                                         </b-button>
                                     </b-input-group-append>
                                 </b-input-group>
@@ -90,6 +99,8 @@
 <script>
 import { mapState } from "vuex"
 import axios from "axios"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 export default {
     data() {
@@ -99,34 +110,43 @@ export default {
             overlay: true,
             filter: null,
             dataTableDyn: [],
+            allFilteredItems: [], // Para guardar los items filtrados reales
             dataTable: [],
             sortBy: "departamento",
             sortDesc: false,
             perPage: 25,
             currentPage: 1,
             totalRows: 0, // Initialized totalRows
-            selectedRadio: "todas",
+            selectedRadio: "Todos",
             optionsRadio: [],
             optionsRadio1: [
                 { text: "Todas", value: "todas" },
                 { text: "Pagadas", value: "pagadas" },
                 { text: "Pendientes", value: "pendientes" },
             ],
+            selectedQuantity: null,
+            quantityOptions: [
+                { value: null, text: 'Seleccionar Cantidad para filtro' },
+                { value: 1, text: '1' },
+                { value: 3, text: '3' },
+                { value: 5, text: '5' },
+                { value: 10, text: '10' }
+            ],
             fields: [
                 {
                     key: "rollo",
                     label: "ID Insumo",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "sku",
                     label: "SKU",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "insumo",
                     label: "Nombre",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "departamento",
@@ -136,27 +156,27 @@ export default {
                 {
                     key: "rendimiento",
                     label: "Rendimiento",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "metros",
                     label: "Metros",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "unidad",
                     label: "Unidad",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "cantidad",
                     label: "Cantidad",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     key: "costo",
                     label: "Costo",
-                    sortable: false,
+                    sortable: true,
                 },
                 {
                     label: "Consumo",
@@ -243,7 +263,15 @@ export default {
                 })
         },
 
+
+
         showResultRadio() {
+            if (!this.dataTable || !this.dataTable.items) {
+                this.dataTableDyn = []
+                this.totalRows = 0
+                return
+            }
+
             if (
                 this.selectedRadio === "Todos" ||
                 this.selectedRadio === "Telas"
@@ -252,17 +280,17 @@ export default {
                     {
                         key: "rollo",
                         label: "ID Insumo",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "sku",
                         label: "SKU",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "insumo",
                         label: "Nombre",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "departamento",
@@ -272,27 +300,27 @@ export default {
                     {
                         key: "rendimiento",
                         label: "Rendimiento",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "metros",
                         label: "Metros",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "unidad",
                         label: "Unidad",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "cantidad",
                         label: "Cantidad",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "costo",
                         label: "Costo",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         label: "Consumo",
@@ -310,17 +338,17 @@ export default {
                     {
                         key: "rollo",
                         label: "ID Insumo",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "sku",
                         label: "SKU",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "insumo",
                         label: "Nombre",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "departamento",
@@ -330,17 +358,17 @@ export default {
                     {
                         key: "unidad",
                         label: "Unidad",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "cantidad",
                         label: "Cantidad",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         key: "costo",
                         label: "Costo",
-                        sortable: false,
+                        sortable: true,
                     },
                     {
                         label: "Consumo",
@@ -361,12 +389,19 @@ export default {
                 this.dataTableDyn = this.dataTable.items.filter(
                     (el) => el.departamento === this.selectedRadio
                 )
-                console.log(
-                    `Acciones al aplicar el filtro a los insumos filtrer
-            ${this.selectedRadio}`,
-                    this.dataTableDyn
+            }
+
+            // Aplicar filtro de cantidad si está seleccionado un valor
+            if (this.selectedQuantity !== null) {
+                this.dataTableDyn = this.dataTableDyn.filter(
+                    (item) => parseFloat(item.cantidad) <= this.selectedQuantity
                 )
             }
+
+            console.log(
+                `Acciones al aplicar el filtro a los insumos filte ${this.selectedRadio}`,
+                this.dataTableDyn
+            )
             this.totalRows = this.dataTableDyn.length
         },
 
@@ -374,6 +409,84 @@ export default {
             // Trigger pagination to update the number of buttons/pages due to filtering
             this.totalRows = filteredItems.length
             this.currentPage = 1
+            this.allFilteredItems = filteredItems // Guardamos la lista completa filtrada
+        },
+
+        generatePDF() {
+            const doc = new jsPDF()
+
+            // Título del reporte
+            doc.setFontSize(18)
+            doc.text("Reporte de Inventario", 14, 22)
+
+            doc.setFontSize(11)
+            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 30)
+            if (this.filter) {
+                doc.text(`Filtro aplicado: ${this.filter}`, 14, 36)
+            }
+
+            // Definir columnas para el PDF (excluyendo acciones y columnas vacías)
+            const tableColumn = [
+                "ID Insumo",
+                "SKU",
+                "Nombre",
+                "Departamento",
+                "Rendimiento",
+                "Metros",
+                "Unidad",
+                "Cantidad",
+                "Costo"
+            ]
+
+            // Preparar datos
+            // Logica corregida: Si hay filtro activo, usamos allFilteredItems (que viene de @filtered)
+            // Si no hay filtro, usamos dataTableDyn (todos los del departamento actual)
+            let itemsToPrint = []
+
+            if (this.filter && this.filter.trim() !== '') {
+                // Si hay texto en el filtro, usamos lo que b-table procesó (sin paginar)
+                itemsToPrint = this.allFilteredItems
+            } else {
+                // Si no hay filtro de texto, usamos todos los items del ambito actual
+                itemsToPrint = this.dataTableDyn
+            }
+
+            const tableRows = itemsToPrint.map(item => [
+                item.rollo,
+                item.sku,
+                item.insumo,
+                item.departamento,
+                item.rendimiento,
+                item.metros,
+                item.unidad,
+                item.cantidad,
+                item.costo
+            ])
+
+            autoTable(doc, {
+                head: [tableColumn],
+                body: tableRows,
+                startY: 40,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [23, 162, 184] } // Info color variant approximation
+            })
+
+            doc.save(`reporte_inventario_${new Date().toISOString().slice(0, 10)}.pdf`)
+        },
+
+        async fetchCatalogoInsumosProductos() {
+            try {
+                const response = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
+                this.catalogoInsumosProductos = response.data;
+            } catch (error) {
+                console.error("Error al obtener el catálogo de productos:", error);
+            }
+        },
+    },
+
+    watch: {
+        selectedQuantity(newVal) {
+            this.showResultRadio()
         },
     },
 
@@ -381,7 +494,7 @@ export default {
         this.getInsumos().then(() => {
             this.overlay = false
         })
-        this.fetchCatalogoInsumosProductos(); // Call the new method
+        this.fetchCatalogoInsumosProductos();
     },
 }
 </script>
