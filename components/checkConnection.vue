@@ -265,6 +265,9 @@ export default {
 
       // Verificar estado inicial del servicio para actualizar el icono
       this.checkInitialStatus();
+
+      // Iniciar conexión WebSocket persistente
+      this.initSocket();
     }
   },
 
@@ -387,7 +390,10 @@ export default {
         this.ws.ws_ready = false;
         this.ws.qr = null;
         this.ws.error = `Desconectado: ${data.reason || 'Desconocido'}`;
-        this.statusWs.variant = 'danger';
+        this.statusWs.variant = 'danger'; // Asegurar cambio de color explícito
+
+        // Forzar actualización de vista si es necesario
+        this.$forceUpdate();
 
         // Limpiar estados de carga
         this.isActionLoading = false;
@@ -435,15 +441,24 @@ export default {
     },
 
     onModalShow() {
-      console.log("Modal abierto. Iniciando conexión WebSocket...");
+      console.log("Modal abierto.");
       this.modalOpen = true;
-      this.initSocket();
+      // La conexión ya está iniciada en mounted
+      if (this.$socket && this.socketConnected) {
+        // Solicitar estado actualizado al abrir modal por si acaso
+        this.$socket.emit('subscribe', this.getCompanyId);
+      }
     },
 
     onModalHide() {
-      console.log("Modal cerrado. Desconectando WebSocket...");
+      console.log("Modal cerrado.");
       this.modalOpen = false;
+      // No desconectar socket para mantener escucha de eventos globales
+    },
+
+    beforeDestroy() {
       this.disconnectSocket();
+      document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     },
 
     // --- ACCIONES QUE AHORA USAN WEBSOCKET ---
