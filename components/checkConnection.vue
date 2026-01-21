@@ -395,6 +395,16 @@ export default {
     },
 
     updateState(data) {
+      // Manejar estado NOT_REGISTERED como si fuera un error que requiere activación
+      if (data.status === 'NOT_REGISTERED') {
+        this.ws.ws_ready = false;
+        this.ws.qr = null;
+        this.ws.error = data.message || 'Empresa no registrada. Haga clic en Activar para conectar.';
+        this.ws.details = null;
+        this.statusWs.variant = 'danger';
+        return;
+      }
+
       this.ws.ws_ready = data.ws_ready || false;
       this.ws.qr = data.qr || null;
       this.ws.error = data.error || null;
