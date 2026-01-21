@@ -4,7 +4,7 @@ export default ({ $config, store }, inject) => {
     // Crear instancia de Socket.io
     const socket = io($config.WS_API, {
         autoConnect: false,  // No conectar automáticamente
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,

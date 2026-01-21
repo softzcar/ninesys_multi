@@ -132,6 +132,9 @@
                 Por favor, espera mientras verificamos la
                 conexión.
               </p>
+              <p v-if="ws.details" class="text-muted small">
+                {{ ws.details }}
+              </p>
               <div class="mt-3">
                 <b-button variant="primary" @click="activateWhatsapp(getCompanyId)" :disabled="isActionLoading">
                   <b-spinner small v-if="isActionLoading"></b-spinner>
