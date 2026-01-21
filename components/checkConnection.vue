@@ -262,6 +262,9 @@ export default {
         "visibilitychange",
         this.handleVisibilityChange
       );
+
+      // Verificar estado inicial del servicio para actualizar el icono
+      this.checkInitialStatus();
     }
   },
 
@@ -276,6 +279,21 @@ export default {
   },
 
   methods: {
+    async checkInitialStatus() {
+      try {
+        const response = await axios.get(`${this.$config.WS_API}/ws-info/${this.getCompanyId}`);
+        if (response.data && response.data.ws_ready) {
+          this.statusWs.variant = 'success';
+          console.log('[CHECK] Servicio WhatsApp activo para empresa', this.getCompanyId);
+        } else {
+          this.statusWs.variant = 'danger';
+        }
+      } catch (error) {
+        console.warn('[CHECK] No se pudo verificar estado inicial:', error.message);
+        this.statusWs.variant = 'danger';
+      }
+    },
+
     handleVisibilityChange() {
       if (document.hidden) {
         // Si la página se oculta, desconectar WebSocket
