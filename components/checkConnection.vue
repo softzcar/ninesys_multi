@@ -395,13 +395,10 @@ export default {
     },
 
     updateState(data) {
-      // Manejar estado NOT_REGISTERED como si fuera un error que requiere activación
+      // Si la empresa no está registrada, activar automáticamente
       if (data.status === 'NOT_REGISTERED') {
-        this.ws.ws_ready = false;
-        this.ws.qr = null;
-        this.ws.error = data.message || 'Empresa no registrada. Haga clic en Activar para conectar.';
-        this.ws.details = null;
-        this.statusWs.variant = 'danger';
+        console.log('[WS] Empresa no registrada, activando automáticamente...');
+        this.activateWhatsapp(this.getCompanyId);
         return;
       }
 
