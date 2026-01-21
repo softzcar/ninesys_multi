@@ -420,6 +420,13 @@ export default {
         return;
       }
 
+      // Si el cliente está en INITIALIZING (lazy loading), activar para completar inicialización
+      if (data.status === 'INITIALIZING' && !this.isActionLoading) {
+        console.log('[WS] Cliente en lazy loading, inicializando automáticamente...');
+        this.activateWhatsapp(this.getCompanyId);
+        return;
+      }
+
       this.ws.ws_ready = data.ws_ready || false;
       this.ws.qr = data.qr || null;
       this.ws.error = data.error || null;
