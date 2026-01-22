@@ -1009,15 +1009,11 @@ export default {
               this.postImp();
             }
             this.terminarTodo();
-            this.terminarTodo();
-
           }
         }
       } else {
         // Enviar solo el formulario aqui
         this.terminarTodo();
-        this.terminarTodo();
-
       }
 
       return ok;
@@ -1314,7 +1310,6 @@ export default {
                 }); */
       }
       // this.clearForms()
-      this.$bvModal.hide(this.modal);
       this.$bvModal.hide(this.modal);
       // this.clearForms();
     },

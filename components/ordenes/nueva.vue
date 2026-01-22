@@ -3080,7 +3080,7 @@ export default {
           .map((item) => {
             let miPrecio = item.precio;
             if (miPrecio === undefined || miPrecio === null) item.precio = 0;
-            return parseFloat(miPrecio) * parseInt(item.cantidad);
+            return parseFloat(miPrecio) * parseFloat(item.cantidad);
           })
           .reduce((acc, item) => acc + item);
       } else {
@@ -3093,7 +3093,7 @@ export default {
         this.form.total = 0;
         this.form.total = this.form.productos
           .map((item) => {
-            return parseFloat(item.precio) * parseInt(item.cantidad);
+            return parseFloat(item.precio) * parseFloat(item.cantidad);
           })
           .reduce((acc, curr) => (acc = acc + curr));
       }
