@@ -3123,7 +3123,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos del cliente",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
         })
         .finally(() => {
@@ -3149,7 +3149,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos de las tallas",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
         })
         .finally(() => {
@@ -3174,7 +3174,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos de las telas",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
         })
         .finally(() => {
@@ -3198,7 +3198,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos de los atributos",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
           // Re-lanzamos el error para que el bloque try/catch en mounted() lo capture
           // y el flujo de carga se detenga correctamente.
@@ -3228,7 +3228,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos delos productos",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
         })
         .finally(() => {
@@ -3247,7 +3247,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos de las catagorías",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
         })
         .finally(() => {
@@ -3340,7 +3340,7 @@ export default {
           this.$fire({
             type: "error",
             title: "Error obteniendo datos, por favor recargue el módulo ",
-            html: err,
+            html: `<p>${err.message || err}</p>`,
           });
           this.loadingMsg =
             "No se cargaron todos los datos, por favor recargue este módulo";

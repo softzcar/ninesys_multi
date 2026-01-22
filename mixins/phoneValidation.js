@@ -27,6 +27,20 @@ export default {
                     error: null
                 }
             } else {
+                // Intento de re-validación agregando '+' si no lo tiene
+                if (!phoneNumber.startsWith('+')) {
+                    const phoneNumberWithPlus = '+' + phoneNumber
+                    const phoneNumberParsedPlus = parsePhoneNumberFromString(phoneNumberWithPlus)
+
+                    if (phoneNumberParsedPlus && phoneNumberParsedPlus.isValid()) {
+                        return {
+                            isValid: true,
+                            formatted: phoneNumberParsedPlus.format('E.164').replace('+', ''),
+                            error: null
+                        }
+                    }
+                }
+
                 return {
                     isValid: false,
                     formatted: null,

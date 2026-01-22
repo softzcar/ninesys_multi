@@ -60,16 +60,18 @@
                   Desconectar Cliente
                 </b-button>
 
-                <span class="floatme mr-2">
-                  <admin-departamentosEditWs />
-                </span>
+                <div :class="{ 'disabled-wrapper': !ws.ws_ready || isActionLoading }">
+                  <span class="floatme mr-2">
+                    <admin-departamentosEditWs />
+                  </span>
 
-                <span class="floatme mr-2">
-                  <admin-WsSendMsg />
-                </span>
-                <span class="floatme mr-2">
-                  <admin-WsSendMsgCustomInterno />
-                </span>
+                  <span class="floatme mr-2">
+                    <admin-WsSendMsg />
+                  </span>
+                  <span class="floatme mr-2">
+                    <admin-WsSendMsgCustomInterno />
+                  </span>
+                </div>
               </div>
             </b-col>
           </b-row>
@@ -234,6 +236,7 @@ export default {
       companyIdToAction: null, // Para almacenar el companyId en diálogos de confirmación
       modalOpen: false, // Para rastrear si el modal está abierto
       socketConnected: false, // Estado de conexión del socket
+      intentoAutoActivacion: false, // Bandera para controlar auto-activación al abrir modal
     };
   },
 
@@ -348,9 +351,13 @@ export default {
       this.$socket.on('disconnect', (reason) => {
         console.log('[WS] Desconectado:', reason);
         this.socketConnected = false;
+        this.ws.ws_ready = false;
+        this.ws.details = null; // Limpiar mensaje de éxito anterior
+        this.statusWs.variant = 'danger';
+
         // Si se desconecta inesperadamente mientras el modal está abierto
-        if (this.modalOpen && reason === 'io server disconnect') {
-          this.ws.error = 'Desconectado por el servidor';
+        if (this.modalOpen) {
+          this.ws.error = `Desconectado del servidor (${reason})`;
         }
       });
 
@@ -433,6 +440,36 @@ export default {
         return;
       }
 
+      // Si el cliente está PAUSED
+      if (data.status === 'PAUSED') {
+        this.ws.ws_ready = false;
+        this.ws.qr = null;
+        this.ws.error = "Servicio pausado temporalmente";
+        this.ws.details = data.message || "Demasiados intentos. Espera un momento.";
+        this.statusWs.variant = 'warning';
+        this.isActionLoading = false;
+        
+        // Auto-activar si el modal está abierto y no se ha intentado ya en esta sesión del modal
+        if (this.modalOpen && !this.intentoAutoActivacion) {
+            console.log("[WS] Auto-activando sesión en pausa al abrir modal.");
+            this.intentoAutoActivacion = true; 
+            // Pequeño delay para asegurar que la UI se renderice primero si es necesario
+            setTimeout(() => {
+                this.activateWhatsapp(this.getCompanyId);
+            }, 500);
+        }
+        return;
+      }
+
+      if (data.status === 'AUTHENTICATED') {
+          this.ws.ws_ready = false;
+          this.ws.qr = null; // Ocultar QR inmediatamente
+          this.ws.error = null;
+          this.ws.details = data.message || "Dispositivo vinculado. Conectando...";
+          this.statusWs.variant = 'warning'; // Amarillo mientras conecta
+          return;
+      }
+
       this.ws.ws_ready = data.ws_ready || false;
       this.ws.qr = data.qr || null;
       this.ws.error = data.error || null;
@@ -443,6 +480,7 @@ export default {
     onModalShow() {
       console.log("Modal abierto.");
       this.modalOpen = true;
+      this.intentoAutoActivacion = false; // Resetear bandera
       // La conexión ya está iniciada en mounted
       if (this.$socket && this.socketConnected) {
         // Solicitar estado actualizado al abrir modal por si acaso
@@ -483,8 +521,19 @@ export default {
           }
         }, 15000);
       } else {
-        this.ws.error = 'No conectado al servidor';
-        this.isActionLoading = false;
+        console.log("[WS] Socket no conectado. Intentando reconectar...");
+        this.ws.error = 'Reconectando al servidor...';
+        this.initSocket();
+
+        // Esperar brevemente a que conecte
+        setTimeout(() => {
+          if (this.$socket && this.socketConnected) {
+            this.$socket.emit('activate', companyId);
+          } else {
+            this.ws.error = 'No conectado al servidor. Intente nuevamente.';
+            this.isActionLoading = false;
+          }
+        }, 2500);
       }
     },
 
@@ -567,5 +616,16 @@ export default {
   justify-content: center;
   align-items: center;
   color: white;
+}
+
+.disabled-wrapper {
+  pointer-events: none;
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.floatme {
+  float: right;
+  margin-bottom: 10px;
 }
 </style>

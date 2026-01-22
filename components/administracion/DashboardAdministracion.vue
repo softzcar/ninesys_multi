@@ -3,8 +3,15 @@
     <b-overlay :show="overlay" spinner-small>
       <b-container fluid>
         <h2 class="mb-4">Dashboard de Administración</h2>
-        
+
         <b-row class="mb-4">
+          <!-- New: Tasas del Día Component -->
+          <b-col lg="3" md="6" sm="12" class="mb-4">
+            <b-card title="Tasas del día">
+              <form-monedas />
+            </b-card>
+          </b-col>
+
           <!-- Gráfico 1: Resumen Semanal -->
           <b-col lg="3" md="6" sm="12" class="mb-4">
             <b-card title="Resumen Semanal de Órdenes">
@@ -15,12 +22,9 @@
           <!-- Gráfico 2: Estado de Órdenes -->
           <b-col lg="3" md="6" sm="12" class="mb-4">
             <b-card title="Estado de Órdenes">
-              <charts-OrdersStatusChart
-                :finished="stats.estado_ordenes.terminadas"
-                :actives="stats.estado_ordenes.activas"
-                :pending="stats.estado_ordenes.en_espera"
-                :paused="stats.estado_ordenes.pausadas"
-              />
+              <charts-OrdersStatusChart :finished="stats.estado_ordenes.terminadas"
+                :actives="stats.estado_ordenes.activas" :pending="stats.estado_ordenes.en_espera"
+                :paused="stats.estado_ordenes.pausadas" />
             </b-card>
           </b-col>
 
@@ -48,23 +52,16 @@
           <!-- Gráfico 6: Tiempos de Entrega -->
           <b-col lg="3" md="6" sm="12" class="mb-4">
             <b-card title="Tiempos de Entrega">
-              <charts-TrafficLightChart
-                :por-iniciar="stats.tiempos_entrega.por_iniciar"
-                :retrasado="stats.tiempos_entrega.retrasado"
-                :en-el-dia="stats.tiempos_entrega.en_el_dia"
-                :a-tiempo="stats.tiempos_entrega.a_tiempo"
-                :pausadas="stats.tiempos_entrega.pausadas"
-              />
+              <charts-TrafficLightChart :por-iniciar="stats.tiempos_entrega.por_iniciar"
+                :retrasado="stats.tiempos_entrega.retrasado" :en-el-dia="stats.tiempos_entrega.en_el_dia"
+                :a-tiempo="stats.tiempos_entrega.a_tiempo" :pausadas="stats.tiempos_entrega.pausadas" />
             </b-card>
           </b-col>
 
           <!-- Gráfico 7: Órdenes por Departamento -->
           <b-col lg="3" md="6" sm="12" class="mb-4">
             <b-card title="Órdenes por Departamento">
-              <charts-DepartmentBarChart
-                :data="stats.ordenes_por_departamento"
-                :height="350"
-              />
+              <charts-DepartmentBarChart :data="stats.ordenes_por_departamento" :height="350" />
             </b-card>
           </b-col>
         </b-row>
@@ -107,7 +104,7 @@ let sharedStats = {
 
 export default {
   name: 'DashboardAdministracion',
-  
+
   data() {
     return {
       overlay: false,
@@ -157,10 +154,10 @@ export default {
         );
 
         console.log('[DashboardAdministracion] Respuesta de API:', response.data);
-        
+
         // Actualizar stats compartidos para que TODAS las instancias vean los datos
         Object.assign(sharedStats, response.data);
-        
+
         console.log('[DashboardAdministracion] Stats actualizados:', sharedStats);
         console.log('[DashboardAdministracion] Progreso activas:', sharedStats.progreso_activas);
       } catch (error) {

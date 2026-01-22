@@ -198,7 +198,7 @@
                     {{ eficienciaPorcentaje }}%
                   </span>
                   <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado'
-                    }})</small>
+                  }})</small>
                 </p>
               </div>
             </b-card>
@@ -493,7 +493,7 @@ export default {
 
     dataSearchInsumo() {
       return this.insumosTodos.map((el) => {
-        return `${el._id} | ${el.insumo}`;
+        return `${el._id} | ${el.insumo} ${el.cantidad} ${el.unidad}`;
       });
     },
 

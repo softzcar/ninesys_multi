@@ -77,8 +77,14 @@ export const mutations = {
             data.tipos_de_monedas.forEach((tipo) => {
                 // Omitimos 'dolar' porque ya está fijado y no debe ser 0
                 if (tipo.activo && tipo.moneda !== 'dolar') {
-                    // Mantenemos el valor si ya existe, si no, lo inicializamos en 0
-                    initialTasas[tipo.moneda] = state.tasas[tipo.moneda] || 0
+                    // PRIORIDAD: 
+                    // 1. Valor que viene de la base de datos (tipo.valor)
+                    // 2. Valor que ya esté en el state (si estamos refrescando data sin recargar app)
+                    // 3. 0 por defecto
+                    const valorDb = parseFloat(tipo.valor);
+                    initialTasas[tipo.moneda] = (!isNaN(valorDb) && valorDb > 0)
+                        ? valorDb
+                        : (state.tasas[tipo.moneda] || 0);
                 }
             })
             state.tasas = initialTasas
@@ -234,7 +240,7 @@ export const getters = {
     // Verifica si el usuario puede editar tasas según su departamento
     puedeEditarTasas(state) {
         const departamento = state.dataUser.departamento
-        const departamentosPermitidos = ['Administración', 'Comercialización']
+        const departamentosPermitidos = ['Administración']
         return departamentosPermitidos.includes(departamento)
     },
 

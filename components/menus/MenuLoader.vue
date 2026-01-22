@@ -138,8 +138,8 @@ export default {
   computed: {
     tasasEstanConfiguradas() {
       const depto = this.$store.state.login.dataUser.departamento;
-      if (depto !== "Administración" && depto !== "Comercialización") {
-        return true; // Si no es de estos deptos, no requiere la validación.
+      if (depto !== "Administración") {
+        return true; // Solo Administración valida y carga tasas automáticamente si faltan.
       }
       const tipos = this.$store.state.login.dataEmpresa.tipos_de_monedas || [];
       // Excluimos el dólar que siempre es 1
@@ -256,8 +256,17 @@ export default {
       );
     }
 
-    // 🔄 CARGA AUTOMÁTICA DE TASAS AL INICIAR
-    if (!this.tasasEstanConfiguradas) {
+    // 🔄 CARGA AUTOMÁTICA DE TASAS - COMENTADO PARA USAR SOLO TASA MANUAL
+    // NOTA: Las tasas ahora se cargan ÚNICAMENTE desde la base de datos (tipos_de_monedas)
+    // en el mutation setDataEmpresa del store (login.js líneas 75-91).
+    // Esto evita que la tasa BCV de la API sobrescriba la tasa manual configurada.
+    // La tasa BCV se sigue mostrando en formMonedas.vue como referencia, 
+    // pero los cálculos usarán la tasa manual.
+
+    /* CÓDIGO ORIGINAL COMENTADO:
+    const isAdmin = this.$store.state.login.dataUser.departamento === 'Administración';
+
+    if (isAdmin || !this.tasasEstanConfiguradas) {
       try {
         // Intentar cargar automáticamente las tasas
         const resultado = await this.$store.dispatch('login/cargarTasasAutomaticas');
@@ -276,6 +285,7 @@ export default {
         this.$bvModal.show("modal-tasas-iniciales");
       }
     }
+    */
   },
 };
 </script>
