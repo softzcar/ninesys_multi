@@ -1204,7 +1204,23 @@ export default {
     },
 
     productsFilter(id) {
-      return this.productos.filter((el) => el.id_orden == id);
+      const products = this.productos.filter((el) => el.id_orden == id);
+      return products.map((prod) => {
+        const repo = this.reposiciones.find(
+          (r) => r.id_ordenes_productos == prod.id_ordenes_productos
+        );
+        if (repo) {
+          return {
+            ...prod,
+            detalle_reposicion:
+              repo.detalle_emisor ||
+              repo.detalle_reposicion || // Por si ya viene calculado
+              repo.detalle ||
+              prod.detalle_reposicion,
+          };
+        }
+        return prod;
+      });
     },
 
     productsFilter_old(id) {
