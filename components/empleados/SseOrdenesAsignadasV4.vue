@@ -202,14 +202,13 @@
                         <diseno-view-image :id="row.item.orden" />
                       </b-col>
 
-                      <!-- Detalles productos -->
-                      <b-col cols="auto">
-                        <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
-                          :detalles="row.item.observaciones" :detalle_empleado="row.item.detalle_empleado"
+                      <!-- Reposición (Botón Amarillo Ojo) -->
+                      <b-col cols="auto" style="margin-left: 0.3rem;">
+                        <empleados-reposicion @reload_this="reloadMe" :id_orden="row.item.orden" :itemRep="row.item"
                           :productos="productsFilter(row.item.orden)" />
                       </b-col>
 
-                      <!-- Detalles -->
+                      <!-- Detalles (Botón Azul) -->
                       <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
                           :productos="productsFilter(row.item.orden)" />
