@@ -151,8 +151,8 @@
                       <!-- Detalles productos -->
                       <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
-                          :detalles="row.item.observaciones" :detalle_empleado="row.item.detalle_empleado"
-                          :productos="productsFilter(row.item.orden)" />
+                          :detalles-externos="row.item.detalle_reposicion" :detalles="row.item.observaciones"
+                          :detalle_empleado="row.item.detalle_empleado" :productos="productsFilter(row.item.orden)" />
                       </b-col>
                     </b-row>
                   </template>
