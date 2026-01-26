@@ -25,24 +25,13 @@
             </b-alert>
 
             <b-row class="mb-2">
-              <b-col cols="4">
-                <span class="text-muted d-block small">Talla</span>
-                <strong>{{ itemRep.talla || 'N/A' }}</strong>
-              </b-col>
-              <b-col cols="4">
+              <b-col cols="6">
                 <span class="text-muted d-block small">Corte</span>
                 <strong>{{ itemRep.corte || 'N/A' }}</strong>
               </b-col>
-              <b-col cols="4">
+              <b-col cols="6">
                 <span class="text-muted d-block small">Tela</span>
                 <strong>{{ itemRep.tela || 'N/A' }}</strong>
-              </b-col>
-            </b-row>
-            <hr>
-            <b-row>
-              <b-col>
-                <span class="text-muted d-block small">Solicitado por:</span>
-                <span>{{ itemRep.departamento_solicitante || 'Desconocido' }}</span>
               </b-col>
             </b-row>
           </b-card-body>
