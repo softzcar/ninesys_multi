@@ -1,42 +1,57 @@
 <template>
   <div style="display: inline-flex; gap: 0.5rem; align-items: center;">
-    <b-button
-      :disabled="disableBtns.backward"
-      variant="warning"
-      @click="$bvModal.show(modal)"
-    >
+    <b-button :disabled="disableBtns.backward" variant="warning" @click="$bvModal.show(modal)">
       <b-icon icon="skip-backward-fill"></b-icon>
     </b-button>
-    <b-button
-      :disabled="disableBtns.eye"
-      variant="warning"
-      @click="$bvModal.show(modal2)"
-    >
+    <b-button :disabled="disableBtns.eye" variant="warning" @click="$bvModal.show(modal2)">
       <b-icon icon="eye"></b-icon>
     </b-button>
 
-    <b-modal
-      :size="size"
-      :title="title"
-      :id="modal2"
-      hide-footer
-    >
-      <p>
-        {{ filterDetallesReposicion }}
-      </p>
+    <b-modal :size="size" :title="title" :id="modal2" hide-footer>
+      <b-container fluid>
+        <b-card no-body class="mb-1 border-0">
+          <b-card-body>
+            <h4 class="card-title text-info mb-3">
+              {{ itemRep.nombre_producto }}
+              <b-badge variant="dark" class="ml-2">{{ itemRep.unidades }} Unidades</b-badge>
+            </h4>
+
+            <b-alert show variant="warning" class="mb-4">
+              <h6 class="alert-heading font-weight-bold"><b-icon icon="exclamation-triangle-fill"></b-icon> Motivo /
+                Detalle:</h6>
+              <p class="mb-0" style="font-size: 1.1rem;">
+                {{ itemRep.detalle_reposicion || itemRep.detalle_emisor || 'Sin detalle especificado' }}
+              </p>
+            </b-alert>
+
+            <b-row class="mb-2">
+              <b-col cols="4">
+                <span class="text-muted d-block small">Talla</span>
+                <strong>{{ itemRep.talla || 'N/A' }}</strong>
+              </b-col>
+              <b-col cols="4">
+                <span class="text-muted d-block small">Corte</span>
+                <strong>{{ itemRep.corte || 'N/A' }}</strong>
+              </b-col>
+              <b-col cols="4">
+                <span class="text-muted d-block small">Tela</span>
+                <strong>{{ itemRep.tela || 'N/A' }}</strong>
+              </b-col>
+            </b-row>
+            <hr>
+            <b-row>
+              <b-col>
+                <span class="text-muted d-block small">Solicitado por:</span>
+                <span>{{ itemRep.departamento_solicitante || 'Desconocido' }}</span>
+              </b-col>
+            </b-row>
+          </b-card-body>
+        </b-card>
+      </b-container>
     </b-modal>
 
-    <b-modal
-      :size="size"
-      :title="title"
-      :id="modal"
-      hide-footer
-    >
-      <b-container
-        fluid
-        class="p-3"
-        style="width: 100%"
-      >
+    <b-modal :size="size" :title="title" :id="modal" hide-footer>
+      <b-container fluid class="p-3" style="width: 100%">
         <b-row>
           <b-col>
             <h3>Datos de la orden</h3>
@@ -64,16 +79,8 @@
                 </span>
               </b-list-group-item>
               <b-list-group-item>
-                <b-button
-                  class="mt-2"
-                  size="sm"
-                  v-b-toggle.collapse-1
-                  variant="light"
-                >Ver Detalles</b-button>
-                <b-collapse
-                  id="collapse-1"
-                  class="mt-2"
-                >
+                <b-button class="mt-2" size="sm" v-b-toggle.collapse-1 variant="light">Ver Detalles</b-button>
+                <b-collapse id="collapse-1" class="mt-2">
                   <span v-html="item.detalle_supervisor"></span>
                   <p>Mas detalles...</p>
                 </b-collapse>
@@ -83,15 +90,9 @@
         </b-row>
         <b-row>
           <b-col class="mt-4">
-            <b-table
-              hover
-              :items="tablaProductos"
-            >
+            <b-table hover :items="tablaProductos">
               <template #cell(Reponer)="data">
-                <empleados-reposicion-form-empleados
-                  :item="data"
-                  @reload_this="reloadTareasAsignadas"
-                />
+                <empleados-reposicion-form-empleados :item="data" @reload_this="reloadTareasAsignadas" />
               </template>
             </b-table>
           </b-col>
@@ -136,7 +137,7 @@ export default {
 
   computed: {
     filterDetallesReposicion() {
-      return `${this.itemRep.unidades} ${this.itemRep.nombre_producto}, detalle: ${this.itemRep.detalle_empleado}`;
+      return `${this.itemRep.unidades} ${this.itemRep.nombre_producto}, detalle: ${this.itemRep.detalle_reposicion}`;
     },
 
     tablaProductos() {
