@@ -2,46 +2,25 @@
   <div>
     <!-- <a href="#" @click="$bvModal.show(modal)"> -->
     <!-- <a href="#" @click="$bvModal.show(modal)"> -->
-    <b-button
-      variant="info"
-      @click="$bvModal.show(modal)"
-      size="lg"
-    >
+    <b-button variant="info" @click="$bvModal.show(modal)" size="lg">
       Ver Detalles
     </b-button>
 
-    <b-modal
-      :size="size"
-      :title="title"
-      :id="modal"
-      hide-footer
-    >
-      <b-overlay
-        :show="overlay"
-        spinner-small
-      >
+    <b-modal :size="size" :title="title" :id="modal" hide-footer>
+      <b-overlay :show="overlay" spinner-small>
         <b-container fluid>
           <b-row>
             <b-col>
-              <div
-                class="floatme"
-                style="width: 100%; margin-bottom: 20px"
-              >
+              <div class="floatme" style="width: 100%; margin-bottom: 20px">
                 <span v-if="showbutton != 'false'">
-                  <b-button
-                    @click="imprimirReporte"
-                    variant="primary"
-                  >Imprimir</b-button>
+                  <b-button @click="imprimirReporte" variant="primary">Imprimir</b-button>
                 </span>
                 <div class="mt-3 text-right">
                   <p class="mb-1">Monto Comisiones: <strong>$ {{ formatNumber(item.monto_comision || 0) }}</strong></p>
                   <p class="mb-1">Monto Salario: <strong>$ {{ formatNumber(item.monto_salario || 0) }}</strong></p>
                   <h5>Total a Pagar: <strong>$ {{ item.pago }}</strong></h5>
                 </div>
-                <div
-                  v-if="item.pago === '0.00'"
-                  class="alert alert-info mt-2"
-                >
+                <div v-if="item.pago === '0.00'" class="alert alert-info mt-2">
                   <small>Este empleado ya recibió su salario correspondiente al período actual.</small>
                 </div>
               </div>
@@ -49,13 +28,7 @@
           </b-row>
           <b-row class="justify-content-md-center">
             <b-col>
-              <b-table
-                responsive
-                small
-                striped
-                :items="detallesAgrupados"
-                :fields="fields"
-              >
+              <b-table responsive small striped :items="detallesAgrupados" :fields="fields">
                 <template #cell(pago)="data">
                   $ {{ formatNumber(data.item.pago) }}
                 </template>
@@ -72,7 +45,7 @@
                     {{ data.item.comision }}%
                   </span>
                   <span v-else>
-                     $ {{ formatNumber(data.item.comision) }}
+                    $ {{ formatNumber(data.item.comision) }}
                   </span>
                 </template>
 
@@ -85,16 +58,13 @@
                   </span>
                 </template>
                 <template #cell(id_orden)="data">
-                  <linkSearch
-                    v-if="data.item.orden || data.item.id_orden"
-                    class="floatme"
-                    :id="data.item.orden || data.item.id_orden"
-                  />
-                  <diseno-viewImage
-                    v-if="data.item.orden || data.item.id_orden"
-                    class="floatme"
-                    :id="data.item.orden || data.item.id_orden"
-                  />
+                  <linkSearch v-if="data.item.orden || data.item.id_orden" class="floatme"
+                    :id="data.item.orden || data.item.id_orden" />
+                  <span v-if="data.item.id_reposicion && data.item.id_reposicion > 0" class="badge badge-warning ml-2">
+                    Reposición
+                  </span>
+                  <diseno-viewImage v-if="data.item.orden || data.item.id_orden" class="floatme"
+                    :id="data.item.orden || data.item.id_orden" />
                   <span v-else class="text-muted small">Sin orden</span>
                 </template>
               </b-table>
@@ -107,10 +77,7 @@
 
     <!-- Componente para impresión, oculto -->
     <div style="display: none;">
-      <ReportePagoVendedor
-        :datos-reporte="datosParaElReporte"
-        ref="reporteParaImprimir"
-      />
+      <ReportePagoVendedor :datos-reporte="datosParaElReporte" ref="reporteParaImprimir" />
     </div>
   </div>
 </template>
@@ -135,20 +102,20 @@ export default {
       default: 'Vendedor'
     },
     bonos: {
-       type: Array,
-       default: () => []
+      type: Array,
+      default: () => []
     },
     descuentos: {
-       type: Array,
-       default: () => []
+      type: Array,
+      default: () => []
     },
     salario: {
-       type: [Number, String],
-       default: 0
+      type: [Number, String],
+      default: 0
     },
     comision: {
-       type: [Number, String],
-       default: 0
+      type: [Number, String],
+      default: 0
     }
   },
   data() {
@@ -289,26 +256,31 @@ export default {
     },
     detallesAgrupados() {
       if (!this.detalles || !Array.isArray(this.detalles)) return [];
-      
+
       const agrupados = {};
       const sinOrden = [];
 
       this.detalles.forEach(detalle => {
         // Si no tiene orden, lo dejamos tal cual (ej. bonos, ajustes sin orden)
         const orderId = detalle.id_orden || detalle.orden;
-        
+
         if (!orderId) {
           sinOrden.push(detalle);
           return;
         }
 
-        const key = orderId;
-        
+        let key = orderId;
+
+        // Si es reposición, crear una clave única para no agrupar con la orden original
+        if (detalle.id_reposicion && detalle.id_reposicion > 0) {
+          key = `${orderId}_repo_${detalle.id_reposicion}`;
+        }
+
         if (!agrupados[key]) {
           agrupados[key] = { ...detalle };
           agrupados[key].pago = parseFloat(detalle.pago) || 0;
           // Aseguramos que id_orden esté presente para el template si faltaba
-          agrupados[key].id_orden = key; 
+          agrupados[key].id_orden = orderId;
 
         } else {
           agrupados[key].pago += parseFloat(detalle.pago) || 0;
@@ -319,7 +291,7 @@ export default {
       // Convertir de vuelta a array y formatear el pago a string para consistencia de visualización si es necesario
       // O mantenerlo numérico, pero el template usa formatNumber.
       // formatNumber espera string o numero, el sumatorio es numero.
-      
+
       const listaAgrupada = Object.values(agrupados).map(item => {
         return {
           ...item,
@@ -335,29 +307,29 @@ export default {
       const rand = Math.random().toString(36).substring(2, 7);
       return `modal-${rand}`;
     },
-    
+
     totalFinalCalculado() {
-       // Si nos pasan un total ya calculado (implícitamente vía props si quisiéramos), podríamos usarlo.
-       // Pero mejor recalculamos o usamos item.pago si no hay props extras.
-       
-       if (this.salario !== undefined) {
-         // Estamos en contexto de ConfirmacionModal con datos frescos
-         const s = parseFloat(this.salario) || 0;
-         const c = parseFloat(this.comision) || 0;
-         const b = (this.bonos || []).reduce((acc, el) => acc + parseFloat(el.monto || 0), 0);
-         const d = (this.descuentos || []).reduce((acc, el) => acc + parseFloat(el.monto || 0), 0);
-         return (s + c + b - d).toFixed(2);
-       }
-       
-       return this.item.pago; 
+      // Si nos pasan un total ya calculado (implícitamente vía props si quisiéramos), podríamos usarlo.
+      // Pero mejor recalculamos o usamos item.pago si no hay props extras.
+
+      if (this.salario !== undefined) {
+        // Estamos en contexto de ConfirmacionModal con datos frescos
+        const s = parseFloat(this.salario) || 0;
+        const c = parseFloat(this.comision) || 0;
+        const b = (this.bonos || []).reduce((acc, el) => acc + parseFloat(el.monto || 0), 0);
+        const d = (this.descuentos || []).reduce((acc, el) => acc + parseFloat(el.monto || 0), 0);
+        return (s + c + b - d).toFixed(2);
+      }
+
+      return this.item.pago;
     },
 
     fechaPagoReporte() {
-         const today = new Date();
-         const day = String(today.getDate()).padStart(2, "0");
-         const month = String(today.getMonth() + 1).padStart(2, "0");
-         const year = today.getFullYear();
-         return `${day}-${month}-${year}`;
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0");
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const year = today.getFullYear();
+      return `${day}-${month}-${year}`;
     }
   },
 };
