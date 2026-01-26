@@ -202,6 +202,13 @@
                         <diseno-view-image :id="row.item.orden" />
                       </b-col>
 
+                      <!-- Detalles productos -->
+                      <b-col cols="auto">
+                        <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
+                          :detalles="row.item.observaciones" :detalle_empleado="row.item.detalle_empleado"
+                          :productos="productsFilter(row.item.orden)" />
+                      </b-col>
+
                       <!-- Detalles -->
                       <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
