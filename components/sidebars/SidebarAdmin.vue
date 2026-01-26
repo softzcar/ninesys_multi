@@ -296,6 +296,11 @@
               Reporte de Costos
             </router-link>
           </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/produccion/reporte-reposiciones">
+              Reporte reposiciones
+            </router-link>
+          </li>
         </ul>
       </b-collapse>
     </li>
@@ -312,11 +317,7 @@
       <b-collapse id="sidebar-varios" class="sub-menu">
         <ul class="nav flex-column">
 
-          <li class="nav-item">
-            <router-link class="nav-link" to="/produccion/reporte-reposiciones">
-              Reporte reposiciones
-            </router-link>
-          </li>
+
           <li class="nav-item">
             <router-link class="nav-link" to="/tallas">
               Tallas
