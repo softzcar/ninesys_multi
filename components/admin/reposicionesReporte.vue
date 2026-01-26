@@ -1,21 +1,9 @@
 <template>
   <div>
-    <b-overlay
-      :show="overlay"
-      spinner-small
-    >
+    <b-overlay :show="overlay" spinner-small>
       <b-container>
         <b-row>
-          <b-col
-            xs="12"
-            sm="12"
-            md="6"
-            lg="4"
-            xl="4"
-            offset-md="6"
-            offset-lg="8"
-            offset-xl="8"
-          >
+          <b-col xs="12" sm="12" md="6" lg="4" xl="4" offset-md="6" offset-lg="8" offset-xl="8">
             <b-form>
               <!-- <b-form-group id="input-group-1" label="Fecha inicio:" label-for="fecha-1">
                                 <b-form-datepicker id="fecha-1" v-model="form.fechaConsultaInicio"
@@ -25,14 +13,8 @@
                             <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
                                 <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
                             </b-form-group> -->
-              <b-form-select
-                class="mb-4"
-                @change="buscarReposiciones"
-                :disabled="overlay"
-                v-model="estatusOrden"
-                :options="optStatus"
-                :value="estatusOrden"
-              ></b-form-select>
+              <b-form-select class="mb-4" @change="buscarReposiciones" :disabled="overlay" v-model="estatusOrden"
+                :options="optStatus" :value="estatusOrden"></b-form-select>
               <!-- <b-button @click="buscarReposiciones" :disabled="overlay" class="mb-4 mt-2" type="submit"
                                 variant="primary">Buscar Reposiciones
                             </b-button> -->
@@ -42,18 +24,15 @@
 
         <b-row>
           <b-col>
-            <b-table
-              striped
-              :fields="fields"
-              :items="dataReporte"
-              class="mb-4"
-            >
+            <b-table striped :fields="fields" :items="dataReporte" class="mb-4">
               <template #cell(id_orden)="data">
                 <linkSearch :id="data.item.id_orden" />
               </template>
 
               <template #cell(material_consumido)="data">
-                {{ data.item.material_consumido }} {{ data.item.unidad }}
+                <b-button variant="outline-primary" size="sm" @click="getDetallesReposicion(data.item)">
+                  {{ parseFloat(data.item.material_consumido).toFixed(2) }} $
+                </b-button>
               </template>
 
               <template #cell(fecha_creacion)="data">
@@ -64,6 +43,37 @@
         </b-row>
       </b-container>
     </b-overlay>
+
+    <!-- Modal Detalle Costos -->
+    <b-modal id="modal-detalle-costos" title="Desglose de Costos de Reposición" size="lg" hide-footer>
+      <div v-if="repoSeleccionada">
+        <b-alert show variant="info" class="mb-4">
+          <h5 class="alert-heading">Resumen</h5>
+          <p class="mb-0">
+            <strong>Orden:</strong> {{ repoSeleccionada.id_orden }} <br>
+            <strong>Producto:</strong> {{ repoSeleccionada.producto }} <br>
+            <strong>Costo Total:</strong> <span class="text-danger font-weight-bold">{{
+              parseFloat(repoSeleccionada.material_consumido).toFixed(2) }} $</span>
+          </p>
+        </b-alert>
+
+        <b-table striped hover :items="detallesReposicion" :fields="[
+          { key: 'insumo', label: 'Insumo' },
+          { key: 'unidad', label: 'Und' },
+          { key: 'cantidad_consumida', label: 'Cant.' },
+          { key: 'costo_unitario', label: 'Costo Unit.' },
+          { key: 'costo_total', label: 'Total ($)' },
+          { key: 'fecha', label: 'Fecha' }
+        ]">
+          <template #cell(cantidad_consumida)="data">
+            {{ parseFloat(data.value).toFixed(2) }}
+          </template>
+          <template #cell(costo_total)="data">
+            <strong>{{ parseFloat(data.value).toFixed(2) }} $</strong>
+          </template>
+        </b-table>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -95,6 +105,9 @@ export default {
       fields_detallado: null,
       itemsResumen: null,
       itemsDetallado: null,
+      repoSeleccionada: {},
+      totalCosto: 0,
+      detallesReposicion: [],
       fields: [
         {
           key: "id_orden",
@@ -160,6 +173,30 @@ export default {
     prepareDate(dateString) {
       const date = DateTime.fromJSDate(new Date(dateString));
       return date.toFormat("dd/LL/yyyy");
+    },
+
+    getDetallesReposicion(item) {
+      this.overlay = true;
+      this.detallesReposicion = [];
+      this.totalCosto = item.material_consumido;
+      this.repoSeleccionada = item;
+
+      this.$axios
+        .get(`${this.$config.API}/reposicion-detalles/${item.id_reposicion}`)
+        .then((resp) => {
+          this.detallesReposicion = resp.data;
+          this.$bvModal.show("modal-detalle-costos");
+        })
+        .catch((err) => {
+          this.$fire({
+            title: "Error",
+            html: `<p>No se pudieron cargar los detalles</p>`,
+            type: "error",
+          });
+        })
+        .finally(() => {
+          this.overlay = false;
+        });
     },
 
     buscarReposiciones() {
