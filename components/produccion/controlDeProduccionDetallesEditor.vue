@@ -295,8 +295,8 @@ export default {
           );
 
           this.detalles_orden = res.data[0].observaciones_ordenes;
-          if (this.detalles_externos) {
-            this.detalles_orden = this.detalles_externos;
+          if (this.detallesExternos) {
+            this.detalles_orden = this.detallesExternos;
           }
           this.borrador = res.data[0].observaciones_empleado;
           this.editorKey++;
@@ -365,7 +365,7 @@ export default {
     "reload",
     "esreposicion",
     "en_reposiciones",
-    "detalles_externos",
+    "detallesExternos",
   ],
 };
 </script>

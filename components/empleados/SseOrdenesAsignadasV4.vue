@@ -211,7 +211,7 @@
                       <!-- Detalles (Botón Azul) -->
                       <b-col cols="auto">
                         <produccion-control-de-produccion-detalles-editor esreposicion="true" :idorden="row.item.orden"
-                          :detalles_externos="row.item.detalle_reposicion"
+                          :detalles-externos="row.item.detalle_reposicion"
                           :productos="productsFilter(row.item.orden)" />
                       </b-col>
                     </b-row>
