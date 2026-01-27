@@ -114,10 +114,6 @@ export default {
           label: "Orden",
         },
         {
-          key: "id_reposicion",
-          label: "Reposición",
-        },
-        {
           key: "producto",
           label: "Producto",
         },
@@ -126,24 +122,8 @@ export default {
           label: "Unidades",
         },
         {
-          key: "talla",
-          label: "Talla",
-        },
-        {
-          key: "tela",
-          label: "Tela",
-        },
-        {
           key: "material_consumido",
           label: "Consumido",
-        },
-        {
-          key: "empleado_emisor",
-          label: "Emisor",
-        },
-        {
-          key: "empleado_asignado",
-          label: "Asignado",
         },
         {
           key: "fecha_creacion",
