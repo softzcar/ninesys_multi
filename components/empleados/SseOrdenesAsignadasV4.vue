@@ -657,10 +657,11 @@ export default {
           .filter(
             (el) =>
               !ordenesEnLotes.includes(el.id_orden) &&
-              el.fecha_inicio != null &&
               el.fecha_terminado == null &&
-              el.en_tintas === 0 &&
-              el.en_reposiciones === 0 || el.status === 'pausada' // Include paused orders
+              ((el.fecha_inicio != null &&
+                el.en_tintas === 0 &&
+                el.en_reposiciones === 0) ||
+                el.status === 'pausada') // Include paused orders
           )
           .map((el) => {
             return {
@@ -696,7 +697,9 @@ export default {
         enCurso = this.ordenes
           .filter(
             (el) =>
-              !ordenesEnLotes.includes(el.id_orden) && (el.progreso === 'en curso' || el.status === 'pausada')
+              !ordenesEnLotes.includes(el.id_orden) &&
+              el.fecha_terminado == null &&
+              (el.progreso === 'en curso' || el.status === 'pausada')
           )
           .map((el) => {
             return {
@@ -730,6 +733,7 @@ export default {
           .filter(
             (el) =>
               !ordenesEnLotes.includes(el.id_orden) &&
+              el.fecha_terminado == null &&
               (el.progreso === 'en curso' || el.status === 'pausada') &&
               el.en_reposiciones === 0
           )
@@ -765,6 +769,7 @@ export default {
           .filter(
             (el) =>
               !ordenesEnLotes.includes(el.id_orden) &&
+              el.fecha_terminado == null &&
               (el.progreso === 'en curso' || el.status === 'pausada') &&
               el.en_reposiciones === 0 &&
               el.fecha_inicio != null

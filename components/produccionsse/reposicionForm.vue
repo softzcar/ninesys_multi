@@ -40,9 +40,8 @@
                 <hr />
 
                 <!-- Nuevo Selector de Empleado Inicio Reposición -->
-                <b-form-group id="input-group-empleado-inicio" label="Empleado Inicio Reposición:"
-                  label-for="select-empleado-inicio"
-                  description="Seleccione el empleado que inició la reposición (causó el error).">
+                <b-form-group id="input-group-empleado-inicio" label="Empleado Responsable del Error:"
+                  label-for="select-empleado-inicio" description="Seleccione el empleado que cometió el error.">
                   <b-form-select id="select-empleado-inicio" v-model="emp_inicio_reposicion"
                     :options="selectEmpleados"></b-form-select>
                 </b-form-group>
@@ -52,9 +51,8 @@
                   emp_inicio_reposicion &&
                   emp_inicio_reposicion !== 0 &&
                   inicioEmployeeDepartments.length > 0
-                " id="input-group-departamento-visibilidad" label="Departamento Inicio Reposición:"
-                  label-for="select-departamento-visibilidad"
-                  description="Seleccione el departamento donde esta reposición será visible.">
+                " id="input-group-departamento-visibilidad" label="Departamento del Error:"
+                  label-for="select-departamento-visibilidad" description="Departamento donde se cometió el error.">
                   <b-form-select id="select-departamento-visibilidad" v-model="form.id_departamento_visibilidad"
                     :options="selectVisibilidadDepartmentOptions">
                   </b-form-select>
@@ -62,8 +60,9 @@
 
                 <hr />
 
-                <b-form-group id="input-group-empleado-fin" label="Empleado Fin Reposición:" label-for="select-empleado"
-                  description="Empleado involucrado en la reposición.">
+                <b-form-group id="input-group-empleado-fin" label="Empleado Asignado a la Reposición:"
+                  label-for="select-empleado"
+                  description="Seleccione el empleado que realizará el trabajo de reposición.">
                   <b-form-select id="select-empleado" v-model="emp" :options="selectEmpleados"
                     :value="emp"></b-form-select>
                 </b-form-group>
@@ -71,9 +70,9 @@
                 <!-- Nuevo Selector de Departamento -->
                 <b-form-group v-if="
                   emp && emp !== 0 && selectedEmployeeDepartments.length > 0
-                " id="input-group-departamento-reposicion-form" label="Departamento Fin Reposición:"
+                " id="input-group-departamento-reposicion-form" label="Departamento de Asignación:"
                   label-for="select-departamento-reposicion-form"
-                  description="Departamento del empleado para la reposición.">
+                  description="Departamento donde se realizará el trabajo.">
                   <b-form-select id="select-departamento-reposicion-form" v-model="form.id_departamento_asignado"
                     :options="selectDepartmentOptions"></b-form-select>
                 </b-form-group>
@@ -176,7 +175,7 @@ export default {
         return [{ value: null, text: "Seleccione un departamento" }];
       }
       let options = this.inicioEmployeeDepartments.map((dep) => ({
-        value: dep._id,
+        value: dep.id_departamento,
         text: dep.departamento,
       }));
       options.unshift({ value: null, text: "Seleccione un departamento" });
@@ -327,15 +326,64 @@ export default {
         !this.form.id_departamento_asignado
       ) {
         valido = false;
-        msg += "<p>Seleccione un departamento para el empleado.</p>";
+        msg += "<p>Debe seleccionar el <b>Departamento de Asignación</b> donde se realizará el trabajo.</p>";
       }
 
       // Validar el nuevo selector de departamento de visibilidad
-      /* if (!this.form.id_departamento_visibilidad) {
+      if (!this.form.id_departamento_visibilidad && this.inicioEmployeeDepartments.length > 0) {
         valido = false;
         msg +=
-          "<p>Seleccione un departamento de visibilidad para la reposición.</p>";
-      } */
+          "<p>Debe seleccionar el <b>Departamento del Error</b> donde se originó el problema.</p>";
+      }
+
+      // Validación de Orden de Proceso (Lógica de "Retroceso")
+      if (
+        valido &&
+        this.form.id_departamento_visibilidad &&
+        this.form.id_departamento_asignado
+      ) {
+        // Buscar objetos completos de departamento para obtener orden_proceso
+        // Nota: El endpoint backend fue actualizado para devolver 'orden_proceso'
+
+        const deptoInicio = this.inicioEmployeeDepartments.find(
+          (d) => d.id_departamento == this.form.id_departamento_visibilidad
+        );
+        const deptoFin = this.selectedEmployeeDepartments.find(
+          (d) => d.id_departamento == this.form.id_departamento_asignado
+        );
+
+        if (deptoInicio && deptoFin) {
+          
+          /* console.log("DEBUG VALIDATION RECOVERY:", {
+            inicio: deptoInicio,
+            fin: deptoFin,
+            o_inicio: deptoInicio.orden_proceso,
+            o_fin: deptoFin.orden_proceso
+          }); */
+
+          // Validar que tengamos los datos de orden_proceso
+          if (
+            deptoInicio.orden_proceso !== undefined &&
+            deptoFin.orden_proceso !== undefined
+          ) {
+            /* alert(`DEBUG: Inicio(${deptoInicio.orden_proceso}) vs Fin(${deptoFin.orden_proceso})`); */
+            
+            // Regla: El departamento del error (Inicio) debe tener un orden de proceso MAYOR o IGUAL
+            // al departamento que lo corrige (Fin). Es decir, la pieza "regresa" o se queda.
+            // Si Inicio < Fin, estamos enviando el error hacia adelante, lo cual es incorrecto para una reposición.
+
+            if (
+              parseInt(deptoInicio.orden_proceso) <
+              parseInt(deptoFin.orden_proceso)
+            ) {
+              valido = false;
+              msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
+            }
+          } else {
+             console.warn("DEBUG: orden_proceso field is missing or undefined");
+          }
+        }
+      }
 
       if (valido) {
         this.createReposicion().then(() => {
