@@ -10,14 +10,14 @@
       <b-overlay :show="isLoading" spinner-small>
         <!-- El contenido del modal ahora depende de 'ordenReactiva' y 'textList' -->
         <div v-if="ordenReactiva">
-          <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+          <div class="d-flex align-items-center mb-4 mt-2">
+            <link-search :id="textList.idOrden" :progreso="textList.status" class="mr-3" />
             <h3>
               <b-badge :variant="ordenReactiva.variant">
                 LA ORDEN {{ textList.idOrden }} ESTÁ
                 {{ ordenReactiva.variant_text }}
               </b-badge>
             </h3>
-            <link-search :id="textList.idOrden" :progreso="textList.status" />
           </div>
 
           <!-- BULLET GRAPH SECTION -->
@@ -27,7 +27,7 @@
             <div class="d-flex justify-content-between mb-1">
               <span><strong>Tiempo Real:</strong> {{ formatSeconds(reporteData.tiempo_total_segundos) }}</span>
               <span><strong>Meta (Proyectado):</strong> {{ formatSeconds(reporteData.tiempo_proyectado_segundos)
-              }}</span>
+                }}</span>
             </div>
 
             <!-- Bullet Graph Container -->
