@@ -59,12 +59,32 @@
             <b-table-lite small striped hover :items="inputEfficiencyData" :fields="[
               { key: 'nombre_insumo', label: 'Insumo' },
               { key: 'cantidad_estandar', label: 'Meta', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
-              { key: 'cantidad_real', label: 'Real', formatter: (val, key, item) => `${parseFloat(val).toFixed(2)} ${item.unidad}` },
+              {
+                key: 'cantidad_real',
+                label: 'Real',
+                formatter: (val, key, item) => {
+                  let value = parseFloat(val);
+                  const yieldVal = parseFloat(item.rendimiento || 0);
+                  // Convertir Kilos a Metros si aplica rendimiento y la unidad destino es Metros
+                  if (yieldVal > 0 && ['Mt', 'Mts', 'mts', 'mt'].includes(item.unidad)) {
+                    value = value * yieldVal;
+                  }
+                  return `${value.toFixed(2)} ${item.unidad}`;
+                }
+              },
               {
                 key: 'eficiencia', label: 'Eficiencia', formatter: (val, key, item) => {
                   const est = parseFloat(item.cantidad_estandar);
-                  const real = parseFloat(item.cantidad_real);
+                  let real = parseFloat(item.cantidad_real);
+                  const yieldVal = parseFloat(item.rendimiento || 0);
+
+                  // Misma lógica de conversión para el cálculo de eficiencia
+                  if (yieldVal > 0 && ['Mt', 'Mts', 'mts', 'mt'].includes(item.unidad)) {
+                    real = real * yieldVal;
+                  }
+
                   if (est === 0) return 'N/A';
+                  if (real === 0) return '0.0%';
                   const eff = ((est / real) * 100).toFixed(1);
                   return `${eff}%`;
                 }
@@ -73,7 +93,7 @@
               <template #cell(eficiencia)="data">
                 <div class="d-flex align-items-center justify-content-between">
                   <b-badge
-                    :variant="parseFloat(data.item.cantidad_real) > parseFloat(data.item.cantidad_estandar) ? 'danger' : 'success'">
+                    :variant="(parseFloat(data.item.cantidad_real) * ((parseFloat(data.item.rendimiento || 0) > 0 && ['Mt', 'Mts', 'mts', 'mt'].includes(data.item.unidad)) ? parseFloat(data.item.rendimiento) : 1)) > parseFloat(data.item.cantidad_estandar) ? 'danger' : 'success'">
                     {{ data.value }}
                   </b-badge>
 
