@@ -10,12 +10,15 @@
       <b-overlay :show="isLoading" spinner-small>
         <!-- El contenido del modal ahora depende de 'ordenReactiva' y 'textList' -->
         <div v-if="ordenReactiva">
-          <h3 class="mb-4 mt-2">
-            <b-badge :variant="ordenReactiva.variant">
-              LA ORDEN {{ textList.idOrden }} ESTÁ
-              {{ ordenReactiva.variant_text }}
-            </b-badge>
-          </h3>
+          <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+            <h3>
+              <b-badge :variant="ordenReactiva.variant">
+                LA ORDEN {{ textList.idOrden }} ESTÁ
+                {{ ordenReactiva.variant_text }}
+              </b-badge>
+            </h3>
+            <link-search :id="textList.idOrden" :progreso="textList.status" />
+          </div>
 
           <!-- BULLET GRAPH SECTION -->
           <div v-if="reporteData" class="mb-4 p-3 border rounded bg-light">
@@ -159,8 +162,12 @@
 <script>
 // Importa el mixin
 import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js"; // Asegúrate de que la ruta sea correcta
+import linkSearch from "~/components/linkSearch.vue";
 
 export default {
+  components: {
+    "link-search": linkSearch,
+  },
   // Registra el mixin
   mixins: [procesamientoOrdenesMixin],
 
