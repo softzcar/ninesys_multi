@@ -223,7 +223,10 @@
                   <!-- <b-form-select id="input-6" v-model="form[row.index].select"
                                           :options="selectOptions" required></b-form-select> -->
                   <b-form-input id="input-7" v-model="form[row.index].input" type="number" step="0.01" min="0"
-                    placeholder="Peso" required class="mt-2 mb-4"></b-form-input>
+                    :placeholder="placeholderInput" required class="mt-2 mb-4"></b-form-input>
+                  <label class="mb-1 text-muted" style="margin-top: -20px; display: block; font-size: 0.9em;">
+                    {{ placeholderInput }}
+                  </label>
                 </div>
               </template>
 
@@ -305,6 +308,13 @@ export default {
   },
 
   computed: {
+    placeholderInput() {
+      if (this.$store.state.login.currentDepartament === 'Estampado') {
+        return 'Cantidad de Metros utilizados';
+      }
+      return 'Peso';
+    },
+
     // Computed que combina datos del prop y datos locales del API
     dataInsumosComputed() {
       // Priorizar datos del prop si existen, sino usar los locales
@@ -405,6 +415,11 @@ export default {
         unidad = value.unidad; // Tomar la última unidad (asumiendo que son iguales)
       });
 
+      // Override visual de la unidad para Estampado
+      if (this.$store.state.login.currentDepartament === 'Estampado' && unidad === 'Kg') {
+        unidad = 'Mt';
+      }
+
       return { total: total.toFixed(2), unidad: unidad };
     },
 
@@ -463,11 +478,19 @@ export default {
       });
 
       // Convertir a array y formatear totales
-      return Array.from(catalogoMap.values()).map(item => ({
-        catalogo: item.catalogo,
-        total: item.total.toFixed(2),
-        unidad: item.unidad
-      }));
+      return Array.from(catalogoMap.values()).map(item => {
+        let unidadMostrar = item.unidad;
+        // Override visual de la unidad para Estampado
+        if (currentDeptId && this.$store.state.login.currentDepartament === 'Estampado' && unidadMostrar === 'Kg') {
+          unidadMostrar = 'Mt';
+        }
+
+        return {
+          catalogo: item.catalogo,
+          total: item.total.toFixed(2),
+          unidad: unidadMostrar
+        }
+      });
     },
 
     /**
