@@ -198,7 +198,7 @@
                     {{ eficienciaPorcentaje }}%
                   </span>
                   <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado'
-                  }})</small>
+                    }})</small>
                 </p>
               </div>
             </b-card>
@@ -266,7 +266,7 @@
         <li v-for="(item, idx) in batchItems" :key="idx"
           class="list-group-item d-flex justify-content-between align-items-center">
           {{ item.insumoName }}
-          <span class="badge badge-primary badge-pill">{{ item.idInsumoClean }}</span>
+          <span class="badge badge-primary badge-pill">ID {{ item.idInsumoClean }}</span>
         </li>
       </ul>
 
