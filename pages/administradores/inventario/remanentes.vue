@@ -7,12 +7,13 @@
     <div v-else>
       <menus-MenuLoader />
       <div v-if="dataUser.departamento === 'Administración'">
-        <div class="animated fadeIn">
-          <b-card>
-            <div slot="header">
-              <strong>Gestión de Remanentes</strong>
-              <small>Administración de remanentes de inventario</small>
-            </div>
+        <b-overlay :show="cargando" spinner-small>
+          <b-container fluid>
+            <b-row>
+              <b-col>
+                <h2 class="mb-4">Gestión de Remanentes</h2>
+              </b-col>
+            </b-row>
 
             <!-- Filtros -->
             <b-row class="mb-3">
@@ -34,128 +35,98 @@
               </b-col>
               <b-col md="3">
                 <label>Buscar:</label>
-                <b-form-input 
-                  v-model="filtros.busqueda" 
-                  placeholder="ID, SKU, empleado..."
-                  @input="buscarConDebounce"
-                />
+                <b-form-input v-model="filtros.busqueda" placeholder="ID, SKU, empleado..."
+                  @input="buscarConDebounce" />
               </b-col>
             </b-row>
 
             <!-- Tabla -->
-            <b-table
-              :items="remanentes"
-              :fields="campos"
-              :busy="cargando"
-              striped
-              hover
-              responsive
-              show-empty
-              @sort-changed="cambiarOrden"
-            >
-              <template #table-busy>
-                <div class="text-center my-2">
-                  <b-spinner class="align-middle mr-2"></b-spinner>
-                  <strong>Cargando...</strong>
+            <b-row>
+              <b-col>
+                <b-table :items="remanentes" :fields="campos" :busy="cargando" striped hover responsive show-empty
+                  @sort-changed="cambiarOrden">
+                  <template #table-busy>
+                    <div class="text-center my-2">
+                      <b-spinner class="align-middle mr-2"></b-spinner>
+                      <strong>Cargando...</strong>
+                    </div>
+                  </template>
+
+                  <template #empty>
+                    <p class="text-center text-muted my-3">No se encontraron remanentes</p>
+                  </template>
+
+                  <template #cell(nombre_insumo)="data">
+                    <div>
+                      <strong>{{ data.item.nombre_insumo }}</strong>
+                      <br>
+                      <small class="text-muted">
+                        ID: {{ data.item.id_insumo }} | SKU: {{ data.item.sku }}
+                      </small>
+                    </div>
+                  </template>
+
+                  <template #cell(cantidad_remanente)="data">
+                    {{ parseFloat(data.value).toFixed(2) }} {{ data.item.unidad }}
+                  </template>
+
+                  <template #cell(stock_actual)="data">
+                    <b-badge :variant="data.value > 0 ? 'success' : 'secondary'" class="p-2">
+                      {{ parseFloat(data.value).toFixed(2) }} {{ data.item.unidad }}
+                    </b-badge>
+                  </template>
+
+                  <template #cell(fecha)="data">
+                    {{ formatearFecha(data.value) }}
+                  </template>
+
+                  <template #cell(acciones)="data">
+                    <b-button-group size="sm">
+                      <b-button variant="primary" @click="abrirModalEditar(data.item)">
+                        <i class="fa fa-edit"></i> Editar
+                      </b-button>
+                      <b-button variant="danger" @click="confirmarEliminar(data.item)">
+                        <i class="fa fa-trash"></i> Eliminar
+                      </b-button>
+                    </b-button-group>
+                  </template>
+                </b-table>
+
+                <!-- Paginación -->
+                <b-pagination v-model="paginaActual" :total-rows="totalRegistros" :per-page="registrosPorPagina"
+                  @change="cambiarPagina" align="center" class="mt-3"></b-pagination>
+
+                <div class="text-center text-muted small">
+                  Mostrando {{ rangoInicio }} - {{ rangoFin }} de {{ totalRegistros }} registros
                 </div>
-              </template>
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-overlay>
 
-              <template #empty>
-                <p class="text-center text-muted my-3">No se encontraron remanentes</p>
-              </template>
+        <!-- Modal Editar -->
+        <b-modal id="modal-editar" title="Editar Remanente" @ok="guardarCambios" ok-title="Guardar"
+          cancel-title="Cancelar">
+          <b-form v-if="remanenteSeleccionado">
+            <b-form-group label="Insumo:">
+              <b-form-input :value="`${remanenteSeleccionado.nombre_insumo} (${remanenteSeleccionado.sku})`" disabled />
+            </b-form-group>
 
-              <template #cell(nombre_insumo)="data">
-                <div>
-                  <strong>{{ data.item.nombre_insumo }}</strong>
-                  <br>
-                  <small class="text-muted">
-                    ID: {{ data.item.id_insumo }} | SKU: {{ data.item.sku }}
-                  </small>
-                </div>
-              </template>
+            <b-form-group label="Cantidad:">
+              <b-input-group :append="remanenteSeleccionado.unidad">
+                <b-form-input v-model.number="formEditar.cantidad" type="number" step="0.01" min="0" required />
+              </b-input-group>
+            </b-form-group>
 
-              <template #cell(cantidad_remanente)="data">
-                {{ parseFloat(data.value).toFixed(2) }} {{ data.item.unidad }}
-              </template>
+            <b-form-group label="Motivo:">
+              <b-form-input v-model="formEditar.motivo" required />
+            </b-form-group>
 
-              <template #cell(stock_actual)="data">
-                <b-badge 
-                  :variant="data.value > 0 ? 'success' : 'secondary'"
-                  class="p-2"
-                >
-                  {{ parseFloat(data.value).toFixed(2) }} {{ data.item.unidad }}
-                </b-badge>
-              </template>
-
-              <template #cell(fecha)="data">
-               {{ formatearFecha(data.value) }}
-              </template>
-
-              <template #cell(acciones)="data">
-                <b-button-group size="sm">
-                  <b-button variant="primary" @click="abrirModalEditar(data.item)">
-                    <i class="fa fa-edit"></i> Editar
-                  </b-button>
-                  <b-button variant="danger" @click="confirmarEliminar(data.item)">
-                    <i class="fa fa-trash"></i> Eliminar
-                  </b-button>
-                </b-button-group>
-              </template>
-            </b-table>
-
-            <!-- Paginación -->
-            <b-pagination
-              v-model="paginaActual"
-              :total-rows="totalRegistros"
-              :per-page="registrosPorPagina"
-              @change="cambiarPagina"
-              align="center"
-              class="mt-3"
-            ></b-pagination>
-
-            <div class="text-center text-muted small">
-              Mostrando {{ rangoInicio }} - {{ rangoFin }} de {{ totalRegistros }} registros
-            </div>
-          </b-card>
-
-          <!-- Modal Editar -->
-          <b-modal
-            id="modal-editar"
-            title="Editar Remanente"
-            @ok="guardarCambios"
-            ok-title="Guardar"
-            cancel-title="Cancelar"
-          >
-            <b-form v-if="remanenteSeleccionado">
-              <b-form-group label="Insumo:">
-                <b-form-input 
-                  :value="`${remanenteSeleccionado.nombre_insumo} (${remanenteSeleccionado.sku})`"
-                  disabled
-                />
-              </b-form-group>
-
-              <b-form-group label="Cantidad:">
-                <b-input-group :append="remanenteSeleccionado.unidad">
-                  <b-form-input
-                    v-model.number="formEditar.cantidad"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                  />
-                </b-input-group>
-              </b-form-group>
-
-              <b-form-group label="Motivo:">
-                <b-form-input v-model="formEditar.motivo" required />
-              </b-form-group>
-
-              <b-form-group label="Observación:">
-                <b-form-textarea v-model="formEditar.observacion" rows="3" />
-              </b-form-group>
-            </b-form>
-          </b-modal>
-        </div>
+            <b-form-group label="Observación:">
+              <b-form-textarea v-model="formEditar.observacion" rows="3" />
+            </b-form-group>
+          </b-form>
+        </b-modal>
       </div>
     </div>
   </div>
@@ -166,7 +137,7 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'GestionRemanentes',
-  
+
   data() {
     return {
       remanentes: [],
@@ -203,7 +174,7 @@ export default {
       ]
     }
   },
-  
+
   computed: {
     ...mapState('login', ['dataUser', 'access']),
     rangoInicio() {
@@ -214,11 +185,11 @@ export default {
       return fin > this.totalRegistros ? this.totalRegistros : fin
     }
   },
-  
+
   mounted() {
     this.cargarRemanentes()
   },
-  
+
   methods: {
     async cargarRemanentes() {
       this.cargando = true
@@ -233,12 +204,12 @@ export default {
           order_by: this.ordenamiento.campo,
           order_dir: this.ordenamiento.direccion
         }
-        
+
         const response = await this.$axios.get(
-          `${this.$config.API}/inventario/remanentes`,
+          `${this.$config.API}/api/inventario/remanentes`,
           { params }
         )
-        
+
         if (response.data.success) {
           this.remanentes = response.data.data
           this.totalRegistros = response.data.total
@@ -254,7 +225,7 @@ export default {
         this.cargando = false
       }
     },
-    
+
     buscarConDebounce() {
       clearTimeout(this.debounceTimeout)
       this.debounceTimeout = setTimeout(() => {
@@ -262,7 +233,7 @@ export default {
         this.cargarRemanentes()
       }, 500)
     },
-    
+
     cambiarOrden(ctx) {
       const mapeo = {
         'id_remanente': 'r._id',
@@ -272,17 +243,17 @@ export default {
         'nombre_empleado': 'emp.nombre',
         'fecha': 'r.fecha'
       }
-      
+
       this.ordenamiento.campo = mapeo[ctx.sortBy] || 'r.fecha'
       this.ordenamiento.direccion = ctx.sortDesc ? 'DESC' : 'ASC'
       this.cargarRemanentes()
     },
-    
+
     cambiarPagina(pagina) {
       this.paginaActual = pagina
       this.cargarRemanentes()
     },
-    
+
     abrirModalEditar(item) {
       this.remanenteSeleccionado = { ...item }
       this.formEditar = {
@@ -292,16 +263,16 @@ export default {
       }
       this.$bvModal.show('modal-editar')
     },
-    
+
     async guardarCambios(bvModalEvt) {
       bvModalEvt.preventDefault()
-      
+
       try {
         const response = await this.$axios.put(
-          `${this.$config.API}/inventario/remanentes/${this.remanenteSeleccionado.id_remanente}`,
+          `${this.$config.API}/api/inventario/remanentes/${this.remanenteSeleccionado.id_remanente}`,
           this.formEditar
         )
-        
+
         if (response.data.success) {
           this.$fire({
             type: 'success',
@@ -320,7 +291,7 @@ export default {
         })
       }
     },
-    
+
     confirmarEliminar(item) {
       this.$confirm(
         `¿Está seguro que desea eliminar el remanente de "${item.nombre_insumo}"? Esta acción no se puede deshacer.`,
@@ -334,13 +305,13 @@ export default {
           // Usuario canceló
         })
     },
-    
+
     async eliminarRemanente(id) {
       try {
         const response = await this.$axios.delete(
-          `${this.$config.API}/inventario/remanentes/${id}`
+          `${this.$config.API}/api/inventario/remanentes/${id}`
         )
-        
+
         if (response.data.success) {
           this.$fire({
             type: 'success',
@@ -358,7 +329,7 @@ export default {
         })
       }
     },
-    
+
     formatearFecha(fecha) {
       if (!fecha) return '-'
       const d = new Date(fecha)
