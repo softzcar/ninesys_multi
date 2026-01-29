@@ -127,6 +127,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/administradores/inventario/remanentes">
+              Gestión de Remanentes
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/gestion">
               Gestión de Impresoras
             </router-link>
