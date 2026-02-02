@@ -50,7 +50,7 @@
                 </template>
 
                 <template #cell(cantidad_productos)="data">
-                  {{ data.item.cantidad_productos !== undefined ? data.item.cantidad_productos : 'Undef' }}
+                  {{ data.item.cantidad_productos || 0 }}
                 </template>
 
                 <template #cell(id_orden)="data">
@@ -65,7 +65,7 @@
                 </template>
               </b-table>
               <div class="text-right mb-3">
-                 <h5>Total Productos: <strong>{{ totalProductos }}</strong></h5>
+                 <h5>Total Productos: <strong>{{ totalProductosCalculado }}</strong></h5>
               </div>
             </b-col>
           </b-row>
@@ -301,7 +301,7 @@ export default {
       return [...listaAgrupada, ...sinOrden];
     },
 
-    totalProductos() {
+    totalProductosCalculado() {
       return this.detallesAgrupados.reduce((acc, item) => {
         return acc + (parseInt(item.cantidad_productos) || 0);
       }, 0);
