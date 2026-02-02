@@ -259,20 +259,27 @@ export default {
       const agrupados = {};
       const sinOrden = [];
 
+      const processedItems = new Set(); // Para evitar sumar duplicados (mismo id_orden o id_reposicion)
+
       this.detalles.forEach(detalle => {
         // Si no tiene orden, lo dejamos tal cual (ej. bonos, ajustes sin orden)
         const orderId = detalle.id_orden || detalle.orden;
 
         if (!orderId) {
-          sinOrden.push(detalle);
+          sinOrden.push({ ...detalle }); // Clonar para evitar side effects
           return;
         }
 
         let key = orderId;
+        let uniqueItemId = orderId; // Identificador único para la 'cantidad de productos'
 
         // Si es reposición, crear una clave única para agrupar TODAS las reposiciones de esa orden
         if (detalle.id_reposicion && detalle.id_reposicion > 0) {
           key = `${orderId}_repos`;
+          uniqueItemId = `repo_${detalle.id_reposicion}`;
+        } else {
+           // Normal Order: uniqueItemId is just orderId
+           uniqueItemId = `orden_${orderId}`;
         }
 
         if (!agrupados[key]) {
@@ -281,11 +288,19 @@ export default {
           agrupados[key].cantidad_productos = parseInt(detalle.cantidad_productos) || 0;
           // Aseguramos que id_orden esté presente para el template si faltaba
           agrupados[key].id_orden = orderId;
+          
+          processedItems.add(`${key}|${uniqueItemId}`);
 
         } else {
           agrupados[key].pago += parseFloat(detalle.pago) || 0;
-          agrupados[key].cantidad_productos = (parseInt(agrupados[key].cantidad_productos) || 0) + (parseInt(detalle.cantidad_productos) || 0);
-          // Si hay otras sumatorias necesarias, agregarlas aqui
+          
+          // Solo sumar la cantidad si NO hemos procesado este ítem (reposición o orden) para este grupo
+          if (!processedItems.has(`${key}|${uniqueItemId}`)) {
+             agrupados[key].cantidad_productos = (parseInt(agrupados[key].cantidad_productos) || 0) + (parseInt(detalle.cantidad_productos) || 0);
+             processedItems.add(`${key}|${uniqueItemId}`);
+          }
+           // Nota: Si es la misma orden normal repetida (mismo uniqueItemId), NO sumamos, lo cual es correcto (mostramos el total de la orden una sola vez)
+           // Si son reposiciones distintas (repo_8, repo_9), SÍ sumamos.
         }
       });
 
