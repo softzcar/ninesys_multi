@@ -285,7 +285,10 @@ export default {
         if (!agrupados[key]) {
           agrupados[key] = { ...detalle };
           agrupados[key].pago = parseFloat(detalle.pago) || 0;
-          agrupados[key].cantidad_productos = parseInt(detalle.cantidad_productos) || 0;
+          // Fallback para histórico (usa 'cantidad' en vez de 'cantidad_productos')
+          const cant = parseInt(detalle.cantidad_productos) || parseInt(detalle.cantidad) || 0;
+          agrupados[key].cantidad_productos = cant;
+          
           // Aseguramos que id_orden esté presente para el template si faltaba
           agrupados[key].id_orden = orderId;
           
@@ -296,7 +299,8 @@ export default {
           
           // Solo sumar la cantidad si NO hemos procesado este ítem (reposición o orden) para este grupo
           if (!processedItems.has(`${key}|${uniqueItemId}`)) {
-             agrupados[key].cantidad_productos = (parseInt(agrupados[key].cantidad_productos) || 0) + (parseInt(detalle.cantidad_productos) || 0);
+             const cant = parseInt(detalle.cantidad_productos) || parseInt(detalle.cantidad) || 0;
+             agrupados[key].cantidad_productos = (parseInt(agrupados[key].cantidad_productos) || 0) + cant;
              processedItems.add(`${key}|${uniqueItemId}`);
           }
            // Nota: Si es la misma orden normal repetida (mismo uniqueItemId), NO sumamos, lo cual es correcto (mostramos el total de la orden una sola vez)
