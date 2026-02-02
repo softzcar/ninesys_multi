@@ -50,7 +50,7 @@
                 </template>
 
                 <template #cell(cantidad_productos)="data">
-                  {{ data.item.cantidad_productos }}
+                  {{ data.item.cantidad_productos !== undefined ? data.item.cantidad_productos : 'Undef' }}
                 </template>
 
                 <template #cell(id_orden)="data">
