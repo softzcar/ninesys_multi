@@ -270,19 +270,21 @@ export default {
 
         let key = orderId;
 
-        // Si es reposición, crear una clave única para no agrupar con la orden original
+        // Si es reposición, crear una clave única para agrupar TODAS las reposiciones de esa orden
         if (detalle.id_reposicion && detalle.id_reposicion > 0) {
-          key = `${orderId}_repo_${detalle.id_reposicion}`;
+          key = `${orderId}_repos`;
         }
 
         if (!agrupados[key]) {
           agrupados[key] = { ...detalle };
           agrupados[key].pago = parseFloat(detalle.pago) || 0;
+          agrupados[key].cantidad_productos = parseInt(detalle.cantidad_productos) || 0;
           // Aseguramos que id_orden esté presente para el template si faltaba
           agrupados[key].id_orden = orderId;
 
         } else {
           agrupados[key].pago += parseFloat(detalle.pago) || 0;
+          agrupados[key].cantidad_productos = (parseInt(agrupados[key].cantidad_productos) || 0) + (parseInt(detalle.cantidad_productos) || 0);
           // Si hay otras sumatorias necesarias, agregarlas aqui
         }
       });
