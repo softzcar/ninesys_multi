@@ -49,14 +49,10 @@
                   </span>
                 </template>
 
-                <template #cell(monto_abonado)="data">
-                  <span v-if="tipoEmpleado === 'Vendedor'">
-                    ${{ formatNumber(data.item.monto_abonado) }}
-                  </span>
-                  <span v-else>
-                    ${{ formatNumber(data.item.monto_orden) }}
-                  </span>
+                <template #cell(cantidad_productos)="data">
+                  {{ data.item.cantidad_productos }}
                 </template>
+
                 <template #cell(id_orden)="data">
                   <linkSearch v-if="data.item.orden || data.item.id_orden" class="floatme"
                     :id="data.item.orden || data.item.id_orden" />
@@ -68,6 +64,9 @@
                   <span v-else class="text-muted small">Sin orden</span>
                 </template>
               </b-table>
+              <div class="text-right mb-3">
+                 <h5>Total Productos: <strong>{{ totalProductos }}</strong></h5>
+              </div>
             </b-col>
           </b-row>
 
@@ -147,10 +146,10 @@ export default {
           tdClass: "text-right",
         },
         {
-          key: "monto_abonado", // Usamos esta misma key pero cambiamos el contenido visualmente
-          label: "Monto Orden",
-          thClass: "text-right",
-          tdClass: "text-right",
+          key: "cantidad_productos",
+          label: "Cant. Productos",
+          thClass: "text-center",
+          tdClass: "text-center",
         },
       ],
     };
@@ -302,6 +301,11 @@ export default {
       return [...listaAgrupada, ...sinOrden];
     },
 
+    totalProductos() {
+      return this.detallesAgrupados.reduce((acc, item) => {
+        return acc + (parseInt(item.cantidad_productos) || 0);
+      }, 0);
+    },
 
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7);
