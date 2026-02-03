@@ -55,7 +55,7 @@
 
                 <template #cell(id_orden)="data">
                   <div v-if="tipoEmpleado === 'Diseñador'" class="d-flex align-items-center justify-content-center">
-                    <span class="font-weight-bold mr-2">#{{ data.item.orden || data.item.id_orden }}</span>
+                    <linkSearch :id="data.item.orden || data.item.id_orden" class="mr-2" />
                     <b-button v-if="data.item.url_image" size="sm" variant="outline-primary" @click="verImagen(data.item.url_image)">
                       <b-icon icon="image"></b-icon>
                     </b-button>
