@@ -348,6 +348,11 @@ export default {
       return `${day}-${month}-${year}`;
     }
   },
+  mounted() {
+    console.log("PagosVendedorResumen MOUNTED");
+    console.log("tipoEmpleado:", this.tipoEmpleado);
+    console.log("item:", this.item);
+  }
 };
 </script>
 
