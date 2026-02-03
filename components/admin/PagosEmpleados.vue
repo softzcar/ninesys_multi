@@ -164,6 +164,7 @@
 
 <script>
 import PagosConfirmacionModal from '~/components/admin/PagosConfirmacionModal.vue'
+import PrintService from '@/utils/PrintService'
 
 export default {
   components: {
@@ -477,7 +478,9 @@ export default {
         ...datosPagoCompletos
       };
 
-      // Mostrar confirmación para imprimir recibo
+      // Recargar datos INMEDIATAMENTE para que el empleado desaparezca de la lista
+      this.reloadMe(false)
+
       // Mostrar confirmación para imprimir recibo
       const imprimirRecibo = await this.$confirm(
         `<p>El pago de ${nombreEmpleado} ha sido procesado correctamente</p><p>¿Desea imprimir el recibo de pago?</p>`,
@@ -495,15 +498,13 @@ export default {
         this.imprimirReciboConComponente(nombreEmpleado)
       }
 
-      // Recargar datos
-      this.reloadMe()
-
       // Mostrar mensaje de éxito final
-      this.$fire({
+      // Mostrar mensaje de éxito final (COMENTADO: Es redundante porque el usuario ya confirmó arriba y bloquea la UI)
+      /* this.$fire({
         title: "Pago realizado",
         html: `<p>El pago de ${nombreEmpleado} ha sido procesado correctamente</p>`,
         type: "success",
-      })
+      }) */
     },
 
     onPagoError(errorMessage) {
@@ -890,8 +891,10 @@ export default {
       }
     },
 
-    reloadMe() {
-      this.overlay = true;
+    reloadMe(showOverlay = true) {
+      if (showOverlay) {
+        this.overlay = true;
+      }
       this.pagos = [];
       this.getAttributes().then(() => {
         this.getPagos().then(() => {
@@ -938,9 +941,15 @@ export default {
 
     imprimirReciboConComponente(nombreEmpleado) {
       // Buscar el empleado en los datos de resumen
-      const empleadoData = this.pagosResumenVendedores.find(emp => emp.nombre === nombreEmpleado) ||
+      let empleadoData = this.pagosResumenVendedores.find(emp => emp.nombre === nombreEmpleado) ||
                           this.pagosResumen.find(emp => emp.nombre === nombreEmpleado) ||
                           this.pagosResumenDiseno.find(emp => emp.nombre === nombreEmpleado);
+
+      // Si no se encuentra en las listas (porque ya se recargaron), usar datosUltimoPago como fallback
+      if (!empleadoData && this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
+        console.log('DEBUG RECIBO - Empleado no encontrado en lista, usando datosUltimoPago');
+        empleadoData = this.datosUltimoPago.empleado;
+      }
 
       if (!empleadoData) {
         this.$fire({
@@ -954,6 +963,8 @@ export default {
       // Determinar detalles según el tipo de empleado
       let detalles = [];
       let tipoEmpleado = '';
+      
+      // Intentar determinar tipo y detalles desde las listas actuales
       if (this.pagosResumenVendedores.some(emp => emp.nombre === nombreEmpleado)) {
         detalles = this.filterVendedor(empleadoData.id_empleado);
         tipoEmpleado = 'Vendedor';
@@ -963,6 +974,11 @@ export default {
       } else if (this.pagosResumenDiseno.some(emp => emp.nombre === nombreEmpleado)) {
         detalles = this.filterDesigner(empleadoData.id_empleado);
         tipoEmpleado = 'Diseñador';
+      } 
+      // Fallback: Usar datosUltimoPago si tenemos la info guardada
+      else if (this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
+        detalles = this.datosUltimoPago.detalles || [];
+        tipoEmpleado = this.datosUltimoPago.tipoEmpleado || 'Empleado';
       }
 
       // Usar los datos completos del último pago si están disponibles (incluyen bonos y descuentos)
@@ -974,7 +990,7 @@ export default {
       let descuentos = [];
       let totalFinal = parseFloat(empleadoData.pago);
 
-      // Si tenemos datos del último pago (con bonos y descuentos), usarlos
+      // Si tenemos datos del último pago (con bonos y descuentos), usarlos (PRIORIDAD)
       if (this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
         console.log('DEBUG RECIBO - Usando datos completos del último pago:', this.datosUltimoPago);
         salarioBase = parseFloat(this.datosUltimoPago.salarioBase || 0);
@@ -1067,7 +1083,6 @@ export default {
         </div>
       `;
 
-      // Abrir nueva ventana para impresión (mismo método que PagosVendedorResumen)
       const today = new Date();
       const day = String(today.getDate()).padStart(2, "0");
       const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -1075,36 +1090,7 @@ export default {
       const reportDate = `${day}-${month}-${year}`;
       const reportTitle = `Recibo de Pago - ${nombreEmpleado} - ${reportDate}`;
 
-      const newWindow = window.open("", "_blank", "width=800,height=600");
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>${reportTitle}</title>
-            <style>
-              @page {
-                size: portrait;
-                margin: 0.5in;
-              }
-              body {
-                font-family: Verdana, sans-serif;
-                font-size: 9pt;
-              }
-              .report-container {
-                color: #000;
-              }
-            </style>
-          </head>
-          <body>
-            ${printContent}
-          </body>
-        </html>
-      `);
-      newWindow.document.close();
-      newWindow.focus();
-      setTimeout(() => {
-        newWindow.print();
-        newWindow.close();
-      }, 250);
+      PrintService.imprimir(reportTitle, printContent);
     },
   },
 
