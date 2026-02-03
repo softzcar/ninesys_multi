@@ -276,8 +276,8 @@ export default {
         { key: 'id', label: '' }
       ],
       erroresValidacion: [],
-      modalId: `modal-confirmacion-${this.empleado.id_empleado || Math.random().toString(36).substring(2, 7)}`,
-      modalConfirmacionFinalId: `modal-confirmacion-final-${this.empleado.id_empleado || Math.random().toString(36).substring(2, 7)}`
+      modalId: `modal-confirmacion-${this.empleado.id_empleado}-${this.tipoEmpleado.replace(/\s+/g, '') || Math.random().toString(36).substring(2, 7)}`,
+      modalConfirmacionFinalId: `modal-confirmacion-final-${this.empleado.id_empleado}-${this.tipoEmpleado.replace(/\s+/g, '') || Math.random().toString(36).substring(2, 7)}`
     }
   },
 
