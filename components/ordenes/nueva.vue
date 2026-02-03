@@ -63,7 +63,7 @@
                   </b-button>
                   <b-button :disabled="disableButtons" @click="next">{{
                     nextText
-                    }}</b-button>
+                  }}</b-button>
                 </b-button-group>
               </div>
 
@@ -261,7 +261,7 @@
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
                                       data.item.producto
-                                      }}</a>
+                                    }}</a>
                                   </template>
 
                                   <template #cell(item)="data">
@@ -417,7 +417,7 @@
                                           <p class="mb-2"><strong>Tasa BCV:</strong> {{
                                             resultadoMultiplicador.tasaBCV.toFixed(2) }} Bs/$</p>
                                           <p class="mb-3"><strong>Tasa con margen ({{ multiplicador.margen
-                                              }}%):</strong> {{
+                                          }}%):</strong> {{
                                                 resultadoMultiplicador.tasaAplicada.toFixed(2) }} Bs/$</p>
                                           <hr>
                                           <h3 class="text-success mb-0">{{ resultadoMultiplicador.valorFormateado }}
@@ -698,7 +698,7 @@
                         </b-button>
                         <b-button :disabled="disableButtons" @click="next">{{
                           nextText
-                          }}</b-button>
+                        }}</b-button>
                       </b-button-group>
                     </div>
                   </div>
@@ -739,6 +739,7 @@ import phoneValidation from "~/mixins/phoneValidation.js";
 import FormMonedas from "~/components/formMonedas.vue";
 import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
 import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
+import PrintService from '@/utils/PrintService';
 
 export default {
   data() {
@@ -2454,7 +2455,8 @@ export default {
       this.abonoHistorico = 0;
       this.descuentoHistorico = 0;
       this.editingOrderId = null;
-      // this.endpoint = "/ordenes/nueva/custom"; // FIX: Reset endpoint to default
+      this.endpoint = this.categoriaDeLaORden === "custom" ? "/ordenes/nueva/custom" : "/ordenes/nueva/sport";
+      this.changeCategory();
       this.query2 = "";
       this.ordenVinculada = 0;
       this.disable1 = false;
@@ -2616,7 +2618,39 @@ export default {
           ).catch(() => false);
 
           if (wantsToPrint) {
-            await this.printOrder("reporte");
+            // Lógica de impresión con PrintService
+            const departamento = this.$store.state.login.dataUser.departamento;
+            const mostrarPrecio = (departamento === "Administración" || departamento === "Comercialización") ? "table-cell" : "none";
+
+            const styles = `
+              <style>
+                .hideMe { display: ${mostrarPrecio} !important; } 
+                .report * { font-family: Arial, Helvetica, sans-serif; } 
+                .report { padding: 2rem; } 
+                .observaciones { padding: 1.85rem; } 
+                .printMe { width: 100%; text-align: right; } 
+                .spacer { width: 100%; margin-bottom: 2rem; } 
+                .table-main, .table-products { width: 100%; } 
+                .table-main tr td, .table-products tr th td { padding: 0.25rem; } 
+                .table-products th { font-weight: bold; padding: 0.25rem; border-top: solid 1px rgb(119, 112, 112); border-bottom: solid 1px #000; } 
+                .table-products tr td { padding: 0.25rem 0.4rem; } 
+                @media print { 
+                    .table-header * { border: solid 1px #fff; } 
+                    .printMe { visibility: hidden; } 
+                    .izquierda, .derecha { width: 100% !important; display: block; } 
+                    .izquierda { text-align: left !important; } 
+                    .derecha { text-align: right !important; } 
+                    .noPrint { display: none; }
+                } 
+                .table-products { border-bottom: solid 1px #000; } 
+                @page { size: letter; } 
+              </style>
+            `;
+
+            const printContent = document.getElementById("reporte").innerHTML;
+            const title = "Orden " + (this.nextId || "Nueva");
+
+            PrintService.imprimir(title, styles + printContent);
           }
 
           this.clearForm(); // Limpiar el formulario para la siguiente orden
