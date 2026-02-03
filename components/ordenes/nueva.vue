@@ -63,7 +63,7 @@
                   </b-button>
                   <b-button :disabled="disableButtons" @click="next">{{
                     nextText
-                  }}</b-button>
+                    }}</b-button>
                 </b-button-group>
               </div>
 
@@ -261,7 +261,7 @@
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
                                       data.item.producto
-                                    }}</a>
+                                      }}</a>
                                   </template>
 
                                   <template #cell(item)="data">
@@ -417,7 +417,7 @@
                                           <p class="mb-2"><strong>Tasa BCV:</strong> {{
                                             resultadoMultiplicador.tasaBCV.toFixed(2) }} Bs/$</p>
                                           <p class="mb-3"><strong>Tasa con margen ({{ multiplicador.margen
-                                          }}%):</strong> {{
+                                              }}%):</strong> {{
                                                 resultadoMultiplicador.tasaAplicada.toFixed(2) }} Bs/$</p>
                                           <hr>
                                           <h3 class="text-success mb-0">{{ resultadoMultiplicador.valorFormateado }}
@@ -698,7 +698,7 @@
                         </b-button>
                         <b-button :disabled="disableButtons" @click="next">{{
                           nextText
-                        }}</b-button>
+                          }}</b-button>
                       </b-button-group>
                     </div>
                   </div>
@@ -2499,7 +2499,9 @@ export default {
       // CREAR OBJETO DE DATOS PARA EL ENVIO
       const data = new URLSearchParams();
       data.set("id", this.form.id);
-      data.set("id_orden_edit", this.editingOrderId);
+      if (this.editingOrderId !== null && this.editingOrderId !== undefined && this.editingOrderId !== 0) {
+        data.set("id_orden_edit", this.editingOrderId);
+      }
       data.set("vinculada", this.ordenVinculada);
       data.set("nombre", this.form.nombre);
       data.set("apellido", this.form.apellido);
