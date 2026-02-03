@@ -63,7 +63,7 @@
                   </b-button>
                   <b-button :disabled="disableButtons" @click="next">{{
                     nextText
-                    }}</b-button>
+                  }}</b-button>
                 </b-button-group>
               </div>
 
@@ -261,7 +261,7 @@
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
                                       data.item.producto
-                                      }}</a>
+                                    }}</a>
                                   </template>
 
                                   <template #cell(item)="data">
@@ -417,7 +417,7 @@
                                           <p class="mb-2"><strong>Tasa BCV:</strong> {{
                                             resultadoMultiplicador.tasaBCV.toFixed(2) }} Bs/$</p>
                                           <p class="mb-3"><strong>Tasa con margen ({{ multiplicador.margen
-                                              }}%):</strong> {{
+                                          }}%):</strong> {{
                                                 resultadoMultiplicador.tasaAplicada.toFixed(2) }} Bs/$</p>
                                           <hr>
                                           <h3 class="text-success mb-0">{{ resultadoMultiplicador.valorFormateado }}
@@ -698,7 +698,7 @@
                         </b-button>
                         <b-button :disabled="disableButtons" @click="next">{{
                           nextText
-                          }}</b-button>
+                        }}</b-button>
                       </b-button-group>
                     </div>
                   </div>
@@ -1240,6 +1240,16 @@ export default {
     manejarOrdenCargada(datosDeLaOrden) {
       // 1. Limpiar el formulario y establecer el modo de edición
       this.clearForm({ form: true, formPrint: true });
+      if (!datosDeLaOrden.orden || datosDeLaOrden.orden.length === 0) {
+        this.$fire({
+          title: "Error",
+          html: "<p>No se encontró la información detallada de la orden.</p>",
+          type: "error",
+        });
+        this.overlay = false;
+        this.disableButtons = false;
+        return;
+      }
       this.editingOrderId = datosDeLaOrden.orden[0]._id;
 
       // Actualizar el endpoint para modo edición
