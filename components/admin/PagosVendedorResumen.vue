@@ -54,11 +54,10 @@
                 </template>
 
                 <template #cell(id_orden)="data">
-                  <div v-if="tipoEmpleado === 'Diseñador'">
-                    <span class="font-weight-bold">#{{ data.item.orden || data.item.id_orden }}</span>
-                    <br>
-                    <b-button v-if="data.item.url_image" size="sm" variant="outline-primary" class="mt-1" @click="verImagen(data.item.url_image)">
-                      <b-icon icon="image"></b-icon> Ver Imagen
+                  <div v-if="tipoEmpleado === 'Diseñador'" class="d-flex align-items-center justify-content-center">
+                    <span class="font-weight-bold mr-2">#{{ data.item.orden || data.item.id_orden }}</span>
+                    <b-button v-if="data.item.url_image" size="sm" variant="outline-primary" @click="verImagen(data.item.url_image)">
+                      <b-icon icon="image"></b-icon>
                     </b-button>
                   </div>
                   <div v-else>
