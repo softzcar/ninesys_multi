@@ -160,7 +160,7 @@
       </b-form>
 
       <template #modal-footer="{ ok, cancel }">
-        <admin-pagos-vendedor-resumen
+        <pagos-vendedor-resumen
           :item="empleado"
           :detalles="detalles"
           :tipo-empleado="tipoEmpleado"
