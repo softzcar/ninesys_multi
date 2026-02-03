@@ -54,17 +54,30 @@
                 </template>
 
                 <template #cell(id_orden)="data">
-                  <linkSearch v-if="data.item.orden || data.item.id_orden" class="floatme"
-                    :id="data.item.orden || data.item.id_orden" />
-                  <span v-if="data.item.id_reposicion && data.item.id_reposicion > 0" class="badge badge-warning ml-2">
-                    Reposición
-                  </span>
-                  <diseno-viewImage v-if="data.item.orden || data.item.id_orden" class="floatme"
-                    :id="data.item.orden || data.item.id_orden" />
-                  <span v-else class="text-muted small">Sin orden</span>
+                  <div v-if="tipoEmpleado === 'Diseñador'">
+                    <span class="font-weight-bold">#{{ data.item.orden || data.item.id_orden }}</span>
+                    <br>
+                    <b-button v-if="data.item.url_image" size="sm" variant="outline-primary" class="mt-1" @click="verImagen(data.item.url_image)">
+                      <b-icon icon="image"></b-icon> Ver Imagen
+                    </b-button>
+                  </div>
+                  <div v-else>
+                    <linkSearch v-if="data.item.orden || data.item.id_orden" class="floatme"
+                      :id="data.item.orden || data.item.id_orden" />
+                    <span v-if="data.item.id_reposicion && data.item.id_reposicion > 0" class="badge badge-warning ml-2">
+                      Reposición
+                    </span>
+                    <diseno-viewImage v-if="data.item.orden || data.item.id_orden" class="floatme"
+                      :id="data.item.orden || data.item.id_orden" />
+                    <span v-else class="text-muted small">Sin orden</span>
+                  </div>
+                </template>
+
+                <template #cell(id_revision)="data">
+                   {{ data.item.id_revision }}
                 </template>
               </b-table>
-              <div class="text-right mb-3">
+              <div v-if="tipoEmpleado !== 'Diseñador'" class="text-right mb-3">
                  <h5>Total Productos: <strong>{{ totalProductosCalculado }}</strong></h5>
               </div>
             </b-col>
@@ -72,6 +85,13 @@
 
         </b-container>
       </b-overlay>
+    </b-modal>
+
+    <!-- Modal para ver imagen de diseño -->
+    <b-modal :id="modalImagenId" title="Imagen de Diseño" size="lg" hide-footer>
+      <div class="text-center">
+        <b-img :src="imagenSeleccionada" fluid alt="Diseño"></b-img>
+      </div>
     </b-modal>
 
     <!-- Componente para impresión, oculto -->
@@ -84,6 +104,7 @@
 <script>
 import mixin from "~/mixins/mixins.js";
 import ReportePagoVendedor from "~/components/reportes/ReportePagoVendedor.vue";
+import PrintService from '@/utils/PrintService'
 
 export default {
   mixins: [mixin],
@@ -123,35 +144,8 @@ export default {
       title: `${this.tipoEmpleado}: ${this.item.nombre}`,
       overlay: false,
       dataTable: [],
-      fields: [
-        {
-          key: "id_orden",
-          label: "Orden",
-          thClass: "text-center",
-          tdClass: "text-center",
-        },
-        // Eliminada columna Vendedor (redundante)
-        {
-          key: "comision_tipo",
-          label: "Tipo Pago",
-        },
-        {
-          key: "comision",
-          label: "Comisión",
-        },
-        {
-          key: "pago",
-          label: "Monto Pagado",
-          thClass: "text-right",
-          tdClass: "text-right",
-        },
-        {
-          key: "cantidad_productos",
-          label: "Cant. Productos",
-          thClass: "text-center",
-          tdClass: "text-center",
-        },
-      ],
+      modalImagenId: `modal-imagen-${Math.random().toString(36).substring(7)}`,
+      imagenSeleccionada: ''
     };
   },
 
@@ -167,66 +161,13 @@ export default {
       const employeeName = this.item.nombre;
       const reportTitle = `Reporte de Pago - ${employeeName} - ${reportDate}`;
 
-      const newWindow = window.open("", "_blank", "width=800,height=600");
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>${reportTitle}</title>
-            <style>
-              @page {
-                size: portrait;
-                margin: 0.5in;
-              }
-              body {
-                font-family: Verdana, sans-serif;
-                font-size: 9pt;
-              }
-              .report-container {
-                color: #000;
-              }
-              .report-header {
-                text-align: center;
-                margin-bottom: 1rem;
-              }
-              .report-header h1, .report-header h2 {
-                margin: 0;
-              }
-              .report-info {
-                text-align: left;
-                margin-top: 1rem;
-                display: inline-block;
-              }
-              .report-info p {
-                margin: 0.1rem 0;
-                font-size: 9pt;
-              }
-              .report-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 1rem;
-              }
-              .report-table th, .report-table td {
-                border: 1px solid #ccc;
-                padding: 2px;
-                text-align: left;
-                font-size: 8pt;
-              }
-              .report-table th {
-                background-color: #f2f2f2;
-              }
-            </style>
-          </head>
-          <body>
-            ${printContent}
-          </body>
-        </html>
-      `);
-      newWindow.document.close();
-      newWindow.focus();
-      setTimeout(() => {
-        newWindow.print();
-        newWindow.close();
-      }, 250);
+      PrintService.imprimir(reportTitle, printContent);
+    },
+
+    verImagen(url) {
+      if (!url) return;
+      this.imagenSeleccionada = url;
+      this.$bvModal.show(this.modalImagenId);
     },
 
     reloadMe() {
@@ -241,6 +182,49 @@ export default {
   },
 
   computed: {
+    fields() {
+      const baseFields = [
+        {
+          key: "id_orden",
+          label: "Orden",
+          thClass: "text-center",
+          tdClass: "text-center",
+        },
+        {
+          key: "comision_tipo",
+          label: "Tipo Pago",
+        },
+        {
+          key: "comision",
+          label: "Comisión",
+        },
+        {
+          key: "pago",
+          label: "Monto Pagado",
+          thClass: "text-right",
+          tdClass: "text-right",
+        },
+      ];
+
+      // Configuración específica para Diseñadores
+      if (this.tipoEmpleado === 'Diseñador') {
+        baseFields.splice(1, 0, {
+          key: "id_revision",
+          label: "ID Revisión",
+          thClass: "text-center",
+          tdClass: "text-center",
+        });
+      } else {
+        baseFields.push({
+          key: "cantidad_productos",
+          label: "Cant. Productos",
+          thClass: "text-center",
+          tdClass: "text-center",
+        });
+      }
+
+      return baseFields;
+    },
     datosParaElReporte() {
       return {
         nombreEmpleado: this.item.nombre,
@@ -280,6 +264,13 @@ export default {
         } else {
            // Normal Order: uniqueItemId is just orderId
            uniqueItemId = `orden_${orderId}`;
+        }
+
+        // Para diseñadores, NO agrupamos por orden si hay diferentes revisiones
+        // Cada revisión es un pago distinto. Usar id_revision como parte de la clave si existe.
+        if (this.tipoEmpleado === 'Diseñador' && detalle.id_revision) {
+           key = `${orderId}_rev_${detalle.id_revision}`;
+           uniqueItemId = `rev_${detalle.id_revision}`;
         }
 
         if (!agrupados[key]) {
