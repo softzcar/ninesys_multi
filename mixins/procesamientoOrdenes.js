@@ -16,11 +16,12 @@ export default {
         fecha_inicio: item.inicio, // Mapear 'inicio' a 'fecha_inicio'
         fecha_terminado: item.entrega, // Mapear 'entrega' a 'fecha_terminado'
         orden_fila_orden: item.orden_fila, // Mapear 'orden_fila' a 'orden_fila_orden'
+        cant_empleados: parseInt(item.cant_empleados || 0), // Nuevo: capturar cant_empleados
         // tiempo_total_orden_depto: item.tiempo_total_orden_depto || 0, // Si no existe, usar 0
         // Otras propiedades que puedan ser necesarias para procesarColaProduccion
         // y que provengan del 'item' original
         ...item // Mantener el resto de las propiedades del item original
-      }));
+      })).filter(item => parseInt(item.cant_empleados || 0) > 0);
 
       const tareasProcesadas = this.procesarColaProduccion(mappedOrdenes, horarioLaboral, fechaDeCalculo);
 
@@ -238,25 +239,25 @@ export default {
 
         // --- Procesar cada tarea en el departamento ---
         for (const tarea of tareasDepto) {
+          const fechaInicioReal = tarea.fecha_inicio ? new Date(tarea.fecha_inicio.replace(' ', 'T')) : null;
+          const fechaTerminadoReal = tarea.fecha_terminado ? new Date(tarea.fecha_terminado.replace(' ', 'T')) : null;
+
+          tarea.fecha_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
+          tarea.fecha_terminado_formateada = this.formatDateTime12h(fechaTerminadoReal);
+          tarea.tiempo_total_orden_depto_formateado = this.formatearTiempo(tarea.tiempo_total_orden_depto * 1000);
+
+          // Calculo tiempo real si existe
+          if (fechaInicioReal && fechaTerminadoReal && !isNaN(fechaInicioReal) && !isNaN(fechaTerminadoReal)) {
+            const duracionMilisegundos = fechaTerminadoReal.getTime() - fechaInicioReal.getTime();
+            tarea.tiempo_real_empleado_segundos = Math.floor(duracionMilisegundos / 1000);
+            tarea.tiempo_real_empleado_formateado = this.formatearTiempo(duracionMilisegundos);
+          } else {
+            tarea.tiempo_real_empleado_segundos = null;
+            tarea.tiempo_real_empleado_formateado = null;
+          }
+
           // Excluir ordenes pausadas de la planificación activa (se muestran pero no consumen hueco nuevo si no están en curso)
           if (tarea.status !== 'pausada') {
-            const fechaInicioReal = tarea.fecha_inicio ? new Date(tarea.fecha_inicio.replace(' ', 'T')) : null;
-            const fechaTerminadoReal = tarea.fecha_terminado ? new Date(tarea.fecha_terminado.replace(' ', 'T')) : null;
-
-            tarea.fecha_inicio_formateada = this.formatDateTime12h(fechaInicioReal);
-            tarea.fecha_terminado_formateada = this.formatDateTime12h(fechaTerminadoReal);
-            tarea.tiempo_total_orden_depto_formateado = this.formatearTiempo(tarea.tiempo_total_orden_depto * 1000);
-
-            // Calculo tiempo real si existe
-            if (fechaInicioReal && fechaTerminadoReal && !isNaN(fechaInicioReal) && !isNaN(fechaTerminadoReal)) {
-              const duracionMilisegundos = fechaTerminadoReal.getTime() - fechaInicioReal.getTime();
-              tarea.tiempo_real_empleado_segundos = Math.floor(duracionMilisegundos / 1000);
-              tarea.tiempo_real_empleado_formateado = this.formatearTiempo(duracionMilisegundos);
-            } else {
-              tarea.tiempo_real_empleado_segundos = null;
-              tarea.tiempo_real_empleado_formateado = null;
-            }
-
             // CASO 1: Tarea ya terminada
             if (fechaTerminadoReal && !isNaN(fechaTerminadoReal)) {
               tarea.fecha_estimada_inicio = fechaInicioReal;
