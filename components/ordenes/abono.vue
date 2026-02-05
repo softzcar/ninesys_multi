@@ -283,8 +283,11 @@
                     <b-form-input :disabled="inputDisabled" v-model="valueDescuentoDetalle" type="text"
                       placeholder="Detalle del descuento (Obligatorio)" class="mb-4"></b-form-input>
                   </div>
-                  <b-button :disabled="inputDisabled" class="mt-4" variant="success" block
-                    @click="hacerAbono">Abonar</b-button>
+                  <b-button :disabled="inputDisabled || isSubmitting" class="mt-4" variant="success" block
+                    @click="hacerAbono">
+                    <span v-if="!isSubmitting">Abonar</span>
+                    <span v-else><b-spinner small></b-spinner> Procesando...</span>
+                  </b-button>
                 </b-row>
               </b-col>
             </b-row>
@@ -313,6 +316,7 @@ export default {
   data() {
     return {
       inputDisabled: false,
+      isSubmitting: false, // Prevenir múltiples clics
       showSuccess: false,
       showError: false,
       errorMsg: `ERROR`,
@@ -668,6 +672,11 @@ export default {
     },
 
     hacerAbono() {
+      // Prevenir múltiples ejecuciones
+      if (this.isSubmitting) {
+        return;
+      }
+
       // Validar detalle de descuento
       if (parseFloat(this.valueDescuento) > 0 && !this.valueDescuentoDetalle) {
         this.$fire({
@@ -703,6 +712,8 @@ export default {
           type: "warning",
         });
       } else {
+        this.isSubmitting = true; // Bloquear botón
+        
         this.$confirm(
           `Verifique los datos: abono: ${tmpAbono}, descuento: ${tmpDescuento}`,
           "Abono",
@@ -713,7 +724,12 @@ export default {
             this.valueDescuento = 0;
             this.getDataAbonos();
             this.$emit("reload");
+            this.isSubmitting = false; // Desbloquear botón
+          }).catch(() => {
+            this.isSubmitting = false; // Desbloquear botón en caso de error
           });
+        }).catch(() => {
+          this.isSubmitting = false; // Desbloquear si cancela
         });
       }
     },
