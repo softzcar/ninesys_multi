@@ -375,7 +375,7 @@ export default {
           .filter((el) => el.progreso === "terminada")
           .map((obj) => ({
             ...obj,
-            calculo_pago: obj.nomto_pago,
+            calculo_pago: obj.monto_pago,
           }));
       }
     },

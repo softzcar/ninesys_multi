@@ -333,7 +333,7 @@ export default {
           .filter((el) => el.progreso === 'terminada')
           .map((obj) => ({
             ...obj,
-            calculo_pago: obj.nomto_pago,
+            calculo_pago: obj.monto_pago,
           }))
       }
     },
@@ -486,7 +486,7 @@ export default {
           }))
           this.ordenes = detailedOrders
           this.ordenesSemana = resp.data.ordenes_semana
-          this.eficienciInsumos = resp.data.eficiencia_inusmos
+          this.eficienciInsumos = resp.data.eficiencia_insumos
           this.ordenesTerminadas = resp.data.ordenes_terminadas
           this.ordenesPendientes = resp.data.ordenes_pendientes
           this.overlay = false

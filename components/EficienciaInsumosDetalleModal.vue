@@ -6,9 +6,9 @@
       <p><strong>Talla:</strong> {{ insumo.talla }}</p>
       <p><strong>Insumo:</strong> {{ insumo.nombre_insumo }}</p>
       <p><strong>Piezas:</strong> {{ insumo.cantidad_piezas }}</p>
-      <p><strong>Consumo Estimado:</strong> {{ insumo.consumo_estimado_total }}</p>
-      <p><strong>Consumo Real:</strong> {{ insumo.consumo_real_total }}</p>
-      <p><strong>Diferencia:</strong> {{ insumo.diferencia }}</p>
+      <p><strong>Consumo Estimado:</strong> {{ parseFloat(insumo.consumo_estimado_total).toFixed(2) }} m</p>
+      <p><strong>Consumo Real:</strong> {{ parseFloat(insumo.consumo_real_total).toFixed(2) }} m</p>
+      <p><strong>Diferencia:</strong> {{ parseFloat(insumo.diferencia).toFixed(2) }} m</p>
     </div>
     <div v-else>
       <p>No hay datos del insumo para mostrar.</p>

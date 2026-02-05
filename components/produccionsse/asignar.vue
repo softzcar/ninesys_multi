@@ -115,10 +115,10 @@
                                                                 ></b-icon>
                                                             </b-button> -->
 
-                              <b-form-checkbox v-model="switches[dep._id]"
+                              <!-- <b-form-checkbox v-model="switches[dep._id]"
                                 @change="postSwitch(dep._id, switches[dep._id])" calss="mt-2" switch size="lg">Habilitar
                                 selección de
-                                insumos</b-form-checkbox>
+                                insumos</b-form-checkbox> -->
                             </b-form>
                           </b-col>
                         </b-row>
@@ -786,7 +786,7 @@ export default {
       );
     },
 
-    async postSwitch(id_departamento, estado) {
+    /* async postSwitch(id_departamento, estado) {
       const data = new URLSearchParams();
       let miEstado = null;
       if (estado) {
@@ -803,7 +803,7 @@ export default {
         .then((res) => {
           this.getConfigData();
         });
-    },
+    }, */
 
     async getConfigData() {
       this.overlay = true;

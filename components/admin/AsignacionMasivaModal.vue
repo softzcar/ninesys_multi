@@ -12,13 +12,15 @@
                 </b-col>
                 <b-col md="6">
                     <b-form-group label="Cantidad Base (Talla S / Referencia):" label-for="masiva-cantidad">
-                        <b-input-group>
+                        <div class="d-flex align-items-center">
                             <b-form-input id="masiva-cantidad" type="number" v-model.number="baseQuantity"
-                                @input="calculateQuantities" placeholder="Ej: 1.0"></b-form-input>
-                            <b-input-group-append>
-                                <b-button variant="outline-primary" @click="calculateQuantities">Recalcular</b-button>
-                            </b-input-group-append>
-                        </b-input-group>
+                                @input="calculateQuantities" placeholder="Ej: 1.0" class="mr-2"></b-form-input>
+                            <b-badge :variant="useCalculation ? 'primary' : 'info'" class="p-2"
+                                style="white-space: nowrap;">
+                                <b-icon :icon="useCalculation ? 'arrow-repeat' : 'check-all'" class="mr-1"></b-icon>
+                                {{ useCalculation ? 'Recalcular' : 'Asignar Todos' }}
+                            </b-badge>
+                        </div>
                     </b-form-group>
                 </b-col>
             </b-row>
@@ -150,19 +152,25 @@ export default {
         },
 
         calculateQuantities() {
-            if (!this.useCalculation) return;
-
             const base = parseFloat(this.baseQuantity) || 0;
 
-            // Reasignar para forzar reactividad si es necesario, o usar map
-            this.localItems = this.localItems.map(item => {
-                const factor = 1 + (item.variation_percentage / 100);
-                let calculated = base * factor;
-                return {
+            if (this.useCalculation) {
+                // Cálculo automático basado en porcentajes
+                this.localItems = this.localItems.map(item => {
+                    const factor = 1 + (item.variation_percentage / 100);
+                    let calculated = base * factor;
+                    return {
+                        ...item,
+                        cantidad: parseFloat(calculated.toFixed(4))
+                    };
+                });
+            } else {
+                // Asignación manual de la misma cantidad a todos
+                this.localItems = this.localItems.map(item => ({
                     ...item,
-                    cantidad: parseFloat(calculated.toFixed(4))
-                };
-            });
+                    cantidad: base
+                }));
+            }
         },
 
         applyUnitToAll() {

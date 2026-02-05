@@ -22,9 +22,7 @@ export default {
 
   data() {
     return {
-      title: `Orden ${this.id}`,
       overlay: false,
-      statusbutton: "outline-primary",
       showResultado: false,
     };
   },
@@ -39,6 +37,17 @@ export default {
   },
 
   computed: {
+    title() {
+      return `Orden ${this.id}`;
+    },
+
+    statusbutton() {
+      if (this.progreso === "en curso") {
+        return "outline-success";
+      }
+      return "outline-primary";
+    },
+
     idModal() {
       return `${this.id}`;
     },
@@ -52,14 +61,6 @@ export default {
       return `${this.id}`;
       // return `modal-${this.id}`;
     },
-  },
-
-  mounted() {
-    if (this.progreso) {
-      if (this.progreso === "en curso") {
-        this.statusbutton = "outline-success";
-      }
-    }
   },
 
   props: ["id", "progreso"],

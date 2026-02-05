@@ -77,7 +77,28 @@
 
     <h3 class="mt-4">Insumos Asignados</h3>
 
-    <b-table class="mt-4" striped hover :fields="fields" :items="filterInsumos">
+    <div v-if="selectedItems.length > 0" class="mt-4 mb-2">
+      <b-button variant="danger" @click="deleteSelectedInsumos">
+        <b-icon icon="trash-fill"></b-icon> Eliminar Seleccionados ({{ selectedItems.length }})
+      </b-button>
+    </div>
+
+    <b-table class="mt-4" striped hover :fields="fields" :items="filterInsumos" responsive>
+      <template #head(select)>
+        <b-form-checkbox
+          @change="toggleSelectAll"
+          :checked="allSelected"
+          :indeterminate="indeterminate"
+        ></b-form-checkbox>
+      </template>
+
+      <template #cell(select)="data">
+        <b-form-checkbox
+          v-model="selectedItems"
+          :value="data.item.id_product_insumos_asignados"
+        ></b-form-checkbox>
+      </template>
+
       <template #cell(tiempo)="data">
         {{ SegundosAMinutos(data.item.tiempo) }}
       </template>
@@ -122,7 +143,6 @@ export default {
     return {
       tiempo: null,
       ButtonDisabled: false,
-      form: [],
       nuevoInsumo: "",
       overlay: false,
       savingInProgress: false,
@@ -138,7 +158,13 @@ export default {
         { value: "Gr", text: "Gramos" },
         { value: "Cm", text: "Centímetros" },
       ],
+      selectedItems: [],
       fields: [
+        {
+          key: "select",
+          label: "",
+          class: "text-center",
+        },
         {
           key: "insumo",
           label: "Insumo",
@@ -269,6 +295,14 @@ export default {
       const found = this.selectinsumos.find(i => i.value === this.selectedInsumoBase);
       return found ? found.text : "Insumo Seleccionado";
     },
+
+    allSelected() {
+      return this.filterInsumos.length > 0 && this.selectedItems.length === this.filterInsumos.length;
+    },
+
+    indeterminate() {
+      return this.selectedItems.length > 0 && this.selectedItems.length < this.filterInsumos.length;
+    },
   },
 
   methods: {
@@ -345,7 +379,66 @@ export default {
       return numero.toString().padStart(2, "0");
     },
     reloadMe() {
+      this.selectedItems = [];
       this.$emit("reload");
+    },
+
+    toggleSelectAll(checked) {
+      if (checked) {
+        this.selectedItems = this.filterInsumos.map(i => i.id_product_insumos_asignados);
+      } else {
+        this.selectedItems = [];
+      }
+    },
+
+    async deleteSelectedInsumos() {
+      try {
+        const count = this.selectedItems.length;
+        await this.$confirm(
+          `¿Desea eliminar los ${count} insumos seleccionados?`,
+          "Confirmar eliminación múltiple",
+          "question"
+        );
+
+        this.savingInProgress = true;
+        let successCount = 0;
+        let failCount = 0;
+
+        // Copiamos los IDs para trabajar con ellos
+        const idsToDelete = [...this.selectedItems];
+
+        for (const id of idsToDelete) {
+          try {
+            await this.$axios.delete(`${this.$config.API}/insumos-productos-asignados/${id}`);
+            successCount++;
+          } catch (err) {
+            console.error(`Error al eliminar insumo ID ${id}:`, err);
+            failCount++;
+          }
+        }
+
+        this.savingInProgress = false;
+        
+        if (failCount === 0) {
+          this.$fire({
+            title: "Éxito",
+            text: `Se han eliminado ${successCount} insumos correctamente.`,
+            type: "success",
+          });
+        } else {
+          this.$fire({
+            title: "Eliminación Parcial",
+            text: `Se eliminaron ${successCount} insumos, pero ${failCount} fallaron.`,
+            type: "warning",
+          });
+        }
+
+        this.reloadMe();
+
+      } catch (e) {
+        // Usuario canceló o error inesperado
+        return;
+      }
     },
 
     removeItem(index) {
@@ -615,6 +708,7 @@ export default {
     "tiemposprod",
     "item",
     "tiempoInicial",
+    "form",
   ],
 };
 </script>

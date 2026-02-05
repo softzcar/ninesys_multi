@@ -98,6 +98,16 @@ export default {
         ]);
 
         this.products = productsRes.data;
+
+        // Formatear productos para el TypeHead (estándar del sistema)
+        const productsSelect = this.products.map((product) => {
+          const id = product.cod || product._id;
+          const name = product.product || product.name;
+          const sku = product.sku || '';
+          return `${id} | ${name} - ${sku}`;
+        });
+        this.$store.commit("comerce/setDataProductosSelect", productsSelect);
+
         this.totalRows = this.products.length;
         this.departamentos = depsRes.data;
         this.tiemposProduccion = tiemposProdRes.data;

@@ -39,20 +39,22 @@
 
                 <hr />
 
-                <!-- Nuevo Selector de Empleado Inicio Reposición -->
-                <b-form-group id="input-group-empleado-inicio" label="Empleado Responsable del Error:"
-                  label-for="select-empleado-inicio" description="Seleccione el empleado que cometió el error.">
+                <!-- Selector de Empleado Donde INICIA la Reposición -->
+                <b-form-group id="input-group-empleado-inicio" label="Empleado Donde INICIA la Reposición:"
+                  label-for="select-empleado-inicio"
+                  description="Seleccione el empleado responsable del error que cometió, quien debe iniciar la corrección de la pieza.">
                   <b-form-select id="select-empleado-inicio" v-model="emp_inicio_reposicion"
                     :options="selectEmpleados"></b-form-select>
                 </b-form-group>
 
-                <!-- Nuevo Selector de Departamento para Visibilidad -->
+                <!-- Selector de Departamento donde INICIA la Reposición -->
                 <b-form-group v-if="
                   emp_inicio_reposicion &&
                   emp_inicio_reposicion !== 0 &&
                   inicioEmployeeDepartments.length > 0
-                " id="input-group-departamento-visibilidad" label="Departamento del Error:"
-                  label-for="select-departamento-visibilidad" description="Departamento donde se cometió el error.">
+                " id="input-group-departamento-visibilidad" label="Departamento Donde INICIA la Reposición:"
+                  label-for="select-departamento-visibilidad"
+                  description="Seleccione el departamento donde se cometió el error y donde la pieza debe regresar para iniciar la corrección.">
                   <b-form-select id="select-departamento-visibilidad" v-model="form.id_departamento_visibilidad"
                     :options="selectVisibilidadDepartmentOptions">
                   </b-form-select>
@@ -60,19 +62,19 @@
 
                 <hr />
 
-                <b-form-group id="input-group-empleado-fin" label="Empleado Asignado a la Reposición:"
+                <b-form-group id="input-group-empleado-fin" label="Empleado Donde TERMINA la Reposición:"
                   label-for="select-empleado"
-                  description="Seleccione el empleado que realizará el trabajo de reposición.">
+                  description="Seleccione el empleado asignado que completará el trabajo de reposición y finalizará la corrección.">
                   <b-form-select id="select-empleado" v-model="emp" :options="selectEmpleados"
                     :value="emp"></b-form-select>
                 </b-form-group>
 
-                <!-- Nuevo Selector de Departamento -->
+                <!-- Selector de Departamento donde TERMINA la Reposición -->
                 <b-form-group v-if="
                   emp && emp !== 0 && selectedEmployeeDepartments.length > 0
-                " id="input-group-departamento-reposicion-form" label="Departamento de Asignación:"
+                " id="input-group-departamento-reposicion-form" label="Departamento Donde TERMINA la Reposición:"
                   label-for="select-departamento-reposicion-form"
-                  description="Departamento donde se realizará el trabajo.">
+                  description="Seleccione el departamento donde se completará el trabajo de reposición una vez corregido el error.">
                   <b-form-select id="select-departamento-reposicion-form" v-model="form.id_departamento_asignado"
                     :options="selectDepartmentOptions"></b-form-select>
                 </b-form-group>
@@ -353,7 +355,7 @@ export default {
         );
 
         if (deptoInicio && deptoFin) {
-          
+
           /* console.log("DEBUG VALIDATION RECOVERY:", {
             inicio: deptoInicio,
             fin: deptoFin,
@@ -367,7 +369,7 @@ export default {
             deptoFin.orden_proceso !== undefined
           ) {
             /* alert(`DEBUG: Inicio(${deptoInicio.orden_proceso}) vs Fin(${deptoFin.orden_proceso})`); */
-            
+
             // Regla: El departamento del error (Inicio) debe tener un orden de proceso MAYOR o IGUAL
             // al departamento que lo corrige (Fin). Es decir, la pieza "regresa" o se queda.
             // Si Inicio < Fin, estamos enviando el error hacia adelante, lo cual es incorrecto para una reposición.
@@ -380,7 +382,7 @@ export default {
               msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
             }
           } else {
-             console.warn("DEBUG: orden_proceso field is missing or undefined");
+            console.warn("DEBUG: orden_proceso field is missing or undefined");
           }
         }
       }

@@ -187,7 +187,7 @@
                           :idlotesdetalles="row.item.id_lotes_detalles" :impresoras="impresoras" :insumosTodos="insumos"
                           :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscor="insumosCorte"
                           :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision"
-                          :datainsumos="dataInsumos" :orden_proceso_departamento="row.item.orden_proceso_departamento"
+                          :data-insumos="dataInsumos" :orden_proceso_departamento="row.item.orden_proceso_departamento"
                           tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe" />
                       </b-col>
@@ -246,7 +246,7 @@
                           " :item="row.item" :items="filterOrder(row.item.orden, 'en curso')" :esreposicion="0"
                           :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion"
                           :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza"
-                          :insumosrev="insumosRevision" :insumoscor="insumosCorte" :datainsumos="dataInsumos"
+                          :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos"
                           tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe()" :orden_proceso_departamento="row.item.orden_proceso_departamento" />
                       </b-col>
@@ -659,7 +659,7 @@ export default {
               !ordenesEnLotes.includes(el.id_orden) &&
               el.fecha_terminado == null &&
               ((el.fecha_inicio != null &&
-                el.en_tintas === 0 &&
+                /* el.en_tintas === 0 && */
                 el.en_reposiciones === 0) ||
                 el.status === 'pausada') // Include paused orders
           )
@@ -1419,8 +1419,8 @@ export default {
           products = this.ordenes.filter(
             (item) =>
               item.id_orden === id_orden &&
-              item.progreso === tipo &&
-              item.en_tintas === 0
+              item.progreso === tipo
+            /* && item.en_tintas === 0 */
           );
         } else {
           products = this.ordenes.filter(
@@ -1479,7 +1479,10 @@ export default {
         // Fetch insumos data for each order
         const insumosPromises = ordenesIds.map(idOrden =>
           this.$axios.get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
-            .then(resp => resp.data.insumos_asignados || [])
+            .then(resp => {
+              const insumos = resp.data.insumos_asignados || [];
+              return insumos.map(ins => ({ ...ins, id_orden: idOrden }));
+            })
             .catch(err => {
               console.error(`Error loading insumos for order ${idOrden}:`, err);
               return [];

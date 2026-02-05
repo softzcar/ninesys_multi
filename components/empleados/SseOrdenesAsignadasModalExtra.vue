@@ -344,11 +344,27 @@ export default {
     },
 
     dataInsumosFiltrado() {
-      // return this.$store.state.login.currentDepartamentId;
-      return this.dataInsumosComputed.filter(
-        (el) =>
-          el.id_departamento == this.$store.state.login.currentDepartamentId
-      );
+      const depName = this.$store.state.login.currentDepartament;
+      const depId = this.$store.state.login.currentDepartamentId;
+
+      return this.dataInsumosComputed.filter((el) => {
+        const isSameOrder = el.id_orden == this.idorden;
+        if (!isSameOrder) return false;
+
+        // Si es el mismo departamento ID, incluir
+        if (el.id_departamento == depId) return true;
+
+        // Lógica de departamentos hermanos (Estampado y Corte suelen compartir configuración de telas)
+        const materialDepts = ["Estampado", "Corte"];
+        if (
+          materialDepts.includes(depName) &&
+          materialDepts.includes(el.departamento)
+        ) {
+          return true;
+        }
+
+        return false;
+      });
     },
 
     getCatalogosUnicos() {
@@ -398,16 +414,11 @@ export default {
      * usando los datos de product_insumos_asignados (dataInsumos)
      */
     materialEstimadoDepartamento() {
-      if (!this.dataInsumosComputed || this.dataInsumosComputed.length === 0) {
+      if (!this.dataInsumosFiltrado || this.dataInsumosFiltrado.length === 0) {
         return { total: '0.00', unidad: 'Metros' };
       }
 
-      const currentDeptId = this.$store.state.login.currentDepartamentId;
-
-      // Filtrar por departamento actual y agrupar por id_ordenes_productos para evitar duplicados
-      const insumosDept = this.dataInsumosComputed.filter(
-        (el) => el.id_departamento == currentDeptId
-      );
+      const insumosDept = this.dataInsumosFiltrado;
 
       if (insumosDept.length === 0) {
         return { total: '0.00', unidad: 'Metros' };
@@ -447,16 +458,14 @@ export default {
      * Devuelve un array con {catalogo, total, unidad} para mostrar desglosado
      */
     materialEstimadoPorCatalogo() {
-      if (!this.dataInsumosComputed || this.dataInsumosComputed.length === 0) {
+      if (!this.dataInsumosFiltrado || this.dataInsumosFiltrado.length === 0) {
         return [];
       }
 
       const currentDeptId = this.$store.state.login.currentDepartamentId;
 
-      // Filtrar por departamento actual
-      const insumosDept = this.dataInsumosComputed.filter(
-        (el) => el.id_departamento == currentDeptId
-      );
+      // Usar los insumos ya filtrados por departamento y orden
+      const insumosDept = this.dataInsumosFiltrado;
 
       if (insumosDept.length === 0) {
         return [];
@@ -547,27 +556,38 @@ export default {
     selectOptions() {
       let myOptions = [];
       const dep = this.$store.state.login.currentDepartament;
-      switch (dep) {
-        case "Impresión":
-          myOptions = this.insumosimp;
-          break;
-        case "Estampado":
-          myOptions = this.insumosest;
-          break;
-        case "Corte":
-          myOptions = this.insumoscor;
-          break; // Corregido a insumoscor
-        case "Costura":
-          myOptions = this.insumoscos;
-          break;
-        case "Limpieza":
-          myOptions = this.insumoslim;
-          break;
-        case "Revisión":
-          myOptions = this.insumosrev;
-          break;
-        default:
-          myOptions = [];
+
+      // Lógica dinámica basada en insumosTodos filtrado por el departamento actual
+      if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
+        // Filtrar insumos que corresponden directamente al departamento
+        myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
+
+        // Casos especiales de mapeo de departamentos (Telas -> Estampado/Corte)
+        if (["Estampado", "Corte"].includes(dep)) {
+          const telInsumos = this.insumosTodos.filter(
+            (item) => item.departamento === "Telas"
+          );
+          
+          let estInsumos = [];
+          if (dep === "Corte") {
+            estInsumos = this.insumosTodos.filter(
+              (item) => item.departamento === "Estampado"
+            );
+          }
+          
+          myOptions = [...myOptions, ...telInsumos, ...estInsumos];
+        }
+
+        // Casos especiales de mapeo de departamentos (Producción -> Revisión/Limpieza)
+        if (["Revisión", "Limpieza"].includes(dep)) {
+          const prodInsumos = this.insumosTodos.filter(
+            (item) => item.departamento === "Producción"
+          );
+          myOptions = [...myOptions, ...prodInsumos];
+        }
+        
+        // Eliminar duplicados si los hay por el merge de casos especiales
+        myOptions = [...new Map(myOptions.map(item => [item._id, item])).values()];
       }
 
       let options = myOptions.map((item) => {
@@ -648,30 +668,43 @@ export default {
     },
 
     evaluateShowSelect() {
+      // Reset showSelect antes de re-evaluar
+      this.showSelect = false;
+
       if (this.$store.state.login.currentDepartament === "Impresión") {
         this.showSelect = true;
-      } else {
-        const dep = this.$store.state.login.currentDepartament;
-        // Use login.datos_personalizacion as source of truth
-        const dataSys = this.$store.state.login.datos_personalizacion || {};
-
-        const showEstampado = dataSys.sys_mostrar_rollo_en_empleado_estampado;
-        const showCorte = dataSys.sys_mostrar_rollo_en_empleado_corte;
-        const showCostura = dataSys.sys_mostrar_insumo_en_empleado_costura;
-        const showLimpieza = dataSys.sys_mostrar_insumo_en_empleado_limpieza;
-        const showRevision = dataSys.sys_mostrar_insumo_en_empleado_revision;
-
-        // Reset showSelect antes de re-evaluar
-        this.showSelect = false;
-
-        if (dep === "Estampado" && showEstampado) this.showSelect = true;
-        if (dep === "Corte" && showCorte) this.showSelect = true;
-        if (dep === "Costura" && showCostura) this.showSelect = true;
-        if (dep === "Limpieza" && showLimpieza) this.showSelect = true;
-        if (dep === "Revisión" && showRevision) this.showSelect = true;
-
-        console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
+        return;
       }
+
+      // DETECCIÓN AUTOMÁTICA: Si hay insumos estimados para esta orden y departamento, mostrar sección siempre
+      if (
+        this.materialEstimadoPorCatalogo &&
+        this.materialEstimadoPorCatalogo.length > 0
+      ) {
+        this.showSelect = true;
+        console.log(
+          "DEBUG - Modal Extra - Detección automática exitosa (Insumos encontrados)"
+        );
+        return;
+      }
+
+      // CAÍDA A CONFIGURACIÓN MANUAL: Si no hay insumos detectados, respetamos la configuración global
+      const dep = this.$store.state.login.currentDepartament;
+      const dataSys = this.$store.state.login.datos_personalizacion || {};
+
+      const showEstampado = dataSys.sys_mostrar_rollo_en_empleado_estampado;
+      const showCorte = dataSys.sys_mostrar_rollo_en_empleado_corte;
+      const showCostura = dataSys.sys_mostrar_insumo_en_empleado_costura;
+      const showLimpieza = dataSys.sys_mostrar_insumo_en_empleado_limpieza;
+      const showRevision = dataSys.sys_mostrar_insumo_en_empleado_revision;
+
+      if (dep === "Estampado" && showEstampado) this.showSelect = true;
+      if (dep === "Corte" && showCorte) this.showSelect = true;
+      if (dep === "Costura" && showCostura) this.showSelect = true;
+      if (dep === "Limpieza" && showLimpieza) this.showSelect = true;
+      if (dep === "Revisión" && showRevision) this.showSelect = true;
+
+      console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
     },
 
     reloadMe() {
@@ -1643,7 +1676,7 @@ export default {
         .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`)
         .then((res) => {
           this.eficienciaDetalles = res.data.detalles;
-          this.dataInsumosLocal = res.data.insumos_asignados;
+          this.dataInsumosLocal = (res.data.insumos_asignados || []).map(ins => ({ ...ins, id_orden: this.idorden }));
           this.eficienciaEstimada =
             res.data.total_eficiencia[0].eficiencia_estimada;
           console.log("insumos_Asigandos_Eficiencia", this.dataInsumosComputed);
@@ -1671,7 +1704,16 @@ export default {
         this.formImp.colorBlack = "";
         this.formImp.colorWhite = "";
       }
-    }
+    },
+
+    dataInsumosComputed: {
+      handler(val) {
+        if (val && val.length > 0) {
+          this.evaluateShowSelect();
+        }
+      },
+      immediate: true,
+    },
   },
 
 

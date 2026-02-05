@@ -23,12 +23,8 @@
 
     <!-- Selector de Departamento (si tiene múltiples) -->
     <div v-if="getDepartamentosEmpleadoSelect.length > 1" class="dept-selector">
-      <b-form-select
-        v-model="selectedDepartamento"
-        :options="getDepartamentosEmpleadoSelect"
-        size="sm"
-        @change="onDepartamentoChange"
-      />
+      <b-form-select v-model="selectedDepartamento" :options="getDepartamentosEmpleadoSelect" size="sm"
+        @change="onDepartamentoChange" />
     </div>
 
     <!-- Menú dinámico según departamento -->
@@ -81,7 +77,7 @@ export default {
     },
     sidebarMenuComponent() {
       if (!this.currentComponent) return null;
-      
+
       // Mapeo desde el nombre del componente del menú al sidebar correspondiente
       const componentMap = {
         'menus/menuAdmin': () => import('@/components/sidebars/SidebarAdmin.vue'),
@@ -91,7 +87,7 @@ export default {
         'menus/menuEmpleado': () => import('@/components/sidebars/SidebarEmpleado.vue'),
         'menus/menuRevision': () => import('@/components/sidebars/SidebarRevision.vue'),
       };
-      
+
       return componentMap[this.currentComponent] || null;
     },
   },
@@ -126,7 +122,7 @@ export default {
         this.$store.commit("login/setCurrentMinOrdenProcesoId", depto.orden_proceso_min);
         this.$store.commit("login/scurrentDepartament", depto.text);
         this.$store.commit("login/setCurrentComponent", depto.modulo);
-        
+
         // Redirigir a la página de inicio para evitar confusión
         // Diferentes departamentos pueden usar la misma interfaz pero con datos distintos
         if (this.$route.path !== '/') {
@@ -139,7 +135,7 @@ export default {
         .then(() => {
           this.$router.push("/logout");
         })
-        .catch(() => {});
+        .catch(() => { });
     },
   },
 };
@@ -232,7 +228,8 @@ $active-bg: rgba(23, 162, 184, 0.15);
   border-bottom: 1px solid $sidebar-border;
   background: #f8f9fa;
 
-  .custom-select, .form-control {
+  .custom-select,
+  .form-control {
     background: #fff;
     border: 1px solid #ced4da;
     color: $text-primary;

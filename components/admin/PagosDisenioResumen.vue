@@ -58,6 +58,7 @@
 
 <script>
 import ReportePagoDisenador from '~/components/reportes/ReportePagoDisenador.vue'
+import PrintService from '@/utils/PrintService'
 
 export default {
   components: {
@@ -107,68 +108,9 @@ export default {
       const year = today.getFullYear()
       const reportDate = `${day}-${month}-${year}`
       const employeeName = this.item.nombre
-      const reportTitle = `Reporte de Pago - ${employeeName} - ${reportDate}`
+      const reportTitle = `Reporte de Pago - ${employeeName} - ${reportDate}`;
 
-      const newWindow = window.open('', '_blank', 'width=800,height=600')
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>${reportTitle}</title>
-            <style>
-              @page {
-                size: portrait;
-                margin: 0.5in;
-              }
-              body {
-                font-family: Verdana, sans-serif;
-                font-size: 9pt;
-              }
-              .report-container {
-                color: #000;
-              }
-              .report-header {
-                text-align: center;
-                margin-bottom: 1rem;
-              }
-              .report-header h1, .report-header h2 {
-                margin: 0;
-              }
-              .report-info {
-                text-align: left;
-                margin-top: 1rem;
-                display: inline-block;
-              }
-              .report-info p {
-                margin: 0.1rem 0;
-                font-size: 9pt;
-              }
-              .report-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 1rem;
-              }
-              .report-table th, .report-table td {
-                border: 1px solid #ccc;
-                padding: 2px;
-                text-align: left;
-                font-size: 8pt;
-              }
-              .report-table th {
-                background-color: #f2f2f2;
-              }
-            </style>
-          </head>
-          <body>
-            ${printContent}
-          </body>
-        </html>
-      `)
-      newWindow.document.close()
-      newWindow.focus()
-      setTimeout(() => {
-        newWindow.print()
-        newWindow.close()
-      }, 250)
+      PrintService.imprimir(reportTitle, printContent)
     },
 
     reloadMe() {

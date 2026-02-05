@@ -523,7 +523,7 @@ export default {
       let total = montoDolares + montoPesos + montoBolivares;
 
       if (isNaN(total)) total = 0;
-      return total.toFixed(4);
+      return total.toFixed(2);
     },
 
     calculated() {
@@ -662,7 +662,7 @@ export default {
       }
 
       // SUMATOORIA DE TODAS LAS MONEDAS
-      newVal = (montoDolares + montoPesos + montoBolivares).toFixed(4);
+      newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
       this.form.abono = newVal;
       return newVal;
     },

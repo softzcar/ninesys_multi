@@ -1,24 +1,12 @@
 <template>
   <div>
-    <b-form
-      inline
-      class="mb-4 mt-4"
-    >
-      <b-form-group
-        id="select-empleado"
-        label-for="select-empleado"
-      >
-        <b-form-select
-          id="select-empleado"
-          :disabled="inputDisabled"
-          v-model="empleado"
-          :options="options"
-          :value="empleado"
-          class="mr-2"
-        ></b-form-select>
+    <b-form inline class="mb-4 mt-4">
+      <b-form-group id="select-empleado" label-for="select-empleado">
+        <b-form-select id="select-empleado" :disabled="inputDisabled" v-model="empleado" :options="options"
+          :value="empleado" class="mr-2" @change="asignarEmpleado"></b-form-select>
       </b-form-group>
 
-      <b-form-group id="button-group-1">
+      <!-- <b-form-group id="button-group-1">
         <b-button
           class="mr-2"
           @click="asignarEmpleado"
@@ -26,21 +14,15 @@
         >
           <b-icon icon="plus-lg"></b-icon> Añadir Empleado
         </b-button>
-      </b-form-group>
+      </b-form-group> -->
 
-      <b-form-group
-        class="mr-2"
-        id="button-group-2"
-      >
-        <b-form-checkbox
-          v-model="calculoAutomatico"
-          switch
-        >
+      <b-form-group class="mr-2" id="button-group-2">
+        <b-form-checkbox v-model="calculoAutomatico" switch>
           {{
-                        calculoAutomatico
-                            ? "Porcentaje Automático"
-                            : "Porcentaje Manual"
-                    }}
+            calculoAutomatico
+              ? "Porcentaje Automático"
+              : "Porcentaje Manual"
+          }}
         </b-form-checkbox>
       </b-form-group>
 
@@ -49,34 +31,18 @@
       </b-form-group>
     </b-form>
 
-    <b-table
-      striped
-      hover
-      :fields="fields"
-      :items="form"
-    >
+    <b-table striped hover :fields="fields" :items="form">
       <template #cell(empleado)="row">
         {{ nombreEmpleado(row.item.empleado) }}
       </template>
 
       <template #cell(comision)="row">
-        <b-form-input
-          id="input-comision"
-          v-model="row.item.comision"
-          type="number"
-          min="0"
-          step="1"
-          style="width: 100px"
-          @input="updateData($event, row.item)"
-        ></b-form-input>
+        <b-form-input id="input-comision" v-model="row.item.comision" type="number" min="0" step="1"
+          style="width: 100px" @input="updateData($event, row.item)"></b-form-input>
       </template>
 
       <template #cell(id)="row">
-        <b-button
-          variant="danger"
-          @click="deleteEmpleado(row.item.empleado, row.index)"
-          aria-label="Agregar insumo"
-        >
+        <b-button variant="danger" @click="deleteEmpleado(row.item.empleado, row.index)" aria-label="Agregar insumo">
           <b-icon icon="trash"></b-icon>
         </b-button>
       </template>
@@ -301,7 +267,11 @@ export default {
       }
     },
 
-    asignarEmpleado() {
+    asignarEmpleado(val) {
+      if (val && typeof val !== 'object') {
+        this.empleado = val
+      }
+
       if (!this.empleado || this.empleado === null) {
         this.$fire({
           title: "Seleccione un empelado",
@@ -314,6 +284,8 @@ export default {
           html: `<p></p>`,
           type: "info",
         });
+        // Reset selection if invalid
+        this.empleado = null;
       } else {
         // Actualziar tabla en la interfáz de usuario
         const random_id = this.generateRandomId();

@@ -80,6 +80,12 @@
                                                 @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>
                                         <span class="floatme">
+                                            <!-- Nuevo Componente Terminar Insumo -->
+                                            <inventario-InsumoTerminar :idInsumo="data.item._id"
+                                                :nombreInsumo="data.item.insumo" :cantidadActual="data.item.cantidad"
+                                                @reload="getInsumos" />
+                                        </span>
+                                        <span class="floatme">
                                             <b-button variant="danger" v-on:click="
                                                 deleteInsumo(data.item._id)
                                                 "><b-icon icon="trash"></b-icon>

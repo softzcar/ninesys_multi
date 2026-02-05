@@ -126,7 +126,7 @@
             :filter-included-fields="includedFields"
           >
             <template #cell(orden)="data">
-              <linkSearch :id="data.item.orden" />
+              <linkSearch :id="data.item.orden" :key="data.item.orden" />
             </template>
 
             <template #cell(fecha_inicio)="data">

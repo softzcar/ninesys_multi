@@ -336,6 +336,7 @@
 <script>
 import { mapState, mapActions, mapGetters } from "vuex";
 import mixin from "~/mixins/mixins.js";
+import PrintService from '@/utils/PrintService';
 
 export default {
   data() {
@@ -504,7 +505,12 @@ export default {
     }, */
 
     imprimir() {
-      this.printOrder("reporte");
+      // Obtener el HTML del reporte
+      const printContent = document.getElementById("reporte").outerHTML;
+      const orderId = this.resOrden.orden[0]._id;
+      const reportTitle = `Orden #${orderId}`;
+
+      PrintService.imprimir(reportTitle, printContent);
     },
 
     floatMe(val) {

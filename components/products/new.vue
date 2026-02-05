@@ -1,92 +1,41 @@
 <template>
   <div>
-    <b-button
-      id="show-btn"
-      @click="$bvModal.show('bv-modal-example')"
-    >Nuevo Producto</b-button>
+    <b-button id="show-btn" variant="primary" @click="$bvModal.show('bv-modal-example')">Nuevo Producto</b-button>
 
-    <b-modal
-      id="bv-modal-example"
-      hide-footer
-      size="md"
-      no-enforce-focus
-    >
+    <b-modal id="bv-modal-example" hide-footer size="md" no-enforce-focus>
       <template #modal-title>
         <span v-if="!assigningInsumos">Crear Nuevo Producto</span>
         <span v-else>Asignación de Insumos</span>
       </template>
-      <b-overlay
-        :show="overlay"
-        spinner-small
-      >
+      <b-overlay :show="overlay" spinner-small>
 
         <!-- Step 1: Product Creation Form -->
         <div v-if="!assigningInsumos">
-          <b-form
-            @submit.prevent="onSubmit"
-            @reset="onReset"
-            v-if="show"
-          >
-            <b-form-group
-              label="Producto:"
-              label-for="input-product"
-            >
-              <b-form-input
-                id="input-product"
-                v-model="form.product"
-                type="text"
-                placeholder="Nombre del producto"
-                required
-              ></b-form-input>
+          <b-form @submit.prevent="onSubmit" @reset="onReset" v-if="show">
+            <b-form-group label="Producto:" label-for="input-product">
+              <b-form-input id="input-product" v-model="form.product" type="text" placeholder="Nombre del producto"
+                required></b-form-input>
             </b-form-group>
 
-            <b-form-group
-              v-if="$store.state.login.dataUser.acceso"
-              label="SKU:"
-              label-for="input-sku"
-            >
-              <b-form-input
-                id="input-sku"
-                v-model="form.sku"
-                type="text"
-                placeholder="SKU del producto"
-                required
-              ></b-form-input>
+            <b-form-group v-if="$store.state.login.dataUser.acceso" label="SKU:" label-for="input-sku">
+              <b-form-input id="input-sku" v-model="form.sku" type="text" placeholder="SKU del producto"
+                required></b-form-input>
             </b-form-group>
 
-            <b-form-group
-              label="Categoría:"
-              label-for="select-category"
-            >
-              <b-form-select
-                requred
-                id="select-category"
-                v-model="form.category"
-                :options="catagoriesSelect"
-                size="sm"
-                class="mt-3"
-              ></b-form-select>
-              <b-alert
-                :show="showPriceError"
-                variant="danger"
-              >Seleccione una categoría</b-alert>
+            <b-form-group label="Categoría:" label-for="select-category">
+              <b-form-select requred id="select-category" v-model="form.category" :options="catagoriesSelect" size="sm"
+                class="mt-3"></b-form-select>
+              <b-alert :show="showPriceError" variant="danger">Seleccione una categoría</b-alert>
             </b-form-group>
 
             <b-form-group label-for="input-price">
-              <admin-AsignacionDePreciosNuevo
-                class="floatme"
-                @reload="updatePrices($event)"
-              />
+              <admin-AsignacionDePreciosNuevo class="floatme" @reload="updatePrices($event)" />
 
             </b-form-group>
 
             <b-form-group>
-              <b-form-checkbox
-                v-model="form.producto_fisico"
-                :value="1"
-                :unchecked-value="0"
-                @change="onProductoFisicoChange"
-              >
+              <b-form-checkbox v-model="form.producto_fisico" :value="1" :unchecked-value="0"
+                @change="onProductoFisicoChange">
                 Producto Físico
               </b-form-checkbox>
               <small class="text-muted">
@@ -94,42 +43,31 @@
               </small>
             </b-form-group>
 
+            <b-form-group v-if="form.producto_fisico === 1" label="Cantidad de Stock:" label-for="input-stock">
+              <b-form-input id="input-stock" v-model="form.stock_quantity" type="number"
+                placeholder="Cantidad inicial de stock" required></b-form-input>
+            </b-form-group>
+
             <b-form-group>
-              <b-form-checkbox
-                v-model="form.es_diseno"
-                :value="1"
-                :unchecked-value="0"
-                :disabled="form.producto_fisico === 1"
-              >
+              <b-form-checkbox v-model="form.es_diseno" :value="1" :unchecked-value="0"
+                :disabled="form.producto_fisico === 1">
                 Es un Diseño
               </b-form-checkbox>
               <small class="text-muted">
                 Marque esta opción si el producto es un diseño (gráfico, logotipo, etc.)
               </small>
-              <small
-                v-if="form.producto_fisico === 1"
-                class="text-warning"
-              >
+              <small v-if="form.producto_fisico === 1" class="text-warning">
                 <br />Los productos físicos no pueden ser diseños
               </small>
             </b-form-group>
 
-            <b-button
-              type="submit"
-              variant="success"
-            >Guardar</b-button>
+            <b-button type="submit" variant="success">Guardar</b-button>
           </b-form>
 
-          <div
-            v-if="form.prices.length > 0"
-            class="mt-3"
-          >
+          <div v-if="form.prices.length > 0" class="mt-3">
             <h5>Precios</h5>
             <b-list-group>
-              <b-list-group-item
-                v-for="(item, index) in form.prices"
-                :key="index"
-              >
+              <b-list-group-item v-for="(item, index) in form.prices" :key="index">
                 {{ item.price }} - {{ item.description }}
               </b-list-group-item>
             </b-list-group>
@@ -140,49 +78,31 @@
         <!-- Step 2: Insumos Assignment -->
         <div v-if="assigningInsumos">
           <div class="mb-4">
-            <b-alert
-              show
-              variant="warning"
-            >
+            <b-alert show variant="warning">
               <h3>Comisiones de productos</h3>
               <p>
-                Para que el producto a crerar esté activo en el sistema debe asignar comisiones a los departamentos para este producto.
+                Para que el producto a crerar esté activo en el sistema debe asignar comisiones a los departamentos para
+                este
+                producto.
               </p>
               <hr>
               <p class="mb-0">
-                <router-link
-                  class="nav-link"
-                  to="/comisiones-productos"
-                  custom
-                  v-slot="{ navigate }"
-                >
-                  <span
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                    role="link"
-                  >
-                    <strong>Haga Click Aqui para asignar comisiones a productos</strong>
-                  </span>
-                </router-link>
+                También debe asignar los insumos necesarios para la fabricación de este producto.
+              </p>
+              <p class="text-center mt-3">
+                <b-button variant="primary" @click="$refs.insumosAssignment.showModal()">
+                  <b-icon icon="plus-lg"></b-icon> Insumos
+                </b-button>
               </p>
             </b-alert>
 
             <p><strong>Producto:</strong> {{ form.product }}</p>
             <p><strong>SKU:</strong> {{ newlyCreatedProduct.sku }}</p>
           </div>
-          <admin-AsignacionDeInsumosAProductos
-            :item="newlyCreatedProduct"
-            :departamentos="departamentos"
-            :selectinsumos="selectInsumos"
-            :insumosasignados="[]"
-            :tiemposprod="[]"
-            @reload="handleInsumosUpdate"
-          />
-          <b-button
-            variant="primary"
-            @click="finish"
-            class="mt-3"
-          >Finalizar</b-button>
+          <admin-AsignacionDeInsumosAProductos ref="insumosAssignment" :item="newlyCreatedProduct"
+            :departamentos="departamentos" :selectinsumos="selectInsumos" :insumosasignados="[]" :tiemposprod="[]"
+            @reload="handleInsumosUpdate" style="display: none;" />
+          <b-button variant="primary" @click="finish" class="mt-3">Finalizar</b-button>
         </div>
 
       </b-overlay>
@@ -207,8 +127,9 @@ export default {
         product: "",
         sku: null,
         prices: [],
-        producto_fisico: 1, // Por defecto desactivado (físico)
+        producto_fisico: 1, // Por defecto activado (físico)
         es_diseno: 0, // Por defecto desactivado (no es diseño)
+        stock_quantity: 0,
       },
       // New state for the two-step process
       assigningInsumos: false,
@@ -236,6 +157,9 @@ export default {
       // Si se marca como producto físico, deshabilitar "Es un Diseño" y ponerlo en false
       if (this.form.producto_fisico === 1) {
         this.form.es_diseno = 0;
+      } else {
+        // Si se desactiva, poner stock en 0
+        this.form.stock_quantity = 0;
       }
     },
 
@@ -279,6 +203,7 @@ export default {
       data.set("sku", this.form.sku);
       data.set("producto_fisico", this.form.producto_fisico);
       data.set("es_diseno", this.form.es_diseno);
+      data.set("stock_quantity", this.form.stock_quantity);
 
       try {
         const res = await this.$axios.post(
@@ -294,6 +219,9 @@ export default {
             "La respuesta de la API no incluyó el producto creado con su ID."
           );
         }
+
+        // Mapear _id a cod para compatibilidad con AsignacionDeInsumosAProductos
+        this.newlyCreatedProduct.cod = this.newlyCreatedProduct._id;
 
         await this.fetchEssentialData();
         this.assigningInsumos = true;
@@ -358,8 +286,9 @@ export default {
         product: "",
         sku: null,
         prices: [],
-        producto_fisico: 0,
+        producto_fisico: 1, // Por defecto físico al resetear
         es_diseno: 0,
+        stock_quantity: 0,
       };
       // Reset new state
       this.assigningInsumos = false;
