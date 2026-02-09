@@ -1,18 +1,13 @@
 <template>
   <div>
     <div v-if="error" class="text-center p-5">
-        <b-alert show variant="danger">
-            <h4>Error al Cargar la Orden</h4>
-            <p>{{ error }}</p>
-            <b-button @click="loadOrderData" variant="primary">Reintentar</b-button>
-        </b-alert>
+      <b-alert show variant="danger">
+        <h4>Error al Cargar la Orden</h4>
+        <p>{{ error }}</p>
+        <b-button @click="loadOrderData" variant="primary">Reintentar</b-button>
+      </b-alert>
     </div>
-    <b-overlay
-      v-else
-      :show="overlay"
-      spinner-small
-      rounded="sm"
-    >
+    <b-overlay v-else :show="overlay" spinner-small rounded="sm">
       <template #overlay>
         <div class="text-center p-3 bg-white rounded">
           <b-spinner label="Cargando..."></b-spinner>
@@ -20,49 +15,63 @@
         </div>
       </template>
 
-      <div v-if="resOrden && resOrden.orden && resOrden.orden[0] && resOrden.orden[0]._id !== '0'" class="table-wrapper">
+      <div v-if="resOrden && resOrden.orden && resOrden.orden[0] && resOrden.orden[0]._id !== '0'"
+        class="table-wrapper">
         <b-row>
           <b-col class="mb-4">
-            <span
-              class="floatme"
-              style="margin-right: 0.8rem"
-            >
-              <b-button
-                variant="primary"
-                @click="imprimir"
-              >Imprimir</b-button>
+            <span class="floatme" style="margin-right: 0.8rem">
+              <b-button variant="primary" @click="imprimir">Imprimir</b-button>
             </span>
             <span class="floatme">
               <diseno-viewImage :id="orderId" />
             </span>
-            <span
-              v-if="
-                      dataUser.departamento === 'Comecialización' ||
-                      dataUser.departamento === 'Administración'
-                    "
-              class="floatme"
-            >
-              <b-button-group
-                v-if="activeCurrencies.length"
-                size="sm"
-              >
-                <b-button
-                  v-for="currency in activeCurrencies"
-                  :key="currency.moneda"
+            <span v-if="
+              dataUser.departamento === 'Comecialización' ||
+              dataUser.departamento === 'Administración'
+            " class="floatme">
+              <b-button-group v-if="activeCurrencies.length" size="sm">
+                <b-button v-for="currency in activeCurrencies" :key="currency.moneda"
                   :variant="selectedCurrency === currency.moneda ? 'primary' : 'outline-primary'"
-                  @click="handleCurrencySelection(currency)"
-                >{{ currency.mondeda_nombre }}</b-button>
+                  @click="handleCurrencySelection(currency)">{{ currency.mondeda_nombre }}</b-button>
               </b-button-group>
             </span>
           </b-col>
         </b-row>
         <b-row v-if="selectedCurrency !== 'dolar'">
           <b-col>
-            <b-alert
-              show
-              variant="info"
-              class="mt-2 pt-2 pb-2 text-center"
-            >Mostrando montos en <strong>{{ selectedCurrencyInfo.mondeda_nombre }}</strong>. Tasa de cambio referencial: 1 USD = {{ currentRate }} {{ currencySymbol }}</b-alert>
+            <b-alert show variant="info" class="mt-2 pt-2 pb-2 text-center">Mostrando montos en <strong>{{
+              selectedCurrencyInfo.mondeda_nombre }}</strong>. Tasa de cambio referencial: 1 USD = {{ currentRate }}
+              {{
+              currencySymbol }}</b-alert>
+          </b-col>
+        </b-row>
+
+        <!-- Alerts de Auditoría (solo visible para Producción y Administración) -->
+        <b-row v-if="resOrden && resOrden.auditoria && [5, 8].includes($store.state.login.currentDepartamentId)">
+          <b-col>
+            <b-alert v-if="resOrden.auditoria.accion === 'cancelada'" variant="danger" show
+              class="mt-3 mb-4 p-3 shadow-sm">
+              <div class="mb-1">
+                <strong><i class="fas fa-exclamation-triangle"></i> Orden Cancelada Manualmente</strong>
+              </div>
+              <div class="small">
+                Por: <strong>{{ resOrden.auditoria.nombre_admin }}</strong><br>
+                Fecha: {{ formatearFecha(resOrden.auditoria.fecha) }}<br>
+                Motivo: {{ resOrden.auditoria.motivo }}
+              </div>
+            </b-alert>
+
+            <b-alert v-if="resOrden.auditoria.accion === 'terminada'" variant="warning" show
+              class="mt-3 mb-4 p-3 shadow-sm">
+              <div class="mb-1">
+                <strong><i class="fas fa-exclamation-triangle"></i> Orden Terminada Manualmente</strong>
+              </div>
+              <div class="small">
+                Por: <strong>{{ resOrden.auditoria.nombre_admin }}</strong><br>
+                Fecha: {{ formatearFecha(resOrden.auditoria.fecha) }}<br>
+                Motivo: {{ resOrden.auditoria.motivo }}
+              </div>
+            </b-alert>
           </b-col>
         </b-row>
 
@@ -154,32 +163,21 @@
               <th>CORTE</th>
               <th>TELA</th>
               <th>ATRIBUTOS</th>
-              <th
-                class="hideMe"
-                v-if="
-                  dataUser.departamento === 'Comecialización' ||
-                  dataUser.departamento === 'Administración'
-                "
-                style="text-align: right"
-              >
+              <th class="hideMe" v-if="
+                dataUser.departamento === 'Comecialización' ||
+                dataUser.departamento === 'Administración'
+              " style="text-align: right">
                 PRECIO
               </th>
-              <th
-                class="hideMe"
-                v-if="
-                  dataUser.departamento === 'Comecialización' ||
-                  dataUser.departamento === 'Administración'
-                "
-                style="text-align: right"
-              >
+              <th class="hideMe" v-if="
+                dataUser.departamento === 'Comecialización' ||
+                dataUser.departamento === 'Administración'
+              " style="text-align: right">
                 TOTAL
               </th>
 
               <template v-for="product in resOrden.productos">
-                <tr
-                  class="row-product"
-                  :key="product._id"
-                >
+                <tr class="row-product" :key="product._id">
                   <!-- <td style="text-align: right">
                                         {{ index + 1 }}
                                     </td> -->
@@ -196,31 +194,24 @@
                   <td>{{ product.corte }}</td>
                   <td>{{ product.tela }}</td>
                   <td>
-                    <ul v-if="productAttributesMap[product.cod] && productAttributesMap[product.cod].length" style="padding-left: 15px; margin-bottom: 0; list-style-type: disc;">
+                    <ul v-if="productAttributesMap[product.cod] && productAttributesMap[product.cod].length"
+                      style="padding-left: 15px; margin-bottom: 0; list-style-type: disc;">
                       <li v-for="(attr, index) in productAttributesMap[product.cod]" :key="index">
                         {{ attr.attribute_value.split('(')[0].trim() }}
                       </li>
                     </ul>
                     <span v-else>N/A</span>
                   </td>
-                  <td
-                    class="hideMe"
-                    v-if="
-                      dataUser.departamento === 'Comecialización' ||
-                      dataUser.departamento === 'Administración'
-                    "
-                    style="text-align: right"
-                  >
+                  <td class="hideMe" v-if="
+                    dataUser.departamento === 'Comecialización' ||
+                    dataUser.departamento === 'Administración'
+                  " style="text-align: right">
                     {{ currencySymbol }} {{ convertAndFormat(product.precio) }}
                   </td>
-                  <td
-                    class="hideMe"
-                    v-if="
-                      dataUser.departamento === 'Comecialización' ||
-                      dataUser.departamento === 'Administración'
-                    "
-                    style="text-align: right"
-                  >
+                  <td class="hideMe" v-if="
+                    dataUser.departamento === 'Comecialización' ||
+                    dataUser.departamento === 'Administración'
+                  " style="text-align: right">
                     {{ currencySymbol }}
                     {{
                       convertAndFormat(
@@ -239,14 +230,10 @@
               </h2>
             </div>
 
-            <div
-              class="spacer hideMe derecha"
-              v-if="
-                dataUser.departamento === 'Comecialización' ||
-                dataUser.departamento === 'Administración'
-              "
-              style="width: 100% !important"
-            >
+            <div class="spacer hideMe derecha" v-if="
+              dataUser.departamento === 'Comecialización' ||
+              dataUser.departamento === 'Administración'
+            " style="width: 100% !important">
               <h2>
                 ABONO:
                 {{ currencySymbol }} {{ convertAndFormat(resOrden.orden[0].pago_abono) }}
@@ -261,8 +248,8 @@
                 {{
                   convertAndFormat(
                     montoTotalOrden(resOrden.productos) -
-                      resOrden.orden[0].pago_descuento -
-                      resOrden.orden[0].pago_abono
+                    resOrden.orden[0].pago_descuento -
+                    resOrden.orden[0].pago_abono
                   )
                 }}
               </h2>
@@ -300,7 +287,7 @@
                   showdelete="false"
                   :idorden="resOrden.orden[0]._id"
                 />-->
-              </div> 
+              </div>
 
               <!-- <div class="observaciones">
                                 <h3 style="text-transform: uppercase">
@@ -314,10 +301,7 @@
                     <p style="margin-top: 0.5rem; font-size: 0.9rem;">Cargando observaciones...</p>
                   </div>
                 </template>
-                <div
-                  class="spacer observaciones"
-                  v-html="observaciones"
-                ></div>
+                <div class="spacer observaciones" v-html="observaciones"></div>
               </b-overlay>
             </div>
           </b-col>
@@ -325,9 +309,10 @@
         <div id="toprint"></div>
       </div>
       <div v-else-if="!overlay">
-          <b-alert show variant="info" class="order-not-found-alert">
-              <strong>Orden no encontrada.</strong> No se ha podido encontrar la orden con el número <strong>{{ orderId }}</strong>. Por favor, verifique el número e inténtelo de nuevo.
-          </b-alert>
+        <b-alert show variant="info" class="order-not-found-alert">
+          <strong>Orden no encontrada.</strong> No se ha podido encontrar la orden con el número <strong>{{ orderId
+            }}</strong>. Por favor, verifique el número e inténtelo de nuevo.
+        </b-alert>
       </div>
     </b-overlay>
   </div>
@@ -432,29 +417,29 @@ export default {
     ...mapActions("buscar", ["getOrden", "getObservaciones"]),
 
     loadOrderData() {
-        this.$store.commit("buscar/clearData");
+      this.$store.commit("buscar/clearData");
 
-        this.overlay = true;
-        this.error = null;
-        this.overlayObservaciones = true;
+      this.overlay = true;
+      this.error = null;
+      this.overlayObservaciones = true;
 
       this.getOrden(this.orderId).then(() => {
         // this.getImagenAprobada(this.orderId)
+      })
+        .catch((err) => {
+          console.error('Error al buscar la orden:', err);
+          this.error = 'No se pudieron cargar los datos de la orden. Por favor, inténtelo de nuevo más tarde.';
         })
-          .catch((err) => {
-            console.error('Error al buscar la orden:', err);
-            this.error = 'No se pudieron cargar los datos de la orden. Por favor, inténtelo de nuevo más tarde.';
-          })
-          .finally(() => {
-            this.overlay = false;
-          });
+        .finally(() => {
+          this.overlay = false;
+        });
 
-        this.getImagenAprobada(this.orderId);
+      this.getImagenAprobada(this.orderId);
 
-        this.getObservaciones(this.orderId)
-          .then(() => {
-            this.overlayObservaciones = false;
-          });
+      this.getObservaciones(this.orderId)
+        .then(() => {
+          this.overlayObservaciones = false;
+        });
     },
 
     handleCurrencySelection(currency) {
@@ -552,6 +537,17 @@ export default {
       }
 
       return f;
+    },
+
+    formatearFecha(fecha) {
+      if (!fecha) return 'N/A';
+      const date = new Date(fecha);
+      const dia = String(date.getDate()).padStart(2, '0');
+      const mes = String(date.getMonth() + 1).padStart(2, '0');
+      const anio = date.getFullYear();
+      const horas = String(date.getHours()).padStart(2, '0');
+      const minutos = String(date.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
     },
 
     async getOrdenNow() {
