@@ -20,7 +20,7 @@
         <h5>Registro de Consumo de Material por Orden</h5>
 
         <!-- Lista de órdenes -->
-        <b-row v-for="(orden, index) in ordenes" :key="orden.id_orden" 
+        <b-row v-for="(orden, index) in ordenesDeduplicadas" :key="orden.id_orden" 
           v-if="debeMostrarOrden(orden.id_orden)" class="mb-3 align-items-center">
           <b-col md="12">
             <b-card border-variant="dark" shadow-sm>
@@ -28,8 +28,8 @@
                 <b-col md="4">
                   <div class="d-flex flex-column">
                     <strong>#{{ orden.id_orden }} - {{ orden.cliente_nombre }}</strong>
-                    <small v-if="orden.tela_vendedor" class="text-primary font-weight-bold mt-1">
-                      <b-icon icon="info-circle-fill"></b-icon> Tela: {{ orden.tela_vendedor }}
+                    <small v-if="orden.tela_vendedor_unificada" class="text-primary font-weight-bold mt-1">
+                      <b-icon icon="info-circle-fill"></b-icon> Tela: {{ orden.tela_vendedor_unificada }}
                     </small>
                   </div>
                 </b-col>
@@ -239,6 +239,25 @@ export default {
         });
       });
     },
+    ordenesDeduplicadas() {
+      if (!this.ordenes || this.ordenes.length === 0) return [];
+      const map = new Map();
+      this.ordenes.forEach(o => {
+        if (!map.has(o.id_orden)) {
+          map.set(o.id_orden, { 
+            ...o, 
+            telas_vendedor_list: new Set() 
+          });
+        }
+        if (o.tela_vendedor) {
+          map.get(o.id_orden).telas_vendedor_list.add(o.tela_vendedor);
+        }
+      });
+      return Array.from(map.values()).map(o => ({
+        ...o,
+        tela_vendedor_unificada: Array.from(o.telas_vendedor_list).join(', ')
+      }));
+    }
   },
   methods: {
     calcularEstimado(idOrden) {
