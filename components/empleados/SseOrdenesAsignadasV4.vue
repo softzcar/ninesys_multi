@@ -1143,7 +1143,16 @@ export default {
       }
 
       this.loteParaFinalizar = lote
-      this.ordenesParaFinalizar = lote.ordenes
+      this.ordenesParaFinalizar = lote.ordenes.map(lo => {
+        // Buscar todos los productos de esta orden en la lista de tareas asignadas
+        const fullOrders = this.ordenes.filter(o => o.id_orden === lo.id_orden);
+        // Recoger todas las telas únicas de los productos de esta orden
+        const telas = [...new Set(fullOrders.filter(o => o.tela_vendedor).map(o => o.tela_vendedor))];
+        return {
+          ...lo,
+          tela_vendedor: telas.join(', ')
+        };
+      });
       // Detectar si es un lote de reposiciones (si alguna orden tiene en_reposiciones === 1)
       this.esReposicionParaFinalizar = lote.ordenes.some(o => o.en_reposiciones === 1 || o.esreposicion === true)
       const depto = this.$store.state.login.currentDepartament

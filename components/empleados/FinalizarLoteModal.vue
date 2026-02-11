@@ -14,6 +14,20 @@
           </b-col>
         </b-row>
 
+        <b-row v-if="telasDelLote.length > 0" class="mb-3">
+          <b-col>
+            <b-alert show variant="light" border-variant="primary" class="text-center py-3 mb-0 shadow-sm">
+              <div class="h6 mb-2 text-uppercase font-weight-bold text-primary">
+                <b-icon icon="info-circle-fill" class="mr-1"></b-icon>
+                Material(es) del Catálogo Seleccionado(s) por Vendedor:
+              </div>
+              <div class="h4 font-weight-bold mb-0 text-dark">
+                {{ telasDelLote.join(', ') }}
+              </div>
+            </b-alert>
+          </b-col>
+        </b-row>
+
         <hr />
 
         <hr />
@@ -257,6 +271,19 @@ export default {
         ...o,
         tela_vendedor_unificada: Array.from(o.telas_vendedor_list).join(', ')
       }));
+    },
+    telasDelLote() {
+      if (!this.ordenes || this.ordenes.length === 0) return [];
+      const telas = new Set();
+      this.ordenes.forEach(o => {
+        if (o.tela_vendedor) {
+          o.tela_vendedor.split(',').forEach(t => {
+            const trimmed = t.trim();
+            if (trimmed) telas.add(trimmed);
+          });
+        }
+      });
+      return Array.from(telas);
     }
   },
   methods: {
