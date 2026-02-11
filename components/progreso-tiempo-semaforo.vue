@@ -264,6 +264,9 @@ export default {
     },
 
     ordenReactiva() {
+      // Set isLoading to false at the start to ensure it's always updated
+      this.isLoading = false;
+      
       if (!this.ordenesProyectadas2 || !this.ordenesProyectadas2.length) {
         return null;
       }
@@ -272,7 +275,6 @@ export default {
       );
 
       if (!ordenBase) {
-        this.isLoading = false; // Set isLoading to false if no order is found
         return null;
       }
 
@@ -291,7 +293,6 @@ export default {
         };
       });
 
-      this.isLoading = false; // Set isLoading to false once data is processed
       return {
         ...ordenBase,
         variant,

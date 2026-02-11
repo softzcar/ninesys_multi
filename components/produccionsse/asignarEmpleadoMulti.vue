@@ -349,7 +349,7 @@ export default {
     async deleteEmpleado(idEmpleado, index) {
       this.$confirm(
         ``,
-        `¿Desea aliminar el empleado ${this.nombreEmpleado(idEmpleado)}?`,
+        `¿Desea eliminar el empleado ${this.nombreEmpleado(idEmpleado)}?`,
         "question"
       ).then(() => {
         this.removeEmpleado(idEmpleado, index).then(() => [

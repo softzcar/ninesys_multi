@@ -1,10 +1,6 @@
 <template>
     <div>
-        <b-button
-            variant="danger"
-            @click="confirmRmove()"
-            aria-label="Eliminar insumo"
-        >
+        <b-button variant="danger" @click="confirmRmove()" aria-label="Eliminar insumo">
             <b-icon icon="trash"></b-icon>
         </b-button>
     </div>
@@ -16,7 +12,7 @@ export default {
         confirmRmove() {
             this.$confirm(
                 ``,
-                `¿desea aliminar el insumo ${this.insumo}?`,
+                `¿desea eliminar el insumo ${this.insumo}?`,
                 "question"
             ).then(() => {
                 this.removeItem();

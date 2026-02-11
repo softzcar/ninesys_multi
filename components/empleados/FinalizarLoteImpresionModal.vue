@@ -1,46 +1,39 @@
 <template>
-  <b-modal
-    v-model="show"
-    :title="`Finalizar Lote de Impresión #${loteId}`"
-    size="xl"
-    hide-footer
-    @hidden="resetAndClose"
-  >
+  <b-modal v-model="show" :title="`Finalizar Lote de Impresión #${loteId}`" size="xl" hide-footer
+    @hidden="resetAndClose">
     <b-overlay :show="overlay">
       <b-container fluid>
         <!-- Sección de Papel -->
         <h5>Registro de Consumo de Papel</h5>
         <div v-for="(papel, index) in consumoPapel" :key="papel.key">
-          <b-card class="mb-2" body-class="p-2">
-            <b-row align-v="center">
+          <b-card class="mb-3" body-class="p-3" border-variant="primary shadow-sm">
+            <b-row align-v="start">
               <b-col md="6">
-                <b-form-group :label="`Rollo de Papel #${index + 1}`" class="mb-0">
-                  <b-form-select
-                    v-model="papel.id_insumo"
-                    :options="insumosOptions"
-                  ></b-form-select>
+                <b-form-group :label="`Rollo de Papel #${index + 1}`" class="mb-3">
+                  <empleados-InsumoTypeHead v-model="papel.id_insumo" :insumos="insumos" />
                 </b-form-group>
               </b-col>
               <b-col md="4">
-                <b-form-group label="Cantidad Consumida (Metros)" class="mb-0">
-                  <b-form-input
-                    v-model.number="papel.cantidad_total"
-                    type="number"
-                    placeholder="Ej: 50.5"
-                    step="0.1"
-                  ></b-form-input>
+                <b-form-group label="Cantidad Consumida (Metros)" class="mb-3">
+                  <b-form-input v-model.number="papel.cantidad_total" type="number" placeholder="Ej: 50.5"
+                    step="0.1"></b-form-input>
                 </b-form-group>
               </b-col>
               <b-col md="2" class="text-right">
-                <b-button
-                  variant="danger"
-                  @click="removePapel(index)"
-                  :disabled="consumoPapel.length <= 1"
-                  size="sm"
-                  class="mt-4"
-                >
+                <b-button variant="outline-danger" @click="removePapel(index)" :disabled="consumoPapel.length <= 1"
+                  size="sm" class="mt-4">
                   <b-icon icon="trash"></b-icon>
                 </b-button>
+              </b-col>
+            </b-row>
+
+            <b-row v-if="ordenes.length > 1">
+              <b-col>
+                <b-form-group label="Asignar a órdenes específicas (opcional):"
+                  description="Si no se selecciona ninguna, el consumo de este rollo se repartirá entre todo el lote.">
+                  <b-form-checkbox-group v-model="papel.id_ordenes" :options="ordenesOptions"
+                    name="ordenes-asignadas-papel" switches stacked class="columns-2"></b-form-checkbox-group>
+                </b-form-group>
               </b-col>
             </b-row>
           </b-card>
@@ -57,24 +50,15 @@
 
         <!-- Sección de Tinta -->
         <h5>Registro de Consumo de Tinta</h5>
-        
+
         <!-- Iteración sobre impresoras seleccionadas -->
-        <b-card
-          v-for="(impresora, index) in impresorasSeleccionadas"
-          :key="impresora.id"
-          bg-variant="light"
-          class="mb-3"
-        >
+        <b-card v-for="(impresora, index) in impresorasSeleccionadas" :key="impresora.id" bg-variant="light"
+          class="mb-3">
           <template #header>
             <div class="d-flex justify-content-between align-items-center">
               <span><strong>Impresora {{ index + 1 }}</strong></span>
-              <b-button
-                v-if="impresorasSeleccionadas.length > 1"
-                variant="danger"
-                size="sm"
-                @click="removeImpresora(index)"
-                aria-label="Eliminar impresora"
-              >
+              <b-button v-if="impresorasSeleccionadas.length > 1" variant="danger" size="sm"
+                @click="removeImpresora(index)" aria-label="Eliminar impresora">
                 <b-icon icon="trash"></b-icon>
               </b-button>
             </div>
@@ -83,42 +67,28 @@
           <b-row>
             <b-col md="12">
               <b-form-group label="Impresora Utilizada">
-                <b-form-select
-                  v-model="impresora.id_impresora"
-                  :options="getImpresorasOptionsForIndex(index)"
-                ></b-form-select>
+                <b-form-select v-model="impresora.id_impresora"
+                  :options="getImpresorasOptionsForIndex(index)"></b-form-select>
               </b-form-group>
             </b-col>
           </b-row>
           <b-row>
             <b-col v-for="color in ['c', 'm', 'y', 'k']" :key="color">
               <b-form-group :label="color.toUpperCase()">
-                <b-form-input
-                  v-model.number="impresora[color]"
-                  type="number"
-                  step="0.1"
-                  :style="{
-                    backgroundColor: colorMap[color],
-                    color: color === 'k' || color === 'm' ? 'white' : 'black',
-                    fontWeight: 'bold'
-                  }"
-                  :disabled="!impresora.id_impresora"
-                ></b-form-input>
+                <b-form-input v-model.number="impresora[color]" type="number" step="0.1" :style="{
+                  backgroundColor: colorMap[color],
+                  color: color === 'k' || color === 'm' ? 'white' : 'black',
+                  fontWeight: 'bold'
+                }" :disabled="!impresora.id_impresora"></b-form-input>
               </b-form-group>
             </b-col>
             <b-col v-if="showWhiteInkFieldForIndex(index)">
               <b-form-group label="W">
-                <b-form-input
-                  v-model.number="impresora.w"
-                  type="number"
-                  step="0.1"
-                  :style="{
-                    backgroundColor: colorMap.w,
-                    color: 'black',
-                    fontWeight: 'bold'
-                  }"
-                  :disabled="!impresora.id_impresora"
-                ></b-form-input>
+                <b-form-input v-model.number="impresora.w" type="number" step="0.1" :style="{
+                  backgroundColor: colorMap.w,
+                  color: 'black',
+                  fontWeight: 'bold'
+                }" :disabled="!impresora.id_impresora"></b-form-input>
               </b-form-group>
             </b-col>
           </b-row>
@@ -127,12 +97,8 @@
         <!-- Botón para añadir impresora -->
         <b-row class="mb-3">
           <b-col>
-            <b-button
-              variant="info"
-              @click="addImpresora"
-              size="sm"
-              :disabled="!puedeAnadirImpresora || todasImpresorasSeleccionadas"
-            >
+            <b-button variant="info" @click="addImpresora" size="sm"
+              :disabled="!puedeAnadirImpresora || todasImpresorasSeleccionadas">
               <b-icon icon="plus"></b-icon> Añadir otra Impresora
             </b-button>
           </b-col>
@@ -149,7 +115,7 @@
               <h6><strong>Material Estimado (Sistema):</strong></h6>
               <div v-if="materialesEstimadosAgrupados.length === 1">
                 <p class="mb-2">
-                  {{ materialesEstimadosAgrupados[0].total }} {{ materialesEstimadosAgrupados[0].unidad }} 
+                  {{ materialesEstimadosAgrupados[0].total }} {{ materialesEstimadosAgrupados[0].unidad }}
                   de {{ materialesEstimadosAgrupados[0].catalogo }}
                 </p>
               </div>
@@ -164,7 +130,7 @@
               <!-- Material Utilizado y Eficiencia -->
               <div>
                 <p class="mb-2">
-                  <strong>Material Utilizado:</strong> 
+                  <strong>Material Utilizado:</strong>
                   {{ materialUtilizadoTotal }} Metros
                 </p>
 
@@ -193,13 +159,7 @@
         <!-- Botón de Finalización -->
         <b-row class="mt-4">
           <b-col>
-            <b-button
-              variant="success"
-              @click="confirmarFinalizacion"
-              :disabled="!formValid"
-              block
-              size="lg"
-            >
+            <b-button variant="success" @click="confirmarFinalizacion" :disabled="!formValid" block size="lg">
               <b-icon icon="check-all"></b-icon> Confirmar y Finalizar Lote de
               Impresión
             </b-button>
@@ -244,7 +204,14 @@ export default {
   data() {
     return {
       overlay: false,
-      consumoPapel: [{ id_insumo: null, cantidad_total: null, key: Date.now() }],
+      consumoPapel: [
+        {
+          id_insumo: null,
+          cantidad_total: null,
+          id_ordenes: [],
+          key: Date.now(),
+        },
+      ],
       // Array para múltiples impresoras
       impresorasSeleccionadas: [
         { id: 1, id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
@@ -260,6 +227,12 @@ export default {
     }
   },
   computed: {
+    ordenesOptions() {
+      return this.ordenes.map((o) => ({
+        value: o.id_orden,
+        text: `#${o.id_orden} - ${o.cliente_nombre}`,
+      }))
+    },
     insumosOptions() {
       const insumosPapel = this.insumos.filter(
         (i) => i.departamento === 'Impresión'
@@ -268,9 +241,8 @@ export default {
       const options = insumosPapel.map((insumo) => {
         return {
           value: insumo._id,
-          text: `${insumo.insumo} (Rollo: ${
-            insumo.rollo || 'N/A'
-          }) - Stock: ${insumo.cantidad} ${insumo.unidad}`,
+          text: `${insumo.insumo} (Rollo: ${insumo.rollo || 'N/A'
+            }) - Stock: ${insumo.cantidad} ${insumo.unidad}`,
         }
       })
       return [
@@ -310,7 +282,7 @@ export default {
         (p) => p.id_insumo && p.cantidad_total > 0
       )
       const tintaValida = this.impresorasSeleccionadas.every(imp => {
-        return imp.id_impresora && 
+        return imp.id_impresora &&
           (imp.c > 0 || imp.m > 0 || imp.y > 0 || imp.k > 0 || imp.w > 0)
       })
       return papelValido && tintaValida
@@ -388,6 +360,7 @@ export default {
       this.consumoPapel.push({
         id_insumo: null,
         cantidad_total: null,
+        id_ordenes: [],
         key: Date.now(),
       })
     },
@@ -400,7 +373,7 @@ export default {
     async cargarMaterialesLote() {
       console.log('🔍 cargarMaterialesLote - Iniciando...')
       console.log('ordenes prop:', this.ordenes)
-      
+
       if (!this.ordenes || this.ordenes.length === 0) {
         console.log('⚠️ No hay órdenes, saliendo...')
         this.materialesLote = []
@@ -410,7 +383,7 @@ export default {
       try {
         const idsOrdenes = this.ordenes.map(o => o.id_orden)
         console.log('📋 IDs de órdenes:', idsOrdenes)
-        
+
         const response = await this.$axios.post(
           `${this.$config.API}/ordenes/materiales-lote`,
           { id_ordenes: idsOrdenes }
@@ -494,7 +467,12 @@ export default {
     resetModal() {
       this.overlay = false
       this.consumoPapel = [
-        { id_insumo: null, cantidad_total: null, key: Date.now() },
+        {
+          id_insumo: null,
+          cantidad_total: null,
+          id_ordenes: [],
+          key: Date.now(),
+        },
       ]
       this.impresorasSeleccionadas = [
         { id: 1, id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
@@ -513,7 +491,7 @@ export default {
         .then(() => {
           this.enviarDatos()
         })
-        .catch(() => {})
+        .catch(() => { })
     },
     async enviarDatos() {
       this.overlay = true
@@ -521,6 +499,7 @@ export default {
       const consumosPapelParaEnviar = this.consumoPapel.map((p) => ({
         id_insumo: p.id_insumo,
         cantidad_total: p.cantidad_total,
+        id_ordenes: p.id_ordenes,
       }))
 
       // Mapear impresoras a formato para backend

@@ -136,10 +136,16 @@
             </b-alert>
           </div>
           <!-- INPUT DE DESPERDICIO PARA CORTE (SIEMPRE VISIBLE) -->
-          <div v-if="$store.state.login.currentDepartament === 'Corte'">
-            <p>Peso del desperdicio en kilos</p>
-            <b-form-input id="input-13" v-model="desperdicioCorte" type="number" step="0.01" min="0"
-              placeholder="Peso desperdicio" required class="mb-2"></b-form-input>
+          <div v-if="$store.state.login.currentDepartament === 'Corte'" class="mb-4">
+            <b-card bg-variant="light" border-variant="danger" class="mb-3">
+              <h6 class="text-danger font-weight-bold mb-2">
+                <b-icon icon="trash"></b-icon> Registro de Desperdicio
+              </h6>
+              <b-form-group label="Peso del desperdicio en kilos" label-size="sm" class="mb-0">
+                <b-form-input id="input-13" v-model="desperdicioCorte" type="number" step="0.01" min="0"
+                  size="lg" placeholder="Peso desperdicio (Kg)" required></b-form-input>
+              </b-form-group>
+            </b-card>
           </div>
           <!-- <div v-if="$store.state.login.currentDepartament === 'Corte'">
             <b-form-group label="Peso del desperdicio en kilos" label-for="desperdicio-corte">
@@ -160,6 +166,20 @@
           <!-- Ocultar para reposiciones porque no aplica el cálculo por pieza -->
           <div v-if="showSelect && !esReposicion" class="mb-4">
             <h5><strong>📊 Resumen de Material</strong></h5>
+            
+            <!-- INFO TELA VENDEDOR -->
+            <div v-if="item.tela_vendedor" class="mb-3">
+              <b-alert show variant="light" border-variant="primary" class="mb-0 py-2">
+                <div class="d-flex align-items-center">
+                  <b-icon icon="info-circle-fill" variant="primary" class="mr-2"></b-icon>
+                  <div>
+                    <span class="small font-weight-bold text-uppercase d-block text-primary">Tela Seleccionada por Vendedor:</span>
+                    <span class="font-weight-bold text-dark">{{ item.tela_vendedor }}</span>
+                  </div>
+                </div>
+              </b-alert>
+            </div>
+
             <b-card bg-variant="light" class="mb-3">
               <!-- Material Estimado (desglosado por catálogo si hay múltiples insumos) -->
               <div v-if="materialEstimadoPorCatalogo.length === 1">
@@ -206,42 +226,57 @@
 
           <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
           <div v-if="showSelect && materialEstimadoPorCatalogo.length > 0">
-            <b-button variant="light" @click="addItem" aria-label="Agregar insumo">
-              <b-icon icon="plus-lg"></b-icon>
-            </b-button>
-            <b-table responsive primary-key="id" :fields="campos" :items="form" small>
-              <template #cell(input)="row">
-                <div v-if="form[row.index]">
-                  <!-- Eficiencia de Insumo -->
-                  <empleados-eficienciaInsumos class="mt-4 mb-4" :idorden="idorden"
-                    :idinsumo="getId(form[row.index].select)" :datainsumos="getCatalogosUnicos"
-                    @update_catalogo="updateCatalogo(row.index, $event)" />
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0 text-muted font-weight-bold">
+                <b-icon icon="layers-half"></b-icon> Asignación de Materiales
+              </h5>
+              <b-button variant="outline-primary" @click="addItem" pill size="sm">
+                <b-icon icon="plus-circle-fill"></b-icon> Añadir Material
+              </b-button>
+            </div>
 
-                  <vue-typeahead-bootstrap @hit="loadInsumos(row.index)" :data="dataSearchInsumo" size="lg"
-                    v-model="form[row.index].select" placeholder="Buscar Insumo"
-                    @input="form[row.index].validInsumo = false" />
+            <div v-for="(itemForm, index) in form" :key="index" class="mb-3 p-3 border rounded bg-white shadow-sm position-relative">
+              <b-row class="align-items-end no-gutters">
+                <b-col md="5" class="px-2">
+                  <b-form-group label="Material" label-size="sm" class="mb-0">
+                    <!-- Eficiencia de Insumo -->
+                    <empleados-eficienciaInsumos v-if="itemForm.validInsumo" class="mb-1" :idorden="idorden"
+                      :idinsumo="getId(itemForm.select)" :datainsumos="getCatalogosUnicos"
+                      @update_catalogo="updateCatalogo(index, $event)" />
+                      
+                    <vue-typeahead-bootstrap @hit="loadInsumos(index)" :data="dataSearchInsumo" size="sm"
+                      v-model="itemForm.select" placeholder="Buscar Insumo"
+                      @input="itemForm.validInsumo = false" />
+                  </b-form-group>
+                </b-col>
 
-                  <!-- <b-form-select id="input-6" v-model="form[row.index].select"
-                                          :options="selectOptions" required></b-form-select> -->
-                  <b-form-input id="input-7" v-model="form[row.index].input" type="number" step="0.01" min="0"
-                    :placeholder="placeholderInput" required class="mt-2 mb-4"></b-form-input>
-                  <label class="mb-1 text-muted" style="margin-top: -20px; display: block; font-size: 0.9em;">
-                    {{ placeholderInput }}
-                  </label>
-                </div>
-              </template>
+                <b-col md="3" class="px-2">
+                  <b-form-group :label="getPlaceholderRow(index)" label-size="sm" class="mb-0">
+                    <b-form-input v-model.number="itemForm.input" type="number" step="0.01" min="0" 
+                      :state="itemForm.input > 0" :placeholder="getUnidadRow(index)" required></b-form-input>
+                  </b-form-group>
+                </b-col>
 
-              <template #cell(id)="row">
-                <div class="mt-4 mb-4 pt-2 d-flex align-items-center" v-if="form[row.index]">
-                  <b-button variant="danger" @click="removeItem(row.index)" aria-label="Eliminar item" class="mr-2">
-                    <b-icon icon="trash"></b-icon>
-                  </b-button>
-                  <b-form-checkbox v-model="row.item.terminar" :disabled="!row.item.validInsumo" size="lg">
-                    <span style="font-size: 14px; color: #dc3545; font-weight: bold;">Terminar Material</span>
+                <b-col md="3" class="px-2 pb-1">
+                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo" 
+                    class="small font-weight-bold text-danger">
+                    Terminar Material
                   </b-form-checkbox>
-                </div>
-              </template>
-            </b-table>
+                </b-col>
+
+                <b-col md="1" class="text-right pb-1">
+                  <b-button v-if="form.length > 1" variant="link" class="text-danger p-0" title="Eliminar fila" @click="removeItem(index)">
+                    <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
+                  </b-button>
+                </b-col>
+              </b-row>
+              
+              <div v-if="itemForm.validInsumo" class="mt-2 px-1">
+                <small class="text-muted">
+                  <b-icon icon="check-circle-fill" variant="success"></b-icon> Insumo validado correctamente
+                </small>
+              </div>
+            </div>
           </div>
 
           <b-button
@@ -295,7 +330,6 @@ export default {
       // materialUtilizado: 0,
       fields: {},
       eficienciaDetalles: [],
-      id_ordenes_productos: null,
       remanenteInput: 0,
       selectedIndexToFinish: null,
       batchItems: [],
@@ -332,6 +366,31 @@ export default {
   computed: {
     placeholderInput() {
       return 'Cantidad de Material utilizado';
+    },
+
+    getUnidadRow() {
+      return (index) => {
+        const item = this.form[index];
+        if (!item || !item.select) return '';
+        
+        // Parsear ID desde el string del typeahead "ID | Nombre ..."
+        const parts = item.select.split('|');
+        if (parts.length > 0) {
+          const id = parseInt(parts[0].trim());
+          const insumo = this.insumosTodos.find(i => i._id == id);
+          if (insumo) {
+            return insumo.tipo_insumo === 'tela' ? 'Metros' : insumo.unidad;
+          }
+        }
+        return '';
+      }
+    },
+
+    getPlaceholderRow() {
+      return (index) => {
+        const unidad = this.getUnidadRow(index);
+        return unidad ? `Cantidad (${unidad})` : 'Cantidad';
+      };
     },
 
     // Computed que combina datos del prop y datos locales del API
@@ -445,8 +504,10 @@ export default {
         unidad = value.unidad; // Tomar la última unidad (asumiendo que son iguales)
       });
 
-      // Override visual de la unidad para Estampado
-      if (this.$store.state.login.currentDepartament === 'Estampado' && unidad === 'Kg') {
+      // Override visual de la unidad para Telas (Kg -> Mt)
+      // Buscamos si alguno de los insumos filtrados es de tipo tela
+      const esTela = insumosDept.some(ins => ins.tipo_insumo === 'tela');
+      if (esTela && unidad === 'Kg') {
         unidad = 'Mt';
       }
 
@@ -508,8 +569,8 @@ export default {
       // Convertir a array y formatear totales
       return Array.from(catalogoMap.values()).map(item => {
         let unidadMostrar = item.unidad;
-        // Override visual de la unidad para Estampado
-        if (currentDeptId && this.$store.state.login.currentDepartament === 'Estampado' && unidadMostrar === 'Kg') {
+        // Override visual de la unidad para Telas (Kg -> Mt)
+        if (item.tipo_insumo === 'tela' && unidadMostrar === 'Kg') {
           unidadMostrar = 'Mt';
         }
 
@@ -544,7 +605,7 @@ export default {
 
     dataSearchInsumo() {
       return this.insumosTodos.map((el) => {
-        if (this.$store.state.login.currentDepartament === 'Estampado') {
+        if (el.tipo_insumo === 'tela') {
           const rendimiento = parseFloat(el.rendimiento) || 1;
           const availableMeters = (parseFloat(el.cantidad) * rendimiento).toFixed(2);
           return `${el._id} | ${el.insumo} ${availableMeters} Mt`;
@@ -567,14 +628,14 @@ export default {
           const telInsumos = this.insumosTodos.filter(
             (item) => item.departamento === "Telas"
           );
-          
+
           let estInsumos = [];
           if (dep === "Corte") {
             estInsumos = this.insumosTodos.filter(
               (item) => item.departamento === "Estampado"
             );
           }
-          
+
           myOptions = [...myOptions, ...telInsumos, ...estInsumos];
         }
 
@@ -585,7 +646,7 @@ export default {
           );
           myOptions = [...myOptions, ...prodInsumos];
         }
-        
+
         // Eliminar duplicados si los hay por el merge de casos especiales
         myOptions = [...new Map(myOptions.map(item => [item._id, item])).values()];
       }
@@ -1242,15 +1303,15 @@ export default {
                 if (insumoReal) {
                   let cantidadDisponible = parseFloat(insumoReal.cantidad);
 
-                  // Si es Estampado, la cantidad disponible valida (y mostrada) es en Metros
-                  if (this.$store.state.login.currentDepartament === 'Estampado') {
+                  // Si es tela, la cantidad disponible valida (y mostrada) es en Metros
+                  if (insumoReal.tipo_insumo === 'tela') {
                     const rendimiento = parseFloat(insumoReal.rendimiento) || 1;
                     cantidadDisponible = cantidadDisponible * rendimiento;
                   }
 
                   if (cantidadIngresada > cantidadDisponible) {
                     ok = false;
-                    const unidadMostrada = this.$store.state.login.currentDepartament === 'Estampado' ? 'Mt' : (insumoReal.unidad || 'Unidades');
+                    const unidadMostrada = insumoReal.tipo_insumo === 'tela' ? 'Mt' : (insumoReal.unidad || 'Unidades');
                     msg = msg + `<p>La cantidad ingresada (${cantidadIngresada} ${unidadMostrada}) para el insumo ${insumoReal.insumo} excede la disponibilidad (${cantidadDisponible.toFixed(2)} ${unidadMostrada}).</p>`;
                   }
                 }

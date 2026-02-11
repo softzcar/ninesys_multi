@@ -1,57 +1,45 @@
 <template>
-  <b-modal
-    v-model="show"
-    :title="`Finalizar Lote de Corte #${loteId}`"
-    size="xl"
-    hide-footer
-    @hidden="resetAndClose"
-  >
+  <b-modal v-model="show" :title="`Finalizar Lote de Corte #${loteId}`" size="xl" hide-footer @hidden="resetAndClose">
     <b-overlay :show="overlay">
       <b-container fluid>
         <h5>Registro de Consumo y Desperdicio de Material</h5>
 
         <!-- Lista dinámica de insumos -->
         <div v-for="(consumo, index) in consumos" :key="consumo.key">
-          <b-card class="mb-2" body-class="p-2">
-            <b-row align-v="center">
-              <b-col md="5">
-                <b-form-group :label="`Insumo #${index + 1}`" class="mb-0">
-                  <b-form-select
-                    v-model="consumo.id_insumo"
-                    :options="insumosOptions"
-                  ></b-form-select>
+          <b-card class="mb-3" body-class="p-3" border-variant="primary shadow-sm">
+            <b-row align-v="start">
+              <b-col md="12" lg="5">
+                <b-form-group :label="`Insumo #${index + 1}`" class="mb-3">
+                  <empleados-InsumoTypeHead v-model="consumo.id_insumo" :insumos="insumos" />
                 </b-form-group>
               </b-col>
-              <b-col md="3">
-                <b-form-group label="Cantidad Consumida" class="mb-0">
-                  <b-form-input
-                    v-model.number="consumo.cantidad_total"
-                    type="number"
-                    placeholder="Ej: 18.5"
-                    step="0.1"
-                  ></b-form-input>
+              <b-col md="6" lg="3">
+                <b-form-group label="Cantidad Consumida" class="mb-3">
+                  <b-form-input v-model.number="consumo.cantidad_total" type="number" placeholder="Ej: 18.5"
+                    step="0.1"></b-form-input>
                 </b-form-group>
               </b-col>
-              <b-col md="3">
-                <b-form-group label="Desperdicio (Kilos)" class="mb-0">
-                  <b-form-input
-                    v-model.number="consumo.desperdicio_total"
-                    type="number"
-                    placeholder="Ej: 1.2"
-                    step="0.1"
-                  ></b-form-input>
+              <b-col md="4" lg="3">
+                <b-form-group label="Desperdicio (Kilos)" class="mb-3">
+                  <b-form-input v-model.number="consumo.desperdicio_total" type="number" placeholder="Ej: 1.2"
+                    step="0.1"></b-form-input>
                 </b-form-group>
               </b-col>
-              <b-col md="1" class="text-right">
-                <b-button
-                  variant="danger"
-                  @click="removeInsumo(index)"
-                  :disabled="consumos.length <= 1"
-                  size="sm"
-                  class="mt-4"
-                >
+              <b-col md="2" lg="1" class="text-right">
+                <b-button variant="outline-danger" @click="removeInsumo(index)" :disabled="consumos.length <= 1"
+                  size="sm" class="mt-4">
                   <b-icon icon="trash"></b-icon>
                 </b-button>
+              </b-col>
+            </b-row>
+
+            <b-row v-if="ordenes.length > 1">
+              <b-col>
+                <b-form-group label="Asignar a órdenes específicas (opcional):"
+                  description="Si no se selecciona ninguna, el consumo se repartirá entre todo el lote.">
+                  <b-form-checkbox-group v-model="consumo.id_ordenes" :options="ordenesOptions"
+                    name="ordenes-asignadas-corte" switches stacked class="columns-2"></b-form-checkbox-group>
+                </b-form-group>
               </b-col>
             </b-row>
           </b-card>
@@ -69,13 +57,7 @@
 
         <b-row class="mt-4">
           <b-col>
-            <b-button
-              variant="success"
-              @click="confirmarFinalizacion"
-              :disabled="!formValid"
-              block
-              size="lg"
-            >
+            <b-button variant="success" @click="confirmarFinalizacion" :disabled="!formValid" block size="lg">
               <b-icon icon="check-all"></b-icon> Confirmar y Finalizar Lote de Corte
             </b-button>
           </b-col>
@@ -116,21 +98,27 @@ export default {
           id_insumo: null,
           cantidad_total: null,
           desperdicio_total: null,
+          id_ordenes: [],
           key: Date.now(),
         },
       ],
     }
   },
   computed: {
+    ordenesOptions() {
+      return this.ordenes.map((o) => ({
+        value: o.id_orden,
+        text: `#${o.id_orden} - ${o.cliente_nombre}`,
+      }))
+    },
     insumosOptions() {
       const insumosCorte = this.insumos.filter((i) => ['Telas', 'Estampado', 'Corte'].includes(i.departamento))
       if (!insumosCorte || insumosCorte.length === 0) return []
       const options = insumosCorte.map((insumo) => {
         return {
           value: insumo._id,
-          text: `${insumo.insumo} (Rollo: ${
-            insumo.rollo || 'N/A'
-          }) - Stock: ${insumo.cantidad} ${insumo.unidad}`,
+          text: `${insumo.insumo} (Rollo: ${insumo.rollo || 'N/A'
+            }) - Stock: ${insumo.cantidad} ${insumo.unidad}`,
         }
       })
       return [
@@ -154,6 +142,7 @@ export default {
         id_insumo: null,
         cantidad_total: null,
         desperdicio_total: null,
+        id_ordenes: [],
         key: Date.now(),
       })
     },
@@ -169,6 +158,7 @@ export default {
           id_insumo: null,
           cantidad_total: null,
           desperdicio_total: null,
+          id_ordenes: [],
           key: Date.now(),
         },
       ]
@@ -186,7 +176,7 @@ export default {
         .then(() => {
           this.enviarDatos()
         })
-        .catch(() => {})
+        .catch(() => { })
     },
     async enviarDatos() {
       this.overlay = true
@@ -195,6 +185,7 @@ export default {
         id_insumo: c.id_insumo,
         cantidad_total: c.cantidad_total,
         desperdicio_total: c.desperdicio_total,
+        id_ordenes: c.id_ordenes,
       }))
 
       const payload = {

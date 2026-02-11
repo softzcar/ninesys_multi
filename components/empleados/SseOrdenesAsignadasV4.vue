@@ -84,9 +84,11 @@
                     <b-list-group-item v-for="orden in lote.ordenes" :key="orden.id_orden"
                       class="d-flex align-items-center">
                       <linkSearch :id="orden.id_orden" size="sm" class="mr-3" />
-                      <span>
+                      <span class="mr-auto">
                         <strong>Orden #{{ orden.id_orden }}</strong> - {{ orden.cliente_nombre }}
                       </span>
+                      <empleados-InsumosEstimadosVista :idorden="orden.id_orden"
+                        :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
                     </b-list-group-item>
                   </b-list-group>
 
@@ -192,6 +194,11 @@
                           @reload="reloadMe" />
                       </b-col>
 
+                      <b-col cols="auto">
+                        <empleados-InsumosEstimadosVista :idorden="row.item.orden"
+                          :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                      </b-col>
+
                       <!-- ProgressBar -->
                       <b-col cols="auto">
                         <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
@@ -249,6 +256,11 @@
                           :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos"
                           tipo="todo" :idorden="row.item.orden" :id_ordenes_productos="row.item.id_ordenes_productos"
                           @reload="reloadMe()" :orden_proceso_departamento="row.item.orden_proceso_departamento" />
+                      </b-col>
+
+                      <b-col cols="auto">
+                        <empleados-InsumosEstimadosVista :idorden="row.item.orden"
+                          :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
                       </b-col>
 
                       <!-- ProgressBar (después de PAUSAR) -->
@@ -349,6 +361,11 @@
                         </b-button>
                       </b-col>
 
+                      <b-col cols="auto">
+                        <empleados-InsumosEstimadosVista :idorden="row.item.orden"
+                          :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                      </b-col>
+
                       <!-- ProgressBar (después de Iniciar Todo) -->
                       <b-col cols="auto">
                         <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
@@ -399,7 +416,7 @@
     <!-- MODAL PARA FINALIZAR LOTE -->
     <FinalizarLoteModal v-if="loteParaFinalizar" :show="showFinalizarLoteModal" :lote-id="loteParaFinalizar.id"
       :total-papel-utilizado="papelUtilizadoLote" :insumos="insumos" :ordenes="ordenesParaFinalizar"
-      @close="showFinalizarLoteModal = false" @lote-finalizado="handleLoteFinalizado" />
+      :data-insumos="dataInsumos" @close="showFinalizarLoteModal = false" @lote-finalizado="handleLoteFinalizado" />
 
     <!-- MODAL PARA FINALIZAR LOTE DE IMPRESIÓN -->
     <FinalizarLoteImpresionModal v-if="loteParaFinalizar" :show="showFinalizarImpresionModal"
@@ -1133,9 +1150,8 @@ export default {
 
       if (depto === 'Impresión') {
         this.showFinalizarImpresionModal = true
-      } else if (depto === 'Corte') {
-        this.showFinalizarCorteModal = true
       } else {
+        // Para todos los demás departamentos (incluyendo Corte), usar el modal unificado
         let papelConsumido = 0
         const ordenesIdsDelLote = lote.ordenes.map((o) => o.id_orden)
         const ordenesCompletasDelLote = this.ordenes.filter((o) =>
@@ -1536,10 +1552,25 @@ export default {
           return;
         }
 
-        // Extract IDs
-        const uniqueIds = [...new Set(itemsForEfficiency.map(o => o.orden || o.id_orden).filter(id => id))];
-        const ids = uniqueIds.join(',');
+        const empId = this.$store.state.login?.dataUser?.id_empleado;
+        const deptoId = this.$store.state.login.currentDepartamentId;
 
+        let finishedToday = [];
+        if (empId && deptoId) {
+          try {
+            const respTerminadas = await this.$axios.get(`${this.$config.API}/empleados/terminadas-hoy/${empId}/${deptoId}`);
+            finishedToday = Array.isArray(respTerminadas.data) ? respTerminadas.data : [];
+          } catch (error) {
+            console.error("Error fetching finished orders today:", error);
+          }
+        }
+
+        // Recolectar IDs de órdenes activas y terminadas hoy
+        const activePool = [...this.ordenes, ...this.reposiciones, ...this.vinculadas];
+        const activeIds = activePool.map(o => o.orden || o.id_orden).filter(id => id);
+        let uniqueIds = [...new Set([...activeIds, ...finishedToday])];
+
+        const ids = uniqueIds.join(',');
         if (!ids) {
           this.loadingEfficiency = false;
           return;
@@ -1547,7 +1578,7 @@ export default {
 
         const postData = {
           id_ordenes: uniqueIds,
-          id_empleado: this.$store.state.login?.dataUser?.id_empleado || null
+          id_empleado: empId || null
         };
 
         // Parallel requests for Manufacturing Time and Input Efficiency
@@ -1558,24 +1589,22 @@ export default {
 
         // Process Manufacturing Time
         if (timeResponse.data) {
-          const totalReal = timeResponse.data.reduce((acc, item) => acc + (item.tiempo_total_segundos || 0), 0);
-          const totalProjected = timeResponse.data.reduce((acc, item) => {
-            if ((item.tiempo_total_segundos && item.tiempo_total_segundos > 0) || item.fecha_inicio_primer_proceso) {
-              const projected = parseFloat(item.tiempo_proyectado_segundos || 0);
-              const real = parseFloat(item.tiempo_total_segundos || 0);
-              if (item.status === 'terminado' || item.prioridad === 'Completado') {
-                return acc + projected;
-              } else {
-                return acc + Math.min(real, projected);
-              }
-            }
-            return acc;
-          }, 0);
+          // Cálculos agregados usando los nuevos campos del backend
+          // Cada item (producto) puede tener tiempos en ambos estados
+          const totalRealTerminadas = timeResponse.data.reduce((acc, item) => acc + (item.totalRealTerminadas || 0), 0);
+          const totalProjectedTerminadas = timeResponse.data.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+          const totalRealEnCurso = timeResponse.data.reduce((acc, item) => acc + (item.totalRealEnCurso || 0), 0);
+          const totalProjectedEnCurso = timeResponse.data.reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
 
           this.reporteData = {
-            totalReal,
-            totalProjected,
-            totalElapsed: 0 // Simplification: we may not need exact elapsed for the bar if using real vs projected
+            totalRealTerminadas,
+            totalProjectedTerminadas,
+            totalRealEnCurso,
+            totalProjectedEnCurso,
+            // Mantener para compatibilidad
+            totalReal: totalRealTerminadas + totalRealEnCurso,
+            totalProjected: totalProjectedTerminadas + totalProjectedEnCurso,
+            totalElapsed: 0
           };
         }
 

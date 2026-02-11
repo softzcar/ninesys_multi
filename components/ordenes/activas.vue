@@ -156,6 +156,7 @@
                       :index="data.index"
                       :key="data.item.orden"
                       :data="data.item"
+                      @updated="reloadMe"
                     />
                   </div>
                   <div class="btn-acciones d-lg-none text-left">

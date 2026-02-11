@@ -12,26 +12,46 @@
         {{ text }}
       </h2>
       
-      <!-- Global Bullet Graph -->
-      <div v-if="reporteData" class="mt-3 mb-2 px-4">
+      <!-- Barra 1: Tareas Terminadas (Eficiencia Real) -->
+      <div v-if="reporteData && reporteData.totalProjectedTerminadas > 0" class="mt-3 mb-2 px-4">
          <div class="d-flex justify-content-between mb-1 small">
-            <span>Real: {{ formatSeconds(reporteData.totalReal) }}</span>
-            <span>Meta: {{ formatSeconds(reporteData.totalProjected) }}</span>
-            <span v-if="reporteData.totalElapsed" class="text-muted" style="font-size: 0.9em;">
-               (Muerto: {{ formatSeconds(Math.max(0, reporteData.totalElapsed - reporteData.totalReal)) }})
-            </span>
+            <strong style="color: #000; font-size: 14px;">✓ Tareas Completadas - Eficiencia Real:</strong>
+            <span>Tiempo Real: {{ formatSeconds(reporteData.totalRealTerminadas) }}</span>
+            <span>Meta Esperada: {{ formatSeconds(reporteData.totalProjectedTerminadas) }}</span>
          </div>
          <div class="position-relative" style="height: 20px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
             <div 
                 class="position-absolute h-100" 
-                :class="'bg-' + variant"
-                :style="{ width: bulletGraphBarWidth + '%' }"
+                :class="'bg-' + variantTerminadas"
+                :style="{ width: bulletGraphBarWidthTerminadas + '%' }"
                 style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
             ></div>
             <div 
                 class="position-absolute h-100"
                 style="width: 2px; background-color: #000; z-index: 10;"
-                :style="{ left: bulletGraphMarkerPosition + '%' }"
+                :style="{ left: bulletGraphMarkerPositionTerminadas + '%' }"
+            ></div>
+         </div>
+      </div>
+
+      <!-- Barra 2: Tareas En Curso (Progreso) -->
+      <div v-if="reporteData && reporteData.totalProjectedEnCurso > 0" class="mt-3 mb-2 px-4">
+         <div class="d-flex justify-content-between mb-1 small">
+            <strong style="color: #000; font-size: 14px;">⏳ Tareas En Progreso - Avance Actual:</strong>
+            <span>Tiempo Usado: {{ formatSeconds(reporteData.totalRealEnCurso) }}</span>
+            <span>Tiempo Total Disponible: {{ formatSeconds(reporteData.totalProjectedEnCurso) }}</span>
+         </div>
+         <div class="position-relative" style="height: 20px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+            <div 
+                class="position-absolute h-100" 
+                :class="'bg-' + variantEnCurso"
+                :style="{ width: bulletGraphBarWidthEnCurso + '%' }"
+                style="border-radius: 4px 0 0 4px; transition: width 0.5s ease;"
+            ></div>
+            <div 
+                class="position-absolute h-100"
+                style="width: 2px; background-color: #000; z-index: 10;"
+                :style="{ left: bulletGraphMarkerPositionEnCurso + '%' }"
             ></div>
          </div>
       </div>
@@ -97,6 +117,8 @@ export default {
     return {
       variant: "light",
       text: "Esperando ordenes...",
+      variantTerminadas: "light",
+      variantEnCurso: "light",
       horario: null,
       tiempoTrabajoMs: [],
       
@@ -111,7 +133,81 @@ export default {
     reporteData: {
       handler(val) {
         if (val) {
-          this.calculateEfficiencyText(val.totalReal, val.totalProjected);
+          let eficienciaTitulo = "";
+          let progresoTitulo = "";
+          let vTerm = "success";
+          let vEnc = "success";
+
+          // 1. Calcular Eficiencia (Tareas Terminadas)
+          if (val.totalProjectedTerminadas > 0 && val.totalRealTerminadas > 0) {
+            const eficiencia = (val.totalProjectedTerminadas / val.totalRealTerminadas) * 100;
+            const eficienciaRedondeada = Math.round(eficiencia);
+            eficienciaTitulo = `Eficiencia: ${eficienciaRedondeada}%`;
+            
+            if (eficiencia >= 100) vTerm = "success";
+            else if (eficiencia >= 80) vTerm = "warning";
+            else vTerm = "danger";
+            
+            this.variantTerminadas = vTerm;
+          }
+
+          // 2. Calcular Avance (Tareas En Curso)
+          if (val.totalProjectedEnCurso > 0 && val.totalRealEnCurso > 0) {
+            const progreso = (val.totalRealEnCurso / val.totalProjectedEnCurso) * 100;
+            const progresoRedondeado = Math.round(progreso);
+            progresoTitulo = `Avance: ${progresoRedondeado}%`;
+            
+            if (progreso <= 80) vEnc = "success";
+            else if (progreso <= 100) vEnc = "warning";
+            else vEnc = "danger";
+            
+            this.variantEnCurso = vEnc;
+          }
+
+          // 3. Determinar Variant General (Prioridad al estado más crítico)
+          const allVariants = [];
+          if (eficienciaTitulo) allVariants.push(vTerm);
+          if (progresoTitulo) allVariants.push(vEnc);
+
+          if (allVariants.includes("danger")) this.variant = "danger";
+          else if (allVariants.includes("warning")) this.variant = "warning";
+          else if (allVariants.includes("success")) this.variant = "success";
+          else this.variant = "light";
+
+          if (eficienciaTitulo && progresoTitulo) {
+            this.text = `✓ ${eficienciaTitulo} | ⏳ ${progresoTitulo}`;
+          } else if (eficienciaTitulo) {
+            this.text = `✓ Eficiencia Tareas Completadas: ${eficienciaTitulo.split(': ')[1]}`;
+          } else if (progresoTitulo) {
+            this.text = `⏳ Progreso Tareas En Curso: ${progresoTitulo.split(': ')[1]}`;
+          } else {
+            this.text = "Sin datos de tiempo";
+            this.variant = "light";
+          }
+
+          // Calcular variant para TAREAS TERMINADAS (eficiencia) - para la barra específica
+          if (val.totalProjectedTerminadas > 0 && val.totalRealTerminadas > 0) {
+            const eficiencia = (val.totalProjectedTerminadas / val.totalRealTerminadas) * 100;
+            if (eficiencia >= 100) {
+              this.variantTerminadas = "success";
+            } else if (eficiencia >= 80) {
+              this.variantTerminadas = "warning";
+            } else {
+              this.variantTerminadas = "danger";
+            }
+          }
+
+          // Calcular variant para TAREAS EN CURSO (progreso) - para la barra específica
+          if (val.totalProjectedEnCurso > 0 && val.totalRealEnCurso > 0) {
+            const progreso = (val.totalRealEnCurso / val.totalProjectedEnCurso) * 100;
+            if (progreso <= 80) {
+              this.variantEnCurso = "success";
+            } else if (progreso <= 100) {
+              this.variantEnCurso = "warning";
+            } else {
+              this.variantEnCurso = "danger";
+            }
+          }
         } else {
             this.text = this.isLoading ? "Calculando..." : "Sin datos de tiempo";
             this.variant = "light";
@@ -123,45 +219,6 @@ export default {
     inputEfficiencyData: {
       handler(val) {
         if (val) {
-            // Need to recalculate efficiency % based on aggregated data if not pre-calculated
-            // But wait, the parent sends aggregated totals.
-            // We can calculate the % here.
-            // Formula: (Estimado / Utilizado) * 100
-            // Note: In the original code, it was averaging efficiency per item. 
-            // Here we receive totals. Let's stick to the previous logic if possible, 
-            // but if we only get totals, we calculate overall efficiency.
-            // Let's assume the parent does the math or sends raw totals. 
-            // In the parent (V4), we will implement the same aggregation logic.
-            // So here we just calculate based on totals.
-            // Wait, previous logic: "averageEfficiency = totalEfficiency / countItems".
-            // That is mathematically different from "totalEstimado / totalReal".
-            // Example: 
-            // Item 1: 100 est / 50 real = 200%
-            // Item 2: 10 est / 100 real = 10%
-            // Avg: 105%
-            // Total: 110 est / 150 real = 73%
-            // The previous logic used AVERAGE of efficiencies.
-            // I should respect that if possible. 
-            // To make it simple and robust, let's have the parent pass the `efficiencyPercentage` directly if complex,
-            // OR pass the raw list. Pass the raw list might be too heavy? 
-            // Actually, the previous component `fetchGlobalEfficiency` did the math.
-            // I will implement the math in the parent and pass the *result text* or *percentage*?
-            // The template uses `inputEfficiencyData.totalReal` and `totalEstimado`.
-            // So I need those totals for the bar.
-            // AND I need the % for the text.
-            // Let's calculate the text here based on totals? No, that changes the logic.
-            // I'll add a prop `inputEfficiencyPercentage`?
-            // Or just make the parent calculate the text?
-            // The component has `calculateInputEfficiencyText` method.
-            // Let's keep `calculateInputEfficiencyText` but updated.
-            // I'll stick to calculating from totals for now strictly because I don't want to overcomplicate the props,
-            // UNLESS I see that the parent implementation is easy to do the average.
-            // SseOrdenesAsignadasV4 will have the logic. I can pass `averageEfficiency` as a prop too.
-            // Let's check `inputEfficiencyData` prop again. 
-            // It has { totalReal, totalEstimado, unidad }.
-            // I will calculate text from these for simplicity, effectively changing logic to "Weighted Average" (Total Est / Total Real), which is often more accurate for "Overall Efficiency".
-            // If the user complains, I can revert. But "Global Efficiency" usually means Total Output / Total Input.
-            
             if (val.totalReal > 0) {
                  const efficiency = (val.totalEstimado / val.totalReal) * 100;
                  this.calculateInputEfficiencyText(efficiency);
@@ -218,6 +275,34 @@ export default {
     inputBulletGraphColor() {
       if (!this.inputEfficiencyData) return 'bg-secondary';
       return this.inputEfficiencyData.totalReal <= this.inputEfficiencyData.totalEstimado ? 'bg-success' : 'bg-danger';
+    },
+
+    // Computed properties para Barra 1: Tareas Terminadas
+    bulletGraphMaxTerminadas() {
+      if (!this.reporteData || !this.reporteData.totalProjectedTerminadas) return 100;
+      return Math.max(this.reporteData.totalRealTerminadas, this.reporteData.totalProjectedTerminadas) * 1.2 || 100;
+    },
+    bulletGraphBarWidthTerminadas() {
+      if (!this.reporteData || !this.reporteData.totalProjectedTerminadas) return 0;
+      return (this.reporteData.totalRealTerminadas / this.bulletGraphMaxTerminadas) * 100;
+    },
+    bulletGraphMarkerPositionTerminadas() {
+      if (!this.reporteData || !this.reporteData.totalProjectedTerminadas) return 0;
+      return (this.reporteData.totalProjectedTerminadas / this.bulletGraphMaxTerminadas) * 100;
+    },
+
+    // Computed properties para Barra 2: Tareas En Curso
+    bulletGraphMaxEnCurso() {
+      if (!this.reporteData || !this.reporteData.totalProjectedEnCurso) return 100;
+      return Math.max(this.reporteData.totalRealEnCurso, this.reporteData.totalProjectedEnCurso) * 1.2 || 100;
+    },
+    bulletGraphBarWidthEnCurso() {
+      if (!this.reporteData || !this.reporteData.totalProjectedEnCurso) return 0;
+      return (this.reporteData.totalRealEnCurso / this.bulletGraphMaxEnCurso) * 100;
+    },
+    bulletGraphMarkerPositionEnCurso() {
+      if (!this.reporteData || !this.reporteData.totalProjectedEnCurso) return 0;
+      return (this.reporteData.totalProjectedEnCurso / this.bulletGraphMaxEnCurso) * 100;
     }
   },
 

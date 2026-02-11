@@ -181,7 +181,7 @@ export default {
                 },
                 {
                     key: "costo",
-                    label: "Costo",
+                    label: "Costo Total",
                     sortable: true,
                 },
                 {

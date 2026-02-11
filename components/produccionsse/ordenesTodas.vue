@@ -81,7 +81,7 @@
                                         <diseno-view-image class="floatme mb-2" :id="data.item.orden" />
                                     </div>
                                     <div class="btn-acciones">
-                                        <ordenes-editar :data="data.item" :key="data.item.orden" />
+                                        <ordenes-editar :data="data.item" :key="data.item.orden" @updated="reloadMe" />
                                     </div>
                                     <div class="btn-acciones d-lg-none text-left">
                                         <ordenes-abono
