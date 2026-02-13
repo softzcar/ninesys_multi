@@ -2,39 +2,18 @@
   <b-overlay :show="overlay2" spinner-small>
     <b-row>
       <b-col cols="9">
-        <admin-pagos-empleados-terminar
-          @reload="reloadMe"
-          :totalCancelado="totalCancelado"
-          :pagosResumen="pagosResumen"
-          :pagosResumenVendedores="pagosResumenVendedores"
-          :pagosResumenDiseno="pagosResumenDiseno"
-          :fechaConsultaInicio="form.fechaConsultaInicio"
-          :fechaConsultaFin="form.fechaConsultaFin"
-        />
+        <admin-pagos-empleados-terminar @reload="reloadMe" :totalCancelado="totalCancelado" :pagosResumen="pagosResumen"
+          :pagosResumenVendedores="pagosResumenVendedores" :pagosResumenDiseno="pagosResumenDiseno"
+          :fechaConsultaInicio="form.fechaConsultaInicio" :fechaConsultaFin="form.fechaConsultaFin" />
       </b-col>
       <b-col cols="3">
         <b-form @submit="onSubmit">
-          <b-form-group
-            id="input-group-1"
-            label="Fecha inicio:"
-            label-for="fecha-1"
-          >
-            <b-form-datepicker
-              id="fecha-1"
-              v-model="form.fechaConsultaInicio"
-              class="mb-2"
-            ></b-form-datepicker>
+          <b-form-group id="input-group-1" label="Fecha inicio:" label-for="fecha-1">
+            <b-form-datepicker id="fecha-1" v-model="form.fechaConsultaInicio" class="mb-2"></b-form-datepicker>
           </b-form-group>
 
-          <b-form-group
-            id="input-group-2"
-            label="Fecha fin:"
-            label-for="fecha-2"
-          >
-            <b-form-datepicker
-              v-model="form.fechaConsultaFin"
-              class="mb-2"
-            ></b-form-datepicker>
+          <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
+            <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
           </b-form-group>
           <b-button type="submit" variant="primary">Buscar pagos</b-button>
         </b-form>
@@ -50,24 +29,11 @@
         </b-row>
 
         <h3 class="mb-4">Vendedores</h3>
-        <b-table
-          responsive
-          small
-          striped
-          :items="pagosResumenVendedores"
-          :fields="fields"
-        >
+        <b-table responsive small striped :items="pagosResumenVendedores" :fields="fields">
           <template #cell(nombre)="data">
-            <pagos-confirmacion-modal
-              :empleado="data.item"
-              :total-base="data.item.pago"
-              :tipo-empleado="'Vendedor'"
-              :detalles="filterVendedor(data.item.id_empleado)"
-              :salario-calculado="data.item.monto_salario"
-              :comision-calculada="data.item.monto_comision"
-              @pago-exitoso="onPagoExitoso"
-              @pago-error="onPagoError"
-            />
+            <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago" :tipo-empleado="'Vendedor'"
+              :detalles="filterVendedor(data.item.id_empleado)" :salario-calculado="data.item.monto_salario"
+              :comision-calculada="data.item.monto_comision" @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
           </template>
 
           <template #cell(pago)="data">
@@ -87,24 +53,11 @@
     <b-row>
       <b-col class="mt-4">
         <h3 class="mb-4">Empleados</h3>
-        <b-table
-          responsive
-          small
-          striped
-          :items="pagosResumen"
-          :fields="fields"
-        >
+        <b-table responsive small striped :items="pagosResumen" :fields="fields">
           <template #cell(nombre)="data">
-            <pagos-confirmacion-modal
-              :empleado="data.item"
-              :total-base="data.item.pago"
-              :tipo-empleado="'Empleado'"
-              :detalles="filterEmpleado(data.item.id_empleado)"
-              :salario-calculado="data.item.monto_salario"
-              :comision-calculada="data.item.monto_comision"
-              @pago-exitoso="onPagoExitoso"
-              @pago-error="onPagoError"
-            />
+            <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago" :tipo-empleado="'Empleado'"
+              :detalles="filterEmpleado(data.item.id_empleado)" :salario-calculado="data.item.monto_salario"
+              :comision-calculada="data.item.monto_comision" @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
           </template>
 
           <template #cell(pago)="data">
@@ -125,24 +78,11 @@
     <b-row>
       <b-col class="mt-4">
         <h3 class="mb-4">Diseñadores</h3>
-        <b-table
-          responsive
-          small
-          striped
-          :items="pagosResumenDiseno"
-          :fields="fields"
-        >
+        <b-table responsive small striped :items="pagosResumenDiseno" :fields="fields">
           <template #cell(nombre)="data">
-            <pagos-confirmacion-modal
-              :empleado="data.item"
-              :total-base="data.item.pago"
-              :tipo-empleado="'Diseñador'"
-              :detalles="filterDesigner(data.item.id_empleado)"
-              :salario-calculado="data.item.monto_salario"
-              :comision-calculada="data.item.monto_comision"
-              @pago-exitoso="onPagoExitoso"
-              @pago-error="onPagoError"
-            />
+            <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago" :tipo-empleado="'Diseñador'"
+              :detalles="filterDesigner(data.item.id_empleado)" :salario-calculado="data.item.monto_salario"
+              :comision-calculada="data.item.monto_comision" @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
           </template>
 
           <template #cell(pago)="data">
@@ -254,18 +194,20 @@ export default {
 
             // Calcular salario según período
             const empleado = this.empleados.find(emp => emp._id == curr.id_empleado);
-            const fechaReferencia = this.form.fechaConsultaFin ? new Date(this.form.fechaConsultaFin) : new Date();
+            // Asegurar que la fecha sea válida si no hay selección
+            const fechaString = this.form.fechaConsultaFin || "";
+            const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
             // Determinar el tipo de pago según salario_tipo
             let totalPago = 0;
             const tipoSalario = empleado?.salario_tipo || 'No configurado';
-            
+
             // Incluir salario solo si el tipo lo permite
             if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
               totalPago += salarioPago;
             }
-            
+
             // Incluir comisión solo si el tipo lo permite
             if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
               totalPago += comisionPago;
@@ -287,7 +229,7 @@ export default {
             const tipoSalario = acc[index].salario_tipo;
             acc[index].cantidad += parseInt(curr.cantidad);
             acc[index].monto_comision += comisionPago; // Acumular comisión
-            
+
             // Solo sumar comisión al pago si el tipo lo permite
             if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
               acc[index].pago += comisionPago;
@@ -311,7 +253,9 @@ export default {
           if (index === -1) {
             // Calcular salario para vendedores
             const empleado = this.empleados.find(emp => emp._id == curr.id_empleado);
-            const fechaReferencia = this.form.fechaConsultaFin ? new Date(this.form.fechaConsultaFin) : new Date();
+            // Asegurar que la fecha sea válida si no hay selección
+            const fechaString = this.form.fechaConsultaFin || "";
+            const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
 
@@ -319,29 +263,29 @@ export default {
             // Determinar el tipo de pago según salario_tipo
             let totalPago = 0;
             const tipoSalario = empleado?.salario_tipo || 'No configurado';
-            
+
             // Reglas de negocio Estrictas para Vendedores:
-            
+
             // 1. Salario: Solo recibe salario base
             if (tipoSalario === 'Salario') {
-                totalPago += salarioPago;
-                // No sumamos comisiones
+              totalPago += salarioPago;
+              // No sumamos comisiones
             }
             // 2. Comisión: Solo recibe comisiones
             else if (tipoSalario === 'Comisión') {
-                const comisionPago = parseFloat(curr.pago) || 0;
-                if (comisionPago > 0) {
-                    totalPago += comisionPago;
-                }
-                // No sumamos salario
+              const comisionPago = parseFloat(curr.pago) || 0;
+              if (comisionPago > 0) {
+                totalPago += comisionPago;
+              }
+              // No sumamos salario
             }
             // 3. Salario más Comisión: Recibe ambos
             else if (tipoSalario === 'Salario más Comisión') {
-                totalPago += salarioPago;
-                const comisionPago = parseFloat(curr.pago) || 0;
-                if (comisionPago > 0) {
-                    totalPago += comisionPago;
-                }
+              totalPago += salarioPago;
+              const comisionPago = parseFloat(curr.pago) || 0;
+              if (comisionPago > 0) {
+                totalPago += comisionPago;
+              }
             }
             // Caso por defecto (No configurado u otro): Comportamiento seguro
             // Podríamos decidir no pagar nada o asumir solo comisiones.
@@ -351,9 +295,9 @@ export default {
             // Para seguridad, si no tiene tipo, no pagamos salario, ¿pagamos comisión?
             // El código original decía || 'No configurado'.
             else {
-                 // Fallback: Si no tiene tipo, tratamos como 'Comisión' (solo lo que viene en el pago)
-                 const comisionPago = parseFloat(curr.pago) || 0;
-                 totalPago += comisionPago;
+              // Fallback: Si no tiene tipo, tratamos como 'Comisión' (solo lo que viene en el pago)
+              const comisionPago = parseFloat(curr.pago) || 0;
+              totalPago += comisionPago;
             }
 
             // Calculamos monto_comision para mostrar en el desglose, AUNQUE no se sume al pago total
@@ -362,10 +306,10 @@ export default {
             // O mejor: monto_comision es lo que viene de la API, pero 'pago' es lo que realmente se paga.
             // Pero el desglose en el modal usa item.monto_comision. Si mostramos $5.52 pero no lo sumamos, el usuario preguntará por qué.
             // Así que si es 'Salario', monto_comision debe ser 0 para el reporte.
-            
+
             let comisionParaRegistro = parseFloat(curr.pago) || 0;
             if (tipoSalario === 'Salario') {
-                comisionParaRegistro = 0;
+              comisionParaRegistro = 0;
             }
 
             acc.push({
@@ -375,25 +319,25 @@ export default {
               salario_tipo: tipoSalario,
               pago: totalPago,
               monto_salario: salarioPago,
-              monto_comision: comisionParaRegistro, 
+              monto_comision: comisionParaRegistro,
             });
           } else {
             const tipoSalario = acc[index].salario_tipo;
             const comisionPago = parseFloat(curr.pago) || 0;
-            
+
             // Acumulamos dependiendo del tipo
-             if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
-                acc[index].monto_comision += comisionPago;
-                acc[index].pago += comisionPago;
-             } else if (tipoSalario === 'Salario') {
-                // Si es Salario, NO sumamos comisión al pago TOTAL
-                // Y tampoco al monto_comision visible (para que coincida el desglose)
-                // acc[index].monto_comision += comisionPago; // <--- NO
-             } else {
-                // Caso fallback
-                acc[index].monto_comision += comisionPago;
-                acc[index].pago += comisionPago;
-             }
+            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
+              acc[index].monto_comision += comisionPago;
+              acc[index].pago += comisionPago;
+            } else if (tipoSalario === 'Salario') {
+              // Si es Salario, NO sumamos comisión al pago TOTAL
+              // Y tampoco al monto_comision visible (para que coincida el desglose)
+              // acc[index].monto_comision += comisionPago; // <--- NO
+            } else {
+              // Caso fallback
+              acc[index].monto_comision += comisionPago;
+              acc[index].pago += comisionPago;
+            }
           }
           return acc;
         }, []);
@@ -415,18 +359,20 @@ export default {
           if (index === -1) {
             // Calcular salario para diseñadores
             const empleado = this.empleados.find(emp => emp._id === curr.id_empleado);
-            const fechaReferencia = this.form.fechaConsultaFin ? new Date(this.form.fechaConsultaFin) : new Date();
+            // Asegurar que la fecha sea válida si no hay selección
+            const fechaString = this.form.fechaConsultaFin || "";
+            const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
             const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
 
             // Determinar el tipo de pago según salario_tipo
             let totalPago = 0;
             const tipoSalario = empleado?.salario_tipo || 'No configurado';
-            
+
             // Incluir salario solo si el tipo lo permite
             if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
               totalPago += salarioPago;
             }
-            
+
             // Incluir comisión solo si el tipo lo permite
             const comisionPago = parseFloat(curr.pago) || 0;
             if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
@@ -451,7 +397,7 @@ export default {
             const comisionPago = parseFloat(curr.pago) || 0;
             acc[index].cantidad += 1;
             acc[index].monto_comision += comisionPago; // Acumular comisión
-            
+
             // Solo sumar comisión al pago si el tipo lo permite
             if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
               acc[index].pago += comisionPago;
@@ -487,8 +433,8 @@ export default {
         "Pago realizado",
         "success",
         {
-            confirmButtonText: "Sí, imprimir",
-            cancelButtonText: "No, gracias"
+          confirmButtonText: "Sí, imprimir",
+          cancelButtonText: "No, gracias"
         }
       )
 
@@ -521,14 +467,17 @@ export default {
       }
 
       const ultimaSemana = empleado.ultima_semana_pagada;
+      const ultimoAnio = empleado.ultimo_anio_pagado;
       const periodo = empleado.salario_periodo;
 
       switch (periodo) {
         case 'semanal':
-          return this.debePagarSalarioSemanal(ultimaSemana, fechaActual);
+          return this.debePagarSalarioSemanal(ultimaSemana, ultimoAnio, fechaActual);
         case 'quincenal':
+          // El backend ya guarda el índice quincenal completo (año*24 + mes*2 + quincena)
           return this.debePagarSalarioQuincenal(ultimaSemana, fechaActual);
         case 'mensual':
+          // El backend ya guarda el índice mensual completo (año*12 + mes)
           return this.debePagarSalarioMensual(ultimaSemana, fechaActual);
         default:
           return 0;
@@ -536,14 +485,31 @@ export default {
     },
 
     // Determinar cuántas semanas pendientes hay para pago semanal
-    debePagarSalarioSemanal(ultimaSemana, fechaActual) {
+    debePagarSalarioSemanal(ultimaSemana, ultimoAnio, fechaActual) {
       const semanaActual = this.obtenerNumeroSemana(fechaActual);
+      const anioActual = fechaActual.getFullYear();
 
-      if (ultimaSemana === null) {
+      if (ultimaSemana === null || ultimoAnio === null) {
         return 1; // Pagar la semana actual
       }
 
-      const semanasPendientes = semanaActual - ultimaSemana;
+      // Convertir a un índice lineal de semanas para manejar cambios de año
+      // IMPORTANTE: Forzar Number() para evitar concatenación de strings (ej: 105000 + "48" = "10500048")
+      const numAnioActual = Number(anioActual);
+      const numSemanaActual = Number(semanaActual);
+      const numUltimoAnio = Number(ultimoAnio);
+      const numUltimaSemana = Number(ultimaSemana);
+
+      const indiceActual = numAnioActual * 52 + numSemanaActual;
+      const indiceUltimo = numUltimoAnio * 52 + numUltimaSemana;
+
+      const semanasPendientes = indiceActual - indiceUltimo;
+
+      // Si el resultado es NaN por cualquier motivo, devolvemos 0
+      if (isNaN(semanasPendientes)) {
+        return 0;
+      }
+
       return Math.max(0, semanasPendientes);
     },
 
@@ -942,8 +908,8 @@ export default {
     imprimirReciboConComponente(nombreEmpleado) {
       // Buscar el empleado en los datos de resumen
       let empleadoData = this.pagosResumenVendedores.find(emp => emp.nombre === nombreEmpleado) ||
-                          this.pagosResumen.find(emp => emp.nombre === nombreEmpleado) ||
-                          this.pagosResumenDiseno.find(emp => emp.nombre === nombreEmpleado);
+        this.pagosResumen.find(emp => emp.nombre === nombreEmpleado) ||
+        this.pagosResumenDiseno.find(emp => emp.nombre === nombreEmpleado);
 
       // Si no se encuentra en las listas (porque ya se recargaron), usar datosUltimoPago como fallback
       if (!empleadoData && this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
@@ -963,7 +929,7 @@ export default {
       // Determinar detalles según el tipo de empleado
       let detalles = [];
       let tipoEmpleado = '';
-      
+
       // Intentar determinar tipo y detalles desde las listas actuales
       if (this.pagosResumenVendedores.some(emp => emp.nombre === nombreEmpleado)) {
         detalles = this.filterVendedor(empleadoData.id_empleado);
@@ -974,7 +940,7 @@ export default {
       } else if (this.pagosResumenDiseno.some(emp => emp.nombre === nombreEmpleado)) {
         detalles = this.filterDesigner(empleadoData.id_empleado);
         tipoEmpleado = 'Diseñador';
-      } 
+      }
       // Fallback: Usar datosUltimoPago si tenemos la info guardada
       else if (this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
         detalles = this.datosUltimoPago.detalles || [];

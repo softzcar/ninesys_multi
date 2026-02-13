@@ -1,19 +1,9 @@
 <template>
   <div>
-    <b-alert
-      v-if="status === 'terminado'"
-      show
-      variant="success"
-    >TERMINADA</b-alert>
-    <b-overlay
-      :show="overlay"
-      spinner-small
-    >
+    <b-alert v-if="status === 'terminada'" show variant="success">TERMINADA</b-alert>
+    <b-overlay :show="overlay" spinner-small>
       <div class="floatme">
-        <b-progress
-          :max="max"
-          variant="success"
-        >
+        <b-progress :max="max" variant="success">
           <b-progress-bar :value="miPorcentaje">
             <span><strong>{{ miPorcentaje }}%</strong>
               {{ this.departamento }}
@@ -26,19 +16,11 @@
       </div>
 
       <div class="floatme">
-        <produccion-asignar
-          :reload="reload"
-          :id="item.orden"
-        />
+        <produccion-asignar :reload="reload" :id="item.orden" />
       </div>
       <div class="floatme">
-        <produccion-reposicion
-          :departamento="
-                        this.$store.state.login.dataUser.departamento
-                    "
-          :reload="reload"
-          :item="item"
-        />
+        <produccion-reposicion :departamento="this.$store.state.login.dataUser.departamento
+          " :reload="reload" :item="item" />
       </div>
       <div>
         <!-- Selector de paso comentado -->
@@ -87,4 +69,3 @@ export default {
   margin-right: 4px;
 }
 </style>
-

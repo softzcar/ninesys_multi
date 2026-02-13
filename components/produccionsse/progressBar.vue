@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-alert v-if="status === 'terminado'" show variant="success">TERMINADA</b-alert>
+        <b-alert v-if="status === 'terminada'" show variant="success">TERMINADA</b-alert>
         <b-overlay :show="overlay" spinner-small>
             <!-- Contenedor responsive: horizontal en desktop, vertical en mobile -->
             <div class="progress-container">
