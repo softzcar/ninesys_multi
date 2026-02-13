@@ -55,7 +55,7 @@
                 <p class="mt-4 mb-4">
                   <b-alert :show="showError" variant="danger">{{
                     errorMsg
-                  }}</b-alert>
+                    }}</b-alert>
                   <b-alert :show="showSuccess" class="text-center" variant="success">{{ successMsg }}</b-alert>
                 </p>
                 <p>
@@ -64,27 +64,25 @@
                     Enviar saldo al cliente</b-button>
                 </p>
                 <h4 class="mt-4">Histórico</h4>
-                <b-table sort-icon-left ref="table" responsive small :fields="campos" :items="item">
+                <b-table sort-icon-left ref="table" responsive small :fields="campos" :items="dataTable.items">
                   <template #cell(orden)="data">
                     <linkSearch :key="data.item._id" :id="data.item.orden" />
                   </template>
 
-                  <template #cell(monto)="data">
-                    {{ data.item.monto.toFixed(2) }}
-                  </template>
-
-                  <template #cell(tasa)="data">
-                    {{ data.item.tasa.toFixed(2) }}
-                  </template>
 
                   <template #cell(_id)="data">
-                    {{
-                      usdConverter(
-                        data.item.moneda,
-                        data.item.monto,
-                        data.item.tasa
-                      )
-                    }}
+                    <span v-if="data.item.abono > 0">
+                      {{ usdConverter(data.item.moneda, data.item.abono, data.item.tasa) }}
+                    </span>
+                    <span v-else-if="data.item.nota_credito > 0" class="text-danger">
+                      +{{ parseFloat(data.item.nota_credito || 0).toFixed(2) }}
+                    </span>
+                    <span v-else-if="data.item.descuento > 0" class="text-info">
+                      -{{ parseFloat(data.item.descuento || 0).toFixed(2) }}
+                    </span>
+                    <span v-else>
+                      {{ usdConverter(data.item.moneda, data.item.monto, data.item.tasa) }}
+                    </span>
                   </template>
                 </b-table>
                 <!-- <b-table
@@ -128,9 +126,13 @@
                   <b-list-group-item>
                     <strong>Total: </strong>{{ moneyFormatter(dataCalc.total_abono_descuento) }}
                   </b-list-group-item>
-                  <b-list-group-item>
-                    <strong>Resta:</strong>
-                    {{ moneyFormatter(calculated) }}
+                   <b-list-group-item :variant="parseFloat(calculated) < 0 ? 'warning' : (parseFloat(calculated) === 0 ? 'success' : 'info')">
+                    <strong v-if="parseFloat(calculated) < 0">Sobrepago:</strong>
+                    <strong v-else-if="parseFloat(calculated) === 0">Pagado:</strong>
+                    <strong v-else>Resta:</strong>
+                    <span>
+                      {{ parseFloat(calculated) < 0 ? moneyFormatter(parseFloat(calculated) * -1) :
+                        moneyFormatter(calculated) }} </span>
                   </b-list-group-item>
                 </b-list-group>
               </b-col>
@@ -332,7 +334,7 @@ export default {
       showError: false,
       errorMsg: `ERROR`,
       successMsg: "OK",
-      dataTable: [],
+      dataTable: { items: [] },
       showCalculatingBadge: true,
       dataCalc: {
         id_orden: this.idorden,
@@ -367,53 +369,13 @@ export default {
         detalleBolivaresTransferencia: "",
       },
       campos: [
-        {
-          key: "orden",
-          label: "Orden",
-          sortable: true,
-        },
-        {
-          key: "empleado",
-          label: "Vendedor",
-          sortable: true,
-        },
-        {
-          key: "metodo_pago",
-          label: "Método",
-          sortable: true,
-        },
-        {
-          key: "_id",
-          label: "Total $",
-        },
-        {
-          key: "detalle",
-          label: "Detalles",
-        },
-        {
-          key: "moneda",
-          label: "Moneda",
-          sortable: true,
-        },
-        {
-          key: "monto",
-          label: "Monto",
-          sortable: true,
-        },
-        {
-          key: "tasa",
-          label: "Tasa",
-          sortable: true,
-        },
-        {
-          key: "fecha",
-          label: "Fecha",
-          sortable: true,
-        },
-        {
-          key: "hora",
-          label: "Hora",
-        },
+        { key: "orden", label: "Orden", sortable: true },
+        { key: "empleado", label: "Vendedor", sortable: true },
+        { key: "metodo_pago", label: "Método", sortable: true },
+        { key: "_id", label: "Total $" },
+        { key: "detalle", label: "Detalles" },
+        { key: "fecha", label: "Fecha" },
+        { key: "hora", label: "Hora" },
       ],
     };
   },
@@ -422,13 +384,11 @@ export default {
     ...mapState("login", ["tasas"]),
     msgWhatsAppAbono() {
       let msg = "";
-      if (parseFloat(this.calculated) <= 0) {
+      const calculatedNum = parseFloat(this.calculated);
+      if (calculatedNum <= 0) {
         msg = `Ha hecho un abono de ${parseFloat(this.form.abono).toFixed(2)} a la orden ${this.idorden}, ha cancelado el total de su deuda`;
       } else {
         //Cliente queda debiendo
-        const deuda =
-          parseFloat(this.dataCalc.total) - parseFloat(this.dataCalc.abono);
-
         msg = `Ha hecho un abono de ${parseFloat(this.form.abono).toFixed(2)} a la orden ${this.idorden}, le queda un saldo pendiente de ${this.calculated} USD`;
       }
       return msg;
@@ -545,41 +505,18 @@ export default {
     },
 
     calculated() {
-      let total = this.floatMe(this.dataCalc.total);
-      let abonado = this.floatMe(this.dataCalc.abono);
-      let descuento = this.floatMe(this.dataCalc.descuento);
-      let nuevoAbono = 0;
-      let nuevoDescuento = 0;
+      const total = parseFloat(this.dataCalc.total) || 0;
+      const abonado = parseFloat(this.dataCalc.abono) || 0;
+      const descuento = parseFloat(this.dataCalc.descuento) || 0;
+      const nuevoAbono = parseFloat(this.form.abono) || 0;
+      const nuevoDescuento = parseFloat(this.valueDescuento) || 0;
+      const notaCredito = parseFloat(this.dataCalc.nota_credito) || 0;
+      const nuevaNotaCredito = parseFloat(this.valueNotaCredito) || 0;
 
-      if (!this.form.abono) {
-        nuevoAbono = 0;
-      } else {
-        nuevoAbono = this.floatMe(this.form.abono);
-      }
-
-      // if (this.valueDescuento.trim() === '') {
-      if (!this.valueDescuento) {
-        nuevoDescuento = 0;
-      } else {
-        nuevoDescuento = this.floatMe(this.valueDescuento);
-      }
-
-      let notaCredito = this.floatMe(this.dataCalc.nota_credito || 0);
-      let nuevaNotaCredito = 0;
-      if (this.valueNotaCredito) {
-        nuevaNotaCredito = this.floatMe(this.valueNotaCredito);
-      }
-      if (isNaN(nuevaNotaCredito)) nuevaNotaCredito = 0;
-      if (isNaN(notaCredito)) notaCredito = 0;
-
-      // Asegurar que no haya NaN en los cálculos
-      if (isNaN(nuevoAbono)) nuevoAbono = 0;
-      if (isNaN(nuevoDescuento)) nuevoDescuento = 0;
-
-      let resultado = total - abonado - descuento - nuevoAbono - nuevoDescuento + notaCredito + nuevaNotaCredito;
+      const resultado = (total - abonado - descuento - nuevoAbono - nuevoDescuento) + (notaCredito + nuevaNotaCredito);
 
       if (isNaN(resultado)) {
-        resultado = 0;
+        return "0.00";
       }
       return resultado.toFixed(2);
     },
@@ -614,25 +551,17 @@ export default {
       }
     },
     usdConverter(moneda, monto, tasa) {
-      // Validación de datos de entrada
-      if (!isNaN(monto) && !isNaN(tasa)) {
-        let tot;
-
-        if (moneda === "Bolívares" || moneda === "Pesos") {
-          tot = parseFloat(monto) / parseFloat(tasa);
-        } else {
-          tot = parseFloat(monto);
-        }
-
-        // Validación de NaN y división por cero
-        if (isNaN(tot)) {
-          return "Error en el cálculo"; // O cualquier otro mensaje de error
-        } else {
-          return tot.toFixed(2);
-        }
+      const n_monto = parseFloat(monto) || 0;
+      const n_tasa = parseFloat(tasa) || 1;
+      
+      let tot;
+      if (moneda === "Bolívares" || moneda === "Pesos") {
+        tot = n_monto / n_tasa;
       } else {
-        return "Monto o tasa no válidos";
+        tot = n_monto;
       }
+
+      return tot.toFixed(2);
     },
 
     updateMontoAbono() {
@@ -743,39 +672,53 @@ export default {
           type: "warning",
         });
       } else if (this.calculated < 0) {
-        this.$fire({
-          title: "Error en el monto",
-          html: "<p>El monto ingresado excede el total de la orden</p>",
-          type: "warning",
-        });
-      } else {
-        let confirmMsg = `Verifique los datos: abono: ${tmpAbono}, descuento: ${tmpDescuento}`;
-        if (tmpNotaCredito > 0) {
-          confirmMsg += `, nota de crédito: ${tmpNotaCredito}`;
+        // PERMITIR SI ES UNA NOTA DE CRÉDITO (Refund)
+        const esNotaCredito = tmpNotaCredito > 0;
+
+        // Calcular el saldo ANTES de los cambios actuales en el formulario
+        const saldoInicial = (parseFloat(this.dataCalc.total) -
+          parseFloat(this.dataCalc.abono) -
+          parseFloat(this.dataCalc.descuento)) +
+          parseFloat(this.dataCalc.nota_credito);
+
+        // Si NO es nota de crédito Y el nuevo saldo es "más negativo" que el inicial, bloqueamos
+        if (!esNotaCredito && parseFloat(this.calculated) < saldoInicial) {
+          this.$fire({
+            title: "Error en el monto",
+            html: "<p>El monto ingresado excede el total de la orden</p>",
+            type: "warning",
+          });
+          return;
         }
 
-        this.isSubmitting = true; // Bloquear botón
-
-        this.$confirm(
-          confirmMsg,
-          "Abono",
-          "info"
-        ).then(() => {
-          this.abonar().then(() => {
-            this.sendMessage(this.idorden, this.msgWhatsAppAbono);
-            this.valueDescuento = 0;
-            this.valueNotaCredito = 0;
-            this.valueNotaCreditoDetalle = "";
-            this.getDataAbonos();
-            this.$emit("reload");
-            this.isSubmitting = false; // Desbloquear botón
-          }).catch(() => {
-            this.isSubmitting = false; // Desbloquear botón en caso de error
-          });
-        }).catch(() => {
-          this.isSubmitting = false; // Desbloquear si cancela
-        });
+        // Si llegamos aquí con calculated < 0 pero es nota de crédito o reduce el sobrepago, permitimos continuar
       }
+      let confirmMsg = `Verifique los datos: abono: ${tmpAbono}, descuento: ${tmpDescuento}`;
+      if (tmpNotaCredito > 0) {
+        confirmMsg += `, nota de crédito: ${tmpNotaCredito}`;
+      }
+
+      this.isSubmitting = true; // Bloquear botón
+
+      this.$confirm(
+        confirmMsg,
+        "Abono",
+        "info"
+      ).then(() => {
+        this.abonar().then(() => {
+          this.sendMessage(this.idorden, this.msgWhatsAppAbono);
+          this.valueDescuento = 0;
+          this.valueNotaCredito = 0;
+          this.valueNotaCreditoDetalle = "";
+          this.getDataAbonos();
+          this.$emit("reload");
+          this.isSubmitting = false; // Desbloquear botón
+        }).catch(() => {
+          this.isSubmitting = false; // Desbloquear botón en caso de error
+        });
+      }).catch(() => {
+        this.isSubmitting = false; // Desbloquear si cancela
+      });
     },
 
     async abonar() {

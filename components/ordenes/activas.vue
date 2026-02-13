@@ -205,7 +205,6 @@ export default {
       ],
       selectedCategory: "todas",
       optionsCategories: [],
-      ordenesLength: 0,
       dataTable: [],
       ordenesActivas: [],
       fechaConsultaInicio: "",
