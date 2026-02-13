@@ -113,6 +113,34 @@
                   </b-card>
                 </div>
 
+                <!-- Resumen de Material por Orden -->
+                <div v-if="estimadosPorOrden[orden.id_orden]" class="mt-3 mb-2 px-2">
+                  <h6 class="font-weight-bold text-muted mb-2">
+                    <b-icon icon="bar-chart-fill"></b-icon> Resumen de Material
+                  </h6>
+                  <div class="pl-2">
+                    <p class="mb-1">
+                      <strong>Material Estimado (Sistema):</strong>
+                      {{ estimadosPorOrden[orden.id_orden] }}
+                    </p>
+                    <p class="mb-1">
+                      <strong>Material Utilizado:</strong>
+                      {{ getMaterialUtilizadoOrden(orden.id_orden) }} Mt
+                    </p>
+                    <p v-if="parseFloat(getMaterialUtilizadoOrden(orden.id_orden)) > 0" class="mb-0">
+                      <strong>Eficiencia:</strong>
+                      <span
+                        :class="parseFloat(getEficienciaOrden(orden.id_orden)) >= 100 ? 'text-success font-weight-bold' : 'text-danger font-weight-bold'">
+                        {{ getEficienciaOrden(orden.id_orden) }}%
+                      </span>
+                      <small class="text-muted">
+                        ({{ parseFloat(getEficienciaOrden(orden.id_orden)) >= 100 ? 'Óptimo' : 'Por encima del estimado'
+                        }})
+                      </small>
+                    </p>
+                  </div>
+                </div>
+
                 <!-- Registro de Materiales -->
                 <hr>
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -514,6 +542,47 @@ export default {
       const insumo = this.insumos.find(i => i._id === c.id_insumo);
       if (!insumo) return '';
       return this.isTela(insumo) ? 'Mt' : insumo.unidad;
+    },
+    getMaterialUtilizadoOrden(idOrden) {
+      const consumos = this.consumosPorOrden[idOrden];
+      if (!consumos) return '0.00';
+      let total = 0;
+      consumos.forEach(c => {
+        if (c.cantidad > 0) {
+          total += parseFloat(c.cantidad) || 0;
+        }
+      });
+      return total.toFixed(2);
+    },
+    getEstimadoNumericoOrden(idOrden) {
+      const depId = this.$store.state.login.currentDepartamentId;
+      const depName = this.$store.state.login.currentDepartament;
+      const insumosFiltrados = this.dataInsumos.filter((el) => {
+        if (el.id_orden != idOrden) return false;
+        if (el.id_departamento == depId) return true;
+        const materialDepts = ['Estampado', 'Corte', 'Impresión'];
+        return materialDepts.includes(depName) && materialDepts.includes(el.departamento);
+      });
+      if (insumosFiltrados.length === 0) return 0;
+      const productosUnicos = new Map();
+      insumosFiltrados.forEach((item) => {
+        const key = `${item.id_ordenes_productos}_${item.catalogo}`;
+        if (!productosUnicos.has(key)) {
+          productosUnicos.set(key, {
+            cantidad: parseFloat(item.cantidad_estimada_de_consumo) || 0,
+            unidades: parseInt(item.unidades) || 0,
+          });
+        }
+      });
+      let total = 0;
+      productosUnicos.forEach((p) => { total += p.cantidad * p.unidades; });
+      return total;
+    },
+    getEficienciaOrden(idOrden) {
+      const estimado = this.getEstimadoNumericoOrden(idOrden);
+      const utilizado = parseFloat(this.getMaterialUtilizadoOrden(idOrden));
+      if (utilizado === 0 || estimado === 0) return '0.00';
+      return ((estimado / utilizado) * 100).toFixed(2);
     },
     // --- MÉTODOS DE TINTAS (IMPRESIÓN) ---
     addImpresora(idOrden) {
