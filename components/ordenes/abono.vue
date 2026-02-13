@@ -121,6 +121,10 @@
                   <b-list-group-item>
                     <strong>Descuentos: </strong>{{ moneyFormatter(dataCalc.descuento) }}
                   </b-list-group-item>
+                  <b-list-group-item v-if="parseFloat(dataCalc.nota_credito) > 0">
+                    <strong>Notas de Crédito: </strong>
+                    <span class="text-danger">+{{ moneyFormatter(dataCalc.nota_credito) }}</span>
+                  </b-list-group-item>
                   <b-list-group-item>
                     <strong>Total: </strong>{{ moneyFormatter(dataCalc.total_abono_descuento) }}
                   </b-list-group-item>
@@ -282,6 +286,13 @@
                       placeholder="Descuento" class="mt-4 mb-2"></b-form-input>
                     <b-form-input :disabled="inputDisabled" v-model="valueDescuentoDetalle" type="text"
                       placeholder="Detalle del descuento (Obligatorio)" class="mb-4"></b-form-input>
+
+                    <hr />
+                    <h4>Nota de Crédito</h4>
+                    <b-form-input min="0" :disabled="inputDisabled" v-model="valueNotaCredito" type="number"
+                      placeholder="Monto Nota de Crédito" class="mt-4 mb-2"></b-form-input>
+                    <b-form-input :disabled="inputDisabled" v-model="valueNotaCreditoDetalle" type="text"
+                      placeholder="Detalle de la nota de crédito (Obligatorio)" class="mb-4"></b-form-input>
                   </div>
                   <b-button :disabled="inputDisabled || isSubmitting" class="mt-4" variant="success" block
                     @click="hacerAbono">
@@ -327,11 +338,14 @@ export default {
         id_orden: this.idorden,
         abono: 0,
         descuento: 0,
+        nota_credito: 0,
         total: 0,
         moment: null,
       },
       valueDescuento: 0,
-      valueDescuentoDetalle: "", // <-- Nuevo campo
+      valueDescuentoDetalle: "",
+      valueNotaCredito: 0,
+      valueNotaCreditoDetalle: "",
       size: "md",
       title: `Abono a la Orden ${this.idorden}`,
       overlay: false,
@@ -550,11 +564,19 @@ export default {
         nuevoDescuento = this.floatMe(this.valueDescuento);
       }
 
+      let notaCredito = this.floatMe(this.dataCalc.nota_credito || 0);
+      let nuevaNotaCredito = 0;
+      if (this.valueNotaCredito) {
+        nuevaNotaCredito = this.floatMe(this.valueNotaCredito);
+      }
+      if (isNaN(nuevaNotaCredito)) nuevaNotaCredito = 0;
+      if (isNaN(notaCredito)) notaCredito = 0;
+
       // Asegurar que no haya NaN en los cálculos
       if (isNaN(nuevoAbono)) nuevoAbono = 0;
       if (isNaN(nuevoDescuento)) nuevoDescuento = 0;
 
-      let resultado = total - abonado - descuento - nuevoAbono - nuevoDescuento;
+      let resultado = total - abonado - descuento - nuevoAbono - nuevoDescuento + notaCredito + nuevaNotaCredito;
 
       if (isNaN(resultado)) {
         resultado = 0;
@@ -687,8 +709,19 @@ export default {
         return;
       }
 
+      // Validar detalle de nota de crédito
+      if (parseFloat(this.valueNotaCredito) > 0 && !this.valueNotaCreditoDetalle) {
+        this.$fire({
+          title: "Falta detalle de la nota de crédito",
+          html: `<p>El detalle de la nota de crédito es obligatorio cuando se aplica un monto.</p>`,
+          type: "warning",
+        });
+        return;
+      }
+
       let tmpAbono = parseFloat(this.form.abono); // Antiguamente se enviava un solo vaor ahora tenen=mos que envuar todo por semparado...
       let tmpDescuento = parseFloat(this.valueDescuento);
+      let tmpNotaCredito = parseFloat(this.valueNotaCredito);
 
       // if (isNaN(tmpAbono) || this.form.abono.trim() === '' || !this.form.abono) {
       if (isNaN(tmpAbono) || !this.form.abono) {
@@ -699,10 +732,14 @@ export default {
         tmpDescuento = 0;
       }
 
-      if (!tmpAbono && !tmpDescuento) {
+      if (isNaN(tmpNotaCredito) || !this.valueNotaCredito) {
+        tmpNotaCredito = 0;
+      }
+
+      if (!tmpAbono && !tmpDescuento && !tmpNotaCredito) {
         this.$fire({
           title: "Error en el monto",
-          html: "<p>Ingrese el monto del abono y/o el descuento</p>",
+          html: "<p>Ingrese el monto del abono, descuento o nota de crédito</p>",
           type: "warning",
         });
       } else if (this.calculated < 0) {
@@ -712,16 +749,23 @@ export default {
           type: "warning",
         });
       } else {
+        let confirmMsg = `Verifique los datos: abono: ${tmpAbono}, descuento: ${tmpDescuento}`;
+        if (tmpNotaCredito > 0) {
+          confirmMsg += `, nota de crédito: ${tmpNotaCredito}`;
+        }
+
         this.isSubmitting = true; // Bloquear botón
-        
+
         this.$confirm(
-          `Verifique los datos: abono: ${tmpAbono}, descuento: ${tmpDescuento}`,
+          confirmMsg,
           "Abono",
           "info"
         ).then(() => {
           this.abonar().then(() => {
             this.sendMessage(this.idorden, this.msgWhatsAppAbono);
             this.valueDescuento = 0;
+            this.valueNotaCredito = 0;
+            this.valueNotaCreditoDetalle = "";
             this.getDataAbonos();
             this.$emit("reload");
             this.isSubmitting = false; // Desbloquear botón
@@ -779,7 +823,15 @@ export default {
         data.set("descuento", 0);
       } else {
         data.set("descuento", this.valueDescuento);
-        data.set("descuentoDetalle", this.valueDescuentoDetalle); // <-- Enviar detalle
+        data.set("descuentoDetalle", this.valueDescuentoDetalle);
+      }
+
+      // Nota de Crédito y Detalle
+      if (!this.valueNotaCredito) {
+        data.set("notaCredito", 0);
+      } else {
+        data.set("notaCredito", this.valueNotaCredito);
+        data.set("notaCreditoDetalle", this.valueNotaCreditoDetalle);
       }
 
       console.log(`Data abono: ${data}`);
@@ -791,6 +843,8 @@ export default {
             this.overlay = false;
             this.valueDescuento = 0;
             this.valueDescuentoDetalle = "";
+            this.valueNotaCredito = 0;
+            this.valueNotaCreditoDetalle = "";
             this.form = {
               abono: 0,
               montoDolaresEfectivo: 0,

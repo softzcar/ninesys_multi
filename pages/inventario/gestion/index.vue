@@ -40,7 +40,7 @@
                             <b-col lg="6" xl="6">
                                 <b-input-group class="mb-4" size="sm">
                                     <b-form-input id="filter-input" v-model="filter" type="search"
-                                        placeholder="Filtrar Resultados"></b-form-input>
+                                        placeholder="Buscar por Nombre, SKU o ID"></b-form-input>
 
                                     <b-input-group-append>
                                         <b-button :disabled="!filter" @click="filter = ''">
@@ -111,7 +111,7 @@ import autoTable from "jspdf-autotable"
 export default {
     data() {
         return {
-            includedFields: ["insumo", "departamento", "sku"],
+            includedFields: ["insumo", "departamento", "sku", "rollo"],
             titulo: "Gestión de Inventario",
             overlay: true,
             filter: null,

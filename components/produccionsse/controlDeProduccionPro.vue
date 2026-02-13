@@ -1,10 +1,14 @@
 <template>
   <div>
-    <b-button @click="initTiemposDeProduccion" :variant="buttonState.variant" :disabled="buttonState.disabled"
-      class="mb-3">
-      <b-icon icon="arrow-clockwise" :animation="isLoading ? 'spin' : ''"></b-icon>
-      {{ buttonState.text }}
-    </b-button>
+    <div class="d-flex align-items-center mb-3">
+      <b-button @click="initTiemposDeProduccion" :variant="buttonState.variant" :disabled="buttonState.disabled">
+        <b-icon icon="arrow-clockwise" :animation="isLoading ? 'spin' : ''"></b-icon>
+        {{ buttonState.text }}
+      </b-button>
+
+      <produccionsse-asignacion-masiva :items="items" :empleados="empleados" :ordenes-proyectadas="ordenesProyectadas2"
+        @reload="initTiemposDeProduccion" />
+    </div>
 
     <h3 class="mt-4">Reposiciones</h3>
 
@@ -32,8 +36,8 @@
           </div>
 
           <draggable v-model="reposiciones_solicitadas" @end="afterDragRep" tag="ul" class="list-group">
-            <li v-for="(el, index) in reposiciones_solicitadas" :key="index" class="list-group-item"
-              style="list-style: none; padding: 0; margin: 0; border: none">
+            <li v-for="(el, index) in reposiciones_solicitadas" :key="`rep-${el.id_reposicion}-${refreshKey}`"
+              class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
               <b-list-group class="list-group-reposiciones">
                 <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
                   <span class="drag-handle-zone" style="padding-top: 12px; padding-right: 16px; cursor: grab;">☰</span>
@@ -58,7 +62,8 @@
                 </b-list-group-item>
 
                 <b-list-group-item data-label="Detalles">
-                  <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index" @reload="initTiemposDeProduccion" />
+                  <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index"
+                    @reload="initTiemposDeProduccion" />
                 </b-list-group-item>
               </b-list-group>
             </li>
@@ -132,7 +137,7 @@
 
           <draggable v-model="itemsFiltrados" @end="afterDrag" tag="ul" class="list-group" handle=".drag-handle-zone"
             :disabled="isUserFiltering">
-            <li v-for="(el, index) in itemsFiltrados" :key="index" class="list-group-item"
+            <li v-for="(el, index) in itemsFiltrados" :key="`${el.orden}-${refreshKey}`" class="list-group-item"
               style="list-style: none; padding: 0; margin: 0; border: none">
               <b-list-group class="list-group-draggable">
                 <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
@@ -274,6 +279,7 @@ export default {
       reposiciones_solicitadas: [],
       empleados: [],
       pasos: [],
+      refreshKey: 0,
       reloadMe: false,
       events: [],
       fields_reposiciones: [{ key: "id_orden", label: " " }],
@@ -355,6 +361,7 @@ export default {
       this.$bvToast.hide('new-data-toast'); // Ocultar el toast de nuevos datos
 
       this.loadOrdersProduction().then(() => {
+        this.refreshKey++; // Incrementar para forzar reactividad en hijos
         this.getOrdenesFechas().then(() => {
           this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
             this.fechas,
