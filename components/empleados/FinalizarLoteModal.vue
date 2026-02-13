@@ -34,7 +34,7 @@
         <h5>Registro de Consumo de Material por Orden</h5>
 
         <!-- Lista de órdenes -->
-        <b-row v-for="(orden, index) in ordenesDeduplicadas" :key="orden.id_orden" 
+        <b-row v-for="(orden, index) in ordenesDeduplicadas" :key="orden.id_orden"
           v-if="debeMostrarOrden(orden.id_orden)" class="mb-3 align-items-center">
           <b-col md="12">
             <b-card border-variant="dark" shadow-sm>
@@ -71,7 +71,7 @@
                   </b-button>
                 </div>
 
-                <b-row v-for="(consumo, cIndex) in consumosPorOrden[orden.id_orden]" :key="cIndex" 
+                <b-row v-for="(consumo, cIndex) in consumosPorOrden[orden.id_orden]" :key="cIndex"
                   class="mt-2 pb-3 mb-2 border-bottom align-items-end no-gutters">
                   <b-col md="4" class="px-2">
                     <b-form-group label="Material" label-size="sm" class="mb-0">
@@ -90,23 +90,77 @@
                     </b-form-group>
                   </b-col>
                   <b-col md="2" class="px-2 pb-1">
-                    <b-form-checkbox v-model="consumo.terminar_material" variant="danger" class="small font-weight-bold text-danger">
+                    <b-form-checkbox v-model="consumo.terminar_material" variant="danger"
+                      class="small font-weight-bold text-danger">
                       Terminar Material
                     </b-form-checkbox>
                   </b-col>
                   <b-col md="1" class="text-right pb-1">
-                    <b-button v-if="cIndex > 0" variant="link" class="text-danger p-0" title="Eliminar fila" @click="removeMaterial(orden.id_orden, cIndex)">
+                    <b-button v-if="cIndex > 0" variant="link" class="text-danger p-0" title="Eliminar fila"
+                      @click="removeMaterial(orden.id_orden, cIndex)">
                       <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
                     </b-button>
                   </b-col>
-                  
+
                   <b-col md="12" class="px-2 mt-1" v-if="consumo.id_insumo">
                     <small :class="validarStockItem(orden.id_orden, cIndex) ? 'text-muted' : 'text-danger fw-bold'">
-                      <b-icon :icon="validarStockItem(orden.id_orden, cIndex) ? 'info-circle' : 'exclamation-circle'"></b-icon>
-                      Stock disponible: {{ getStockDisponibleItem(orden.id_orden, cIndex).toFixed(2) }} {{ getItemUnidad(consumo.id_insumo) }}
+                      <b-icon
+                        :icon="validarStockItem(orden.id_orden, cIndex) ? 'info-circle' : 'exclamation-circle'"></b-icon>
+                      Stock disponible: {{ getStockDisponibleItem(orden.id_orden, cIndex).toFixed(2) }} {{
+                        getItemUnidad(consumo.id_insumo) }}
                     </small>
                   </b-col>
                 </b-row>
+              </div>
+
+              <!-- Sección de Tintas (solo Impresión) -->
+              <div v-if="isImpresion && consumosPorOrden[orden.id_orden][0].active">
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0 text-muted font-weight-bold">
+                    <b-icon icon="printer-fill"></b-icon> Registro de Tintas
+                  </h6>
+                  <b-button variant="outline-info" size="sm" @click="addImpresora(orden.id_orden)" pill
+                    :disabled="!puedeAnadirImpresoraOrden(orden.id_orden)">
+                    <b-icon icon="plus-circle-fill"></b-icon> Añadir Impresora
+                  </b-button>
+                </div>
+
+                <b-card v-for="(tinta, tIndex) in tintasPorOrden[orden.id_orden]" :key="'tinta-' + tIndex"
+                  bg-variant="light" class="mb-2" body-class="py-2 px-3">
+                  <b-row align-v="center">
+                    <b-col md="5">
+                      <b-form-group label="Impresora" label-size="sm" class="mb-0">
+                        <b-form-select v-model="tinta.id_impresora" size="sm"
+                          :options="getImpresorasOptionsForOrden(orden.id_orden, tIndex)">
+                        </b-form-select>
+                      </b-form-group>
+                    </b-col>
+                    <b-col v-for="color in ['c', 'm', 'y', 'k']" :key="color" class="px-1">
+                      <b-form-group :label="color.toUpperCase()" label-size="sm" class="mb-0">
+                        <b-form-input v-model.number="tinta[color]" type="number" step="0.1" size="sm" :style="{
+                          backgroundColor: colorMap[color],
+                          color: color === 'k' || color === 'm' ? 'white' : 'black',
+                          fontWeight: 'bold'
+                        }" :disabled="!tinta.id_impresora"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                    <b-col v-if="showWhiteInkField(orden.id_orden, tIndex)" class="px-1">
+                      <b-form-group label="W" label-size="sm" class="mb-0">
+                        <b-form-input v-model.number="tinta.w" type="number" step="0.1" size="sm" :style="{
+                          backgroundColor: colorMap.w,
+                          color: 'black',
+                          fontWeight: 'bold'
+                        }" :disabled="!tinta.id_impresora"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                    <b-col md="1" class="text-right" v-if="tintasPorOrden[orden.id_orden].length > 1">
+                      <b-button variant="link" class="text-danger p-0" @click="removeImpresora(orden.id_orden, tIndex)">
+                        <b-icon icon="trash-fill" font-scale="1.1"></b-icon>
+                      </b-button>
+                    </b-col>
+                  </b-row>
+                </b-card>
               </div>
             </b-card>
           </b-col>
@@ -166,13 +220,29 @@ export default {
       type: Array,
       default: () => [],
     },
+    impresoras: {
+      type: Array,
+      default: () => [],
+    },
+    esReposicion: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
       overlay: false,
       // Manejar consumos por ID de orden
-      // Formato: { [id_orden]: { id_insumo: null, cantidad: null, active: false } }
-    consumosPorOrden: {},
+      consumosPorOrden: {},
+      // Manejar tintas por orden (solo Impresión)
+      tintasPorOrden: {},
+      colorMap: {
+        c: '#00FFFF',
+        m: '#FF00FF',
+        y: '#FFFF00',
+        k: '#343A40',
+        w: '#F8F9FA',
+      },
     }
   },
   watch: {
@@ -181,6 +251,7 @@ export default {
       handler(newOrdenes) {
         if (newOrdenes && newOrdenes.length > 0) {
           const newConsumos = { ...this.consumosPorOrden };
+          const newTintas = { ...this.tintasPorOrden };
           newOrdenes.forEach((o) => {
             if (!newConsumos[o.id_orden]) {
               this.$set(newConsumos, o.id_orden, [
@@ -193,8 +264,14 @@ export default {
                 }
               ]);
             }
+            if (!newTintas[o.id_orden]) {
+              this.$set(newTintas, o.id_orden, [
+                { id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
+              ]);
+            }
           });
           this.consumosPorOrden = newConsumos;
+          this.tintasPorOrden = newTintas;
         }
       },
     },
@@ -211,8 +288,11 @@ export default {
     isCorte() {
       return this.$store.state.login.currentDepartament === 'Corte';
     },
+    isImpresion() {
+      return this.$store.state.login.currentDepartament === 'Impresión';
+    },
     ordenesQueRequierenInsumos() {
-       return this.ordenes.filter(o => this.debeMostrarOrden(o.id_orden));
+      return this.ordenes.filter(o => this.debeMostrarOrden(o.id_orden));
     },
     stockDinamico() {
       const stockMap = {};
@@ -247,20 +327,32 @@ export default {
     formValid() {
       const activeIds = Object.keys(this.consumosPorOrden).filter(k => this.consumosPorOrden[k][0].active);
       if (activeIds.length === 0) return true;
-      return activeIds.every(id => {
+      const materialesValidos = activeIds.every(id => {
         return this.consumosPorOrden[id].every((c, index) => {
           return c.id_insumo && c.cantidad > 0 && this.validarStockItem(id, index);
         });
       });
+      if (!materialesValidos) return false;
+      // Validación adicional para Impresión: al menos 1 impresora con 1 color > 0
+      if (this.isImpresion) {
+        return activeIds.every(id => {
+          const tintas = this.tintasPorOrden[id];
+          if (!tintas || tintas.length === 0) return false;
+          return tintas.every(t => {
+            return t.id_impresora && (t.c > 0 || t.m > 0 || t.y > 0 || t.k > 0 || t.w > 0);
+          });
+        });
+      }
+      return true;
     },
     ordenesDeduplicadas() {
       if (!this.ordenes || this.ordenes.length === 0) return [];
       const map = new Map();
       this.ordenes.forEach(o => {
         if (!map.has(o.id_orden)) {
-          map.set(o.id_orden, { 
-            ...o, 
-            telas_vendedor_list: new Set() 
+          map.set(o.id_orden, {
+            ...o,
+            telas_vendedor_list: new Set()
           });
         }
         if (o.tela_vendedor) {
@@ -328,23 +420,24 @@ export default {
         .join(', ');
     },
     debeMostrarOrden(idOrden) {
-       // Si hay estimados para esta orden en este departamento (o hermanos), mostrar
-       const estimado = this.estimadosPorOrden[idOrden];
-       if (estimado && estimado !== '') return true;
+      // Si hay estimados para esta orden en este departamento (o hermanos), mostrar
+      const estimado = this.estimadosPorOrden[idOrden];
+      if (estimado && estimado !== '') return true;
 
-       // Si no hay estimados, dependemos de la configuración manual (legacy support)
-       const dep = this.$store.state.login.currentDepartament;
-       const dataSys = this.$store.state.login.datos_personalizacion || {};
+      // Si no hay estimados, dependemos de la configuración manual (legacy support)
+      const dep = this.$store.state.login.currentDepartament;
+      const dataSys = this.$store.state.login.datos_personalizacion || {};
 
-       const configMap = {
-         'Estampado': dataSys.sys_mostrar_rollo_en_empleado_estampado,
-         'Corte': dataSys.sys_mostrar_rollo_en_empleado_corte,
-         'Costura': dataSys.sys_mostrar_insumo_en_empleado_costura,
-         'Limpieza': dataSys.sys_mostrar_insumo_en_empleado_limpieza,
-         'Revisión': dataSys.sys_mostrar_insumo_en_empleado_revision
-       };
+      const configMap = {
+        'Estampado': dataSys.sys_mostrar_rollo_en_empleado_estampado,
+        'Corte': dataSys.sys_mostrar_rollo_en_empleado_corte,
+        'Impresión': dataSys.sys_mostrar_rollo_en_empleado_estampado, // Reutiliza config de Estampado
+        'Costura': dataSys.sys_mostrar_insumo_en_empleado_costura,
+        'Limpieza': dataSys.sys_mostrar_insumo_en_empleado_limpieza,
+        'Revisión': dataSys.sys_mostrar_insumo_en_empleado_revision
+      };
 
-       return !!configMap[dep];
+      return !!configMap[dep];
     },
     validarStockItem(idOrden, index) {
       const c = this.consumosPorOrden[idOrden][index];
@@ -355,7 +448,7 @@ export default {
     getStockDisponibleItem(idOrden, index) {
       const currentItem = this.consumosPorOrden[idOrden][index];
       if (!currentItem || !currentItem.id_insumo) return 0;
-      
+
       const insumo = this.insumos.find(i => i._id === currentItem.id_insumo);
       if (!insumo) return 0;
 
@@ -377,7 +470,7 @@ export default {
       });
 
       const disponibleKilos = Math.max(0, stockOriginalKilos - consumosOtrosKilos);
-      
+
       if (this.isTela(insumo)) {
         return disponibleKilos * insumo.rendimiento;
       }
@@ -419,8 +512,49 @@ export default {
       if (!insumo) return '';
       return this.isTela(insumo) ? 'Mt' : insumo.unidad;
     },
+    // --- MÉTODOS DE TINTAS (IMPRESIÓN) ---
+    addImpresora(idOrden) {
+      if (!this.tintasPorOrden[idOrden]) return;
+      this.tintasPorOrden[idOrden].push({ id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 });
+    },
+    removeImpresora(idOrden, index) {
+      if (this.tintasPorOrden[idOrden] && this.tintasPorOrden[idOrden].length > 1) {
+        this.tintasPorOrden[idOrden].splice(index, 1);
+      }
+    },
+    getImpresorasOptionsForOrden(idOrden, index) {
+      if (!this.impresoras || this.impresoras.length === 0) {
+        return [{ value: null, text: 'No hay impresoras disponibles' }];
+      }
+      const otherSelections = (this.tintasPorOrden[idOrden] || [])
+        .filter((_, i) => i !== index)
+        .map(t => t.id_impresora)
+        .filter(id => id !== null);
+      const options = this.impresoras.map(imp => ({
+        value: imp._id,
+        text: `${imp.codigo_interno} - ${imp.marca} ${imp.modelo}`,
+        disabled: otherSelections.includes(imp._id),
+      }));
+      return [{ value: null, text: 'Seleccione una impresora' }, ...options];
+    },
+    showWhiteInkField(idOrden, index) {
+      if (!this.impresoras || this.impresoras.length === 0) return false;
+      const selectedId = this.tintasPorOrden[idOrden]?.[index]?.id_impresora;
+      if (!selectedId) return false;
+      const printer = this.impresoras.find(imp => imp._id === selectedId);
+      return printer && printer.tipo_tecnologia === 'CMYKW';
+    },
+    puedeAnadirImpresoraOrden(idOrden) {
+      const tintas = this.tintasPorOrden[idOrden];
+      if (!tintas || tintas.length === 0) return false;
+      const ultima = tintas[tintas.length - 1];
+      if (!ultima.id_impresora) return false;
+      return tintas.length < (this.impresoras?.length || 0);
+    },
+    // --- FIN MÉTODOS DE TINTAS ---
     resetModal() {
       this.consumosPorOrden = {};
+      this.tintasPorOrden = {};
       this.ordenes.forEach((o) => {
         this.$set(this.consumosPorOrden, o.id_orden, [
           {
@@ -431,6 +565,9 @@ export default {
             active: false,
           }
         ]);
+        this.$set(this.tintasPorOrden, o.id_orden, [
+          { id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
+        ]);
       });
       this.overlay = false;
     },
@@ -440,7 +577,7 @@ export default {
     },
     confirmarFinalizacion() {
       const activeCount = Object.keys(this.consumosPorOrden).filter(k => this.consumosPorOrden[k][0].active).length;
-      const msg = activeCount > 0 
+      const msg = activeCount > 0
         ? `¿Confirma que desea registrar el consumo para ${activeCount} orden(es) y finalizar el lote #${this.loteId}?`
         : `¿Confirma que desea finalizar el lote #${this.loteId} sin registrar consumos específicos?`;
 
@@ -448,16 +585,11 @@ export default {
         .then(() => {
           this.enviarDatos()
         })
-        .catch(() => {})
+        .catch(() => { })
     },
     async enviarDatos() {
       this.overlay = true
 
-      // Mapear el nuevo formato al formato esperado por el backend
-      // El backend espera 'consumos_lote' como un array de {id_insumo, cantidad_total, id_ordenes}
-      // Vamos a consolidar por insumo para mantener compatibilidad si es posible, 
-      // o enviar consumos individuales por orden.
-      
       const consumosParaEnviar = [];
       Object.keys(this.consumosPorOrden).forEach(idOrden => {
         const listaConsumos = this.consumosPorOrden[idOrden];
@@ -466,7 +598,7 @@ export default {
             if (c.id_insumo && c.cantidad > 0) {
               const insumo = this.insumos.find(i => i._id === c.id_insumo);
               let cantidadFinal = c.cantidad;
-              
+
               if (this.isTela(insumo)) {
                 cantidadFinal = c.cantidad / insumo.rendimiento;
               }
@@ -487,6 +619,31 @@ export default {
         id_empleado: this.$store.state.login.dataUser.id_empleado,
         id_departamento: this.$store.state.login.currentDepartamentId,
         consumos_lote: consumosParaEnviar,
+      }
+
+      // Si es Impresión, agregar consumo de tintas por orden
+      if (this.isImpresion) {
+        const tintasParaEnviar = [];
+        Object.keys(this.tintasPorOrden).forEach(idOrden => {
+          // Solo enviar tintas de órdenes con consumo activo
+          if (this.consumosPorOrden[idOrden]?.[0]?.active) {
+            const tintas = this.tintasPorOrden[idOrden];
+            tintas.forEach(t => {
+              if (t.id_impresora) {
+                tintasParaEnviar.push({
+                  id_orden: parseInt(idOrden),
+                  id_impresora: t.id_impresora,
+                  c: t.c || 0,
+                  m: t.m || 0,
+                  y: t.y || 0,
+                  k: t.k || 0,
+                  w: t.w || 0,
+                });
+              }
+            });
+          }
+        });
+        payload.consumo_tintas = tintasParaEnviar;
       }
 
       try {

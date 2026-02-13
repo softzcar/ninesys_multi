@@ -416,7 +416,8 @@
     <!-- MODAL PARA FINALIZAR LOTE -->
     <FinalizarLoteModal v-if="loteParaFinalizar" :show="showFinalizarLoteModal" :lote-id="loteParaFinalizar.id"
       :total-papel-utilizado="papelUtilizadoLote" :insumos="insumos" :ordenes="ordenesParaFinalizar"
-      :data-insumos="dataInsumos" @close="showFinalizarLoteModal = false" @lote-finalizado="handleLoteFinalizado" />
+      :data-insumos="dataInsumos" :impresoras="impresoras" :es-reposicion="esReposicionParaFinalizar"
+      @close="showFinalizarLoteModal = false" @lote-finalizado="handleLoteFinalizado" />
 
     <!-- MODAL PARA FINALIZAR LOTE DE IMPRESIÓN -->
     <FinalizarLoteImpresionModal v-if="loteParaFinalizar" :show="showFinalizarImpresionModal"
@@ -1157,26 +1158,22 @@ export default {
       this.esReposicionParaFinalizar = lote.ordenes.some(o => o.en_reposiciones === 1 || o.esreposicion === true)
       const depto = this.$store.state.login.currentDepartament
 
-      if (depto === 'Impresión') {
-        this.showFinalizarImpresionModal = true
-      } else {
-        // Para todos los demás departamentos (incluyendo Corte), usar el modal unificado
-        let papelConsumido = 0
-        const ordenesIdsDelLote = lote.ordenes.map((o) => o.id_orden)
-        const ordenesCompletasDelLote = this.ordenes.filter((o) =>
-          ordenesIdsDelLote.includes(o.id_orden)
-        )
+      // Para todos los departamentos (incluyendo Impresión), usar el modal unificado
+      let papelConsumido = 0
+      const ordenesIdsDelLote = lote.ordenes.map((o) => o.id_orden)
+      const ordenesCompletasDelLote = this.ordenes.filter((o) =>
+        ordenesIdsDelLote.includes(o.id_orden)
+      )
 
-        ordenesCompletasDelLote.forEach((orden) => {
-          if (orden.valor_inicial && orden.valor_final) {
-            papelConsumido +=
-              parseFloat(orden.valor_inicial) - parseFloat(orden.valor_final)
-          }
-        })
+      ordenesCompletasDelLote.forEach((orden) => {
+        if (orden.valor_inicial && orden.valor_final) {
+          papelConsumido +=
+            parseFloat(orden.valor_inicial) - parseFloat(orden.valor_final)
+        }
+      })
 
-        this.papelUtilizadoLote = papelConsumido
-        this.showFinalizarLoteModal = true
-      }
+      this.papelUtilizadoLote = papelConsumido
+      this.showFinalizarLoteModal = true
     },
 
     handleLoteFinalizado() {
