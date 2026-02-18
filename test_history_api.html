@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <pre id="output">Loading...</pre>
+    <script>
+        fetch('https://apidev.nineteengreen.com/ordenes/abono-detale/15')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(e => {
+                document.getElementById('output').textContent = 'Error: ' + e.message;
+            });
+    </script>
+</body>
+
+</html>
