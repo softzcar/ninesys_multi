@@ -27,7 +27,7 @@
         </b-button>
         
         <b-row align-v="center">
-            <b-col md="5">
+            <b-col md="4">
                 <b-form-group label="Producto" label-size="sm" class="mb-1">
                     <vue-typeahead-bootstrap
                         class="w-100"
@@ -46,10 +46,12 @@
             
             <b-col md="2">
                 <b-form-group label="Talla" label-size="sm" class="mb-1">
-                     <b-form-input
-                        v-model="item.talla"
-                        placeholder="Ej: M"
-                    ></b-form-input>
+                     <b-form-select 
+                        v-model="item.id_talla" 
+                        :options="tallasOptions"
+                        size="sm"
+                        @change="updateTallaName(item)"
+                     ></b-form-select>
                 </b-form-group>
             </b-col>
 
@@ -70,7 +72,7 @@
                 </b-form-group>
             </b-col>
             
-            <b-col md="1" class="text-center">
+            <b-col md="2" class="text-center">
                 <label class="d-block small text-muted mb-1">Extras</label>
                 <OrdenesAsignacionAtributos
                     :product="item"
@@ -161,6 +163,7 @@ export default {
       productsSelect: [], // Formatted for typeahead
       productAttributes: [],
       telasOptions: [],
+      tallasOptions: [],
     };
   },
   watch: {
@@ -184,7 +187,8 @@ export default {
         await Promise.all([
             this.getProducts(),
             this.loadProductAttributes(),
-            this.loadTelas()
+            this.loadTelas(),
+            this.loadTallas()
         ]);
         
         // Initialize default tela if empty and options are loaded
@@ -196,10 +200,6 @@ export default {
                if (match) {
                    item.id_tela = match.value;
                    item.tela = match.text;
-               } else if (this.telasOptions.length > 0) {
-                   // Fallback to first option if no match? Or keep null?
-                   // item.id_tela = this.telasOptions[0].value;
-                   // item.tela = this.telasOptions[0].text;
                }
             }
         });
@@ -244,6 +244,19 @@ export default {
         }
     },
 
+    async loadTallas() {
+        try {
+            const res = await this.$axios.get(`${this.$config.API}/sizes`);
+            const data = res.data.data || res.data;
+            this.tallasOptions = data.map(item => ({
+                value: item._id,
+                text: item.nombre
+            }));
+        } catch (e) {
+            console.error("Error loading tallas", e);
+        }
+    },
+
     loadProduct(val, item) {
         if (!val) return;
         const cod = val.split(' | ')[0];
@@ -263,6 +276,11 @@ export default {
     updateTelaName(item) {
         const option = this.telasOptions.find(o => o.value === item.id_tela);
         if (option) item.tela = option.text;
+    },
+
+    updateTallaName(item) {
+        const option = this.tallasOptions.find(o => o.value === item.id_talla);
+        if (option) item.talla = option.text;
     },
 
     handleAttributesUpdate({ productIndex, selectedAttributes }) {
@@ -286,6 +304,7 @@ export default {
           query: '',
           cod: null,
           producto: '',
+          id_talla: null,
           talla: '', 
           corte: 'No aplica', 
           cantidad: 1, 
@@ -313,9 +332,9 @@ export default {
     
     async handleSubmit() {
         // Validar
-        const isValid = this.items.every(item => item.cod && item.cantidad > 0);
+        const isValid = this.items.every(item => item.cod && item.cantidad > 0 && item.id_talla);
         if (!isValid) {
-            this.$toast.error('Por favor selecciona un producto válido y cantidad mayor a 0 para todos los items.');
+            this.$toast.error('Por favor completa todos los campos (Producto, Talla, Cantidad > 0).');
             return;
         }
 
