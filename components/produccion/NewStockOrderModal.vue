@@ -7,7 +7,7 @@
     @hidden="resetModal"
     ok-title="Crear Orden"
     cancel-title="Cancelar"
-    size="lg"
+    size="xl"
   >
     <p class="text-muted">
       Estás creando una nueva orden interna vinculada a la Orden #{{ idOrdenOriginal }}.
@@ -15,7 +15,7 @@
     </p>
 
     <b-form @submit.stop.prevent="handleSubmit">
-      <div v-for="(item, index) in items" :key="index" class="mb-3 p-3 bg-light rounded relative">
+      <div v-for="(item, index) in items" :key="index" class="mb-3 p-3 bg-light rounded relative border">
         <b-button 
             variant="danger" 
             size="sm" 
@@ -26,32 +26,41 @@
             X
         </b-button>
         
-        <b-row>
-            <b-col md="4">
-                <b-form-group label="Producto" label-size="sm">
-                    <b-form-input
-                        v-model="item.product_name"
-                        placeholder="Ej: Short, Franela..."
-                        required
-                    ></b-form-input>
+        <b-row align-v="center">
+            <b-col md="5">
+                <b-form-group label="Producto" label-size="sm" class="mb-1">
+                    <vue-typeahead-bootstrap
+                        class="w-100"
+                        v-model="item.query"
+                        :data="productsSelect"
+                        :serializer="s => s"
+                        placeholder="Buscar producto..."
+                        @hit="loadProduct($event, item)"
+                        showOnFocus
+                    />
                 </b-form-group>
+                <small v-if="item.producto" class="text-success">
+                    Seleccionado: <strong>{{ item.producto }}</strong> (Stock: {{ item.existencia }})
+                </small>
             </b-col>
+            
             <b-col md="2">
-                <b-form-group label="Talla" label-size="sm">
-                    <b-form-input
+                <b-form-group label="Talla" label-size="sm" class="mb-1">
+                     <b-form-input
                         v-model="item.talla"
-                        placeholder="S, M, L..."
-                        required
+                        placeholder="Ej: M"
                     ></b-form-input>
                 </b-form-group>
             </b-col>
-            <b-col md="3">
-                <b-form-group label="Género/Corte" label-size="sm">
-                     <b-form-select v-model="item.genero" :options="generoOptions"></b-form-select>
+
+            <b-col md="2">
+                <b-form-group label="Corte" label-size="sm" class="mb-1">
+                     <b-form-select v-model="item.corte" :options="cortesOptions" size="sm"></b-form-select>
                 </b-form-group>
             </b-col>
-            <b-col md="3">
-                <b-form-group label="Cantidad" label-size="sm">
+
+            <b-col md="2">
+                <b-form-group label="Cantidad" label-size="sm" class="mb-1">
                     <b-form-input
                         v-model.number="item.cantidad"
                         type="number"
@@ -60,10 +69,33 @@
                     ></b-form-input>
                 </b-form-group>
             </b-col>
+            
+            <b-col md="1" class="text-center">
+                <label class="d-block small text-muted mb-1">Extras</label>
+                <OrdenesAsignacionAtributos
+                    :product="item"
+                    :attributes="productAttributes"
+                    :productIndex="index"
+                    @attributes-updated="handleAttributesUpdate"
+                    @reload="loadProductAttributes"
+                />
+            </b-col>
         </b-row>
-        <b-row>
-             <b-col md="12">
-                <small class="text-muted">Tela: <strong>{{ tela }}</strong> (Heredada)</small>
+        
+        <b-row class="mt-2" align-v="center">
+             <b-col md="6">
+                <b-form-group label="Tela" label-size="sm" class="mb-0">
+                    <b-form-select 
+                        v-model="item.id_tela" 
+                        :options="telasOptions"
+                        size="sm"
+                        @change="updateTelaName(item)"
+                    ></b-form-select>
+                </b-form-group>
+             </b-col>
+             <b-col md="6" class="text-right">
+                <span class="text-muted small mr-2">Precio Base:</span>
+                <strong>${{ item.precio || 0 }}</strong>
              </b-col>
         </b-row>
       </div>
@@ -93,7 +125,14 @@
 </template>
 
 <script>
+import VueTypeaheadBootstrap from 'vue-typeahead-bootstrap'
+import OrdenesAsignacionAtributos from '~/components/ordenes/AsignacionAtributos.vue'
+
 export default {
+  components: {
+    VueTypeaheadBootstrap,
+    OrdenesAsignacionAtributos
+  },
   props: {
     show: {
       type: Boolean,
@@ -111,45 +150,172 @@ export default {
   data() {
     return {
       localShow: this.show,
-      items: [
-        { product_name: '', talla: '', genero: 'Unisex', cantidad: 1, tela: this.tela }
+      items: [],
+      cortesOptions: [
+        { value: "No aplica", text: "No aplica" },
+        { value: "Damas", text: "Damas" },
+        { value: "Caballeros", text: "Caballeros" },
+        { value: "Niños", text: "Niños" },
       ],
-      generoOptions: [
-          { value: 'Dama', text: 'Dama' },
-          { value: 'Caballero', text: 'Caballero' },
-          { value: 'Unisex', text: 'Unisex' },
-          { value: 'Niño', text: 'Niño' },
-          { value: 'Niña', text: 'Niña' }
-      ]
+      products: [], // Raw products
+      productsSelect: [], // Formatted for typeahead
+      productAttributes: [],
+      telasOptions: [],
     };
   },
   watch: {
     show(val) {
       this.localShow = val;
+      if (val) {
+          if (this.items.length === 0) this.addItem();
+          this.loadData();
+      }
     },
     localShow(val) {
       this.$emit('update:show', val);
     }
   },
+  mounted() {
+      // Preload data if needed, or wait for show
+      this.loadData();
+  },
   methods: {
-    addItem() {
-      this.items.push({ product_name: '', talla: '', genero: 'Unisex', cantidad: 1, tela: this.tela });
+    async loadData() {
+        await Promise.all([
+            this.getProducts(),
+            this.loadProductAttributes(),
+            this.loadTelas()
+        ]);
+        
+        // Initialize default tela if empty and options are loaded
+        this.items.forEach(item => {
+            if (!item.id_tela) {
+               // Try to match the prop 'tela' with loaded options
+               // Normalize for comparison
+               const match = this.telasOptions.find(t => t.text.toLowerCase() === this.tela.toLowerCase());
+               if (match) {
+                   item.id_tela = match.value;
+                   item.tela = match.text;
+               } else if (this.telasOptions.length > 0) {
+                   // Fallback to first option if no match? Or keep null?
+                   // item.id_tela = this.telasOptions[0].value;
+                   // item.tela = this.telasOptions[0].text;
+               }
+            }
+        });
     },
+
+    async getProducts() {
+      try {
+          const res = await this.$axios.get(`${this.$config.API}/products`, {
+            headers: { Authorization: this.$store.state.login.dataEmpresa.id }
+          });
+          this.products = res.data;
+          this.productsSelect = res.data.map(p => `${p.cod} | ${p.name}`);
+      } catch (e) {
+          console.error("Error loading products", e);
+      }
+    },
+
+    async loadProductAttributes() {
+      try {
+          const res = await this.$axios.get(`${this.$config.API}/products-attributes`);
+          this.productAttributes = res.data.data.map(item => ({
+             value: item._id, 
+             _id: item._id,
+             name: item.name,
+             precio: item.precio,
+             text: `${item.name} ($${item.precio})` 
+          }));
+      } catch (e) {
+          console.error("Error loading attributes", e);
+      }
+    },
+
+    async loadTelas() {
+        try {
+            const res = await this.$axios.get(`${this.$config.API}/telas`);
+             this.telasOptions = res.data.data.map(item => ({
+                value: item._id,
+                text: item.tela
+            }));
+        } catch (e) {
+            console.error("Error loading telas", e);
+        }
+    },
+
+    loadProduct(val, item) {
+        if (!val) return;
+        const cod = val.split(' | ')[0];
+        const product = this.products.find(p => p.cod == cod);
+        
+        if (product) {
+            item.cod = product.cod;
+            item.producto = product.name;
+            item.product_name = product.name;
+            item.existencia = product.stock_quantity;
+            item.precio = product.price;
+            item.id_woo = product._id;
+            item.atributos_seleccionados = []; // Reset attributes on product change
+        }
+    },
+
+    updateTelaName(item) {
+        const option = this.telasOptions.find(o => o.value === item.id_tela);
+        if (option) item.tela = option.text;
+    },
+
+    handleAttributesUpdate({ productIndex, selectedAttributes }) {
+        this.$set(this.items[productIndex], 'atributos_seleccionados', selectedAttributes);
+    },
+
+    addItem() {
+      // Find default tela ID if possible
+      let defaultTelaId = null;
+      let defaultTelaText = this.tela;
+      
+      if (this.telasOptions.length > 0) {
+          const match = this.telasOptions.find(t => t.text.toLowerCase() === this.tela.toLowerCase());
+          if (match) {
+              defaultTelaId = match.value;
+              defaultTelaText = match.text;
+          }
+      }
+
+      this.items.push({ 
+          query: '',
+          cod: null,
+          producto: '',
+          talla: '', 
+          corte: 'No aplica', 
+          cantidad: 1, 
+          id_tela: defaultTelaId,
+          tela: defaultTelaText,
+          atributos_seleccionados: [],
+          precio: 0,
+          existencia: 0
+      });
+    },
+
     removeItem(index) {
         this.items.splice(index, 1);
     },
+    
     resetModal() {
-      this.items = [{ product_name: '', talla: '', genero: 'Unisex', cantidad: 1, tela: this.tela }];
+      this.items = [];
+      this.addItem();
     },
+    
     handleOk(bvModalEvt) {
       bvModalEvt.preventDefault();
       this.handleSubmit();
     },
+    
     async handleSubmit() {
         // Validar
-        const isValid = this.items.every(item => item.product_name && item.talla && item.cantidad > 0);
+        const isValid = this.items.every(item => item.cod && item.cantidad > 0);
         if (!isValid) {
-            this.$toast.error('Por favor completa todos los campos requeridos.');
+            this.$toast.error('Por favor selecciona un producto válido y cantidad mayor a 0 para todos los items.');
             return;
         }
 
@@ -159,9 +325,9 @@ export default {
         };
 
         try {
-            this.$overlay = true; // Si hay overlay global, o usar variable local loading
+            this.$overlay = true; 
             const response = await this.$axios.post(`${this.$config.API}/production/corte/crear-orden-stock-manual`, payload, {
-                headers: { Authorization: `Bearer ${this.$store.state.login.token}` } // Asumiendo auth store
+                headers: { Authorization: `Bearer ${this.$store.state.login.token}` } 
             });
 
             if (response.data.status === 'success') {
