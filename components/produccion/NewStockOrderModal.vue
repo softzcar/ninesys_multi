@@ -250,7 +250,7 @@ export default {
             const data = res.data.data || res.data;
             this.tallasOptions = data.map(item => ({
                 value: item._id,
-                text: item.nombre
+                text: item.name
             }));
         } catch (e) {
             console.error("Error loading tallas", e);
