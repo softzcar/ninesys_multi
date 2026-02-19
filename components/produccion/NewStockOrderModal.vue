@@ -346,20 +346,32 @@ export default {
         try {
             this.$overlay = true; 
             const response = await this.$axios.post(`${this.$config.API}/production/corte/crear-orden-stock-manual`, payload, {
-                headers: { Authorization: `Bearer ${this.$store.state.login.token}` } 
+                headers: { Authorization: this.$store.state.login.dataEmpresa.id } 
             });
 
             if (response.data.status === 'success') {
-                this.$toast.success(`Orden de Stock #${response.data.id_new_order} creada correctamente.`);
+                await this.$fire({
+                    title: "¡Éxito!",
+                    type: "success",
+                    html: `<p>Orden de Stock #${response.data.id_new_order} creada correctamente.</p>`,
+                });
                 this.$emit('success');
                 this.localShow = false;
             } else {
-                 this.$toast.error('Error al crear orden: ' + (response.data.message || 'Desconocido'));
+                this.$fire({
+                    title: "Error",
+                    type: "error",
+                    html: `<p>Error al crear orden: ${response.data.message || 'Desconocido'}</p>`,
+                });
             }
 
         } catch (error) {
             console.error(error);
-            this.$toast.error('Error de conexión o servidor al crear orden de stock.');
+            this.$fire({
+                title: "Error",
+                type: "error",
+                html: `<p>Error de conexión o servidor al crear orden de stock.</p>`,
+            });
         } finally {
             this.$overlay = false;
         }
