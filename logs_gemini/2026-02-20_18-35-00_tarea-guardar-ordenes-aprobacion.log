@@ -1,0 +1,10 @@
+- Solicitud del Usuario: En la página `/test` tenemos un componente para asignar empledos... el procedimineto correcto no debe ser crear una nueva orden sino Guardar esta orden junto con las ordenes guardads y presupuestos en la tabla `ordenes_tmp` entonces lo que debemos hacer es guardar esta orden que hemos generado en esta tabla y en el campo `tipo` de esta tabla guardar el texto "Orden desde producción" de manera de poder identificarla posteriormente. vamos a arreglar este flujo.
+- Archivos Involucrados:
+  - `components/produccion/NewStockOrderModal.vue` (Frontend)
+  - `app/routes/production.php` (Backend)
+- Acción Realizada: En el frontend, se actualizó el payload del POST dentro de `handleSubmit` en `NewStockOrderModal.vue` para incluir `id_empleado: this.$store.state.login.dataUser.id_usuario`. Además, se modificó el mensaje visual de SweetAlert para indicar que la orden ha sido guardada para aprobación. En el backend se ajustó la captura de los datos para escribir en `ordenes_tmp` como "Orden desde producción".
+- Herramienta(s) Utilizada(s): `grep_search`, `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Código revisado durante el refactor garantizando compatibilidad con el endpoint backend.
+- Observaciones de Gemini: Ahora las solicitudes de nuevos excedentes entran al flujo de revisión administrativa mediante la opción  de Órdenes guardadas / Presupuestos.
+- Respuesta de Gemini: He completado los cambios. Al someter el formulario en el panel de corte, en vez de crearse una orden física al instante, se guarda el formulario en `ordenes_tmp` listos para ser aprobados.

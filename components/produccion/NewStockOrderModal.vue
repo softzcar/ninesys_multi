@@ -340,7 +340,8 @@ export default {
 
         const payload = {
             id_orden_original: this.idOrdenOriginal,
-            items: this.items
+            items: this.items,
+            id_empleado: this.$store.state.login.dataUser ? this.$store.state.login.dataUser.id_usuario : this.$store.state.login.data.id
         };
 
         try {
@@ -353,7 +354,7 @@ export default {
                 await this.$fire({
                     title: "¡Éxito!",
                     type: "success",
-                    html: `<p>Orden de Stock #${response.data.id_new_order} creada correctamente.</p>`,
+                    html: `<p>Orden de Stock enviada para aprobación. Ha sido guardada correctamente.</p>`,
                 });
                 this.$emit('success');
                 this.localShow = false;
