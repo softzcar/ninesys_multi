@@ -50,6 +50,16 @@
                               }}
                             </h3>
 
+                            <!-- TABLA DE AJUSTE DE CORTE (SOLO CORTE) -->
+                            <div v-if="dep.departamento === 'Corte'" class="mb-4">
+                                <b-alert show variant="info" class="p-2 mb-2">
+                                    <small><b-icon icon="info-circle"></b-icon> Verifique las cantidades cortadas antes de asignar. Puede ajustar y crear excedentes aquí.</small>
+                                </b-alert>
+                                <div v-for="idOrden in uniqueOrderIds" :key="idOrden" class="mb-3 border rounded p-2 bg-white">
+                                    <CorteItemView :idOrden="idOrden" :embedded="true" />
+                                </div>
+                            </div>
+
                             <produccionsse-asignar-empleado-multi :item="dep"
                               @assignments-updated="handleAssignmentsUpdated" :idorden="id" :emp_asignados="filterAsigandos(
                                 dep._id,
@@ -661,9 +671,13 @@ Corte
 <script>
 import { log } from "console";
 import mixin from "~/mixins/mixins.js";
+import CorteItemView from '~/components/produccion/CorteItemView.vue';
 
 export default {
   mixins: [mixin],
+  components: {
+    CorteItemView,
+  },
 
   data() {
     return {
@@ -771,6 +785,13 @@ export default {
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7);
       return `modal-${rand}`;
+    },
+
+    uniqueOrderIds() {
+        if (!this.itemsProducts || !Array.isArray(this.itemsProducts)) return []
+        // Extraer IDs únicos de ordenes
+        const ids = new Set(this.itemsProducts.map(p => p.id_orden).filter(id => id))
+        return Array.from(ids)
     },
   },
 

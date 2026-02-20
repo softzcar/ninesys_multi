@@ -1353,34 +1353,10 @@ export default {
         });
       }
 
-      // 5. Poblar métodos de pago
-      if (datosDeLaOrden.metodos_pago) {
-        const metodosPago = datosDeLaOrden.metodos_pago;
-
-        // Poblar campos de dólares
-        this.form.montoDolaresEfectivo = metodosPago.montoDolaresEfectivo || 0;
-        this.form.montoDolaresEfectivoDetalle = metodosPago.montoDolaresEfectivoDetalle || '';
-        this.form.montoDolaresZelle = metodosPago.montoDolaresZelle || 0;
-        this.form.montoDolaresZelleDetalle = metodosPago.montoDolaresZelleDetalle || '';
-        this.form.montoDolaresPanama = metodosPago.montoDolaresPanama || 0;
-        this.form.montoDolaresPanamaDetalle = metodosPago.montoDolaresPanamaDetalle || '';
-
-        // Poblar campos de pesos
-        this.form.montoPesosEfectivo = metodosPago.montoPesosEfectivo || 0;
-        this.form.montoPesosEfectivoDetalle = metodosPago.montoPesosEfectivoDetalle || '';
-        this.form.montoPesosTransferencia = metodosPago.montoPesosTransferencia || 0;
-        this.form.montoPesosTransferenciaDetalle = metodosPago.montoPesosTransferenciaDetalle || '';
-
-        // Poblar campos de bolívares
-        this.form.montoBolivaresEfectivo = metodosPago.montoBolivaresEfectivo || 0;
-        this.form.montoBolivaresEfectivoDetalle = metodosPago.montoBolivaresEfectivoDetalle || '';
-        this.form.montoBolivaresPunto = metodosPago.montoBolivaresPunto || 0;
-        this.form.montoBolivaresPuntoDetalle = metodosPago.montoBolivaresPuntoDetalle || '';
-        this.form.montoBolivaresPagomovil = metodosPago.montoBolivaresPagomovil || 0;
-        this.form.montoBolivaresPagomovilDetalle = metodosPago.montoBolivaresPagomovilDetalle || '';
-        this.form.montoBolivaresTransferencia = metodosPago.montoBolivaresTransferencia || 0;
-        this.form.montoBolivaresTransferenciaDetalle = metodosPago.montoBolivaresTransferenciaDetalle || '';
-      }
+      // 5. NO Poblar métodos de pago en el form
+      // Los abonos históricos ya se sumaron en this.abonoHistorico.
+      // Llenar form.montoDolaresEfectivo, etc., causaría que el sistema 
+      // asuma que se está haciendo un abono nuevo por el mismo monto.
 
       // 6. Recalcular totales y desbloquear el wizard
       this.montoTotalOrden();

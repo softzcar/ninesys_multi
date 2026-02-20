@@ -408,7 +408,7 @@ export default {
       return option ? option.text : 'Todas';
     },
     ordenesConEstadoDePago() {
-        if (!this.ordenesActivas.length || !this.pagos.length) return [];
+        if (!this.ordenesActivas || !this.ordenesActivas.length) return [];
         
         return this.ordenesActivas.map(orden => {
             const pagosDeOrden = this.pagos.filter(p => p.orden == orden.orden);

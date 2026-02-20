@@ -306,7 +306,7 @@ export default {
 
     computed: {
         ordenesConEstadoDePago() {
-            if (!this.ordenes.length || !this.pagos.length) return [];
+            if (!this.ordenes || !this.ordenes.length) return [];
             
             return this.ordenes.map(orden => {
                 const pagosDeOrden = this.pagos.filter(p => p.orden == orden.orden);

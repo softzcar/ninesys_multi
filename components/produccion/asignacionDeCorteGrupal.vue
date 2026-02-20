@@ -56,7 +56,7 @@
                 v-for="orden in generateArray(data.item.ordenes)"
                 :key="orden"
               >
-                <linkSearch :id="orden" />
+                <CorteItemView :idOrden="orden" />
               </div>
             </template>
           </b-table>
@@ -68,6 +68,7 @@
 
 <script>
 import { prependListener } from "process";
+import CorteItemView from '~/components/produccion/CorteItemView.vue';
 
 export default {
   data() {
@@ -219,6 +220,6 @@ export default {
   mounted() {
     this.connectToServer();
   },
-  components: { prependListener },
+  components: { prependListener, CorteItemView },
 };
 </script>

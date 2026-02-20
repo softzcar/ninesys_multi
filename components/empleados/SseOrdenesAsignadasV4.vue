@@ -244,7 +244,11 @@
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Número de orden -->
                       <b-col cols="auto">
-                        <linkSearch :id="row.item.orden" />
+                        <CorteItemView 
+                            v-if="$store.state.login.currentDepartament === 'Corte'" 
+                            :idOrden="row.item.orden" 
+                        />
+                        <linkSearch v-else :id="row.item.orden" />
                       </b-col>
 
                       <!-- Terminar Todo + PAUSAR -->
@@ -439,6 +443,7 @@ import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js";
 import FinalizarLoteModal from '~/components/empleados/FinalizarLoteModal.vue'
 import FinalizarLoteImpresionModal from '~/components/empleados/FinalizarLoteImpresionModal.vue'
 import FinalizarLoteCorteModal from '~/components/empleados/FinalizarLoteCorteModal.vue';
+import CorteItemView from '~/components/produccion/CorteItemView.vue';
 
 // import { log } from 'console'
 export default {
@@ -446,6 +451,7 @@ export default {
     FinalizarLoteModal,
     FinalizarLoteImpresionModal,
     FinalizarLoteCorteModal,
+    CorteItemView,
   },
   data() {
     return {

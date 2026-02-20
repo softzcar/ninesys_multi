@@ -426,6 +426,18 @@ export default {
       });
     },
 
+    /**
+     * Filtrado estricto: solo incluye insumos cuyo id_departamento coincide
+     * exactamente con el departamento actual del empleado.
+     * Se usa para decidir si mostrar la sección de material (sin lógica de hermanos).
+     */
+    dataInsumosFiltradoEstricto() {
+      const depId = this.$store.state.login.currentDepartamentId;
+      return this.dataInsumosComputed.filter((el) => {
+        return el.id_orden == this.idorden && el.id_departamento == depId;
+      });
+    },
+
     getCatalogosUnicos() {
       if (!this.dataInsumosFiltrado || this.dataInsumosFiltrado.length === 0) {
         return [];
@@ -737,14 +749,17 @@ export default {
         return;
       }
 
-      // DETECCIÓN AUTOMÁTICA: Si hay insumos estimados para esta orden y departamento, mostrar sección siempre
+      // DETECCIÓN AUTOMÁTICA ESTRICTA: Solo mostrar si el producto tiene insumos
+      // configurados específicamente para el departamento actual (sin lógica de hermanos).
+      // Esto evita que departamentos como Corte hereden los insumos de Estampado
+      // cuando el producto no tiene material asignado para Corte.
       if (
-        this.materialEstimadoPorCatalogo &&
-        this.materialEstimadoPorCatalogo.length > 0
+        this.dataInsumosFiltradoEstricto &&
+        this.dataInsumosFiltradoEstricto.length > 0
       ) {
         this.showSelect = true;
         console.log(
-          "DEBUG - Modal Extra - Detección automática exitosa (Insumos encontrados)"
+          "DEBUG - Modal Extra - Detección automática estricta exitosa (Insumos para este departamento encontrados)"
         );
         return;
       }
