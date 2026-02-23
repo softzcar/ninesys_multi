@@ -279,10 +279,11 @@
                                   </template>
 
                                   <template #cell(precio)="data">
-                                    <b-form-select v-model="form.productos[data.index].original_selected_price
+                                    <b-form-select v-if="!form.guardarStock" v-model="form.productos[data.index].original_selected_price
                                       " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, null)
                                         ">
                                     </b-form-select>
+                                    <span v-else class="text-muted">N/A</span>
                                   </template>
 
                                   <template #cell(talla)="data">
@@ -1414,15 +1415,32 @@ export default {
 
     loadFormGuardadas(idArray, idTable) {
       this.form = this.ordenesGuardadas[idArray].form;
+      
+      // Guardar el ID real del borrador ('_id' en BD) para poder eliminarlo después de emitir
+      this.$set(this.form, '_id_borrador', this.ordenesGuardadas[idArray]._id);
 
       // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
       if (typeof this.form.sendWhatsAppMessage === 'undefined') {
         this.$set(this.form, 'sendWhatsAppMessage', true);
       }
+      
+      // Auto-vincular la orden padre si la data proviene de un stock generado
+      if (this.form.id_orden_original_vincular) {
+        this.ordenVinculada = this.form.id_orden_original_vincular;
+      }
 
       console.log("cargar orden:", this.ordenesGuardadas[idArray].form);
       this.clearSearch();
       this.$bvModal.hide(this.modal);
+      
+      // Salto automático de pestaña si es una orden interna de stock
+      if (this.form.id === 1 && this.form.guardarStock) {
+        this.disable1 = true;
+        this.disable2 = false;
+        setTimeout(() => {
+          this.tabIndex = 1;
+        }, 100);
+      }
     },
 
     async getOrdenesGuardadas() {
@@ -1694,6 +1712,10 @@ export default {
     },
 
     recalcularSegunTalla(index, item, idProd) {
+      if (this.form.guardarStock) {
+        return; // Las órdenes de stock no manejan precios ni recargos por talla XL
+      }
+
       const tallaSeleccionada = this.$store.state.comerce.dataTallas.find(
         (t) => t.value === item.talla
       );
@@ -1755,6 +1777,10 @@ export default {
 
     prev() {
       if (this.tabIndex === 1) {
+        if (this.form.guardarStock) {
+          // Bloquear el regreso a la pestaña cliente si es orden interna
+          return;
+        }
         this.disable1 = false;
         this.tabIndex--;
         this.disable2 = true;
@@ -1767,9 +1793,15 @@ export default {
       }
 
       if (this.tabIndex === 3) {
-        this.disable3 = false;
-        this.tabIndex--;
-        this.disable4 = true;
+        if (this.form.guardarStock) {
+          this.disable2 = false;
+          this.tabIndex = 1;
+          this.disable4 = true;
+        } else {
+          this.disable3 = false;
+          this.tabIndex--;
+          this.disable4 = true;
+        }
       }
     },
 
@@ -1809,11 +1841,34 @@ export default {
 
     validateStep2() {
       if (this.step2()) {
-        this.disable2 = true;
-        this.disable3 = false;
-        setTimeout(() => {
-          this.tabIndex = 2;
-        }, 100);
+        if (this.form.guardarStock) {
+          // Si es orden interna, forzamos todos los pagos a 0 por seguridad
+          this.form.montoDolaresEfectivo = 0;
+          this.form.montoDolaresZelle = 0;
+          this.form.montoDolaresPanama = 0;
+          this.form.montoPesosEfectivo = 0;
+          this.form.montoPesosTransferencia = 0;
+          this.form.montoBolivaresEfectivo = 0;
+          this.form.montoBolivaresPunto = 0;
+          this.form.montoBolivaresPagomovil = 0;
+          this.form.montoBolivaresTransferencia = 0;
+          this.form.abono = 0;
+          this.form.total = 0;
+          
+          // Saltamos directo al paso final
+          this.disable2 = true;
+          this.disable3 = true; 
+          this.disable4 = false;
+          setTimeout(() => {
+            this.tabIndex = 3;
+          }, 100);
+        } else {
+          this.disable2 = true;
+          this.disable3 = false;
+          setTimeout(() => {
+            this.tabIndex = 2;
+          }, 100);
+        }
       } else {
         this.disable3 = true;
         this.disable4 = true;
@@ -1933,25 +1988,29 @@ export default {
 
       let checkingTallaTela = this.checkTallasTelas();
 
+      // Para órdenes de stock interno mitigamos la validación de precios (irán en $0)
+      let fallanPrecios = !this.form.guardarStock && (!this.checkPrices() || cehckPrecios.length > 0);
+
       if (
         !this.form.productos.length ||
         ceroPrice ||
         !checkingTallaTela ||
-        cehckPrecios.length
+        fallanPrecios
       ) {
         let errors = "";
         ok = false;
 
-        if (!this.checkPrices()) {
-          errors =
-            errors + `<p>Debe asignar el precio de todos los productos</p>`;
+        if (!this.form.guardarStock) {
+          if (!this.checkPrices()) {
+            errors = errors + `<p>Debe asignar el precio de todos los productos</p>`;
+          }
+          if (cehckPrecios.length) {
+            errors = errors + `<p>Debe seleccionar todos los precios</p>`;
+          }
         }
 
         if (!checkingTallaTela)
           errors = errors + `<p>Debe seleccionar a Talla y la Tela</p>`;
-
-        if (cehckPrecios.length)
-          errors = errors + `<p>Debe seleccionar todos los precios</p>`;
 
         if (!this.form.productos.length)
           errors = errors + `<p>Debe seleccionar al menos un producto</p>`;
@@ -2258,6 +2317,12 @@ export default {
         ? this.form.email
         : this.generateEmail();
       let direccion = this.form.direccion.length ? this.form.direccion : "none";
+
+      // Si es una orden de stock interno, saltar la actualización del cliente
+      if (this.form.id === 1 && this.form.guardarStock) {
+        this.loading.show = false;
+        return true;
+      }
 
       // Verificamos si el el usuarioe xiste para llamar el endpoint correcto
       if (!this.form.id) {
@@ -2596,8 +2661,31 @@ export default {
             type: "success",
           });
 
+          // Capture before the form is cleared
+          const idBorrador = this.form._id_borrador;
+          const wasStockOrder = this.form.guardarStock;
+
           this.getOrdenesSinAsignar(); // Recargar datos relacionados
           this.loadDataProductos(); // ACTUALIZAR LA EXISTENCIA DE PRODUCTOS
+
+          // AUTO LóGICA DE ELIMINACIÓN DE BORRADORES
+          if (idBorrador) {
+            if (wasStockOrder) {
+               // Eliminación silenciosa automática para órdenes internas de Producción
+               this.deleteOrdenGuardada(idBorrador);
+            } else {
+               // Confirmación manual para órdenes y presupuestos regulares
+               const wantsToDeleteDraft = await this.$confirm(
+                  "¿Desea eliminar el borrador cargado de la lista de presupuestos / guardadas? Ya ha sido emitido con éxito.",
+                  "Eliminar Borrador",
+                  "question"
+               ).catch(() => false);
+
+               if (wantsToDeleteDraft) {
+                 this.deleteOrdenGuardada(idBorrador);
+               }
+            }
+          }
 
           const wantsToPrint = await this.$confirm(
             "¿Desea imprimir una copia de la orden?",
@@ -3096,6 +3184,11 @@ export default {
     },
 
     montoTotalOrden() {
+      if (this.form.guardarStock) {
+        this.form.total = 0;
+        return;
+      }
+
       if (this.form.productos.length > 0) {
         this.form.total = 0;
         this.form.total = this.form.productos

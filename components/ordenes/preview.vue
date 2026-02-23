@@ -179,14 +179,14 @@
                             RESTA:
                             {{
                                 (
-                                    parseFloat(montoTotalOrden(form.productos)) -
-                                    parseFloat(form.abono) -
-                                    parseFloat(form.descuento)
+                                    parseFloat(montoTotalOrden(form.productos) || 0) -
+                                    parseFloat(form.abono || 0) -
+                                    parseFloat(form.descuento || 0)
                                 ).toFixed(2)
                             }}
                         </h2>
                         <h1>
-                            TOTAL: {{ floatMe(montoTotalOrden(form.productos)) }}
+                            TOTAL: {{ floatMe(montoTotalOrden(form.productos) || 0) }}
                         </h1>
                     </div>
 
@@ -264,15 +264,16 @@ export default {
             return parseFloat(val).toFixed(2)
         },
         montoTotalOrden(productos) {
-            if (productos.length > 0) {
+            if (productos && productos.length > 0) {
                 return productos
                     .map((item) => {
-                        return (
-                            parseFloat(item.precio) * parseFloat(item.cantidad)
-                        )
+                        let miPrecio = parseFloat(item.precio);
+                        if (isNaN(miPrecio)) miPrecio = 0;
+                        return miPrecio * parseFloat(item.cantidad);
                     })
-                    .reduce((acc, curr) => (acc = acc + curr))
+                    .reduce((acc, curr) => acc + curr, 0); // Initialize reduce with 0
             }
+            return 0; // Return 0 if no products
         },
 
         makeDate(date) {
