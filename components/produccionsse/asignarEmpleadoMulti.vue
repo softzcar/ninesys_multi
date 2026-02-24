@@ -62,6 +62,7 @@ export default {
       empleado: null,
       comision: 0,
       form: [],
+      saveTimer: null,
       fields: [
         {
           key: "empleado",
@@ -193,6 +194,12 @@ export default {
         }
         console.groupEnd("calcular");
       }
+
+      // Guardar con debounce para esperar que el usuario termine de escribir
+      clearTimeout(this.saveTimer);
+      this.saveTimer = setTimeout(() => {
+        this.guararComisiones();
+      }, 700);
     },
 
     nombreEmpleado(idEmpleado) {
@@ -309,7 +316,8 @@ export default {
           this.form = arr1;
           this.empleado = null;
         }
-        this.guararComisiones(); // Guardar automáticamente después de añadir
+        // No guardar automáticamente al agregar — el usuario puede cambiar el porcentaje primero
+        // La grabación ocurre con debounce desde updateData() cuando el usuario cambia el input
       }
     },
 
