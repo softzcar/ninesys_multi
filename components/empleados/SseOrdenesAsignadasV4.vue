@@ -199,6 +199,12 @@
                           :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
                       </b-col>
 
+                      <!-- Mis Piezas Asignadas -->
+                      <b-col cols="auto">
+                        <empleados-MiAsignacionVista :idorden="row.item.orden"
+                          :idempleado="$store.state.login.dataUser.id_empleado" />
+                      </b-col>
+
                       <!-- ProgressBar -->
                       <b-col cols="auto">
                         <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
@@ -265,6 +271,12 @@
                       <b-col cols="auto">
                         <empleados-InsumosEstimadosVista :idorden="row.item.orden"
                           :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                      </b-col>
+
+                      <!-- Mis Piezas Asignadas -->
+                      <b-col cols="auto">
+                        <empleados-MiAsignacionVista :idorden="row.item.orden"
+                          :idempleado="$store.state.login.dataUser.id_empleado" />
                       </b-col>
 
                       <!-- ProgressBar (después de PAUSAR) -->
@@ -368,6 +380,12 @@
                       <b-col cols="auto">
                         <empleados-InsumosEstimadosVista :idorden="row.item.orden"
                           :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                      </b-col>
+
+                      <!-- Mis Piezas Asignadas -->
+                      <b-col cols="auto">
+                        <empleados-MiAsignacionVista :idorden="row.item.orden"
+                          :idempleado="$store.state.login.dataUser.id_empleado" />
                       </b-col>
 
                       <!-- ProgressBar (después de Iniciar Todo) -->
