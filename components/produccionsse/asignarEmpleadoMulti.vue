@@ -316,8 +316,12 @@ export default {
           this.form = arr1;
           this.empleado = null;
         }
-        // No guardar automáticamente al agregar — el usuario puede cambiar el porcentaje primero
-        // La grabación ocurre con debounce desde updateData() cuando el usuario cambia el input
+
+        // Guardar automáticamente al agregar si el porcentaje ya cuadró (ej: 1 o más en auto)
+        clearTimeout(this.saveTimer);
+        this.saveTimer = setTimeout(() => {
+          this.guararComisiones();
+        }, 700);
       }
     },
 
