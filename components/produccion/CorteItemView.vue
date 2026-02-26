@@ -65,13 +65,13 @@
                 
                 <div v-if="hayExcedentes" class="mt-2 text-right">
                     <span class="text-success small font-weight-bold">
-                        <b-icon icon="info-circle"></b-icon> {{ totalExcedentes }} excedentes detectados
+                        <b-icon icon="info-circle"></b-icon> Excedentes detectados: {{ totalExcedentes }}
                     </span>
                 </div>
                 <!-- MOSTRAR SIEMPRE EL TOTAL DE PIEZAS A CORTAR -->
                 <div class="mt-1 text-right">
                     <span class="text-primary font-weight-bold" style="font-size: 1.1em;">
-                        <b-icon icon="layers"></b-icon> {{ totalPiezasCortadas }} Total Piezas
+                        <b-icon icon="layers"></b-icon> Total de piezas a cortar: {{ totalPiezasCortadas }}
                     </span>
                 </div>
             </div>
