@@ -9,8 +9,8 @@
         <!-- Inyección para Corte: Se muestra si el empleado activo pertenece a Corte (ID 3) -->
         <b-overlay :show="overlay" spinner-small>
           <div v-if="showResultado && isCorteDepartamento" class="mb-4">
-            <h5 class="text-primary border-bottom pb-2"><b-icon icon="scissors" class="mr-2"></b-icon>Cantidades Asignadas de Corte</h5>
-            <CorteItemView :idOrden="id" :embedded="true" />
+            <h5 class="text-primary border-bottom pb-2"><b-icon icon="list-check" class="mr-2"></b-icon>Mi Asignación de Corte</h5>
+            <MiAsignacionVista :idorden="id" :idempleado="idEmpleado" :embedded="true" />
           </div>
         </b-overlay>
 
@@ -24,12 +24,12 @@
 
 <script>
 import Resultado from "~/components/buscar/resultado.vue";
-import CorteItemView from "~/components/produccion/CorteItemView.vue";
+import MiAsignacionVista from "~/components/empleados/MiAsignacionVista.vue";
 
 export default {
   components: { 
     "buscar-resultado": Resultado,
-    CorteItemView
+    MiAsignacionVista
   },
 
   data() {
@@ -54,6 +54,13 @@ export default {
         return parseInt(this.$store.state.login.currentDepartamentId) === 3;
       }
       return false;
+    },
+
+    idEmpleado() {
+      if (this.$store.state.login && this.$store.state.login.dataUser) {
+        return this.$store.state.login.dataUser.id_empleado;
+      }
+      return null;
     },
 
     title() {
