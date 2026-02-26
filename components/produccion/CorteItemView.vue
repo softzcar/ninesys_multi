@@ -68,6 +68,12 @@
                         <b-icon icon="info-circle"></b-icon> {{ totalExcedentes }} excedentes detectados
                     </span>
                 </div>
+                <!-- MOSTRAR SIEMPRE EL TOTAL DE PIEZAS A CORTAR -->
+                <div class="mt-1 text-right">
+                    <span class="text-primary font-weight-bold" style="font-size: 1.1em;">
+                        <b-icon icon="layers"></b-icon> {{ totalPiezasCortadas }} Total Piezas
+                    </span>
+                </div>
             </div>
         </b-overlay>
     </div>
@@ -138,6 +144,9 @@ export default {
         // Retorna la tela del primer producto o 'General'
         if (this.productos.length > 0) return this.productos[0].tela;
         return 'General';
+    },
+    totalPiezasCortadas() {
+        return this.productos.reduce((acc, p) => acc + (parseFloat(p.cantidad_cortada) || 0), 0);
     }
   },
   methods: {
