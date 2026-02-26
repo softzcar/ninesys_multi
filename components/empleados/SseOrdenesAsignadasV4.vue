@@ -199,12 +199,6 @@
                           :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
                       </b-col>
 
-                      <!-- Mis Piezas Asignadas -->
-                      <b-col cols="auto">
-                        <empleados-MiAsignacionVista :idorden="row.item.orden"
-                          :idempleado="$store.state.login.dataUser.id_empleado" />
-                      </b-col>
-
                       <!-- ProgressBar -->
                       <b-col cols="auto">
                         <empleados-ProgressBarEmpleados :idOrden="row.item.orden" />
@@ -250,11 +244,7 @@
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Número de orden -->
                       <b-col cols="auto">
-                        <CorteItemView 
-                            v-if="$store.state.login.currentDepartament === 'Corte'" 
-                            :idOrden="row.item.orden" 
-                        />
-                        <linkSearch v-else :id="row.item.orden" />
+                        <linkSearch :id="row.item.orden" />
                       </b-col>
 
                       <!-- Terminar Todo + PAUSAR -->
