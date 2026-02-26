@@ -475,8 +475,14 @@ export default {
 
     filterVinculadas(id_orden) {
       return this.vinculadas
-        .filter((el) => el.id_father == id_orden)
-        .map((el) => ({ id_child: el.id_child }));
+        .filter((el) => el.id_father == id_orden || el.id_child == id_orden)
+        .map((el) => {
+          // Si somos el padre, el vinculado es el hijo
+          // Si somos el hijo, el vinculado es el padre
+          return {
+            id_child: el.id_father == id_orden ? el.id_child : el.id_father
+          };
+        });
     },
     filterOrdenProductos(id_orden) {
       return this.orden_productos.filter((el) => el.id_orden == id_orden);

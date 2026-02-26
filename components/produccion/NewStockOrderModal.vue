@@ -338,10 +338,48 @@ export default {
             return;
         }
 
+        // Simular la estructura de un borrador comercial para que nueva.vue pueda cargarlo
+        const productosTransformados = this.items.map(item => ({
+            cod: item.cod,
+            producto: item.producto,
+            cantidad: item.cantidad,
+            precio: item.precio || 0,
+            talla: item.id_talla, // nueva.vue y orders.php esperan que 'talla' contenga el ID numérico
+            id_talla: item.id_talla,
+            talla_nombre: item.talla,
+            corte: item.corte,
+            tela: item.id_tela, // nueva.vue y orders.php esperan que 'tela' contenga el ID numérico
+            id_tela: item.id_tela,
+            tela_nombre: item.tela,
+            atributos_seleccionados: item.atributos_seleccionados,
+            diseno: false, // Requerido por el validador de nueva.vue checkTallasTelas()
+            categoria: 1, // Requerido por el backend en orders.php para la insersión SQL
+        }));
+
         const payload = {
             id_orden_original: this.idOrdenOriginal,
-            items: this.items,
-            id_empleado: this.$store.state.login.dataUser ? this.$store.state.login.dataUser.id_usuario : this.$store.state.login.data.id
+            id_empleado: this.$store.state.login.dataUser ? this.$store.state.login.dataUser.id_empleado : 1,
+            form: {
+                id: 1, // ID del cliente Producción Interna
+                nombre: 'Producción Interna',
+                apellido: '',
+                telefono: '04140000000',
+                email: 'interno@sistema.com',
+                cedula: 'INTERNO-001',
+                direccion: 'N/A',
+                fechaEntrega: new Date().toISOString().split('T')[0],
+                productos: productosTransformados,
+                metodoDePago: [],
+                obs: `Orden de excedentes generada automáticamente desde la asignación de corte. Orden Padre: #${this.idOrdenOriginal}`,
+                guardarStock: true,
+                id_orden_original_vincular: this.idOrdenOriginal,
+                tasaDolar: 0, tasaPeso: 0, abono: 0, abonoHistorico: 0, descuentoHistorico: 0, descuento: 0, descuentoDetalle: '', total: 0,
+                montoDolaresEfectivo: 0, montoDolaresEfectivoDetalle: '', montoDolaresZelle: 0, montoDolaresZelleDetalle: '', montoDolaresPanama: 0, montoDolaresPanamaDetalle: '',
+                montoPesosEfectivo: 0, montoPesosEfectivoDetalle: '', montoPesosTransferencia: 0, montoPesosTransferenciaDetalle: '',
+                montoBolivaresEfectivo: 0, montoBolivaresEfectivoDetalle: '', montoBolivaresPunto: 0, montoBolivaresPuntoDetalle: '', montoBolivaresPagomovil: 0, montoBolivaresPagomovilDetalle: '', montoBolivaresTransferencia: 0, montoBolivaresTransferenciaDetalle: '',
+                diseno_grafico: false, diseno_grafico_cantidad: 0, diseno_modas: false, diseno_modas_cantidad: 0, sales_commision: false, next: 0, disableControl: false,
+                sendWhatsAppMessage: false
+            }
         };
 
         try {

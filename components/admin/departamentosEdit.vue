@@ -133,8 +133,8 @@ export default {
         },
 
         isDefaultDepartment() {
-            // Los IDs 1-7 son departamentos por defecto del sistema
-            return this.item && this.item._id >= 1 && this.item._id <= 7;
+            // Los IDs 1-8 son departamentos por defecto del sistema (incluye Producción ID 8)
+            return this.item && this.item._id >= 1 && this.item._id <= 8;
         }
     },
 

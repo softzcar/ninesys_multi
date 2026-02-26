@@ -20,8 +20,8 @@ export default {
 
     computed: {
         isDefaultDepartment() {
-            // Los IDs 1-7 son departamentos por defecto del sistema
-            return this.iddep >= 1 && this.iddep <= 7;
+            // Los IDs 1-8 son departamentos por defecto del sistema (incluye Producción ID 8)
+            return this.iddep >= 1 && this.iddep <= 8;
         }
     },
 

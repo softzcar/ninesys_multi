@@ -56,6 +56,16 @@
 <script>
 import { mapState, mapGetters } from "vuex";
 
+// Mapeo estático de componentes de sidebar para evitar re-creación en cada renderizado
+const sidebarComponentMap = {
+  'menus/menuAdmin': () => import('@/components/sidebars/SidebarAdmin.vue'),
+  'menus/menuComercializacion': () => import('@/components/sidebars/SidebarComercializacion.vue'),
+  'menus/menuDisenador': () => import('@/components/sidebars/SidebarDiseno.vue'),
+  'menus/menuProduccion': () => import('@/components/sidebars/SidebarProduccion.vue'),
+  'menus/menuEmpleado': () => import('@/components/sidebars/SidebarEmpleado.vue'),
+  'menus/menuRevision': () => import('@/components/sidebars/SidebarRevision.vue'),
+};
+
 export default {
   name: "AppSidebar",
   data() {
@@ -77,18 +87,7 @@ export default {
     },
     sidebarMenuComponent() {
       if (!this.currentComponent) return null;
-
-      // Mapeo desde el nombre del componente del menú al sidebar correspondiente
-      const componentMap = {
-        'menus/menuAdmin': () => import('@/components/sidebars/SidebarAdmin.vue'),
-        'menus/menuComercializacion': () => import('@/components/sidebars/SidebarComercializacion.vue'),
-        'menus/menuDisenador': () => import('@/components/sidebars/SidebarDiseno.vue'),
-        'menus/menuProduccion': () => import('@/components/sidebars/SidebarProduccion.vue'),
-        'menus/menuEmpleado': () => import('@/components/sidebars/SidebarEmpleado.vue'),
-        'menus/menuRevision': () => import('@/components/sidebars/SidebarRevision.vue'),
-      };
-
-      return componentMap[this.currentComponent] || null;
+      return sidebarComponentMap[this.currentComponent] || null;
     },
   },
   watch: {

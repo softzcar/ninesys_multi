@@ -69,8 +69,10 @@ export default {
   },
   watch: {
     '$route'() {
-      // Cerrar sidebar en móvil al navegar
-      this.sidebarVisible = false;
+      // Cerrar sidebar en móvil al navegar solo si está abierto
+      if (this.sidebarVisible) {
+        this.sidebarVisible = false;
+      }
     },
   },
 }

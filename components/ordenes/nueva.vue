@@ -83,11 +83,39 @@
                       @orden-cargada="manejarOrdenCargada" />
                   </div>
 
-                  <b-button @click="clearForm" variant="danger" class="mb-2 mb-md-0">
+                  <b-button @click="clearForm" variant="danger" class="mb-2 mb-md-0 mr-md-2">
                     Limpiar formulario
                   </b-button>
+
+                  <div class="mb-2 mb-md-0" style="padding-top: 5px;">
+                     <b-form-checkbox 
+                       v-model="form.guardarStock" 
+                       :disabled="categoriaDeLaORden !== 'custom'"
+                       size="lg"
+                       switch
+                       @change="toggleOrdenInterna"
+                     >
+                       <strong>Generar orden interna</strong>
+                     </b-form-checkbox>
+                  </div>
                 </div>
               </div>
+
+              <!-- Modal Automático para solicitar Fecha de Stock -->
+              <b-modal id="modal-fecha-stock" title="Fecha de Entrega" hide-footer size="sm" no-close-on-backdrop no-close-on-esc>
+                 <b-form @submit.prevent="confirmDateAndProceed">
+                    <b-form-group>
+                      <label for="input-fecha-stock">Seleccione la fecha límite para completar esta orden interna <span required>*</span></label>
+                      <b-form-datepicker 
+                        id="input-fecha-stock" 
+                        v-model="form.fechaEntrega"
+                        class="mb-4"
+                        placeholder="Fecha de entrega"
+                      ></b-form-datepicker>
+                    </b-form-group>
+                    <b-button type="submit" variant="success" block>Continuar</b-button>
+                 </b-form>
+              </b-modal>
               <b-row>
                 <b-col>
                   <div>
@@ -115,7 +143,7 @@
                                   <div class="buscador">
                                     <h5>Buscar Cliente</h5>
                                     <vue-typeahead-bootstrap @hit="loadForm" :data="$store.state.comerce.customersSelect
-                                      " size="lg" v-model="query2" placeholder="Nombre o teléfono" />
+                                      " size="lg" v-model="query2" placeholder="Nombre o teléfono" :disabled="form.guardarStock" />
                                   </div>
                                 </b-col>
                               </b-row>
@@ -143,13 +171,13 @@
                                     <b-form-group>
                                       <label for="input-nombre">Nombre <span required>*</span></label>
                                       <b-form-input id="input-nombre" ref="nombre" v-model="form.nombre" type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el nombre"></b-form-input>
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el nombre" :disabled="form.guardarStock"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-apellido">Apellido <span required>*</span></label>
                                       <b-form-input id="input-apellido" v-model="form.apellido" type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el apellido"></b-form-input>
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el apellido" :disabled="form.guardarStock"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
@@ -157,25 +185,25 @@
                                       <b-form-input id="input-telefono" v-model="form.telefono" type="tel"
                                         class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese teléfono (Ej: 0414...)"
                                         @input="form.telefono = cleanPhoneInput($event)"
-                                        @blur="onPhoneBlur"></b-form-input>
+                                        @blur="onPhoneBlur" :disabled="form.guardarStock"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-cedula">Cedula</label>
                                       <b-form-input id="input-cedula" v-model="form.cedula" type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la Cédula"></b-form-input>
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la Cédula" :disabled="form.guardarStock"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-email">Email</label>
                                       <b-form-input id="input-email" v-model="form.email" type="email"
-                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el email"></b-form-input>
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el email" :disabled="form.guardarStock"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
                                       <label for="input-address">Dirección</label>
                                       <b-form-input id="input-address" v-model="form.direccion" type="text"
-                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la dirección"></b-form-input>
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la dirección" :disabled="form.guardarStock"></b-form-input>
                                     </b-form-group>
                                   </b-form>
                                   <p info-form>
@@ -232,10 +260,7 @@
                                   name="radio-btn-outline" buttons class="mb-4"
                                   @input="changeCategory"></b-form-radio-group>
 
-                                <b-form-checkbox v-model="form.guardarStock" :disabled="categoriaDeLaORden !== 'custom'"
-                                  class="mb-4">
-                                  Guardar en Stock
-                                </b-form-checkbox>
+
 
                                 <vue-typeahead-bootstrap @hit="loadProduct" :data="$store.state.comerce.dataProductosSelect
                                   " v-model="query" placeholder="Seleccione los productos" />
@@ -1405,6 +1430,62 @@ export default {
       textArea.innerHTML = text;
       return textArea.value;
     },
+
+    async toggleOrdenInterna(isChecked) {
+      if (isChecked) {
+        // Rellenamos el cliente con Producción Interna (ID 1)
+        this.form.id = 1;
+        this.form.nombre = 'Producción Interna';
+        this.form.apellido = '';
+        this.form.telefono = '04140000000';
+        this.form.email = 'interno@sistema.com';
+        this.form.cedula = 'INTERNO-001';
+        this.form.direccion = 'N/A';
+        
+        // Forzar limpieza y salto si había algo antes
+        this.query2 = "";
+        
+        // Abrir el modal de solicitud de fecha usando un timer para Vue
+        setTimeout(() => {
+          this.$bvModal.show('modal-fecha-stock');
+        }, 50);
+
+      } else {
+        const confirmacion = await this.$confirm(
+             "¿Estás seguro de que deseas salir del modo de Orden Interna? Se borrarán todos los datos cargados hasta ahora.",
+             "Confirmar Acción",
+             "warning"
+        );
+
+        if (confirmacion) {
+          // Limpiamos todo, desbloqueamos la pestaña Cliente y devolvemos al inicio
+          this.clearStep1();
+          this.query2 = "";
+          this.disable1 = false;
+          this.disable2 = true;
+          this.goToFirsTab();
+        } else {
+          // El usuario se arrepintió de apagarlo, restauramos el switch visualmente a ON
+          // Usamos nextTick para evitar conflictos de reactividad con el componente b-form-checkbox
+          this.$nextTick(() => {
+             this.form.guardarStock = true;
+          });
+        }
+      }
+    },
+
+    confirmDateAndProceed() {
+      if (!this.form.fechaEntrega) {
+         this.$toast.error('Por favor indique una fecha de entrega.');
+         return;
+      }
+      this.$bvModal.hide('modal-fecha-stock');
+      // Saltamos a la ventana de productos tal como solicitó el usuario
+      this.disable1 = true;
+      this.disable2 = false;
+      this.tabIndex = 1;
+    },
+
     checkScreenSize() {
       this.isSmallScreen = window.innerWidth < 768; // Cambia el valor según tu necesidad
     },
@@ -2764,6 +2845,7 @@ export default {
       this.form.telefono = "";
       this.form.email = "";
       this.form.direccion = "";
+      this.form.guardarStock = false;
     },
 
     async getProducts() {

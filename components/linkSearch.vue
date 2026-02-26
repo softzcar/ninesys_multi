@@ -8,9 +8,9 @@
       <div>
         <!-- Inyección para Corte: Se muestra si el empleado activo pertenece a Corte (ID 3) -->
         <b-overlay :show="overlay" spinner-small>
-          <div v-if="showResultado && isCorteDepartamento" class="mb-4">
-            <h5 class="text-primary border-bottom pb-2"><b-icon icon="list-check" class="mr-2"></b-icon>Mi Asignación de Corte</h5>
-            <MiAsignacionVista :idorden="id" :idempleado="idEmpleado" :embedded="true" />
+          <div v-if="showResultado && isEmpleadoScope" class="mb-4">
+            <h5 class="text-primary border-bottom pb-2"><b-icon icon="list-check" class="mr-2"></b-icon>Asignación de Piezas</h5>
+            <MiAsignacionVista :idorden="id" :idempleado="computedIdEmpleado" :embedded="true" />
           </div>
         </b-overlay>
 
@@ -49,14 +49,23 @@ export default {
   },
 
   computed: {
-    isCorteDepartamento() {
-      if(this.$store.state.login && this.$store.state.login.currentDepartamentId) {
-        return parseInt(this.$store.state.login.currentDepartamentId) === 3;
+    isEmpleadoScope() {
+      // Si recibimos un ID forzado (ej: desde panel de admin), queremos ver la vista
+      if (this.empleadoIdOpcional) {
+        return true;
+      }
+      // O si somos un empleado estándar logueado
+      if(this.$store.state.login && this.$store.state.login.currentComponent) {
+        return this.$store.state.login.currentComponent === 'menus/menuEmpleado';
       }
       return false;
     },
 
-    idEmpleado() {
+    computedIdEmpleado() {
+      // Priorizar el prop pasado que el del store.
+      if (this.empleadoIdOpcional) {
+        return this.empleadoIdOpcional;
+      }
       if (this.$store.state.login && this.$store.state.login.dataUser) {
         return this.$store.state.login.dataUser.id_empleado;
       }
@@ -89,7 +98,7 @@ export default {
     },
   },
 
-  props: ["id", "progreso"],
+  props: ["id", "progreso", "empleadoIdOpcional"],
 };
 </script>
 

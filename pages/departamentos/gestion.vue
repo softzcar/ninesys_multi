@@ -156,7 +156,7 @@
                             size="sm"
                             class="mb-4"
                             variant="danger"
-                            :disabled="departamento._id >= 1 && departamento._id <= 7"
+                            :disabled="departamento._id >= 1 && departamento._id <= 8"
                           >
                             <b-icon icon="trash"></b-icon>
                           </b-button>

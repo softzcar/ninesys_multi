@@ -41,7 +41,7 @@
                 :fields="fieldsVariable"
               >
                 <template #cell(orden)="data">
-                  <linkSearch :id="data.item.orden" />
+                  <linkSearch :id="data.item.orden" :empleadoIdOpcional="item.id_empleado" />
                 </template>
                 <template #cell(comision)="data">
                   <admin-ComisionesProductosInput
@@ -72,7 +72,7 @@
                 :fields="fields"
               >
                 <template #cell(orden)="data">
-                  <linkSearch :id="data.item.orden" />
+                  <linkSearch :id="data.item.orden" :empleadoIdOpcional="item.id_empleado" />
                 </template>
                 <template #cell(porcentaje)="data">
                   <admin-ComisionesProductosInput
