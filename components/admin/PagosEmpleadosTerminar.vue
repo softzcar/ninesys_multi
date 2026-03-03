@@ -187,7 +187,7 @@ export default {
 
             // Asignar observación por defecto si está vacía
             if (!this.datosPago.observaciones || this.datosPago.observaciones.trim() === '') {
-                this.datosPago.observaciones = 'Pago nómina ' + this.datosPago.fechaPago;
+                this.datosPago.observaciones = 'Pago nómina ' + this.formatDate(this.datosPago.fechaPago);
             }
 
             const total = this.calcularTotalConAdicionales();
