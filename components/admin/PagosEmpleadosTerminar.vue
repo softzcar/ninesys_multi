@@ -196,7 +196,7 @@ export default {
                 return
             }
 
-            this.$swal({
+            this.$fire({
                 title: 'Confirmar Procesamiento masivo',
                 html: `¿Desea procesar el pago para ${countEmpleados} empleados?<br><br>
                 <strong>Resumen Global:</strong><br>
@@ -210,7 +210,7 @@ export default {
                 confirmButtonText: 'Sí, procesar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
-                if (result.isConfirmed) {
+                if (result.value) {
                     this.procesarPagos()
                 }
             })
