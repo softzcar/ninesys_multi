@@ -99,8 +99,10 @@
 import axios from "axios"
 import PagosBonoForm from './PagosBonoForm.vue'
 import PagosDescuentoForm from './PagosDescuentoForm.vue'
+import mixin from '~/mixins/mixins.js'
 
 export default {
+    mixins: [mixin],
     components: {
         PagosBonoForm,
         PagosDescuentoForm
@@ -203,7 +205,7 @@ export default {
                 Total a Pagar: $${total}<br>
                 Total Bonos: $${this.calcularTotalBonos().toFixed(2)}<br>
                 Total Descuentos: $${this.calcularTotalDescuentos().toFixed(2)}<br>
-                Fecha de Pago: ${this.datosPago.fechaPago}<br>
+                Fecha de Pago: ${this.formatDate(this.datosPago.fechaPago)}<br>
                 Observaciones: ${this.datosPago.observaciones}`,
                 icon: 'question',
                 showCancelButton: true,
