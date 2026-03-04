@@ -37,7 +37,16 @@
           <span class="ml-4"><strong>Período:</strong> {{ periodoLabel }}</span>
         </div>
 
-        <!-- Tabla de detalles -->
+        <!-- Salario -->
+        <div v-if="salarioInfo.visible" class="alert mb-2 py-1 px-3"
+          :class="salarioInfo.pagado ? 'alert-success' : 'alert-warning'"
+          style="font-size:0.85rem"
+        >
+          <strong>Salario:</strong>
+          <span v-if="salarioInfo.pagado"> ${{ numberFmt(salarioInfo.monto) }} <small class="text-success">(✓ Pagado este período)</small></span>
+          <span v-else class="text-warning"> ${{ numberFmt(salarioInfo.monto) }} <small>(Pendiente de pago)</small></span>
+        </div>
+
         <table class="table table-sm table-bordered reporte-tabla">
           <thead class="thead-light">
             <tr>
@@ -83,9 +92,17 @@
                 <td class="text-right">Total Comisiones:</td>
                 <td class="text-right"><strong>${{ numberFmt(data.totales.comision) }}</strong></td>
               </tr>
-              <tr v-if="data.totales.salario > 0">
-                <td class="text-right">Total Salario:</td>
-                <td class="text-right"><strong>${{ numberFmt(data.totales.salario) }}</strong></td>
+              <tr v-if="salarioInfo.visible">
+                <td class="text-right">
+                  <span v-if="salarioInfo.pagado">Salario Pagado:</span>
+                  <span v-else class="text-warning">Salario (Pendiente):</span>
+                </td>
+                <td class="text-right">
+                  <strong>
+                    <span v-if="salarioInfo.pagado">${{ numberFmt(salarioInfo.monto) }}</span>
+                    <span v-else class="text-warning">${{ numberFmt(salarioInfo.monto) }}</span>
+                  </strong>
+                </td>
               </tr>
               <tr v-for="bono in data.bonos" :key="'b-' + bono.descripcion">
                 <td class="text-right text-success">Bono ({{ bono.descripcion }}):</td>
@@ -148,6 +165,21 @@ export default {
         if (fp) return new Date(fp).toLocaleDateString('es-VE', { day:'2-digit', month:'2-digit', year:'numeric' })
       }
       return '—'
+    },
+    salarioInfo() {
+      if (!this.data) return { visible: false, pagado: false, monto: 0 }
+      const tipo = this.data.empleado.salario_tipo || ''
+      if (tipo === 'Comisión') return { visible: false, pagado: false, monto: 0 }
+      // Monto pagado ya registrado en pagos_salarios del período
+      if (this.data.totales.salario > 0) {
+        return { visible: true, pagado: true, monto: this.data.totales.salario }
+      }
+      // Monto configurado del empleado (aún no pagado)
+      const montoCfg = parseFloat(this.data.empleado.salario_monto || 0)
+      if (montoCfg > 0) {
+        return { visible: true, pagado: false, monto: montoCfg }
+      }
+      return { visible: false, pagado: false, monto: 0 }
     },
   },
   methods: {
@@ -230,7 +262,7 @@ export default {
             <tbody>
               <tr><td style="padding:2px 8px;text-align:right">Total Piezas Trabajadas:</td><td style="padding:2px 8px;text-align:right"><strong>${d.totales.piezas || 0}</strong></td></tr>
               <tr><td style="padding:2px 8px;text-align:right">Total Comisiones:</td><td style="padding:2px 8px;text-align:right"><strong>$${this.numberFmt(d.totales.comision)}</strong></td></tr>
-              ${d.totales.salario > 0 ? `<tr><td style="padding:2px 8px;text-align:right">Total Salario:</td><td style="padding:2px 8px;text-align:right"><strong>$${this.numberFmt(d.totales.salario)}</strong></td></tr>` : ''}
+              ${this.salarioInfo.visible ? `<tr><td style="padding:2px 8px;text-align:right">${this.salarioInfo.pagado ? 'Salario Pagado:' : 'Salario (Pendiente):'}</td><td style="padding:2px 8px;text-align:right"><strong>$${this.numberFmt(this.salarioInfo.monto)}</strong></td></tr>` : ''}
               ${filasBonos}
               ${filasDescuentos}
               <tr style="border-top:2px solid #333">
