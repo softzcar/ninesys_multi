@@ -76,6 +76,10 @@
           <table class="table table-sm table-borderless ml-auto reporte-tabla-totales">
             <tbody>
               <tr>
+                <td class="text-right">Total Piezas Trabajadas:</td>
+                <td class="text-right"><strong>{{ data.totales.piezas || 0 }}</strong></td>
+              </tr>
+              <tr>
                 <td class="text-right">Total Comisiones:</td>
                 <td class="text-right"><strong>${{ numberFmt(data.totales.comision) }}</strong></td>
               </tr>
@@ -224,6 +228,7 @@ export default {
           </table>
           <table style="margin-left:auto;margin-top:0.5rem;border-collapse:collapse;font-size:8pt">
             <tbody>
+              <tr><td style="padding:2px 8px;text-align:right">Total Piezas Trabajadas:</td><td style="padding:2px 8px;text-align:right"><strong>${d.totales.piezas || 0}</strong></td></tr>
               <tr><td style="padding:2px 8px;text-align:right">Total Comisiones:</td><td style="padding:2px 8px;text-align:right"><strong>$${this.numberFmt(d.totales.comision)}</strong></td></tr>
               ${d.totales.salario > 0 ? `<tr><td style="padding:2px 8px;text-align:right">Total Salario:</td><td style="padding:2px 8px;text-align:right"><strong>$${this.numberFmt(d.totales.salario)}</strong></td></tr>` : ''}
               ${filasBonos}
