@@ -39,18 +39,19 @@
             <span v-if="data.item.pago === '0.00' && data.item.monto_salario === 0" class="text-muted">
               {{ data.item.nombre }}
             </span>
-            <span v-else class="d-inline-flex align-items-center">
-              <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago"
-                :tipo-empleado="'Empleado'"
-                :detalles="[...filterEmpleado(data.item.id_empleado), ...filterVendedor(data.item.id_empleado), ...filterDesigner(data.item.id_empleado)]"
-                :salario-calculado="data.item.monto_salario" :comision-calculada="data.item.monto_comision"
-                @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
-              <pagos-reporte-empleado
-                :id-empleado="data.item.id_empleado"
-                :nombre-empleado="data.item.nombre"
-                :pendiente="true"
-              />
-            </span>
+            <pagos-confirmacion-modal v-else :empleado="data.item" :total-base="data.item.pago"
+              :tipo-empleado="'Empleado'"
+              :detalles="[...filterEmpleado(data.item.id_empleado), ...filterVendedor(data.item.id_empleado), ...filterDesigner(data.item.id_empleado)]"
+              :salario-calculado="data.item.monto_salario" :comision-calculada="data.item.monto_comision"
+              @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
+          </template>
+
+          <template #cell(reporte)="data">
+            <pagos-reporte-empleado
+              :id-empleado="data.item.id_empleado"
+              :nombre-empleado="data.item.nombre"
+              :pendiente="true"
+            />
           </template>
 
           <template #cell(pago)="data">
@@ -115,6 +116,12 @@ export default {
         {
           key: "fecha_pago",
           label: "Fecha Pago",
+        },
+        {
+          key: "reporte",
+          label: "",
+          tdClass: "text-center",
+          thClass: "text-center",
         },
         {
           key: "pago",
