@@ -207,18 +207,18 @@ export default {
           tdClass: "pl-4",
         },
         {
+          key: "reporte",
+          label: "Reporte",
+          tdClass: "text-center",
+          thClass: "text-center",
+        },
+        {
           key: "departamento",
           label: "Departamento",
         },
         {
           key: "fecha_pago",
           label: "Fecha Pago",
-        },
-        {
-          key: "reporte",
-          label: "",
-          tdClass: "text-center",
-          thClass: "text-center",
         },
         {
           key: "pago",
