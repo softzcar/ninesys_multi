@@ -44,7 +44,7 @@
         >
           <strong>Salario:</strong>
           <span v-if="salarioInfo.pagado"> ${{ numberFmt(salarioInfo.monto) }} <small class="text-success">(✓ Pagado este período)</small></span>
-          <span v-else class="text-warning"> ${{ numberFmt(salarioInfo.monto) }} <small>(Pendiente de pago)</small></span>
+          <span v-else> ${{ numberFmt(salarioInfo.monto) }} <small>(Pendiente de pago)</small></span>
         </div>
 
         <table class="table table-sm table-bordered reporte-tabla">
@@ -99,8 +99,7 @@
                 </td>
                 <td class="text-right">
                   <strong>
-                    <span v-if="salarioInfo.pagado">${{ numberFmt(salarioInfo.monto) }}</span>
-                    <span v-else class="text-warning">${{ numberFmt(salarioInfo.monto) }}</span>
+                    <span>${{ numberFmt(salarioInfo.monto) }}</span>
                   </strong>
                 </td>
               </tr>
