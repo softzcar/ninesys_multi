@@ -16,9 +16,9 @@
                   <b-button @click="imprimirReporte" variant="primary">Imprimir</b-button>
                 </span>
                 <div class="mt-3 text-right">
-                  <p class="mb-1">Monto Comisiones: <strong>$ {{ formatNumber(item.monto_comision || 0) }}</strong></p>
-                  <p class="mb-1">Monto Salario: <strong>$ {{ formatNumber(item.monto_salario || 0) }}</strong></p>
-                  <h5>Total a Pagar: <strong>$ {{ item.pago }}</strong></h5>
+                  <p class="mb-1">Total Comisiones: <strong>$ {{ formatNumber(comision || item.monto_comision || 0) }}</strong></p>
+                  <p class="mb-1">Monto Salario: <strong>$ {{ formatNumber(salario || item.monto_salario || 0) }}</strong></p>
+                  <h5>{{ (parseFloat(item.pago) > 0) ? 'Total Pagado:' : 'Total a Pagar:' }} <strong>$ {{ formatNumber(totalFinalCalculado) }}</strong></h5>
                 </div>
                 <div v-if="item.pago === '0.00'" class="alert alert-info mt-2">
                   <small>Este empleado ya recibió su salario correspondiente al período actual.</small>
@@ -77,7 +77,7 @@
                 </template>
               </b-table>
               <div v-if="tipoEmpleado !== 'Diseñador'" class="text-right mb-3">
-                 <h5>Total Productos: <strong>{{ totalProductosCalculado }}</strong></h5>
+                 <h5>Total Piezas: <strong>{{ totalProductosCalculado }}</strong></h5>
               </div>
             </b-col>
           </b-row>
@@ -144,7 +144,8 @@ export default {
       overlay: false,
       dataTable: [],
       modalImagenId: `modal-imagen-${Math.random().toString(36).substring(7)}`,
-      imagenSeleccionada: ''
+      imagenSeleccionada: '',
+      modal: `modal-detalles-${Math.random().toString(36).substring(2, 9)}`
     };
   },
 
@@ -188,20 +189,31 @@ export default {
           label: "Orden",
           thClass: "text-center",
           tdClass: "text-center",
+          sortable: true,
+        },
+        {
+          key: "departamento",
+          label: "Departamento",
+          thClass: "text-center",
+          tdClass: "text-center",
+          sortable: true,
         },
         {
           key: "comision_tipo",
           label: "Tipo Pago",
+          sortable: true,
         },
         {
           key: "comision",
           label: "Comisión",
+          sortable: true,
         },
         {
           key: "pago",
           label: "Monto Pagado",
           thClass: "text-right",
           tdClass: "text-right",
+          sortable: true,
         },
       ];
 
@@ -212,6 +224,7 @@ export default {
           label: "ID Revisión",
           thClass: "text-center",
           tdClass: "text-center",
+          sortable: true,
         });
       } else {
         baseFields.push({
@@ -219,6 +232,7 @@ export default {
           label: "Cant. Productos",
           thClass: "text-center",
           tdClass: "text-center",
+          sortable: true,
         });
       }
 
@@ -318,15 +332,7 @@ export default {
       }, 0);
     },
 
-    modal: function () {
-      const rand = Math.random().toString(36).substring(2, 7);
-      return `modal-${rand}`;
-    },
-
     totalFinalCalculado() {
-      // Si nos pasan un total ya calculado (implícitamente vía props si quisiéramos), podríamos usarlo.
-      // Pero mejor recalculamos o usamos item.pago si no hay props extras.
-
       if (this.salario !== undefined) {
         // Estamos en contexto de ConfirmacionModal con datos frescos
         const s = parseFloat(this.salario) || 0;

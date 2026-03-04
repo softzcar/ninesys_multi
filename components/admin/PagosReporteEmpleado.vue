@@ -194,12 +194,16 @@ export default {
     },
     totalEsperado() {
       if (!this.data) return 0
-      // Si los pagos ya están procesados, usamos el total real
+      // Si los pagos ya están procesados, usamos el total real guardado en BD
       if (!this.pendiente) return parseFloat(this.data.totales.total || 0)
-      // Para pendientes: comisiones + salario del período (si no se ha pagado)
+      
+      // Para pendientes (simulado): comisiones + salario + bonos - descuentos
       const comisiones = parseFloat(this.data.totales.comision || 0)
-      const salario = this.salarioInfo.visible && !this.salarioInfo.pagado ? this.salarioInfo.monto : 0
-      return parseFloat((comisiones + salario).toFixed(2))
+      const salario = (this.salarioInfo.visible && !this.salarioInfo.pagado) ? this.salarioInfo.monto : 0
+      const bonos = (this.data.bonos || []).reduce((acc, b) => acc + parseFloat(b.monto || 0), 0)
+      const descuentos = (this.data.descuentos || []).reduce((acc, d) => acc + parseFloat(d.monto || 0), 0)
+      
+      return parseFloat((comisiones + salario + bonos - descuentos).toFixed(2))
     },
   },
   methods: {
