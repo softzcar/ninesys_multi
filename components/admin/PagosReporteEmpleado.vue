@@ -112,8 +112,12 @@
                 <td class="text-right text-danger"><strong>-${{ numberFmt(desc.monto) }}</strong></td>
               </tr>
               <tr class="border-top">
-                <td class="text-right"><strong>TOTAL PAGADO:</strong></td>
-                <td class="text-right"><strong class="text-success">${{ numberFmt(data.totales.total) }}</strong></td>
+                <td class="text-right">
+                  <strong>{{ pendiente ? 'TOTAL A PAGAR:' : 'TOTAL PAGADO:' }}</strong>
+                </td>
+                <td class="text-right">
+                  <strong class="text-success">${{ numberFmt(totalEsperado) }}</strong>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -169,16 +173,33 @@ export default {
       if (!this.data) return { visible: false, pagado: false, monto: 0 }
       const tipo = this.data.empleado.salario_tipo || ''
       if (tipo === 'Comisión') return { visible: false, pagado: false, monto: 0 }
-      // Monto pagado ya registrado en pagos_salarios del período
+
+      // Si ya fue pagado en el período (registrado en pagos_salarios)
       if (this.data.totales.salario > 0) {
         return { visible: true, pagado: true, monto: this.data.totales.salario }
       }
-      // Monto configurado del empleado (aún no pagado)
-      const montoCfg = parseFloat(this.data.empleado.salario_monto || 0)
-      if (montoCfg > 0) {
-        return { visible: true, pagado: false, monto: montoCfg }
+
+      // Calcular el monto según período configurado
+      const montoMensual = parseFloat(this.data.empleado.salario_monto || 0)
+      const periodo = (this.data.empleado.salario_periodo || '').toLowerCase()
+      let factor = 1 // mensual
+      if (periodo.includes('quincenal')) factor = 0.5
+      else if (periodo.includes('semanal')) factor = 0.25
+      const montoPeriodo = parseFloat((montoMensual * factor).toFixed(2))
+
+      if (montoPeriodo > 0) {
+        return { visible: true, pagado: false, monto: montoPeriodo, periodoLabel: periodo }
       }
       return { visible: false, pagado: false, monto: 0 }
+    },
+    totalEsperado() {
+      if (!this.data) return 0
+      // Si los pagos ya están procesados, usamos el total real
+      if (!this.pendiente) return parseFloat(this.data.totales.total || 0)
+      // Para pendientes: comisiones + salario del período (si no se ha pagado)
+      const comisiones = parseFloat(this.data.totales.comision || 0)
+      const salario = this.salarioInfo.visible && !this.salarioInfo.pagado ? this.salarioInfo.monto : 0
+      return parseFloat((comisiones + salario).toFixed(2))
     },
   },
   methods: {
@@ -265,8 +286,8 @@ export default {
               ${filasBonos}
               ${filasDescuentos}
               <tr style="border-top:2px solid #333">
-                <td style="padding:2px 8px;text-align:right"><strong>TOTAL PAGADO:</strong></td>
-                <td style="padding:2px 8px;text-align:right"><strong style="color:green">$${this.numberFmt(d.totales.total)}</strong></td>
+                <td style="padding:2px 8px;text-align:right"><strong>${this.pendiente ? 'TOTAL A PAGAR:' : 'TOTAL PAGADO:'}</strong></td>
+                <td style="padding:2px 8px;text-align:right"><strong style="color:green">$${this.numberFmt(this.totalEsperado)}</strong></td>
               </tr>
             </tbody>
           </table>
