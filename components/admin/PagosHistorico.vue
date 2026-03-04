@@ -36,14 +36,22 @@
             :fields="fields"
           >
             <template #cell(nombre)="data">
-              <PagosHistoricoModal
-                :empleado="data.item"
-                :detalles="filterVendedor(data.item.id_empleado)"
-                :salario="filterSalario(data.item.id_empleado)"
-                :bonos="filterBonos(data.item.id_empleado)"
-                :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
-              />
+              <span class="d-inline-flex align-items-center">
+                <PagosHistoricoModal
+                  :empleado="data.item"
+                  :detalles="filterVendedor(data.item.id_empleado)"
+                  :salario="filterSalario(data.item.id_empleado)"
+                  :bonos="filterBonos(data.item.id_empleado)"
+                  :descuentos="filterDescuentos(data.item.id_empleado)"
+                  :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
+                />
+                <pagos-reporte-empleado
+                  :id-empleado="data.item.id_empleado"
+                  :nombre-empleado="data.item.nombre"
+                  :fecha-inicio="semanaInicio"
+                  :fecha-fin="semanaFin"
+                />
+              </span>
             </template>
 
             <template #cell(fecha_pago)="data">
@@ -74,14 +82,22 @@
             :fields="fields"
           >
             <template #cell(nombre)="data">
-              <PagosHistoricoModal
-                :empleado="data.item"
-                :detalles="filterEmpleado(data.item.id_empleado)"
-                :salario="filterSalario(data.item.id_empleado)"
-                :bonos="filterBonos(data.item.id_empleado)"
-                :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
-              />
+              <span class="d-inline-flex align-items-center">
+                <PagosHistoricoModal
+                  :empleado="data.item"
+                  :detalles="filterEmpleado(data.item.id_empleado)"
+                  :salario="filterSalario(data.item.id_empleado)"
+                  :bonos="filterBonos(data.item.id_empleado)"
+                  :descuentos="filterDescuentos(data.item.id_empleado)"
+                  :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
+                />
+                <pagos-reporte-empleado
+                  :id-empleado="data.item.id_empleado"
+                  :nombre-empleado="data.item.nombre"
+                  :fecha-inicio="semanaInicio"
+                  :fecha-fin="semanaFin"
+                />
+              </span>
             </template>
 
             <template #cell(fecha_pago)="data">
@@ -112,14 +128,22 @@
             :fields="fields"
           >
             <template #cell(nombre)="data">
-              <PagosHistoricoModal
-                :empleado="data.item"
-                :detalles="filterDesigner(data.item.id_empleado)"
-                :salario="filterSalario(data.item.id_empleado)"
-                :bonos="filterBonos(data.item.id_empleado)"
-                :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
-              />
+              <span class="d-inline-flex align-items-center">
+                <PagosHistoricoModal
+                  :empleado="data.item"
+                  :detalles="filterDesigner(data.item.id_empleado)"
+                  :salario="filterSalario(data.item.id_empleado)"
+                  :bonos="filterBonos(data.item.id_empleado)"
+                  :descuentos="filterDescuentos(data.item.id_empleado)"
+                  :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
+                />
+                <pagos-reporte-empleado
+                  :id-empleado="data.item.id_empleado"
+                  :nombre-empleado="data.item.nombre"
+                  :fecha-inicio="semanaInicio"
+                  :fecha-fin="semanaFin"
+                />
+              </span>
             </template>
 
             <template #cell(fecha_pago)="data">
@@ -145,11 +169,13 @@
 <script>
 import mixin from "~/mixins/mixins.js";
 import PagosHistoricoModal from "~/components/admin/PagosHistoricoModal.vue";
+import PagosReporteEmpleado from "~/components/admin/PagosReporteEmpleado.vue";
 
 export default {
   mixins: [mixin],
   components: {
-    PagosHistoricoModal
+    PagosHistoricoModal,
+    PagosReporteEmpleado,
   },
 
   data() {
@@ -196,6 +222,22 @@ export default {
   },
 
   computed: {
+    semanaInicio() {
+      if (!this.value) return ''
+      const d = new Date(this.value)
+      const day = d.getDay() // 0=domingo
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1) // lunes
+      const lunes = new Date(d.setDate(diff))
+      return lunes.toISOString().substring(0, 10)
+    },
+    semanaFin() {
+      if (!this.value) return ''
+      const d = new Date(this.value)
+      const day = d.getDay()
+      const diff = d.getDate() - day + (day === 0 ? 0 : 7) // domingo
+      const domingo = new Date(d.setDate(diff))
+      return domingo.toISOString().substring(0, 10)
+    },
     pagosResumen() {
       if (this.pagosEmpleados.length > 0) {
         const result = this.pagosEmpleados.reduce((acc, curr) => {

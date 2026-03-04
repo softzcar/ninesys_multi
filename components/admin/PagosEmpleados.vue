@@ -2,8 +2,8 @@
   <b-overlay :show="overlay2" spinner-small>
     <b-row>
       <b-col cols="9">
-        <admin-pagos-empleados-terminar @reload="reloadMe" :totalCancelado="totalCancelado" :pagosResumen="pagosResumen"
-          :pagosResumenVendedores="pagosResumenVendedores" :pagosResumenDiseno="pagosResumenDiseno"
+        <admin-pagos-empleados-terminar @reload="reloadMe" :totalCancelado="totalCancelado"
+          :pagosResumen="pagosResumenUnificado" :pagosResumenVendedores="[]" :pagosResumenDiseno="[]"
           :fechaConsultaInicio="form.fechaConsultaInicio" :fechaConsultaFin="form.fechaConsultaFin" />
       </b-col>
       <b-col cols="3">
@@ -15,7 +15,12 @@
           <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
             <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
           </b-form-group>
-          <b-button type="submit" variant="primary">Buscar pagos</b-button>
+          <b-button type="submit" variant="primary" class="w-100 mb-3 block">Buscar pagos</b-button>
+
+          <b-form-group label="Filtrar por Departamento:"
+            v-if="pagosResumenUnificado && pagosResumenUnificado.length > 0">
+            <b-form-select v-model="departamentoFiltro" :options="departamentosUnicos"></b-form-select>
+          </b-form-group>
         </b-form>
       </b-col>
     </b-row>
@@ -23,80 +28,45 @@
     <b-row>
       <b-col class="mt-4">
         <b-row>
-          <b-col class="mt-4">
-            <h3>TOTAL GENERAL {{ totalCancelado.totalGeneral }}</h3>
+          <b-col class="mt-2 mb-4 d-flex justify-content-between align-items-center">
+            <h3>Planilla de Empleados</h3>
+            <h3 class="text-success">TOTAL GENERAL ${{ totalCancelado.totalGeneral }}</h3>
           </b-col>
         </b-row>
 
-        <h3 class="mb-4">Vendedores</h3>
-        <b-table responsive small striped :items="pagosResumenVendedores" :fields="fields">
+        <b-table responsive small striped hover :items="pagosResumenUnificadoFiltrado" :fields="fields">
           <template #cell(nombre)="data">
-            <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago" :tipo-empleado="'Vendedor'"
-              :detalles="filterVendedor(data.item.id_empleado)" :salario-calculado="data.item.monto_salario"
-              :comision-calculada="data.item.monto_comision" @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
+            <span v-if="data.item.pago === '0.00' && data.item.monto_salario === 0" class="text-muted">
+              {{ data.item.nombre }}
+            </span>
+            <span v-else class="d-inline-flex align-items-center">
+              <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago"
+                :tipo-empleado="'Empleado'"
+                :detalles="[...filterEmpleado(data.item.id_empleado), ...filterVendedor(data.item.id_empleado), ...filterDesigner(data.item.id_empleado)]"
+                :salario-calculado="data.item.monto_salario" :comision-calculada="data.item.monto_comision"
+                @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
+              <pagos-reporte-empleado
+                :id-empleado="data.item.id_empleado"
+                :nombre-empleado="data.item.nombre"
+                :pendiente="true"
+              />
+            </span>
           </template>
 
           <template #cell(pago)="data">
             <div class="floatme" style="width: 100%">
-              <span v-if="data.item.pago === '0.00' && data.item.monto_salario === 0" class="text-muted">
-                <small>Salario ya pagado</small>
+              <span
+                v-if="data.item.pago === '0.00' && data.item.monto_salario === 0 && data.item.salario_tipo !== 'Comisión'"
+                class="text-success font-weight-bold">
+                <small><b-icon icon="check-circle"></b-icon> Salario Pagado</small>
               </span>
-              <span v-else> ${{ data.item.pago }}</span>
+              <span v-else-if="data.item.pago === '0.00' && data.item.salario_tipo === 'Comisión'" class="text-muted">
+                <small>Sin comisiones</small>
+              </span>
+              <span v-else> <strong>${{ data.item.pago }}</strong></span>
             </div>
           </template>
         </b-table>
-        <p class="text-right total-table">
-          TOTAL ${{ totalCancelado.totalVendedores }}
-        </p>
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col class="mt-4">
-        <h3 class="mb-4">Empleados</h3>
-        <b-table responsive small striped :items="pagosResumen" :fields="fields">
-          <template #cell(nombre)="data">
-            <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago" :tipo-empleado="'Empleado'"
-              :detalles="filterEmpleado(data.item.id_empleado)" :salario-calculado="data.item.monto_salario"
-              :comision-calculada="data.item.monto_comision" @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
-          </template>
-
-          <template #cell(pago)="data">
-            <div class="floatme" style="width: 100%">
-              <span v-if="data.item.pago === '0.00' && data.item.monto_salario === 0" class="text-muted">
-                <small>Salario ya pagado</small>
-              </span>
-              <span v-else> ${{ data.item.pago }}</span>
-            </div>
-          </template>
-        </b-table>
-        <p class="text-right total-table">
-          TOTAL ${{ totalCancelado.totalEmpleados }}
-        </p>
-      </b-col>
-    </b-row>
-
-    <b-row>
-      <b-col class="mt-4">
-        <h3 class="mb-4">Diseñadores</h3>
-        <b-table responsive small striped :items="pagosResumenDiseno" :fields="fields">
-          <template #cell(nombre)="data">
-            <pagos-confirmacion-modal :empleado="data.item" :total-base="data.item.pago" :tipo-empleado="'Diseñador'"
-              :detalles="filterDesigner(data.item.id_empleado)" :salario-calculado="data.item.monto_salario"
-              :comision-calculada="data.item.monto_comision" @pago-exitoso="onPagoExitoso" @pago-error="onPagoError" />
-          </template>
-
-          <template #cell(pago)="data">
-            <div class="floatme" style="width: 100%">
-              <span v-if="data.item.pago === '0.00' && data.item.monto_salario === 0" class="text-muted">
-                <small>Salario ya pagado</small>
-              </span>
-              <span v-else> ${{ data.item.pago }}</span>
-            </div>
-          </template>
-        </b-table>
-        <p class="text-right total-table">
-          TOTAL ${{ totalCancelado.totalDiseno }}
-        </p>
       </b-col>
     </b-row>
   </b-overlay>
@@ -104,19 +74,22 @@
 
 <script>
 import PagosConfirmacionModal from '~/components/admin/PagosConfirmacionModal.vue'
+import PagosReporteEmpleado from '~/components/admin/PagosReporteEmpleado.vue'
 import PrintService from '@/utils/PrintService'
 
 export default {
   components: {
     PagosConfirmacionModal,
+    PagosReporteEmpleado,
   },
   data() {
     return {
       dataEmpleados: null,
       dataVendedores: null,
       empleados: [], // Lista completa de empleados con datos de salario
-      totalCancelado: 0,
+      totalCancelado: { totalGeneral: '0.00', totalVendedores: '0.00', totalEmpleados: '0.00', totalDiseno: '0.00' },
       datosUltimoPago: null, // Almacenar datos completos del último pago para el recibo
+      departamentoFiltro: "",
       form: {
         fechaConsultaInicio: "",
         fechaConsultaFin: "",
@@ -183,236 +156,109 @@ export default {
   },
 
   computed: {
-    pagosResumen() {
-      if (this.pagosEmpleados.length > 0) {
-        const result = this.pagosEmpleados.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-          if (index === -1) {
-            // Calcular comisión
-            // Usar el pago que viene del backend (ya calculado y guardado en BD)
-            const comisionPago = parseFloat(curr.pago) || 0;
+    pagosResumenUnificado() {
+      const todosLosPagos = [
+        ...this.pagosEmpleados.map(p => ({ ...p, origen: 'Empleado' })),
+        ...this.pagosVendedores.map(p => ({ ...p, origen: 'Vendedor' })),
+        ...this.pagosDiseno.map(p => ({ ...p, origen: 'Diseñador' }))
+      ];
 
-            // Calcular salario según período
-            const empleado = this.empleados.find(emp => emp._id == curr.id_empleado);
-            // Asegurar que la fecha sea válida si no hay selección
-            const fechaString = this.form.fechaConsultaFin || "";
-            const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
-            const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
+      if (todosLosPagos.length === 0) return [];
 
-            // Determinar el tipo de pago según salario_tipo
-            let totalPago = 0;
-            const tipoSalario = empleado?.salario_tipo || 'No configurado';
+      const processedPagos = new Set();
 
-            // Incluir salario solo si el tipo lo permite
-            if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
-              totalPago += salarioPago;
-            }
+      const result = todosLosPagos.reduce((acc, curr) => {
+        // Evitar duplicados si el mismo id_pago viene en múltiples listas
+        if (curr.id_pago && processedPagos.has(curr.id_pago)) return acc;
+        if (curr.id_pago) processedPagos.add(curr.id_pago);
 
-            // Incluir comisión solo si el tipo lo permite
-            if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
-              totalPago += comisionPago;
-            }
+        const index = acc.findIndex(el => el.id_empleado == curr.id_empleado);
+        let comisionPago = parseFloat(curr.pago) || 0;
 
-            acc.push({
-              nombre: curr.nombre,
-              id_empleado: curr.id_empleado,
-              departamento: curr.departamento,
-              salario_tipo: empleado?.salario_tipo || 'No configurado', // Agregar salario_tipo
-              cantidad: parseInt(curr.cantidad),
-              pago: totalPago,
-              monto_salario: salarioPago, // Salario calculado (0 si no corresponde)
-              monto_comision: comisionPago, // Comisión calculada
-            });
+        if (index === -1) {
+          const empleado = this.empleados.find(emp => emp.id == curr.id_empleado || emp._id == curr.id_empleado);
+          const fechaString = this.form.fechaConsultaFin || "";
+          const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
+          const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
+          const tipoSalario = empleado?.salario_tipo || 'No configurado';
+
+          let totalPago = 0;
+          let comisionParaRegistro = 0;
+
+          if (tipoSalario === 'Salario') {
+            totalPago += salarioPago;
+            comisionParaRegistro = 0;
+          } else if (tipoSalario === 'Comisión') {
+            totalPago += comisionPago;
+            comisionParaRegistro = comisionPago;
+          } else if (tipoSalario === 'Salario más Comisión') {
+            totalPago += (salarioPago + comisionPago);
+            comisionParaRegistro = comisionPago;
           } else {
-            // Calcular comisión adicional
-            const comisionPago = parseFloat(curr.pago) || 0;
-            const tipoSalario = acc[index].salario_tipo;
-            acc[index].cantidad += parseInt(curr.cantidad);
-            acc[index].monto_comision += comisionPago; // Acumular comisión
-
-            // Solo sumar comisión al pago si el tipo lo permite
-            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
-              acc[index].pago += comisionPago;
-            }
+            totalPago += comisionPago;
+            comisionParaRegistro = comisionPago;
           }
-          return acc;
-        }, []);
-        return result.map((item) => {
-          item.pago = item.pago.toFixed(2);
-          return item;
-        });
-      } else {
-        return [];
-      }
+
+          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : 'Ventas');
+
+          acc.push({
+            nombre: curr.nombre || curr.nombre_disenador || (empleado ? empleado.nombre : 'Empleado'),
+            id_empleado: curr.id_empleado,
+            departamento: dep,
+            salario_tipo: tipoSalario,
+            pago: totalPago,
+            monto_salario: tipoSalario !== 'Comisión' ? salarioPago : 0,
+            monto_comision: comisionParaRegistro,
+            id_pagos: curr.id_pago ? [curr.id_pago] : [],
+          });
+        } else {
+          const tipoSalario = acc[index].salario_tipo;
+
+          if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
+            acc[index].monto_comision += comisionPago;
+            acc[index].pago += comisionPago;
+          } else if (tipoSalario !== 'Salario') {
+            acc[index].monto_comision += comisionPago;
+            acc[index].pago += comisionPago;
+          }
+
+          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : 'Ventas');
+          if (dep && !acc[index].departamento.includes(dep)) {
+            acc[index].departamento += ' + ' + dep;
+          }
+
+          if (curr.id_pago && !acc[index].id_pagos.includes(curr.id_pago)) {
+            acc[index].id_pagos.push(curr.id_pago);
+          }
+        }
+        return acc;
+      }, []);
+
+      return result.sort((a, b) => {
+        const nameA = a.nombre || "";
+        const nameB = b.nombre || "";
+        return nameA.localeCompare(nameB);
+      }).map(item => {
+        item.pago = item.pago.toFixed(2);
+        return item;
+      });
     },
 
-    pagosResumenVendedores() {
-      if (this.pagosVendedores.length > 0) {
-        const result = this.pagosVendedores.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-          if (index === -1) {
-            // Calcular salario para vendedores
-            const empleado = this.empleados.find(emp => emp._id == curr.id_empleado);
-            // Asegurar que la fecha sea válida si no hay selección
-            const fechaString = this.form.fechaConsultaFin || "";
-            const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
-            const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
-
-
-
-            // Determinar el tipo de pago según salario_tipo
-            let totalPago = 0;
-            const tipoSalario = empleado?.salario_tipo || 'No configurado';
-
-            // Reglas de negocio Estrictas para Vendedores:
-
-            // 1. Salario: Solo recibe salario base
-            if (tipoSalario === 'Salario') {
-              totalPago += salarioPago;
-              // No sumamos comisiones
-            }
-            // 2. Comisión: Solo recibe comisiones
-            else if (tipoSalario === 'Comisión') {
-              const comisionPago = parseFloat(curr.pago) || 0;
-              if (comisionPago > 0) {
-                totalPago += comisionPago;
-              }
-              // No sumamos salario
-            }
-            // 3. Salario más Comisión: Recibe ambos
-            else if (tipoSalario === 'Salario más Comisión') {
-              totalPago += salarioPago;
-              const comisionPago = parseFloat(curr.pago) || 0;
-              if (comisionPago > 0) {
-                totalPago += comisionPago;
-              }
-            }
-            // Caso por defecto (No configurado u otro): Comportamiento seguro
-            // Podríamos decidir no pagar nada o asumir solo comisiones.
-            // Por consistencia con la versión anterior si no está configurado, no sumamos nada o solo comisiones?
-            // "No configurado" -> Asumiremos solo comisiones para evitar bloqueos, o 0.
-            // Dejaremos 0 si no hay config clara, o solo comisiones.
-            // Para seguridad, si no tiene tipo, no pagamos salario, ¿pagamos comisión?
-            // El código original decía || 'No configurado'.
-            else {
-              // Fallback: Si no tiene tipo, tratamos como 'Comisión' (solo lo que viene en el pago)
-              const comisionPago = parseFloat(curr.pago) || 0;
-              totalPago += comisionPago;
-            }
-
-            // Calculamos monto_comision para mostrar en el desglose, AUNQUE no se sume al pago total
-            // Esto permite ver "lo que hubiera ganado" o simplemente 0 si no aplica.
-            // Para no confundir, si el tipo es 'Salario', monto_comision debería ser 0 en el objeto visual?
-            // O mejor: monto_comision es lo que viene de la API, pero 'pago' es lo que realmente se paga.
-            // Pero el desglose en el modal usa item.monto_comision. Si mostramos $5.52 pero no lo sumamos, el usuario preguntará por qué.
-            // Así que si es 'Salario', monto_comision debe ser 0 para el reporte.
-
-            let comisionParaRegistro = parseFloat(curr.pago) || 0;
-            if (tipoSalario === 'Salario') {
-              comisionParaRegistro = 0;
-            }
-
-            acc.push({
-              nombre: curr.nombre,
-              id_empleado: curr.id_empleado,
-              departamento: curr.departamento,
-              salario_tipo: tipoSalario,
-              pago: totalPago,
-              monto_salario: salarioPago,
-              monto_comision: comisionParaRegistro,
-            });
-          } else {
-            const tipoSalario = acc[index].salario_tipo;
-            const comisionPago = parseFloat(curr.pago) || 0;
-
-            // Acumulamos dependiendo del tipo
-            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
-              acc[index].monto_comision += comisionPago;
-              acc[index].pago += comisionPago;
-            } else if (tipoSalario === 'Salario') {
-              // Si es Salario, NO sumamos comisión al pago TOTAL
-              // Y tampoco al monto_comision visible (para que coincida el desglose)
-              // acc[index].monto_comision += comisionPago; // <--- NO
-            } else {
-              // Caso fallback
-              acc[index].monto_comision += comisionPago;
-              acc[index].pago += comisionPago;
-            }
+    departamentosUnicos() {
+      const deps = new Set();
+      if (this.pagosResumenUnificado) {
+        this.pagosResumenUnificado.forEach(p => {
+          if (p.departamento) {
+            p.departamento.split(' + ').forEach(d => deps.add(d.trim()));
           }
-          return acc;
-        }, []);
-        return result.map((item) => {
-          item.pago = item.pago.toFixed(2);
-          return item;
         });
-      } else {
-        return [];
       }
+      return [{ value: '', text: 'Todos los departamentos' }, ...Array.from(deps).sort().map(d => ({ value: d, text: d }))];
     },
 
-    pagosResumenDiseno() {
-
-      if (this.pagosDiseno.length > 0) {
-        const result = this.pagosDiseno.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-
-          if (index === -1) {
-            // Calcular salario para diseñadores
-            const empleado = this.empleados.find(emp => emp._id === curr.id_empleado);
-            // Asegurar que la fecha sea válida si no hay selección
-            const fechaString = this.form.fechaConsultaFin || "";
-            const fechaReferencia = (fechaString && fechaString.trim() !== "") ? new Date(fechaString) : new Date();
-            const salarioPago = this.calcularSalarioPeriodo(empleado, fechaReferencia);
-
-            // Determinar el tipo de pago según salario_tipo
-            let totalPago = 0;
-            const tipoSalario = empleado?.salario_tipo || 'No configurado';
-
-            // Incluir salario solo si el tipo lo permite
-            if (tipoSalario === 'Salario' || tipoSalario === 'Salario más Comisión') {
-              totalPago += salarioPago;
-            }
-
-            // Incluir comisión solo si el tipo lo permite
-            const comisionPago = parseFloat(curr.pago) || 0;
-            if ((tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') && comisionPago > 0) {
-              totalPago += comisionPago;
-            }
-
-
-            acc.push({
-              id_empleado: curr.id_empleado,
-              nombre: curr.nombre,
-              id_orden: curr.id_orden,
-              departamento: curr.departamento,
-              salario_tipo: tipoSalario,
-              cantidad: 1,
-              producto: curr.producto,
-              pago: totalPago,
-              monto_salario: salarioPago, // Salario calculado (0 si no corresponde)
-              monto_comision: comisionPago, // Comisión ya viene calculada de la API
-            });
-          } else {
-            const tipoSalario = acc[index].salario_tipo;
-            const comisionPago = parseFloat(curr.pago) || 0;
-            acc[index].cantidad += 1;
-            acc[index].monto_comision += comisionPago; // Acumular comisión
-
-            // Solo sumar comisión al pago si el tipo lo permite
-            if (tipoSalario === 'Comisión' || tipoSalario === 'Salario más Comisión') {
-              acc[index].pago += comisionPago;
-            }
-          }
-          return acc;
-        }, []);
-
-        return result.map((item) => {
-          item.pago = item.pago.toFixed(2);
-          return item;
-        });
-      } else {
-        return [];
-      }
+    pagosResumenUnificadoFiltrado() {
+      if (!this.departamentoFiltro) return this.pagosResumenUnificado;
+      return this.pagosResumenUnificado.filter(p => p.departamento && p.departamento.includes(this.departamentoFiltro));
     },
   },
 
@@ -620,62 +466,17 @@ export default {
       return 0;
     },
 
-    totalPagos(empleados, vendedores, disenadores) {
-      console.log("totalPagos() vendedores", vendedores);
-      console.log("totalPagos() empleados", empleados);
-      console.log("totalPagos() disenadores", disenadores);
-
-      const sumarPagosEmpleados = (arr) => {
-        return arr.reduce((total, item) => {
-          // Para empleados, el pago ya incluye comisión + salario calculado en pagosResumen
-          return total + (parseFloat(item.pago) || 0);
-        }, 0);
-      };
-
-      const sumarPagosVendedores = (arr) => {
-        return arr.reduce((total, item) => {
-          return total + (parseFloat(item.pago) || 0);
-        }, 0);
-      };
-
-      const sumarPagosDisenadores = (arr) => {
-        console.log("sumarPagosDisenadores - arr:", arr);
-        return arr.reduce((total, item) => {
-          const pagoValue = parseFloat(item.pago) || 0;
-          console.log("sumarPagosDisenadores - item.pago:", item.pago, "pagoValue:", pagoValue);
-          return total + pagoValue;
-        }, 0);
-      };
-
-      const totales = {
-        totalGeneral: 0,
-        totalVendedores: 0,
-        totalEmpleados: 0,
-        totalDiseno: 0,
-      };
-
-      if (vendedores && Array.isArray(vendedores)) {
-        totales.totalVendedores = sumarPagosVendedores(vendedores);
-        totales.totalGeneral += totales.totalVendedores;
+    totalPagos(resumenUnificado) {
+      let sum = 0;
+      if (resumenUnificado && Array.isArray(resumenUnificado)) {
+        sum = resumenUnificado.reduce((total, item) => total + (parseFloat(item.pago) || 0), 0);
       }
-
-      if (empleados && Array.isArray(empleados)) {
-        totales.totalEmpleados = sumarPagosEmpleados(empleados);
-        totales.totalGeneral += totales.totalEmpleados;
-      }
-
-      if (disenadores && Array.isArray(disenadores)) {
-        totales.totalDiseno = sumarPagosDisenadores(disenadores);
-        totales.totalGeneral += totales.totalDiseno;
-      }
-
-      // Redondear a 2 decimales
-      totales.totalGeneral = totales.totalGeneral.toFixed(2);
-      totales.totalVendedores = totales.totalVendedores.toFixed(2);
-      totales.totalEmpleados = totales.totalEmpleados.toFixed(2);
-      totales.totalDiseno = totales.totalDiseno.toFixed(2);
-
-      return totales;
+      return {
+        totalGeneral: sum.toFixed(2),
+        totalVendedores: '0.00',
+        totalEmpleados: '0.00',
+        totalDiseno: '0.00'
+      };
     },
 
     onSubmit(event) {
@@ -702,11 +503,7 @@ export default {
       }
       this.getPagos().then(() => {
         this.$nextTick(() => {
-          this.totalCancelado = this.totalPagos(
-            this.pagosResumen, // Usar pagosResumen que ya incluye salario
-            this.pagosResumenVendedores,
-            this.pagosResumenDiseno
-          );
+          this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
         });
       });
     },
@@ -715,11 +512,7 @@ export default {
       if (this.form.fecha_inicio === "") {
         this.getPagos().then(() => {
           this.$nextTick(() => {
-            this.totalCancelado = this.totalPagos(
-              this.pagosResumen, // Usar pagosResumen que ya incluye salario
-              this.pagosResumenVendedores,
-              this.pagosResumenDiseno
-            );
+            this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
           });
         });
       }
@@ -762,7 +555,13 @@ export default {
         .get(`${this.$config.API}/pagos/semana/disenadores`)
         .then((res) => {
           this.pagos = res.data;
-          this.pagosDiseno = res.data.data.diseno;
+          this.pagosDiseno = (res.data.data.diseno || []).map(item => {
+            return {
+              ...item,
+              nombre: item.nombre || item.nombre_disenador || null,
+              departamento: 'Diseño'
+            }
+          });
           // TODO Reprogramar pagos adicionales pendiente de hacer
           /* this.pagosTrabajosAdicionales =
                         res.data.data.trabajos_adicionales */
@@ -865,11 +664,7 @@ export default {
       this.getAttributes().then(() => {
         this.getPagos().then(() => {
           this.$nextTick(() => {
-            this.totalCancelado = this.totalPagos(
-              this.pagosResumen, // Usar pagosResumen que ya incluye salario
-              this.pagosResumenVendedores,
-              this.pagosResumenDiseno
-            );
+            this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
           });
           this.overlay = false;
         });
@@ -894,22 +689,22 @@ export default {
     },
 
     filterVendedor(id_empleado) {
-      let emp = this.pagosVendedores.filter(
-        (el) => el.id_empleado === id_empleado
+      return this.pagosVendedores.filter(
+        (el) => el.id_empleado == id_empleado
       );
-      return emp;
     },
 
     filterDesigner(id_empleado) {
-      let emp = this.pagosDiseno.filter((el) => el.id_empleado === id_empleado);
-      return emp;
+      return this.pagosDiseno.filter((el) => el.id_empleado == id_empleado);
+    },
+
+    filterEmpleado(id_empleado) {
+      return this.pagosEmpleados.filter((el) => el.id_empleado == id_empleado);
     },
 
     imprimirReciboConComponente(nombreEmpleado) {
       // Buscar el empleado en los datos de resumen
-      let empleadoData = this.pagosResumenVendedores.find(emp => emp.nombre === nombreEmpleado) ||
-        this.pagosResumen.find(emp => emp.nombre === nombreEmpleado) ||
-        this.pagosResumenDiseno.find(emp => emp.nombre === nombreEmpleado);
+      let empleadoData = this.pagosResumenUnificado.find(emp => emp.nombre === nombreEmpleado);
 
       // Si no se encuentra en las listas (porque ya se recargaron), usar datosUltimoPago como fallback
       if (!empleadoData && this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
@@ -930,16 +725,10 @@ export default {
       let detalles = [];
       let tipoEmpleado = '';
 
-      // Intentar determinar tipo y detalles desde las listas actuales
-      if (this.pagosResumenVendedores.some(emp => emp.nombre === nombreEmpleado)) {
-        detalles = this.filterVendedor(empleadoData.id_empleado);
-        tipoEmpleado = 'Vendedor';
-      } else if (this.pagosResumen.some(emp => emp.nombre === nombreEmpleado)) {
-        detalles = this.filterEmpleado(empleadoData.id_empleado);
+      // Intentar determinar empleado desde la lista unificada
+      if (this.pagosResumenUnificado.some(emp => emp.nombre === nombreEmpleado)) {
+        detalles = [...this.filterVendedor(empleadoData.id_empleado), ...this.filterEmpleado(empleadoData.id_empleado), ...this.filterDesigner(empleadoData.id_empleado)];
         tipoEmpleado = 'Empleado';
-      } else if (this.pagosResumenDiseno.some(emp => emp.nombre === nombreEmpleado)) {
-        detalles = this.filterDesigner(empleadoData.id_empleado);
-        tipoEmpleado = 'Diseñador';
       }
       // Fallback: Usar datosUltimoPago si tenemos la info guardada
       else if (this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
@@ -1067,11 +856,7 @@ export default {
       // this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores)
       // console.log('RESULTADO totalPagos', this.totalCancelado);
       this.$nextTick(() => {
-        this.totalCancelado = this.totalPagos(
-          this.pagosResumen, // Usar pagosResumen que ya incluye salario
-          this.pagosResumenVendedores,
-          this.pagosResumenDiseno
-        );
+        this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
       });
       this.overlay = false;
     });
