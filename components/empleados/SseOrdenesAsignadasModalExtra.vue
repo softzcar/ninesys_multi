@@ -142,8 +142,8 @@
                 <b-icon icon="trash"></b-icon> Registro de Desperdicio
               </h6>
               <b-form-group label="Peso del desperdicio en kilos" label-size="sm" class="mb-0">
-                <b-form-input id="input-13" v-model="desperdicioCorte" type="number" step="0.01" min="0"
-                  size="lg" placeholder="Peso desperdicio (Kg)" required></b-form-input>
+                <b-form-input id="input-13" v-model="desperdicioCorte" type="number" step="0.01" min="0" size="lg"
+                  placeholder="Peso desperdicio (Kg)" required></b-form-input>
               </b-form-group>
             </b-card>
           </div>
@@ -166,14 +166,15 @@
           <!-- Ocultar para reposiciones porque no aplica el cálculo por pieza -->
           <div v-if="showSelect && !esReposicion" class="mb-4">
             <h5><strong>📊 Resumen de Material</strong></h5>
-            
+
             <!-- INFO TELA VENDEDOR -->
             <div v-if="item.tela_vendedor" class="mb-3">
               <b-alert show variant="light" border-variant="primary" class="mb-0 py-2">
                 <div class="d-flex align-items-center">
                   <b-icon icon="info-circle-fill" variant="primary" class="mr-2"></b-icon>
                   <div>
-                    <span class="small font-weight-bold text-uppercase d-block text-primary">Tela Seleccionada por Vendedor:</span>
+                    <span class="small font-weight-bold text-uppercase d-block text-primary">Tela Seleccionada por
+                      Vendedor:</span>
                     <span class="font-weight-bold text-dark">{{ item.tela_vendedor }}</span>
                   </div>
                 </div>
@@ -218,7 +219,7 @@
                     {{ eficienciaPorcentaje }}%
                   </span>
                   <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado'
-                    }})</small>
+                  }})</small>
                 </p>
               </div>
             </b-card>
@@ -235,7 +236,8 @@
               </b-button>
             </div>
 
-            <div v-for="(itemForm, index) in form" :key="index" class="mb-3 p-3 border rounded bg-white shadow-sm position-relative">
+            <div v-for="(itemForm, index) in form" :key="index"
+              class="mb-3 p-3 border rounded bg-white shadow-sm position-relative">
               <b-row class="align-items-end no-gutters">
                 <b-col md="5" class="px-2">
                   <b-form-group label="Material" label-size="sm" class="mb-0">
@@ -243,34 +245,34 @@
                     <empleados-eficienciaInsumos v-if="itemForm.validInsumo" class="mb-1" :idorden="idorden"
                       :idinsumo="getId(itemForm.select)" :datainsumos="getCatalogosUnicos"
                       @update_catalogo="updateCatalogo(index, $event)" />
-                      
+
                     <vue-typeahead-bootstrap @hit="loadInsumos(index)" :data="dataSearchInsumo" size="sm"
-                      v-model="itemForm.select" placeholder="Buscar Insumo"
-                      @input="itemForm.validInsumo = false" />
+                      v-model="itemForm.select" placeholder="Buscar Insumo" @input="itemForm.validInsumo = false" />
                   </b-form-group>
                 </b-col>
 
                 <b-col md="3" class="px-2">
                   <b-form-group :label="getPlaceholderRow(index)" label-size="sm" class="mb-0">
-                    <b-form-input v-model.number="itemForm.input" type="number" step="0.01" min="0" 
+                    <b-form-input v-model.number="itemForm.input" type="number" step="0.01" min="0"
                       :state="itemForm.input > 0" :placeholder="getUnidadRow(index)" required></b-form-input>
                   </b-form-group>
                 </b-col>
 
                 <b-col md="3" class="px-2 pb-1">
-                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo" 
+                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo"
                     class="small font-weight-bold text-danger">
                     Terminar Material
                   </b-form-checkbox>
                 </b-col>
 
                 <b-col md="1" class="text-right pb-1">
-                  <b-button v-if="form.length > 1" variant="link" class="text-danger p-0" title="Eliminar fila" @click="removeItem(index)">
+                  <b-button v-if="form.length > 1" variant="link" class="text-danger p-0" title="Eliminar fila"
+                    @click="removeItem(index)">
                     <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
                   </b-button>
                 </b-col>
               </b-row>
-              
+
               <div v-if="itemForm.validInsumo" class="mt-2 px-1">
                 <small class="text-muted">
                   <b-icon icon="check-circle-fill" variant="success"></b-icon> Insumo validado correctamente
@@ -372,7 +374,7 @@ export default {
       return (index) => {
         const item = this.form[index];
         if (!item || !item.select) return '';
-        
+
         // Parsear ID desde el string del typeahead "ID | Nombre ..."
         const parts = item.select.split('|');
         if (parts.length > 0) {
@@ -502,7 +504,7 @@ export default {
         if (!productosUnicos.has(key)) {
           productosUnicos.set(key, {
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-            unidades: parseInt(item.unidades) || 0,
+            unidades: parseFloat(item.unidades) || 0,
             unidad: item.unidad_de_medida || 'Metros'
           });
         }
@@ -554,7 +556,7 @@ export default {
           productosUnicos.set(key, {
             catalogo: item.catalogo || 'Sin catálogo',
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-            unidades: parseInt(item.unidades) || 0,
+            unidades: parseFloat(item.unidades) || 0,
             unidad: item.unidad_de_medida || 'Metros'
           });
         }

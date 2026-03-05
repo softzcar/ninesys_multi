@@ -327,8 +327,30 @@
                                   Guardar en Stock
                                 </b-form-checkbox>
 
-                                <vue-typeahead-bootstrap @hit="loadProduct" :data="$store.state.comerce.dataProductosSelect
-                                  " v-model="query" placeholder="Seleccione los productos" />
+                                  <div class="d-flex align-items-center mb-4">
+                                    <vue-typeahead-bootstrap 
+                                      class="flex-grow-1 mr-2"
+                                      @hit="loadProduct" 
+                                      :data="$store.state.comerce.dataProductosSelect" 
+                                      v-model="query" 
+                                      placeholder="Seleccione los productos" 
+                                    />
+                                    <b-button 
+                                      variant="primary" 
+                                      @click="openProductModal"
+                                      v-b-tooltip.hover 
+                                      title="Explorar catálogo completo de productos"
+                                    >
+                                      <b-icon icon="search"></b-icon> Catálogo
+                                    </b-button>
+                                  </div>
+                                  
+                                  <!-- Modal Explorador de Productos -->
+                                  <ProductSelectorModal 
+                                    ref="productModal"
+                                    :preferStoreMode="categoriaDeLaORden === 'sport'"
+                                    @product-selected="handleProductSelectedFromModal" 
+                                  />
                               </b-col>
                             </b-row>
 
@@ -519,8 +541,16 @@ import FormMonedas from "~/components/formMonedas.vue";
 import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
 import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
 import PresupuestoPreview from "~/components/ordenes/presupuesto-preview.vue";
+import ProductSelectorModal from "~/components/ordenes/ProductSelectorModal.vue";
 
 export default {
+  components: {
+    FormMonedas,
+    CargarOrdenesNoAsignadas,
+    AtributosNuevo,
+    ProductSelectorModal,
+    'ordenes-presupuesto-preview': PresupuestoPreview
+  },
   data() {
     return {
       isSmallScreen: false,
@@ -1513,6 +1543,26 @@ export default {
     preventTabClick(tab) {
       console.log("Tab click", tab);
       this.preventDefault();
+    },
+
+    handleProductSelectedFromModal(product) {
+      if (!product || !product.cod) return;
+      // Reutilizamos la misma logica simulando el comportamiento del typeahead:
+      const queryStr = `${product.cod} | ${product.name}`;
+      this.query = queryStr; 
+      this.loadProduct(queryStr);
+    },
+
+    openProductModal() {
+      console.log('🔵 Abrir Catálogo Pulsado en Presupuesto!');
+      console.log('Ref productModal:', this.$refs.productModal);
+      // Usamos el método interno del componente a traves de la ref:
+      if (this.$refs.productModal) {
+        this.$refs.productModal.show();
+      } else {
+        console.warn('⚠️ No se encontro la ref productModal. Usando fallback $bvModal.');
+        this.$bvModal.show('product-selector-modal');
+      }
     },
 
     clearSearch() {
@@ -3093,21 +3143,9 @@ export default {
             title: "Error obteniendo datos, por favor recargue el módulo ",
             html: err,
           });
-          this.loadingMsg =
-            "No se cargaron todos los datos, por favor recargue este módulo";
           this.mainOverlay = false;
         });
     },
-  },
-
-  components: {
-    FormMonedas,
-    CargarOrdenesNoAsignadas,
-    AtributosNuevo,
-    'ordenes-presupuesto-preview': PresupuestoPreview
-  },
-  created() {
-    // this.loadDataComercializacion()
   },
 
   async mounted() {

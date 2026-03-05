@@ -430,7 +430,7 @@ export default {
           productosUnicos.set(key, {
             catalogo: item.catalogo || 'Sin catálogo',
             cantidad: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-            unidades: parseInt(item.unidades) || 0,
+            unidades: parseFloat(item.unidades) || 0,
             unidad: (item.tipo_insumo === 'tela' && item.unidad_de_medida === 'Kg') ? 'Mt' : (item.unidad_de_medida || 'Metros')
           });
         }
@@ -570,7 +570,7 @@ export default {
         if (!productosUnicos.has(key)) {
           productosUnicos.set(key, {
             cantidad: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-            unidades: parseInt(item.unidades) || 0,
+            unidades: parseFloat(item.unidades) || 0,
           });
         }
       });

@@ -10,7 +10,7 @@ Vue.use(VueQuillEditor)
 Quill.register('modules/blotFormatter', BlotFormatter)
 
 // Configuración personalizada de Quill
-const API_URL = 'https://apidev.nineteengreen.com';
+const API_URL = 'https://api.nineteengreen.com';
 
 const options = {
     theme: 'snow', // Puedes cambiar a 'bubble' si prefieres

@@ -156,6 +156,20 @@
                     </small>
                   </b-form-group>
 
+                  <b-form-group
+                    id="input-group-stock"
+                    label="Stock / Cantidad:"
+                    label-for="input-stock"
+                  >
+                    <b-form-input
+                      id="input-stock"
+                      v-model="form.stock_quantity"
+                      type="number"
+                      min="0"
+                      step="1"
+                    ></b-form-input>
+                  </b-form-group>
+
                   <b-button
                     type="submit"
                     variant="primary"
@@ -214,6 +228,7 @@ export default {
         prices: [],
         producto_fisico: 0,
         es_diseno: 0,
+        stock_quantity: 0,
       },
       form_old: {
         id: null,
@@ -224,6 +239,7 @@ export default {
         unidades: 0,
         producto_fisico: 0,
         es_diseno: 0,
+        stock_quantity: 0,
       },
       unidadesOptions: [
         { value: "Mts", text: "Metros" },
@@ -250,6 +266,7 @@ export default {
               : null,
           producto_fisico: newData.producto_fisico || 0,
           es_diseno: newData.es_diseno || 0,
+          stock_quantity: newData.stock_quantity || 0,
         };
       },
       immediate: true, // Ejecuta el handler inmediatamente al crear el componente
@@ -311,6 +328,7 @@ export default {
       data.set("sku", this.form.sku);
       data.set("producto_fisico", this.form.producto_fisico);
       data.set("es_diseno", this.form.es_diseno);
+      data.set("stock_quantity", this.form.stock_quantity);
 
       await this.$axios
         .post(`${this.$config.API}/editar-producto`, data)
@@ -379,6 +397,7 @@ export default {
         prices: [],
         producto_fisico: 0,
         es_diseno: 0,
+        stock_quantity: 0,
       };
       // Trick to reset/clear native browser form validation state
       this.show = false;
@@ -396,6 +415,7 @@ export default {
         prices: [],
         producto_fisico: 0,
         es_diseno: 0,
+        stock_quantity: 0,
       };
       this.overlay = false;
     },

@@ -12,7 +12,8 @@
                     <div class="d-flex align-items-center">
                         <b-icon icon="info-circle-fill" variant="primary" class="mr-2"></b-icon>
                         <div>
-                            <span class="small font-weight-bold text-uppercase d-block text-primary">Tela(s) Seleccionada por Vendedor:</span>
+                            <span class="small font-weight-bold text-uppercase d-block text-primary">Tela(s)
+                                Seleccionada por Vendedor:</span>
                             <span class="font-weight-bold text-dark">{{ telasVendedor.join(', ') }}</span>
                         </div>
                     </div>
@@ -36,7 +37,7 @@
             <div v-else class="text-center py-4">
                 <b-icon icon="info-circle" variant="info" font-scale="2" class="mb-2"></b-icon>
                 <p class="text-muted">No hay insumos estimados asignados para esta orden en {{ currentDepartamentName
-                    }}.</p>
+                }}.</p>
             </div>
         </b-modal>
     </div>
@@ -109,7 +110,7 @@ export default {
                     productosUnicos.set(key, {
                         catalogo: item.catalogo || 'Sin catálogo',
                         cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-                        unidades: parseInt(item.unidades) || 0,
+                        unidades: parseFloat(item.unidades) || 0,
                         unidad: item.unidad_de_medida || 'Metros',
                         tipo_insumo: item.tipo_insumo
                     });

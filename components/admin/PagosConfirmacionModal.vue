@@ -6,16 +6,8 @@
     </a>
 
     <!-- Modal principal -->
-    <b-modal
-      :id="modalId"
-      size="lg"
-      :title="`Confirmar Pago - ${empleado.nombre}`"
-      @ok.prevent="mostrarConfirmacion"
-      @ok-prevented="onValidationError"
-      @hidden="cerrarModal"
-      no-close-on-backdrop
-      no-close-on-esc
-    >
+    <b-modal :id="modalId" size="lg" :title="`Confirmar Pago - ${empleado.nombre}`" @ok.prevent="mostrarConfirmacion"
+      @ok-prevented="onValidationError" @hidden="cerrarModal">
       <b-form>
         <b-row>
           <b-col cols="12">
@@ -47,7 +39,7 @@
                 <div class="col-8"><strong>Total a Pagar:</strong></div>
                 <div class="col-4 text-right"><strong>${{ totalFinal }}</strong></div>
               </div>
-              
+
               <hr class="mt-2 mb-2">
 
               <h6>Detalles de Pago:</h6>
@@ -55,12 +47,8 @@
               <div v-if="datosPago.bonos && datosPago.bonos.length > 0" class="mt-3">
                 <h6>Detalles de Bonos:</h6>
                 <b-list-group>
-                  <b-list-group-item
-                    v-for="(bono, index) in datosPago.bonos"
-                    :key="index"
-                    variant="success"
-                    class="d-flex justify-content-between align-items-center"
-                  >
+                  <b-list-group-item v-for="(bono, index) in datosPago.bonos" :key="index" variant="success"
+                    class="d-flex justify-content-between align-items-center">
                     <span>{{ bono.descripcion || `Bono ${index + 1}` }}</span>
                     <strong>${{ parseFloat(bono.monto || 0).toFixed(2) }}</strong>
                   </b-list-group-item>
@@ -71,12 +59,8 @@
               <div v-if="datosPago.descuentos && datosPago.descuentos.length > 0" class="mt-3">
                 <h6>Detalles de Descuentos:</h6>
                 <b-list-group>
-                  <b-list-group-item
-                    v-for="(descuento, index) in datosPago.descuentos"
-                    :key="index"
-                    variant="danger"
-                    class="d-flex justify-content-between align-items-center"
-                  >
+                  <b-list-group-item v-for="(descuento, index) in datosPago.descuentos" :key="index" variant="danger"
+                    class="d-flex justify-content-between align-items-center">
                     <span>{{ descuento.descripcion || `Descuento ${index + 1}` }}</span>
                     <strong class="text-danger">-${{ parseFloat(descuento.monto || 0).toFixed(2) }}</strong>
                   </b-list-group-item>
@@ -90,27 +74,12 @@
         <b-row class="mt-3">
           <b-col cols="12">
             <h6>Agregar Bonos</h6>
-            <b-button
-              variant="light"
-              @click="addBono"
-              size="sm"
-              class="mb-2"
-            >
+            <b-button variant="light" @click="addBono" size="sm" class="mb-2">
               <b-icon icon="plus-lg"></b-icon> Agregar Bono
             </b-button>
-            <b-table
-              responsive
-              small
-              striped
-              :fields="camposBonos"
-              :items="datosPago.bonos"
-            >
+            <b-table responsive small striped :fields="camposBonos" :items="datosPago.bonos">
               <template #cell(input)="row">
-                <pagos-bono-form
-                  :item="row.item"
-                  :index="row.index"
-                  @remove="removeBono(row.index)"
-                />
+                <pagos-bono-form :item="row.item" :index="row.index" @remove="removeBono(row.index)" />
               </template>
             </b-table>
           </b-col>
@@ -120,27 +89,12 @@
         <b-row class="mt-3">
           <b-col cols="12">
             <h6>Agregar Descuentos</h6>
-            <b-button
-              variant="light"
-              @click="addDescuento"
-              size="sm"
-              class="mb-2"
-            >
+            <b-button variant="light" @click="addDescuento" size="sm" class="mb-2">
               <b-icon icon="plus-lg"></b-icon> Agregar Descuento
             </b-button>
-            <b-table
-              responsive
-              small
-              striped
-              :fields="camposDescuentos"
-              :items="datosPago.descuentos"
-            >
+            <b-table responsive small striped :fields="camposDescuentos" :items="datosPago.descuentos">
               <template #cell(input)="row">
-                <pagos-descuento-form
-                  :item="row.item"
-                  :index="row.index"
-                  @remove="removeDescuento(row.index)"
-                />
+                <pagos-descuento-form :item="row.item" :index="row.index" @remove="removeDescuento(row.index)" />
               </template>
             </b-table>
           </b-col>
@@ -160,25 +114,19 @@
       </b-form>
 
       <template #modal-footer="{ ok, cancel }">
-        <pagos-vendedor-resumen
-          :item="empleado"
-          :detalles="detalles"
-          :tipo-empleado="tipoEmpleado"
-          :showbutton="false"
-          :bonos="datosPago.bonos"
-          :descuentos="datosPago.descuentos"
-          :salario="salarioBase"
-          :comision="comisionEfectiva"
-        />
+        <pagos-vendedor-resumen :item="empleado" :detalles="detalles" :tipo-empleado="tipoEmpleado" :showbutton="false"
+          :bonos="datosPago.bonos" :descuentos="datosPago.descuentos" :salario="salarioBase"
+          :comision="comisionEfectiva" />
         <b-button variant="secondary" @click="cancel">Cancelar</b-button>
-        <b-button variant="primary" @click="ok">
+        <b-button variant="primary" @click="ok" :disabled="parseFloat(totalFinal) <= 0">
           Confirmar y Procesar Pago
         </b-button>
       </template>
     </b-modal>
 
     <!-- Modal de confirmación final -->
-    <b-modal :id="modalConfirmacionFinalId" size="md" title="Confirmar Pago" @ok="procesarPago" @cancel="cerrarModalConfirmacion" @hidden="cerrarModalConfirmacion">
+    <b-modal :id="modalConfirmacionFinalId" size="md" title="Confirmar Pago" @ok="procesarPago"
+      @cancel="cerrarModalConfirmacion" @hidden="cerrarModalConfirmacion">
       <div class="resumen-pago">
         <h5>Resumen del Pago</h5>
         <hr>
@@ -200,20 +148,20 @@
         </div>
         <hr>
         <div class="row">
-          <div class="col-8"><strong><h5>Total a Pagar:</h5></strong></div>
-          <div class="col-4 text-right"><h5>${{ totalFinal }}</h5></div>
+          <div class="col-8"><strong>
+              <h5>Total a Pagar:</h5>
+            </strong></div>
+          <div class="col-4 text-right">
+            <h5>${{ totalFinal }}</h5>
+          </div>
         </div>
 
         <!-- Mostrar detalles de bonos si existen -->
         <div v-if="datosPago.bonos && datosPago.bonos.length > 0" class="mt-3">
           <h6>Detalles de Bonos:</h6>
           <b-list-group>
-            <b-list-group-item
-              v-for="(bono, index) in datosPago.bonos"
-              :key="index"
-              variant="success"
-              class="d-flex justify-content-between align-items-center"
-            >
+            <b-list-group-item v-for="(bono, index) in datosPago.bonos" :key="index" variant="success"
+              class="d-flex justify-content-between align-items-center">
               <span>{{ bono.descripcion || `Bono ${index + 1}` }}</span>
               <strong>${{ parseFloat(bono.monto || 0).toFixed(2) }}</strong>
             </b-list-group-item>
@@ -224,12 +172,8 @@
         <div v-if="datosPago.descuentos && datosPago.descuentos.length > 0" class="mt-3">
           <h6>Detalles de Descuentos:</h6>
           <b-list-group>
-            <b-list-group-item
-              v-for="(descuento, index) in datosPago.descuentos"
-              :key="index"
-              variant="danger"
-              class="d-flex justify-content-between align-items-center"
-            >
+            <b-list-group-item v-for="(descuento, index) in datosPago.descuentos" :key="index" variant="danger"
+              class="d-flex justify-content-between align-items-center">
               <span>{{ descuento.descripcion || `Descuento ${index + 1}` }}</span>
               <strong class="text-danger">-${{ parseFloat(descuento.monto || 0).toFixed(2) }}</strong>
             </b-list-group-item>
@@ -261,7 +205,7 @@ export default {
   },
   data() {
     return {
-       totalItemsPagos: 0,
+      totalItemsPagos: 0,
       dataToPost: '',
       datosPago: {
         bonos: [],
@@ -276,8 +220,8 @@ export default {
         { key: 'id', label: '' }
       ],
       erroresValidacion: [],
-      modalId: `modal-confirmacion-${this.empleado.id_empleado}-${this.tipoEmpleado.replace(/\s+/g, '') || Math.random().toString(36).substring(2, 7)}`,
-      modalConfirmacionFinalId: `modal-confirmacion-final-${this.empleado.id_empleado}-${this.tipoEmpleado.replace(/\s+/g, '') || Math.random().toString(36).substring(2, 7)}`
+      modalId: `modal-confirmacion-${this.empleado.id_empleado}-${Math.random().toString(36).substring(2, 9)}`,
+      modalConfirmacionFinalId: `modal-confirmacion-final-${this.empleado.id_empleado}-${Math.random().toString(36).substring(2, 9)}`
     }
   },
 
@@ -347,10 +291,10 @@ export default {
       }
 
       const totalBaseNum = parseFloat(this.totalBase.toString().replace('$', '')) || 0
-      
+
       // Regla estricta: Si es tipo 'Salario', el total base es EXCLUSIVAMENTE salario
       if (this.empleado.salario_tipo === 'Salario') {
-         return totalBaseNum.toFixed(2)
+        return totalBaseNum.toFixed(2)
       }
 
       // Fallback para 'Salario más Comisión' o legacy (Total - Comisiones)

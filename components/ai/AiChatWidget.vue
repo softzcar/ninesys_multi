@@ -307,7 +307,7 @@ export default {
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
         
         // Get API URL from nuxt config
-        const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+        const apiUrl = this.$config?.API || 'https://api.nineteengreen.com'
 
         // Construir historial de conversación para Gemini
         // Solo incluir los últimos 10 mensajes para no exceder el límite de tokens
@@ -425,7 +425,7 @@ export default {
     async obtenerContextoBD(query) {
       // Extrae información del mensaje para buscar en BD
       const empresaId = this.$store?.state?.login?.idEmpresa || 163
-      const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+      const apiUrl = this.$config?.API || 'https://api.nineteengreen.com'
       
       try {
         // Extraer posibles nombres de clientes y productos del query
@@ -469,7 +469,7 @@ export default {
     async enviarMensajeOrden(query) {
       // Flujo conversacional inteligente con contexto de BD
       const empresaId = this.$store?.state?.login?.idEmpresa || 163
-      const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+      const apiUrl = this.$config?.API || 'https://api.nineteengreen.com'
       
       // Obtener contexto de BD
       let contextoBD = await this.obtenerContextoBD(query)
@@ -613,7 +613,7 @@ export default {
         
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
         const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
-        const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+        const apiUrl = this.$config?.API || 'https://api.nineteengreen.com'
         
         // Validar que el usuario esté logueado
         if (!userId) {
@@ -729,7 +729,7 @@ export default {
       try {
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
         const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
-        const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+        const apiUrl = this.$config?.API || 'https://api.nineteengreen.com'
         
         // Preparar productos con las selecciones del usuario
         const productosConSelecciones = this.selectedProducts.map((sp, idx) => {
@@ -834,7 +834,7 @@ export default {
         
         const empresaId = this.$store?.state?.login?.idEmpresa || 163
         const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
-        const apiUrl = this.$config?.API || 'https://apidev.nineteengreen.com'
+        const apiUrl = this.$config?.API || 'https://api.nineteengreen.com'
         
         if (!userId) {
           this.messages[this.messages.length - 1].text = 

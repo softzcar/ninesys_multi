@@ -11,22 +11,37 @@
     
     - **Nomenclatura de Archivos:** Cada archivo de log se nombrará siguiendo el formato `YYYY-MM-DD_HH-MM-SS_tarea-[descripcion_corta].log` para asegurar la unicidad y la cronología.
     
-    - **⚠️ CREACIÓN OBLIGATORIA DE LOGS:**
+    - **⚠️ CREACIÓN OBLIGATORIA DE LOGS — SIN EXCEPCIÓN:**
         - **SIEMPRE** crea un log después de completar una tarea, **SIN EXCEPCIONES**
         - Esto aplica incluso si trabajas manualmente sin usar herramientas de IA
         - Incluso en días festivos o fines de semana, si trabajas, DEBES crear el log
-        - El log es la única forma de documentar el trabajo realizado para futuros reportes
+        - **Sin log = trabajo NO documentado = NO aparece en el reporte semanal**
+        - El log es la ÚNICA fuente primaria confiable para reconstruir el trabajo del día
     
     - **Registro de Tareas:** Después de CADA tarea completada, se debe crear un nuevo archivo `.log` con la siguiente estructura de información:
-        ```
-        - Solicitud del Usuario: [Texto completo de la solicitud del usuario]
-        - Archivos Involucrados: [Lista de rutas de archivos afectados o relevantes para la tarea]
-        - Acción Realizada: [Descripción detallada y técnica de mi acción, incluyendo funciones modificadas, comandos ejecutados, etc.]
-        - Herramienta(s) Utilizada(s): [Ej: `write_to_file`, `run_command`, `replace_file_content`]
-        - Resultado: [Éxito | Fallo | Parcial]
-        - Verificación: [Descripción técnica de cómo se verificó la tarea, incluyendo resultados de pruebas, salidas de comandos, comportamiento observado, etc.]
-        - Observaciones de Gemini: [Cualquier detalle adicional relevante o auto-reflexión sobre la tarea]
-        - Respuesta de Gemini: [La respuesta final que se le dio al usuario después de completar la tarea]
+        ```markdown
+        - **Solicitud del Usuario:** [Texto completo de la solicitud del usuario]
+        - **Fecha y Hora:** [YYYY-MM-DD HH:MM:SS]
+        - **Proyecto(s):** [Frontend / Backend / Ambos]
+        - **Archivos Involucrados:** [Lista de rutas de archivos afectados o relevantes para la tarea]
+        - **Commits Relacionados:**
+            - Frontend: [ID Commit o N/A]
+            - Backend: [ID Commit o N/A]
+        - **Acción Realizada:** [Descripción detallada y técnica de la acción, incluyendo funciones modificadas, comandos ejecutados, etc.]
+        - **Inconvenientes y Desafíos:** [Descripción de cualquier bloqueo, dificultad técnica o error encontrado durante el proceso]
+        - **Decisión Final y Justificación:** [Razonamiento detrás de la solución técnica elegida y por qué se descartaron otras opciones]
+        - **Herramienta(s) Utilizada(s):** [Ej: `write_to_file`, `run_command`, `replace_file_content`]
+        - **Resultado:** [Éxito | Fallo | Parcial]
+        - **Verificación:** [Descripción técnica de cómo se verificó la tarea, incluyendo resultados de pruebas, salidas de comandos, comportamiento observado, etc.]
+        - **Logro Conseguido:** [Resumen conciso del valor aportado por esta tarea, ideal para el reporte semanal]
+        - **Referencias de Sesión (Contexto):** 
+            - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/[CONVERSATION-ID]/task.md)
+            - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/[CONVERSATION-ID]/walkthrough.md)
+        
+        - **⚠️ NOTA DE PERSISTENCIA:** Los links anteriores son temporales. Para que la información sea PERMANENTE y aparezca en los reportes, **DEBES** detallar todo el proceso técnico en 'Acción Realizada', 'Verificación' e 'Inconvenientes'. No te limites a poner "ver walkthrough".
+        
+        - **Observaciones de Gemini:** [Cualquier detalle adicional relevante o auto-reflexión sobre la tarea]
+        - **Respuesta de Gemini:** [La respuesta final que se le dio al usuario después de completar la tarea]
         ```
     
     - **Importancia:** Este registro es FUNDAMENTAL para el seguimiento del proyecto y para la generación de reportes. **La precisión y la inmediatez son IMPERATIVAS**. Sin logs, no hay manera de documentar el trabajo realizado.
@@ -50,49 +65,73 @@
 - **Rama:** `refactor/modular-routes`
 - **Despliegue en VPS:** `git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes`
 
-## Despliegue en Producción
+## Despliegue y Entornos de Prueba (⚠️ MUY IMPORTANTE)
 
-### ⚠️ IMPORTANTE - NO DESPLEGAR AUTOMÁTICAMENTE
-**NUNCA desplegar la aplicación frontend automáticamente.** Solo desplegar cuando el usuario lo solicite explícitamente. Esto es porque no es conveniente subir cambios cada vez que se hace alguna modificación en el entorno de desarrollo.
+- **Desarrollo Local (Frontend):** Las pruebas del Frontend se hacen EXCLUSIVAMENTE de forma local ejecutando `npm run dev`. **NO ES NECESARIO** ni recomendado desplegar el frontend al VPS para validar cada ajuste, ya que es un proceso tardado e innecesario.
+- **Servidor de Pruebas (Hostinger):** El VPS de **Hostinger** (`api.nineteengreen.com`) funciona como el ENTORNO DE PRUEBAS. Todo cambio realizado en el código del **Backend** DEBE subirse y actualizarse (`git fetch && git pull`) en este VPS de Hostinger para poder probarse, ya que el servidor local de frontend se conecta a él para funcionar.
+- **Servidor de Producción (Contabo):** El VPS de **Contabo** (`nineteencustom.com`) es el entorno de PRODUCCIÓN. Solo se debe actualizar el código aquí **bajo petición explícita del usuario**, tanto para Frontend como para Backend. NUNCA despliegues en Contabo por iniciativa propia.
 
-### Frontend (Nuxt.js) - Script de Despliegue
+### Frontend (Nuxt.js) - Script de Despliegue Multi-Entorno
 - **Script:** `./deploy.sh` (en la raíz del proyecto)
-- **Host VPS:** `194.195.86.253`
-- **Usuario:** `root`
-- **Ruta remota:** `/home/app.nineteencustom.com/public_html`
+- **Modo:** Interactivo. Al ejecutarlo, permite elegir entre:
+  1. **Producción (Contabo):** Despliega en `app.nineteencustom.com` y configura la app para usar las APIs de `nineteencustom.com`.
+  2. **Pruebas (Hostinger):** Despliega en `app.nineteengreen.com` y configura la app para usar las APIs de `nineteengreen.com`.
 
 **Proceso del script:**
-1. Solicita confirmación del usuario
-2. Elimina el directorio `./dist` anterior
-3. Ejecuta `npm run generate` para transpilar
-4. Crea backup local en `./backups_transpilaciones`
-5. Crea backup remoto en `/home/app.nineteencustom.com/backups_deploys`
-6. Sube archivos al VPS via `rsync`
-7. Limpia backups locales antiguos (conserva los últimos 12)
+1. Solicita selección de entorno (1 o 2).
+2. Solicita confirmación final.
+3. Elimina el directorio `./dist` anterior.
+4. Ejecuta `npm run generate` inyectando automáticamente las variables de entorno para el destino seleccionado.
+5. Crea backup local en `./backups_transpilaciones`.
+6. Crea backup remoto en el servidor de destino.
+7. Sube archivos vía `rsync`.
+8. Limpia backups locales antiguos.
+
+### Frontend (Nuxt.js) - Script de Rollback
+- **Script:** `./rollback.sh` (en la raíz del proyecto)
+- **Modo:** Interactivo. Permite elegir el entorno y luego seleccionar uno de los últimos 10 respaldos remotos para restaurarlo.
+- **Seguridad:** Antes de restaurar, el script mueve la versión actual a un directorio temporal `temp_before_rollback` en el VPS.
 
 ## Acceso al VPS
 
-### Conexión SSH
+### VPS Contabo (NUEVO - Servidor Principal)
+- **Alias SSH:** `vps-contabo` (configurado en `~/.ssh/config`)
+- **Host:** `217.216.95.32`
+- **Usuario:** `root`
+- **Clave/Password:** `vpsnineteen2026`
+- **Panel CyberPanel:** `http://217.216.95.32:8090`
+- **Clave MariaDB:** `-pMyR5jRHuwj6kWA`
+
+```bash
+# Conectar via sshpass (sin alias SSH configurado con key)
+sshpass -p 'vpsnineteen2026' ssh -o StrictHostKeyChecking=no root@217.216.95.32
+
+# O via alias si se configuró la clave
+ssh vps-contabo
+```
+
+### VPS Hostinger (ANTERIOR - solo referencia)
 - **Alias SSH:** `vps-ninesys` (configurado en `~/.ssh/config`)
 - **Host:** `194.195.86.253`
 - **Usuario:** `root`
 - **Clave SSH:** `~/.ssh/id_ed25519_vps`
 
-### Rutas en el VPS
+### Rutas en el VPS (Contabo)
 | Aplicación | Ruta en VPS |
 |------------|-------------|
 | Frontend (Nuxt.js) | `/home/app.nineteencustom.com/public_html/` |
-| Backend (Slim API) | `/home/apidev.nineteengreen.com/public_html/` |
+| Backend (Slim API) | `/home/api.nineteengreen.com/public_html/` |
+| Backups | `/home/backup/` |
 
-### Comandos de Actualización Remota
+### Comandos de Actualización Remota (Contabo)
 **Actualizar API en VPS:**
 ```bash
-ssh vps-ninesys "cd /home/apidev.nineteengreen.com/public_html && git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes"
+sshpass -p 'vpsnineteen2026' ssh -o StrictHostKeyChecking=no root@217.216.95.32 "cd /home/api.nineteengreen.com/public_html && git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes"
 ```
 
 **Verificar estado del VPS:**
 ```bash
-ssh vps-ninesys "uptime && df -h"
+sshpass -p 'vpsnineteen2026' ssh -o StrictHostKeyChecking=no root@217.216.95.32 "uptime && df -h"
 ```
 
 ## Bases de Datos por Empresa
@@ -159,35 +198,44 @@ Los scripts para generación de reportes se encuentran en `/home/developer/Escri
 
 Cuando el usuario solicite "generar reporte del día X" o "crear reporte de los días X a Y":
 
-**Opción 1: Usar el script existente (recomendado para rangos de fechas)**
+**Paso 1: Recopilar información de TODAS las fuentes disponibles (en orden de prioridad)**
+
 ```bash
-cd /home/developer/Escritorio
-python3 generar_reportes_diarios.py
+# 1a. Logs .log (fuente primaria) - Backend
+find /home/developer/Escritorio/Antigravity/ninesys-apidev/logs_gemini -name "YYYY-MM-DD*" | sort
+
+# 1b. Logs .log (fuente primaria) - Frontend
+find /home/developer/Escritorio/niesys/app_multi/logs_gemini -name "YYYY-MM-DD*" | sort
+
+# 1c. Si NO hay logs: revisar commits de Git (fuente secundaria)
+# Backend:
+cd /home/developer/Escritorio/Antigravity/ninesys-apidev
+git log --all --since="YYYY-MM-DD 00:00:00" --until="YYYY-MM-DD 23:59:59" --pretty=format:"%ad | %s" --date=format:"%H:%M"
+
+# Frontend:
+cd /home/developer/Escritorio/niesys/app_multi
+git log --all --since="YYYY-MM-DD 00:00:00" --until="YYYY-MM-DD 23:59:59" --pretty=format:"%ad | %s" --date=format:"%H:%M"
+
+# 1d. Si hay conversaciones de esa fecha: revisar walkthrough.md y task.md en:
+# /home/developer/.gemini/antigravity/brain/[CONVERSATION-ID]/walkthrough.md
+# /home/developer/.gemini/antigravity/brain/[CONVERSATION-ID]/task.md
 ```
-El script está configurado para generar reportes del 28-12-2025 al 08-01-2026. Para otras fechas, modifica las variables `fecha_inicio` y `fecha_fin` en el script.
 
-**Opción 2: Generar un reporte individual manualmente**
+> **⚠️ IMPORTANTE:** Si no hay archivos `.log` para un día donde sí se trabajó,
+> SIEMPRE reconstruye desde commits de Git. Nunca omitas un día solo porque falten logs.
+> Indica en el reporte que las tareas fueron reconstruidas desde Git.
 
-Si el usuario solicita un reporte de UN día específico:
+**Paso 2: Generar el reporte HTML**
 
-1. Busca logs de ese día en ambos proyectos:
-   ```bash
-   find /home/developer/Escritorio/niesys/app_multi/logs_gemini -name "YYYY-MM-DD*"
-   find /home/developer/Escritorio/Antigravity/ninesys-apidev/logs_gemini -name "YYYY-MM-DD*"
-   ```
+Usando la plantilla establecida (ver reportes existentes en `/home/developer/Escritorio/reportes_logs/`).
 
-2. Si NO hay logs pero sí hay commits en Git, reconstruye desde Git:
-   ```bash
-   git log --all --since="YYYY-MM-DD 00:00:00" --until="YYYY-MM-DD 23:59:59" --pretty=format:"%H|%an|%ad|%s" --date=format:"%H:%M:%S"
-   ```
+**Paso 3: Convertir a PDF (OBLIGATORIO)**
 
-3. Genera el reporte HTML usando la plantilla establecida (ver reportes existentes como ejemplo)
+```bash
+python3 /home/developer/Escritorio/convertir_html_a_pdf.py
+```
 
-4. Convierte a PDF:
-   ```bash  
-   cd /home/developer/Escritorio
-   python3 convertir_html_a_pdf.py
-   ```
+El script convierte automáticamente todos los HTML en `reportes_logs/` que no tengan PDF.
 
 ### Estructura del Reporte HTML
 

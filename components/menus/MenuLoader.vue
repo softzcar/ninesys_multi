@@ -66,6 +66,17 @@
                 </b-col> -->
       </b-row>
 
+      <!-- Alerta de Entorno -->
+      <b-alert
+        v-if="environmentInfo.show"
+        :variant="environmentInfo.variant"
+        show
+        class="text-center font-weight-bold mb-2 shadow-sm"
+      >
+        <b-icon :icon="environmentInfo.icon" class="mr-2"></b-icon>
+        {{ environmentInfo.label }}
+      </b-alert>
+
       <!-- Navbar superior con buscador y WhatsApp -->
       <b-navbar type="light" variant="light" class="shadow-sm mb-3">
         <b-navbar-nav class="ml-auto">
@@ -165,6 +176,26 @@ export default {
       "currentMinOrdenProcesoId",
     ]),
     ...mapGetters("login", ["getDepartamentosEmpleadoSelect"]),
+    environmentInfo() {
+      if (process.server) return { show: false };
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1") {
+        return {
+          show: true,
+          variant: "warning",
+          icon: "exclamation-triangle-fill",
+          label: "⚠️ ENTORNO LOCAL - DESARROLLO",
+        };
+      } else if (host.includes("nineteengreen.com")) {
+        return {
+          show: true,
+          variant: "info",
+          icon: "tools",
+          label: "🔧 ENTORNO DE PRUEBAS - NINETEENGREEN.COM",
+        };
+      }
+      return { show: false };
+    },
   },
 
   methods: {

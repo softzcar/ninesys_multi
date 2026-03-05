@@ -262,8 +262,30 @@
 
 
 
-                                <vue-typeahead-bootstrap @hit="loadProduct" :data="$store.state.comerce.dataProductosSelect
-                                  " v-model="query" placeholder="Seleccione los productos" />
+                                  <div class="d-flex align-items-center mb-4">
+                                    <vue-typeahead-bootstrap 
+                                      class="flex-grow-1 mr-2"
+                                      @hit="loadProduct" 
+                                      :data="$store.state.comerce.dataProductosSelect" 
+                                      v-model="query" 
+                                      placeholder="Seleccione los productos" 
+                                    />
+                                    <b-button 
+                                      variant="primary" 
+                                      @click="openProductModal"
+                                      v-b-tooltip.hover 
+                                      title="Explorar catálogo completo de productos"
+                                    >
+                                      <b-icon icon="search"></b-icon> Catálogo
+                                    </b-button>
+                                  </div>
+                                  
+                                  <!-- Modal Explorador de Productos -->
+                                  <ProductSelectorModal 
+                                    ref="productModal"
+                                    :preferStoreMode="categoriaDeLaORden === 'sport'"
+                                    @product-selected="handleProductSelectedFromModal" 
+                                  />
                               </b-col>
                             </b-row>
 
@@ -765,9 +787,16 @@ import phoneValidation from "~/mixins/phoneValidation.js";
 import FormMonedas from "~/components/formMonedas.vue";
 import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
 import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
+import ProductSelectorModal from "~/components/ordenes/ProductSelectorModal.vue";
 import PrintService from '@/utils/PrintService';
 
 export default {
+  components: {
+    FormMonedas,
+    CargarOrdenesNoAsignadas,
+    AtributosNuevo,
+    ProductSelectorModal
+  },
   data() {
     return {
       isSmallScreen: false,
@@ -1655,6 +1684,26 @@ export default {
       }
     },
 
+    handleProductSelectedFromModal(product) {
+      if (!product || !product.cod) return;
+      // Reutilizamos la misma logica simulando el comportamiento del typeahead:
+      const queryStr = `${product.cod} | ${product.name}`;
+      this.query = queryStr; 
+      this.loadProduct(queryStr);
+    },
+
+    openProductModal() {
+      console.log('🔵 Abrir Catálogo Pulsado!');
+      console.log('Ref productModal:', this.$refs.productModal);
+      // Usamos el método interno del componente a traves de la ref:
+      if (this.$refs.productModal) {
+        this.$refs.productModal.show();
+      } else {
+        console.warn('⚠️ No se encontro la ref productModal. Usando fallback $bvModal.');
+        this.$bvModal.show('product-selector-modal');
+      }
+    },
+
     checkTallasTelas() {
       let checking = this.form.productos.filter(
         (el) => el.diseno === false && (el.talla === null || el.tela === null)
@@ -1920,8 +1969,11 @@ export default {
       }
     },
 
-    validateStep2() {
+    async validateStep2() {
       if (this.step2()) {
+        const canProceed = await this.validar_stock_disponible();
+        if (!canProceed) return;
+
         if (this.form.guardarStock) {
           // Si es orden interna, forzamos todos los pagos a 0 por seguridad
           this.form.montoDolaresEfectivo = 0;
@@ -1953,6 +2005,46 @@ export default {
       } else {
         this.disable3 = true;
         this.disable4 = true;
+      }
+    },
+    async validar_stock_disponible() {
+      if (this.categoriaDeLaORden === 'custom') {
+        return true; 
+      }
+
+      // Filtrar aquellos productos cuya propiedad diseno sea false (es decir, son fisicos)
+      const productosFisicos = this.form.productos.filter(p => !p.diseno);
+      
+      if (productosFisicos.length === 0) return true;
+
+      this.overlay = true;
+      try {
+        const payload = productosFisicos.map(p => ({
+          id: p.cod,
+          cantidad: p.cantidad,
+          nombre: p.producto
+        }));
+        
+        await this.$axios.post(`${this.$config.API}/ordenes/validar-stock`, { productos: payload });
+        return true;
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.errores) {
+          const errMsg = err.response.data.errores.join('<br>');
+          this.$fire({
+            title: 'Stock Insuficiente',
+            html: `<p>No hay inventario suficiente para procesar la orden:</p><p>${errMsg}</p>`,
+            type: 'error',
+          });
+        } else {
+          this.$fire({
+            title: 'Error de validación',
+            html: `<p>Ocurrió un error al verificar el stock. Intente nuevamente.</p>`,
+            type: 'error',
+          });
+        }
+        return false;
+      } finally {
+        this.overlay = false;
       }
     },
 
@@ -3546,7 +3638,6 @@ export default {
     },
   },
 
-  components: { FormMonedas, CargarOrdenesNoAsignadas, AtributosNuevo },
   created() {
     // this.loadDataComercializacion()
   },

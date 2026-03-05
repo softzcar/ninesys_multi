@@ -16,7 +16,7 @@ export async function obtenerIndicadoresVenezuela() {
 
         // Determinar URL base de la API
         // El usuario indicó explícitamente que debe apuntar a la API en VPS incluso en desarrollo
-        const apiBaseUrl = 'https://apidev.nineteengreen.com';
+        const apiBaseUrl = 'https://api.nineteengreen.com';
 
         const [resBcv, resVzla, resGlobal] = await Promise.all([
             fetch(`${apiBaseUrl}/bcv-rates`),

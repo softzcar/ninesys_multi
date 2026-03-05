@@ -15,6 +15,12 @@
                     <strong>Insumo:</strong> {{ nombreInsumo }} (ID: {{ idInsumo }})
                 </b-alert>
 
+                <!-- Leyenda sobre Material Estimado -->
+                <b-alert show variant="warning" class="mb-3 small">
+                    <b-icon icon="info-circle-fill" class="mr-2"></b-icon>
+                    <strong>Nota importante:</strong> Si el <strong>Material Estimado</strong> se muestra en <span class="text-danger font-weight-bold">0.00</span> rojo, significa que no se ha configurado un consumo esperado de este material para ciertos productos de la orden.
+                </b-alert>
+
                 <!-- Tabla de consumo -->
                 <div v-if="!loading && consumoData.length > 0">
                     <b-table striped hover responsive small :items="consumoData" :fields="fields" :per-page="perPage"
@@ -22,6 +28,13 @@
                         <!-- Columna ID Orden con linkSearch -->
                         <template #cell(id_orden)="data">
                             <link-search :id="data.item.id_orden" />
+                        </template>
+
+                        <!-- Columna Material Estimado -->
+                        <template #cell(material_estimado)="data">
+                            <span :class="{'text-danger font-weight-bold': !data.item.material_estimado || data.item.material_estimado <= 0}">
+                                {{ data.item.material_estimado ? Number(data.item.material_estimado).toFixed(2) : '0.00' }}
+                            </span>
                         </template>
 
                         <!-- Columna Material Consumido (editable) -->
@@ -119,6 +132,12 @@ export default {
                 { key: "cliente_nombre", label: "Cliente", sortable: true },
                 { key: "departamento", label: "Departamento", sortable: true },
                 { key: "nombre_empleado", label: "Empleado", sortable: true },
+                {
+                    key: "material_estimado",
+                    label: "Material Estimado",
+                    sortable: true,
+                    class: "text-right"
+                },
                 {
                     key: "material_consumido",
                     label: "Material Consumido",

@@ -206,7 +206,7 @@ export default {
             comisionParaRegistro = comisionPago;
           }
 
-          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : 'Ventas');
+          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
 
           acc.push({
             nombre: curr.nombre || curr.nombre_disenador || (empleado ? empleado.nombre : 'Empleado'),
@@ -229,7 +229,7 @@ export default {
             acc[index].pago += comisionPago;
           }
 
-          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : 'Ventas');
+          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
           if (dep && !acc[index].departamento.includes(dep)) {
             acc[index].departamento += ' + ' + dep;
           }
