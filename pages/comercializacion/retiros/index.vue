@@ -34,10 +34,14 @@
           </b-container>
           <div v-if="tasasCargadas">
             <b-overlay
-              :show="overlay"
+              :show="loading"
               spinner-small
             >
-              <div v-if="totalEnCaja > 0">
+              <div v-if="loading" class="text-center p-5">
+                <b-spinner label="Cargando..."></b-spinner>
+                <p class="mt-2">Cargando información de caja...</p>
+              </div>
+              <div v-else-if="totalEnCaja > 0">
                 <b-row>
                   <b-col>
                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
@@ -207,7 +211,7 @@
                   </b-col>
                 </b-row>
               </div>
-              <div v-else>
+              <div v-else-if="!loading">
                 <b-alert
                   show
                   variant="info"
@@ -245,24 +249,10 @@ export default {
   data() {
     return {
       titulo: "Retiros",
-      overlay: false,
+      loading: true,
       datosReporte: [],
       fechaConsulta: "",
-      caja: [
-        { monto: 0, moneda: "Dólares", tasa: 1, dolares: 0 },
-        {
-          monto: 0,
-          moneda: "Pesos",
-          tasa: this.$store.state.comerce.peso,
-          dolares: 0,
-        },
-        {
-          monto: 0,
-          moneda: "Bolívares",
-          tasa: this.$store.state.comerce.dolar,
-          dolares: 0,
-        },
-      ],
+      caja: [],
       form: {
         detalle: "",
         montoDolaresEfectivo: 0,
@@ -627,6 +617,7 @@ export default {
     },
 
     async getRetiros(fecha) {
+      this.loading = true;
       await this.$axios
         .get(
           `${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`
@@ -635,6 +626,9 @@ export default {
           this.datosReporte = res.data.data.retiros;
           this.caja = res.data.data.caja;
           console.log("caja", this.caja);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
 
