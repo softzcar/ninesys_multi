@@ -623,6 +623,7 @@ export default {
           `${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`
         )
         .then((res) => {
+          this.report = res.data.data.retiros;
           this.datosReporte = res.data.data.retiros;
           this.caja = res.data.data.caja;
           console.log("caja", this.caja);
