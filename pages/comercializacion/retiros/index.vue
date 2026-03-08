@@ -51,7 +51,47 @@
                     </b-list-group>
                   </b-col>
                 </b-row>
-                <b-row>
+
+                <!-- REPORTE DE RETIROS (Reubicado arriba del botón RETIRAR) -->
+                <b-row class="mt-2">
+                  <b-col>
+                    <hr />
+                    <h4 class="mb-4">Reporte de retiros del día</h4>
+                    <b-form-group label="Filtrar por fecha">
+                      <b-form-datepicker
+                        v-model="fechaConsulta"
+                        @input="getRetiros"
+                        class="mb-3"
+                      />
+                      <b-table
+                        striped
+                        hover
+                        responsive
+                        :items="report"
+                        :fields="fields"
+                        show-empty
+                        empty-text="No hay retiros registrados para esta fecha."
+                      >
+                        <template #cell(monto)="data">
+                          {{ formatMonto(data.item.monto) }}
+                        </template>
+
+                        <template #cell(moneda)="data">
+                          <b-badge variant="light">{{ data.item.moneda }}</b-badge>
+                          <small class="text-muted d-block">{{ data.item.metodo_pago }}</small>
+                        </template>
+
+                        <template #cell(detalle_retiro)="data">
+                          {{ data.item.detalle_retiro }}
+                          <br>
+                          <small class="text-muted">{{ data.item.empleado }} - {{ data.item.moment }}</small>
+                        </template>
+                      </b-table>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+
+                <b-row class="mt-4">
                   <b-col>
                     <h2 class="mb-4">
                       TOTAL RETIRO: {{ formatMonto(totalRetiro) }}
@@ -180,50 +220,7 @@
                 </b-row>
               </div>
 
-              <!-- REPORTE DE RETIROS (Siempre visible si no está cargando) -->
-              <div v-if="!loading">
-                <b-row class="mt-5">
-                  <b-col>
-                    <hr />
-                    <h4 class="mb-4">Reporte de retiros del día</h4>
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-col>
-                    <b-form-group label="Filtrar por fecha">
-                      <b-form-datepicker
-                        v-model="fechaConsulta"
-                        @input="realizarConsulta"
-                        class="mb-3"
-                      />
-                      <b-table
-                        striped
-                        hover
-                        responsive
-                        :items="report"
-                        :fields="fields"
-                        show-empty
-                        empty-text="No hay retiros registrados para esta fecha."
-                      >
-                        <template #cell(monto)="data">
-                          {{ formatMonto(data.item.monto) }}
-                        </template>
 
-                        <template #cell(moneda)="data">
-                          <b-badge variant="light">{{ data.item.moneda }}</b-badge>
-                          <small class="text-muted d-block">{{ data.item.metodo_pago }}</small>
-                        </template>
-
-                        <template #cell(detalle_retiro)="data">
-                          {{ data.item.detalle_retiro }}
-                          <br>
-                          <small class="text-muted">{{ data.item.empleado }} - {{ data.item.moment }}</small>
-                        </template>
-                      </b-table>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-              </div>
             </b-overlay>
           </div>
 
@@ -590,9 +587,7 @@ export default {
       }
     },
 
-    realizarConsulta(val) {
-      this.getDataReport(val);
-    },
+
 
     updateMontoRetiro() {
       let newVal;
@@ -726,20 +721,7 @@ export default {
       return newVal;
     },
 
-    async getDataReport(fecha) {
-      await this.$axios
-        .get(
-          `${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`
-        )
-        .then((res) => {
-          this.report = res.data.data.retiros;
-          /* this.report.forEach(item => {
-          this.sumatoriaDescuento += Number(item.pago_descuento)
-          this.sumatoriaTotal += Number(item.pago_total)
-          this.sumatoriaAbono += Number(item.pago_abono)
-        }) */
-        });
-    },
+
   },
 
   filters: {
