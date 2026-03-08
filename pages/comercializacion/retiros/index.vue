@@ -42,9 +42,9 @@
                   <b-col>
                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
                     <b-list-group class="mb-4">
-                      <b-list-group-item>DOLARES: {{ caja[0].monto }}</b-list-group-item>
-                      <b-list-group-item>PESOS: {{ caja[1]["monto"] }}</b-list-group-item>
-                      <b-list-group-item>BOLIVARES: {{ caja[2]["monto"] }}</b-list-group-item>
+                      <b-list-group-item>DOLARES: {{ caja[0] ? caja[0].monto : '0.00' }}</b-list-group-item>
+                      <b-list-group-item>PESOS: {{ caja[1] ? caja[1].monto : '0.00' }}</b-list-group-item>
+                      <b-list-group-item>BOLIVARES: {{ caja[2] ? caja[2].monto : '0.00' }}</b-list-group-item>
                     </b-list-group>
                   </b-col>
                 </b-row>
@@ -475,6 +475,28 @@ export default {
       if (parseFloat(this.totalRetiro) === 0) {
         ok = false;
         msg = msg + "<p>El Total del retiro no puede ser Cero</p>";
+      }
+
+      // VALIDACIÓN DE SALDO DISPONIBLE
+      const saldoDolares = parseFloat(this.caja[0] ? this.caja[0].monto : 0);
+      const saldoPesos = parseFloat(this.caja[1] ? this.caja[1].monto : 0);
+      const saldoBolivares = parseFloat(this.caja[2] ? this.caja[2].monto : 0);
+
+      const solicitadoDolares = parseFloat(this.form.montoDolaresEfectivo);
+      const solicitadoPesos = parseFloat(this.form.montoPesosEfectivo);
+      const solicitadoBolivares = parseFloat(this.form.montoBolivaresEfectivo);
+
+      if (solicitadoDolares > saldoDolares) {
+        ok = false;
+        msg += `<p>Saldo insuficiente en Dólares. Disponible: ${saldoDolares}</p>`;
+      }
+      if (solicitadoPesos > saldoPesos) {
+        ok = false;
+        msg += `<p>Saldo insuficiente en Pesos. Disponible: ${saldoPesos}</p>`;
+      }
+      if (solicitadoBolivares > saldoBolivares) {
+        ok = false;
+        msg += `<p>Saldo insuficiente en Bolívares. Disponible: ${saldoBolivares}</p>`;
       }
 
       if (ok) {
