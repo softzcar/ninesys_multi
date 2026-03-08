@@ -544,10 +544,10 @@ export default {
 
               const res = await this.$axios.post(`${this.$config.API}/retiro`, data);
 
-              if (res.data.statusCode === 200) {
+              if (res.status === 200 || res.data.status === "success" || res.data.statusCode === 200) {
                 this.$fire({
                   title: "Éxito",
-                  text: "El retiro se ha registrado correctamente",
+                  text: res.data.message || "El retiro se ha registrado correctamente",
                   type: "success",
                 });
                 
