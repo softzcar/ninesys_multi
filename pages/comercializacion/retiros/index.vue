@@ -506,49 +506,81 @@ export default {
       }
 
       if (ok) {
-        this.overlay = true;
-        const data = new URLSearchParams();
-        data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-        data.set("form", this.form);
-        data.set("tasa_dolar", this.tasas.bolivar);
-        data.set("tasa_peso", this.tasas.peso_colombiano);
-        data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
-        data.set("montoDolaresZelle", this.form.montoDolaresZelle);
-        data.set("montoDolaresPanama", this.form.montoDolaresPanama);
-        data.set("montoPesosEfectivo", this.form.montoPesosEfectivo);
-        data.set("montoPesosTransferencia", this.form.montoPesosTransferencia);
-        data.set("montoBolivaresEfectivo", this.form.montoBolivaresEfectivo);
-        data.set("montoBolivaresPunto", this.form.montoBolivaresPunto);
-        data.set("montoBolivaresPagomovil", this.form.montoBolivaresPagomovil);
-        data.set(
-          "montoBolivaresTransferencia",
-          this.form.montoBolivaresTransferencia
-        );
-        data.set("abono", this.form.abono);
-        data.set("detalle", this.form.detalle);
+        // CONSTRUIR RESUMEN PARA CONFIRMACIÓN
+        let resumen = `<div class="text-left">
+          <p><strong>Detalle:</strong> ${this.form.detalle}</p>
+          <ul>`;
+        if (solicitadoDolares > 0) resumen += `<li>Dólares: ${this.formatMonto(solicitadoDolares)}</li>`;
+        if (solicitadoPesos > 0) resumen += `<li>Pesos: ${this.formatMonto(solicitadoPesos)}</li>`;
+        if (solicitadoBolivares > 0) resumen += `<li>Bolívares: ${this.formatMonto(solicitadoBolivares)}</li>`;
+        resumen += `</ul><p class="text-center mt-3"><strong>¿Confirmar este retiro?</strong></p></div>`;
 
-        console.log("data:", data);
+        this.$fire({
+          title: "Confirmar Retiro",
+          html: resumen,
+          type: "question",
+          showCancelButton: true,
+          confirmButtonText: "Sí, retirar",
+          cancelButtonText: "Cancelar",
+        }).then(async (result) => {
+          if (result.value) {
+            this.loading = true; // Bloqueamos la interfaz
+            try {
+              const data = new URLSearchParams();
+              data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
+              data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
+              data.set("montoDolaresZelle", this.form.montoDolaresZelle);
+              data.set("montoDolaresPanama", this.form.montoDolaresPanama);
+              data.set("montoPesosEfectivo", this.form.montoPesosEfectivo);
+              data.set("montoPesosTransferencia", this.form.montoPesosTransferencia);
+              data.set("montoBolivaresEfectivo", this.form.montoBolivaresEfectivo);
+              data.set("montoBolivaresPunto", this.form.montoBolivaresPunto);
+              data.set("montoBolivaresPagomovil", this.form.montoBolivaresPagomovil);
+              data.set("montoBolivaresTransferencia", this.form.montoBolivaresTransferencia);
+              data.set("tasa_dolar", this.tasas.bolivar);
+              data.set("tasa_peso", this.tasas.peso_colombiano);
+              data.set("abono", this.form.abono);
+              data.set("detalle", this.form.detalle);
 
-        await this.$axios
-          .post(`${this.$config.API}/retiro`, data)
-          .then((res) => {
-            this.getDataReport(this.fechaActual()).then(() => {
-              this.form = {
-                detalle: "",
-                montoDolaresEfectivo: 0,
-                montoDolaresZelle: 0,
-                montoDolaresPanama: 0,
-                montoPesosEfectivo: 0,
-                montoPesosTransferencia: 0,
-                montoBolivaresEfectivo: 0,
-                montoBolivaresPunto: 0,
-                montoBolivaresPagomovil: 0,
-                montoBolivaresTransferencia: 0,
-                abono: 0, // Pago total o parcial
-              };
-              this.overlay = false;
-            });
-          });
+              const res = await this.$axios.post(`${this.$config.API}/retiro`, data);
+
+              if (res.data.statusCode === 200) {
+                this.$fire({
+                  title: "Éxito",
+                  text: "El retiro se ha registrado correctamente",
+                  type: "success",
+                });
+                
+                // Resetear formulario
+                this.form = {
+                  detalle: "",
+                  montoDolaresEfectivo: 0,
+                  montoDolaresZelle: 0,
+                  montoDolaresPanama: 0,
+                  montoPesosEfectivo: 0,
+                  montoPesosTransferencia: 0,
+                  montoBolivaresEfectivo: 0,
+                  montoBolivaresPunto: 0,
+                  montoBolivaresPagomovil: 0,
+                  montoBolivaresTransferencia: 0,
+                  abono: 0,
+                };
+              } else {
+                throw new Error(res.data.error?.description || "Error desconocido al procesar el retiro");
+              }
+            } catch (error) {
+              this.$fire({
+                title: "Error",
+                text: error.message || "No se pudo procesar el retiro",
+                type: "error",
+              });
+            } finally {
+              // SIEMPRE refrescar la información tras intentar un retiro
+              await this.getRetiros(this.fechaActual());
+              this.loading = false;
+            }
+          }
+        });
       } else {
         this.$fire({
           title: "Se requieren datos",
