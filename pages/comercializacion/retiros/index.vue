@@ -38,8 +38,7 @@
               spinner-small
             >
               <div v-if="loading" class="text-center p-5">
-                <b-spinner label="Cargando..."></b-spinner>
-                <p class="mt-2">Cargando información de caja...</p>
+                <p class="mt-2 text-muted italic">Cargando información de caja...</p>
               </div>
               <div v-else-if="totalEnCaja > 0">
                 <b-row>
@@ -166,58 +165,64 @@
                     md="9"
                     sm="12"
                   >
-                    <b-row>
-                      <b-col>
-                        <hr />
-                        <h4 class="mb-4">Reporte de retiros</h4>
-                      </b-col>
-                    </b-row>
-
-                    <b-row align-h="start">
-                      <b-col>
-                        <b-form-group label="Fecha de consulta">
-                          <b-form-datepicker
-                            v-model="fechaConsulta"
-                            @input="realizarConsulta"
-                          />
-                          <b-table
-                            striped
-                            hover
-                            :items="report"
-                            :fields="fields"
-                          >
-                            <template #cell(moneda)="data">
-                              {{ data.item.moneda }}
-                              {{ data.item.metodo_pago }}
-                            </template>
-
-                            <template #cell(detalle_retiro)="data">
-                              {{ data.item.detalle_retiro }}
-                            </template>
-
-                            <!-- <template v-slot:tfoot>
-                            <tr>
-                              <th></th>
-                              <th>{{ sumatoriaDescuento }}</th>
-                              <th>{{ sumatoriaTotal }}</th>
-                              <th>{{ sumatoriaAbono }}</th>
-                              <th></th>
-                            </tr>
-                          </template>-->
-                          </b-table>
-                        </b-form-group>
-                      </b-col>
-                    </b-row>
                   </b-col>
                 </b-row>
               </div>
               <div v-else-if="!loading">
-                <b-alert
-                  show
-                  variant="info"
-                  class="mt-4"
-                  >No hay fondos en efectivo disponibles para retirar.</b-alert
-                >
+                <b-row>
+                  <b-col>
+                    <b-alert
+                      show
+                      variant="info"
+                      class="mt-4"
+                    >No hay fondos en efectivo disponibles hoy para retirar.</b-alert>
+                  </b-col>
+                </b-row>
+              </div>
+
+              <!-- REPORTE DE RETIROS (Siempre visible si no está cargando) -->
+              <div v-if="!loading">
+                <b-row class="mt-5">
+                  <b-col>
+                    <hr />
+                    <h4 class="mb-4">Reporte de retiros del día</h4>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col>
+                    <b-form-group label="Filtrar por fecha">
+                      <b-form-datepicker
+                        v-model="fechaConsulta"
+                        @input="realizarConsulta"
+                        class="mb-3"
+                      />
+                      <b-table
+                        striped
+                        hover
+                        responsive
+                        :items="report"
+                        :fields="fields"
+                        show-empty
+                        empty-text="No hay retiros registrados para esta fecha."
+                      >
+                        <template #cell(monto)="data">
+                          {{ formatMonto(data.item.monto) }}
+                        </template>
+
+                        <template #cell(moneda)="data">
+                          <b-badge variant="light">{{ data.item.moneda }}</b-badge>
+                          <small class="text-muted d-block">{{ data.item.metodo_pago }}</small>
+                        </template>
+
+                        <template #cell(detalle_retiro)="data">
+                          {{ data.item.detalle_retiro }}
+                          <br>
+                          <small class="text-muted">{{ data.item.empleado }} - {{ data.item.moment }}</small>
+                        </template>
+                      </b-table>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
               </div>
             </b-overlay>
           </div>
