@@ -42,16 +42,16 @@
                   <b-col>
                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
                     <b-list-group class="mb-4">
-                      <b-list-group-item>DOLARES: {{ caja[0] ? caja[0].monto : '0.00' }}</b-list-group-item>
-                      <b-list-group-item>PESOS: {{ caja[1] ? caja[1].monto : '0.00' }}</b-list-group-item>
-                      <b-list-group-item>BOLIVARES: {{ caja[2] ? caja[2].monto : '0.00' }}</b-list-group-item>
+                      <b-list-group-item>DOLARES: {{ formatMonto(caja[0] ? caja[0].monto : 0) }}</b-list-group-item>
+                      <b-list-group-item>PESOS: {{ formatMonto(caja[1] ? caja[1].monto : 0) }}</b-list-group-item>
+                      <b-list-group-item>BOLIVARES: {{ formatMonto(caja[2] ? caja[2].monto : 0) }}</b-list-group-item>
                     </b-list-group>
                   </b-col>
                 </b-row>
                 <b-row>
                   <b-col>
                     <h2 class="mb-4">
-                      TOTAL RETIRO: {{ totalRetiro }}
+                      TOTAL RETIRO: {{ formatMonto(totalRetiro) }}
                       <b-button
                         size="lg"
                         class="ml-4"
@@ -78,7 +78,7 @@
                     <b-row>
                       <b-col>
                         <hr />
-                        <h4 class="mb-4">Dólares {{ totalDolares }}</h4>
+                        <h4 class="mb-4">Dólares {{ formatMonto(totalDolares) }}</h4>
                       </b-col>
                     </b-row>
 
@@ -105,7 +105,7 @@
                     <b-row>
                       <b-col>
                         <hr />
-                        <h4 class="mb-4">Pesos {{ totalPesos }}</h4>
+                        <h4 class="mb-4">Pesos {{ formatMonto(totalPesos) }}</h4>
                       </b-col>
                     </b-row>
 
@@ -132,7 +132,7 @@
                     <b-row>
                       <b-col>
                         <hr />
-                        <h4 class="mb-4">Bolívares {{ totalBolivares }}</h4>
+                        <h4 class="mb-4">Bolívares {{ formatMonto(totalBolivares) }}</h4>
                       </b-col>
                     </b-row>
                     <b-row align-h="start">

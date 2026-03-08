@@ -378,6 +378,21 @@ export default {
       })
     },
 
+    formatMonto(num) {
+      let myNum
+
+      if (num === null || num === undefined) {
+        myNum = 0
+      } else {
+        myNum = parseFloat(num)
+      }
+
+      return myNum.toLocaleString("de-DE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    },
+
     formatTimestamp(date) {
       let separate = date.split(" ")
       let fecha = this.formatDate(separate[0])
