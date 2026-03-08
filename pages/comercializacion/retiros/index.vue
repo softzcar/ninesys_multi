@@ -464,20 +464,10 @@ export default {
     }, */
 
     async enviarRetiro() {
-      let ok = true;
       let msg = "";
+      let ok = true;
 
-      if (this.form.detalle.trim().length === 0) {
-        ok = false;
-        msg = msg + "<p>Debe escribir el detalle del retiro</p>";
-      }
-
-      if (parseFloat(this.totalRetiro) === 0) {
-        ok = false;
-        msg = msg + "<p>El Total del retiro no puede ser Cero</p>";
-      }
-
-      // VALIDACIÓN DE SALDO DISPONIBLE
+      // 1. VALIDACIÓN DE SALDO DISPONIBLE (PRIORIDAD)
       const saldoDolares = parseFloat(this.caja[0] ? this.caja[0].monto : 0);
       const saldoPesos = parseFloat(this.caja[1] ? this.caja[1].monto : 0);
       const saldoBolivares = parseFloat(this.caja[2] ? this.caja[2].monto : 0);
@@ -488,15 +478,36 @@ export default {
 
       if (solicitadoDolares > saldoDolares) {
         ok = false;
-        msg += `<p>Saldo insuficiente en Dólares. Disponible: ${saldoDolares}</p>`;
+        msg += `<p>Saldo insuficiente en Dólares. Disponible: ${this.formatMonto(saldoDolares)}</p>`;
       }
       if (solicitadoPesos > saldoPesos) {
         ok = false;
-        msg += `<p>Saldo insuficiente en Pesos. Disponible: ${saldoPesos}</p>`;
+        msg += `<p>Saldo insuficiente en Pesos. Disponible: ${this.formatMonto(saldoPesos)}</p>`;
       }
       if (solicitadoBolivares > saldoBolivares) {
         ok = false;
-        msg += `<p>Saldo insuficiente en Bolívares. Disponible: ${saldoBolivares}</p>`;
+        msg += `<p>Saldo insuficiente en Bolívares. Disponible: ${this.formatMonto(saldoBolivares)}</p>`;
+      }
+
+      // Si no hay saldo, mostramos el error y no seguimos validando otras cosas (UX)
+      if (!ok) {
+        this.$fire({
+          title: "Saldo insuficiente",
+          html: msg,
+          type: "error",
+        });
+        return;
+      }
+
+      // 2. OTRAS VALIDACIONES (TOTAL Y DETALLE)
+      if (parseFloat(this.totalRetiro) === 0) {
+        ok = false;
+        msg = msg + "<p>El Total del retiro no puede ser Cero</p>";
+      }
+
+      if (this.form.detalle === "") {
+        ok = false;
+        msg = msg + "<p>Debe escribir el detalle del retiro</p>";
       }
 
       if (ok) {
