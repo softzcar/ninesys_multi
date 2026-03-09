@@ -80,7 +80,8 @@
         </div>
 
         <!-- Modal para crear nueva moneda -->
-        <b-modal id="modal-crear-moneda" title="Crear Nueva Moneda" @ok="crearMoneda" @hidden="resetFormulario">
+        <b-modal id="modal-crear-moneda" title="Crear Nueva Moneda" @ok="crearMoneda" @hidden="resetFormulario"
+            :ok-disabled="!esFormularioValido || overlay">
             <b-form>
                 <b-form-group label="Identificador de Moneda" label-for="input-moneda-id"
                     description="Identificador único sin espacios (ej: peso_mexicano, euro)">
@@ -152,17 +153,21 @@ export default {
     computed: {
         ...mapState("login", ["dataUser", "access", "idEmpresa"]),
         validarIdMoneda() {
-            if (this.nuevaMoneda.moneda.length === 0) return null;
+            const id = this.nuevaMoneda.moneda.trim().toLowerCase();
+            if (id.length === 0) return null;
 
             // Validar formato (solo letras minúsculas, números y _)
-            const formatoValido = /^[a-z0-9_]+$/.test(this.nuevaMoneda.moneda);
+            const formatoValido = /^[a-z0-9_]+$/.test(id);
             if (!formatoValido) return false;
 
             // Validar que no esté duplicado
             const duplicado = this.monedas.some(
-                (m) => m.moneda === this.nuevaMoneda.moneda
+                (m) => m.moneda.toLowerCase() === id
             );
             return !duplicado;
+        },
+        esFormularioValido() {
+            return this.validarIdMoneda === true && this.nuevaMoneda.mondeda_nombre.trim().length > 0;
         },
     },
     methods: {
@@ -193,8 +198,11 @@ export default {
         async crearMoneda(bvModalEvent) {
             bvModalEvent.preventDefault();
 
-            // Validaciones
-            if (!this.validarIdMoneda || this.nuevaMoneda.mondeda_nombre.length === 0) {
+            // Validaciones finales y limpieza
+            const idLimpio = this.nuevaMoneda.moneda.trim().toLowerCase();
+            const nombreLimpio = this.nuevaMoneda.mondeda_nombre.trim();
+
+            if (!idLimpio || !nombreLimpio || this.validarIdMoneda === false) {
                 this.$bvToast.toast("Por favor completa todos los campos correctamente", {
                     title: "Error de Validación",
                     variant: "danger",
@@ -203,8 +211,15 @@ export default {
                 return;
             }
 
+            // Preparar objeto final
+            const monedaAGuardar = {
+                ...this.nuevaMoneda,
+                moneda: idLimpio,
+                mondeda_nombre: nombreLimpio
+            };
+
             // Agregar nueva moneda al array
-            this.monedas.push({ ...this.nuevaMoneda });
+            this.monedas.push(monedaAGuardar);
 
             // Guardar en el backend
             await this.guardarMonedas();
