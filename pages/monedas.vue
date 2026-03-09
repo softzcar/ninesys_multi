@@ -156,13 +156,17 @@ export default {
             const id = this.nuevaMoneda.moneda.trim().toLowerCase();
             if (id.length === 0) return null;
 
+            // Durante el guardado (overlay), ignoramos la validación de duplicados
+            // para evitar que el campo se ponga rojo cuando la moneda se agrega al array local.
+            if (this.overlay) return true;
+
             // Validar formato (solo letras minúsculas, números y _)
             const formatoValido = /^[a-z0-9_]+$/.test(id);
             if (!formatoValido) return false;
 
-            // Validar que no esté duplicado
+            // Validar que no esté duplicado con null check
             const duplicado = this.monedas.some(
-                (m) => m.moneda.toLowerCase() === id
+                (m) => (m.moneda || "").toLowerCase() === id
             );
             return !duplicado;
         },
@@ -218,13 +222,48 @@ export default {
                 mondeda_nombre: nombreLimpio
             };
 
-            // Agregar nueva moneda al array
-            this.monedas.push(monedaAGuardar);
+            // Copia local para enviar al servidor sin afectar la validación reactiva del modal inmediatamente
+            const nuevasMonedas = [...this.monedas, monedaAGuardar];
 
-            // Guardar en el backend
-            await this.guardarMonedas();
+            try {
+                this.overlay = true;
+                const payload = {
+                    id_empleado: this.dataUser.id_empleado,
+                    monedas: nuevasMonedas,
+                };
 
-            this.$bvModal.hide("modal-crear-moneda");
+                await this.$axios.post(
+                    `${this.$config.API}/configuracion/monedas`,
+                    payload
+                );
+
+                // Si tiene éxito, actualizamos el estado local y el store
+                this.monedas = nuevasMonedas;
+                this.$store.commit("login/setDataEmpresa", {
+                    ...this.$store.state.login.dataEmpresa,
+                    tipos_de_monedas: nuevasMonedas,
+                });
+
+                this.$bvToast.toast("Moneda creada exitosamente", {
+                    title: "Éxito",
+                    variant: "success",
+                    solid: true,
+                });
+
+                this.$bvModal.hide("modal-crear-moneda");
+            } catch (error) {
+                console.error("Error al crear moneda:", error);
+                this.$bvToast.toast(
+                    "Ocurrió un error al guardar la moneda. Por favor intenta nuevamente.",
+                    {
+                        title: "Error",
+                        variant: "danger",
+                        solid: true,
+                    }
+                );
+            } finally {
+                this.overlay = false;
+            }
         },
 
         async toggleActivo(moneda, index) {
