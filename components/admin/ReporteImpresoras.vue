@@ -15,7 +15,27 @@
             <template #row-details="row">
               <b-card>
                 <p><strong>Recargas de Tinta:</strong></p>
-                <b-table striped hover :items="row.item.tintas_recargas" :fields="tintaRecargasFields"></b-table>
+                <b-table striped hover :items="row.item.tintas_recargas" :fields="tintaRecargasFields">
+                  <template #cell(color)="data">
+                    <div class="color-badge" :class="'color-' + data.value.toLowerCase()">
+                      {{ data.value }}
+                    </div>
+                  </template>
+                  <template #cell(restante_post_recarga)="data">
+                    <span class="font-weight-bold text-info">
+                      {{ formatNumber(data.value) }}
+                    </span>
+                  </template>
+                  <template #cell(desperdicio_ajuste)="data">
+                    <span v-if="data.value !== null" :class="data.value > 1 ? 'text-danger font-weight-bold' : (data.value < -1 ? 'text-success' : 'text-muted')">
+                      {{ formatNumber(data.value) }} ml
+                    </span>
+                    <span v-else class="text-muted italic">Abierto</span>
+                  </template>
+                  <template #cell(fecha_recarga)="data">
+                    {{ formatDate(data.value ? data.value.split(' ')[0] : '') }}
+                  </template>
+                </b-table>
               </b-card>
             </template>
           </b-table>
@@ -26,37 +46,37 @@
 </template>
 
 <script>
+import mixin from "~/mixins/mixins.js";
 export default {
+  mixins: [mixin],
   name: "ReporteImpresoras",
   data() {
     return {
       impresoras: [],
       overlay: false,
       fields: [
-        { key: "codigo_interno", label: "Código Interno" },
-        { key: "marca", label: "Marca" },
-        { key: "modelo", label: "Modelo" },
-        { key: "ubicacion", label: "Ubicación" },
-        { key: "tipo_tecnologia", label: "Tipo Tecnología" },
-        { key: "estado", label: "Estado" },
+        { key: "codigo_interno", label: "Código Interno", sortable: true },
+        { key: "marca", label: "Marca", sortable: true },
+        { key: "modelo", label: "Modelo", sortable: true },
+        { key: "ubicacion", label: "Ubicación", sortable: true },
+        { key: "tipo_tecnologia", label: "Tipo Tecnología", sortable: true },
+        { key: "estado", label: "Estado", sortable: true },
         { key: "notas", label: "Notas" },
         { key: "tintas_recargas", label: "Recargas", class: "text-center" },
       ],
       tintaRecargasFields: [
-        { key: "id_catalogo_impresora", label: "ID Impresora" },
-        { key: "id_insumo", label: "ID Insumo" },
-        { key: "color", label: "Color" },
-        { key: "cantidad", label: "Cantidad (ml)" },
-        { key: "fecha_recarga", label: "Fecha Recarga", formatter: "formatDate" },
+        { key: "id_insumo", label: "ID Insumo", sortable: true },
+        { key: "color", label: "Color", class: "text-center", sortable: true },
+        { key: "cantidad", label: "Cantidad Insumo (ml)", formatter: "formatNumber", sortable: true },
+        { key: "nivel_tanque_previo", label: "Restante Previo (ml)", formatter: "formatNumber", sortable: true },
+        { key: "restante_post_recarga", label: "Total en Tanque (ml)", formatter: "formatNumber", sortable: true },
+        { key: "consumido_en_ciclo", label: "Consumido Ciclo (ml)", formatter: "formatNumber", sortable: true },
+        { key: "desperdicio_ajuste", label: "Ajuste / Desperdicio", sortable: true },
+        { key: "fecha_recarga", label: "Fecha Recarga", sortable: true },
       ],
     };
   },
   methods: {
-    formatDate(value) {
-      if (!value) return '';
-      const date = new Date(value);
-      return date.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-    },
     async fetchImpresoras() {
       this.overlay = true;
       try {
@@ -81,5 +101,22 @@ export default {
 </script>
 
 <style scoped>
-/* Puedes añadir estilos específicos aquí si es necesario */
+.color-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  font-weight: bold;
+  margin: 0 auto;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.color-c { background-color: #00FFFF; color: black; text-shadow: none; border: 1px solid #00CCCC; }
+.color-m { background-color: #FF00FF; border: 1px solid #CC00CC; }
+.color-y { background-color: #FFFF00; color: black; text-shadow: none; border: 1px solid #CCCC00; }
+.color-k { background-color: #000000; border: 1px solid #333; }
+.color-w { background-color: #FFFFFF; color: black; text-shadow: none; border: 1px solid #CCCCCC; }
 </style>
