@@ -279,11 +279,12 @@ export default {
   computed: {
     ...mapState("login", ["dataUser", "access"]),
     pagosFiltrados() {
+      const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
       if (this.selectedCategory === 'Todas' || !this.selectedCategory) {
-        return this.pagos;
+        return pagosSeguro;
       }
-      return this.pagos.filter(pago => 
-        pago.product_categories && pago.product_categories.some(cat => cat.category_name === this.selectedCategory)
+      return pagosSeguro.filter(pago => 
+        pago.product_categories && Array.isArray(pago.product_categories) && pago.product_categories.some(cat => cat && cat.category_name === this.selectedCategory)
       );
     },
     totales() {
@@ -292,7 +293,9 @@ export default {
         totalGeneral: 0,
       };
 
-      this.pagosFiltrados.forEach((item) => {
+      const pagosSeguro = Array.isArray(this.pagosFiltrados) ? this.pagosFiltrados : [];
+
+      pagosSeguro.forEach((item) => {
         const { metodo_pago, monto, tasa, product_categories } = item;
         let montoAjustado = 0;
 
