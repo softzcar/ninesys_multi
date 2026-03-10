@@ -347,9 +347,19 @@ export default {
 
   methods: {
     generateCategoryOptions() {
-      const allCategories = this.pagos.flatMap(pago => 
-        pago.product_categories ? pago.product_categories.map(cat => cat.category_name) : []
-      );
+      const allCategories = [];
+      if (Array.isArray(this.pagos)) {
+        this.pagos.forEach(pago => {
+          if (pago.product_categories && Array.isArray(pago.product_categories)) {
+            pago.product_categories.forEach(cat => {
+              if (cat.category_name) {
+                allCategories.push(cat.category_name);
+              }
+            });
+          }
+        });
+      }
+      
       console.log("All Categories extracted:", allCategories);
       const uniqueCategories = [...new Set(allCategories)];
       console.log("Unique Categories:", uniqueCategories);
