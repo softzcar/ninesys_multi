@@ -2,6 +2,7 @@
 
 ## Instrucciones para el modelo:
 
+- **⚠️ Solo existe la empresa 163 (producción).** No hay empresa de pruebas disponible. Usar con extrema precaución.
 - Siempre concersaremos en español
 - Revisa la estructura de directorios y los archivos necesarios para que tengas el contexto más completo posible del proyecto
 - **Gestión de Bitácora (CRÍTICO - OBLIGATORIO):**
@@ -65,11 +66,15 @@
 - **Rama:** `refactor/modular-routes`
 - **Despliegue en VPS:** `git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes`
 
-## Despliegue y Entornos de Prueba (⚠️ MUY IMPORTANTE)
+## Despliegue y Entornos de Prueba (⚠️ REGLAS CRÍTICAS - LECTURA OBLIGATORIA)
 
-- **Desarrollo Local (Frontend):** Las pruebas del Frontend se hacen EXCLUSIVAMENTE de forma local ejecutando `npm run dev`. **NO ES NECESARIO** ni recomendado desplegar el frontend al VPS para validar cada ajuste, ya que es un proceso tardado e innecesario.
-- **Servidor de Pruebas (Hostinger):** El VPS de **Hostinger** (`api.nineteengreen.com`) funciona como el ENTORNO DE PRUEBAS. Todo cambio realizado en el código del **Backend** DEBE subirse y actualizarse (`git fetch && git pull`) en este VPS de Hostinger para poder probarse, ya que el servidor local de frontend se conecta a él para funcionar.
-- **Servidor de Producción (Contabo):** El VPS de **Contabo** (`nineteencustom.com`) es el entorno de PRODUCCIÓN. Solo se debe actualizar el código aquí **bajo petición explícita del usuario**, tanto para Frontend como para Backend. NUNCA despliegues en Contabo por iniciativa propia.
+- **Servidor de Producción (Contabo - `nineteencustom.com`):** 
+    - > [!CAUTION]
+    - > **PROHIBICIÓN TOTAL:** NUNCA actualices, despliegues o realices `git reset --hard / pull` en Contabo (ni Backend ni Frontend) sin una petición explícita y directa del usuario para esa acción específica. Es un entorno de producción crítico.
+- **Servidor de Pruebas (Hostinger - `api.nineteengreen.com`):**
+    - **Backend (API):** Es **OBLIGATORIO** actualizar el backend en Hostinger (`git fetch && git pull`) CADA VEZ que realices cambios en el código de la API. Esto es necesario para que las pruebas locales del frontend (que se conectan a esta API) funcionen correctamente.
+    - **Frontend:** **NO** actualices el frontend en Hostinger a menos que el usuario lo solicite explícitamente. Las pruebas de frontend se validan ejecutando `npm run dev` localmente.
+- **Desarrollo Local (Frontend):** Las pruebas del Frontend se hacen EXCLUSIVAMENTE de forma local ejecutando `npm run dev`. No es necesario desplegar al VPS para validar ajustes visuales o de lógica.
 
 ### Frontend (Nuxt.js) - Script de Despliegue Multi-Entorno
 - **Script:** `./deploy.sh` (en la raíz del proyecto)
@@ -98,13 +103,13 @@
 - **Alias SSH:** `vps-contabo` (configurado en `~/.ssh/config`)
 - **Host:** `217.216.95.32`
 - **Usuario:** `root`
-- **Clave/Password:** `vpsnineteen2026`
+- **Clave/Password:** `vpsContabo_Scure_2026$`
 - **Panel CyberPanel:** `http://217.216.95.32:8090`
-- **Clave MariaDB:** `-pMyR5jRHuwj6kWA`
+- **Clave MariaDB:** `-pvpsMDBr00t_2026!#`
 
 ```bash
 # Conectar via sshpass (sin alias SSH configurado con key)
-sshpass -p 'vpsnineteen2026' ssh -o StrictHostKeyChecking=no root@217.216.95.32
+sshpass -p 'vpsContabo_Scure_2026$' ssh -o StrictHostKeyChecking=no root@217.216.95.32
 
 # O via alias si se configuró la clave
 ssh vps-contabo
@@ -126,41 +131,30 @@ ssh vps-contabo
 ### Comandos de Actualización Remota (Contabo)
 **Actualizar API en VPS:**
 ```bash
-sshpass -p 'vpsnineteen2026' ssh -o StrictHostKeyChecking=no root@217.216.95.32 "cd /home/api.nineteengreen.com/public_html && git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes"
+sshpass -p 'vpsContabo_Scure_2026$' ssh -o StrictHostKeyChecking=no root@217.216.95.32 "cd /home/api.nineteengreen.com/public_html && git fetch origin && git checkout refactor/modular-routes && git pull origin refactor/modular-routes"
 ```
 
 **Verificar estado del VPS:**
 ```bash
-sshpass -p 'vpsnineteen2026' ssh -o StrictHostKeyChecking=no root@217.216.95.32 "uptime && df -h"
+sshpass -p 'vpsContabo_Scure_2026$' ssh -o StrictHostKeyChecking=no root@217.216.95.32 "uptime && df -h"
 ```
 
-## Bases de Datos por Empresa
+### Empresas Disponibles
 
-### Empresa 163 (NineteenCustom)
-| Campo | Valor |
-|-------|-------|
-| Base de datos | `api_emp_163` |
-| Usuario | `api_user_163` |
-| Password | `c45ff25ef00ce4ebb0fca422` |
-| Host | `localhost` |
+Según la base de datos central `api_empresas`:
+
+> **⚠️ IMPORTANTE:** La empresa 171 (Pruebas) fue eliminada. Solo persiste la empresa **163 (NineteenCustom)**, que se utiliza como empresa de producción en **ambos VPS** (Hostinger y Contabo).
+
+| ID  | Nombre | Base de Datos | Uso | Host |
+|-----|--------|---------------|--------------|--------------|
+| 163 | NineteenCustom | `api_emp_163` | 🏭 Producción (Hostinger y Contabo) | `localhost` |
 
 **Consulta via SSH:**
 ```bash
 ssh vps-ninesys "mysql -u api_user_163 -c45ff25ef00ce4ebb0fca422 api_emp_163 -e 'SELECT * FROM tabla LIMIT 10;'"
 ```
 
-### Empresa 171 (Pruebas)
-| Campo | Valor |
-|-------|-------|
-| Base de datos | `api_emp_171` |
-| Usuario | `api_user_171` |
-| Password | `f57f3765d314c3f25584bfb1` |
-| Host | `localhost` |
 
-**Consulta via SSH:**
-```bash
-ssh vps-ninesys "mysql -u api_user_171 -p'18a5d8dbf1bf95463e3aff10' api_emp_171 -e 'SELECT * FROM tabla LIMIT 10;'"
-```
 
 ### Base de Datos Central (api_empresas)
 Contiene la tabla `empresas` con credenciales de todas las empresas y `empresas_usuarios` con todos los empleados.
@@ -169,7 +163,7 @@ Contiene la tabla `empresas` con credenciales de todas las empresas y `empresas_
 |-------|-------|
 | Base de datos | `api_empresas` |
 | Usuario | `api_adminemp` |
-| Password | `rkyaFy!dAs8L5Lq8` |
+| Password | `admEmp_n1ne_2026$` |
 | Host | `localhost` |
 
 **Obtener credenciales de cualquier empresa:**

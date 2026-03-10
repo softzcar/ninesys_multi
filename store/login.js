@@ -49,7 +49,7 @@ export const mutations = {
         state.currentComponent = data
     },
     setCurrentMinOrdenProcesoId(state, data) {
-        state.currentComponent = data
+        state.currentMinOrdenProcesoId = data
     },
     setCurrentOrdenProceso(state, data) {
         if (data === null) {
@@ -60,9 +60,6 @@ export const mutations = {
     },
     setEmpleado(state, data) {
         state.empleado = data
-    },
-    setCurrentComponent(state, data) {
-        state.currentComponent = data
     },
     setIdEmpresa(state, data) {
         state.idEmpresa = data

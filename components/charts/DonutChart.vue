@@ -44,6 +44,21 @@ export default {
     showLegend: {
       type: Boolean,
       default: true
+    },
+    // Valor personalizado para el centro (opcional)
+    centerValue: {
+      type: [String, Number],
+      default: null
+    },
+    // Etiqueta personalizada para el centro (opcional)
+    centerLabel: {
+      type: String,
+      default: 'Total'
+    },
+    // Sufijo para el tooltip (ej: "unidades", "órdenes")
+    valueSuffix: {
+      type: String,
+      default: 'órdenes'
     }
   },
   computed: {
@@ -94,12 +109,14 @@ export default {
                 },
                 total: {
                   show: true,
-                  label: 'Total',
+                  label: this.centerLabel,
                   fontSize: '14px',
                   fontWeight: 400,
                   color: '#666',
                   formatter: (w) => {
-                    return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                    return this.centerValue !== null 
+                      ? this.centerValue 
+                      : w.globals.seriesTotals.reduce((a, b) => a + b, 0)
                   }
                 }
               }
@@ -124,7 +141,7 @@ export default {
         },
         tooltip: {
           y: {
-            formatter: (val) => `${val} órdenes`
+            formatter: (val) => `${val} ${this.valueSuffix}`
           }
         },
         responsive: [

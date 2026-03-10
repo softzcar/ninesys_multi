@@ -34,14 +34,15 @@
     </div>
 
     <!-- Formulario de tasas -->
-    <b-form v-if="currencyConfigState === 'SHOW_FORM'" @submit.prevent>
-      <b-form-group v-for="moneda in additionalActiveMonedas" :key="moneda.moneda" label="Tasa sistema"
-        :description="puedeEditarTasas ? '' : ''">
-        <b-form-input type="number" step="0.01" :value="moneda.valor || 0" @input="updateTasa(moneda.moneda, $event)"
-          @blur="persistirTasas" @keyup.enter="persistirTasas" :readonly="!puedeEditarTasas"
-          :disabled="!puedeEditarTasas" class="mb-2" />
-      </b-form-group>
-    </b-form>
+    <div v-if="currencyConfigState === 'SHOW_FORM'">
+      <b-form v-for="moneda in additionalActiveMonedas" :key="moneda.moneda" @submit.prevent>
+        <b-form-group :label="'Tasa ' + capitalize(moneda.moneda)" :description="puedeEditarTasas ? '' : ''">
+          <b-form-input type="number" step="0.01" :value="moneda.valor || 0" @input="updateTasa(moneda.moneda, $event)"
+            @blur="persistirTasas" @keyup.enter="persistirTasas" :readonly="!puedeEditarTasas"
+            :disabled="!puedeEditarTasas" class="mb-2" />
+        </b-form-group>
+      </b-form>
+    </div>
 
     <!-- Solo moneda base (dólares) -->
     <div v-else-if="currencyConfigState === 'ONLY_BASE_CURRENCY'">
@@ -236,7 +237,19 @@ export default {
       } finally {
         this.cargando = false;
       }
-    }
-  }
+    },
+    capitalize(text) {
+      if (!text) return "";
+      // Mapeo manual para nombres especiales
+      const mapping = {
+        bolivar: "Bolívar",
+        peso_colombiano: "Pesos",
+        euro: "Euro",
+      };
+      if (mapping[text.toLowerCase()]) return mapping[text.toLowerCase()];
+
+      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    },
+  },
 };
 </script>

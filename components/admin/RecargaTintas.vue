@@ -1,135 +1,183 @@
 <template>
   <div class="container mt-4">
-    <div v-if="isFormReady">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Recarga de Tintas</h3>
-        </div>
-        <div class="card-body">
-          <form @submit.prevent="submitForm">
-            <b-row>
-              <b-col md="6" lg="4">
-                <b-form-group
-                  label="Seleccionar Impresora:"
-                  label-for="printerSelect"
-                >
-                  <b-form-select
-                    id="printerSelect"
-                    v-model="selectedPrinterId"
-                    :options="impresorasOptions"
-                    required
-                  ></b-form-select>
-                </b-form-group>
-              </b-col>
+    <b-overlay :show="loading" spinner-variant="primary" rounded="sm">
+      <div v-if="isFormReady">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recarga de Tintas</h3>
+          </div>
+          <div class="card-body">
+            <form @submit.prevent="submitForm">
+              <b-row>
+                <b-col md="6" lg="4">
+                  <b-form-group
+                    label="Seleccionar Impresora:"
+                    label-for="printerSelect"
+                  >
+                    <b-form-select
+                      id="printerSelect"
+                      v-model="selectedPrinterId"
+                      :options="impresorasOptions"
+                      required
+                    ></b-form-select>
+                  </b-form-group>
+                </b-col>
 
-              <b-col md="6" lg="4">
-                <b-form-group
-                  label="Seleccionar Insumo (Tinta):"
-                  label-for="supplySelect"
-                >
-                  <b-form-select
-                    id="supplySelect"
-                    v-model="selectedSupplyId"
-                    :options="suppliesOptions"
-                    required
-                  ></b-form-select>
-                </b-form-group>
-              </b-col>
-            </b-row>
+                <b-col md="6" lg="4">
+                  <b-form-group
+                    label="Seleccionar Insumo (Tinta):"
+                    label-for="supplySelect"
+                  >
+                    <b-form-select
+                      id="supplySelect"
+                      v-model="selectedSupplyId"
+                      :options="suppliesOptions"
+                      required
+                    ></b-form-select>
+                  </b-form-group>
+                </b-col>
+              </b-row>
 
-            <b-row class="mt-3">
-              <b-col>
-                <div class="form-group">
-                  <label>Color de la Tinta:</label>
-                  <div class="d-flex flex-wrap">
-                    <div
-                      class="form-check form-check-inline"
-                      v-for="colorOption in filteredColorOptions"
-                      :key="colorOption.value"
-                    >
-                      <input
-                        class="form-check-input"
-                        type="radio"
-                        :id="'color-' + colorOption.value"
-                        :value="colorOption.value"
-                        v-model="selectedColor"
-                        :disabled="colorOption.disabled"
-                        required
-                      />
-                      <label
-                        class="form-check-label px-2 py-1 rounded"
-                        :for="'color-' + colorOption.value"
+              <!-- Tabla de Niveles de Tinta Actuales -->
+              <b-row class="mt-4" v-if="selectedPrinterId">
+                <b-col>
+                  <label class="font-weight-bold">Estado Actual de Tanques:</label>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered text-center">
+                      <thead class="bg-light">
+                        <tr>
+                          <th>Color</th>
+                          <th>Nivel Actual (ml)</th>
+                          <th>Consumo Estimado (ml)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="color in ['C', 'M', 'Y', 'K', 'W']" :key="color" v-if="isColorSupported(color)">
+                          <td>
+                            <div
+                              class="px-2 py-1 rounded font-weight-bold mx-auto"
+                              :style="getColorBadgeStyle(color)"
+                            >
+                              {{ color }}
+                            </div>
+                          </td>
+                          <td class="align-middle font-weight-bold text-info">
+                            {{ getInkLevelValue(color, 'tinta_restante_ultima_recarga_ml') }}
+                          </td>
+                          <td class="align-middle text-muted">
+                            {{ getInkLevelValue(color, 'consumo_desde_ultima_recarga_ml') }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </b-col>
+              </b-row>
+
+              <!-- Color Detectado (ayuda visual) -->
+              <b-row class="mt-3" v-if="selectedSupplyColor">
+                <b-col>
+                  <div class="form-group">
+                    <label>Color Detectado:</label>
+                    <div class="d-flex align-items-center">
+                      <div
+                        class="px-3 py-2 rounded font-weight-bold"
                         :style="{
-                          backgroundColor: colorOption.bgColor,
-                          color: colorOption.textColor,
-                          border: colorOption.border || '',
+                          backgroundColor: selectedSupplyColor.bgColor,
+                          color: selectedSupplyColor.textColor,
+                          border: selectedSupplyColor.border || '1px solid #ccc',
+                          minWidth: '100px',
+                          textAlign: 'center'
                         }"
                       >
-                        {{ colorOption.name }}
-                      </label>
+                        {{ selectedSupplyColor.name }}
+                      </div>
+                      <small class="ml-3 text-muted" v-if="selectedSupply">
+                        Stock disponible: <strong>{{ selectedSupply.cantidad }} ml</strong>
+                      </small>
                     </div>
                   </div>
-                </div>
-              </b-col>
-            </b-row>
+                </b-col>
+              </b-row>
 
-            <b-row class="mt-3">
-              <b-col md="4" lg="3">
-                <b-form-group
-                  label="Mililitros Recargados:"
-                  label-for="milliliters"
-                >
-                  <b-form-input
-                    id="milliliters"
-                    v-model.number="milliliters"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    required
-                  ></b-form-input>
-                </b-form-group>
-              </b-col>
-            </b-row>
+              <b-row class="mt-3">
+                <b-col md="4" lg="3">
+                  <b-form-group
+                    label="Nivel actual en tanque (ml):"
+                    label-for="prevLevel"
+                    description="Nivel físico observado antes de la recarga"
+                  >
+                    <b-form-input
+                      id="prevLevel"
+                      v-model.number="prevLevel"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      required
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
 
-            <button type="submit" class="btn btn-primary mt-4">
-              Registrar Recarga
-            </button>
-          </form>
+                <b-col md="4" lg="3">
+                  <b-form-group
+                    label="Mililitros Recargados:"
+                    label-for="milliliters"
+                    :state="isQuantityValid"
+                    :invalid-feedback="quantityFeedback"
+                  >
+                    <b-form-input
+                      id="milliliters"
+                      v-model.number="milliliters"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      :state="isQuantityValid"
+                      required
+                    ></b-form-input>
+                  </b-form-group>
+                </b-col>
+              </b-row>
+
+              <button type="submit" class="btn btn-primary mt-4" :disabled="!isQuantityValid || !selectedSupplyId">
+                Registrar Recarga
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-else>
-      <b-alert show variant="info">
-        <h4>Faltan datos de configuración</h4>
-        <p>Para continuar, primero debe configurar lo siguiente:</p>
-        <ul>
-          <li v-if="!impresorasDisponibles">
-            No hay impresoras configuradas.
-            <router-link to="/impresoras/gestion" class="alert-link"
-              >Crear Impresoras</router-link
-            >
-          </li>
-          <li v-if="!tintasDisponibles">
-            No hay tintas en el inventario.
-            <router-link
-              to="/inventario/nueva-tinta"
-              custom
-              v-slot="{ navigate }"
-            >
-              <span
-                @click="navigate"
-                @keypress.enter="navigate"
-                role="link"
-                class="alert-link"
-                style="cursor: pointer;"
+      <div v-else-if="!loading">
+        <b-alert show variant="info">
+          <h4>Faltan datos de configuración</h4>
+          <p>Para continuar, primero debe configurar lo siguiente:</p>
+          <ul>
+            <li v-if="!impresorasDisponibles">
+              No hay impresoras configuradas.
+              <router-link to="/impresoras/gestion" class="alert-link"
+                >Crear Impresoras</router-link
               >
-                Crear Tintas
-              </span>
-            </router-link>
-          </li>
-        </ul>
-      </b-alert>
-    </div>
+            </li>
+            <li v-if="!tintasDisponibles">
+              No hay tintas en el inventario.
+              <router-link
+                to="/inventario/nueva-tinta"
+                custom
+                v-slot="{ navigate }"
+              >
+                <span
+                  @click="navigate"
+                  @keypress.enter="navigate"
+                  role="link"
+                  class="alert-link"
+                  style="cursor: pointer;"
+                >
+                  Crear Tintas
+                </span>
+              </router-link>
+            </li>
+          </ul>
+        </b-alert>
+      </div>
+    </b-overlay>
   </div>
 </template>
 
@@ -140,11 +188,14 @@ export default {
     return {
       impresoras: [], // Aquí se cargarán las impresoras desde la API
       supplies: [], // Aquí se cargarán los insumos (tintas) desde la API
+      loading: true, // Nuevo: para el b-overlay
       selectedPrinterId: "",
       selectedSupplyId: "",
       selectedColor: "",
       selectedPrinterTechnology: null, // Nuevo: para almacenar el tipo de tecnología de la impresora
       milliliters: null,
+      prevLevel: null,
+      inkLevels: [], // Niveles de tinta de la impresora seleccionada
       colorOptions: [
         {
           name: "Cyan",
@@ -236,6 +287,26 @@ export default {
       }
       // Por defecto, si no hay tecnología definida o no se cumple ninguna condición, deshabilitar todos
       return this.colorOptions.map(option => ({ ...option, disabled: true }));
+    },
+    selectedSupply() {
+      if (!this.selectedSupplyId) return null;
+      return this.supplies.find(s => s.id_insumo === this.selectedSupplyId);
+    },
+    selectedSupplyColor() {
+      if (!this.selectedSupply) return null;
+      return this.colorOptions.find(c => c.value === this.selectedSupply.color);
+    },
+    isQuantityValid() {
+      if (!this.milliliters) return null;
+      if (!this.selectedSupply) return true;
+      return this.milliliters <= this.selectedSupply.cantidad;
+    },
+    quantityFeedback() {
+      if (!this.selectedSupply) return "";
+      if (this.milliliters > this.selectedSupply.cantidad) {
+        return `La cantidad excede el stock disponible (${this.selectedSupply.cantidad} ml).`;
+      }
+      return "";
     }
   },
   watch: {
@@ -243,26 +314,72 @@ export default {
       if (newVal) {
         const selectedPrinter = this.impresoras.find(imp => imp._id === newVal);
         this.selectedPrinterTechnology = selectedPrinter ? selectedPrinter.tipo_tecnologia : null;
+        this.fetchInkLevels(newVal);
       } else {
         this.selectedPrinterTechnology = null;
+        this.inkLevels = [];
       }
       this.selectedColor = ""; // Limpiar la selección de color al cambiar la impresora
+    },
+    selectedSupplyId(newVal) {
+      if (newVal && this.selectedSupply) {
+        this.selectedColor = this.selectedSupply.color;
+      } else {
+        this.selectedColor = "";
+      }
     }
   },
   methods: {
     async getImpresoras() {
-      await this.$axios.get(`${this.$config.API}/impresoras`).then((resp) => {
-        console.log("respuesta de impresoras", resp);
+      try {
+        const resp = await this.$axios.get(`${this.$config.API}/impresoras`);
         this.impresoras = resp.data;
-      });
+      } catch (error) {
+        console.error("Error al obtener impresoras", error);
+      }
     },
     async fetchSupplies() {
-      await this.$axios.get(`${this.$config.API}/inventario-tintas`).then((resp) => {
-        console.log('respuesta de insumos de tinta', resp);
+      try {
+        const resp = await this.$axios.get(`${this.$config.API}/inventario-tintas`);
         this.supplies = resp.data;
-      });
+      } catch (error) {
+        console.error('Error al obtener insumos de tinta', error);
+      }
+    },
+    async fetchInkLevels(printerId) {
+      try {
+        const resp = await this.$axios.get(`${this.$config.API}/impresoras-tintas-actual/${printerId}`);
+        this.inkLevels = resp.data;
+      } catch (error) {
+        console.error('Error al obtener niveles de tinta', error);
+      }
+    },
+    isColorSupported(color) {
+      if (color === 'W') return this.selectedPrinterTechnology === 'CMYKW';
+      return true;
+    },
+    getColorBadgeStyle(colorCode) {
+      const color = this.colorOptions.find(c => c.value === colorCode);
+      if (!color) return {};
+      return {
+        backgroundColor: color.bgColor,
+        color: color.textColor,
+        border: color.border || '1px solid transparent',
+        width: '40px'
+      };
+    },
+    getInkLevelValue(color, key) {
+      const level = this.inkLevels.find(l => l.color === color);
+      if (!level) return "0.00";
+      return parseFloat(level[key]).toFixed(2);
+    },
+    async loadInitialData() {
+      this.loading = true;
+      await Promise.all([this.getImpresoras(), this.fetchSupplies()]);
+      this.loading = false;
     },
     submitForm() {
+      if (!this.isQuantityValid) return;
       this.postRecargaTinta();
     },
     async postRecargaTinta() {
@@ -272,6 +389,7 @@ export default {
         data.set("id_insumo", this.selectedSupplyId);
         data.set("color", this.selectedColor);
         data.set("mililitros", this.milliliters);
+        data.set("nivel_tanque_previo", this.prevLevel);
         data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
 
         const response = await this.$axios.post(`${this.$config.API}/inventario-tintas`, data);
@@ -291,6 +409,7 @@ export default {
         this.selectedSupplyId = null;
         this.selectedColor = "";
         this.milliliters = null;
+        this.prevLevel = null;
 
       } catch (error) {
         console.error("Error al registrar la recarga:", error);
@@ -303,8 +422,7 @@ export default {
     },
   },
   created() {
-    this.getImpresoras();
-    this.fetchSupplies();
+    this.loadInitialData();
   },
 };
 </script>

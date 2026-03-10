@@ -143,6 +143,20 @@
                                 </router-link>
                                 <router-link
                                     class="nav-link"
+                                    to="/inventario/consumibles"
+                                    custom
+                                    v-slot="{ navigate }"
+                                >
+                                    <span
+                                        @click="navigate"
+                                        @keypress.enter="navigate"
+                                        role="link"
+                                    >
+                                        Gestión de Consumibles
+                                    </span>
+                                </router-link>
+                                <router-link
+                                    class="nav-link"
                                     to="/inventario/recarga-tintas"
                                     custom
                                     v-slot="{ navigate }"

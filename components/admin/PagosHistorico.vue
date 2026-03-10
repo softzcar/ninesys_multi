@@ -14,8 +14,11 @@
         <h3>Seleccione una fecha</h3>
         <p v-if="value.trim() != ''">
           Reporte de la semana número {{ obtenerNumeroSemana(value) }} correspondente al día {{
-                        context.selectedFormatted }}
+            context.selectedFormatted }}
         </p>
+        <b-form-group label="Filtrar por Departamento:" v-if="pagosResumenUnificado && pagosResumenUnificado.length > 0">
+          <b-form-select v-model="departamentoFiltro" :options="departamentosUnicos"></b-form-select>
+        </b-form-group>
       </b-col>
     </b-row>
 
@@ -23,36 +26,24 @@
       <b-row>
         <b-col class="mt-4">
           <b-row>
-            <b-col class="mt-4">
-              <h3>TOTAL GENERAL {{ totalCancelado.totalGeneral }}</h3>
+            <b-col class="mt-4 d-flex justify-content-between align-items-center">
+              <h3>Historial de Pagos Unificado</h3>
+              <h3 class="text-success">TOTAL GENERAL ${{ totalCancelado.totalGeneral }}</h3>
             </b-col>
           </b-row>
-          <h3 class="mb-4">Vendedores</h3>
-          <b-table
-            responsive
-            small
-            striped
-            :items="pagosResumenVendedores"
-            :fields="fields"
-          >
+
+          <b-table responsive small striped hover :items="pagosResumenUnificadoFiltrado" :fields="fields">
             <template #cell(nombre)="data">
-              <PagosHistoricoModal
-                :empleado="data.item"
-                :detalles="filterVendedor(data.item.id_empleado)"
-                :salario="filterSalario(data.item.id_empleado)"
-                :bonos="filterBonos(data.item.id_empleado)"
+              <PagosHistoricoModal :empleado="data.item"
+                :detalles="[...filterVendedor(data.item.id_empleado), ...filterEmpleado(data.item.id_empleado), ...filterDesigner(data.item.id_empleado)]"
+                :salario="filterSalario(data.item.id_empleado)" :bonos="filterBonos(data.item.id_empleado)"
                 :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
-              />
+                :comision="calculateComisionReal(parseFloat(data.item.pago), data.item.id_empleado)" />
             </template>
 
             <template #cell(reporte)="data">
-              <pagos-reporte-empleado
-                :id-empleado="data.item.id_empleado"
-                :nombre-empleado="data.item.nombre"
-                :fecha-inicio="semanaInicio"
-                :fecha-fin="semanaFin"
-              />
+              <pagos-reporte-empleado :id-empleado="data.item.id_empleado" :nombre-empleado="data.item.nombre"
+                :fecha-inicio="semanaInicio" :fecha-fin="semanaFin" />
             </template>
 
             <template #cell(fecha_pago)="data">
@@ -60,108 +51,11 @@
             </template>
 
             <template #cell(pago)="data">
-              <div
-                class="floatme"
-                style="width: 100%"
-              >
+              <div class="floatme" style="width: 100%">
                 <span> ${{ data.item.pago }}</span>
               </div>
             </template>
           </b-table>
-          <p class="text-right total-table">TOTAL ${{ totalCancelado.totalVendedores }}</p>
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col class="mt-4">
-          <h3 class="mb-4">Empleados</h3>
-          <!-- >{{ pagosResumen }}</pre> -->
-          <b-table
-            responsive
-            small
-            striped
-            :items="pagosResumen"
-            :fields="fields"
-          >
-            <template #cell(nombre)="data">
-              <PagosHistoricoModal
-                :empleado="data.item"
-                :detalles="filterEmpleado(data.item.id_empleado)"
-                :salario="filterSalario(data.item.id_empleado)"
-                :bonos="filterBonos(data.item.id_empleado)"
-                :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
-              />
-            </template>
-
-            <template #cell(reporte)="data">
-              <pagos-reporte-empleado
-                :id-empleado="data.item.id_empleado"
-                :nombre-empleado="data.item.nombre"
-                :fecha-inicio="semanaInicio"
-                :fecha-fin="semanaFin"
-              />
-            </template>
-
-            <template #cell(fecha_pago)="data">
-              {{ formatTimestampDate(data.item.fecha_pago) }}
-            </template>
-
-            <template #cell(pago)="data">
-              <div
-                class="floatme"
-                style="width: 100%"
-              >
-                <span> ${{ data.item.pago }}</span>
-              </div>
-            </template>
-          </b-table>
-          <p class="text-right total-table">TOTAL ${{ totalCancelado.totalEmpleados }}</p>
-        </b-col>
-      </b-row>
-
-      <b-row>
-        <b-col class="mt-4">
-          <h3 class="mb-4">Diseñadores</h3>
-          <b-table
-            responsive
-            small
-            striped
-            :items="pagosResumenDiseno"
-            :fields="fields"
-          >
-            <template #cell(nombre)="data">
-              <PagosHistoricoModal
-                :empleado="data.item"
-                :detalles="filterDesigner(data.item.id_empleado)"
-                :salario="filterSalario(data.item.id_empleado)"
-                :bonos="filterBonos(data.item.id_empleado)"
-                :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(data.item.pago, data.item.id_empleado)"
-              />
-            </template>
-
-            <template #cell(reporte)="data">
-              <pagos-reporte-empleado
-                :id-empleado="data.item.id_empleado"
-                :nombre-empleado="data.item.nombre"
-                :fecha-inicio="semanaInicio"
-                :fecha-fin="semanaFin"
-              />
-            </template>
-
-            <template #cell(fecha_pago)="data">
-              {{ formatTimestampDate(data.item.fecha_pago) }}
-            </template>
-            <template #cell(pago)="data">
-              <div
-                class="floatme"
-                style="width: 100%"
-              >
-                <span> ${{ data.item.pago }}</span>
-              </div>
-            </template>
-          </b-table>
-          <!-- > {{ pagosResumenDiseno }} <hr> {{ pagos.data }} </pre> -->
         </b-col>
       </b-row>
     </div>
@@ -183,7 +77,6 @@ export default {
 
   data() {
     return {
-      totalCancelado: 0,
       pagos: [],
       pagosVendedores: [],
       pagosEmpleados: [],
@@ -193,6 +86,7 @@ export default {
       descuentosDetalles: [],
       pagosTrabajosAdicionales: [],
       value: "",
+      departamentoFiltro: "",
       context: null,
       dataReporte: [],
       infoModal: {
@@ -247,120 +141,80 @@ export default {
       const domingo = new Date(d.setDate(diff))
       return domingo.toISOString().substring(0, 10)
     },
-    pagosResumen() {
-      if (this.pagosEmpleados.length > 0) {
-        const result = this.pagosEmpleados.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-          if (index === -1) {
-            acc.push({
-              nombre: curr.nombre,
-              id_empleado: curr.id_empleado,
-              departamento: curr.departamento,
-              fecha_pago: curr.fecha_pago,
-              cantidad: parseInt(curr.cantidad),
-              pago: parseFloat(curr.pago),
-            });
-          } else {
-            acc[index].cantidad += parseInt(curr.cantidad);
-            acc[index].pago += parseFloat(curr.pago);
+    pagosResumenUnificado() {
+      const todosLosPagos = [
+        ...this.pagosEmpleados.map(p => ({ ...p, origen: 'Empleado' })),
+        ...this.pagosVendedores.map(p => ({ ...p, origen: 'Vendedor' })),
+        ...this.pagosDiseno.map(p => ({
+          ...p,
+          origen: 'Diseñador',
+          pago: p.monto_pago // En diseno el campo es monto_pago
+        }))
+      ];
+
+      if (todosLosPagos.length === 0) return [];
+
+      const result = todosLosPagos.reduce((acc, curr) => {
+        const index = acc.findIndex(el => el.id_empleado == curr.id_empleado);
+        const montoPago = parseFloat(curr.pago) || 0;
+
+        if (index === -1) {
+          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
+
+          acc.push({
+            nombre: curr.nombre,
+            id_empleado: curr.id_empleado,
+            departamento: dep,
+            fecha_pago: curr.fecha_pago,
+            pago: montoPago,
+          });
+        } else {
+          acc[index].pago += montoPago;
+
+          let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
+          if (dep && !acc[index].departamento.includes(dep)) {
+            acc[index].departamento += ' + ' + dep;
           }
-          return acc;
-        }, []);
-        return result.map((item) => {
-          // No sobreescribir pago con string aquí si queremos sumar después, pero bueno, el componente espera props.
-          // El cálculo final del total se hace en el modal.
-          // Aquí 'pago' es la suma de solo lo que viene de la tabla pagos (comisiones/salarios por registro que no sea desglose)
-          // Pero espera, en historico el 'monto_pago' ya incluye todo si fue guardado asi?
-          // No necesariamente.
-          // En pagos_empleados (planilla), sumamos dinamicamente.
-          // En el backend 'pagos' tabla tiene 'monto_pago' que es el valor final de ese registro.
-          // Si guardamos el pago ya dividido, la suma de los registros de pago debería dar el total.
-          item.pago = item.pago.toFixed(2);
-          return item;
-        });
-      } else {
-        return [];
-      }
+        }
+        return acc;
+      }, []);
+
+      return result.sort((a, b) => {
+        const nameA = a.nombre || "";
+        const nameB = b.nombre || "";
+        return nameA.localeCompare(nameB);
+      }).map(item => {
+        item.pago = item.pago.toFixed(2);
+        return item;
+      });
     },
 
-    pagosResumenVendedores() {
-      if (this.pagosVendedores.length > 0) {
-        const result = this.pagosVendedores.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-          if (index === -1) {
-            acc.push({
-              nombre: curr.nombre,
-              id_empleado: curr.id_empleado,
-              departamento: curr.departamento,
-              fecha_pago: curr.fecha_pago,
-              pago: parseFloat(curr.pago),
-            });
-          } else {
-            acc[index].cantidad += parseInt(curr.cantidad);
-            acc[index].pago += parseFloat(curr.pago);
+    departamentosUnicos() {
+      const deps = new Set();
+      if (this.pagosResumenUnificado) {
+        this.pagosResumenUnificado.forEach(p => {
+          if (p.departamento) {
+            p.departamento.split(' + ').forEach(d => deps.add(d.trim()));
           }
-          return acc;
-        }, []);
-        return result.map((item) => {
-          item.pago = item.pago.toFixed(2);
-          return item;
         });
-      } else {
-        return [];
       }
+      return [{ value: '', text: 'Todos los departamentos' }, ...Array.from(deps).sort().map(d => ({ value: d, text: d }))];
     },
 
-    pagosResumenDiseno() {
-      if (this.pagosDiseno.length > 0) {
-        const result = this.pagosDiseno.reduce((acc, curr) => {
-          const index = acc.findIndex((el) => el.nombre === curr.nombre);
-          if (index === -1) {
-            acc.push({
-              id_empleado: curr.id_empleado,
-              nombre: curr.nombre,
-              id_orden: curr.id_orden,
-              departamento: curr.departamento,
-              fecha_pago: curr.fecha_pago,
-              cantidad: 1,
-              producto: curr.producto,
-              pago: parseFloat(curr.monto_pago),
-            });
-          } else {
-            acc[index].cantidad += 1;
-            acc[index].pago += parseFloat(curr.monto_pago);
-          }
-          return acc;
-        }, []);
-        return result.map((item) => {
-          item.monto_pago = item.pago.toFixed(2);
-          return item;
-        });
-      } else {
-        return [];
-      }
+    pagosResumenUnificadoFiltrado() {
+      if (!this.departamentoFiltro) return this.pagosResumenUnificado;
+      return this.pagosResumenUnificado.filter(p => p.departamento && p.departamento.includes(this.departamentoFiltro));
     },
+
+    totalCancelado() {
+      if (!this.pagosResumenUnificado) return { totalGeneral: "0.00" };
+      const total = this.pagosResumenUnificado.reduce((acc, curr) => acc + parseFloat(curr.pago), 0);
+      return { totalGeneral: total.toFixed(2) };
+    },
+
   },
 
   methods: {
-    totalPagos(data) {
-      // Función para sumar los pagos de un array de objetos
-      const sumarPagos = (arr) =>
-        arr.reduce((total, item) => total + (parseFloat(item.pago) || 0), 0);
-
-      // Calcular totales
-      const totalVendedores = data.vendedores ? sumarPagos(data.vendedores) : 0;
-      const totalEmpleados = data.empleados ? sumarPagos(data.empleados) : 0;
-      const totalDiseno = data.diseno ? sumarPagos(data.diseno) : 0;
-      const totalGeneral = totalVendedores + totalEmpleados + totalDiseno;
-
-      return {
-        totalGeneral: totalGeneral.toFixed(2), 
-        totalVendedores: totalVendedores.toFixed(2), 
-        totalEmpleados: totalEmpleados.toFixed(2), 
-        totalDiseno: totalDiseno.toFixed(2), 
-      };
-    },
-
     onContext(ctx) {
       this.context = ctx;
     },
@@ -444,8 +298,6 @@ export default {
           this.salariosDetalles = res.data.data.salarios_detalles || [];
           this.bonosDetalles = res.data.data.bonos_detalles || [];
           this.descuentosDetalles = res.data.data.descuentos_detalles || [];
-
-          this.totalCancelado = this.totalPagos(res.data.data);
         });
     },
 

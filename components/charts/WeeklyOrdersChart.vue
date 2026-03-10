@@ -21,16 +21,29 @@ export default {
     height: {
       type: Number,
       default: 300
+    },
+    seriesName: {
+      type: String,
+      default: 'Órdenes'
+    },
+    yDataTitle: {
+      type: String,
+      default: 'Cantidad de Órdenes'
+    },
+    valueSuffix: {
+      type: String,
+      default: 'órdenes'
     }
   },
   computed: {
     chartSeries() {
       return [{
-        name: 'Órdenes',
+        name: this.seriesName,
         data: this.data.map(item => item.total_ordenes)
       }];
     },
     chartOptions() {
+      const self = this;
       return {
         chart: {
           type: 'bar',
@@ -61,7 +74,7 @@ export default {
         },
         yaxis: {
           title: {
-            text: 'Cantidad de Órdenes'
+            text: this.yDataTitle
           }
         },
         fill: {
@@ -71,7 +84,7 @@ export default {
         tooltip: {
           y: {
             formatter: function (val) {
-              return val + " órdenes";
+              return val + " " + self.valueSuffix;
             }
           }
         }

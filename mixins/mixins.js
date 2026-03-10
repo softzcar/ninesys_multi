@@ -366,7 +366,7 @@ export default {
     formatNumber(num) {
       let myNum
 
-      if (num === null) {
+      if (num === null || num === undefined || isNaN(num)) {
         myNum = 0
       } else {
         myNum = parseFloat(num)

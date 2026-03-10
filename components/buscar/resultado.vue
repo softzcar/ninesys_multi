@@ -163,13 +163,13 @@
               <th>CORTE</th>
               <th>TELA</th>
               <th>ATRIBUTOS</th>
-              <th class="hideMe" v-if="
+              <th v-if="
                 dataUser.departamento === 'Comecialización' ||
                 dataUser.departamento === 'Administración'
               " style="text-align: right">
                 PRECIO
               </th>
-              <th class="hideMe" v-if="
+              <th v-if="
                 dataUser.departamento === 'Comecialización' ||
                 dataUser.departamento === 'Administración'
               " style="text-align: right">
@@ -202,13 +202,13 @@
                     </ul>
                     <span v-else>N/A</span>
                   </td>
-                  <td class="hideMe" v-if="
+                  <td v-if="
                     dataUser.departamento === 'Comecialización' ||
                     dataUser.departamento === 'Administración'
                   " style="text-align: right">
                     {{ currencySymbol }} {{ convertAndFormat(product.precio) }}
                   </td>
-                  <td class="hideMe" v-if="
+                  <td v-if="
                     dataUser.departamento === 'Comecialización' ||
                     dataUser.departamento === 'Administración'
                   " style="text-align: right">
@@ -230,7 +230,7 @@
               </h2>
             </div>
 
-            <div class="spacer hideMe derecha" v-if="
+            <div class="spacer derecha" v-if="
               dataUser.departamento === 'Comecialización' ||
               dataUser.departamento === 'Administración'
             " style="width: 100% !important">
@@ -495,7 +495,44 @@ export default {
       const orderId = this.resOrden.orden[0]._id;
       const reportTitle = `Orden #${orderId}`;
 
-      PrintService.imprimir(reportTitle, printContent);
+      // Estilos específicos para replicar la maquetación del modal en impresión
+      const customStyles = `
+        <style>
+          @page {
+            size: landscape;
+            margin: 10mm;
+          }
+          .report {
+            padding: 0 !important;
+            width: 100% !important;
+          }
+          .table-header {
+            width: 100% !important;
+            margin-bottom: 20px;
+          }
+          .table-header td {
+            border: none !important;
+          }
+          .table-products {
+            width: 100% !important;
+            border-collapse: collapse;
+          }
+          .table-products th, .table-products td {
+            border-bottom: 1px solid #000 !important;
+            padding: 5px !important;
+          }
+          .observaciones {
+            padding: 10px 0 !important;
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
+          }
+          h1 { font-size: 18pt !important; margin-bottom: 5px !important; }
+          h2 { font-size: 14pt !important; }
+          .hideMe, .noPrint, .printMe { display: none !important; }
+        </style>
+      `;
+
+      PrintService.imprimir(reportTitle, customStyles + printContent);
     },
 
     floatMe(val) {

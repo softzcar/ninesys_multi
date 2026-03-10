@@ -132,6 +132,24 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/catalogo-insumos-productos">
+              Catálogo de Insumos
+            </router-link>
+          </li>
+        </ul>
+      </b-collapse>
+    </li>
+
+    <!-- Impresoras -->
+    <li class="nav-item">
+      <a class="nav-link" v-b-toggle="'sidebar-impresoras'">
+        <b-icon icon="printer" />
+        <span>Impresoras</span>
+        <b-icon icon="chevron-down" class="menu-arrow" />
+      </a>
+      <b-collapse id="sidebar-impresoras" class="sub-menu">
+        <ul class="nav flex-column">
+          <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/gestion">
               Gestión de Impresoras
             </router-link>
@@ -147,8 +165,18 @@
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/catalogo-insumos-productos">
-              Catálogo de Insumos
+            <router-link class="nav-link" to="/impresoras/servicios">
+              Servicio Técnico
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/reporte-impresoras">
+              Reporte de Impresoras
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/impresoras/tintas-actual">
+              Tintas Actuales
             </router-link>
           </li>
         </ul>
@@ -262,6 +290,11 @@
       <b-collapse id="sidebar-reportes" class="sub-menu">
         <ul class="nav flex-column">
           <li class="nav-item">
+            <router-link class="nav-link" to="/reportes/semanal">
+              Reporte General
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/inventario/rendimiento">
               Rendimiento
             </router-link>
@@ -284,16 +317,6 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/inventario/reportes/producto">
               Productos
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/reporte-impresoras">
-              Reporte de Impresoras
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/impresoras/tintas-actual">
-              Tintas Actuales
             </router-link>
           </li>
           <li class="nav-item">

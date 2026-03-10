@@ -23,7 +23,7 @@ export default {
     // Nombre de la serie
     seriesName: {
       type: String,
-      default: 'Pagos'
+      default: 'Cantidad'
     },
     // Categorías (eje X)
     categories: {
@@ -38,7 +38,12 @@ export default {
     // Título del gráfico
     title: {
       type: String,
-      default: 'Pagos de la Semana'
+      default: ''
+    },
+    // Mostrar u ocultar el título interno
+    showTitle: {
+      type: Boolean,
+      default: false
     },
     // Altura del gráfico
     height: {
@@ -48,7 +53,7 @@ export default {
     // Prefijo para valores (ej: "$")
     valuePrefix: {
       type: String,
-      default: '$'
+      default: ''
     },
     // Orientación horizontal
     horizontal: {
@@ -118,7 +123,7 @@ export default {
           strokeDashArray: 4
         },
         title: {
-          text: this.title,
+          text: this.showTitle ? this.title : '',
           align: 'center',
           style: {
             fontSize: '16px',
@@ -149,6 +154,7 @@ export default {
   },
   methods: {
     formatNumber(num) {
+      if (typeof num !== 'number') return num;
       if (num >= 1000) {
         return (num / 1000).toFixed(1) + 'k'
       }

@@ -271,7 +271,7 @@ export default {
         return null;
       }
       const ordenBase = this.ordenesProyectadas2.find(
-        (o) => o.id_orden === this.id_orden
+        (o) => (o._id === this.id_orden || o.id_orden === this.id_orden)
       );
 
       if (!ordenBase) {
@@ -303,7 +303,7 @@ export default {
 
     title() {
       return this.ordenReactiva
-        ? `Orden ${this.ordenReactiva.id_orden}`
+        ? `Orden ${this.ordenReactiva._id || this.ordenReactiva.id_orden}`
         : `Orden sin asignaciones`;
     },
 
@@ -343,7 +343,7 @@ export default {
           : "N/D";
 
       return {
-        idOrden: this.ordenReactiva.id_orden,
+        idOrden: this.ordenReactiva._id || this.ordenReactiva.id_orden,
         status: this.ordenReactiva.variant_text,
         tiempoEstimado: this.ordenReactiva.tiempo_neto_orden_formateado,
         tiempoRestante: this.ordenReactiva.tiempo_pendiente_orden_formateado,
@@ -363,7 +363,7 @@ export default {
       }
 
       // Fallback: Buscar en ordenesProyectadas2 si el reporte aún no carga o falla
-      const orden = this.ordenesProyectadas2.find(o => o.id_orden === this.id_orden);
+      const orden = this.ordenesProyectadas2.find(o => (o._id === this.id_orden || o.id_orden === this.id_orden));
       if (orden && orden.id_woo) {
         return {
           cod: orden.id_woo,
