@@ -165,21 +165,15 @@
                         </template>
 
                         <template #cell(monto)="data">
-                          {{ data.item.monto.toFixed(2) }}
+                          {{ data.item.montoAjustadoLocal !== undefined ? data.item.montoAjustadoLocal.toFixed(2) : parseFloat(data.item.monto || 0).toFixed(2) }}
                         </template>
 
                         <template #cell(tasa)="data">
-                          {{ data.item.tasa.toFixed(2) }}
+                          {{ parseFloat(data.item.tasa || 1).toFixed(2) }}
                         </template>
 
                         <template #cell(_id)="data">
-                          {{
-                                                  usdConverter(
-                                                      data.item.moneda,
-                                                      data.item.monto,
-                                                      data.item.tasa
-                                                  )
-                                              }}
+                          {{ data.item.montoAjustadoUsd !== undefined ? data.item.montoAjustadoUsd.toFixed(2) : usdConverter(data.item.moneda, data.item.monto, data.item.tasa) }}
                         </template>
                       </b-table>
                     </b-overlay>
@@ -281,11 +275,42 @@ export default {
     pagosFiltrados() {
       const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
       if (this.selectedCategory === 'Todas' || !this.selectedCategory) {
-        return pagosSeguro;
+        return pagosSeguro.map(pago => {
+          const montoLocal = parseFloat(pago.monto) || 0;
+          const tasaVal = parseFloat(pago.tasa) || 1;
+          const montoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoLocal / tasaVal) : montoLocal;
+          return {
+            ...pago,
+            montoAjustadoLocal: montoLocal,
+            montoAjustadoUsd: montoUsd
+          };
+        });
       }
       return pagosSeguro.filter(pago => 
         pago.product_categories && Array.isArray(pago.product_categories) && pago.product_categories.some(cat => cat && cat.category_name === this.selectedCategory)
-      );
+      ).map(pago => {
+        let montoAjustadoLocal = 0;
+        let montoAjustadoUsd = 0;
+        const montoBase = parseFloat(pago.monto) || 0;
+        const tasaBase = parseFloat(pago.tasa) || 1;
+        
+        const categoryData = pago.product_categories.find(cat => cat && cat.category_name === this.selectedCategory);
+        if (categoryData && categoryData.category_total && pago.total_orden) {
+             const totalCategoria = parseFloat(categoryData.category_total) || 0;
+             const totalOrden = parseFloat(pago.total_orden) || 1;
+             
+             montoAjustadoLocal = (totalCategoria / totalOrden) * montoBase;
+             montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaBase) : montoAjustadoLocal;
+        } else {
+             montoAjustadoLocal = montoBase;
+             montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaBase) : montoAjustadoLocal;
+        }
+        return {
+          ...pago,
+          montoAjustadoLocal,
+          montoAjustadoUsd
+        };
+      });
     },
     totales() {
       const totales = {
@@ -296,30 +321,14 @@ export default {
       const pagosSeguro = Array.isArray(this.pagosFiltrados) ? this.pagosFiltrados : [];
 
       pagosSeguro.forEach((item) => {
-        const { metodo_pago, monto, tasa, product_categories } = item;
-        let montoAjustado = 0;
+        const { metodo_pago, montoAjustadoUsd } = item;
+        const montoUsd = parseFloat(montoAjustadoUsd) || 0;
 
-        if (this.selectedCategory !== 'Todas' && this.selectedCategory && product_categories) {
-           const categoryData = product_categories.find(cat => cat.category_name === this.selectedCategory);
-           if (categoryData && categoryData.category_total && item.total_orden) {
-                // Monto Proporcional = (Total Categoría / Total Orden) * (Monto Pago / Tasa)
-                const totalCategoria = parseFloat(categoryData.category_total) || 0;
-                const totalOrden = parseFloat(item.total_orden) || 1; // Evitar división por cero
-                const montoPagoEnUsd = monto / tasa;
-                
-                montoAjustado = (totalCategoria / totalOrden) * montoPagoEnUsd;
-           } else {
-                montoAjustado = 0;
-           }
-        } else {
-            montoAjustado = monto / tasa;
-        }
-
-        totales.totalGeneral += montoAjustado;
+        totales.totalGeneral += montoUsd;
         if (!totales.porMetodoPago[metodo_pago]) {
           totales.porMetodoPago[metodo_pago] = 0;
         }
-        totales.porMetodoPago[metodo_pago] += montoAjustado;
+        totales.porMetodoPago[metodo_pago] += montoUsd;
       });
 
       const resultadoPorMetodoPago = Object.entries(totales.porMetodoPago).map(
