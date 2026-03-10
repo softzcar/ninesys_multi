@@ -47,149 +47,145 @@
           <b-row>
             <b-col>
               <b-form
-            class="mb-4"
-            @submit="onSubmit"
-          >
-            <b-row>
-              <b-col md="4">
-                <h3>Vendedor</h3>
-                <b-form-select
-                  v-model="selectedVendedor"
-                  :options="vendedores"
-                  class="mb-4"
-                >
-                  <template #first>
-                    <b-form-select-option :value="null" disabled>-- Seleccione un vendedor --</b-form-select-option>
-                    <b-form-select-option :value="0">Todos los vendedores</b-form-select-option>
-                  </template>
-                </b-form-select>
-              </b-col>
-              <b-col md="4">
-                <h3>Fecha Inicio</h3>
-                <b-form-datepicker
-                  class="mb-4"
-                  v-model="fechaConsultaInicio"
-                />
-              </b-col>
-              <b-col md="4">
-                <h3>Fecha Fin</h3>
-                <b-form-datepicker
-                  class="mb-4"
-                  v-model="fechaConsultaFin"
-                />
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col class="text-center mt-2">
-                <b-button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  class="px-5 shadow-sm"
-                >
-                  <b-icon icon="search" class="mr-2"></b-icon> GENERAR REPORTE
-                </b-button>
-              </b-col>
-            </b-row>
-
-            <b-row class="mt-4 mb-3" v-if="reporteGenerado">
-              <b-col class="mb-2">
-                <h5 class="mt-2 mb-2 pb-2">Filtrar por Categoría de Producto</h5>
-                <b-form-radio-group
-                  id="category-filter"
-                  v-model="selectedCategory"
-                  :options="optionsCategories"
-                  name="category-filter-radios"
-                  buttons
-                  button-variant="outline-primary"
-                  size="lg"
-                ></b-form-radio-group>
-              </b-col>
-            </b-row>
-          </b-form>
-
-          <div v-if="!reporteGenerado" class="py-5 text-center">
-            <b-icon icon="info-circle" variant="info" font-scale="4" class="mb-4"></b-icon>
-            <h2 class="text-muted">Seleccione un vendedor y un rango de fechas para generar el reporte</h2>
-            <p class="text-muted small">Puede filtrar por un vendedor específico o visualizar los pagos globales.</p>
-          </div>
-
-          <b-row v-else>
-            <b-col>
-              <!-- <b-table :items="resumen"></b-table> -->
-              <!-- <h2>Total pagos semana ${{ totalPagos }}</h2>
-              <h2>Total descuentos semana ${{ totalDescuentos }}</h2> -->
-            </b-col>
-          </b-row>
-
-          <b-row>
-            <b-col>
-              <b-overlay
-                :show="overlay"
-                spinner-small
+                class="mb-4"
+                @submit="onSubmit"
               >
-                <b-pagination
-                  v-model="currentPage"
-                  :total-rows="totalRows"
-                  :per-page="perPage"
-                ></b-pagination>
-
-                <p class="mt-3">
-                  Página actual: {{ currentPage }}
-                </p>
-
-                <h4
-                  v-for="pago in totales.porMetodoPago"
-                  :key="pago.metodoPago"
-                  class="text-right"
-                >
-                  {{ pago.metodoPago }}: {{ pago.total }}
-                </h4>
-
-                <h3 class="text-right mt-2 mb-4">
-                  TOTAL: {{ totales.totalGeneral }}
-                </h3>
-
-                <b-table
-                  sort-icon-left
-                  :per-page="perPage"
-                  :current-page="currentPage"
-                  ref="table"
-                  responsive
-                  small
-                  :fields="campos"
-                  :items="pagosFiltrados"
-                  @filtered="onFiltered"
-                  :filter="filter"
-                  :filter-included-fields="includedFields"
-                >
-                  <template #cell(orden)="data">
-                    <linkSearch
-                      :key="data.item._id"
-                      :id="data.item.orden"
+                <b-row>
+                  <b-col md="4">
+                    <h3>Vendedor</h3>
+                    <b-form-select
+                      v-model="selectedVendedor"
+                      :options="vendedores"
+                      class="mb-4"
+                    >
+                      <template #first>
+                        <b-form-select-option :value="null" disabled>-- Seleccione un vendedor --</b-form-select-option>
+                        <b-form-select-option :value="0">Todos los vendedores</b-form-select-option>
+                      </template>
+                    </b-form-select>
+                  </b-col>
+                  <b-col md="4">
+                    <h3>Fecha Inicio</h3>
+                    <b-form-datepicker
+                      class="mb-4"
+                      v-model="fechaConsultaInicio"
                     />
-                  </template>
+                  </b-col>
+                  <b-col md="4">
+                    <h3>Fecha Fin</h3>
+                    <b-form-datepicker
+                      class="mb-4"
+                      v-model="fechaConsultaFin"
+                    />
+                  </b-col>
+                </b-row>
 
-                  <template #cell(monto)="data">
-                    {{ data.item.monto.toFixed(2) }}
-                  </template>
+                <b-row>
+                  <b-col class="text-center mt-2">
+                    <b-button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      class="px-5 shadow-sm"
+                    >
+                      <b-icon icon="search" class="mr-2"></b-icon> GENERAR REPORTE
+                    </b-button>
+                  </b-col>
+                </b-row>
 
-                  <template #cell(tasa)="data">
-                    {{ data.item.tasa.toFixed(2) }}
-                  </template>
+                <b-row class="mt-4 mb-3" v-if="reporteGenerado">
+                  <b-col class="mb-2">
+                    <h5 class="mt-2 mb-2 pb-2">Filtrar por Categoría de Producto</h5>
+                    <b-form-radio-group
+                      id="category-filter"
+                      v-model="selectedCategory"
+                      :options="optionsCategories"
+                      name="category-filter-radios"
+                      buttons
+                      button-variant="outline-primary"
+                      size="lg"
+                    ></b-form-radio-group>
+                  </b-col>
+                </b-row>
+              </b-form>
 
-                  <template #cell(_id)="data">
-                    {{
-                                            usdConverter(
-                                                data.item.moneda,
-                                                data.item.monto,
-                                                data.item.tasa
-                                            )
-                                        }}
-                  </template>
-                </b-table>
-              </b-overlay>
+              <div v-if="!reporteGenerado" class="py-5 text-center">
+                <b-icon icon="info-circle" variant="info" font-scale="4" class="mb-4"></b-icon>
+                <h2 class="text-muted">Seleccione un vendedor y un rango de fechas para generar el reporte</h2>
+                <p class="text-muted small">Puede filtrar por un vendedor específico o visualizar los pagos globales.</p>
+              </div>
+
+              <div v-else>
+                <b-row>
+                  <b-col>
+                    <b-overlay
+                      :show="overlay"
+                      spinner-small
+                    >
+                      <b-pagination
+                        v-model="currentPage"
+                        :total-rows="totalRows"
+                        :per-page="perPage"
+                      ></b-pagination>
+
+                      <p class="mt-3">
+                        Página actual: {{ currentPage }}
+                      </p>
+
+                      <h4
+                        v-for="pago in totales.porMetodoPago"
+                        :key="pago.metodoPago"
+                        class="text-right"
+                      >
+                        {{ pago.metodoPago }}: {{ pago.total }}
+                      </h4>
+
+                      <h3 class="text-right mt-2 mb-4">
+                        TOTAL: {{ totales.totalGeneral }}
+                      </h3>
+
+                      <b-table
+                        sort-icon-left
+                        :per-page="perPage"
+                        :current-page="currentPage"
+                        ref="table"
+                        responsive
+                        small
+                        :fields="campos"
+                        :items="pagosFiltrados"
+                        @filtered="onFiltered"
+                        :filter="filter"
+                        :filter-included-fields="includedFields"
+                      >
+                        <template #cell(orden)="data">
+                          <linkSearch
+                            :key="data.item._id"
+                            :id="data.item.orden"
+                          />
+                        </template>
+
+                        <template #cell(monto)="data">
+                          {{ data.item.monto.toFixed(2) }}
+                        </template>
+
+                        <template #cell(tasa)="data">
+                          {{ data.item.tasa.toFixed(2) }}
+                        </template>
+
+                        <template #cell(_id)="data">
+                          {{
+                                                  usdConverter(
+                                                      data.item.moneda,
+                                                      data.item.monto,
+                                                      data.item.tasa
+                                                  )
+                                              }}
+                        </template>
+                      </b-table>
+                    </b-overlay>
+                  </b-col>
+                </b-row>
+              </div>
             </b-col>
           </b-row>
         </b-container>
