@@ -471,8 +471,8 @@ export default {
   },
 
   beforeMount() {
-    this.fechaConsultaInicio = this.fechaActual();
-    this.fechaConsultaFin = this.fechaActual();
+    this.fechaConsultaInicio = this.nowDate();
+    this.fechaConsultaFin = this.nowDate();
   },
 
   mounted() {
