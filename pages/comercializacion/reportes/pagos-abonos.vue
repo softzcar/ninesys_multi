@@ -47,61 +47,75 @@
           <b-row>
             <b-col>
               <b-form
-                class="mb-4"
-                @submit="onSubmit"
-              >
-                <b-row>
-                  <b-col>
-                    <h3>Fecha Inicio</h3>
-                    <b-form-datepicker
-                      class="mb-4"
-                      v-model="fechaConsultaInicio"
-                    />
-                  </b-col>
-                  <b-col>
-                    <h3>Fecha Fin</h3>
-                    <b-form-datepicker
-                      class="mb-4"
-                      v-model="fechaConsultaFin"
-                    />
-                  </b-col>
-                  <b-col>
-                    <h3>Vendedor</h3>
-                    <b-form-select
-                      v-model="selectedVendedor"
-                      :options="vendedores"
-                    />
-                  </b-col>
-                </b-row>
+            class="mb-4"
+            @submit="onSubmit"
+          >
+            <b-row>
+              <b-col md="4">
+                <h3>Vendedor</h3>
+                <b-form-select
+                  v-model="selectedVendedor"
+                  :options="vendedores"
+                  class="mb-4"
+                >
+                  <template #first>
+                    <b-form-select-option :value="null" disabled>-- Seleccione un vendedor --</b-form-select-option>
+                    <b-form-select-option :value="0">Todos los vendedores</b-form-select-option>
+                  </template>
+                </b-form-select>
+              </b-col>
+              <b-col md="4">
+                <h3>Fecha Inicio</h3>
+                <b-form-datepicker
+                  class="mb-4"
+                  v-model="fechaConsultaInicio"
+                />
+              </b-col>
+              <b-col md="4">
+                <h3>Fecha Fin</h3>
+                <b-form-datepicker
+                  class="mb-4"
+                  v-model="fechaConsultaFin"
+                />
+              </b-col>
+            </b-row>
 
-                <b-row>
-                  <b-col class="text-center mt-4 pt-4">
-                    <b-button
-                      type="submit"
-                      variant="primary"
-                    >BUSCAR</b-button>
-                  </b-col>
-                </b-row>
+            <b-row>
+              <b-col class="text-center mt-2">
+                <b-button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  class="px-5 shadow-sm"
+                >
+                  <b-icon icon="search" class="mr-2"></b-icon> GENERAR REPORTE
+                </b-button>
+              </b-col>
+            </b-row>
 
-                <b-row class="mt-3 mb-3">
-                  <b-col class="mb-4">
-                    <h5 class="mt-4 mb-2 pb-2">Filtrar por Categoría de Producto</h5>
-                    <b-form-radio-group
-                      id="category-filter"
-                      v-model="selectedCategory"
-                      :options="optionsCategories"
-                      name="category-filter-radios"
-                      buttons
-                      button-variant="outline-primary"
-                      size="lg"
-                    ></b-form-radio-group>
-                  </b-col>
-                </b-row>
-              </b-form>
-            </b-col>
-          </b-row>
+            <b-row class="mt-4 mb-3" v-if="reporteGenerado">
+              <b-col class="mb-2">
+                <h5 class="mt-2 mb-2 pb-2">Filtrar por Categoría de Producto</h5>
+                <b-form-radio-group
+                  id="category-filter"
+                  v-model="selectedCategory"
+                  :options="optionsCategories"
+                  name="category-filter-radios"
+                  buttons
+                  button-variant="outline-primary"
+                  size="lg"
+                ></b-form-radio-group>
+              </b-col>
+            </b-row>
+          </b-form>
 
-          <b-row>
+          <div v-if="!reporteGenerado" class="py-5 text-center">
+            <b-icon icon="info-circle" variant="info" font-scale="4" class="mb-4"></b-icon>
+            <h2 class="text-muted">Seleccione un vendedor y un rango de fechas para generar el reporte</h2>
+            <p class="text-muted small">Puede filtrar por un vendedor específico o visualizar los pagos globales.</p>
+          </div>
+
+          <b-row v-else>
             <b-col>
               <!-- <b-table :items="resumen"></b-table> -->
               <!-- <h2>Total pagos semana ${{ totalPagos }}</h2>
@@ -207,9 +221,10 @@ export default {
       currentPage: 1,
       totalRows: 0,
       overlay: true,
+      reporteGenerado: false,
       titulo: "Pagos y Abonos",
       pagos: [],
-      selectedVendedor: 0,
+      selectedVendedor: null,
       selectedCategory: 'Todas',
       optionsCategories: [],
       campos: [
@@ -287,54 +302,15 @@ export default {
 
         if (this.selectedCategory !== 'Todas' && this.selectedCategory && product_categories) {
            const categoryData = product_categories.find(cat => cat.category_name === this.selectedCategory);
-           if (categoryData && categoryData.category_total) {
-               // Si hay un total de categoría, usamos ese.
-               // Nota: El category_total viene en la moneda base (dólares usualmente, o la moneda del producto).
-               // Aquí asumimos que category_total ya está normalizado o es el valor que queremos sumar directamente.
-               // Sin embargo, el código original dividía monto / tasa.
-               // Si category_total es el valor total del producto, ¿deberíamos ajustarlo por la tasa del pago?
-               // El usuario dijo: "se muestre el monto de la sumatoria de las categorías en lugar del monto total de la orden".
-               // Asumiremos que category_total es el valor en dólares (o moneda base) y se suma directo.
-               // PERO, el reporte es de PAGOS. Un pago puede ser parcial.
-               // Si la orden es de $100 (Cat A: $50, Cat B: $50) y el pago es de $20.
-               // ¿Qué debemos mostrar?
-               // El requerimiento dice: "el TOTAL refleje el total de los productos del item seleccionado".
-               // Esto suena a que quiere ver el valor de los productos, NO la parte proporcional del pago.
-               // PERO estamos en "Reporte de Pagos". Mostrar el total de productos podría ser confuso si es solo un abono.
-               // RE-LEYENDO: "al seleccionar una categoría el TOTAL refleje el total de los productos del item seleccionado (sumatoria) en lugar de la sumatoria de todos los productos de la orden".
-               // "sumatoria de todos los productos de la orden" se refiere al `monto` del pago actual? O al total de la orden?
-               // En el código original: `totales.totalGeneral += montoAjustado;` donde `montoAjustado = monto / tasa`. Esto es el valor del PAGO en dólares.
-               // Si cambio esto por `category_total`, estaré sumando el valor TOTAL de la categoría en la orden, no lo que se pagó.
-               // Si el usuario quiere ver "cuánto se ha pagado por concepto de X categoría", es muy difícil saberlo si el pago es genérico.
-               // PERO, si el usuario dice "el TOTAL refleje el total de los productos del item seleccionado", quizás se refiere a eso, al valor de la mercancía de esa categoría involucrada en los pagos listados.
-               // OJO: Si filtro por categoría, me salen los PAGOS de ordenes que tienen esa categoría.
-               // Si muestro `category_total`, estoy mostrando el valor de la mercancía.
-               // Si tengo 5 pagos para la misma orden, sumaré 5 veces el `category_total`? Eso estaría mal.
-               // El usuario dijo: "el TOTAL refleje el total de los productos del item seleccionado (sumatoria)".
-               
-               // Vamos a asumir que quiere sumar los `category_total` de los registros filtrados.
-               // Si hay múltiples pagos para una misma orden, y todos aparecen en el filtro...
-               // El endpoint devuelve PAGOS. `pagosFiltrados` son PAGOS.
-               // Si una orden tiene 2 pagos, aparecerá 2 veces.
-               // Si sumo `category_total` (que es constante por orden), lo duplicaré.
-               
-               // ESPERA. El usuario dice: "en lugar de la sumatoria de todos los productos de la orden".
-               // Actualmente suma `monto / tasa` (el valor del pago).
-               // Si el usuario quiere ver el valor de la categoría, y lo reemplazamos...
-               // Quizás quiere ver la proporción del pago que corresponde a esa categoría? Imposible saberlo con certeza.
-               
-               // Interpretación más probable: Quiere ver el total vendido de esa categoría en las ordenes listadas.
-               // Para evitar duplicados si hay múltiples pagos de la misma orden, deberíamos sumar por orden única?
-               // Pero `totales` se calcula iterando `pagosFiltrados`.
-               
-               // Vamos a implementar la suma de `category_total` por cada fila, tal cual lo pide, pero con la advertencia mental de los duplicados.
-               // O quizás `category_total` debería ser proporcional al pago? (monto_pago / total_orden) * category_total?
-               // No, eso es mucha asunción.
-               
-               // Vamos a seguir la instrucción literal: "mostrar el monto de la sumatoria de las categorías".
-               // Asumiré que `category_total` viene en la misma moneda que `totalGeneral` espera (Dólares).
-               
-               montoAjustado = parseFloat(categoryData.category_total) || 0;
+           if (categoryData && categoryData.category_total && item.total_orden) {
+                // Monto Proporcional = (Total Categoría / Total Orden) * (Monto Pago / Tasa)
+                const totalCategoria = parseFloat(categoryData.category_total) || 0;
+                const totalOrden = parseFloat(item.total_orden) || 1; // Evitar división por cero
+                const montoPagoEnUsd = monto / tasa;
+                
+                montoAjustado = (totalCategoria / totalOrden) * montoPagoEnUsd;
+           } else {
+                montoAjustado = 0;
            }
         } else {
             montoAjustado = monto / tasa;
@@ -399,21 +375,17 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/reporte-de-pagos`)
         .then((resp) => {
-          this.pagos = resp.data.pagos;
+          this.pagos = []; // Inicialmente vacío
 
-          this.vendedores = [];
-          this.vendedores = resp.data.vendedores.map((el) => {
+          this.vendedores = (resp.data.vendedores || []).map((el) => {
             return {
               value: el._id,
               text: el.nombre,
             };
           });
-          this.vendedores.unshift({ value: 0, text: "Todos" });
 
-          this.totalRows = this.pagos.length;
+          this.totalRows = 0;
           this.generateCategoryOptions();
-          console.log("Pagos y abonos cargados", this.pagos);
-          console.log("Totales", this.totales);
           this.overlay = false;
         });
     },
@@ -425,10 +397,10 @@ export default {
       console.log("inicio", fechaInicio);
       console.log("fin", fechaFin);
 
-      if (!fechaInicio.length || !fechaFin.length) {
+      if (this.selectedVendedor === null || !fechaInicio || !fechaFin) {
         this.$fire({
           title: "Datos requeridos",
-          html: `<p>Por favor seleccione ambas fechas</p>`,
+          html: `<p>Por favor seleccione un vendedor y ambas fechas</p>`,
           type: "warning",
         });
         return;
@@ -447,27 +419,35 @@ export default {
 
     async realizarConsulta() {
       this.overlay = true;
+      const vendedorId = this.selectedVendedor;
       await this.$axios
         .get(
-          `${this.$config.API}/reporte-de-pagos/${this.fechaConsultaInicio}/${this.fechaConsultaFin}/${this.selectedVendedor}`
+          `${this.$config.API}/reporte-de-pagos/${this.fechaConsultaInicio}/${this.fechaConsultaFin}/${vendedorId}`
         )
         .then((resp) => {
-          this.pagos = resp.data.pagos;
-          /* this.vendedores = resp.data.vendedores
-                    this.vendedores.unshift({ value: 0, text: "Todos" }) */
-          this.vendedores = resp.data.vendedores.map((el) => {
-            return {
-              value: el._id,
-              text: el.nombre,
-            };
-          });
-          this.vendedores.unshift({ value: 0, text: "Todos" });
+          this.pagos = resp.data.pagos || [];
+          // Vendedores should already be populated by getPagos, no need to re-fetch/re-add "Todos"
+          // this.vendedores = (resp.data.vendedores || []).map((el) => {
+          //   return {
+          //     value: el._id,
+          //     text: el.nombre,
+          //   };
+          // });
+          // this.vendedores.unshift({ value: 0, text: "Todos" });
 
           this.totalRows = this.pagos.length;
           this.generateCategoryOptions();
-          console.log("Pagos y abonos cargados", this.pagos);
-          console.log("Totales", this.totales);
+          this.reporteGenerado = true;
           this.overlay = false;
+        })
+        .catch(error => {
+          console.error("Error fetching filtered payments:", error);
+          this.overlay = false;
+          this.$fire({
+            title: "Error",
+            html: `<p>No se pudieron cargar los pagos para los filtros seleccionados.</p>`,
+            type: "error",
+          });
         });
     },
 
@@ -492,6 +472,11 @@ export default {
         return "Monto o tasa no válidos";
       }
     },
+  },
+
+  beforeMount() {
+    this.fechaConsultaInicio = this.fechaActual();
+    this.fechaConsultaFin = this.fechaActual();
   },
 
   mounted() {
