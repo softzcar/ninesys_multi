@@ -22,22 +22,23 @@
           </thead>
           <tbody>
             <tr v-for="(ink, index) in printerData" :key="index">
-              <td class="text-center">
-                <div class="color-badge" :class="'color-' + ink.color.toLowerCase()">
+              <td class="text-center align-middle">
+                <div
+                  class="px-2 py-1 rounded font-weight-bold mx-auto"
+                  :style="getColorBadgeStyle(ink.color)"
+                >
                   {{ ink.color }}
                 </div>
               </td>
-              <td>{{ ink.capacidad_tanque_ml }} ml</td>
-              <td>{{ formatTimestamp(ink.fecha_ultima_recarga) }}</td>
-              <td><strong>{{ ink.ultima_cantidad_recargada_ml }} ml</strong></td>
-              <td>{{ ink.consumo_desde_ultima_recarga_ml }} ml</td>
-              <td>
-                <b-badge :variant="getBadgeVariant(ink.tinta_restante_ultima_recarga_ml)">
-                  {{ ink.tinta_restante_ultima_recarga_ml }} ml
-                </b-badge>
+              <td class="align-middle text-muted small">{{ ink.capacidad_tanque_ml }} ml</td>
+              <td class="align-middle small">{{ formatTimestamp(ink.fecha_ultima_recarga) }}</td>
+              <td class="align-middle"><strong>{{ ink.ultima_cantidad_recargada_ml }} ml</strong></td>
+              <td class="align-middle text-muted">{{ formatNumber(ink.consumo_desde_ultima_recarga_ml) }} ml</td>
+              <td class="align-middle font-weight-bold text-info">
+                {{ formatNumber(ink.tinta_restante_ultima_recarga_ml) }} ml
               </td>
-              <td>
-                <span :class="ink.desperdicio_ciclo_pasado_ml > 0 ? 'text-danger fw-bold' : 'text-muted'">
+              <td class="align-middle">
+                <span :class="ink.desperdicio_ciclo_pasado_ml > 0 ? 'text-danger font-weight-bold' : 'text-muted small'">
                   {{ formatNumber(ink.desperdicio_ciclo_pasado_ml) }} ml
                 </span>
               </td>
@@ -61,15 +62,18 @@
           </thead>
           <tbody>
             <tr v-for="(ink, index) in historyModal.data" :key="index">
-              <td class="text-center">
-                <div class="color-badge" :class="'color-' + ink.color.toLowerCase()">
+              <td class="text-center align-middle">
+                <div
+                  class="px-2 py-1 rounded font-weight-bold mx-auto"
+                  :style="getColorBadgeStyle(ink.color)"
+                >
                   {{ ink.color }}
                 </div>
               </td>
-              <td>{{ formatNumber(ink.total_recargado_historico_ml) }} ml</td>
-              <td>{{ formatNumber(ink.consumo_total_historico_ml) }} ml</td>
-              <td>
-                <span :class="ink.desperdicio_ciclo_pasado_ml > 0 ? 'text-danger fw-bold' : 'text-muted'">
+              <td class="align-middle">{{ formatNumber(ink.total_recargado_historico_ml) }} ml</td>
+              <td class="align-middle">{{ formatNumber(ink.consumo_total_historico_ml) }} ml</td>
+              <td class="align-middle">
+                <span :class="ink.desperdicio_ciclo_pasado_ml > 0 ? 'text-danger font-weight-bold' : 'text-muted small'">
                   {{ formatNumber(ink.desperdicio_ciclo_pasado_ml) }} ml
                 </span>
               </td>
@@ -122,7 +126,44 @@ export default {
         show: false,
         printerName: '',
         data: []
-      }
+      },
+      colorOptions: [
+        {
+          name: "Cyan",
+          value: "C",
+          bgColor: "#E0FBFF",
+          textColor: "#00BCD4",
+          border: "1px solid #B2EBF2"
+        },
+        {
+          name: "Magenta",
+          value: "M",
+          bgColor: "#FFF0F5",
+          textColor: "#E91E63",
+          border: "1px solid #F8BBD0"
+        },
+        {
+          name: "Yellow",
+          value: "Y",
+          bgColor: "#FFFDE7",
+          textColor: "#FBC02D",
+          border: "1px solid #FFF9C4"
+        },
+        {
+          name: "Black",
+          value: "K",
+          bgColor: "#F5F5F5",
+          textColor: "#212121",
+          border: "1px solid #E0E0E0"
+        },
+        {
+          name: "White",
+          value: "W",
+          bgColor: "#FFFFFF",
+          textColor: "#9E9E9E",
+          border: "1px solid #E0E0E0"
+        }
+      ]
     };
   },
   methods: {
@@ -131,36 +172,25 @@ export default {
       this.historyModal.data = printerData;
       this.historyModal.show = true;
     },
-    getBadgeVariant(value) {
-      const val = parseFloat(value);
-      if (val <= 0) return 'danger';
-      if (val < 100) return 'warning';
-      return 'success';
+    getColorBadgeStyle(colorCode) {
+      const color = this.colorOptions.find(c => c.value === colorCode);
+      if (!color) return {};
+      return {
+        backgroundColor: color.bgColor,
+        color: color.textColor,
+        border: color.border || '1px solid transparent',
+        width: '40px'
+      };
     },
-    // getInkRowStyle removed as we now use badges
+    formatNumber(value) {
+      if (value === null || value === undefined) return "0.00";
+      return parseFloat(value).toFixed(2);
+    }
   },
 };
 </script>
 
 <style scoped>
-.color-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  font-weight: bold;
-  margin: 0 auto;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-
-.color-c { background-color: #00FFFF; color: black; text-shadow: none; border: 1px solid #00CCCC; }
-.color-m { background-color: #FF00FF; border: 1px solid #CC00CC; }
-.color-y { background-color: #FFFF00; color: black; text-shadow: none; border: 1px solid #CCCC00; }
-.color-k { background-color: #000000; border: 1px solid #333; }
-.color-w { background-color: #FFFFFF; color: black; text-shadow: none; border: 1px solid #CCCCCC; }
 
 .table-responsive {
   width: 100%;
