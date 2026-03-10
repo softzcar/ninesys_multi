@@ -29,14 +29,27 @@
               @submit="onSubmit"
             >
               <b-row>
-                <b-col>
+                <b-col md="4">
+                  <h3>Vendedor</h3>
+                  <b-form-select
+                    v-model="vendedorSeleccionado"
+                    :options="vendedoresOptions"
+                    class="mb-4"
+                  >
+                    <template #first>
+                      <b-form-select-option :value="null" disabled>-- Seleccione un vendedor --</b-form-select-option>
+                      <b-form-select-option :value="0">Todos los vendedores</b-form-select-option>
+                    </template>
+                  </b-form-select>
+                </b-col>
+                <b-col md="4">
                   <h3>Fecha Inicio</h3>
                   <b-form-datepicker
                     class="mb-4"
                     v-model="fechaConsultaInicio"
                   />
                 </b-col>
-                <b-col>
+                <b-col md="4">
                   <h3>Fecha Fin</h3>
                   <b-form-datepicker
                     class="mb-4"
@@ -49,15 +62,26 @@
                   <b-button
                     type="submit"
                     variant="primary"
-                  >BUSCAR</b-button>
+                    block
+                    size="lg"
+                  >
+                    <b-icon icon="search"></b-icon> GENERAR REPORTE
+                  </b-button>
                 </b-col>
               </b-row>
             </b-form>
 
-            <b-card>
-              <b-row>
-                <b-col>
-                  <h3 class="mt-4">Efectivo</h3>
+            <div v-if="!reporteGenerado" class="py-5 text-center">
+              <b-icon icon="info-circle" variant="info" font-scale="4" class="mb-4"></b-icon>
+              <h2 class="text-muted">Seleccione un vendedor y un rango de fechas para generar el reporte</h2>
+              <p class="text-muted small">Puede elegir un vendedor específico o visualizar los totales de toda la empresa.</p>
+            </div>
+
+            <div v-else>
+              <b-card>
+                <b-row>
+                  <b-col>
+                    <h3 class="mt-4">Efectivo</h3>
 
                   <h3>DOLARES</h3>
 
@@ -430,6 +454,8 @@
                 </h4>
               </b-col>
             </b-row>
+          </div>
+
 
           </b-container>
         </b-overlay>
@@ -453,7 +479,10 @@ export default {
   data() {
     return {
       titulo: "Reporte de caja",
-      overlay: true,
+      overlay: false,
+      reporteGenerado: false,
+      vendedorSeleccionado: null,
+      vendedores: [],
       fechaConsultaInicio: null,
       fechaConsultaFin: null,
       dataReport: {
@@ -462,7 +491,12 @@ export default {
           pesos: [],
           bolivares: [],
         },
-        digital: [],
+        digital: {
+          zelle: [],
+          pagomovil: [],
+          punto: [],
+          transferencia: [],
+        },
         retiros: [],
       },
       retiros: [],
@@ -586,6 +620,13 @@ export default {
     totalTransferencias() {
       return (this.dataReport.digital.transferencia || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
     },
+
+    vendedoresOptions() {
+      return this.vendedores.map((v) => ({
+        value: v._id,
+        text: v.nombre,
+      }));
+    },
   },
 
   methods: {
@@ -630,10 +671,10 @@ export default {
       const fechaInicio = this.fechaConsultaInicio;
       const fechaFin = this.fechaConsultaFin;
 
-      if (!fechaInicio || !fechaFin) {
+      if (this.vendedorSeleccionado === null || !fechaInicio || !fechaFin) {
         this.$fire({
           title: "Datos requeridos",
-          html: `<p>Por favor seleccione ambas fechas</p>`,
+          html: `<p>Por favor seleccione un vendedor y un rango de fechas</p>`,
           type: "warning",
         });
         return;
@@ -652,22 +693,22 @@ export default {
 
     realizarConsulta() {
       this.overlay = true;
-      this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin).then(
-        () => (this.overlay = false)
+      this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin, this.vendedorSeleccionado).then(
+        () => {
+          this.overlay = false;
+          this.reporteGenerado = true;
+        }
       );
-      // this.getPagos(val)
-      // this.getDataReport(val)
     },
 
-    async getCierre(inicio, fin) {
-      // Tipos de cierre de caja: diario, semanal, yyyy-mm-dd
+    async getCierre(inicio, fin, id_vendedor) {
       await this.$axios
         .get(
-          `${this.$config.API}/reporte-de-caja/${inicio}/${fin}/${this.$store.state.login.dataUser.id_empleado}`
+          `${this.$config.API}/reporte-de-caja/${inicio}/${fin}/${id_vendedor}`
         )
         .then((res) => {
           this.dataReport = res.data.data;
-          console.log("dataReport:", this.dataReport);
+          this.vendedores = res.data.vendedores;
         });
     },
 
@@ -721,9 +762,11 @@ export default {
   },
 
   mounted() {
-    this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin).then(
-      () => (this.overlay = false)
-    );
+    this.overlay = true;
+    // Cargar vendedores inicialmente (usamos el repo de reporte de caja para traer la lista)
+    this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin, 0).then(() => {
+      this.overlay = false;
+    });
   },
 };
 </script>
