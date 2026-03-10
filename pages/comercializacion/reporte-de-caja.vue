@@ -86,7 +86,7 @@
                   <h3>DOLARES</h3>
 
                   <b-alert
-                    v-if="dataReport.efectivo.dolares.length === 0"
+                    v-if="!dataReport.efectivo || !dataReport.efectivo.dolares || dataReport.efectivo.dolares.length === 0"
                     variant="info"
                     show
                   >No hay dólares en la caja</b-alert>
@@ -132,10 +132,10 @@
 
                   <h3>PESOS</h3>
                   <b-alert
-                    v-if="dataReport.efectivo.pesos.length === 0"
+                    v-if="!dataReport.efectivo || !dataReport.efectivo.pesos || dataReport.efectivo.pesos.length === 0"
                     variant="info"
                     show
-                  >No hay dólares en la caja</b-alert>
+                  >No hay pesos en la caja</b-alert>
 
                   <div v-else>
                     <b-table
@@ -179,10 +179,10 @@
                   <h3>BOLIVARES</h3>
 
                   <b-alert
-                    v-if="dataReport.efectivo.bolivares.length === 0"
+                    v-if="!dataReport.efectivo || !dataReport.efectivo.bolivares || dataReport.efectivo.bolivares.length === 0"
                     variant="info"
                     show
-                  >No hay dólares en la caja</b-alert>
+                  >No hay bolívares en la caja</b-alert>
 
                   <div v-else>
                     <b-table
@@ -230,7 +230,7 @@
                   <h3>Retiros</h3>
 
                   <b-alert
-                    v-if="dataReport.retiros.length === 0"
+                    v-if="!dataReport.retiros || dataReport.retiros.length === 0"
                     variant="info"
                     show
                   >No hay retiros</b-alert>
@@ -707,8 +707,23 @@ export default {
           `${this.$config.API}/reporte-de-caja/${inicio}/${fin}/${id_vendedor}`
         )
         .then((res) => {
-          this.dataReport = res.data.data;
-          this.vendedores = res.data.vendedores;
+          const baseData = {
+            efectivo: { dolares: [], pesos: [], bolivares: [] },
+            digital: { zelle: [], pagomovil: [], punto: [], transferencia: [] },
+            retiros: [],
+          };
+
+          const apiData = res.data.data || {};
+          
+          this.dataReport = {
+            ...baseData,
+            ...apiData,
+            efectivo: { ...baseData.efectivo, ...(apiData.efectivo || {}) },
+            digital: { ...baseData.digital, ...(apiData.digital || {}) },
+            retiros: apiData.retiros || [],
+          };
+
+          this.vendedores = res.data.vendedores || [];
         });
     },
 
