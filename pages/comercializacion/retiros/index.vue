@@ -56,13 +56,55 @@
                 <b-row class="mt-2">
                   <b-col>
                     <hr />
-                    <h4 class="mb-4">Reporte de retiros del día</h4>
-                    <b-form-group label="Filtrar por fecha">
-                      <b-form-datepicker
-                        v-model="fechaConsulta"
-                        @input="getRetiros"
-                        class="mb-3"
-                      />
+                    <h4 class="mb-4">Reporte de retiros</h4>
+
+                    <!-- SELECTOR DE RANGO DE FECHAS DINÁMICO -->
+                    <b-row class="mb-4 justify-content-center">
+                      <b-col md="12" lg="10">
+                        <b-card class="shadow-sm border-light">
+                          <b-row align-v="center">
+                            <b-col md="5">
+                              <label class="small font-weight-bold text-muted text-uppercase">Fecha Inicio</label>
+                              <b-form-datepicker
+                                v-model="fechaInicio"
+                                @input="getRetiros"
+                                :max="today"
+                                locale="es-VE"
+                                size="sm"
+                                placeholder="Inicio"
+                                class="border-light"
+                              ></b-form-datepicker>
+                            </b-col>
+                            <b-col md="2" class="text-center pt-3">
+                              <b-icon icon="arrow-right" variant="primary" font-scale="1.5"></b-icon>
+                            </b-col>
+                            <b-col md="5">
+                              <label class="small font-weight-bold text-muted text-uppercase">Fecha Fin</label>
+                              <b-form-datepicker
+                                v-model="fechaFin"
+                                @input="getRetiros"
+                                :max="today"
+                                locale="es-VE"
+                                size="sm"
+                                placeholder="Fin"
+                                class="border-light"
+                              ></b-form-datepicker>
+                            </b-col>
+                          </b-row>
+                          
+                          <b-alert
+                            v-if="dateError"
+                            show
+                            variant="danger"
+                            class="mt-3 mb-0 small py-2 px-3 border-0 shadow-sm"
+                          >
+                            <b-icon icon="exclamation-triangle-fill" class="mr-2"></b-icon>
+                            {{ dateError }}
+                          </b-alert>
+                        </b-card>
+                      </b-col>
+                    </b-row>
+                    
                       <b-table
                         striped
                         hover
@@ -70,7 +112,7 @@
                         :items="report"
                         :fields="fields"
                         show-empty
-                        empty-text="No hay retiros registrados para esta fecha."
+                        empty-text="No hay retiros registrados para este rango de fechas."
                       >
                         <template #cell(monto)="data">
                           {{ formatMonto(data.item.monto) }}
@@ -87,7 +129,6 @@
                           <small class="text-muted">{{ data.item.empleado }} - {{ data.item.moment }}</small>
                         </template>
                       </b-table>
-                    </b-form-group>
                   </b-col>
                 </b-row>
 
@@ -253,7 +294,10 @@ export default {
       titulo: "Retiros",
       loading: true,
       datosReporte: [],
-      fechaConsulta: "",
+      fechaInicio: "",
+      fechaFin: "",
+      today: new Date().toISOString().substring(0, 10),
+      dateError: null,
       caja: [],
       form: {
         detalle: "",
@@ -573,7 +617,7 @@ export default {
               });
             } finally {
               // SIEMPRE refrescar la información tras intentar un retiro
-              await this.getRetiros(this.fechaActual());
+              await this.getRetiros();
               this.loading = false;
             }
           }
@@ -648,11 +692,19 @@ export default {
       return newVal;
     },
 
-    async getRetiros(fecha) {
+    async getRetiros() {
+      if (!this.fechaInicio || !this.fechaFin) return;
+
+      if (this.fechaInicio > this.fechaFin) {
+        this.dateError = "La fecha de inicio no puede ser posterior a la fecha fin.";
+        return;
+      }
+
+      this.dateError = null;
       this.loading = true;
       await this.$axios
         .get(
-          `${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`
+          `${this.$config.API}/retiros/${this.fechaInicio}/${this.fechaFin}/${this.$store.state.login.dataUser.id_empleado}`
         )
         .then((res) => {
           this.report = res.data.data.retiros;
@@ -736,9 +788,10 @@ export default {
   },
 
   mounted() {
-    this.fechaConsulta = this.fechaActual();
-    // this.getDataReport(this.fechaConsulta)
-    this.getRetiros(this.fechaConsulta);
+    const todayStr = new Date().toISOString().substring(0, 10);
+    this.fechaInicio = todayStr;
+    this.fechaFin = todayStr;
+    this.getRetiros();
   },
 
   mixins: [mixin, mixinLogin],
