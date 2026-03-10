@@ -62,10 +62,10 @@
                   <b-button
                     type="submit"
                     variant="primary"
-                    block
                     size="lg"
+                    class="px-5 shadow-sm"
                   >
-                    <b-icon icon="search"></b-icon> GENERAR REPORTE
+                    <b-icon icon="search" class="mr-2"></b-icon> GENERAR REPORTE
                   </b-button>
                 </b-col>
               </b-row>
@@ -295,7 +295,7 @@
                   <h3>Zelle</h3>
 
                   <b-alert
-                    v-if="dataReport.digital.length === 0"
+                    v-if="!dataReport.digital || !dataReport.digital.zelle || dataReport.digital.zelle.length === 0"
                     variant="info"
                     show
                   >No hay Zelle</b-alert>
@@ -342,7 +342,7 @@
                   <h3>Pago Móvil</h3>
 
                   <b-alert
-                    v-if="dataReport.digital.length === 0"
+                    v-if="!dataReport.digital || !dataReport.digital.pagomovil || dataReport.digital.pagomovil.length === 0"
                     variant="info"
                     show
                   >No hay Pago Móvil</b-alert>
@@ -389,7 +389,7 @@
                   <h3>Transferencias</h3>
 
                   <b-alert
-                    v-if="dataReport.digital.length === 0"
+                    v-if="!dataReport.digital || !dataReport.digital.transferencia || dataReport.digital.transferencia.length === 0"
                     variant="info"
                     show
                   >No hay Transferencias</b-alert>
