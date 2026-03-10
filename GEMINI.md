@@ -4,6 +4,7 @@
 
 - **⚠️ Solo existe la empresa 163 (producción).** No hay empresa de pruebas disponible. Usar con extrema precaución.
 - Siempre concersaremos en español
+- **⚠️ RECORDATORIO CRÍTICO DE CIERRE:** Al finalizar el trabajo del día, DEBES resumir el trabajo realizado y asignar un título descriptivo a la conversación para que aparezca correctamente en el historial de Ninesys.
 - Revisa la estructura de directorios y los archivos necesarios para que tengas el contexto más completo posible del proyecto
 - **Gestión de Bitácora (CRÍTICO - OBLIGATORIO):**
     - **Al iniciar:** SIEMPRE actualízate leyendo los últimos 3-5 logs para entender el contexto reciente del proyecto
