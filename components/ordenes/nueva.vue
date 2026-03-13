@@ -13,7 +13,15 @@
           </template>
 
           <template #cell(empleado)="data">
-            {{ data.item.empleado }}
+            <div>
+              <strong>{{ data.item.empleado }}</strong>
+              <div v-if="data.item.observaciones" class="text-muted small mt-1" style="max-height: 40px; overflow: hidden; line-height: 1.2;">
+                {{ data.item.observaciones.replace(/<[^>]*>?/gm, '').substring(0, 100) }}{{ data.item.observaciones.length > 100 ? '...' : '' }}
+              </div>
+              <b-button variant="outline-info" size="sm" class="mt-2" @click="previsualizarProductos(data.item.productos_json)">
+                <b-icon icon="eye"></b-icon> Ver productos
+              </b-button>
+            </div>
           </template>
 
           <template #cell(_id)="data">
@@ -22,6 +30,33 @@
             </b-button>
           </template>
         </b-table>
+      </div>
+    </b-modal>
+
+    <!-- Modal para previsualizar productos -->
+    <b-modal id="modal-previsualizar-productos" title="Productos en la orden/presupuesto" hide-footer size="md">
+      <b-table striped hover small :items="productosPrevisualizar" 
+        :fields="[
+          { key: 'name', label: 'Producto' }, 
+          { key: 'cantidad', label: 'Cantidad' }, 
+          { key: 'talla', label: 'Talla' },
+          { key: 'tela', label: 'Tela' }
+        ]">
+        <template #cell(name)="data">
+          {{ data.value }}
+        </template>
+        <template #cell(cantidad)="data">
+          <strong>{{ data.value }}</strong>
+        </template>
+        <template #cell(talla)="data">
+          {{ data.value }}
+        </template>
+        <template #cell(tela)="data">
+          {{ data.value }}
+        </template>
+      </b-table>
+      <div class="text-right">
+        <b-button variant="secondary" @click="$bvModal.hide('modal-previsualizar-productos')">Cerrar</b-button>
       </div>
     </b-modal>
 
@@ -834,6 +869,8 @@ export default {
 
       ordenesGuardadas: [],
 
+      productosPrevisualizar: [], // Para el modal de previsualización
+
       tabIndex: 0,
       query: "",
       query2: "",
@@ -1523,11 +1560,17 @@ export default {
       this.checkScreenSize();
     },
 
-    loadFormGuardadas(idArray, idTable) {
-      this.form = this.ordenesGuardadas[idArray].form;
+    async loadFormGuardadas(idArray, idTable) {
+      const item = this.ordenesGuardadas[idArray];
+
+      if (item.tipo === 'Presupuesto Finalizado') {
+        await this.cargarPresupuestoEmitido(item._id);
+      } else {
+        this.form = item.form;
+      }
       
       // Guardar el ID real del borrador ('_id' en BD) para poder eliminarlo después de emitir
-      this.$set(this.form, '_id_borrador', this.ordenesGuardadas[idArray]._id);
+      this.$set(this.form, '_id_borrador', item._id);
 
       // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
       if (typeof this.form.sendWhatsAppMessage === 'undefined') {
@@ -1539,7 +1582,7 @@ export default {
         this.ordenVinculada = this.form.id_orden_original_vincular;
       }
 
-      console.log("cargar orden:", this.ordenesGuardadas[idArray].form);
+      console.log("cargar orden:", this.form);
       this.clearSearch();
       this.$bvModal.hide(this.modal);
       
@@ -1553,34 +1596,85 @@ export default {
       }
     },
 
+    previsualizarProductos(productosJson) {
+      try {
+        if (typeof productosJson === 'string') {
+          this.productosPrevisualizar = JSON.parse(productosJson);
+        } else {
+          this.productosPrevisualizar = productosJson || [];
+        }
+        this.$bvModal.show('modal-previsualizar-productos');
+      } catch (e) {
+        console.error("Error al parsear productos para previsualización", e);
+        this.productosPrevisualizar = [];
+      }
+    },
+
+    async cargarPresupuestoEmitido(id) {
+      this.overlay = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/presupuesto/detalle/${id}`);
+        const data = res.data;
+
+        // Mapear datos básicos
+        // Al cargar un presupuesto en la vista de órdenes, queremos que se trate como una conversión
+        this.form.id = null; 
+        this.form.nombre = data.cliente_nombre;
+        this.form.apellido = ""; 
+        this.form.cedula = data.cliente_cedula;
+        this.form.telefono = data.cliente_telefono || "";
+        this.form.email = data.cliente_email || "";
+        this.form.direccion = data.cliente_direccion || "";
+        this.form.obs = data.observaciones;
+        this.form.total = data.pago_total;
+        
+        // Mapear productos
+        this.form.productos = data.productos.map(p => {
+          return {
+            item: p.id_item,
+            cod: p.cod,
+            producto: p.name,
+            existencia: 0,
+            cantidad: p.cantidad,
+            tela: p.id_tela,
+            talla: p.id_size,
+            corte: p.corte || "No aplica",
+            precio: p.price,
+            original_selected_price: p.price,
+            diseno: false,
+            atributos_seleccionados: []
+          };
+        });
+
+        // Para historial/conversión si fuera necesario
+        this.presupuestoCargadoId = id;
+
+      } catch (e) {
+        console.error("Error cargando presupuesto emitido", e);
+        this.$fire({
+          type: 'error',
+          title: 'Error',
+          text: 'No se pudo cargar el detalle del presupuesto.'
+        });
+      } finally {
+        this.overlay = false;
+      }
+    },
+
     async getOrdenesGuardadas() {
       await this.$axios
         .get(`${this.$config.API}/ordenes/guardadas`)
         .then((res) => {
-          console.log("response getOrdenesGuardadas", res.data.items);
-
-          // Parsear y filtrar items, manejando errores de JSON corrupto
           this.ordenesGuardadas = res.data.items
             .map((item) => {
               try {
                 const parsedForm = JSON.parse(item.form);
                 return { ...item, form: parsedForm };
-              } catch (error) {
-                console.error(`Error parseando form del item ID ${item._id}:`, error);
-                console.warn(`Form corrupto en posición:`, error.message);
-                // Retornar null para filtrar este item
-                return null;
+              } catch (e) {
+                return null; // item corrupto: se omite silenciosamente
               }
             })
-            .filter(item => item !== null); // Remover items corruptos
-
-          // Mostrar advertencia si hay datos corruptos
-          const corruptedCount = res.data.items.length - this.ordenesGuardadas.length;
-          if (corruptedCount > 0) {
-            console.warn(`${corruptedCount} orden(es) guardada(s) con datos corruptos fueron omitidas`);
-          }
-
-          console.log("this.ordenesGuardadas", this.ordenesGuardadas);
+            .filter(item => item !== null);
         });
     },
 

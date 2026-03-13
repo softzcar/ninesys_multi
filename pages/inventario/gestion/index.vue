@@ -246,12 +246,13 @@ export default {
         },
 
         async getInsumos() {
+            this.overlay = true;
             await this.$axios
                 .get(`${this.$config.API}/inventario/todos`)
                 .then((resp) => {
                     this.dataTable = []
                     this.dataTable = resp.data
-                    this.dataTable = resp.data
+                    // this.dataTable = resp.data // Duplicado eliminado
                     this.dataTableDyn = resp.data.items
                     this.totalRows = this.dataTableDyn.length
 
@@ -265,8 +266,16 @@ export default {
                         })
                     )
                     this.optionsRadio.unshift({ text: "Todos", value: "Todos" })
+                    
+                    // Re-aplicar filtros actuales para mantener el estado
+                    this.showResultRadio();
+                    
                     this.overlay = false
                 })
+                .catch(error => {
+                    console.error("Error al obtener insumos:", error);
+                    this.overlay = false;
+                });
         },
 
 

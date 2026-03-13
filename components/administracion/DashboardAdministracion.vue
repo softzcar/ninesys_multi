@@ -28,10 +28,24 @@
             </b-card>
           </b-col>
 
-          <!-- Gráfico 3: Progreso de Órdenes Activas -->
+          <!-- Gráfico 3: Top 10 Productos -->
           <b-col lg="3" md="6" sm="12" class="mb-4">
-            <b-card title="Progreso de Órdenes Activas">
-              <charts-ActiveOrdersProgressChart :data="stats.progreso_activas" />
+            <b-card title="Top 10 Productos (Semana)">
+              <div v-if="stats.topProducts && stats.topProducts.length > 0">
+                <charts-DonutChart 
+                  :values="topProductsSeries" 
+                  :labels="topProductsCategories" 
+                  :colors="topProductsColors"
+                  :height="320" 
+                  :showLegend="false"
+                  :flat="true"
+                  title=""
+                  valueSuffix="unidades"
+                />
+              </div>
+              <div v-else class="text-center py-5 text-muted small">
+                Cargando datos...
+              </div>
             </b-card>
           </b-col>
 
@@ -82,6 +96,7 @@ let sharedStats = {
     terminadas: 0
   },
   progreso_activas: [],
+  topProducts: [],
   ventas_vs_saldo: {
     ventas_mes: 0,
     cobrado_mes: 0,
@@ -114,6 +129,23 @@ export default {
     };
   },
 
+  computed: {
+    topProductsSeries() {
+      if(!this.stats.topProducts) return [];
+      return this.stats.topProducts.map(p => parseFloat(p.value) || 0);
+    },
+    topProductsCategories() {
+      if(!this.stats.topProducts) return [];
+      return this.stats.topProducts.map(p => p.name || 'Sin nombre');
+    },
+    topProductsColors() {
+      return [
+        '#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', 
+        '#3F51B5', '#03A9F4', '#4CAF50', '#F9CE1D', '#FF9800'
+      ];
+    }
+  },
+
   created() {
     // Solo ejecutar en el cliente y solo si no se han cargado ya los datos
     if (process.client && !statsAlreadyLoaded && !this.isLoading) {
@@ -136,6 +168,29 @@ export default {
   },
 
   methods: {
+    async fetchTopProducts() {
+      try {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        const lunes = new Date(d);
+        lunes.setDate(d.getDate() + diff);
+        const domingo = new Date(lunes);
+        domingo.setDate(lunes.getDate() + 6);
+
+        const fechaInicio = lunes.toISOString().substring(0, 10);
+        const fechaFin = domingo.toISOString().substring(0, 10);
+
+        const res = await this.$axios.get(`${this.$config.API}/reportes/semanal-detallado`, {
+          params: { inicio: fechaInicio, fin: fechaFin }
+        });
+        return res.data.topProducts || [];
+      } catch (err) {
+        console.error('[DashboardAdministracion] Error get top products:', err);
+        return [];
+      }
+    },
+
     async fetchStats() {
       // Evitar llamadas duplicadas
       if (this.isLoading || statsAlreadyLoaded) {
@@ -149,17 +204,20 @@ export default {
       this.overlay = true;
 
       try {
-        const response = await this.$axios.get(
-          `${this.$config.API}/administracion/dashboard-stats`
-        );
+        const [dashboardRes, topProductsData] = await Promise.all([
+          this.$axios.get(`${this.$config.API}/administracion/dashboard-stats`),
+          this.fetchTopProducts()
+        ]);
 
-        console.log('[DashboardAdministracion] Respuesta de API:', response.data);
+        const dashboardData = dashboardRes.data;
+        dashboardData.topProducts = topProductsData;
+
+        console.log('[DashboardAdministracion] Respuesta de API:', dashboardData);
 
         // Actualizar stats compartidos para que TODAS las instancias vean los datos
-        Object.assign(sharedStats, response.data);
+        Object.assign(sharedStats, dashboardData);
 
         console.log('[DashboardAdministracion] Stats actualizados:', sharedStats);
-        console.log('[DashboardAdministracion] Progreso activas:', sharedStats.progreso_activas);
       } catch (error) {
         console.error('[DashboardAdministracion] Error al obtener estadísticas:', error);
         statsAlreadyLoaded = false; // Permitir reintentar en caso de error

@@ -55,8 +55,8 @@
                         <tr v-for="color in ['C', 'M', 'Y', 'K', 'W']" :key="color" v-if="isColorSupported(color)">
                           <td>
                             <div
-                              class="px-2 py-1 rounded font-weight-bold mx-auto"
-                              :style="getColorBadgeStyle(color)"
+                              class="ink-badge mx-auto"
+                              :class="'ink-' + color.toLowerCase()"
                             >
                               {{ color }}
                             </div>
@@ -81,14 +81,10 @@
                     <label>Color Detectado:</label>
                     <div class="d-flex align-items-center">
                       <div
-                        class="px-3 py-2 rounded font-weight-bold"
-                        :style="{
-                          backgroundColor: selectedSupplyColor.bgColor,
-                          color: selectedSupplyColor.textColor,
-                          border: selectedSupplyColor.border || '1px solid #ccc',
-                          minWidth: '100px',
-                          textAlign: 'center'
-                        }"
+                        v-if="selectedSupplyColor"
+                        class="ink-badge font-weight-bold"
+                        :class="'ink-' + selectedSupplyColor.value.toLowerCase()"
+                        style="min-width: 100px; padding: 0.5rem 1rem;"
                       >
                         {{ selectedSupplyColor.name }}
                       </div>
@@ -103,10 +99,20 @@
               <b-row class="mt-3">
                 <b-col md="4" lg="3">
                   <b-form-group
-                    label="Nivel actual en tanque (ml):"
                     label-for="prevLevel"
                     description="Nivel físico observado antes de la recarga"
                   >
+                    <template #label>
+                      <span>Nivel actual en tanque (ml):</span>
+                      <b-button
+                        v-b-modal.modal-ayuda-medicion
+                        variant="link"
+                        class="p-0 ml-1 text-info"
+                        title="Ver guía de medición"
+                      >
+                        <b-icon-question-circle-fill></b-icon-question-circle-fill>
+                      </b-button>
+                    </template>
                     <b-form-input
                       id="prevLevel"
                       v-model.number="prevLevel"
@@ -178,6 +184,30 @@
         </b-alert>
       </div>
     </b-overlay>
+    <!-- Modal de Ayuda para Medición -->
+    <b-modal
+      id="modal-ayuda-medicion"
+      title="Guía de Medición de Tinta"
+      ok-only
+      ok-title="Entendido"
+      centered
+      size="md"
+    >
+      <div class="text-center">
+        <p class="text-left mb-3">
+          Utiliza una cinta métrica pegada al lateral del tanque para determinar el nivel actual en mililitros (ml) según la escala visual.
+        </p>
+        <img
+          src="/img/guia-medicion-tinta.jpg"
+          alt="Guía de Medición"
+          class="img-fluid rounded border shadow-sm"
+          style="max-height: 500px;"
+        />
+        <p class="mt-3 text-muted small">
+          * Asegúrate de tomar la medida en una superficie plana para mayor precisión.
+        </p>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -197,42 +227,11 @@ export default {
       prevLevel: null,
       inkLevels: [], // Niveles de tinta de la impresora seleccionada
       colorOptions: [
-        {
-          name: "Cyan",
-          text: "Cyan",
-          value: "C",
-          bgColor: "#00FFFF",
-          textColor: "#000000",
-        },
-        {
-          name: "Magenta",
-          text: "Magenta",
-          value: "M",
-          bgColor: "#FF00FF",
-          textColor: "#000000",
-        },
-        {
-          name: "Yellow",
-          text: "Yellow",
-          value: "Y",
-          bgColor: "#FFFF00",
-          textColor: "#000000",
-        },
-        {
-          name: "Black",
-          text: "Black",
-          value: "K",
-          bgColor: "#000000",
-          textColor: "#FFFFFF",
-        },
-        {
-          name: "White",
-          text: "White",
-          value: "W",
-          bgColor: "#FFFFFF",
-          textColor: "#000000",
-          border: "1px solid #ccc",
-        }, // Añadir borde para visibilidad
+        { name: "Cyan", value: "C" },
+        { name: "Magenta", value: "M" },
+        { name: "Yellow", value: "Y" },
+        { name: "Black", value: "K" },
+        { name: "White", value: "W" },
       ],
     };
   },
@@ -357,16 +356,6 @@ export default {
     isColorSupported(color) {
       if (color === 'W') return this.selectedPrinterTechnology === 'CMYKW';
       return true;
-    },
-    getColorBadgeStyle(colorCode) {
-      const color = this.colorOptions.find(c => c.value === colorCode);
-      if (!color) return {};
-      return {
-        backgroundColor: color.bgColor,
-        color: color.textColor,
-        border: color.border || '1px solid transparent',
-        width: '40px'
-      };
     },
     getInkLevelValue(color, key) {
       const level = this.inkLevels.find(l => l.color === color);

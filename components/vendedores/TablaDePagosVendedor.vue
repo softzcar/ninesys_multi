@@ -4,10 +4,9 @@
       <b-row>
         <b-col>
           <b-list-group class="mb-4">
-            <b-list-group-item>
-              <h3>RELACIÓN DE PAGOS</h3>
+            <b-list-group-item variant="success" class="text-center p-4">
+              <h2 class="mb-0"><strong>TOTAL ACUMULADO:</strong> $ {{ totalPendiente }}</h2>
             </b-list-group-item>
-            <b-list-group-item variant="danger"><strong>PENDIENTE:</strong> $ {{ totalPendiente }}</b-list-group-item>
           </b-list-group>
         </b-col>
       </b-row>
@@ -15,7 +14,7 @@
       <b-row>
         <b-col class="mt-4">
           <!-- Only PENDIENTES tab content, no b-tabs needed -->
-          <b-table-lite
+          <b-table
             bordered
             responsive
             small
@@ -29,7 +28,7 @@
             <template #cell(pago)="data">
               ${{ data.item.pago }}
             </template>
-          </b-table-lite>
+          </b-table>
         </b-col>
       </b-row>
     </b-overlay>
@@ -55,10 +54,10 @@ export default {
     fields() {
       return {
         pendientes: [
-          { key: "id_orden", label: "ORD", class: "text-center" },
-          { key: "fecha_de_pago", label: "FECHA", class: "text-center" },
-          { key: "tipo_de_pago", label: "TIPO", class: "text-center" },
-          { key: "pago", label: "COMISIÓN", class: "text-center" },
+          { key: "id_orden", label: "ORD", class: "text-center", sortable: true },
+          { key: "fecha_de_pago", label: "FECHA", class: "text-center", sortable: true },
+          { key: "tipo_de_pago", label: "TIPO", class: "text-center", sortable: true },
+          { key: "pago", label: "COMISIÓN", class: "text-center", sortable: true },
         ],
         // terminadas fields are no longer needed in template
       };

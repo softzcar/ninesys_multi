@@ -13,15 +13,53 @@
           </template>
 
           <template #cell(empleado)="data">
-            {{ data.item.empleado }}
+            <div>
+              <strong>{{ data.item.empleado }}</strong>
+              <div v-if="data.item.observaciones" class="text-muted small mt-1" style="max-height: 40px; overflow: hidden; line-height: 1.2;">
+                {{ data.item.observaciones.replace(/<[^>]*>?/gm, '').substring(0, 100) }}{{ data.item.observaciones.length > 100 ? '...' : '' }}
+              </div>
+            </div>
           </template>
 
           <template #cell(_id)="data">
-            <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger">
-              <b-icon icon="trash"></b-icon>
-            </b-button>
+            <div class="d-flex align-items-center">
+              <b-button variant="info" size="sm" class="mr-2" @click="previsualizarProductos(data.item.productos_json)">
+                <b-icon icon="eye"></b-icon> Ver productos
+              </b-button>
+              
+              <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger" size="sm">
+                <b-icon icon="trash"></b-icon> Eliminar
+              </b-button>
+            </div>
           </template>
         </b-table>
+      </div>
+    </b-modal>
+
+    <!-- Modal para previsualizar productos -->
+    <b-modal id="modal-previsualizar-productos" title="Productos en el presupuesto" hide-footer size="md">
+      <b-table striped hover small :items="productosPrevisualizar" 
+        :fields="[
+          { key: 'name', label: 'Producto' }, 
+          { key: 'cantidad', label: 'Cantidad' }, 
+          { key: 'talla', label: 'Talla' },
+          { key: 'tela', label: 'Tela' }
+        ]">
+        <template #cell(name)="data">
+          {{ data.value }}
+        </template>
+        <template #cell(cantidad)="data">
+          <strong>{{ data.value }}</strong>
+        </template>
+        <template #cell(talla)="data">
+          {{ data.value }}
+        </template>
+        <template #cell(tela)="data">
+          {{ data.value }}
+        </template>
+      </b-table>
+      <div class="text-right">
+        <b-button variant="secondary" @click="$bvModal.hide('modal-previsualizar-productos')">Cerrar</b-button>
       </div>
     </b-modal>
 
@@ -125,23 +163,7 @@
       <div v-if="areRatesLoaded">
         <hr />
         <b-container>
-          <b-row v-if="ordenVinculada">
-            <b-col>
-              <b-alert show variant="warning">
-                <h4 class="alert-heading">
-                  Orden Vinculada {{ ordenVinculada }}
-                </h4>
-                <p>
-                  Este orden estará vinculada con la orden número
-                  {{ ordenVinculada }}.
-                </p>
-                <p>
-                  Si desea desvincularla seleccione la opción desde la pestaña
-                  <strong>Clientes</strong>
-                </p>
-              </b-alert>
-            </b-col>
-          </b-row>
+
 
           <b-row>
             <b-col>
@@ -212,24 +234,8 @@
                               </b-row>
                               <b-row>
                                 <b-col lg="12">
-                                  <produccion-vincularOrden @reload="reloadVinculo" />
-                                  <hr class="my-4 pb-4" />
-                                </b-col>
-                              </b-row>
-                              <b-row>
-                                <b-col lg="12">
                                   <b-form v-on:submit.prevent>
-                                    <b-form-group>
-                                      <label for="input-fecha">Fecha de entrega
-                                        <span required>*</span>
-                                        <small v-if="fechaProximaDisponible" class="d-block text-muted">
-                                          <strong>Sugerida a partir del: {{ fechaProximaFormateada }}</strong>
-                                        </small>
-                                      </label>
-                                      <b-form-datepicker id="input-fecha" v-model="form.fechaEntrega"
-                                        class="mb-2 mr-sm-2 mb-sm-0"
-                                        placeholder="Selecciona una fecha"></b-form-datepicker>
-                                    </b-form-group>
+
 
                                     <b-form-group>
                                       <label for="input-nombre">Nombre <span required>*</span></label>
@@ -317,15 +323,7 @@
                                 </b-row>
                                 <br />
 
-                                <b-form-radio-group id="btn-radios-2" v-model="categoriaDeLaORden"
-                                  :options="categoriaDeLaORdenOptions" button-variant="outline-primary" size="lg"
-                                  name="radio-btn-outline" buttons class="mb-4"
-                                  @input="changeCategory"></b-form-radio-group>
 
-                                <b-form-checkbox v-model="form.guardarStock" :disabled="categoriaDeLaORden !== 'custom'"
-                                  class="mb-4">
-                                  Guardar en Stock
-                                </b-form-checkbox>
 
                                   <div class="d-flex align-items-center mb-4">
                                     <vue-typeahead-bootstrap 
@@ -348,7 +346,6 @@
                                   <!-- Modal Explorador de Productos -->
                                   <ProductSelectorModal 
                                     ref="productModal"
-                                    :preferStoreMode="categoriaDeLaORden === 'sport'"
                                     @product-selected="handleProductSelectedFromModal" 
                                   />
                               </b-col>
@@ -540,6 +537,7 @@ import phoneValidation from "~/mixins/phoneValidation.js";
 import FormMonedas from "~/components/formMonedas.vue";
 import CargarOrdenesNoAsignadas from "~/components/ordenes/cargarOrdenesNoAsignadas.vue";
 import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
+import PrintService from '@/utils/PrintService';
 import PresupuestoPreview from "~/components/ordenes/presupuesto-preview.vue";
 import ProductSelectorModal from "~/components/ordenes/ProductSelectorModal.vue";
 
@@ -559,6 +557,7 @@ export default {
       abonoHistorico: 0, // Abono existente al cargar la orden
       descuentoHistorico: 0, // Descuento existente al cargar la orden
       proyeccionData: [], // Almacenará los datos de la cola de producción
+      productosPrevisualizar: [], // Para el modal de previsualización
       fechaProximaDisponible: null, // Almacenará la fecha calculada
       editingOrderId: null,
       presupuestoCargadoId: null, // ID del presupuesto cargado para conversión
@@ -566,10 +565,7 @@ export default {
       quillOptions: quillOptions,
       endpoint: "/presupuesto/nuevo", // Opciones: `/presupuesto/nuevo` - `/ordenes/nueva/sport`
       categoriaDeLaORden: "custom", // Puede ser `custom` o `sport`
-      categoriaDeLaORdenOptions: [
-        { text: "Fábrica", value: "custom" },
-        { text: "Tienda", value: "sport" },
-      ],
+
       opcionesDePago: [
         { value: "Dólares", text: "Dólares" },
         { value: "Pesos", text: "Pesos" },
@@ -585,7 +581,7 @@ export default {
       disable4: true,
       nextText: "Siguiente",
 
-      ordenVinculada: 0,
+
 
       ordenesGuardadas: [],
 
@@ -608,7 +604,7 @@ export default {
         telefono: "",
         email: "",
         direccion: "",
-        fechaEntrega: "",
+        fechaEntrega: new Date().toISOString().split('T')[0],
         productos: [], // Datos para la tabla de productos
         obs: "",
         tasaDolar: 0,
@@ -650,7 +646,7 @@ export default {
         telefono: "",
         email: "",
         direccion: "",
-        fechaEntrega: "",
+        fechaEntrega: new Date().toISOString().split('T')[0],
         productos: [], // Datos para la tabla de productos
         metodoDePago: [],
         obs: "",
@@ -686,7 +682,7 @@ export default {
         next: 0,
         disableControl: false,
         sendWhatsAppMessage: false,
-        guardarStock: false, // Nuevo campo para "Guardar en Stock"
+
       },
       formConversion: {
         montoDolaresEfectivo: 0,
@@ -740,7 +736,7 @@ export default {
         { key: "tipo", label: "Tipo" },
         { key: "form", label: "Cliente" },
         { key: "empleado", label: "Vendedor" },
-        { key: "_id", label: "Eliminar" },
+        { key: "_id", label: "Acciones" },
       ],
       loadingMsg: "Cargando datos...",
       mainOverlay: this.$store.state.login.loading,
@@ -1148,11 +1144,7 @@ export default {
       this.editingOrderId = datosDeLaOrden.orden[0]._id;
 
       // Actualizar el endpoint para modo edición
-      if (this.categoriaDeLaORden === "custom") {
-        this.endpoint = `/presupuesto/nuevo/edit`;
-      } else if (this.categoriaDeLaORden === "sport") {
-        this.endpoint = `/ordenes/nueva/sport/edit`;
-      }
+      this.endpoint = `/presupuesto/nuevo/edit`;
 
       // 2. Poblar datos del cliente
       const customerData = datosDeLaOrden.customer.data[0];
@@ -1195,7 +1187,8 @@ export default {
 
       // 4. Poblar productos
       if (datosDeLaOrden.productos && datosDeLaOrden.productos.length > 0) {
-        this.form.productos = datosDeLaOrden.productos.map((apiProd, index) => {
+        const productos = Array.isArray(datosDeLaOrden.productos) ? datosDeLaOrden.productos : [];
+        this.form.productos = productos.map((apiProd, index) => {
           const fullProduct = this.$store.state.comerce.dataProductos.find(
             (p) => p.cod === apiProd.cod
           );
@@ -1313,31 +1306,115 @@ export default {
       this.checkScreenSize();
     },
 
-    loadFormGuardadas(idArray, idTable) {
-      this.form = this.ordenesGuardadas[idArray].form;
+    async loadFormGuardadas(idArray, idTable) {
+      const item = this.ordenesGuardadas[idArray];
+
+      if (item.tipo === 'Presupuesto Finalizado') {
+        await this.cargarPresupuestoEmitido(item._id);
+      } else {
+        this.form = item.form;
+      }
 
       // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
       if (typeof this.form.sendWhatsAppMessage === 'undefined') {
         this.$set(this.form, 'sendWhatsAppMessage', true);
       }
 
-      console.log("cargar orden:", this.ordenesGuardadas[idArray].form);
+      console.log("cargar orden:", this.form);
       this.clearSearch();
       this.$bvModal.hide(this.modal);
+    },
+
+    async cargarPresupuestoEmitido(id) {
+      this.overlay = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/presupuesto/detalle/${id}`);
+        const data = res.data;
+
+        // Mapear datos básicos
+        this.form.id = null; // Es nuevo al cargar un emitido (borrador de edición o nueva orden)
+        this.form.nombre = data.cliente_nombre;
+        this.form.apellido = ""; // El backend a veces une nombre y apellido
+        this.form.cedula = data.cliente_cedula;
+        this.form.telefono = data.cliente_telefono || "";
+        this.form.email = data.cliente_email || "";
+        this.form.direccion = data.cliente_direccion || "";
+        this.form.obs = data.observaciones;
+        this.form.total = data.pago_total;
+        
+        // Mapear productos
+        const productosArr = Array.isArray(data.productos) ? data.productos : [];
+        this.form.productos = productosArr.map(p => {
+          return {
+            item: p.id_item,
+            cod: p.cod,
+            producto: p.name,
+            existencia: 0,
+            cantidad: p.cantidad,
+            tela: p.id_tela,
+            talla: p.id_size,
+            corte: p.corte || "No aplica",
+            precio: p.price,
+            original_selected_price: p.price,
+            diseno: false,
+            atributos_seleccionados: [] // Tendríamos que ver si el detalle trae atributos
+          };
+        });
+
+        this.presupuestoCargadoId = id;
+
+      } catch (e) {
+        console.error("Error cargando presupuesto emitido", e);
+        this.$fire({
+          type: 'error',
+          title: 'Error',
+          text: 'No se pudo cargar el detalle del presupuesto.'
+        });
+      } finally {
+        this.overlay = false;
+      }
+    },
+
+    previsualizarProductos(productosJson) {
+      try {
+        if (typeof productosJson === 'string') {
+          this.productosPrevisualizar = JSON.parse(productosJson);
+        } else {
+          this.productosPrevisualizar = productosJson || [];
+        }
+        this.$bvModal.show('modal-previsualizar-productos');
+      } catch (e) {
+        console.error("Error al parsear productos para previsualización", e);
+        this.productosPrevisualizar = [];
+      }
     },
 
     async getOrdenesGuardadas() {
       await this.$axios
         .get(`${this.$config.API}/ordenes/guardadas`)
         .then((res) => {
-          console.log("response getOrdenesGuardadas", res.data.items);
-          // this.ordenesGuardadas = res.data.items
-          this.ordenesGuardadas = res.data.items.map((item) => {
-            const parsedForm = JSON.parse(item.form);
-            return { ...item, form: parsedForm };
-          });
-          // this.ordenesGuardadas = res.data.items
-          console.log("this.ordenesGuardadas", this.ordenesGuardadas);
+          // Soporte para res.data.items, res.data (array) o res.data.data
+          const rawItems = res.data.items || (Array.isArray(res.data) ? res.data : (res.data.data || []));
+          this.ordenesGuardadas = rawItems
+            .map((item) => {
+              // Si form ya es un objeto (parseado por el interceptor/backend), lo usamos.
+              // De lo contrario, intentamos parsearlo si es un string.
+              if (item.form && typeof item.form === 'object') {
+                return item;
+              }
+
+              try {
+                if (typeof item.form === 'string') {
+                  const parsedForm = JSON.parse(item.form);
+                  return { ...item, form: parsedForm };
+                }
+                return null; // Ni objeto ni string válido
+              } catch (e) {
+                console.warn(`Error al parsear item.form para el ID ${item._id}:`, e);
+                return null; // item corrupto: se omite
+              }
+            })
+            .filter(item => item !== null);
         });
     },
 
@@ -1414,32 +1491,7 @@ export default {
     cargarOrden() {
       this.$bvModal.show(this.modal);
     },
-    changeCategory() {
-      // Definir el endpoint para crear la orden
-      if (this.categoriaDeLaORden === "custom") {
-        this.endpoint = this.editingOrderId
-          ? `/presupuesto/nuevo/edit`
-          : `/presupuesto/nuevo`;
-        const productsSelect = this.getProductsCustom.map((prod) => {
-          return `${prod.cod} | ${prod.name}`;
-        });
-        this.$store.commit("comerce/setDataProductosSelect", productsSelect);
-      } else if (this.categoriaDeLaORden === "sport") {
-        this.endpoint = this.editingOrderId
-          ? `/ordenes/nueva/sport/edit`
-          : `/ordenes/nueva/sport`;
-        const productsSelect = this.getProductsSport.map((prod) => {
-          return `${prod.cod} | ${prod.name}`;
-        });
-        this.$store.commit("comerce/setDataProductosSelect", productsSelect);
-      }
 
-      this.form.productos = [];
-      // Si se selecciona "Tienda", deseleccionar "Guardar en Stock"
-      if (this.categoriaDeLaORden === 'sport') {
-        this.form.guardarStock = false;
-      }
-    },
 
     checkTallasTelas() {
       let checking = this.form.productos.filter(
@@ -1643,10 +1695,7 @@ export default {
       }
     },
 
-    reloadVinculo(val) {
-      console.log("Orden a vincular:", val);
-      this.ordenVinculada = val;
-    },
+
 
     prev() {
       if (this.tabIndex === 1) {
@@ -1803,10 +1852,7 @@ export default {
         msg = msg + "<p>El apellido es un campo obligatorio</p>";
       }
 
-      if (!this.form.fechaEntrega.trim()) {
-        ok = false;
-        msg = msg + "<p>La fecha de entrega es un campo obligatorio</p>";
-      }
+
 
       if (!this.validarEmail(this.form.email) && this.form.email.trim() != "") {
         ok = false;
@@ -2237,13 +2283,16 @@ export default {
           this.$axios
             .get(`${this.$config.API}/customers`)
             .then((responseClientes) => {
+              // Soporte para responseClientes.data.data o directo responseClientes.data
+              const data = responseClientes.data.data || (Array.isArray(responseClientes.data) ? responseClientes.data : []);
+
               // Cargar Clientes
               this.$store.commit(
                 "comerce/setDataCustomers",
-                responseClientes.data.data
+                data
               );
 
-              let customersSelect = responseClientes.data.data.map((client) => {
+              let customersSelect = data.map((client) => {
                 return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
               });
 
@@ -2332,7 +2381,7 @@ export default {
         telefono: "",
         email: "",
         direccion: "",
-        fechaEntrega: "",
+        fechaEntrega: new Date().toISOString().split('T')[0],
         productos: [],
         metodoDePago: [],
         obs: "",
@@ -2390,7 +2439,7 @@ export default {
       this.editingOrderId = null;
       // this.endpoint = "/presupuesto/nuevo"; // FIX: Reset endpoint to default
       this.query2 = "";
-      this.ordenVinculada = 0;
+
       this.disable1 = false;
       this.disable2 = true;
       this.disable3 = true;
@@ -2432,7 +2481,7 @@ export default {
       const data = new URLSearchParams();
       data.set("id", this.form.id);
       data.set("id_orden_edit", this.editingOrderId);
-      data.set("vinculada", this.ordenVinculada);
+
       data.set("nombre", this.form.nombre);
       data.set("apellido", this.form.apellido);
       data.set("cedula", this.form.cedula);
@@ -2518,7 +2567,7 @@ export default {
       data.set("tasa_dolar", this.tasas.bolivar || 200);
       data.set("tasa_peso", this.tasas.peso_colombiano || 1);
       data.set("sendWhatsAppMessage", this.form.sendWhatsAppMessage);
-      data.set("guardar_stock", this.form.guardarStock || false);
+
 
       console.log("data para crear nueva orden", data);
 
@@ -2549,7 +2598,7 @@ export default {
           ).catch(() => false);
 
           if (wantsToPrint) {
-            await this.printOrder("reporte");
+            PrintService.imprimir(this.form, this.$store.state.login.dataUser.id_departamento);
           }
 
           this.clearForm(); // Limpiar el formulario para la siguiente presupuesto
@@ -2610,12 +2659,7 @@ export default {
     },
 
     formarProductSelect() {
-      let dataSource = null;
-      if (this.categoriaDeLaORden === "custom") {
-        dataSource = this.getProductsCustom;
-      } else if (this.categoriaDeLaORden === "sport") {
-        dataSource = this.getProductsSport;
-      }
+      const dataSource = this.getProductsCustom;
 
       const productsSelect = dataSource.map((prod) => {
         return `${prod.cod} | ${prod.name}`;
@@ -2683,7 +2727,8 @@ export default {
         return [];
       }
 
-      const options = tmpProd.prices.map((el) => {
+      const prices = Array.isArray(tmpProd.prices) ? tmpProd.prices : [];
+      const options = prices.map((el) => {
         return {
           value: parseFloat(el.price), // Aseguramos que el valor sea un número flotante
           text: `${el.price} ${el.description}`,
@@ -2904,15 +2949,18 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/customers`)
         .then((responseClientes) => {
+          // Soporte para responseClientes.data.data o directo responseClientes.data
+          const data = responseClientes.data.data || (Array.isArray(responseClientes.data) ? responseClientes.data : []);
+          
           // Cargar Clientes
           this.$store.commit(
             "comerce/setDataCustomers",
-            responseClientes.data.data
+            data
           );
 
-          this.responseClientes = responseClientes.data.data;
+          this.responseClientes = data;
 
-          let customersSelect = responseClientes.data.data.map((client) => {
+          let customersSelect = data.map((client) => {
             return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
           });
 
@@ -2935,8 +2983,11 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/sizes`)
         .then((responseTallas) => {
+          // Soporte para responseTallas.data.data o directo responseTallas.data
+          const data = responseTallas.data.data || (Array.isArray(responseTallas.data) ? responseTallas.data : []);
+          
           // Cargar Tallas
-          let mySizes = responseTallas.data.data.map((item) => {
+          let mySizes = data.map((item) => {
             return {
               value: item._id,
               text: item.name,
@@ -2961,8 +3012,11 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/telas`)
         .then((responseTelas) => {
+          // Soporte para responseTelas.data.data o directo responseTelas.data
+          const data = responseTelas.data.data || (Array.isArray(responseTelas.data) ? responseTelas.data : []);
+
           // Cargar Telas
-          let myTelas = responseTelas.data.data.map((item) => {
+          let myTelas = data.map((item) => {
             return {
               value: item._id, // FIX: Usar el ID como valor para el select
               text: item.tela,
@@ -2987,7 +3041,10 @@ export default {
       await this.$axios
         .get(`${this.$config.API}/products-attributes`)
         .then((response) => {
-          this.productAttributes = response.data.data.map((item) => {
+          // Soporte para response.data.data o directo response.data
+          const data = response.data.data || (Array.isArray(response.data) ? response.data : []);
+
+          this.productAttributes = data.map((item) => {
             return {
               value: item._id,
               text: `${item.name} (${item.precio})`,
@@ -3015,13 +3072,16 @@ export default {
           }
         })
         .then((responseProductos) => {
+          // Soporte para responseProductos.data.data o directo responseProductos.data (que es un array generalmente)
+          const data = Array.isArray(responseProductos.data) ? responseProductos.data : (responseProductos.data.data || []);
+          
           // Cargar Productos
-          let productsSelect = responseProductos.data.map((prod) => {
+          let productsSelect = data.map((prod) => {
             return `${prod.cod} | ${prod.name}`;
           });
           this.$store.commit(
             "comerce/setDataProductos",
-            responseProductos.data
+            data
           );
           this.$store.commit("comerce/setDataProductosSelect", productsSelect);
         })
@@ -3056,96 +3116,7 @@ export default {
         });
     },
 
-    async loadDataComercializacion() {
-      await this.$axios
-        .all([
-          this.$axios(`${this.$config.API}/customers`),
-          this.$axios(`${this.$config.API}/sizes`),
-          this.$axios(`${this.$config.API}/telas`),
-          this.$axios(`${this.$config.API}/products`),
-          this.$axios(`${this.$config.API}/categories`),
-          this.$axios(`${this.$config.API}/ordenes/guardadas`),
-        ])
-        .then(
-          this.$axios.spread(
-            (
-              responseClientes,
-              responseProductos,
-              responseCategories,
-              responseTelas,
-              responseTallas
-              // responseGuardadas
-            ) => {
-              // Cargar categorias
-              let myCategories = responseCategories.data;
-              this.$store.commit("comerce/setDataCategories", myCategories);
 
-              // Cargar Telas
-              let myTelas = responseTelas.data.data.map((item) => {
-                return {
-                  value: item.tela,
-                  text: item.tela,
-                };
-              });
-
-              this.$store.commit("comerce/setDataTelas", myTelas);
-
-              // Cargar Clientes
-              this.$store.commit(
-                "comerce/setDataCustomers",
-                responseClientes.data.data
-              );
-
-              this.responseClientes = responseClientes.data.data;
-
-              let customersSelect = responseClientes.data.data.map((client) => {
-                return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
-              });
-
-              this.$store.commit(
-                "comerce/setDataCustomersSelect",
-                customersSelect
-              );
-
-              // Cargar Tallas
-              let mySizes = responseTallas.data.data.map((item) => {
-                return {
-                  value: item._id,
-                  text: item.name,
-                };
-              });
-              this.$store.commit("comerce/setDataTallas", mySizes);
-
-              console.log("ordenes guardadas", this.ordenesGuardadas);
-
-              // Cargar Productos
-              let productsSelect = responseProductos.data.map((prod) => {
-                return `${prod.cod} | ${prod.name}`;
-              });
-              this.$store.commit(
-                "comerce/setDataProductos",
-                responseProductos.data
-              );
-              this.$store.commit(
-                "comerce/setDataProductosSelect",
-                productsSelect
-              );
-            }
-          )
-        )
-        .then(() => {
-          this.mainOverlay = false;
-        })
-        .catch((err) => {
-          console.log(`Error: ${err}`);
-          this.$fire({
-            type: "error",
-            title: "Error obteniendo datos, por favor recargue el módulo ",
-            html: err,
-          });
-          this.mainOverlay = false;
-        });
-    },
   },
 
   async mounted() {

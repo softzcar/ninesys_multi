@@ -4,13 +4,34 @@
       :show="overlay"
       spinner-small
     >
+      <b-row class="mb-3">
+        <b-col md="6">
+          <b-form-group label="Filtrar por Diseñador:" label-for="filter-designer">
+            <b-form-select
+              id="filter-designer"
+              v-model="filterDesigner"
+              :options="designerOptions"
+            ></b-form-select>
+          </b-form-group>
+        </b-col>
+        <b-col md="6">
+          <b-form-group label="Filtrar por Vendedor:" label-for="filter-seller">
+            <b-form-select
+              id="filter-seller"
+              v-model="filterSeller"
+              :options="sellerOptions"
+            ></b-form-select>
+          </b-form-group>
+        </b-col>
+      </b-row>
+
       <b-table
         ref="table"
         responsive
         small
         striped
         hover
-        :items="datax"
+        :items="filteredDatax"
         :fields="fields"
       >
         <template #cell(id)="data">
@@ -90,18 +111,23 @@ export default {
       size: "md",
       title: `Abonos a la orden ${this.idorden}`,
       datax: [],
+      filterDesigner: null,
+      filterSeller: null,
       fields: [
         {
           key: "id",
           label: "Orden",
+          sortable: true,
         },
         {
           key: "first_name",
           label: "Cliente",
+          sortable: true,
         },
         {
           key: "nombre_empleado",
           label: "Diseñador",
+          sortable: true,
         },
         {
           key: "check",
@@ -109,10 +135,17 @@ export default {
           thClass: "text-center", // Aplicar clase al encabezado (th)
           tdClass: "text-center", // Aplicar clase a las celdas (td)
           trClass: "text-center", // Esto es opcional si quieres centrar las filas
+          sortable: true,
         },
         {
           key: "tipo",
           label: "Tipo",
+          sortable: true,
+        },
+        {
+          key: "responsable_nombre",
+          label: "Vendedor",
+          sortable: true,
         },
         {
           key: "empleado",
@@ -134,6 +167,72 @@ export default {
     dataTable() {
       return this.$store.state.disenos.disenos;
     },
+    filteredDatax() {
+      if (!this.datax) return [];
+      
+      let data = this.datax.map(item => {
+        let seller = this.empleados.find(emp => emp._id == item.responsable || emp.id_empleado == item.responsable || emp.id_usuario == item.responsable);
+        return {
+          ...item,
+          responsable_nombre: seller ? seller.nombre : 'Desconocido',
+        };
+      });
+
+      if (this.filterDesigner !== null && this.filterDesigner !== "0") {
+        data = data.filter(item => item.empleado == this.filterDesigner);
+      } else if (this.filterDesigner === "0") {
+        data = data.filter(item => item.empleado == "0" || !item.empleado);
+      }
+      
+      if (this.filterSeller !== null) {
+        data = data.filter(item => item.responsable == this.filterSeller);
+      }
+      
+      return data;
+    },
+    designerOptions() {
+      if (!this.empleados) return [{ value: null, text: "-- Todos los diseñadores --" }];
+      
+      let options = this.empleados
+        .filter(emp => {
+          const depStr = emp.departamento ? String(emp.departamento).toLowerCase() : '';
+          let isDiseño = depStr.includes('diseño') || depStr.includes('diseñador');
+          if (Array.isArray(emp.departamentos)) {
+             isDiseño = isDiseño || emp.departamentos.some(d => d.nombre && d.nombre.toLowerCase().includes('diseño'));
+          }
+          return isDiseño;
+        })
+        .map(emp => ({
+          value: emp._id || emp.id_usuario,
+          text: emp.nombre
+        }));
+      options.unshift({ value: "0", text: "Sin asignar" });
+      options.unshift({ value: null, text: "-- Todos los diseñadores --" });
+      return options;
+    },
+    sellerOptions() {
+      if (!this.datax || this.datax.length === 0 || !this.empleados) {
+        return [{ value: null, text: "-- Todos los vendedores --" }];
+      }
+      
+      let uniqueResponsables = [...new Set(this.datax.map(item => item.responsable))];
+      let options = uniqueResponsables
+        .map(respId => {
+          let emp = this.empleados.find(e => e._id == respId || e.id_empleado == respId || e.id_usuario == respId);
+          if (emp) {
+            return {
+              value: respId,
+              text: emp.nombre
+            };
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.text.localeCompare(b.text));
+        
+      options.unshift({ value: null, text: "-- Todos los vendedores --" });
+      return options;
+    }
   },
 
   methods: {
@@ -143,7 +242,7 @@ export default {
         options = this.$store.state.disenos.empleados
           .map((el) => {
             return {
-              value: el.id_usuario,
+              value: el._id || el.id_usuario,
               text: `${el.nombre}`,
             };
           });
@@ -214,7 +313,7 @@ export default {
             ) */
             .map((el) => {
               return {
-                value: el.id_usuario,
+                value: el._id || el.id_usuario,
                 text: el.nombre,
               };
             });

@@ -4,19 +4,18 @@
             <b-icon icon="pencil"></b-icon>
         </b-button>
 
-        <b-modal :size="size" :title="title" :id="modal" ok-only>
+        <b-modal :size="size" :title="title" :id="modal" ok-only :busy="overlay">
             <b-container>
-                <b-row>
-                    <b-col>
-                        <p>
-                            Seleccione el estatus de la orden
-                        </p>
-                        <p>
-                            <b-overlay :show="overlay" spinner-small>
-                                <b-form-select v-model="selected" :options="options"
+                <b-overlay :show="overlay" spinner-small rounded="sm">
+                    <b-row>
+                        <b-col>
+                            <p>
+                                Seleccione el estatus de la orden
+                            </p>
+                            <p>
+                                <b-form-select v-model="selected" :options="options" :disabled="overlay"
                                     @change="handleStatusChange"></b-form-select>
-                            </b-overlay>
-                        </p>
+                            </p>
 
                         <!-- Mensaje de Error y Tareas Pendientes -->
                         <div v-if="errorMessage" class="mt-3">
@@ -53,6 +52,7 @@
                         </p>
                     </b-col>
                 </b-row>
+                </b-overlay>
             </b-container>
         </b-modal>
 
@@ -231,6 +231,7 @@ export default {
         confirmarConMotivo() {
             // Usuario confirmó con motivo, proceder a guardar
             this.esperandoMotivo = false
+            this.$bvModal.hide(this.modalMotivo)
             this.saveData()
         },
 
@@ -255,8 +256,15 @@ export default {
                 data.set('forzar_reactivacion', '1')
             }
 
-            // Si es cancelada o terminada, verificar que tenemos motivo
-            if ((this.selected === 'cancelada' || this.selected === 'terminada') && !this.esperandoMotivo) {
+            // Detectar si es una reactivación (se está saliendo de cancelada o terminada)
+            const esReactivacion = (this.previousSelected === 'cancelada' || this.previousSelected === 'terminada') && 
+                                  (this.selected !== 'cancelada' && this.selected !== 'terminada');
+            
+            // Detectar si se está revirtiendo una entrega
+            const esReversionEntrega = this.previousSelected === 'entregada' && this.selected !== 'entregada';
+
+            // Si es cancelada, terminada, reactivación o reversión de entrega, verificar que tenemos motivo
+            if ((this.selected === 'cancelada' || this.selected === 'terminada' || esReactivacion || esReversionEntrega) && !this.esperandoMotivo) {
                 // Si no hay motivo, mostrar modal
                 if (!this.motivoCambio || this.motivoCambio.trim() === '') {
                     this.esperandoMotivo = true

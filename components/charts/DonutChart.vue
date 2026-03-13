@@ -1,5 +1,5 @@
 <template>
-  <div class="donut-chart-container">
+  <div :class="flat ? 'flat-chart' : 'donut-chart-container'">
     <client-only>
       <apexchart
         type="donut"
@@ -59,6 +59,11 @@ export default {
     valueSuffix: {
       type: String,
       default: 'órdenes'
+    },
+    // Si es flat, no aplica estilo de tarjeta (sombra y fondo)
+    flat: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -169,5 +174,10 @@ export default {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+.flat-chart {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
 }
 </style>

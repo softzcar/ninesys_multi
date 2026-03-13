@@ -89,7 +89,7 @@
                         <b-form-group :label="color.toUpperCase()" label-size="sm" class="mb-0">
                           <b-form-input v-model.number="tinta[color]" type="number" step="0.1" size="sm" :style="{
                             backgroundColor: colorMap[color],
-                            color: color === 'k' || color === 'm' ? 'white' : 'black',
+                            color: 'black',
                             fontWeight: 'bold'
                           }" :disabled="!tinta.id_impresora"></b-form-input>
                         </b-form-group>
@@ -268,11 +268,11 @@ export default {
       // Manejar tintas por orden (solo Impresión)
       tintasPorOrden: {},
       colorMap: {
-        c: '#00FFFF',
-        m: '#FF00FF',
-        y: '#FFFF00',
-        k: '#343A40',
-        w: '#F8F9FA',
+        c: '#E0FBFF',
+        m: '#FFF0F5',
+        y: '#FFFDE7',
+        k: '#F5F5F5',
+        w: '#FFFFFF',
       },
     }
   },

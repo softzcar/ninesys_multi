@@ -24,8 +24,8 @@
             <tr v-for="(ink, index) in printerData" :key="index">
               <td class="text-center align-middle">
                 <div
-                  class="px-2 py-1 rounded font-weight-bold mx-auto"
-                  :style="getColorBadgeStyle(ink.color)"
+                  class="ink-badge mx-auto"
+                  :class="'ink-' + ink.color.toLowerCase()"
                 >
                   {{ ink.color }}
                 </div>
@@ -64,8 +64,8 @@
             <tr v-for="(ink, index) in historyModal.data" :key="index">
               <td class="text-center align-middle">
                 <div
-                  class="px-2 py-1 rounded font-weight-bold mx-auto"
-                  :style="getColorBadgeStyle(ink.color)"
+                  class="ink-badge mx-auto"
+                  :class="'ink-' + ink.color.toLowerCase()"
                 >
                   {{ ink.color }}
                 </div>
@@ -123,47 +123,8 @@ export default {
   data() {
     return {
       historyModal: {
-        show: false,
-        printerName: '',
         data: []
       },
-      colorOptions: [
-        {
-          name: "Cyan",
-          value: "C",
-          bgColor: "#E0FBFF",
-          textColor: "#00BCD4",
-          border: "1px solid #B2EBF2"
-        },
-        {
-          name: "Magenta",
-          value: "M",
-          bgColor: "#FFF0F5",
-          textColor: "#E91E63",
-          border: "1px solid #F8BBD0"
-        },
-        {
-          name: "Yellow",
-          value: "Y",
-          bgColor: "#FFFDE7",
-          textColor: "#FBC02D",
-          border: "1px solid #FFF9C4"
-        },
-        {
-          name: "Black",
-          value: "K",
-          bgColor: "#F5F5F5",
-          textColor: "#212121",
-          border: "1px solid #E0E0E0"
-        },
-        {
-          name: "White",
-          value: "W",
-          bgColor: "#FFFFFF",
-          textColor: "#9E9E9E",
-          border: "1px solid #E0E0E0"
-        }
-      ]
     };
   },
   methods: {
@@ -171,16 +132,6 @@ export default {
       this.historyModal.printerName = printerName;
       this.historyModal.data = printerData;
       this.historyModal.show = true;
-    },
-    getColorBadgeStyle(colorCode) {
-      const color = this.colorOptions.find(c => c.value === colorCode);
-      if (!color) return {};
-      return {
-        backgroundColor: color.bgColor,
-        color: color.textColor,
-        border: color.border || '1px solid transparent',
-        width: '40px'
-      };
     },
     formatNumber(value) {
       if (value === null || value === undefined) return "0.00";

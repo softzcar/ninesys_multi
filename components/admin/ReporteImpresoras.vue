@@ -17,7 +17,10 @@
                 <p><strong>Recargas de Tinta:</strong></p>
                 <b-table striped hover :items="row.item.tintas_recargas" :fields="tintaRecargasFields">
                   <template #cell(color)="data">
-                    <div class="color-badge" :class="'color-' + data.value.toLowerCase()">
+                    <div
+                      class="ink-badge mx-auto"
+                      :class="'ink-' + data.value.toLowerCase()"
+                    >
                       {{ data.value }}
                     </div>
                   </template>
@@ -100,23 +103,7 @@ export default {
 };
 </script>
 
-<style scoped>
-.color-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  font-weight: bold;
-  margin: 0 auto;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+.table {
+  margin-bottom: 0;
 }
-
-.color-c { background-color: #00FFFF; color: black; text-shadow: none; border: 1px solid #00CCCC; }
-.color-m { background-color: #FF00FF; border: 1px solid #CC00CC; }
-.color-y { background-color: #FFFF00; color: black; text-shadow: none; border: 1px solid #CCCC00; }
-.color-k { background-color: #000000; border: 1px solid #333; }
-.color-w { background-color: #FFFFFF; color: black; text-shadow: none; border: 1px solid #CCCCCC; }
 </style>

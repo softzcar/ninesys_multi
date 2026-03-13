@@ -13,6 +13,11 @@
                     <b-form-radio-group id="btn-radios-categories" v-model="selectedCategory" :options="optionsCategories"
                         button-variant="outline-primary" size="lg" name="radio-btn-categories" @input="applyFilters()"
                         buttons></b-form-radio-group>
+
+                    <h5 class="mt-4 mb-2">Filtrar por status de orden:</h5>
+                    <b-form-radio-group id="btn-radios-status" v-model="selectedOrderStatus" :options="optionsOrderStatus"
+                        button-variant="outline-primary" size="lg" name="radio-btn-status" @input="applyFilters()"
+                        buttons></b-form-radio-group>
                 </b-col>
                 <b-col offset-lg="8" offset-xl="8">
                     <b-input-group class="mb-4" size="sm">
@@ -129,6 +134,8 @@ export default {
             ],
             selectedCategory: "todas",
             optionsCategories: [],
+            selectedOrderStatus: "todas",
+            optionsOrderStatus: [],
             perPage: 25,
             currentPage: 1,
             ordenes: [],
@@ -153,6 +160,7 @@ export default {
             this.selectedVendedor = 0;
             this.selectedRadio = "todas";
             this.selectedCategory = "todas";
+            this.selectedOrderStatus = "todas";
             this.applyFilters();
         },
         generateCategoryOptions() {
@@ -187,6 +195,31 @@ export default {
             this.optionsCategories = [
                 { text: "Todas", value: "todas" },
                 ...categoryOptions,
+            ];
+        },
+        generateOrderStatusOptions() {
+            if (!this.ordenes || this.ordenes.length === 0) {
+                this.optionsOrderStatus = [];
+                return;
+            }
+
+            const uniqueStatuses = new Set();
+            this.ordenes.forEach(order => {
+                if (order.estatus) {
+                    uniqueStatuses.add(order.estatus.trim());
+                }
+            });
+
+            const statusOptions = [...uniqueStatuses].map(status => ({
+                text: status,
+                value: status,
+            }));
+
+            statusOptions.sort((a, b) => a.text.localeCompare(b.text));
+
+            this.optionsOrderStatus = [
+                { text: "Todas", value: "todas" },
+                ...statusOptions,
             ];
         },
         onSubmit(event) {
@@ -257,6 +290,11 @@ export default {
                 );
             }
 
+            // Filter by order status
+            if (this.selectedOrderStatus !== "todas") {
+                filtered = filtered.filter(order => order.estatus === this.selectedOrderStatus);
+            }
+
             this.ordenesTabla = filtered;
         },
 
@@ -281,6 +319,7 @@ export default {
                 this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
 
                 this.generateCategoryOptions();
+                this.generateOrderStatusOptions();
                 this.applyFilters();
 
             } catch (error) {

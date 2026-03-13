@@ -380,6 +380,9 @@ export default {
             }
         })
         this.form = myForm
+        if (this.form.length === 0) {
+            this.addItem()
+        }
     },
 
     props: ["idorden", "item", "options", "hastags", "reload"],

@@ -281,3 +281,22 @@ em {
     }
 }
 
+
+/* Ink Badges */
+.ink-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+    line-height: normal;
+}
+
+.ink-c { background-color: #E0FBFF !important; color: #00BCD4 !important; border: 1px solid #B2EBF2 !important; }
+.ink-m { background-color: #FFF0F5 !important; color: #E91E63 !important; border: 1px solid #F8BBD0 !important; }
+.ink-y { background-color: #FFFDE7 !important; color: #FBC02D !important; border: 1px solid #FFF9C4 !important; }
+.ink-k { background-color: #F5F5F5 !important; color: #212121 !important; border: 1px solid #E0E0E0 !important; }
+.ink-w { background-color: #FFFFFF !important; color: #9E9E9E !important; border: 1px solid #E0E0E0 !important; }

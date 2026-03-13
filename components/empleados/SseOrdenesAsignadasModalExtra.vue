@@ -1125,6 +1125,7 @@ export default {
         });
       } finally {
         this.overlay = false;
+        this.ButtonDisabled = false;
         this.clearForms(); // Clear forms after submission
       }
     },
@@ -1195,6 +1196,7 @@ export default {
 
     // VALIDACIÓN DE FORMULARIOS
     validateForm() {
+      this.ButtonDisabled = true;
       let ok = true;
 
       // CONDITION MODIFIED: Check if there are actually insumos available to select.
@@ -1343,7 +1345,7 @@ export default {
             title: "Datos requeridos",
             html: msg,
           });
-
+          this.ButtonDisabled = false;
           // ok = false;
         } else {
           // Validación especial para Corte: confirmar si desperdicio es 0
@@ -1364,6 +1366,7 @@ export default {
 
               .catch(() => {
                 // Usuario canceló, no hacer nada
+                this.ButtonDisabled = false;
                 return false;
               });
           } else {
@@ -1541,6 +1544,7 @@ export default {
 
     async registrarEstado(tipo, id_orden, unidades) {
       this.overlay = true;
+      this.ButtonDisabled = true;
       const data = new URLSearchParams();
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
@@ -1583,6 +1587,7 @@ export default {
         })
         .finally(() => {
           this.overlay = false;
+          this.ButtonDisabled = false;
         });
     },
 

@@ -111,8 +111,8 @@
                             TOTAL
                         </th>
 
-                        <template v-for="product in form.productos">
-                            <tr class="row-product" :key="product.cod">
+                        <template v-for="(product, index) in form.productos">
+                            <tr class="row-product" :key="index">
                                 <!-- <td style="text-align: right">{{ index + 1 }}</td> -->
                                 <!-- <td style="text-align: center">
                                     {{ product.cod }}

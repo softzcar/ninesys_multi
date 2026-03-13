@@ -46,10 +46,10 @@
           </b-col>
         </b-row>
 
-        <!-- Alerts de Auditoría (solo visible para Producción y Administración) -->
-        <b-row v-if="resOrden && resOrden.auditoria && [5, 8].includes($store.state.login.currentDepartamentId)">
+        <!-- Alerts de Auditoría (Administración, Producción y Comercialización) -->
+        <b-row v-if="resOrden && resOrden.auditoria && [5, 7, 8].includes($store.state.login.currentDepartamentId)">
           <b-col>
-            <b-alert v-if="resOrden.auditoria.accion === 'cancelada'" variant="danger" show
+            <b-alert v-if="resOrden.auditoria.accion === 'cancelada' && resOrden.orden[0].status === 'cancelada'" variant="danger" show
               class="mt-3 mb-4 p-3 shadow-sm">
               <div class="mb-1">
                 <strong><i class="fas fa-exclamation-triangle"></i> Orden Cancelada Manualmente</strong>
@@ -61,10 +61,23 @@
               </div>
             </b-alert>
 
-            <b-alert v-if="resOrden.auditoria.accion === 'terminada'" variant="warning" show
+            <b-alert v-if="resOrden.auditoria.accion === 'terminada' && resOrden.orden[0].status === 'terminada'" variant="warning" show
               class="mt-3 mb-4 p-3 shadow-sm">
               <div class="mb-1">
                 <strong><i class="fas fa-exclamation-triangle"></i> Orden Terminada Manualmente</strong>
+              </div>
+              <div class="small">
+                Por: <strong>{{ resOrden.auditoria.nombre_admin }}</strong><br>
+                Fecha: {{ formatearFecha(resOrden.auditoria.fecha) }}<br>
+                Motivo: {{ resOrden.auditoria.motivo }}
+              </div>
+            </b-alert>
+
+            <!-- Alerta de Reactivación (Opcional, pero informativa) -->
+            <b-alert v-if="resOrden.auditoria.accion === 'reactivada' && ['activa', 'En espera', 'pausada'].includes(resOrden.orden[0].status)" variant="info" show
+              class="mt-3 mb-4 p-3 shadow-sm">
+              <div class="mb-1">
+                <strong><i class="fas fa-info-circle"></i> Orden Reactivada Manualmente</strong>
               </div>
               <div class="small">
                 Por: <strong>{{ resOrden.auditoria.nombre_admin }}</strong><br>

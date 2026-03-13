@@ -217,11 +217,11 @@ export default {
         { id: 1, id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
       ],
       colorMap: {
-        c: '#00FFFF',
-        m: '#FF00FF',
-        y: '#FFFF00',
-        k: '#343A40',
-        w: '#F8F9FA',
+        c: '#E0FBFF',
+        m: '#FFF0F5',
+        y: '#FFFDE7',
+        k: '#F5F5F5',
+        w: '#FFFFFF',
       },
       materialesLote: [], // Datos de materiales estimados del lote
     }

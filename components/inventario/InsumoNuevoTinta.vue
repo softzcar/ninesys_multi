@@ -45,9 +45,9 @@
                                             required
                                         />
                                         <label
-                                            class="form-check-label px-2 py-1 rounded"
+                                            class="form-check-label ink-badge"
+                                            :class="'ink-' + colorOption.value.toLowerCase()"
                                             :for="'color-' + colorOption.value"
-                                            :style="{ backgroundColor: colorOption.bgColor, color: colorOption.textColor, border: colorOption.border || '' }"
                                         >
                                             {{ colorOption.name }}
                                         </label>
@@ -188,11 +188,11 @@ export default {
             selectedProduct: null,
             selectedColor: '',
             colorOptions: [
-                { name: 'Cyan', value: 'C', bgColor: '#00FFFF', textColor: '#000000' },
-                { name: 'Magenta', value: 'M', bgColor: '#FF00FF', textColor: '#000000' },
-                { name: 'Yellow', value: 'Y', bgColor: '#FFFF00', textColor: '#000000' },
-                { name: 'Black', value: 'K', bgColor: '#000000', textColor: '#FFFFFF' },
-                { name: 'White', value: 'W', bgColor: '#FFFFFF', textColor: '#000000', border: '1px solid #ccc' },
+                { name: 'Cyan', value: 'C' },
+                { name: 'Magenta', value: 'M' },
+                { name: 'Yellow', value: 'Y' },
+                { name: 'Black', value: 'K' },
+                { name: 'White', value: 'W' },
             ],
             unidadesOptions: [
                 { value: "Mts", text: "Metros" },
