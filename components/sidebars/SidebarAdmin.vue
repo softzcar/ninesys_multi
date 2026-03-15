@@ -69,7 +69,12 @@
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/reportes/pagos-abonos">
-              Reporte de Pagos y Abonos
+              Balance de pagos y abonos
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/comercializacion/reportes/balance-cierres">
+              Balance de cierres
             </router-link>
           </li>
         </ul>
@@ -134,6 +139,16 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/catalogo-insumos-productos">
               Catálogo de Insumos
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/inventario/reportes/general/reporte">
+              Reporte de Inventario
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/inventario/reportes/movimientos">
+              Reporte de Movimientos
             </router-link>
           </li>
         </ul>

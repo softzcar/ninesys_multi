@@ -85,6 +85,16 @@
               Catálogo de Insumos
             </router-link>
           </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/inventario/reportes/general/reporte">
+              Reporte de Inventario
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/inventario/reportes/movimientos">
+              Reporte de Movimientos
+            </router-link>
+          </li>
         </ul>
       </b-collapse>
     </li>

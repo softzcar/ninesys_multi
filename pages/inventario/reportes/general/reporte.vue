@@ -1,0 +1,198 @@
+<template>
+  <div>
+    <div v-if="!access">
+      <login-form />
+    </div>
+
+    <div v-else>
+      <menus-MenuLoader />
+      <div
+        v-if="
+          dataUser.departamento === 'Administración' ||
+          dataUser.departamento === 'Producción'
+        "
+      >
+        <b-overlay :show="loading" spinner-small>
+          <b-container fluid>
+            <b-row>
+              <b-col>
+                <h1 class="mb-4">{{ titulo }}</h1>
+              </b-col>
+            </b-row>
+
+            <!-- Filtros por Departamento -->
+            <b-row class="mb-4">
+              <b-col>
+                <label class="d-block">Filtrar por Departamento:</label>
+                <b-form-radio-group
+                  v-model="departamentoSeleccionado"
+                  :options="opcionesDepartamentos"
+                  buttons
+                  button-variant="outline-primary"
+                  size="md"
+                  name="radio-btn-outline"
+                  @change="loadReport"
+                ></b-form-radio-group>
+              </b-col>
+            </b-row>
+
+            <b-row class="mb-3">
+              <b-col class="d-flex align-items-center">
+                <b-button variant="info" @click="imprimirReporte" :disabled="items.length === 0" class="mr-2">IMPRIMIR REPORTE</b-button>
+                <b-button variant="secondary" @click="loadReport">REFRESCAR</b-button>
+              </b-col>
+            </b-row>
+
+            <b-row v-if="items.length > 0">
+              <b-col>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h3 class="text-info m-0">{{ items.length }} Ítems encontrados</h3>
+                  <b-form-input
+                    v-model="filter"
+                    placeholder="Buscar en resultados..."
+                    size="sm"
+                    class="w-25"
+                  ></b-form-input>
+                </div>
+                
+                <b-table
+                  responsive
+                  small
+                  striped
+                  hover
+                  :items="items"
+                  :fields="fields"
+                  :filter="filter"
+                >
+                  <template #cell(costo)="data">
+                    ${{ data.value }}
+                  </template>
+                </b-table>
+              </b-col>
+            </b-row>
+            <b-row v-else-if="!loading">
+              <b-col>
+                <b-alert show variant="info">No se encontraron registros para el departamento seleccionado.</b-alert>
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-overlay>
+      </div>
+      <div v-else>
+        <accessDenied />
+      </div>
+    </div>
+
+    <!-- Componente para impresión, oculto -->
+    <div style="display: none;">
+      <reportes-ReporteInventarioGeneral
+        v-if="items.length > 0"
+        :datos-reporte="datosParaElReporte"
+        ref="reporteParaImprimir"
+      />
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapState } from "vuex";
+import mixin from "~/mixins/mixin-login.js";
+import PrintService from "@/utils/PrintService";
+
+export default {
+  mixins: [mixin],
+  data() {
+    return {
+      titulo: "Reporte General de Inventario",
+      loading: false,
+      items: [],
+      fields: [],
+      filter: "",
+      departamentoSeleccionado: "Todas",
+      opcionesDepartamentos: [
+        { text: "Todas", value: "Todas" },
+        { text: "Impresión", value: "Impresión" },
+        { text: "Estampado", value: "Estampado" },
+        { text: "Corte", value: "Corte" },
+        { text: "Costura", value: "Costura" },
+        { text: "Diseño", value: "Diseño" },
+        { text: "Administración", value: "Administración" }
+      ],
+    };
+  },
+  computed: {
+    ...mapState("login", ["dataUser", "access"]),
+    datosParaElReporte() {
+      return {
+        items: this.items,
+        departamento: this.departamentoSeleccionado
+      };
+    },
+  },
+  methods: {
+    async loadReport() {
+      this.loading = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/inventario/reportes/general`, {
+          params: {
+            departamento: this.departamentoSeleccionado
+          }
+        });
+        if (res.data.success) {
+          this.items = res.data.items;
+          this.fields = res.data.fields;
+          
+          // Actualizar opciones de departamentos dinámicamente
+          if (res.data.availableDepartments) {
+            const dynamicOptions = [
+              { text: "Todas", value: "Todas" },
+              ...res.data.availableDepartments.map(dep => ({ text: dep, value: dep }))
+            ];
+            this.opcionesDepartamentos = dynamicOptions;
+          }
+        } else {
+          this.$fire({
+            title: "Error",
+            text: res.data.message || "No se pudo cargar el reporte",
+            type: "error"
+          });
+        }
+      } catch (error) {
+        console.error("Error al cargar reporte:", error);
+        this.$fire({
+          title: "Error",
+          text: "Ocurrió un error al conectar con el servidor",
+          type: "error"
+        });
+      } finally {
+        this.loading = false;
+      }
+    },
+    imprimirReporte() {
+      if (!this.$refs.reporteParaImprimir) return;
+      
+      const printContent = this.$refs.reporteParaImprimir.$el.innerHTML;
+      const reportTitle = `Reporte de Inventario - ${this.departamentoSeleccionado}`;
+
+      const customStyles = `
+        <style>
+          @page { size: landscape; margin: 10mm; }
+          .report-container { width: 100%; }
+          .report-header { text-align: center; margin-bottom: 20px; }
+          .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          .report-table th, .report-table td { border: 1px solid #333; padding: 5px; text-align: left; font-size: 9pt; }
+          .report-table th { background-color: #eee; }
+          h1, h2 { margin: 5px 0; font-size: 16pt !important; }
+          .report-info { margin-bottom: 20px; text-align: left; }
+          .report-info p { margin: 2px 0; }
+        </style>
+      `;
+
+      PrintService.imprimir(reportTitle, customStyles + printContent);
+    }
+  },
+  mounted() {
+    this.loadReport();
+  }
+};
+</script>
