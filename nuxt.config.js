@@ -12,7 +12,7 @@ export default {
     LOCAL_IP: process.env.API_URL || `https://api.nineteengreen.com`,
     LOCAL_IP_WOO: process.env.API_URL || `https://api.nineteengreen.com`,
     API: process.env.API_URL || `https://api.nineteengreen.com`,
-    CDN: process.env.CDN_URL || `https://cdn.nineteengreen.com`,
+    CDN: process.env.CDN_URL || `https://cdn.nineteencustom.com`,
     WS_API: process.env.WS_URL || `https://ws.nineteengreen.com`,
     APP_URL: process.env.APP_URL || `https://app.nineteengreen.com`,
     LIVE: process.env.LIVE_URL || `https://live.nineteengreen.com`,

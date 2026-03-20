@@ -20,9 +20,68 @@
               </b-col>
             </b-row>
 
+            <!-- Filtro de Fechas para Gráficos -->
+            <b-row class="mb-3 align-items-end">
+              <b-col md="auto">
+                <label class="d-block font-weight-bold">Rango de fechas (gráficos):</label>
+              </b-col>
+              <b-col md="auto">
+                <label class="small text-muted">Desde:</label>
+                <b-form-input
+                  v-model="fechaDesde"
+                  type="date"
+                  size="sm"
+                  @change="loadReport"
+                ></b-form-input>
+              </b-col>
+              <b-col md="auto">
+                <label class="small text-muted">Hasta:</label>
+                <b-form-input
+                  v-model="fechaHasta"
+                  type="date"
+                  size="sm"
+                  @change="loadReport"
+                ></b-form-input>
+              </b-col>
+              <b-col md="auto">
+                <b-button size="sm" variant="outline-secondary" @click="resetFechas">Últimos 30 días</b-button>
+              </b-col>
+            </b-row>
+
+            <!-- Sección de Gráficos de Producción y Consumo -->
+            <b-row class="mb-5" v-if="!loading && chartData">
+              <b-col lg="4" md="6" class="mb-4">
+                <charts-ColumnChart 
+                  v-if="chartData.materiales && chartData.materiales.length > 0"
+                  :series-data="chartData.materiales.map(i => i.value)"
+                  :categories="chartData.materiales.map(i => i.label)"
+                  :units="chartData.materiales.map(i => i.unidad)"
+                  :title="'Telas e Insumos Más Usados (' + rangoFechasLabel + ')'"
+                />
+              </b-col>
+              <b-col lg="4" md="6" class="mb-4">
+                <charts-PieChart 
+                  v-if="chartData.tintas"
+                  :values="chartData.tintas.values"
+                  :labels="chartData.tintas.labels"
+                  :colors="chartData.tintas.colors"
+                  :title="'Distribución de Tintas (' + rangoFechasLabel + ')'"
+                />
+              </b-col>
+              <b-col lg="4" md="12" class="mb-4">
+                <charts-LineChart 
+                  v-if="chartData.papel && chartData.papel.length > 0"
+                  :series-data="chartData.papel.map(i => i.value)"
+                  :categories="chartData.papel.map(i => i.label)"
+                  :title="'Consumo de Papel Semanal (' + rangoFechasLabel + ')'"
+                  unit="m"
+                />
+              </b-col>
+            </b-row>
+
             <!-- Filtros por Departamento -->
             <b-row class="mb-4">
-              <b-col>
+              <b-col md="6">
                 <label class="d-block">Filtrar por Departamento:</label>
                 <b-form-radio-group
                   v-model="departamentoSeleccionado"
@@ -30,8 +89,20 @@
                   buttons
                   button-variant="outline-primary"
                   size="md"
-                  name="radio-btn-outline"
-                  @change="loadReport"
+                  name="radio-btn-dept"
+                  @input="loadReport"
+                ></b-form-radio-group>
+              </b-col>
+              <b-col md="6">
+                <label class="d-block">Disponibilidad:</label>
+                <b-form-radio-group
+                  v-model="filtroStock"
+                  :options="opcionesStock"
+                  buttons
+                  button-variant="outline-primary"
+                  size="md"
+                  name="radio-btn-stock"
+                  @input="loadReport"
                 ></b-form-radio-group>
               </b-col>
             </b-row>
@@ -63,6 +134,7 @@
                   :items="items"
                   :fields="fields"
                   :filter="filter"
+                  v-model="itemsFiltrados"
                 >
                   <template #cell(costo)="data">
                     ${{ data.value }}
@@ -109,6 +181,8 @@ export default {
       fields: [],
       filter: "",
       departamentoSeleccionado: "Todas",
+      fechaDesde: null,
+      fechaHasta: null,
       opcionesDepartamentos: [
         { text: "Todas", value: "Todas" },
         { text: "Impresión", value: "Impresión" },
@@ -118,13 +192,27 @@ export default {
         { text: "Diseño", value: "Diseño" },
         { text: "Administración", value: "Administración" }
       ],
+      itemsFiltrados: [],
+      filtroStock: 'enStock',
+      opcionesStock: [
+        { text: "Sólo en Stock", value: "enStock" },
+        { text: "Sólo Terminados", value: "terminados" },
+        { text: "Todos los Ítems", value: "todos" }
+      ],
+      chartData: null
     };
   },
   computed: {
     ...mapState("login", ["dataUser", "access"]),
+    rangoFechasLabel() {
+      if (this.fechaDesde && this.fechaHasta) {
+        return `${this.fechaDesde} → ${this.fechaHasta}`;
+      }
+      return '30d';
+    },
     datosParaElReporte() {
       return {
-        items: this.items,
+        items: this.itemsFiltrados.length > 0 ? this.itemsFiltrados : this.items,
         departamento: this.departamentoSeleccionado
       };
     },
@@ -135,12 +223,16 @@ export default {
       try {
         const res = await this.$axios.get(`${this.$config.API}/inventario/reportes/general`, {
           params: {
-            departamento: this.departamentoSeleccionado
+            departamento: this.departamentoSeleccionado,
+            filtroStock: this.filtroStock,
+            fechaDesde: this.fechaDesde || null,
+            fechaHasta: this.fechaHasta || null
           }
         });
         if (res.data.success) {
           this.items = res.data.items;
           this.fields = res.data.fields;
+          this.chartData = res.data.chartData || null;
           
           // Actualizar opciones de departamentos dinámicamente
           if (res.data.availableDepartments) {
@@ -167,6 +259,15 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async fetchChartsData() {
+      // Método conservado por compatibilidad pero ya no se usa
+      // Los datos de charts se obtienen desde loadReport() directamente
+    },
+    resetFechas() {
+      this.fechaDesde = null;
+      this.fechaHasta = null;
+      this.loadReport();
     },
     imprimirReporte() {
       if (!this.$refs.reporteParaImprimir) return;

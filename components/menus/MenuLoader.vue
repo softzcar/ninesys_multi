@@ -287,36 +287,43 @@ export default {
       );
     }
 
-    // 🔄 CARGA AUTOMÁTICA DE TASAS - COMENTADO PARA USAR SOLO TASA MANUAL
-    // NOTA: Las tasas ahora se cargan ÚNICAMENTE desde la base de datos (tipos_de_monedas)
-    // en el mutation setDataEmpresa del store (login.js líneas 75-91).
-    // Esto evita que la tasa BCV de la API sobrescriba la tasa manual configurada.
-    // La tasa BCV se sigue mostrando en formMonedas.vue como referencia, 
-    // pero los cálculos usarán la tasa manual.
-
-    /* CÓDIGO ORIGINAL COMENTADO:
+    // 🔄 CARGA AUTOMÁTICA DE TASAS - CARGA DE REFERENCIA EN SEGUNDO PLANO
+    // Las tasas operativas siguen cargándose desde la base de datos en login.js.
+    // Aquí disparamos una actualización en segundo plano (forceUpdate: false)
+    // para obtener la tasa BCV más reciente como referencia (metadata), 
+    // sin sobrescribir lo que ya está en el state si viene de la BD.
+    
+    // Solo Administración dispara la carga automática o si faltan tasas críticas
     const isAdmin = this.$store.state.login.dataUser.departamento === 'Administración';
 
     if (isAdmin || !this.tasasEstanConfiguradas) {
-      try {
-        // Intentar cargar automáticamente las tasas
-        const resultado = await this.$store.dispatch('login/cargarTasasAutomaticas');
+      console.log('🔄 Iniciando carga de tasas de referencia en segundo plano...');
+      this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: false }).then((resultado) => {
+        if (!resultado.success) {
+          console.warn('⚠️ No se pudieron cargar las tasas automáticamente:', resultado.error);
+          
+          // Solo notificamos con Toast si es Administración para no molestar a otros usuarios
+          if (isAdmin) {
+             this.$bvToast.toast('No se pudo sincronizar la tasa BCV oficial automáticamente. Se usará la última tasa configurada en la base de datos.', {
+                title: 'Sincronización de Tasas',
+                variant: 'warning',
+                solid: true,
+                autoHideDelay: 7000,
+                appendToast: true
+              });
 
-        if (resultado.success) {
-          // Tasas cargadas correctamente, no mostrar el modal
-          console.log('✅ Tasas cargadas automáticamente:', resultado.fallback ? 'desde caché' : 'desde APIs');
+              // Si además de fallar el BCV, no hay ninguna tasa en la BD (> 0), forzamos el modal
+              if (!this.tasasEstanConfiguradas) {
+                this.$bvModal.show("modal-tasas-iniciales");
+              }
+          }
         } else {
-          // Falló la carga automática, mostrar modal para ingreso manual
-          console.warn('⚠️ No se pudieron cargar las tasas automáticamente. Mostrando modal.');
-          this.$bvModal.show("modal-tasas-iniciales");
+          console.log('✅ Tasas cargadas automáticamente:', resultado.fallback ? 'desde caché' : 'desde APIs');
         }
-      } catch (error) {
-        // Error inesperado, mostrar modal para ingreso manual
-        console.error('❌ Error al cargar tasas automáticamente:', error);
-        this.$bvModal.show("modal-tasas-iniciales");
-      }
+      }).catch(error => {
+        console.error('❌ Error crítico al cargar tasas:', error);
+      });
     }
-    */
   },
 };
 </script>

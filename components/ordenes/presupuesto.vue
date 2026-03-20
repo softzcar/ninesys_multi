@@ -27,7 +27,7 @@
                 <b-icon icon="eye"></b-icon> Ver productos
               </b-button>
               
-              <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger" size="sm">
+              <b-button @click="deleteOrdenGuardada(data.item._id, data.item.tipo)" variant="danger" size="sm">
                 <b-icon icon="trash"></b-icon> Eliminar
               </b-button>
             </div>
@@ -43,7 +43,8 @@
           { key: 'name', label: 'Producto' }, 
           { key: 'cantidad', label: 'Cantidad' }, 
           { key: 'talla', label: 'Talla' },
-          { key: 'tela', label: 'Tela' }
+          { key: 'tela', label: 'Tela' },
+          { key: 'atributo', label: 'Atributo' }
         ]">
         <template #cell(name)="data">
           {{ data.value }}
@@ -365,7 +366,7 @@
                             <b-row>
                               <b-col lg="12" class="mt-4">
                                 <b-table :stacked="isSmallScreen ? 'md' : false" :responsive="!isSmallScreen" borderless
-                                  striped :primary-key="form.productos.item" :fields="campos" :items="form.productos"
+                                  striped :primary-key="'item'" :fields="campos" :items="form.productos"
                                   small>
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
@@ -388,11 +389,12 @@
                                   </template>
 
                                   <template #cell(precio)="data">
-                                    <b-form-select v-model="form.productos[data.index].original_selected_price
-                                      " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, null)
-                                        ">
-                                    </b-form-select>
-                                  </template>
+                                     <b-form-select v-if="!form.guardarStock" v-model="form.productos[data.index].original_selected_price
+                                       " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, data.item.original_selected_price)
+                                         ">
+                                     </b-form-select>
+                                     <span v-else class="text-muted">N/A</span>
+                                   </template>
 
                                   <template #cell(talla)="data">
                                     <b-form-select :disabled="data.item.diseno"
@@ -589,8 +591,6 @@ export default {
       query: "",
       query2: "",
       myTelas: [],
-      myCustomers: this.$store.state.comerce.dataCustomers || [],
-      mySizes: [],
       products: [],
       productsSelect: [],
       customersSelect: [],
@@ -751,6 +751,9 @@ export default {
 
   computed: {
     ...mapState("login", ["tasas"]),
+    myCustomers() {
+      return this.$store.state.comerce.dataCustomers || [];
+    },
     /* tableClass() {
             return {
                 "table-stacked": this.isSmallScreen,
@@ -1312,16 +1315,55 @@ export default {
       if (item.tipo === 'Presupuesto Finalizado') {
         await this.cargarPresupuestoEmitido(item._id);
       } else {
-        this.form = item.form;
+        // Clonar para evitar mutación directa del store antes de procesar
+        const loadedForm = JSON.parse(JSON.stringify(item.form));
+
+        // Procesar productos para vincular atributos con las referencias del sistema
+        if (loadedForm.productos && Array.isArray(loadedForm.productos)) {
+          loadedForm.productos = loadedForm.productos.map(p => {
+            // Asegurar que atributos_seleccionados sea un array
+            let selected = p.atributos_seleccionados || [];
+            
+            // Mapear cada atributo guardado al objeto real en this.productAttributes
+            // para que los componentes (checkboxes) los reconozcan por referencia
+            const mappedAttributes = selected.map(attr => {
+              const found = this.productAttributes.find(a => a.value == attr.value);
+              return found || attr;
+            });
+
+            return {
+              ...p,
+              atributos_seleccionados: mappedAttributes
+            };
+          });
+        }
+
+        this.form = loadedForm;
       }
+
+      // Guardar el ID y el tipo para la eliminación o actualización posterior
+      this.form._id_borrador = item._id;
+      this.form._tipo_borrador = item.tipo;
 
       // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
       if (typeof this.form.sendWhatsAppMessage === 'undefined') {
         this.$set(this.form, 'sendWhatsAppMessage', true);
       }
 
+      // Forzar recálculo de precios de todos los productos cargados
+      if (this.form.productos && this.form.productos.length > 0) {
+        this.form.productos.forEach((p, index) => {
+          this.recalculateProductPrice(index);
+        });
+        this.montoTotalOrden();
+      }
+
       console.log("cargar orden:", this.form);
-      this.clearSearch();
+      
+      // Guardar el cliente actual para que el watcher no lo borre
+      const tempQuery = `${this.form.id} | ${this.form.nombre} ${this.form.apellido} - ${this.form.telefono}`;
+      this.query2 = tempQuery;
+      
       this.$bvModal.hide(this.modal);
     },
 
@@ -1332,32 +1374,59 @@ export default {
         const data = res.data;
 
         // Mapear datos básicos
-        this.form.id = null; // Es nuevo al cargar un emitido (borrador de edición o nueva orden)
-        this.form.nombre = data.cliente_nombre;
-        this.form.apellido = ""; // El backend a veces une nombre y apellido
-        this.form.cedula = data.cliente_cedula;
-        this.form.telefono = data.cliente_telefono || "";
-        this.form.email = data.cliente_email || "";
-        this.form.direccion = data.cliente_direccion || "";
+        this.form.id = data.id_wp; 
+        
+        // Buscar detalles completos del cliente si existe id_wp
+        if (data.id_wp) {
+          const customer = this.myCustomers.find(el => el.id == data.id_wp);
+          if (customer) {
+            this.form.nombre = customer.first_name;
+            this.form.apellido = customer.last_name;
+            this.form.cedula = customer.cedula;
+            this.form.telefono = this.formatPhoneNumber(customer.phone);
+            this.form.email = customer.email;
+            this.form.direccion = customer.address;
+          } else {
+            // Fallback si no se encuentra en el store
+            this.form.nombre = data.cliente_nombre;
+            this.form.cedula = data.cliente_cedula;
+          }
+        } else {
+          this.form.nombre = data.cliente_nombre;
+          this.form.cedula = data.cliente_cedula;
+        }
+
         this.form.obs = data.observaciones;
         this.form.total = data.pago_total;
         
         // Mapear productos
         const productosArr = Array.isArray(data.productos) ? data.productos : [];
         this.form.productos = productosArr.map(p => {
+          const precio = parseFloat(p.precio_unitario) || 0;
+
+          // Buscar el objeto de atributo si existe
+          let atributos_seleccionados = [];
+          if (p.id_products_attributes) {
+            const attrObj = this.productAttributes.find(a => a.value == p.id_products_attributes);
+            if (attrObj) {
+              atributos_seleccionados.push(attrObj);
+            }
+          }
+
           return {
-            item: p.id_item,
-            cod: p.cod,
+            item: p._id, // Usar el ID del registro en la tabla presupuestos_productos
+            cod: p.id_woo,
             producto: p.name,
             existencia: 0,
             cantidad: p.cantidad,
-            tela: p.id_tela,
-            talla: p.id_size,
+            // Forzamos Number para que coincida con los value de los selectores (IDs)
+            tela: p.id_tela ? Number(p.id_tela) : (p.tela ? Number(p.tela) : null),
+            talla: p.id_size ? Number(p.id_size) : (p.talla ? Number(p.talla) : null),
             corte: p.corte || "No aplica",
-            precio: p.price,
-            original_selected_price: p.price,
+            precio: precio,
+            original_selected_price: precio,
             diseno: false,
-            atributos_seleccionados: [] // Tendríamos que ver si el detalle trae atributos
+            atributos_seleccionados: atributos_seleccionados
           };
         });
 
@@ -1443,9 +1512,10 @@ export default {
           this.$bvModal.hide(this.modal);
         });
     },
-    async deleteOrdenGuardada(id) {
+    async deleteOrdenGuardada(id, tipo) {
       const data = new URLSearchParams();
       data.set("id", id);
+      data.set("tipo", tipo || "Borrador");
       this.overlay = true;
 
       await this.$axios
@@ -2420,6 +2490,8 @@ export default {
         disableControl: false,
         sendWhatsAppMessage: true, // <-- THE FIX
         obs: "", // Asegurar que obs esté definido
+        _id_borrador: null,
+        _tipo_borrador: null,
       };
 
       // Si se llama desde el evento de un clic, obj será un MouseEvent.
@@ -2591,6 +2663,20 @@ export default {
 
           this.loadDataProductos(); // ACTUALIZAR LA EXISTENCIA DE PRODUCTOS
 
+          // ELIMINAR BORRADOR SI EXISTE (SOLO SI EL USUARIO CONFIRMA)
+          const idBorrador = this.form._id_borrador;
+          if (idBorrador) {
+            const wantsToDelete = await this.$confirm(
+              "¿Desea eliminar este borrador de la lista de presupuestos guardados?",
+              "Borrar Borrador",
+              "question"
+            ).catch(() => false);
+
+            if (wantsToDelete) {
+              await this.deleteOrdenGuardada(idBorrador, this.form._tipo_borrador);
+            }
+          }
+
           const wantsToPrint = await this.$confirm(
             "¿Desea imprimir una copia del presupuesto?",
             "Imprimir",
@@ -2598,7 +2684,39 @@ export default {
           ).catch(() => false);
 
           if (wantsToPrint) {
-            PrintService.imprimir(this.form, this.$store.state.login.dataUser.id_departamento);
+            // Lógica de impresión con PrintService (corregida para usar HTML)
+            const departamento = this.$store.state.login.dataUser.departamento;
+            const mostrarPrecio = (departamento === "Administración" || departamento === "Comercialización") ? "table-cell" : "none";
+
+            const styles = `
+              <style>
+                .hideMe { display: ${mostrarPrecio} !important; } 
+                .report * { font-family: Arial, Helvetica, sans-serif; } 
+                .report { padding: 2rem; } 
+                .observaciones { padding: 1.85rem; } 
+                .printMe { width: 100%; text-align: right; } 
+                .spacer { width: 100%; margin-bottom: 2rem; } 
+                .table-main, .table-products { width: 100%; } 
+                .table-main tr td, .table-products tr th td { padding: 0.25rem; } 
+                .table-products th { font-weight: bold; padding: 0.25rem; border-top: solid 1px rgb(119, 112, 112); border-bottom: solid 1px #000; } 
+                .table-products tr td { padding: 0.25rem 0.4rem; } 
+                @media print { 
+                    .table-header * { border: solid 1px #fff; } 
+                    .printMe { visibility: hidden; } 
+                    .izquierda, .derecha { width: 100% !important; display: block; } 
+                    .izquierda { text-align: left !important; } 
+                    .derecha { text-align: right !important; } 
+                    .noPrint { display: none; }
+                } 
+                .table-products { border-bottom: solid 1px #000; } 
+                @page { size: letter; } 
+              </style>
+            `;
+
+            const printContent = document.getElementById("reporte").innerHTML;
+            const title = "Presupuesto " + (this.form.id || "");
+
+            PrintService.imprimir(title, styles + printContent);
           }
 
           this.clearForm(); // Limpiar el formulario para la siguiente presupuesto
@@ -2705,7 +2823,7 @@ export default {
         // cats = categories.filter((el) => el.id != 35)
         cats = categories;
       } else {
-        cats[0].id = null;
+        cats = []; // Initialize cats as an empty array if categories is empty
       }
       console.log("Cargar >>> `cats`", cats);
       if (cats.length) {
@@ -2727,17 +2845,23 @@ export default {
         return [];
       }
 
-      const prices = Array.isArray(tmpProd.prices) ? tmpProd.prices : [];
-      const options = prices.map((el) => {
+      const options = tmpProd.prices.map((el) => {
         return {
           value: parseFloat(el.price), // Aseguramos que el valor sea un número flotante
           text: `${el.price} ${el.description}`,
         };
       });
 
+      // Si tenemos un precio cargado (newItem) y no está en las opciones, lo agregamos
       if (newItem != null) {
-        console.log("insertar el precio XL(n) en ", newItem);
-        options.unshift(newItem);
+        const parsedNewItem = parseFloat(newItem);
+        const exists = options.find(opt => opt.value === parsedNewItem);
+        if (!exists) {
+          options.unshift({
+            value: parsedNewItem,
+            text: `${parsedNewItem} (Precio cargado)`
+          });
+        }
       }
 
       options.unshift({
@@ -2746,7 +2870,6 @@ export default {
       });
 
       this.montoTotalOrden();
-      console.log("options precios producto", options);
       return options;
     },
 

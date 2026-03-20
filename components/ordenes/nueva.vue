@@ -25,7 +25,7 @@
           </template>
 
           <template #cell(_id)="data">
-            <b-button @click="deleteOrdenGuardada(data.item._id)" variant="danger">
+            <b-button @click="deleteOrdenGuardada(data.item._id, data.item.tipo)" variant="danger">
               <b-icon icon="trash"></b-icon>
             </b-button>
           </template>
@@ -40,7 +40,8 @@
           { key: 'name', label: 'Producto' }, 
           { key: 'cantidad', label: 'Cantidad' }, 
           { key: 'talla', label: 'Talla' },
-          { key: 'tela', label: 'Tela' }
+          { key: 'tela', label: 'Tela' },
+          { key: 'atributo', label: 'Atributo' }
         ]">
         <template #cell(name)="data">
           {{ data.value }}
@@ -338,7 +339,7 @@
                             <b-row>
                               <b-col lg="12" class="mt-4">
                                 <b-table :stacked="isSmallScreen ? 'md' : false" :responsive="!isSmallScreen" borderless
-                                  striped :primary-key="form.productos.item" :fields="campos" :items="form.productos"
+                                  striped :primary-key="'item'" :fields="campos" :items="form.productos"
                                   small>
                                   <template #cell(producto)="data">
                                     <a :href="`#${data.item.producto}`">{{
@@ -362,7 +363,7 @@
 
                                   <template #cell(precio)="data">
                                     <b-form-select v-if="!form.guardarStock" v-model="form.productos[data.index].original_selected_price
-                                      " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, null)
+                                      " @change="setOriginalPriceAndRecalculate(data.index, $event)" :options="loadProductPrices(data.item.cod, data.item.original_selected_price)
                                         ">
                                     </b-form-select>
                                     <span v-else class="text-muted">N/A</span>
@@ -875,7 +876,6 @@ export default {
       query: "",
       query2: "",
       myTelas: [],
-      myCustomers: this.$store.state.comerce.dataCustomers || [],
       mySizes: [],
       products: [],
       productsSelect: [],
@@ -1032,6 +1032,9 @@ export default {
 
   computed: {
     ...mapState("login", ["tasas"]),
+    myCustomers() {
+      return this.$store.state.comerce.dataCustomers || [];
+    },
     /* tableClass() {
             return {
                 "table-stacked": this.isSmallScreen,
@@ -1497,6 +1500,44 @@ export default {
       return textArea.value;
     },
 
+    prepareFormPrint() {
+      // Crear copia profunda y transformar datos para la vista previa
+      // Hacemos una copia profunda para no mutar el formulario original que aún necesita los IDs.
+      const formCopy = JSON.parse(JSON.stringify(this.form));
+
+      // Crear mapas para una búsqueda eficiente de los nombres de tallas y telas.
+      const tallasMap = this.$store.state.comerce.dataTallas.reduce(
+        (map, talla) => {
+          map[talla.value] = talla.text;
+          return map;
+        },
+        {}
+      );
+
+      const telasMap = this.$store.state.comerce.dataTelas.reduce(
+        (map, tela) => {
+          map[tela.value] = tela.text;
+          return map;
+        },
+        {}
+      );
+
+      // Mapear los productos para reemplazar los IDs de talla y tela por sus nombres correspondientes.
+      formCopy.productos = formCopy.productos.map((producto) => {
+        // Si el producto tiene una talla y existe en nuestro mapa, la reemplazamos por el nombre.
+        if (producto.talla && tallasMap[producto.talla]) {
+          producto.talla = tallasMap[producto.talla];
+        }
+        // Hacemos lo mismo para la tela.
+        if (producto.tela && telasMap[producto.tela]) {
+          producto.tela = telasMap[producto.tela];
+        }
+        return producto;
+      });
+
+      this.formPrint = formCopy;
+    },
+
     async toggleOrdenInterna(isChecked) {
       if (isChecked) {
         // Rellenamos el cliente con Producción Interna (ID 1)
@@ -1566,11 +1607,35 @@ export default {
       if (item.tipo === 'Presupuesto Finalizado') {
         await this.cargarPresupuestoEmitido(item._id);
       } else {
-        this.form = item.form;
+        // Clonar para evitar mutación directa del store antes de procesar
+        const loadedForm = JSON.parse(JSON.stringify(item.form));
+
+        // Procesar productos para vincular atributos con las referencias del sistema
+        if (loadedForm.productos && Array.isArray(loadedForm.productos)) {
+          loadedForm.productos = loadedForm.productos.map(p => {
+            // Asegurar que atributos_seleccionados sea un array
+            let selected = p.atributos_seleccionados || [];
+            
+            // Mapear cada atributo guardado al objeto real en this.productAttributes
+            // para que los componentes (checkboxes) los reconozcan por referencia
+            const mappedAttributes = selected.map(attr => {
+              const found = this.productAttributes.find(a => a.value == attr.value);
+              return found || attr;
+            });
+
+            return {
+              ...p,
+              atributos_seleccionados: mappedAttributes
+            };
+          });
+        }
+
+        this.form = loadedForm;
       }
       
-      // Guardar el ID real del borrador ('_id' en BD) para poder eliminarlo después de emitir
+      // Guardar el ID real del borrador ('_id' en BD) y el tipo para poder eliminarlo después de emitir
       this.$set(this.form, '_id_borrador', item._id);
+      this.$set(this.form, '_tipo_borrador', item.tipo);
 
       // FIX: Ensure sendWhatsAppMessage exists and is reactive after loading.
       if (typeof this.form.sendWhatsAppMessage === 'undefined') {
@@ -1582,8 +1647,26 @@ export default {
         this.ordenVinculada = this.form.id_orden_original_vincular;
       }
 
+      // Forzar recálculo de precios de todos los productos cargados
+      if (this.form.productos && this.form.productos.length > 0) {
+        this.form.productos.forEach((p, index) => {
+          // Si el componente tiene recalculateProductPrice, lo usamos,
+          // si no, verificamos métodos similares (en nueva.vue se llama igual)
+          if (this.recalculateProductPrice) {
+            this.recalculateProductPrice(index);
+          }
+        });
+        if (this.montoTotalOrden) {
+          this.montoTotalOrden();
+        }
+      }
+
       console.log("cargar orden:", this.form);
-      this.clearSearch();
+      
+      // Guardar el cliente actual para que el watcher no lo borre
+      const tempQuery = `${this.form.id} | ${this.form.nombre} ${this.form.apellido} - ${this.form.telefono}`;
+      this.query2 = tempQuery;
+      
       this.$bvModal.hide(this.modal);
       
       // Salto automático de pestaña si es una orden interna de stock
@@ -1617,32 +1700,60 @@ export default {
         const data = res.data;
 
         // Mapear datos básicos
-        // Al cargar un presupuesto en la vista de órdenes, queremos que se trate como una conversión
-        this.form.id = null; 
-        this.form.nombre = data.cliente_nombre;
-        this.form.apellido = ""; 
-        this.form.cedula = data.cliente_cedula;
-        this.form.telefono = data.cliente_telefono || "";
-        this.form.email = data.cliente_email || "";
-        this.form.direccion = data.cliente_direccion || "";
+        // Al cargar un presupuesto en la vista de órdenes para convertirlo
+        this.form.id = data.id_wp; 
+
+        // Buscar detalles completos del cliente si existe id_wp
+        if (data.id_wp) {
+          const customer = this.myCustomers.find(el => el.id == data.id_wp);
+          if (customer) {
+            this.form.nombre = customer.first_name;
+            this.form.apellido = customer.last_name;
+            this.form.cedula = customer.cedula;
+            this.form.telefono = this.formatPhoneNumber(customer.phone);
+            this.form.email = customer.email;
+            this.form.direccion = customer.address;
+          } else {
+            // Fallback si no se encuentra en el store
+            this.form.nombre = data.cliente_nombre;
+            this.form.cedula = data.cliente_cedula;
+          }
+        } else {
+          this.form.nombre = data.cliente_nombre;
+          this.form.cedula = data.cliente_cedula;
+        }
+
         this.form.obs = data.observaciones;
         this.form.total = data.pago_total;
         
         // Mapear productos
-        this.form.productos = data.productos.map(p => {
+        const productosArr = Array.isArray(data.productos) ? data.productos : [];
+        this.form.productos = productosArr.map(p => {
+          const precio = parseFloat(p.precio_unitario) || 0;
+          
+          // Buscar el objeto de atributo si existe
+          let atributos_seleccionados = [];
+          if (p.id_products_attributes) {
+            const attrObj = this.productAttributes.find(a => a.value == p.id_products_attributes);
+            if (attrObj) {
+              atributos_seleccionados.push(attrObj);
+            }
+          }
+
           return {
-            item: p.id_item,
-            cod: p.cod,
+            item: p._id, // Usar el ID del registro en la tabla presupuestos_productos
+            cod: p.id_woo,
             producto: p.name,
             existencia: 0,
             cantidad: p.cantidad,
-            tela: p.id_tela,
-            talla: p.id_size,
+            // Forzamos Number para que coincida con los value de los selectores (IDs)
+            tela: p.id_tela ? Number(p.id_tela) : (p.tela ? Number(p.tela) : null),
+            talla: p.id_size ? Number(p.id_size) : (p.talla ? Number(p.talla) : null),
             corte: p.corte || "No aplica",
-            precio: p.price,
-            original_selected_price: p.price,
+            precio: precio,
+            original_selected_price: precio,
             diseno: false,
-            atributos_seleccionados: []
+            atributos_seleccionados: atributos_seleccionados
           };
         });
 
@@ -1703,9 +1814,10 @@ export default {
           this.$bvModal.hide(this.modal);
         });
     },
-    async deleteOrdenGuardada(id) {
+    async deleteOrdenGuardada(id, tipo) {
       const data = new URLSearchParams();
       data.set("id", id);
+      data.set("tipo", tipo || "Borrador");
       this.overlay = true;
 
       await this.$axios
@@ -2082,6 +2194,7 @@ export default {
           this.form.abono = 0;
           this.form.total = 0;
           
+          this.prepareFormPrint();
           // Saltamos directo al paso final
           this.disable2 = true;
           this.disable3 = true; 
@@ -2318,41 +2431,7 @@ export default {
           type: "warning",
         });
       } else {
-        // Crear copia profunda y transformar datos para la vista previa
-        // Hacemos una copia profunda para no mutar el formulario original que aún necesita los IDs.
-        const formCopy = JSON.parse(JSON.stringify(this.form));
-
-        // Crear mapas para una búsqueda eficiente de los nombres de tallas y telas.
-        const tallasMap = this.$store.state.comerce.dataTallas.reduce(
-          (map, talla) => {
-            map[talla.value] = talla.text;
-            return map;
-          },
-          {}
-        );
-
-        const telasMap = this.$store.state.comerce.dataTelas.reduce(
-          (map, tela) => {
-            map[tela.value] = tela.text;
-            return map;
-          },
-          {}
-        );
-
-        // Mapear los productos para reemplazar los IDs de talla y tela por sus nombres correspondientes.
-        formCopy.productos = formCopy.productos.map((producto) => {
-          // Si el producto tiene una talla y existe en nuestro mapa, la reemplazamos por el nombre.
-          if (producto.talla && tallasMap[producto.talla]) {
-            producto.talla = tallasMap[producto.talla];
-          }
-          // Hacemos lo mismo para la tela.
-          if (producto.tela && telasMap[producto.tela]) {
-            producto.tela = telasMap[producto.tela];
-          }
-          return producto;
-        });
-
-        this.formPrint = formCopy;
+        this.prepareFormPrint();
       }
 
       // if (this.form.metodoDePago.length === 0) {
@@ -2939,7 +3018,7 @@ export default {
           if (idBorrador) {
             if (wasStockOrder) {
                // Eliminación silenciosa automática para órdenes internas de Producción
-               this.deleteOrdenGuardada(idBorrador);
+               this.deleteOrdenGuardada(idBorrador, this.form._tipo_borrador);
             } else {
                // Confirmación manual para órdenes y presupuestos regulares
                const wantsToDeleteDraft = await this.$confirm(
@@ -2949,7 +3028,7 @@ export default {
                ).catch(() => false);
 
                if (wantsToDeleteDraft) {
-                 this.deleteOrdenGuardada(idBorrador);
+                 this.deleteOrdenGuardada(idBorrador, this.form._tipo_borrador);
                }
             }
           }
@@ -3101,17 +3180,12 @@ export default {
     },
 
     getCategory(categories) {
-      let cats;
-      if (categories.length) {
-        // cats = categories.filter((el) => el.id != 35)
-        cats = categories;
-      } else {
-        cats[0].id = null;
+      if (!categories || !categories.length) {
+        return null;
       }
-      console.log("Cargar >>> `cats`", cats);
-      if (cats.length) {
-        return cats[0].id;
-      }
+      
+      console.log("Cargar >>> `categories`", categories);
+      return categories[0].id;
     },
 
     loadProductPrices(idProduct, newItem) {
@@ -3135,9 +3209,16 @@ export default {
         };
       });
 
+      // Si tenemos un precio cargado (newItem) y no está en las opciones, lo agregamos
       if (newItem != null) {
-        console.log("insertar el precio XL(n) en ", newItem);
-        options.unshift(newItem);
+        const parsedNewItem = parseFloat(newItem);
+        const exists = options.find(opt => opt.value === parsedNewItem);
+        if (!exists) {
+          options.unshift({
+            value: parsedNewItem,
+            text: `${parsedNewItem} (Precio cargado)`
+          });
+        }
       }
 
       options.unshift({
@@ -3146,12 +3227,15 @@ export default {
       });
 
       this.montoTotalOrden();
-      console.log("options precios producto", options);
       return options;
     },
 
     loadProduct(val) {
+      if (!val) return;
       let exploited = val.split("|");
+      if (exploited.length < 1) return;
+      
+      const productCode = exploited[0].trim();
       let count = 0;
       let dataProd = this.$store.state.comerce.dataProductos
         .map((product) => {
@@ -3176,18 +3260,20 @@ export default {
             // precioWoo: product.regular_price,
           };
         })
-        .find((product) => product.cod == exploited[0]);
+        .find((product) => String(product.cod) === productCode);
 
       this.query = "";
 
       // PRECARAGAR DATOS PARA DISEÑOS
       console.log("YO SOY DATAPROD", dataProd);
-      if (dataProd.diseno) {
-        dataProd.cantidad = 0;
+      
+      if (dataProd) {
+        if (dataProd.diseno) {
+          dataProd.cantidad = 0;
+        }
+        this.form.productos.push(dataProd);
+        this.form.productos.sort(this.dynamicSort("producto"));
       }
-
-      this.form.productos.push(dataProd);
-      this.form.productos.sort(this.dynamicSort("producto"));
 
       return dataProd;
     },

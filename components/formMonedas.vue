@@ -36,10 +36,20 @@
     <!-- Formulario de tasas -->
     <div v-if="currencyConfigState === 'SHOW_FORM'">
       <b-form v-for="moneda in additionalActiveMonedas" :key="moneda.moneda" @submit.prevent>
-        <b-form-group :label="'Tasa ' + capitalize(moneda.moneda)" :description="puedeEditarTasas ? '' : ''">
-          <b-form-input type="number" step="0.01" :value="moneda.valor || 0" @input="updateTasa(moneda.moneda, $event)"
-            @blur="persistirTasas" @keyup.enter="persistirTasas" :readonly="!puedeEditarTasas"
-            :disabled="!puedeEditarTasas" class="mb-2" />
+        <b-form-group :label="'Tasa ' + capitalize(moneda.moneda)">
+          <b-input-group>
+            <b-form-input type="number" step="0.01" :value="moneda.valor || 0"
+              @change="updateTasa(moneda.moneda, $event, true)" @blur="persistirTasas" @keyup.enter="persistirTasas"
+              :readonly="!puedeEditarTasas" :disabled="!puedeEditarTasas" class="mb-2" />
+
+            <!-- Botón para aplicar BCV si es Bolívar -->
+            <b-input-group-append v-if="moneda.moneda === 'bolivar' && puedeEditarTasas">
+              <b-button variant="outline-success" size="sm" @click="aplicarBcvManual" v-b-tooltip.hover
+                title="Usar tasa BCV oficial">
+                Usar BCV
+              </b-button>
+            </b-input-group-append>
+          </b-input-group>
         </b-form-group>
       </b-form>
     </div>
@@ -103,7 +113,7 @@ export default {
     }
   },
   methods: {
-    updateTasa(moneda, valor) {
+    updateTasa(moneda, valor, esManual = false) {
       if (!this.puedeEditarTasas) {
         this.$bvToast.toast('No tienes permisos para editar las tasas de cambio.', {
           title: 'Permiso Denegado',
@@ -114,19 +124,24 @@ export default {
       }
 
       const valorNumerico = parseFloat(valor) || 0;
+      
+      // Solo actualizar si el valor es realmente diferente para evitar ciclos
+      if (this.tasas[moneda] === valorNumerico && !esManual) return;
+
       this.$store.commit("login/setTasa", { moneda, valor: valorNumerico });
 
-      // Actualizar metadata indicando que fue edición manual
-      // IMPORTANTE: Preservar la metadata existente (especialmente bcv_disponible)
-      const metadataActual = this.$store.state.login.metadataTasas || {};
-      this.$store.commit("login/setMetadataTasas", {
-        timestamp: new Date().toISOString(),
-        fuente: 'manual',
-        metadata: {
-          ...metadataActual, // Preservar metadata existente (bcv_disponible, paralelo_disponible, etc.)
-          editado_manualmente: true
-        }
-      });
+      // Solo marcar como manual si el evento provino de una interacción directa del usuario
+      if (esManual) {
+        const metadataActual = this.$store.state.login.metadataTasas || {};
+        this.$store.commit("login/setMetadataTasas", {
+          timestamp: new Date().toISOString(),
+          fuente: 'manual',
+          metadata: {
+            ...metadataActual,
+            editado_manualmente: true
+          }
+        });
+      }
     },
     async persistirTasas() {
       if (!this.puedeEditarTasas) return;
@@ -250,6 +265,27 @@ export default {
 
       return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
     },
+    aplicarBcvManual() {
+      const bcv = parseFloat(this.tasaBcv);
+      if (isNaN(bcv) || bcv <= 0) {
+        this.$bvToast.toast('No hay una tasa BCV válida disponible para aplicar.', {
+          title: 'Aviso',
+          variant: 'warning',
+          solid: true
+        });
+        return;
+      }
+
+      this.updateTasa('bolivar', bcv, true);
+      this.persistirTasas();
+
+      this.$bvToast.toast(`Se ha aplicado la tasa BCV: ${bcv}`, {
+        title: 'Tasa Aplicada',
+        variant: 'success',
+        solid: true,
+        autoHideDelay: 2000
+      });
+    }
   },
 };
 </script>

@@ -168,10 +168,10 @@
                     <div
                         class="spacer hideMe derecha"
                         style="width: 100% !important"
-                        v-if="
+                        v-if="false && (
                             dataUser.departamento === 'Comercialización' ||
                             dataUser.departamento === 'Administración'
-                        "
+                        )"
                     >
                         <h2>ABONO: {{ floatMe(form.abono) }}</h2>
                         <h2>DESCUENTOS: {{ floatMe(form.descuento) }}</h2>
@@ -186,6 +186,11 @@
                             }}
                         </h2>
                         <h1>
+                            TOTAL: {{ floatMe(montoTotalOrden(form.productos)) }}
+                        </h1>
+                    </div>
+                    <div class="spacer hideMe derecha" style="width: 100% !important" v-else>
+                         <h1>
                             TOTAL: {{ floatMe(montoTotalOrden(form.productos)) }}
                         </h1>
                     </div>
@@ -295,7 +300,7 @@ export default {
         async nextIdOrden() {
             this.overlay = true
             await this.$axios
-                .get(`${this.$config.API}/next-id-order`)
+                .get(`${this.$config.API}/next-id-budget`)
                 .then((res) => {
                     this.nextId = res.data.id
                 })

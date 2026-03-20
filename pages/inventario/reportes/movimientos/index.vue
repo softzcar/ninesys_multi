@@ -25,25 +25,30 @@
               </b-col>
             </b-row>
 
+
             <!-- Filtros -->
             <b-card no-body class="mb-4 shadow-sm border-0 border-top-info">
               <b-card-body class="p-4">
                 <b-row align-v="end">
-                  <b-col md="3" class="mb-3 mb-md-0">
+                  <b-col md="2" class="mb-3 mb-md-0">
                     <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Desde:</label>
                     <b-form-datepicker v-model="fechaInicio" size="sm" locale="es" @input="loadReport" class="border-info"></b-form-datepicker>
                   </b-col>
-                  <b-col md="3" class="mb-3 mb-md-0">
+                  <b-col md="2" class="mb-3 mb-md-0">
                     <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Hasta:</label>
                     <b-form-datepicker v-model="fechaFin" size="sm" locale="es" @input="loadReport" class="border-info"></b-form-datepicker>
                   </b-col>
-                  <b-col md="3" class="mb-3 mb-md-0">
+                  <b-col md="2" class="mb-3 mb-md-0">
                     <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Departamento:</label>
                     <b-form-select v-model="departamento" :options="opcionesDepartamentos" size="sm" @change="loadReport" class="border-info"></b-form-select>
                   </b-col>
-                  <b-col md="3">
+                  <b-col md="3" class="mb-3 mb-md-0">
                     <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Insumo (Nombre/SKU):</label>
                     <b-form-input v-model="searchInsumo" placeholder="Ej: Tela, Poliester..." size="sm" debounce="500" @input="loadReport" class="border-info"></b-form-input>
+                  </b-col>
+                  <b-col md="3">
+                    <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Responsable:</label>
+                    <b-form-select v-model="filtroResponsable" :options="responsableOpciones" size="sm" class="border-info"></b-form-select>
                   </b-col>
                 </b-row>
               </b-card-body>
@@ -55,9 +60,8 @@
                   <b-table
                     hover
                     striped
-                    :items="items"
+                    :items="itemsFiltrados"
                     :fields="fields"
-                    head-variant="info"
                     class="bg-white m-0"
                     :busy="loading"
                   >
@@ -145,6 +149,7 @@ export default {
       fechaFin: new Date().toISOString().split('T')[0],
       departamento: "Todas",
       searchInsumo: "",
+      filtroResponsable: null,
       opcionesDepartamentos: [
         { text: "Todos los Departamentos", value: "Todas" },
         { text: "Impresión", value: "Impresión" },
@@ -155,24 +160,39 @@ export default {
         { text: "Administración", value: "Administración" }
       ],
       fields: [
-        { key: "moment", label: "Fecha/Hora", sortable: true, thClass: 'text-white' },
-        { key: "nombre_insumo", label: "Insumo", sortable: true, thClass: 'text-white' },
-        { key: "id_orden", label: "Nº Órden", sortable: true, thClass: 'text-white' },
-        { key: "departamento", label: "Dpto", sortable: true, thClass: 'text-white' },
-        { key: "cantidad_consumida", label: "Consumo", sortable: true, thClass: 'text-white' },
-        { key: "valor_inicial", label: "Inicial", sortable: true, thClass: 'text-white' },
-        { key: "valor_final", label: "Final", sortable: true, thClass: 'text-white' },
-        { key: "usuario_nombre", label: "Responsable", sortable: true, thClass: 'text-white' },
-        { key: "acciones", label: "Auditoría", class: "text-center", thClass: 'text-white' }
+        { key: "moment", label: "Fecha/Hora", sortable: true },
+        { key: "nombre_insumo", label: "Insumo", sortable: true },
+        { key: "id_orden", label: "Nº Órden", sortable: true },
+        { key: "departamento", label: "Dpto", sortable: true },
+        { key: "cantidad_consumida", label: "Consumo", sortable: true },
+        { key: "valor_inicial", label: "Inicial", sortable: true },
+        { key: "valor_final", label: "Final", sortable: true },
+        { key: "usuario_nombre", label: "Responsable", sortable: true },
+        { key: "acciones", label: "Auditoría", class: "text-center" }
       ]
     };
   },
   computed: {
-    ...mapState("login", ["dataUser", "access"])
+    ...mapState("login", ["dataUser", "access"]),
+    itemsFiltrados() {
+      if (!this.filtroResponsable) return this.items;
+      return this.items.filter(i => i.usuario_nombre === this.filtroResponsable);
+    },
+    responsableOpciones() {
+      const nombres = [...new Set(this.items.map(i => i.usuario_nombre))]
+        .filter(n => n)
+        .sort((a, b) => a.localeCompare(b));
+
+      return [
+        { value: null, text: "-- Todos los Responsables --" },
+        ...nombres.map(n => ({ value: n, text: n }))
+      ];
+    }
   },
   methods: {
     async loadReport() {
       this.loading = true;
+      this.filtroResponsable = null;
       try {
         const response = await this.$axios.get(`${this.$config.API}/inventario/reportes/movimientos`, {
           params: {
@@ -198,6 +218,7 @@ export default {
       this.fechaFin = new Date().toISOString().split('T')[0];
       this.departamento = "Todas";
       this.searchInsumo = "";
+      this.filtroResponsable = null;
       this.loadReport();
     },
     formatDateTime(val) {

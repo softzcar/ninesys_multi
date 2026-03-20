@@ -7,8 +7,9 @@
         <p><strong>Departamento:</strong> {{ datosReporte.departamento || 'Todas' }}</p>
         <p><strong>Fecha:</strong> {{ fechaReporte }}</p>
         <p><strong>Ítems:</strong> {{ datosReporte.items.length }}</p>
-        <p><strong>Total Stock:</strong> {{ totalStock }}</p>
-        <p><strong>Valor Total:</strong> ${{ totalCosto }}</p>
+        <p><strong>Valor Actual:</strong> ${{ formatoDinero(valorActualGlobal) }}</p>
+        <p><strong>Valor Consumido:</strong> ${{ formatoDinero(valorConsumidoGlobal) }}</p>
+        <p><strong>Valor Total:</strong> ${{ formatoDinero(valorTotalGlobal) }}</p>
       </div>
     </div>
 
@@ -30,8 +31,8 @@
           <td>{{ item.sku }}</td>
           <td>{{ item.insumo }}</td>
           <td>{{ item.unidad }}</td>
-          <td>{{ item.cantidad }}</td>
-          <td>${{ item.costo }}</td>
+          <td>{{ calcularStockIndividual(item) }}</td>
+          <td>${{ calcularValorIndividual(item) }}</td>
           <td>{{ item.departamento }}</td>
         </tr>
       </tbody>
@@ -58,18 +59,40 @@ export default {
       const year = today.getFullYear();
       return `${day}/${month}/${year}`;
     },
-    totalStock() {
-      return this.datosReporte.items.reduce((acc, item) => acc + parseFloat(item.cantidad || 0), 0);
-    },
-    totalCosto() {
-      const total = this.datosReporte.items.reduce((acc, item) => {
-        const cant = parseFloat(item.cantidad || 0);
-        const cost = parseFloat(item.costo || 0);
-        return acc + (cant * cost);
+    valorTotalGlobal() {
+      return this.datosReporte.items.reduce((acc, item) => {
+        return acc + parseFloat(item.costo || 0);
       }, 0);
-      return total.toFixed(2);
     },
+    valorActualGlobal() {
+      return this.datosReporte.items.reduce((acc, item) => {
+        const cant = parseFloat(item.cantidad || 0);
+        const cantIni = parseFloat(item.cantidad_inicial) || cant || 1;
+        const costTotal = parseFloat(item.costo || 0);
+        return acc + ((cant / cantIni) * costTotal);
+      }, 0);
+    },
+    valorConsumidoGlobal() {
+      return this.valorTotalGlobal - this.valorActualGlobal;
+    }
   },
+  methods: {
+    formatoDinero(valor) {
+      return parseFloat(valor).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+    calcularStockIndividual(item) {
+      const cant = parseFloat(item.cantidad || 0);
+      const rend = parseFloat(item.rendimiento || 1);
+      // Nueva regla: división por rendimiento/eficiencia
+      return (cant / rend).toFixed(2);
+    },
+    calcularValorIndividual(item) {
+      const cant = parseFloat(item.cantidad || 0);
+      const cantIni = parseFloat(item.cantidad_inicial) || cant || 1;
+      const costTotal = parseFloat(item.costo || 0);
+      return ((cant / cantIni) * costTotal).toFixed(2);
+    }
+  }
 };
 </script>
 

@@ -46,6 +46,7 @@
                                         <b-button :disabled="!filter" @click="filter = ''">
                                             Limpiar
                                         </b-button>
+                                        <inventario-InventarioResumenSkuModal :items="dataTable.items" />
                                         <b-button variant="info" @click="generatePDF" title="Imprimir Reporte">
                                             <b-icon icon="printer-fill"></b-icon>
                                         </b-button>

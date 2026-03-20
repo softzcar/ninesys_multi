@@ -160,7 +160,7 @@ export default {
 
         if (index === -1) {
           let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
-
+          if (dep === 'Comercialización' || dep === 'Vendedor') dep = 'Ventas';
           acc.push({
             nombre: curr.nombre,
             id_empleado: curr.id_empleado,
@@ -172,7 +172,7 @@ export default {
           acc[index].pago += montoPago;
 
           let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
-          if (dep && !acc[index].departamento.includes(dep)) {
+          if (dep === 'Comercialización' || dep === 'Vendedor') dep = 'Ventas';          if (dep && !acc[index].departamento.includes(dep)) {
             acc[index].departamento += ' + ' + dep;
           }
         }
@@ -306,15 +306,16 @@ export default {
       if (isNaN(fecha.getTime())) {
         throw new Error("Fecha no válida. Formato esperado: YYYY-MM-DD");
       }
-      const inicioAño = new Date(fecha.getFullYear(), 0, 1);
-      const diferenciaTiempo = fecha - inicioAño;
-      const diferenciaDias = Math.floor(
-        diferenciaTiempo / (1000 * 60 * 60 * 24)
-      );
-      const numeroSemana = Math.ceil(
-        (diferenciaDias + inicioAño.getDay() + 1) / 7
-      );
-      return numeroSemana;
+      // Ajustar para que coincida con WEEK(fecha, 1) de MySQL (Lunes es primer día, 1-53)
+      const target = new Date(fecha.valueOf());
+      const dayNr = (fecha.getDay() + 6) % 7;
+      target.setDate(target.getDate() - dayNr + 3);
+      const firstThursday = target.valueOf();
+      target.setMonth(0, 1);
+      if (target.getDay() !== 4) {
+        target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+      }
+      return 1 + Math.ceil((firstThursday - target) / 604800000);
     },
     
     resetInfoModal() {

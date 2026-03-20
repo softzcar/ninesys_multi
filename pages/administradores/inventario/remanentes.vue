@@ -17,7 +17,7 @@
 
             <!-- Filtros -->
             <b-row class="mb-3">
-              <b-col md="3">
+              <b-col md="2">
                 <label>Estado:</label>
                 <b-form-select v-model="filtros.tipo" @change="cargarRemanentes">
                   <option value="activos">Items Activos</option>
@@ -25,11 +25,11 @@
                   <option value="todos">Todos</option>
                 </b-form-select>
               </b-col>
-              <b-col md="3">
+              <b-col md="2">
                 <label>Desde:</label>
                 <b-form-input type="date" v-model="filtros.fecha_desde" @change="cargarRemanentes" />
               </b-col>
-              <b-col md="3">
+              <b-col md="2">
                 <label>Hasta:</label>
                 <b-form-input type="date" v-model="filtros.fecha_hasta" @change="cargarRemanentes" />
               </b-col>
@@ -38,12 +38,17 @@
                 <b-form-input v-model="filtros.busqueda" placeholder="ID, SKU, empleado..."
                   @input="buscarConDebounce" />
               </b-col>
+              <b-col md="3">
+                <label>Filtrar por Empleado:</label>
+                <b-form-select v-model="filtroEmpleado" :options="empleadosOpciones">
+                </b-form-select>
+              </b-col>
             </b-row>
 
             <!-- Tabla -->
             <b-row>
               <b-col>
-                <b-table :items="remanentes" :fields="campos" :busy="cargando" striped hover responsive show-empty
+                <b-table :items="remanentesFiltrados" :fields="campos" :busy="cargando" striped hover responsive show-empty
                   @sort-changed="cambiarOrden">
                   <template #table-busy>
                     <div class="text-center my-2">
@@ -148,6 +153,7 @@ export default {
         fecha_desde: null,
         fecha_hasta: null
       },
+      filtroEmpleado: null,
       ordenamiento: {
         campo: 'r.fecha',
         direccion: 'DESC'
@@ -183,6 +189,20 @@ export default {
     rangoFin() {
       const fin = this.paginaActual * this.registrosPorPagina
       return fin > this.totalRegistros ? this.totalRegistros : fin
+    },
+    remanentesFiltrados() {
+      if (!this.filtroEmpleado) return this.remanentes
+      return this.remanentes.filter(r => r.nombre_empleado === this.filtroEmpleado)
+    },
+    empleadosOpciones() {
+      const nombres = [...new Set(this.remanentes.map(r => r.nombre_empleado))]
+        .filter(n => n)
+        .sort((a, b) => a.localeCompare(b))
+
+      return [
+        { value: null, text: '-- Todos los empleados --' },
+        ...nombres.map(n => ({ value: n, text: n }))
+      ]
     }
   },
 
@@ -193,6 +213,7 @@ export default {
   methods: {
     async cargarRemanentes() {
       this.cargando = true
+      this.filtroEmpleado = null // Resetear filtro local al cargar nuevos datos
       try {
         const params = {
           tipo: this.filtros.tipo,

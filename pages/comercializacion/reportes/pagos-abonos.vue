@@ -140,23 +140,36 @@
                         {{ pago.metodoPago }}: {{ pago.total }}
                       </h4>
 
-                      <h3 class="text-right mt-2 mb-4">
-                        TOTAL: {{ totales.totalGeneral }}
+                      <h3 class="text-right mt-2">
+                        Total Bruto: {{ formatNumber(totales.sumas.total_orden) }}
                       </h3>
 
-                      <b-table
-                        sort-icon-left
-                        :per-page="perPage"
-                        :current-page="currentPage"
-                        ref="table"
-                        responsive
-                        small
-                        :fields="campos"
-                        :items="pagosFiltrados"
-                        @filtered="onFiltered"
-                        :filter="filter"
-                        :filter-included-fields="includedFields"
-                      >
+                      <h3 class="text-right">
+                        Total Descuentos: {{ formatNumber(totales.sumas.descuentos) }}
+                      </h3>
+
+                      <h3 class="text-right">
+                        Total Neto: {{ formatNumber(totales.sumas.neto) }}
+                      </h3>
+
+                      <h3 class="text-right mt-2 mb-4">
+                        TOTAL PAGOS: {{ formatNumber(totales.totalGeneral) }}
+                      </h3>
+
+                        <b-table
+                          sort-icon-left
+                          foot-clone
+                          :per-page="perPage"
+                          :current-page="currentPage"
+                          ref="table"
+                          responsive
+                          small
+                          :fields="campos"
+                          :items="pagosFiltrados"
+                          @filtered="onFiltered"
+                          :filter="filter"
+                          :filter-included-fields="includedFields"
+                        >
                         <template #cell(orden)="data">
                           <linkSearch
                             :key="data.item._id"
@@ -165,15 +178,53 @@
                         </template>
 
                         <template #cell(monto)="data">
-                          {{ data.item.montoAjustadoLocal !== undefined ? data.item.montoAjustadoLocal.toFixed(2) : parseFloat(data.item.monto || 0).toFixed(2) }}
+                          {{ formatNumber(data.item.montoAjustadoLocal) }}
                         </template>
 
                         <template #cell(tasa)="data">
-                          {{ parseFloat(data.item.tasa || 1).toFixed(2) }}
+                          {{ formatNumber(data.item.tasa) }}
                         </template>
 
                         <template #cell(_id)="data">
-                          {{ data.item.montoAjustadoUsd !== undefined ? data.item.montoAjustadoUsd.toFixed(2) : usdConverter(data.item.moneda, data.item.monto, data.item.tasa) }}
+                          {{ formatNumber(data.item.montoAjustadoUsd) }}
+                        </template>
+
+                        <template #cell(total_orden)="data">
+                          {{ formatNumber(data.item.total_orden) }}
+                        </template>
+
+                        <template #cell(total_descuento_valor)="data">
+                          {{ formatNumber(data.item.total_descuento_valor) }}
+                        </template>
+
+                        <template #cell(total_neto)="data">
+                          <b>{{ formatNumber(data.item.total_neto) }}</b>
+                        </template>
+
+                        <template #cell(saldo_pendiente)="data">
+                          <span :class="parseFloat(data.item.saldo_pendiente) > 0 ? 'text-danger font-weight-bold' : 'text-success'">
+                            {{ formatNumber(data.item.saldo_pendiente) }}
+                          </span>
+                        </template>
+
+                        <!-- FOOTER TOTALS -->
+                        <template #foot(monto)>
+                          <div class="text-right">{{ formatNumber(totales.sumas.monto) }}</div>
+                        </template>
+                        <template #foot(_id)>
+                          <div class="text-right">{{ formatNumber(totales.sumas.usd) }}</div>
+                        </template>
+                        <template #foot(total_orden)>
+                          <div class="text-right">{{ formatNumber(totales.sumas.total_orden) }}</div>
+                        </template>
+                        <template #foot(total_descuento_valor)>
+                          <div class="text-right">{{ formatNumber(totales.sumas.descuentos) }}</div>
+                        </template>
+                        <template #foot(total_neto)>
+                          <div class="text-right"><b>{{ formatNumber(totales.sumas.neto) }}</b></div>
+                        </template>
+                        <template #foot(saldo_pendiente)>
+                          <div class="text-right"><b class="text-danger">{{ formatNumber(totales.sumas.saldo) }}</b></div>
                         </template>
                       </b-table>
                     </b-overlay>
@@ -212,7 +263,7 @@ export default {
       totalRows: 0,
       overlay: true,
       reporteGenerado: false,
-      titulo: "Pagos y Abonos",
+      titulo: "Balance de pagos y abonos",
       pagos: [],
       selectedVendedor: null,
       selectedCategory: 'Todas',
@@ -234,27 +285,8 @@ export default {
           sortable: true,
         },
         {
-          key: "_id",
-          label: "Total $",
-        },
-        {
           key: "detalle",
           label: "Detalles",
-        },
-        {
-          key: "moneda",
-          label: "Moneda",
-          sortable: true,
-        },
-        {
-          key: "monto",
-          label: "Monto",
-          sortable: true,
-        },
-        {
-          key: "tasa",
-          label: "Tasa",
-          sortable: true,
         },
         {
           key: "fecha",
@@ -264,6 +296,59 @@ export default {
         {
           key: "hora",
           label: "Hora",
+        },
+        {
+          key: "moneda",
+          label: "Moneda",
+          sortable: true,
+        },
+        {
+          key: "tasa",
+          label: "Tasa",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
+          key: "monto",
+          label: "Monto",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
+          key: "_id",
+          label: "Total $",
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
+          key: "total_orden",
+          label: "Monto Total",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
+          key: "total_descuento_valor",
+          label: "Descuentos",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
+          key: "total_neto",
+          label: "Monto Neto",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
+          key: "saldo_pendiente",
+          label: "Saldo Pendiente",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
         },
       ],
       ordenes: [],
@@ -279,10 +364,19 @@ export default {
           const montoLocal = parseFloat(pago.monto) || 0;
           const tasaVal = parseFloat(pago.tasa) || 1;
           const montoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoLocal / tasaVal) : montoLocal;
+          const totalDescuento = (parseFloat(pago.total_descuento) || 0) + (parseFloat(pago.total_nota_credito) || 0);
+          const totalAbonoBase = parseFloat(pago.total_abonos_base) || 0;
+          const totalOrden = parseFloat(pago.total_orden) || 0;
+          const totalNeto = totalOrden - totalDescuento;
+          const saldoPendiente = totalNeto - totalAbonoBase;
+
           return {
             ...pago,
             montoAjustadoLocal: montoLocal,
-            montoAjustadoUsd: montoUsd
+            montoAjustadoUsd: montoUsd,
+            total_descuento_valor: totalDescuento,
+            total_neto: totalNeto,
+            saldo_pendiente: saldoPendiente > 0.01 ? saldoPendiente : 0
           };
         });
       }
@@ -305,10 +399,19 @@ export default {
              montoAjustadoLocal = montoBase;
              montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaBase) : montoAjustadoLocal;
         }
+        const totalDescuento = (parseFloat(pago.total_descuento) || 0) + (parseFloat(pago.total_nota_credito) || 0);
+        const totalAbonoBase = parseFloat(pago.total_abonos_base) || 0;
+        const totalOrden = parseFloat(pago.total_orden) || 0;
+        const totalNeto = totalOrden - totalDescuento;
+        const saldoPendiente = totalNeto - totalAbonoBase;
+
         return {
           ...pago,
           montoAjustadoLocal,
-          montoAjustadoUsd
+          montoAjustadoUsd,
+          total_descuento_valor: totalDescuento,
+          total_neto: totalNeto,
+          saldo_pendiente: saldoPendiente > 0.01 ? saldoPendiente : 0
         };
       });
     },
@@ -316,15 +419,38 @@ export default {
       const totales = {
         porMetodoPago: {},
         totalGeneral: 0,
+        sumas: {
+          monto: 0,
+          usd: 0,
+          total_orden: 0,
+          descuentos: 0,
+          neto: 0,
+          saldo: 0
+        }
       };
 
       const pagosSeguro = Array.isArray(this.pagosFiltrados) ? this.pagosFiltrados : [];
+      const ordenesProcesadas = new Set();
 
       pagosSeguro.forEach((item) => {
-        const { metodo_pago, montoAjustadoUsd } = item;
+        const { orden, metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_neto, saldo_pendiente } = item;
         const montoUsd = parseFloat(montoAjustadoUsd) || 0;
 
         totales.totalGeneral += montoUsd;
+        
+        // Sumamos pagos siempre (son individuales)
+        totales.sumas.monto += parseFloat(montoAjustadoLocal) || 0;
+        totales.sumas.usd += montoUsd;
+
+        // Sumamos métricas de orden SOLO una vez por orden ID
+        if (!ordenesProcesadas.has(orden)) {
+          totales.sumas.total_orden += parseFloat(total_orden) || 0;
+          totales.sumas.descuentos += parseFloat(total_descuento_valor) || 0;
+          totales.sumas.neto += parseFloat(total_neto) || 0;
+          totales.sumas.saldo += parseFloat(saldo_pendiente) || 0;
+          ordenesProcesadas.add(orden);
+        }
+
         if (!totales.porMetodoPago[metodo_pago]) {
           totales.porMetodoPago[metodo_pago] = 0;
         }
@@ -346,6 +472,7 @@ export default {
       return {
         porMetodoPago: resultadoPorMetodoPago,
         totalGeneral: totales.totalGeneral.toFixed(2),
+        sumas: totales.sumas
       };
     },
   },

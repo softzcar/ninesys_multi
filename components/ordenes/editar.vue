@@ -257,14 +257,18 @@ export default {
             }
 
             // Detectar si es una reactivación (se está saliendo de cancelada o terminada)
+            // EXCEPCIÓN: terminada -> entregada NO se considera reactivación manual que requiera motivo
             const esReactivacion = (this.previousSelected === 'cancelada' || this.previousSelected === 'terminada') && 
                                   (this.selected !== 'cancelada' && this.selected !== 'terminada');
             
+            const esFlujoNormalTerminadaAEntrega = this.previousSelected === 'terminada' && this.selected === 'entregada';
+
             // Detectar si se está revirtiendo una entrega
             const esReversionEntrega = this.previousSelected === 'entregada' && this.selected !== 'entregada';
 
             // Si es cancelada, terminada, reactivación o reversión de entrega, verificar que tenemos motivo
-            if ((this.selected === 'cancelada' || this.selected === 'terminada' || esReactivacion || esReversionEntrega) && !this.esperandoMotivo) {
+            // Exceptuamos el flujo normal terminada -> entregada
+            if ((this.selected === 'cancelada' || this.selected === 'terminada' || esReactivacion || esReversionEntrega) && !esFlujoNormalTerminadaAEntrega && !this.esperandoMotivo) {
                 // Si no hay motivo, mostrar modal
                 if (!this.motivoCambio || this.motivoCambio.trim() === '') {
                     this.esperandoMotivo = true

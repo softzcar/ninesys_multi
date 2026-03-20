@@ -52,6 +52,12 @@
                             </b-col>
                         </b-row>
 
+                        <b-row class="mb-4">
+                            <b-col>
+                                <h2 class="text-info font-weight-bold">{{ rangoFechasTexto }}</h2>
+                            </b-col>
+                        </b-row>
+
                         <b-row>
                             <b-col class="text-center">
                                 <b-button type="submit" variant="primary" class="mr-2">BUSCAR</b-button>
@@ -121,6 +127,17 @@ import mixin from "~/mixins/mixins.js"
 
 export default {
     data() {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Helper to format as YYYY-MM-DD for datepickers
+        const toISO = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         return {
             pagos: [],
             includedFields: ["orden", "cliente_nombre"],
@@ -146,8 +163,8 @@ export default {
                 show: true,
                 text: "Cargando ordenes...",
             },
-            fechaConsultaInicio: "",
-            fechaConsultaFin: "",
+            fechaConsultaInicio: toISO(firstDay),
+            fechaConsultaFin: toISO(now),
             selectedVendedor: 0,
             vendedores: [],
         }
@@ -244,7 +261,7 @@ export default {
                 });
                 return;
             }
-            this.applyFilters();
+            this.loadData();
         },
 
         applyFilters() {
@@ -253,23 +270,6 @@ export default {
             // Filter by seller
             if (this.selectedVendedor != 0) {
                 filtered = filtered.filter(el => el.id_vendedor == this.selectedVendedor);
-            }
-
-            // Filter by date range
-            if (this.fechaConsultaInicio && this.fechaConsultaFin) {
-                const inicio = new Date(this.fechaConsultaInicio);
-                const fin = new Date(this.fechaConsultaFin);
-                fin.setHours(23, 59, 59, 999); // Include the whole end day
-
-                filtered = filtered.filter(item => {
-                    const fechaInicio = new Date(item.fecha_inicio);
-                    const fechaEntrega = new Date(item.fecha_entrega);
-                    return (
-                        (fechaInicio >= inicio && fechaInicio <= fin) ||
-                        (fechaEntrega >= inicio && fechaEntrega <= fin) ||
-                        (fechaInicio <= inicio && fechaEntrega >= fin)
-                    );
-                });
             }
 
             // Filter by payment status
@@ -302,7 +302,12 @@ export default {
             this.loading.show = true;
             try {
                 const [ordenesRes, pagosRes] = await Promise.all([
-                    this.$axios.get(`${this.$config.API}/table/ordenes-todas`),
+                    this.$axios.get(`${this.$config.API}/table/ordenes-todas`, {
+                        params: {
+                            fecha_inicio: this.fechaConsultaInicio,
+                            fecha_fin: this.fechaConsultaFin
+                        }
+                    }),
                     this.$axios.get(`${this.$config.API}/reporte-de-pagos`)
                 ]);
 
@@ -382,6 +387,14 @@ export default {
         filterName() {
             const option = this.optionsRadio.find(opt => opt.value === this.selectedRadio);
             return option ? option.text : 'Todas';
+        },
+        rangoFechasTexto() {
+            if (!this.fechaConsultaInicio || !this.fechaConsultaFin) return "";
+            const format = (dateStr) => {
+                const [y, m, d] = dateStr.split("-");
+                return `${d}/${m}/${y}`;
+            };
+            return `Reporte desde ${format(this.fechaConsultaInicio)} hasta ${format(this.fechaConsultaFin)}`;
         },
     },
 

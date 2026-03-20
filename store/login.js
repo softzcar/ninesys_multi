@@ -146,18 +146,23 @@ export const actions = {
     getLoading({ commit }, data) {
         commit("loading", data)
     },
-    async cargarTasasAutomaticas({ commit }) {
+    async cargarTasasAutomaticas({ commit, state }, payload = { forceUpdate: true }) {
         try {
             // Llamar a la función importada directamente
             const resultado = await obtenerTasasConFallback()
 
             if (resultado.success && resultado.tasas) {
-                // Actualizar todas las tasas en el store
+                // Actualizar tasas en el store
                 Object.entries(resultado.tasas).forEach(([moneda, valor]) => {
-                    commit('setTasa', { moneda, valor })
+                    // Si forceUpdate es true, siempre sobrescribimos.
+                    // Si es false, solo sobrescribimos si el valor actual es 0 o null (no configurado).
+                    if (payload.forceUpdate || !state.tasas[moneda]) {
+                        commit('setTasa', { moneda, valor })
+                    }
                 })
 
-                // Actualizar metadata
+                // IMPORTANTE: La metadata (referencia) SIEMPRE se sugiere actualizar
+                // para que componentes como el MultiplicadorPrecio tengan el valor real del BCV
                 commit('setMetadataTasas', {
                     timestamp: resultado.timestamp,
                     fuente: resultado.fallback ? 'fallback' : 'automatica',

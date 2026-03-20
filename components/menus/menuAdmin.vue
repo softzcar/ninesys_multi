@@ -232,7 +232,21 @@
                     @keypress.enter="navigate"
                     role="link"
                   >
-                    Reporte de Pagos y Abonos
+                    Balance de pagos y abonos
+                  </span>
+                </router-link>
+                <router-link
+                  class="nav-link"
+                  to="/comercializacion/reportes/balance-cierres"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Balance de cierres
                   </span>
                 </router-link>
               </b-nav-item-dropdown>

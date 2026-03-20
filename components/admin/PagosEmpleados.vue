@@ -207,7 +207,7 @@ export default {
           }
 
           let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
-
+          if (dep === 'Comercialización' || dep === 'Vendedor') dep = 'Ventas';
           acc.push({
             nombre: curr.nombre || curr.nombre_disenador || (empleado ? empleado.nombre : 'Empleado'),
             id_empleado: curr.id_empleado,
@@ -217,6 +217,7 @@ export default {
             monto_salario: tipoSalario !== 'Comisión' ? salarioPago : 0,
             monto_comision: comisionParaRegistro,
             id_pagos: curr.id_pago ? [curr.id_pago] : [],
+            fecha_pago: curr.ultima_fecha_pago || empleado?.ultima_fecha_pago || null,
           });
         } else {
           const tipoSalario = acc[index].salario_tipo;
@@ -230,6 +231,7 @@ export default {
           }
 
           let dep = curr.departamento || (curr.origen === 'Diseñador' ? 'Diseño' : (curr.origen === 'Vendedor' ? 'Ventas' : 'Producción'));
+          if (dep === 'Comercialización' || dep === 'Vendedor') dep = 'Ventas';
           if (dep && !acc[index].departamento.includes(dep)) {
             acc[index].departamento += ' + ' + dep;
           }
@@ -246,7 +248,11 @@ export default {
         const nameB = b.nombre || "";
         return nameA.localeCompare(nameB);
       }).map(item => {
-        item.pago = item.pago.toFixed(2);
+        // Solo mostrar la fecha de pago si el empleado está totalmente liquidado (pago == 0)
+        if (parseFloat(item.pago) > 0) {
+          item.fecha_pago = null;
+        }
+        item.pago = parseFloat(item.pago).toFixed(2);
         return item;
       });
     },
@@ -401,9 +407,16 @@ export default {
 
     // Funciones auxiliares
     obtenerNumeroSemana(fecha) {
-      const primerDiaAnio = new Date(fecha.getFullYear(), 0, 1);
-      const diasTranscurridos = Math.floor((fecha - primerDiaAnio) / (24 * 60 * 60 * 1000));
-      return Math.ceil((diasTranscurridos + primerDiaAnio.getDay() + 1) / 7);
+      // Ajustar para que coincida con WEEK(fecha, 1) de MySQL (Lunes es primer día, 1-53)
+      const target = new Date(fecha.valueOf());
+      const dayNr = (fecha.getDay() + 6) % 7;
+      target.setDate(target.getDate() - dayNr + 3);
+      const firstThursday = target.valueOf();
+      target.setMonth(0, 1);
+      if (target.getDay() !== 4) {
+        target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+      }
+      return 1 + Math.ceil((firstThursday - target) / 604800000);
     },
 
     esUltimoDiaDelMes(fecha) {

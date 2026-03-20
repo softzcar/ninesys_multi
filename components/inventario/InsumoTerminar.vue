@@ -1,7 +1,7 @@
 <template>
     <div class="d-inline-block">
         <!-- Botón de acción -->
-        <b-button variant="warning" size="sm" @click="openModal" v-b-tooltip.hover
+        <b-button variant="warning" size="sm" @click="openModal"
             title="Terminar Insumo (Cerrar Stock)">
             <b-icon icon="x-circle" aria-hidden="true"></b-icon>
         </b-button>
@@ -122,9 +122,9 @@ export default {
 
                 const payload = {
                     id_insumo: this.idInsumo,
-                    tipo: 'consumo', // Indica resta, no terminación
+                    tipo: 'terminacion_manual', // Forza cantidad a 0 y registra movimiento en backend
                     remanente: inputQty,
-                    cantidad_consumida: inputQty, // Set amount to subtract
+                    cantidad_consumida: inputQty,
                     auto_remanente: false,
                     id_empleado: this.$store.state.login.dataUser.id_empleado,
                     motivo: this.motivo,

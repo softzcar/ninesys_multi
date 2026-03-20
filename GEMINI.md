@@ -12,6 +12,17 @@
 - **Framework del Backend:** Slim Framework.
 - **Rutas de la API:** `https://raw.githubusercontent.com/softzcar/ninesys-apidev/refs/heads/main/app/routes.php` (Usar `curl` para leer el contenido).
 
+## ⚠️ REGLAS DE SEGURIDAD Y DESPLIEGUE (LECTURA OBLIGATORIA)
+
+- **Prohibición de Contabo (Producción):** Queda ESTRICTAMENTE PROHIBIDO realizar cualquier tipo de despliegue, sincronización o comando remoto hacia el servidor de Contabo sin una orden explícita, directa y literal del usuario para esa acción específica.
+- **Prohibición de Despliegue Automático:** NUNCA asumas que un cambio debe ser desplegado inmediatamente a PRODUCCIÓN. 
+- **Sincronización Obligatoria Backend (Hostinger):** TODO cambio realizado en el código local del backend (`ninesys-apidev`) DEBE ser subido inmediatamente al servidor de DESARROLLO (Hostinger - `vps-ninesys`) una vez verificado mínimamente en local. Los cambios no sincronizados se consideran inútiles.
+- **Protocolo Pre-Despliegue Producción:** Antes de sugerir o ejecutar un despliegue a Contabo, DEBES:
+    1. Releer esta sección de `GEMINI.md`.
+    2. Ejecutar el workflow `/.agents/workflows/validar-seguridad-despliegue.md`.
+    3. Obtener confirmación textual del usuario para el servidor específico (Hostinger o Contabo).
+
 ## Flujos de Trabajo (Workflows) Obligatorios
 - **Gestión de Bitácora:** Al finalizar CADA tarea técnica, ejecuta estrictamente el workflow `/.agents/workflows/registrar-tarea.md`.
 - **Generación de Reportes:** Al finalizar la sesión de trabajo o cuando el usuario lo solicite, ejecuta el workflow `/.agents/workflows/generar-reporte.md`.
+- **Validación de Seguridad:** Obligatorio antes de cualquier interacción con servidores remotos: `/.agents/workflows/validar-seguridad-despliegue.md`.

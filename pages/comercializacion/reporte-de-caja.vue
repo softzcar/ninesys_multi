@@ -29,7 +29,7 @@
               @submit="onSubmit"
             >
               <b-row>
-                <b-col md="4">
+                <b-col md="4" v-if="currentDepartamentId === 7">
                   <h3>Vendedor</h3>
                   <b-form-select
                     v-model="vendedorSeleccionado"
@@ -552,7 +552,7 @@ export default {
     };
   },
   computed: {
-    ...mapState("login", ["dataUser", "access"]),
+    ...mapState("login", ["dataUser", "access", "currentDepartamentId"]),
 
     sumPagos() {
       var result = [];
@@ -778,8 +778,16 @@ export default {
 
   mounted() {
     this.overlay = true;
+    // Si no es administrador (ID 7), fijar el vendedor como el propio empleado
+    if (this.currentDepartamentId !== 7) {
+      this.vendedorSeleccionado = this.dataUser.id_empleado;
+    }
+
     // Cargar vendedores inicialmente (usamos el repo de reporte de caja para traer la lista)
-    this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin, 0).then(() => {
+    // Si no es administrador, cargamos solo sus datos
+    const idConsulta = this.currentDepartamentId === 7 ? 0 : this.dataUser.id_empleado;
+
+    this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin, idConsulta).then(() => {
       this.overlay = false;
     });
   },
