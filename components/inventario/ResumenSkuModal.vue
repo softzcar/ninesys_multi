@@ -109,8 +109,12 @@ export default {
           acc[sku].tipo_insumo = 'tela';
         }
 
-        acc[sku].cantidadTotal += parseFloat(item.cantidad || 0)
-        acc[sku].metrosTotal += parseFloat(item.metros || 0)
+        const cantidad = parseFloat(item.cantidad || 0);
+        const rendimiento = parseFloat(item.rendimiento || 0);
+        const metrosCalculados = cantidad * rendimiento;
+
+        acc[sku].cantidadTotal += cantidad;
+        acc[sku].metrosTotal += metrosCalculados;
         acc[sku].conteo += 1
         return acc
       }, {})
