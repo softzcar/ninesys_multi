@@ -81,6 +81,8 @@ export default {
         { key: 'unidad', label: 'Unidad Base', sortable: true, thClass: 'bg-light' },
         { key: 'cantidadTotal', label: 'Stock Total', sortable: true, thClass: 'bg-light text-right', tdClass: 'text-right' },
         { key: 'metrosTotal', label: 'Equiv. Metros', sortable: true, thClass: 'bg-light text-right', tdClass: 'text-right' },
+        { key: 'tipo_insumo', label: 'DEBUG: Tipo', sortable: true, thClass: 'bg-light small' },
+        { key: 'rendimientoPromedio', label: 'DEBUG: Rend', sortable: true, thClass: 'bg-light small' },
         { key: 'conteo', label: 'Ítems', sortable: true, thClass: 'bg-light text-center', tdClass: 'text-center' },
       ]
     }
@@ -99,6 +101,7 @@ export default {
             tipo_insumo: 'general',
             cantidadTotal: 0,
             metrosTotal: 0,
+            rendimientoTotal: 0,
             conteo: 0
           }
         }
@@ -115,6 +118,7 @@ export default {
 
         acc[sku].cantidadTotal += cantidad;
         acc[sku].metrosTotal += metrosCalculados;
+        acc[sku].rendimientoTotal += rendimiento;
         acc[sku].conteo += 1
         return acc
       }, {})
@@ -122,7 +126,8 @@ export default {
       return Object.values(groups).map(g => ({
         ...g,
         cantidadTotal: parseFloat(g.cantidadTotal.toFixed(2)),
-        metrosTotal: parseFloat(g.metrosTotal.toFixed(2))
+        metrosTotal: parseFloat(g.metrosTotal.toFixed(2)),
+        rendimientoPromedio: parseFloat((g.rendimientoTotal / g.conteo).toFixed(2))
       }))
     }
   }
