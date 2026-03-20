@@ -17,9 +17,15 @@
                                         placeholder="Ingrese el insumo" required></b-form-input>
                                 </b-form-group>
 
-                                <b-form-group id="input-group-sku" label="SKU:" label-for="input-sku">
-                                    <b-form-input id="input-sku" v-model="form.sku" placeholder="Ingrese el SKU"
-                                        required></b-form-input>
+                                <b-form-group id="input-group-sku" label="SKU (Buscar para clonar):" label-for="input-sku">
+                                    <vue-typeahead-bootstrap id="input-sku" v-model="form.sku"
+                                        :data="uniqueInventoryItems" :serializer="item => item.sku" @hit="onSkuSelect"
+                                        placeholder="Ingrese o busque un SKU..." required>
+                                        <template slot="suggestion" slot-scope="{ data, htmlText }">
+                                            <span v-html="htmlText"></span>
+                                            <small class="text-muted ml-2">({{ data.insumo }})</small>
+                                        </template>
+                                    </vue-typeahead-bootstrap>
                                 </b-form-group>
 
                                 <!-- SECCIÓN 2: Atributos y Costos -->
@@ -185,6 +191,18 @@ export default {
             const rend = parseFloat(this.form.rendimiento) || 0;
             const metro = parseFloat(this.costoMetro) || 0;
             return (cant * rend * metro).toFixed(2);
+        },
+        uniqueInventoryItems() {
+            if (!this.inventoryItems) return [];
+            // Filtrar duplicados de SKU y ordenar
+            const seen = new Set();
+            return this.inventoryItems
+                .filter(item => {
+                    const duplicate = seen.has(item.sku);
+                    seen.add(item.sku);
+                    return !duplicate;
+                })
+                .sort((a, b) => (a.sku || '').localeCompare(b.sku || ''));
         }
     },
 
@@ -323,6 +341,22 @@ export default {
             this.guardarInsumo()
         },
 
+        onSkuSelect(item) {
+            this.form.insumo = item.insumo;
+            this.form.tipo_insumo = (item.tipo_insumo || 'general').toLowerCase();
+            this.form.unidad = item.unidad;
+            this.form.rendimiento = item.rendimiento;
+            this.form.departamento = item.departamento;
+            this.selectedProduct = item.id_catalogo || item.id_catalogo_producto;
+
+            this.$fire({
+                title: "Datos Clonados",
+                text: `Se han cargado los datos del SKU ${item.sku}.`,
+                type: "info",
+                timer: 2000
+            });
+        },
+
         onReset(event) {
             event.preventDefault()
             this.resetForm();
@@ -334,7 +368,7 @@ export default {
         },
     },
 
-    props: ["catalogoProductosData"],
+    props: ["catalogoProductosData", "inventoryItems"],
     mounted() {
         this.fetchData();
     },

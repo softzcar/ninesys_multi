@@ -23,9 +23,10 @@
                             <b-col md="6" class="text-right d-flex justify-content-end align-items-center">
                                 <inventario-InsumoNuevo @reload="getInsumos"
                                     :catalogoProductosData="catalogoInsumosProductos"
+                                    :inventoryItems="dataTableDyn"
                                     @reloadCatalogo="fetchCatalogoInsumosProductos" class="mr-2" />
                                 <inventario-ResumenSkuModal :items="dataTable.items" class="mr-2" />
-                                <b-button variant="info" @click="generatePDF" title="Imprimir Reporte">
+                                <b-button variant="info" @click="imprimirReporte" title="Imprimir Reporte">
                                     <b-icon icon="printer-fill" class="mr-1"></b-icon> Imprimir Reporte
                                 </b-button>
                             </b-col>
@@ -68,18 +69,21 @@
                         </b-row>
 
                         <b-row>
+                            <b-col class="d-flex justify-content-between align-items-center mb-3">
+                                <b-pagination v-model="currentPage" :total-rows="totalRows" :per-page="perPage"
+                                    class="mb-0"></b-pagination>
+                                <div class="text-muted small">
+                                    Mostrando página {{ currentPage }} de {{ Math.ceil(totalRows / perPage) }}
+                                </div>
+                            </b-col>
+                        </b-row>
+
+                        <b-row>
                             <b-col>
-                                <b-pagination v-model="currentPage" :total-rows="totalRows"
-                                    :per-page="perPage"></b-pagination>
-
-                                <p>selectedRadio: {{ selectedRadio }}</p>
-                                <p class="mt-3">
-                                    Página actual: {{ currentPage }}
-                                </p>
-
                                 <b-table ref="table" responsive small striped hover :items="dataTableDyn"
                                     :fields="fields" :per-page="perPage" :current-page="currentPage"
                                     @filtered="onFiltered" :filter="filter" :filter-included-fields="includedFields"
+                                    :sort-by.sync="sortBy" :sort-desc.sync="sortDesc"
                                     sort-icon-left>
                                     <template #cell(ver_consumo)="data">
                                         <inventario-ConsumoMaterialModal :idInsumo="data.item._id"
@@ -112,14 +116,65 @@
                 </b-overlay>
             </div>
         </div>
+
+        <!-- SECCIÓN OCULTA PARA IMPRESIÓN (ESTÁNDAR DEL PROYECTO) -->
+        <div style="display: none;">
+            <div id="reporte-inventario" class="report">
+                <table class="table-header" style="width: 100%; margin-bottom: 20px;">
+                    <tr>
+                        <td>
+                            <h1 style="font-size: 18pt; margin-bottom: 5px;">{{ dataEmpresa.nombre }}</h1>
+                            <p>{{ dataEmpresa.direccion }}</p>
+                        </td>
+                        <td style="text-align: right; vertical-align: top;">
+                            <h2 style="font-size: 14pt;">REPORTE DE INVENTARIO</h2>
+                            <p><strong>Fecha:</strong> {{ new Date().toLocaleDateString() }}</p>
+                            <p v-if="filter"><strong>Filtro:</strong> {{ filter }}</p>
+                            <p><strong>Departamento:</strong> {{ selectedRadio }}</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="table-products" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">ID</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">SKU</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">Insumo</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">Depto.</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">Rend.</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">Metros</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: center;">Unidad</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">Stock</th>
+                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">Costo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in itemsParaReporte" :key="item._id">
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px;">{{ item.rollo }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px;">{{ item.sku }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px;">{{ item.insumo }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px;">{{ item.departamento }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">{{ item.rendimiento }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">
+                                <span v-if="item.tipo_insumo === 'tela'">{{ item.metros }}</span>
+                                <span v-else>-</span>
+                            </td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: center;">{{ item.unidad }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">{{ item.cantidad }}</td>
+                            <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">{{ item.costo }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 import { mapState } from "vuex"
 import axios from "axios"
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable"
+import PrintService from "@/utils/PrintService"
 
 export default {
     data() {
@@ -213,10 +268,44 @@ export default {
     },
 
     computed: {
-        ...mapState("login", ["dataUser", "access"]),
+        ...mapState("login", ["dataEmpresa", "dataUser", "access"]),
         myTable() {
             return this.dataTable.items
         },
+        itemsParaReporte() {
+            let items = (this.filter && this.filter.trim() !== '') ? [...this.allFilteredItems] : [...this.dataTableDyn];
+            
+            if (this.sortBy) {
+                const field = this.sortBy;
+                const isDesc = this.sortDesc;
+                const modifier = isDesc ? -1 : 1;
+                
+                items.sort((a, b) => {
+                    let valA = a[field];
+                    let valB = b[field];
+                    
+                    if (valA === null || valA === undefined) return 1;
+                    if (valB === null || valB === undefined) return -1;
+                    
+                    // Intentar comparación numérica si ambos parecen números
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        return (numA - numB) * modifier;
+                    }
+                    
+                    // Comparación de strings
+                    valA = valA.toString().toLowerCase();
+                    valB = valB.toString().toLowerCase();
+                    
+                    if (valA < valB) return -1 * modifier;
+                    if (valA > valB) return 1 * modifier;
+                    return 0;
+                });
+            }
+            return items;
+        }
     },
 
     methods: {
@@ -264,6 +353,20 @@ export default {
                 .get(`${this.$config.API}/inventario/todos`)
                 .then((resp) => {
                     this.dataTable = []
+                    // Procesar metros para telas antes de guardar
+                    if (resp.data && resp.data.items) {
+                        resp.data.items = resp.data.items.map(item => {
+                            if ((item.tipo_insumo || '').toLowerCase() === 'tela') {
+                                const cant = parseFloat(item.cantidad || 0);
+                                const rend = parseFloat(item.rendimiento || 0);
+                                return {
+                                    ...item,
+                                    metros: (cant * rend).toFixed(2)
+                                };
+                            }
+                            return { ...item, metros: '-' };
+                        });
+                    }
                     this.dataTable = resp.data
                     // this.dataTable = resp.data // Duplicado eliminado
                     this.dataTableDyn = resp.data.items
@@ -435,71 +538,32 @@ export default {
 
         onFiltered(filteredItems) {
             // Trigger pagination to update the number of buttons/pages due to filtering
-            this.totalRows = filteredItems.length
-            this.currentPage = 1
-            this.allFilteredItems = filteredItems // Guardamos la lista completa filtrada
+            this.totalRows = filteredItems.length;
+            this.currentPage = 1;
+            this.allFilteredItems = filteredItems; // Guardamos la lista completa filtrada
         },
 
-        generatePDF() {
-            const doc = new jsPDF()
+        imprimirReporte() {
+            // Siguiendo el estándar del proyecto (como en resultado.vue)
+            const printContent = document.getElementById("reporte-inventario").outerHTML;
+            const reportTitle = `Reporte Inventario - ${this.selectedRadio} - ${new Date().toLocaleDateString()}`;
 
-            // Título del reporte
-            doc.setFontSize(18)
-            doc.text("Reporte de Inventario", 14, 22)
+            // Estilos específicos para la impresión (reutilizando el patrón de resultado.vue)
+            const customStyles = `
+                <style>
+                    @page { size: landscape; margin: 10mm; }
+                    .report { font-family: Arial, sans-serif; width: 100%; }
+                    .table-header { width: 100%; margin-bottom: 20px; border-bottom: 2px solid #17a2b8; padding-bottom: 10px; }
+                    .table-products { width: 100%; border-collapse: collapse; }
+                    .table-products th { background-color: #f8f9fa; color: #333; font-weight: bold; }
+                    .table-products th, .table-products td { border: 1px solid #dee2e6; padding: 8px; font-size: 9pt; }
+                    h1 { color: #17a2b8; margin: 0; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                </style>
+            `;
 
-            doc.setFontSize(11)
-            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 30)
-            if (this.filter) {
-                doc.text(`Filtro aplicado: ${this.filter}`, 14, 36)
-            }
-
-            // Definir columnas para el PDF (excluyendo acciones y columnas vacías)
-            const tableColumn = [
-                "ID Insumo",
-                "SKU",
-                "Nombre",
-                "Departamento",
-                "Rendimiento",
-                "Metros",
-                "Unidad",
-                "Cantidad",
-                "Costo"
-            ]
-
-            // Preparar datos
-            // Logica corregida: Si hay filtro activo, usamos allFilteredItems (que viene de @filtered)
-            // Si no hay filtro, usamos dataTableDyn (todos los del departamento actual)
-            let itemsToPrint = []
-
-            if (this.filter && this.filter.trim() !== '') {
-                // Si hay texto en el filtro, usamos lo que b-table procesó (sin paginar)
-                itemsToPrint = this.allFilteredItems
-            } else {
-                // Si no hay filtro de texto, usamos todos los items del ambito actual
-                itemsToPrint = this.dataTableDyn
-            }
-
-            const tableRows = itemsToPrint.map(item => [
-                item.rollo,
-                item.sku,
-                item.insumo,
-                item.departamento,
-                item.rendimiento,
-                item.metros,
-                item.unidad,
-                item.cantidad,
-                item.costo
-            ])
-
-            autoTable(doc, {
-                head: [tableColumn],
-                body: tableRows,
-                startY: 40,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [23, 162, 184] } // Info color variant approximation
-            })
-
-            doc.save(`reporte_inventario_${new Date().toISOString().slice(0, 10)}.pdf`)
+            PrintService.imprimir(reportTitle, customStyles + printContent);
         },
 
         async fetchCatalogoInsumosProductos() {
