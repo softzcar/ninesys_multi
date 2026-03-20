@@ -1,7 +1,7 @@
 <template>
   <div>
-    <b-button @click="$bvModal.show(modalId)" variant="secondary">
-      Carga Masiva
+    <b-button @click="$bvModal.show(modalId)" variant="primary">
+      <b-icon icon="upload" class="mr-1"></b-icon> Carga Masiva
     </b-button>
 
     <b-modal :id="modalId" hide-footer size="lg">
