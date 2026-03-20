@@ -81,8 +81,8 @@ export default {
         { key: 'unidad', label: 'Unidad Base', sortable: true, thClass: 'bg-light' },
         { key: 'cantidadTotal', label: 'Stock Total', sortable: true, thClass: 'bg-light text-right', tdClass: 'text-right' },
         { key: 'metrosTotal', label: 'Equiv. Metros', sortable: true, thClass: 'bg-light text-right', tdClass: 'text-right' },
-        { key: 'tipo_insumo', label: 'DEBUG: Tipo', sortable: true, thClass: 'bg-light small' },
-        { key: 'rendimientoPromedio', label: 'DEBUG: Rend', sortable: true, thClass: 'bg-light small' },
+        { key: 'tipo_insumo', label: 'Tipo', sortable: true, thClass: 'bg-light' },
+        { key: 'rendimientoPromedio', label: 'Rendimiento', sortable: true, thClass: 'bg-light' },
         { key: 'conteo', label: 'Ítems', sortable: true, thClass: 'bg-light text-center', tdClass: 'text-center' },
       ]
     }
