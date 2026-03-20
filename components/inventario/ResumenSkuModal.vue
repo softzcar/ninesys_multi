@@ -96,12 +96,20 @@ export default {
             sku: sku,
             insumo: item.insumo || 'Sin nombre',
             unidad: item.unidad || '-',
-            tipo_insumo: item.tipo_insumo || 'general',
+            tipo_insumo: (item.tipo_insumo || 'general').toLowerCase().trim(),
             cantidadTotal: 0,
             metrosTotal: 0,
             conteo: 0
           }
         }
+        
+        // Si algún ítem de este SKU es tela, marcar el grupo como tela
+        if (item.tipo_insumo && item.tipo_insumo.toLowerCase().trim() === 'tela') {
+          acc[sku].tipo_insumo = 'tela';
+        } else if (sku.toUpperCase().startsWith('TEL-')) {
+          acc[sku].tipo_insumo = 'tela';
+        }
+
         acc[sku].cantidadTotal += parseFloat(item.cantidad || 0)
         acc[sku].metrosTotal += parseFloat(item.metros || 0)
         acc[sku].conteo += 1
