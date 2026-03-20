@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-button class="mb-4" variant="primary" @click="$bvModal.show(modal)">
+        <b-button variant="primary" @click="$bvModal.show(modal)">
             <b-icon icon="person-plus"></b-icon> {{ title }}
         </b-button>
 

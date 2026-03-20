@@ -1,6 +1,6 @@
 <template>
   <div class="d-inline-block">
-    <b-button variant="outline-primary" @click="$bvModal.show('modal-resumen-sku')" class="mr-2" title="Ver consolidado por SKU">
+    <b-button variant="primary" @click="$bvModal.show('modal-resumen-sku')" class="ml-2" title="Ver consolidado por SKU">
       <b-icon icon="layers-half" class="mr-1"></b-icon> Ver Resumen SKU
     </b-button>
 

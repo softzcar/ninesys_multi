@@ -15,42 +15,54 @@
                         dataUser.departamento === 'Administración' ||
                         dataUser.departamento === 'Producción'
                     ">
-                        <b-row>
-                            <b-col>
-                                <h2 class="mb-4">{{ titulo }}</h2>
+                        <!-- FILA 1: TÍTULO Y ACCIONES PRINCIPALES -->
+                        <b-row class="align-items-center mb-4 pb-2 border-bottom">
+                            <b-col md="6">
+                                <h2 class="mb-0 text-dark">{{ titulo }}</h2>
+                            </b-col>
+                            <b-col md="6" class="text-right d-flex justify-content-end align-items-center">
                                 <inventario-InsumoNuevo @reload="getInsumos"
                                     :catalogoProductosData="catalogoInsumosProductos"
-                                    @reloadCatalogo="fetchCatalogoInsumosProductos" />
+                                    @reloadCatalogo="fetchCatalogoInsumosProductos" class="mr-2" />
+                                <inventario-ResumenSkuModal :items="dataTable.items" class="mr-2" />
+                                <b-button variant="info" @click="generatePDF" title="Imprimir Reporte">
+                                    <b-icon icon="printer-fill" class="mr-1"></b-icon> Imprimir Reporte
+                                </b-button>
+                            </b-col>
+                        </b-row>
+
+                        <!-- FILA 2: CATEGORÍAS Y HERRAMIENTAS -->
+                        <b-row class="mb-4 align-items-center">
+                            <b-col md="9">
+                                <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
+                                    button-variant="outline-primary" size="md" name="radio-btn-outline"
+                                    @input="showResultRadio()" buttons></b-form-radio-group>
+                            </b-col>
+                            <b-col md="3" class="text-right">
                                 <LazyInventarioBulkLoad @upload-success="getInsumos" />
                             </b-col>
                         </b-row>
 
-                        <b-row>
-                            <b-col class="mb-4">
-                                <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
-                                    button-variant="outline-primary" size="lg" name="radio-btn-outline"
-                                    @input="showResultRadio()" buttons></b-form-radio-group>
-                            </b-col>
-                            <b-col offset-lg="2" offset-xl="2" lg="4" xl="4">
-                                <b-input-group class="mb-4" size="sm">
-                                    <b-form-select v-model="selectedQuantity" :options="quantityOptions"
-                                        size="sm"></b-form-select>
-                                </b-input-group>
-                            </b-col>
-                            <b-col lg="6" xl="6">
-                                <b-input-group class="mb-4" size="sm">
+                        <!-- FILA 3: BÚSQUEDA Y FILTROS TÉCNICOS -->
+                        <b-row class="mb-3">
+                            <b-col md="8">
+                                <b-input-group size="md">
                                     <b-form-input id="filter-input" v-model="filter" type="search"
-                                        placeholder="Buscar por Nombre, SKU o ID"></b-form-input>
-
+                                        placeholder="Buscar por Nombre, SKU o ID..."></b-form-input>
                                     <b-input-group-append>
-                                        <b-button :disabled="!filter" @click="filter = ''">
+                                        <b-button :disabled="!filter" @click="filter = ''" variant="outline-secondary">
                                             Limpiar
                                         </b-button>
-                                        <inventario-ResumenSkuModal :items="dataTable.items" />
-                                        <b-button variant="info" @click="generatePDF" title="Imprimir Reporte">
-                                            <b-icon icon="printer-fill"></b-icon>
-                                        </b-button>
                                     </b-input-group-append>
+                                </b-input-group>
+                            </b-col>
+                            <b-col md="4">
+                                <b-input-group size="md">
+                                    <b-input-group-prepend is-text>
+                                        <span class="small font-weight-bold">Stock:</span>
+                                    </b-input-group-prepend>
+                                    <b-form-select v-model="selectedQuantity" :options="quantityOptions"
+                                        size="md"></b-form-select>
                                 </b-input-group>
                             </b-col>
                         </b-row>
