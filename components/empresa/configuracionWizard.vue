@@ -1203,6 +1203,20 @@ export default {
         this.$set(this, 'personalizacionData', merged);
         this.$forceUpdate();
       }
+
+      // Sincronizar Gastos Fijos con la API (para casos donde se modificaron fuera del wizard)
+      this.fetchLatestGastos();
+    },
+
+    async fetchLatestGastos() {
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/gastos`);
+        if (data && Array.isArray(data)) {
+          this.gastosData = data;
+        }
+      } catch (error) {
+        console.error("Error al sincronizar gastos fijos en el wizard:", error);
+      }
     },
   }, // Fin del objeto methods
 

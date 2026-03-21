@@ -6,6 +6,9 @@
         {{ row.item.monto }} {{ row.item.moneda }}
       </template>
       <template #cell(actions)="row">
+         <b-button size="sm" variant="primary" class="mr-1" @click="editGasto(row.index)">
+          <b-icon icon="pencil"></b-icon>
+        </b-button>
         <b-button size="sm" variant="danger" @click="deleteGasto(row.index)">
           <b-icon icon="trash"></b-icon>
         </b-button>
@@ -14,8 +17,8 @@
 
     <hr />
 
-    <h5>Añadir Nuevo Gasto</h5>
-    <b-form @submit.prevent="addGasto">
+    <h5>{{ isEditing ? 'Editar Gasto' : 'Añadir Nuevo Gasto' }}</h5>
+    <b-form @submit.prevent="saveGasto">
       <b-row>
         <b-col md="6">
           <b-form-group label="Nombre del Gasto:" label-for="gasto-nombre">
@@ -50,7 +53,10 @@
           </b-form-group>
         </b-col>
       </b-row>
-      <b-button type="submit" variant="primary">Añadir Gasto</b-button>
+      <b-button type="submit" :variant="isEditing ? 'success' : 'primary'">
+         {{ isEditing ? 'Actualizar Gasto' : 'Añadir Gasto' }}
+      </b-button>
+      <b-button v-if="isEditing" variant="secondary" @click="cancelEdit">Cancelar</b-button>
     </b-form>
   </div>
 </template>
@@ -71,6 +77,8 @@ export default {
   data() {
     return {
       gastos: [],
+      isEditing: false,
+      editIndex: null,
       newGasto: {
         nombre: "",
         descripcion: "",
@@ -107,25 +115,72 @@ export default {
     }
   },
   methods: {
-    addGasto() {
+    async saveGasto() {
       // Simple validation
       if (this.newGasto.nombre && this.newGasto.monto > 0 && this.newGasto.moneda) {
-        this.gastos.push({ ...this.newGasto });
-        // Reset form
-        this.newGasto = {
-          nombre: "",
-          descripcion: "",
-          monto: 0,
-          moneda: null,
-          periodicidad: "mensual",
-          estatus: "activo",
-        };
-        this.emitUpdate();
+        try {
+          const payload = new URLSearchParams();
+          for (const key in this.newGasto) {
+            if (this.newGasto[key] !== null && key !== '_id') {
+              payload.append(key, this.newGasto[key]);
+            }
+          }
+
+          if (this.isEditing) {
+            // Update
+            await this.$axios.put(`${this.$config.API}/gastos/${this.newGasto._id}`, payload);
+            this.$set(this.gastos, this.editIndex, { ...this.newGasto });
+          } else {
+            // Create
+            const { data } = await this.$axios.post(`${this.$config.API}/gastos`, payload);
+            // Si la API devuelve el objeto con el ID (_id), lo usamos.
+            this.gastos.push({ ...this.newGasto, _id: data._id || data.id });
+          }
+          
+          this.resetForm();
+          this.emitUpdate();
+        } catch (error) {
+          console.error("Error al guardar el gasto:", error);
+          alert("No se pudo guardar el gasto. Por favor intente de nuevo.");
+        }
       }
     },
-    deleteGasto(index) {
-      this.gastos.splice(index, 1);
-      this.emitUpdate();
+    editGasto(index) {
+      this.isEditing = true;
+      this.editIndex = index;
+      this.newGasto = { ...this.gastos[index] };
+    },
+    cancelEdit() {
+      this.resetForm();
+    },
+    resetForm() {
+       this.newGasto = {
+        nombre: "",
+        descripcion: "",
+        monto: 0,
+        moneda: null,
+        periodicidad: "mensual",
+        estatus: "activo",
+      };
+      this.isEditing = false;
+      this.editIndex = null;
+    },
+    async deleteGasto(index) {
+      const gasto = this.gastos[index];
+      if (!gasto._id && !gasto.id) {
+          this.gastos.splice(index, 1);
+          this.emitUpdate();
+          return;
+      }
+      
+      try {
+        await this.$axios.delete(`${this.$config.API}/gastos/${gasto._id || gasto.id}`);
+        this.gastos.splice(index, 1);
+        this.emitUpdate();
+      } catch (error) {
+        console.error("Error al eliminar el gasto:", error);
+        alert("No se pudo eliminar el gasto.");
+      }
     },
     emitUpdate() {
       this.$emit("change", this.gastos);
@@ -133,10 +188,20 @@ export default {
   },
   mounted() {
     // Cargar datos iniciales si existen
-    if (this.initialGastos && this.initialGastos.length > 0) {
+    if (this.initialGastos) {
       this.gastos = [...this.initialGastos];
     }
     this.emitUpdate(); // Emit initial state
   },
+  watch: {
+    initialGastos: {
+      handler(newVal) {
+        if (newVal) {
+          this.gastos = [...newVal];
+        }
+      },
+      deep: true
+    }
+  }
 };
 </script>

@@ -387,10 +387,25 @@
 
     <!-- Configuración -->
     <li class="nav-item">
-      <router-link class="nav-link" to="/empresa/configuracion">
+      <a class="nav-link" v-b-toggle="'sidebar-configuracion'">
         <b-icon icon="gear-fill" />
         <span>Configuración</span>
-      </router-link>
+        <b-icon icon="chevron-down" class="menu-arrow" />
+      </a>
+      <b-collapse id="sidebar-configuracion" class="sub-menu">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/configuracion">
+              Configuración de Empresa
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/gastos-fijos">
+              Gastos Fijos
+            </router-link>
+          </li>
+        </ul>
+      </b-collapse>
     </li>
   </div>
 </template>

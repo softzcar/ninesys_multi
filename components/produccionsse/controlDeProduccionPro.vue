@@ -218,11 +218,15 @@
                     <produccion-control-de-produccion-detalles-editor :idorden="el.orden" :item="el"
                       :detalles="el.detalles" :detalle_empleado="el.detalle_empleado" :key="el.orden"
                       :productos="productsFilter(el.orden)" />
+                    <produccionsse-ModalNotasProduccion :id_orden="el.orden" />
                   </div>
                 </b-list-group-item>
 
                 <b-list-group-item data-label="Acciones">
-                  <div>
+                  <div class="d-flex" style="gap: 5px;">
+                    <b-button variant="info" size="sm" @click="$bvModal.show('modal-notas-' + el.orden)" title="Ver notas de empleados">
+                      <b-icon icon="chat-left-text"></b-icon>
+                    </b-button>
                     <ordenes-editar :data="el" :key="el.orden" />
                   </div>
                 </b-list-group-item>
@@ -703,7 +707,7 @@ export default {
 /* Cabecera de la tabla list-group */
 .list-group-header {
   display: grid;
-  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 80px;
+  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 90px;
   background-color: #375a7f;
   border: 1px solid #4e5d6c;
   border-bottom: 2px solid #00bc8c;
@@ -722,7 +726,7 @@ export default {
 .list-group-draggable {
   display: grid;
   /* Define 10 columnas: Handle, Orden, Cliente, Unidades, Progreso, Entrega, Vinculada, Estatus, Detalles, Acciones */
-  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 80px;
+  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 90px;
   /* Ajusta las columnas según necesites. '1fr' para la columna de cliente que tomará el espacio restante */
   padding: 0;
   margin: 0;
