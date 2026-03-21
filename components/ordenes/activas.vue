@@ -21,6 +21,11 @@
             <b-form-radio-group id="btn-radios-categories" v-model="selectedCategory" :options="optionsCategories"
                 button-variant="outline-primary" size="lg" name="radio-btn-categories" @input="applyFilters()"
                 buttons></b-form-radio-group>
+
+            <h5 class="mt-4 mb-2">Filtrar por estatus de orden:</h5>
+            <b-form-radio-group id="btn-radios-status" v-model="selectedStatus" :options="optionsStatus"
+                button-variant="outline-primary" size="lg" name="radio-btn-status" @input="applyFilters()"
+                buttons></b-form-radio-group>
         </b-col>
         <b-col
           offset-lg="8"
@@ -205,6 +210,8 @@ export default {
       ],
       selectedCategory: "todas",
       optionsCategories: [],
+      selectedStatus: "todas",
+      optionsStatus: [],
       dataTable: [],
       ordenesActivas: [],
       fechaConsultaInicio: "",
@@ -233,6 +240,7 @@ export default {
       this.selectedVendedor = 0;
       this.selectedRadio = "todas";
       this.selectedCategory = "todas";
+      this.selectedStatus = "todas";
       this.applyFilters();
     },
 
@@ -296,6 +304,33 @@ export default {
       ];
     },
 
+    generateStatusOptions() {
+      if (!this.ordenesActivas || this.ordenesActivas.length === 0) {
+        this.optionsStatus = [];
+        return;
+      }
+
+      const uniqueStatuses = new Set();
+      this.ordenesActivas.forEach(order => {
+        if (order.estatus) {
+          uniqueStatuses.add(order.estatus.trim());
+        }
+      });
+
+      const statusOptions = [...uniqueStatuses].map(status => ({
+        text: status,
+        value: status,
+      }));
+
+      // Sort alphabetically
+      statusOptions.sort((a, b) => a.text.localeCompare(b.text));
+
+      this.optionsStatus = [
+        { text: "Todas", value: "todas" },
+        ...statusOptions,
+      ];
+    },
+
     applyFilters() {
       let filtered = [...this.ordenesConEstadoDePago]; // Start from the computed property
 
@@ -337,6 +372,11 @@ export default {
         );
       }
 
+      // Filter by status
+      if (this.selectedStatus !== "todas") {
+        filtered = filtered.filter(order => order.estatus === this.selectedStatus);
+      }
+
       this.dataTable = filtered;
     },
 
@@ -350,6 +390,7 @@ export default {
           this.ordenesActivas = res.data.items;
           this.ordenesLength = this.ordenesActivas.length;
           this.generateCategoryOptions();
+          this.generateStatusOptions();
         });
     },
 
