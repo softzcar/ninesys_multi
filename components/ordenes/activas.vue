@@ -229,6 +229,7 @@ export default {
         text: "Cargando ordenes activas...",
       },
       totalRows: 0,
+      ordenesLength: 0,
     };
   },
 
@@ -439,9 +440,6 @@ export default {
   computed: {
     misOrdenes() {
       return this.ordenesActivas;
-    },
-    ordenesLength() {
-      return this.ordenesActivas.length;
     },
     filterName() {
       const option = this.optionsRadio.find(opt => opt.value === this.selectedRadio);
