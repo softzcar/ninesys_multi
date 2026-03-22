@@ -452,16 +452,24 @@ export default {
         if (!this.ordenesActivas || !this.ordenesActivas.length) return [];
         
         return this.ordenesActivas.map(orden => {
-            const pagosDeOrden = this.pagos.filter(p => p.orden == orden.orden);
-            const totalAbonado = pagosDeOrden.reduce((acc, pago) => {
-                const monto = parseFloat(pago.monto) || 0;
-                const tasa = parseFloat(pago.tasa) || 1;
-                return acc + (monto / tasa);
-            }, 0);
-            
-            const totalOrden = parseFloat(orden.total) || 0;
-            const totalDescuento = parseFloat(orden.descuento_total) || 0;
-            const montoPendiente = totalOrden - totalAbonado - totalDescuento;
+            // Priority: use the pre-calculated saldo_pendiente from the backend if available
+            // This ensures consistency with the payment modal (abonos table)
+            let montoPendiente;
+            if (orden.saldo_pendiente !== undefined) {
+                montoPendiente = parseFloat(orden.saldo_pendiente);
+            } else {
+                // Fallback to manual calculation if for some reason it's not present
+                const pagosDeOrden = this.pagos.filter(p => p.orden == orden.orden);
+                const totalAbonado = pagosDeOrden.reduce((acc, pago) => {
+                    const monto = parseFloat(pago.monto) || 0;
+                    const tasa = parseFloat(pago.tasa) || 1;
+                    return acc + (monto / tasa);
+                }, 0);
+                
+                const totalOrden = parseFloat(orden.total) || 0;
+                const totalDescuento = parseFloat(orden.descuento_total) || 0;
+                montoPendiente = totalOrden - totalAbonado - totalDescuento;
+            }
 
             let payment_status = 'pendiente';
             const epsilon = 0.1; // Tolerance for floating point errors
