@@ -228,6 +228,7 @@ export default {
         show: true,
         text: "Cargando ordenes activas...",
       },
+      totalRows: 0,
     };
   },
 
@@ -378,6 +379,7 @@ export default {
       }
 
       this.dataTable = filtered;
+      this.totalRows = filtered.length;
     },
 
     async getOrdenesActivas(id_empleado) {
@@ -389,6 +391,7 @@ export default {
           this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
           this.ordenesActivas = res.data.items;
           this.ordenesLength = this.ordenesActivas.length;
+          this.totalRows = this.ordenesActivas.length;
           this.generateCategoryOptions();
           this.generateStatusOptions();
         });
@@ -434,10 +437,6 @@ export default {
   },
 
   computed: {
-    totalRows() {
-      return this.dataTable.length;
-    },
-
     misOrdenes() {
       return this.ordenesActivas;
     },
