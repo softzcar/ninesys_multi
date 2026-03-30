@@ -2662,6 +2662,7 @@ export default {
           });
 
           this.loadDataProductos(); // ACTUALIZAR LA EXISTENCIA DE PRODUCTOS
+          this.getOrdenesGuardadas(); // RECARGAR LA LISTA DE PRESUPUESTOS GUARDADOS
 
           // ELIMINAR BORRADOR SI EXISTE (SOLO SI EL USUARIO CONFIRMA)
           const idBorrador = this.form._id_borrador;
@@ -3266,11 +3267,13 @@ export default {
         this.loadDataProductos(),
         this.loadDataCategories(), // <-- AÑADIDO PARA CORREGIR EL BUG
         this.loadProductAttributes(),
-        this.getProyeccionEntrega(),
         this.getOrdenesGuardadas(),
       ]);
       // Si todo tiene éxito, ocultamos el overlay
       this.mainOverlay = false;
+
+      // Carga asíncrona de proyección de entrega (no bloquea el UI)
+      this.getProyeccionEntrega().catch(e => console.error("Error cargando proyección:", e));
     } catch (error) {
       console.error("Fallo en la carga de datos iniciales:", error);
       // Si algo falla, el overlay se queda visible con un mensaje de error

@@ -6,10 +6,13 @@
       <div class="mb-4">
         <b-table ref="table" responsive stacked small :fields="fieldsGuardadas" :items="ordenesGuardadas" class="mb-4">
           <template #cell(form)="data">
-            <b-button variant="link" @click="loadFormGuardadas(data.index, data.item._id)">
+            <b-button v-if="data.item.form" variant="link" @click="loadFormGuardadas(data.index, data.item._id)">
               {{ data.item.form.nombre }}
               {{ data.item.form.apellido }}
             </b-button>
+            <span v-else class="text-danger small">
+              <b-icon icon="exclamation-triangle"></b-icon> Datos incompletos
+            </span>
           </template>
 
           <template #cell(empleado)="data">
@@ -1607,11 +1610,19 @@ export default {
       if (item.tipo === 'Presupuesto Finalizado') {
         await this.cargarPresupuestoEmitido(item._id);
       } else {
+        if (!item.form) {
+          this.$fire({
+            title: "Error",
+            html: "<p>Esta orden guardada no tiene datos de formulario válidos.</p>",
+            type: "error",
+          });
+          return;
+        }
         // Clonar para evitar mutación directa del store antes de procesar
         const loadedForm = JSON.parse(JSON.stringify(item.form));
 
         // Procesar productos para vincular atributos con las referencias del sistema
-        if (loadedForm.productos && Array.isArray(loadedForm.productos)) {
+        if (loadedForm && loadedForm.productos && Array.isArray(loadedForm.productos)) {
           loadedForm.productos = loadedForm.productos.map(p => {
             // Asegurar que atributos_seleccionados sea un array
             let selected = p.atributos_seleccionados || [];
@@ -1779,13 +1790,21 @@ export default {
           this.ordenesGuardadas = res.data.items
             .map((item) => {
               try {
-                const parsedForm = JSON.parse(item.form);
-                return { ...item, form: parsedForm };
+                if (item.form && typeof item.form === "string") {
+                  const parsedForm = JSON.parse(item.form);
+                  return { ...item, form: parsedForm };
+                }
+                // Si form ya es un objeto (no debería pasar según el map anterior pero por si acaso)
+                if (item.form && typeof item.form === "object") {
+                  return item;
+                }
+                // Si form es null o vacío, lo dejamos como null pero el item sigue existiendo
+                return { ...item, form: null };
               } catch (e) {
-                return null; // item corrupto: se omite silenciosamente
+                console.error("Error parseando form de orden guardada", e, item);
+                return { ...item, form: null }; // Marcamos como null si falla el parse
               }
-            })
-            .filter(item => item !== null);
+            });
         });
     },
 
@@ -3846,12 +3865,15 @@ export default {
         this.loadDataProductos(),
         this.loadDataCategories(), // <-- AÑADIDO PARA CORREGIR EL BUG
         this.loadProductAttributes(),
-        this.getProyeccionEntrega(),
         this.getOrdenesSinAsignar(),
         this.getOrdenesGuardadas(),
       ]);
       // Si todo tiene éxito, ocultamos el overlay
       this.mainOverlay = false;
+
+      // Carga asíncrona de proyección de entrega (no bloquea el UI)
+      this.getProyeccionEntrega().catch(e => console.error("Error cargando proyección:", e));
+
     } catch (error) {
       console.error("Fallo en la carga de datos iniciales:", error);
       // Si algo falla, el overlay se queda visible con un mensaje de error
