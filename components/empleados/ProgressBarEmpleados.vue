@@ -88,9 +88,7 @@ export default {
             this.overlay = true
 
             await this.$axios
-                .get(`
-                    ${this.$config.API}/produccion/progressbar/${this.idOrden}`
-                )
+                .get(`${this.$config.API}/produccion/progressbar/${this.idOrden}`)
                 .then((res) => {
                     this.departamento = res.data.departamento
                     this.responseData = res.data
