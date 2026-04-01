@@ -540,6 +540,7 @@ export default {
       reporteData: null,
       inputEfficiencyData: null,
       eficienciaOrdenCache: {},
+      dataInsumosCacheOrderIdsKey: "",
 
 
       fields2: [
@@ -1635,13 +1636,22 @@ export default {
 
     async loadDataInsumos() {
       try {
-        // Get unique order IDs from ordenes and reposiciones
-        const ordenesIds = [...new Set(this.ordenes.map(o => o.id_orden))];
+        // Get unique order IDs from ordenes/reposiciones/vinculadas
+        const allOrdenes = [...(this.ordenes || []), ...(this.reposiciones || []), ...(this.vinculadas || [])];
+        const ordenesIds = [...new Set(allOrdenes.map(o => o.id_orden || o.orden).filter(Boolean))];
 
         if (ordenesIds.length === 0) {
           this.dataInsumos = [];
           return;
         }
+
+        const sortedKey = ordenesIds.slice().sort((a, b) => a - b).join(',');
+        if (sortedKey === this.dataInsumosCacheOrderIdsKey) {
+          console.log('loadDataInsumos: ordenes no cambiaron, usando cache');
+          this.dataInsumos = ordenesIds.reduce((acc, idOrden) => acc.concat(this.eficienciaOrdenCache[idOrden] || []), []);
+          return;
+        }
+        this.dataInsumosCacheOrderIdsKey = sortedKey;
 
         // Determine which IDs are not yet cached
         const idsToFetch = ordenesIds.filter(id => !this.eficienciaOrdenCache[id]);

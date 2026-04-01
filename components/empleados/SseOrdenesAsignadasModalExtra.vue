@@ -1808,6 +1808,20 @@ export default {
         return;
       }
 
+      const existing = (this.dataInsumos || []).filter(item => item.id_orden == this.idorden);
+      if (existing.length > 0) {
+        console.log(`getEficienciaEstimada: using parent dataInsumos for orden ${this.idorden}`);
+        this.dataInsumosLocal = existing;
+        this.eficienciaDetalles = []; // no detalles extra en cache
+        this.eficienciaEstimada = this.eficienciaEstimada || 0;
+        eficienciaOrdenCacheModal[this.idorden] = {
+          detalles: this.eficienciaDetalles,
+          insumos: existing,
+          eficienciaEstimada: this.eficienciaEstimada,
+        };
+        return;
+      }
+
       this.overlay = true;
       await this.$axios
         .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`)
