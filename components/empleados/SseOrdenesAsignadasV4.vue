@@ -1656,14 +1656,13 @@ export default {
         // Determine which IDs are not yet cached
         const idsToFetch = ordenesIds.filter(id => !this.eficienciaOrdenCache[id]);
 
-        // Cache control for /eficiencia-orden can also carry Authorization for server lambda checks
-        const axiosConfigEficiencia = { headers: { Authorization: '163' } };
-
+        // Cache control for /eficiencia-orden via environment-level auth settings
+        const axiosConfigEficiencia = {};
 
         if (idsToFetch.length > 0) {
           const insumosPromises = idsToFetch.map((idOrden) =>
             this.$axios
-              .get(`${this.$config.API}/eficiencia-orden/${idOrden}`, axiosConfigEficiencia)
+              .get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
               .then((resp) => {
                 const insumos = resp.data.insumos_asignados || [];
                 const datos = insumos.map((ins) => ({ ...ins, id_orden: idOrden }));
@@ -1772,12 +1771,8 @@ export default {
         });
 
         const [timeResponse, inputResponse] = await Promise.all([
-          this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData, {
-            headers: { Authorization: '163' }
-          }),
-          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`, {
-            headers: { Authorization: '163' }
-          })
+          this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData),
+          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`)
         ]);
 
         // Process Manufacturing Time
