@@ -315,6 +315,9 @@
 <script>
 import eficienciaInsumoMixin from "~/mixins/mixin-insumos";
 import mixin from "~/mixins/mixins.js";
+
+const eficienciaOrdenCacheModal = {};
+
 export default {
   mixins: [eficienciaInsumoMixin, mixin],
   data() {
@@ -408,7 +411,7 @@ export default {
       const depName = this.$store.state.login.currentDepartament;
       const depId = this.$store.state.login.currentDepartamentId;
 
-      return this.dataInsumosComputed.filter((el) => {
+      const result = this.dataInsumosComputed.filter((el) => {
         const isSameOrder = el.id_orden == this.idorden;
         if (!isSameOrder) return false;
 
@@ -426,6 +429,22 @@ export default {
 
         return false;
       });
+
+      console.log(
+        '[Log || dataInsumosFiltrado]',
+        'orden',
+        this.idorden,
+        'deptName',
+        depName,
+        'deptId',
+        depId,
+        'resultCount',
+        result.length,
+        'items',
+        result
+      );
+
+      return result;
     },
 
     /**
@@ -618,7 +637,34 @@ export default {
     },
 
     dataSearchInsumo() {
-      return this.insumosTodos.map((el) => {
+      // Obtener los IDs únicos de catálogo (id_catalogo_insumos_productos) que están asignados 
+      // a los productos de esta orden y que pertenecen al departamento actual del empleado
+      const idsCatalogoAsignados = new Set(
+        this.dataInsumosFiltrado.map(item => item.id_catalogo_insumos_productos)
+      );
+
+      // Filtrar insumosTodos para solo mostrar los insumos cuyo id_catalogo 
+      // está en el conjunto de catálogos asignados para esta orden y departamento
+      const insumosFiltrados = this.insumosTodos.filter(el => 
+        idsCatalogoAsignados.has(el.id_catalogo)
+      );
+
+      // Log de depuración para validar que el filtrado coincide con orden + departamento
+      console.log(
+        '[Log || dataSearchInsumo]',
+        'orden',
+        this.idorden,
+        'deptId',
+        this.$store.state.login.currentDepartamentId,
+        'catalogosAsignados',
+        Array.from(idsCatalogoAsignados),
+        'insumosFiltrados',
+        insumosFiltrados.length,
+        insumosFiltrados
+      );
+
+      // Mapear al formato de búsqueda
+      return insumosFiltrados.map((el) => {
         if (el.tipo_insumo === 'tela') {
           const rendimiento = parseFloat(el.rendimiento) || 1;
           const availableMeters = (parseFloat(el.cantidad) * rendimiento).toFixed(2);
@@ -1754,14 +1800,27 @@ export default {
     },
 
     async getEficienciaEstimada() {
+      if (eficienciaOrdenCacheModal[this.idorden]) {
+        const cached = eficienciaOrdenCacheModal[this.idorden];
+        this.eficienciaDetalles = cached.detalles;
+        this.dataInsumosLocal = cached.insumos;
+        this.eficienciaEstimada = cached.eficienciaEstimada;
+        return;
+      }
+
       this.overlay = true;
       await this.$axios
         .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`)
         .then((res) => {
           this.eficienciaDetalles = res.data.detalles;
-          this.dataInsumosLocal = (res.data.insumos_asignados || []).map(ins => ({ ...ins, id_orden: this.idorden }));
-          this.eficienciaEstimada =
-            res.data.total_eficiencia[0].eficiencia_estimada;
+          const insumosData = (res.data.insumos_asignados || []).map(ins => ({ ...ins, id_orden: this.idorden }));
+          this.dataInsumosLocal = insumosData;
+          this.eficienciaEstimada = res.data.total_eficiencia[0].eficiencia_estimada;
+          eficienciaOrdenCacheModal[this.idorden] = {
+            detalles: this.eficienciaDetalles,
+            insumos: insumosData,
+            eficienciaEstimada: this.eficienciaEstimada,
+          };
           console.log("insumos_Asigandos_Eficiencia", this.dataInsumosComputed);
         })
         .catch((err) => {

@@ -35,6 +35,8 @@
 <script>
 import axios from "axios"
 
+const progressCache = {};
+
 export default {
     data() {
         return {
@@ -49,6 +51,7 @@ export default {
             departamento: "Departamento",
             value: 0,
             max: 100,
+            isLoadingProgress: false,
         }
     },
 
@@ -64,10 +67,29 @@ export default {
 
     methods: {
         async getPorcentaje() {
+            if (this.isLoadingProgress) {
+                return
+            }
+
+            if (progressCache[this.idOrden]) {
+                const cached = progressCache[this.idOrden]
+                this.departamento = cached.departamento
+                this.responseData = cached.responseData
+                this.value = cached.value
+                this.paso = cached.paso
+                this.status = cached.status
+                this.showControl = true
+                this.msg = ``
+                this.overlay = false
+                return
+            }
+
+            this.isLoadingProgress = true
             this.overlay = true
+
             await this.$axios
-                .get(
-                    `${this.$config.API}/produccion/progressbar/${this.idOrden}`
+                .get(`
+                    ${this.$config.API}/produccion/progressbar/${this.idOrden}`
                 )
                 .then((res) => {
                     this.departamento = res.data.departamento
@@ -75,9 +97,16 @@ export default {
                     this.value = res.data.porcentaje
                     this.paso = res.data.paso
                     this.status = res.data.status
-                    this.overlay = false
                     this.showControl = true
                     this.msg = ``
+
+                    progressCache[this.idOrden] = {
+                        departamento: this.departamento,
+                        responseData: this.responseData,
+                        value: this.value,
+                        paso: this.paso,
+                        status: this.status,
+                    }
                 })
                 .catch((err) => {
                     this.msg = `La información de la orden ${this.idOrden} no está disponible`
@@ -88,6 +117,7 @@ export default {
                 })
                 .finally(() => {
                     this.overlay = false
+                    this.isLoadingProgress = false
                 })
         },
     },

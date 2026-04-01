@@ -539,6 +539,8 @@ export default {
       isFetchingEfficiency: false,
       reporteData: null,
       inputEfficiencyData: null,
+      eficienciaOrdenCache: {},
+
 
       fields2: [
         {
@@ -1641,26 +1643,36 @@ export default {
           return;
         }
 
-        // Fetch insumos data for each order
-        const insumosPromises = ordenesIds.map(idOrden =>
-          this.$axios.get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
-            .then(resp => {
-              const insumos = resp.data.insumos_asignados || [];
-              return insumos.map(ins => ({ ...ins, id_orden: idOrden }));
-            })
-            .catch(err => {
-              console.error(`Error loading insumos for order ${idOrden}:`, err);
-              return [];
-            })
-        );
+        // Determine which IDs are not yet cached
+        const idsToFetch = ordenesIds.filter(id => !this.eficienciaOrdenCache[id]);
 
-        // Wait for all requests to complete
-        const insumosArrays = await Promise.all(insumosPromises);
+        if (idsToFetch.length > 0) {
+          const insumosPromises = idsToFetch.map((idOrden) =>
+            this.$axios
+              .get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
+              .then((resp) => {
+                const insumos = resp.data.insumos_asignados || [];
+                const datos = insumos.map((ins) => ({ ...ins, id_orden: idOrden }));
+                this.eficienciaOrdenCache[idOrden] = datos;
+                return datos;
+              })
+              .catch((err) => {
+                console.error(`Error loading insumos for order ${idOrden}:`, err);
+                this.eficienciaOrdenCache[idOrden] = [];
+                return [];
+              })
+          );
 
-        // Flatten the array of arrays into a single array
-        this.dataInsumos = insumosArrays.flat();
+          await Promise.all(insumosPromises);
+        }
 
-        console.log('DataInsumos loaded:', this.dataInsumos.length, 'items');
+        // Build dataInsumos from cache (all orders)
+        this.dataInsumos = ordenesIds.reduce((acc, idOrden) => {
+          const cached = this.eficienciaOrdenCache[idOrden] || [];
+          return acc.concat(cached);
+        }, []);
+
+        console.log('DataInsumos loaded (cache included):', this.dataInsumos.length, 'items');
       } catch (error) {
         console.error('Error in loadData Insumos:', error);
         this.dataInsumos = [];
