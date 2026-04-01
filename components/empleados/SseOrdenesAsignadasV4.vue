@@ -1656,10 +1656,14 @@ export default {
         // Determine which IDs are not yet cached
         const idsToFetch = ordenesIds.filter(id => !this.eficienciaOrdenCache[id]);
 
+        // Cache control for /eficiencia-orden can also carry Authorization for server lambda checks
+        const axiosConfigEficiencia = { headers: { Authorization: '163' } };
+
+
         if (idsToFetch.length > 0) {
           const insumosPromises = idsToFetch.map((idOrden) =>
             this.$axios
-              .get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
+              .get(`${this.$config.API}/eficiencia-orden/${idOrden}`, axiosConfigEficiencia)
               .then((resp) => {
                 const insumos = resp.data.insumos_asignados || [];
                 const datos = insumos.map((ins) => ({ ...ins, id_orden: idOrden }));
@@ -1759,13 +1763,26 @@ export default {
         };
 
         // Parallel requests for Manufacturing Time and Input Efficiency
+        console.log("fetchEfficiency: calling manufacture time endpoint", {
+          url: `${this.$config.API}/reports/manufacturing-time`,
+          body: postData
+        });
+        console.log("fetchEfficiency: calling input efficiency endpoint", {
+          url: `${this.$config.API}/reports/input-efficiency/${ids}`
+        });
+
         const [timeResponse, inputResponse] = await Promise.all([
-          this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData),
-          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`)
+          this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData, {
+            headers: { Authorization: '163' }
+          }),
+          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`, {
+            headers: { Authorization: '163' }
+          })
         ]);
 
         // Process Manufacturing Time
         console.log("Efficiency - Time Response:", timeResponse.data);
+        console.log("Efficiency - Input Response:", inputResponse.data);
 
         if (timeResponse.data && timeResponse.data.resumen) {
           const resumen = timeResponse.data.resumen;
