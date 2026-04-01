@@ -182,32 +182,34 @@ export default {
               const rowNumber = index + 2; // +1 for 0-based index, +1 for header row
               const rowErrors = [];
 
-              if (!item.SKU) rowErrors.push('El campo Rollo es obligatorio.');
-              if (!item.Nombre) rowErrors.push('El campo Nombre es obligatorio.');
-              if (!item.Insumo) rowErrors.push('El campo Insumo es obligatorio.');
+              if (!item.SKU) rowErrors.push('El campo SKU es obligatorio.');
+              if (!item['Nombre Insumo']) rowErrors.push('El campo Nombre Insumo es obligatorio.');
+              if (!item['Tipo de Insumo']) rowErrors.push('El campo Tipo de Insumo es obligatorio.');
+              if (!item['Producto del Catálogo']) rowErrors.push('El campo Producto del Catálogo es obligatorio.');
               if (item.Cantidad === undefined || item.Cantidad === null) rowErrors.push('El campo Cantidad es obligatorio.');
               if (!item.Unidad) rowErrors.push('El campo "Unidad" es obligatorio.');
-              if (item.Costo === undefined || item.Costo === null) rowErrors.push('El campo Costo es obligatorio.');
+              if (item['Costo Total'] === undefined || item['Costo Total'] === null) rowErrors.push('El campo Costo Total es obligatorio.');
               if (!item.Departamento) rowErrors.push('El campo Departamento es obligatorio.');
 
-              // Validación de unicidad del Rollo
-              if (validatedInventoryItems.some(existingItem => existingItem.Rollo === item.SKU)) {
-                rowErrors.push('El campo Rollo debe ser único.');
+              // Validación de unicidad del Rollo (ahora SKU)
+              if (validatedInventoryItems.some(existingItem => existingItem.SKU === item.SKU)) {
+                rowErrors.push('El campo SKU debe ser único.');
               }
 
               if (rowErrors.length > 0) {
                 validationErrors.push({ row: rowNumber, messages: rowErrors });
               } else {
                 validatedInventoryItems.push({
-                  SKU: item.SKU,
-                  Nombre: item.Nombre,
-                  Insumo: item.Insumo, // InsumoCatalogo
-                  Cantidad: item.Cantidad,
-                  Unidad: item.Unidad,
-                  Costo: item.Costo,
-                  Departamento: item.Departamento,
-                  Rendimiento: item.Rendimiento || 1,
-                  Descripción: item.Descripción || null,
+                  'SKU': item.SKU,
+                  'Nombre Insumo': item['Nombre Insumo'],
+                  'Tipo de Insumo': item['Tipo de Insumo'],
+                  'Producto del Catálogo': item['Producto del Catálogo'],
+                  'Cantidad': item.Cantidad,
+                  'Unidad': item.Unidad,
+                  'Costo Total': item['Costo Total'],
+                  'Departamento': item.Departamento,
+                  'Rendimiento': item.Rendimiento || 1,
+                  'Descripción': item.Descripción || null,
                 });
               }
             });
