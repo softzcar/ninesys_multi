@@ -4,8 +4,15 @@
     <div v-if="ordenesSize < 1">
       <b-row>
         <b-col>
-          <b-alert :show="showAlert" class="text-center" variant="info">
-            <h3>{{ msg }}</h3>
+          <b-alert :show="true" class="text-center" variant="info">
+            <template v-if="loadingOrders">
+              <b-spinner small type="grow" class="mr-2"></b-spinner>
+              <span class="font-weight-bold">Cargando tus tareas asignadas...</span>
+              <div class="text-muted">Un momento mientras obtenemos tu información.</div>
+            </template>
+            <template v-else>
+              <h3>{{ msg }}</h3>
+            </template>
           </b-alert>
         </b-col>
       </b-row>
@@ -25,22 +32,6 @@
 
     <div v-else>
       <b-container fluid>
-        <!-- Filtro de busqueda -->
-        <b-row>
-          <b-col offset-lg="8" offset-xl="8">
-            <b-input-group class="mb-4" size="sm">
-              <b-form-input id="filter-input" v-model="filter" type="search"
-                placeholder="Filtrar Resultados"></b-form-input>
-
-              <b-input-group-append>
-                <b-button :disabled="!filter" @click="filter = ''">
-                  Limpiar
-                </b-button>
-              </b-input-group-append>
-            </b-input-group>
-          </b-col>
-        </b-row>
-
         <!-- Botón recargar  -->
         <b-row>
           <b-col>
@@ -121,7 +112,7 @@
                   No tienes reposiciones pendientes</b-alert>
 
                 <!-- TABLA DE REPOSICIONES PENDIENTES -->
-                <b-table v-else stacked :items="reposicionesPendientes" :fields="filedsLista"
+                <b-table v-else stacked :items="reposicionesPendientesVisibles" :fields="filedsLista"
                   :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
@@ -161,6 +152,10 @@
 
                   <!-- Lista de productos -->
                 </b-table>
+                <div id="sentinel-reposiciones-pendientes" class="text-center mt-2" v-if="visibleReposicionesPendientes < reposicionesPendientes.length">
+                  <b-spinner small variant="info"></b-spinner>
+                  <small class="text-muted">Cargando más... {{ visibleReposicionesPendientes }} de {{ reposicionesPendientes.length }}</small>
+                </div>
               </b-card>
             </b-overlay>
           </b-col>
@@ -174,7 +169,7 @@
                 <h3>Reposiciones En Curso</h3>
 
                 <!-- TABLA DE REPOSICIONES EN CURSO -->
-                <b-table stacked :items="reposicionesEnCurso" :fields="filedsLista"
+                <b-table stacked :items="reposicionesEnCursoVisibles" :fields="filedsLista"
                   :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
@@ -224,6 +219,10 @@
                     </b-row>
                   </template>
                 </b-table>
+                <div id="sentinel-reposiciones-en-curso" class="text-center mt-2" v-if="visibleReposicionesEnCurso < reposicionesEnCurso.length">
+                  <b-spinner small variant="info"></b-spinner>
+                  <small class="text-muted">Cargando más... {{ visibleReposicionesEnCurso }} de {{ reposicionesEnCurso.length }}</small>
+                </div>
               </b-card>
             </b-overlay>
           </b-col>
@@ -234,11 +233,11 @@
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
               <b-card class="mb-4" :header="contarItems(dataTableEnCurso.length)">
-                <h3>En Curso</h3>
+                <h3>Ordenes En Curso</h3>
                 <b-alert class="text-center" v-if="dataTableEnCurso.length < 1" show variant="info">No tienes tareas en
                   curso</b-alert>
                 <!-- BOTONES EN CURSO -->
-                <b-table v-else stacked :items="dataTableEnCurso" :fields="filedsLista"
+                <b-table v-else stacked :items="dataTableEnCursoVisibles" :fields="filedsLista"
                   :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
@@ -309,6 +308,10 @@
                     </b-row>
                   </template>
                 </b-table>
+                <div id="sentinel-en-curso" class="text-center mt-2" v-if="visibleEnCurso < dataTableEnCurso.length">
+                  <b-spinner small variant="info"></b-spinner>
+                  <small class="text-muted">Cargando más... {{ visibleEnCurso }} de {{ dataTableEnCurso.length }}</small>
+                </div>
               </b-card>
             </b-overlay>
           </b-col>
@@ -323,18 +326,33 @@
           </b-col>
         </b-row>
 
+        <!-- Filtro de busqueda -->
+        <b-row>
+          <b-col offset-lg="8" offset-xl="8">
+            <b-input-group class="mb-4" size="sm">
+              <b-form-input id="filter-input" v-model="filter" type="search" placeholder="Filtrar Resultados"></b-form-input>
+
+              <b-input-group-append>
+                <b-button :disabled="!filter" @click="filter = ''">
+                  Limpiar
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-col>
+        </b-row>
+
         <!-- ORDENES PENDIENTES -->
         <b-row>
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
               <b-card :header="contarItems(dataTablePendiente.length)">
-                <h3>Pendientes</h3>
+                <h3>Ordenes Pendientes</h3>
 
 
                 <b-alert class="text-center" v-if="dataTablePendiente.length < 1" show variant="info">No tienes tareas
                   pendientes</b-alert>
 
-                <b-table v-else stacked :items="dataTablePendiente" :fields="filedsLista"
+                <b-table v-else stacked :items="dataTablePendienteVisibles" :fields="filedsLista"
                   :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
@@ -405,6 +423,10 @@
                     </b-row>
                   </template>
                 </b-table>
+                <div id="sentinel-pendientes" class="text-center mt-2" v-if="visiblePendientes < dataTablePendiente.length">
+                  <b-spinner small variant="info"></b-spinner>
+                  <small class="text-muted">Cargando más... {{ visiblePendientes }} de {{ dataTablePendiente.length }}</small>
+                </div>
               </b-card>
             </b-overlay>
           </b-col>
@@ -436,6 +458,7 @@
 import mixin from "~/mixins/mixins.js";
 import mixin2 from "~/mixins/mixin-proyeccion-entrega.js";
 import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js";
+import mixintime from "~/mixins/mixin-time.js";
 import FinalizarLoteModal from '~/components/empleados/FinalizarLoteModal.vue'
 import FinalizarLoteImpresionModal from '~/components/empleados/FinalizarLoteImpresionModal.vue'
 import FinalizarLoteCorteModal from '~/components/empleados/FinalizarLoteCorteModal.vue';
@@ -472,6 +495,17 @@ export default {
       promptHTML: "HTML PROMPT!!!",
       prompInputType: "text",
       value: 45,
+      // Infinite scroll - carga 10 en 10
+      itemsPerBatch: 10,
+      visibleReposicionesPendientes: 10,
+      visibleReposicionesEnCurso: 10,
+      visibleEnCurso: 10,
+      visiblePendientes: 10,
+      loadingObservers: {},
+      loadingReposicionesPendientes: false,
+      loadingReposicionesEnCurso: false,
+      loadingEnCurso: false,
+      loadingPendientes: false,
       msg: "Estamos buscando sus tareas por favor espere...",
       enCurso: null,
       dataInsumos: [],
@@ -502,6 +536,7 @@ export default {
       // New loading states and data for sectioned loading
       loadingEfficiency: false,
       loadingOrders: false,
+      isFetchingEfficiency: false,
       reporteData: null,
       inputEfficiencyData: null,
 
@@ -586,7 +621,7 @@ export default {
     };
   },
 
-  mixins: [mixin, mixin2, procesamientoOrdenesMixin],
+  mixins: [mixin, mixin2, procesamientoOrdenesMixin, mixintime],
 
   watch: {
     reload(val) {
@@ -689,6 +724,7 @@ export default {
               esreposicion: false,
               en_reposiciones: el.en_reposiciones,
               id_orden: el.id_orden,
+              fecha_hora: el.fecha_inicio || el.fecha_entrega || null,
               extra: el.extra,
               orden: el.id_orden,
               urgent: el.prioridad,
@@ -724,6 +760,7 @@ export default {
           .map((el) => {
             return {
               ...el,
+              fecha_hora: el.fecha_inicio || el.fecha_entrega || null,
               extra: el.extra,
               orden: el.id_orden,
               urgent: el.prioridad,
@@ -760,6 +797,7 @@ export default {
           .map((el) => {
             return {
               ...el,
+              fecha_hora: el.fecha_inicio || el.fecha_entrega || null,
               extra: el.extra,
               orden: el.id_orden,
               urgent: el.prioridad,
@@ -797,6 +835,7 @@ export default {
           .map((el) => {
             return {
               ...el,
+              fecha_hora: el.fecha_inicio || el.fecha_entrega || null,
               extra: el.extra,
               orden: el.id_orden,
               urgent: el.prioridad,
@@ -823,7 +862,11 @@ export default {
           }, [])
       }
 
-      return enCurso
+      return enCurso.sort((a, b) => {
+        const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+        const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+        return dateA - dateB;
+      });
     },
 
     dataTablePendiente() {
@@ -835,6 +878,7 @@ export default {
           .map((el) => {
             return {
               ...el,
+              fecha_hora: el.fecha_inicio || el.fecha_entrega || null,
               id_orden: el.id_orden,
               esreposicion: false,
               en_reposiciones: el.en_reposiciones,
@@ -859,6 +903,11 @@ export default {
             }
             return acc;
           }, [])
+          .sort((a, b) => {
+            const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+            const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+            return dateA - dateB;
+          })
       );
     },
 
@@ -873,6 +922,7 @@ export default {
             // console.log(`Repo ID ${el.id_reposicion}: Inicio=${el.fecha_inicio}, Fin=${el.fecha_terminado}`);
             return {
               ...el,
+              fecha_hora: el.fecha_inicio || el.fecha_entrega || null,
               esreposicion: true,
               en_reposiciones: 1,
               orden: el.id_orden,
@@ -890,25 +940,54 @@ export default {
               id_reposicion: el.id_reposicion,
             };
           })
-        /* .reduce((acc, item) => {
-            // console.log('item to push', item)
-
-            if (acc.filter((row) => row.orden === item.orden).length === 0) {
-              acc.push(item);
-            }
-            return acc;
-          }, []) */
+          .sort((a, b) => {
+            const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+            const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+            return dateA - dateB;
+          })
       );
     },
 
     // Reposiciones Pendientes: sin fecha de inicio
     reposicionesPendientes() {
-      return this.dataTableReposiciones.filter(r => !r.fecha_inicio);
+      return this.dataTableReposiciones
+        .filter(r => !r.fecha_inicio)
+        .sort((a, b) => {
+          const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+          const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+          return dateA - dateB;
+        });
     },
 
     // Reposiciones En Curso: con fecha de inicio pero sin fecha de término
     reposicionesEnCurso() {
-      return this.dataTableReposiciones.filter(r => r.fecha_inicio && !r.fecha_terminado);
+      return this.dataTableReposiciones
+        .filter(r => r.fecha_inicio && !r.fecha_terminado)
+        .sort((a, b) => {
+          const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
+          const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
+          return dateA - dateB;
+        });
+    },
+
+    // Infinite scroll - items visibles de reposiciones pendientes
+    reposicionesPendientesVisibles() {
+      return this.reposicionesPendientes.slice(0, this.visibleReposicionesPendientes);
+    },
+
+    // Infinite scroll - items visibles de reposiciones en curso
+    reposicionesEnCursoVisibles() {
+      return this.reposicionesEnCurso.slice(0, this.visibleReposicionesEnCurso);
+    },
+
+    // Infinite scroll - items visibles de ordenes en curso
+    dataTableEnCursoVisibles() {
+      return this.dataTableEnCurso.slice(0, this.visibleEnCurso);
+    },
+
+    // Infinite scroll - items visibles de ordenes pendientes
+    dataTablePendienteVisibles() {
+      return this.dataTablePendiente.slice(0, this.visiblePendientes);
     },
 
     ordersListPendiente() {
@@ -978,12 +1057,16 @@ export default {
     },
 
     ordenesSize() {
-      // let size = 0;
-      let size = parseInt(this.ordenes.length);
+      if (this.loadingOrders) {
+        this.msg = 'Cargando órdenes asignadas...';
+        return 0;
+      }
+
+      const size = parseInt(this.ordenes.length || 0);
       if (size < 1) {
-        this.msg = "Usted no tiene ordenes asignadas";
+        this.msg = 'No tienes tareas asignadas';
       } else {
-        // this.msg = "Has terminado todas tus tareas 👍";
+        this.msg = '';
       }
 
       return size;
@@ -991,6 +1074,64 @@ export default {
   },
 
   methods: {
+    // =================================================================
+    // INFINITE SCROLL - Cargar 10 en 10 automáticamente
+    // =================================================================
+
+    loadMoreReposicionesPendientes() {
+      if (this.visibleReposicionesPendientes < this.reposicionesPendientes.length) {
+        this.visibleReposicionesPendientes += this.itemsPerBatch;
+      }
+    },
+
+    loadMoreReposicionesEnCurso() {
+      if (this.visibleReposicionesEnCurso < this.reposicionesEnCurso.length) {
+        this.visibleReposicionesEnCurso += this.itemsPerBatch;
+      }
+    },
+
+    loadMoreEnCurso() {
+      if (this.visibleEnCurso < this.dataTableEnCurso.length) {
+        this.visibleEnCurso += this.itemsPerBatch;
+      }
+    },
+
+    loadMorePendientes() {
+      if (this.visiblePendientes < this.dataTablePendiente.length) {
+        this.visiblePendientes += this.itemsPerBatch;
+      }
+    },
+
+    setupInfiniteScroll() {
+      const sections = [
+        { name: 'ReposicionesPendientes', loadMore: this.loadMoreReposicionesPendientes, id: 'sentinel-reposiciones-pendientes' },
+        { name: 'ReposicionesEnCurso', loadMore: this.loadMoreReposicionesEnCurso, id: 'sentinel-reposiciones-en-curso' },
+        { name: 'EnCurso', loadMore: this.loadMoreEnCurso, id: 'sentinel-en-curso' },
+        { name: 'Pendientes', loadMore: this.loadMorePendientes, id: 'sentinel-pendientes' }
+      ];
+
+      sections.forEach(section => {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !this[`loading${section.name}`]) {
+              this[`loading${section.name}`] = true;
+              section.loadMore();
+              this.$nextTick(() => {
+                this[`loading${section.name}`] = false;
+              });
+            }
+          });
+        }, { threshold: 0.1 });
+
+        this.loadingObservers[section.name] = observer;
+
+        const el = document.getElementById(section.id);
+        if (el) {
+          observer.observe(el);
+        }
+      });
+    },
+
     // =================================================================
     // MÉTODOS PARA LA GESTIÓN DE LOTES (NUEVA LÓGICA)
     // =================================================================
@@ -1527,6 +1668,12 @@ export default {
     },
 
     async fetchEfficiency() {
+      if (this.isFetchingEfficiency) {
+        console.log('fetchEfficiency already in progress, skipping');
+        return;
+      }
+      console.log('fetchEfficiency called at', new Date().toISOString());
+      this.isFetchingEfficiency = true;
       this.loadingEfficiency = true;
       try {
         let itemsForEfficiency = [];
@@ -1596,13 +1743,69 @@ export default {
         ]);
 
         // Process Manufacturing Time
-        if (timeResponse.data) {
-          // Cálculos agregados usando los nuevos campos del backend
-          // Cada item (producto) puede tener tiempos en ambos estados
-          const totalRealTerminadas = timeResponse.data.reduce((acc, item) => acc + (item.totalRealTerminadas || 0), 0);
-          const totalProjectedTerminadas = timeResponse.data.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
-          const totalRealEnCurso = timeResponse.data.reduce((acc, item) => acc + (item.totalRealEnCurso || 0), 0);
-          const totalProjectedEnCurso = timeResponse.data.reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
+        console.log("Efficiency - Time Response:", timeResponse.data);
+
+        if (timeResponse.data && timeResponse.data.resumen) {
+          const resumen = timeResponse.data.resumen;
+          const detalles = timeResponse.data.tareas_detalles || [];
+          
+          let horarioLaboral = this.$store.state.login.dataEmpresa.horario_laboral;
+          if (typeof horarioLaboral === 'string') {
+            try {
+              horarioLaboral = JSON.parse(horarioLaboral);
+            } catch(e) {
+              console.error("Error parseando horario_laboral", e);
+              horarioLaboral = null;
+            }
+          }
+
+          if (!horarioLaboral) {
+             this.$fire({
+                 title: 'DEBUG',
+                 text: 'horarioLaboral no es válido o está ausente',
+                 type: 'warning'
+             });
+          }
+
+          // Recalcular Tiempos Reales usando el Mixin (considerando horario laboral y pausas)
+          let totalRealTerminadas = 0;
+          let totalRealEnCurso = 0;
+
+          // Preparar pausas en el formato que espera el mixin (fecha_inicio, fecha_fin como Dates)
+          const pausasProcesadas = (this.pausas || []).map(p => ({
+            fecha_inicio: new Date(p.pausa_inicio),
+            fecha_fin: p.pausa_fin ? new Date(p.pausa_fin) : new Date()
+          }));
+
+          if (horarioLaboral && detalles.length > 0) {
+            detalles.forEach(task => {
+              // Formatear fechas para asegurar compatibilidad en iOS/Safari y otros
+              const fStartStr = task.fecha_inicio ? task.fecha_inicio.replace(' ', 'T') : null;
+              const fEndStr = task.fecha_terminado ? task.fecha_terminado.replace(' ', 'T') : null;
+
+              const tareaObj = {
+                fecha_inicio: fStartStr ? new Date(fStartStr) : new Date(),
+                fecha_fin: fEndStr ? new Date(fEndStr) : new Date()
+              };
+              
+              // No calcular nada si la tarea no ha iniciado realmente en la BD
+              if (!task.fecha_inicio) return;
+
+              // calcularTiempoTrabajoIndividual devuelve milisegundos
+              const tiempoEfectivoMs = this.calcularTiempoTrabajoIndividual(tareaObj, pausasProcesadas, horarioLaboral);
+              const tiempoEfectivoSegundos = tiempoEfectivoMs / 1000;
+
+              if (task.fecha_terminado) {
+                totalRealTerminadas += tiempoEfectivoSegundos;
+              } else {
+                totalRealEnCurso += tiempoEfectivoSegundos;
+              }
+            });
+          }
+
+          // Los tiempos proyectados (estimados) los seguimos tomando del resumen del backend
+          const totalProjectedTerminadas = resumen.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+          const totalProjectedEnCurso = resumen.reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
 
           this.reporteData = {
             totalRealTerminadas,
@@ -1649,8 +1852,10 @@ export default {
       } catch (error) {
         console.error("Error fetching efficiency data:", error);
         this.reporteData = null; // Reset on error or keep previous? Reset is safer to avoid stale data
+        this.isFetchingEfficiency = false;
       } finally {
         this.loadingEfficiency = false;
+        this.isFetchingEfficiency = false;
       }
     },
 
@@ -1724,6 +1929,9 @@ export default {
 
     this.getOrdenesAsignadas().then(() => {
       // console.log("Pausas en  V4", this.pausas);
+      this.$nextTick(() => {
+        this.setupInfiniteScroll();
+      });
     });
     if (this.$store.state.login.currentDepartament === "Impresión") {
       // Cargar Impresoras
@@ -1739,6 +1947,10 @@ export default {
       this.prompInputType = "number";
     }
     this.getInsumos();
+  },
+
+  beforeDestroy() {
+    Object.values(this.loadingObservers).forEach(observer => observer.disconnect());
   },
 
   props: ["emp", "updatedata"],
