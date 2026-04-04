@@ -25,10 +25,10 @@
             responsive
           >
             <template #cell(total_tinta)="data">
-              {{ data.item.total_tinta_consumo_ml.toFixed(2) }} ml
+              {{ (Number(data.item.total_tinta_consumo_ml) || 0).toFixed(2) }} ml
             </template>
             <template #cell(total_tinta_costo)="data">
-              $ {{ data.item.total_tinta_costo.toFixed(2) }}
+              $ {{ (Number(data.item.total_tinta_costo) || 0).toFixed(2) }}
             </template>
           </b-table>
 
@@ -45,14 +45,14 @@
               {{ data.item.sku }} - {{ data.item.id_insumo }}
             </template>
             <template #cell(total_insumo)="data">
-              $ {{ data.item.total_insumo.toFixed(2) }}
+              $ {{ (Number(data.item.total_insumo) || 0).toFixed(2) }}
             </template>
             <template #cell(cantidad_utilizada)="data">
-              {{ data.item.cantidad_utilizada.toFixed(2) }}
+              {{ (Number(data.item.cantidad_utilizada) || 0).toFixed(2) }}
               {{ data.item.unidad }}
             </template>
             <template #cell(cantidad_restante)="data">
-              {{ data.item.cantidad_restante.toFixed(2) }}
+              {{ (Number(data.item.cantidad_restante) || 0).toFixed(2) }}
               {{ data.item.unidad }}
             </template>
           </b-table>
@@ -74,6 +74,10 @@ export default {
     valor: {
       type: Number,
       required: true,
+    },
+    tintaCosto: {
+      type: Number,
+      default: 0,
     },
   },
   data() {
@@ -106,8 +110,7 @@ export default {
       return `modal-insumos-${this.id_orden}`;
     },
     totalCombinedCost() {
-      const totalInkCost = this.reporte.tintas.reduce((sum, tinta) => sum + (tinta.total_tinta_costo || 0), 0);
-      return this.valor + totalInkCost;
+      return (Number(this.valor) || 0) + (Number(this.tintaCosto) || 0);
     },
   },
   methods: {
