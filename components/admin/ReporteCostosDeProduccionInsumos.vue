@@ -24,7 +24,7 @@
             :fields="fieldsTinta"
             responsive
           >
-            <template #cell(total_tinta)="data">
+            <template #cell(total_tinta_consumo_ml)="data">
               {{ (Number(data.item.total_tinta_consumo_ml) || 0).toFixed(2) }} ml
             </template>
             <template #cell(total_tinta_costo)="data">
