@@ -1,10 +1,22 @@
 import { io } from 'socket.io-client';
 
 export default ({ $config, store }, inject) => {
+    // Determinar la URL del socket dinámicamente según el dominio actual como respaldo
+    let wsUrl = $config.WS_API;
+
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'app.nineteencustom.com') {
+            wsUrl = 'https://ws.nineteencustom.com';
+        } else if (hostname === 'app.nineteengreen.com' || hostname.includes('nineteengreen')) {
+            wsUrl = 'https://ws.nineteengreen.com';
+        }
+    }
+
     // Crear instancia de Socket.io
-    const socket = io($config.WS_API, {
+    const socket = io(wsUrl, {
         autoConnect: false,  // No conectar automáticamente
-        transports: ['polling', 'websocket'],
+        transports: ['websocket', 'polling'], // Priorizar websocket
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,

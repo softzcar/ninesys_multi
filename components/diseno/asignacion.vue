@@ -86,6 +86,7 @@
               :idorden="data.item.id"
               :item="data.item"
               :options="empleadosFiltered()"
+              @reload="loadAll"
             />
           </div>
         </template>
@@ -106,7 +107,6 @@ export default {
   data() {
     return {
       overlay: true,
-      empleados: [],
       empSelected: [],
       size: "md",
       title: `Abonos a la orden ${this.idorden}`,
@@ -171,7 +171,7 @@ export default {
       if (!this.datax) return [];
       
       let data = this.datax.map(item => {
-        let seller = this.empleados.find(emp => emp._id == item.responsable || emp.id_empleado == item.responsable || emp.id_usuario == item.responsable);
+        let seller = this.$store.state.disenos.empleados.find(emp => emp._id == item.responsable || emp.id_empleado == item.responsable || emp.id_usuario == item.responsable);
         return {
           ...item,
           responsable_nombre: seller ? seller.nombre : 'Desconocido',
@@ -191,9 +191,9 @@ export default {
       return data;
     },
     designerOptions() {
-      if (!this.empleados) return [{ value: null, text: "-- Todos los diseñadores --" }];
+      if (!this.$store.state.disenos.empleados) return [{ value: null, text: "-- Todos los diseñadores --" }];
       
-      let options = this.empleados
+      let options = this.$store.state.disenos.empleados
         .filter(emp => {
           const depStr = emp.departamento ? String(emp.departamento).toLowerCase() : '';
           let isDiseño = depStr.includes('diseño') || depStr.includes('diseñador');
@@ -211,14 +211,14 @@ export default {
       return options;
     },
     sellerOptions() {
-      if (!this.datax || this.datax.length === 0 || !this.empleados) {
+      if (!this.datax || this.datax.length === 0 || !this.$store.state.disenos.empleados) {
         return [{ value: null, text: "-- Todos los vendedores --" }];
       }
       
       let uniqueResponsables = [...new Set(this.datax.map(item => item.responsable))];
       let options = uniqueResponsables
         .map(respId => {
-          let emp = this.empleados.find(e => e._id == respId || e.id_empleado == respId || e.id_usuario == respId);
+          let emp = this.$store.state.disenos.empleados.find(e => e._id == respId || e.id_empleado == respId || e.id_usuario == respId);
           if (emp) {
             return {
               value: respId,
@@ -285,11 +285,7 @@ export default {
       return res;
     },
 
-    async getEmpleados() {
-      await this.$axios.get(`${this.$config.API}/empleados`).then((res) => {
-        this.empleados = res.data.items;
-      });
-    },
+    // getEmpleados() removed to deduplicate API calls
 
     filterOrdenesAsignadas(id_orden) {
       return this.$store.state.disenos.disenos.items
@@ -303,38 +299,36 @@ export default {
     },
 
     loadAll() {
-      this.getEmpleados().then(() => {
-        this.$store.dispatch("disenos/getDisenos").then(() => {
-          let tmpOptions = this.empleados
-            /* .filter(
-              (el) =>
-                el.departamento === "Diseño" ||
-                el.departamento === "Jefe de diseño"
-            ) */
-            .map((el) => {
-              return {
-                value: el._id || el.id_usuario,
-                text: el.nombre,
-              };
-            });
-          this.optionsSelect = tmpOptions.concat({
-            value: 0,
-            text: "Sin asignar",
+      this.$store.dispatch("disenos/getDisenos").then(() => {
+        let tmpOptions = this.$store.state.disenos.empleados
+          /* .filter(
+            (el) =>
+              el.departamento === "Diseño" ||
+              el.departamento === "Jefe de diseño"
+          ) */
+          .map((el) => {
+            return {
+              value: el._id || el.id_usuario,
+              text: el.nombre,
+            };
           });
-          this.overlay = false;
-
-          if (parseInt(this.$store.state.login.dataUser.acceso) === 1) {
-            this.datax = this.dataTable.items;
-          } else {
-            this.datax = this.dataTable.items.filter(
-              (item) =>
-                item.responsable ===
-                this.$store.state.login.dataUser.id_empleado
-            );
-          }
-
-          console.log("items de diseÑo", this.datax);
+        this.optionsSelect = tmpOptions.concat({
+          value: 0,
+          text: "Sin asignar",
         });
+        this.overlay = false;
+
+        if (parseInt(this.$store.state.login.dataUser.acceso) === 1) {
+          this.datax = this.dataTable.items;
+        } else {
+          this.datax = this.dataTable.items.filter(
+            (item) =>
+              item.responsable ===
+              this.$store.state.login.dataUser.id_empleado
+          );
+        }
+
+        console.log("items de diseÑo", this.datax);
       });
     },
   },

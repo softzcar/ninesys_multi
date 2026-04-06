@@ -108,6 +108,7 @@ rif: 'J-00000000-0', */
     },
     // Socket.io client for WhatsApp service
     { src: "~/plugins/socket.client.js", mode: "client" },
+    { src: "~/plugins/whatsapp.js", mode: "client" },
     // '~/plugins/socketPlugin.js',
     // { src: '~/plugins/socketPlugin.js', options: { socketServerURL: 'http://localhost' } },
     { src: "~plugins/nuxt-quill-plugin", ssr: false },

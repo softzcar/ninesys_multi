@@ -4,45 +4,61 @@
  */
 
 /**
+ * Realiza un fetch con tiempo de espera (timeout)
+ * @param {string} url - URL a solicitar
+ * @param {Object} options - Opciones de fetch
+ * @param {number} timeout - Tiempo en milisegundos
+ */
+async function fetchWithTimeout(url, options = {}, timeout = 8000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+}
+
+/**
  * Obtiene las tasas de cambio desde APIs externas
  * @returns {Promise<Object>} Objeto con las tasas actualizadas
  */
 export async function obtenerIndicadoresVenezuela() {
     try {
-        // 1. Llamadas paralelas a las APIs
-        // BCV: Proxy Backend (para evitar CORS)
-        // Paralelo: API anterior (ve.dolarapi.com)
-        // Global: API de monedas
-
-        // Determinar URL base de la API
-        // El usuario indicó explícitamente que debe apuntar a la API en VPS incluso en desarrollo
+        // 1. Llamadas paralelas a las APIs con timeout
         const apiBaseUrl = 'https://api.nineteengreen.com';
 
-        const [resBcv, resVzla, resGlobal] = await Promise.all([
-            fetch(`${apiBaseUrl}/bcv-rates`),
-            fetch('https://ve.dolarapi.com/v1/dolares'),
-            fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json')
+        const [resBcv, resVzla, resGlobal] = await Promise.allSettled([
+            fetchWithTimeout(`${apiBaseUrl}/bcv-rates`, {}, 5000), // BCV es prioritario, le damos 5s
+            fetchWithTimeout('https://ve.dolarapi.com/v1/dolares', {}, 5000),
+            fetchWithTimeout('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json', {}, 5000)
         ]);
 
         let bcv = null;
         let paralelo = null;
 
         // Procesar BCV (Prioridad Alta)
-        if (resBcv.ok) {
-            const dataBcv = await resBcv.json();
-            // La nueva API devuelve { rates: { usd: 123.45 }, ... }
+        const bcvResult = resBcv.status === 'fulfilled' ? resBcv.value : null;
+        if (bcvResult && bcvResult.ok) {
+            const dataBcv = await bcvResult.json();
             if (dataBcv.rates && dataBcv.rates.usd) {
                 bcv = dataBcv.rates.usd;
             }
         }
 
         // Procesar Paralelo (Intento Best-Effort)
-        if (resVzla.ok) {
+        const vzlaResult = resVzla.status === 'fulfilled' ? resVzla.value : null;
+        if (vzlaResult && vzlaResult.ok) {
             try {
-                const dataVzla = await resVzla.json();
+                const dataVzla = await vzlaResult.json();
                 paralelo = dataVzla.find(d => d.fuente === 'paralelo')?.promedio;
 
-                // Si BCV falló con la nueva API, intentamos obtenerlo de la vieja como respaldo
                 if (!bcv) {
                     const bcvOld = dataVzla.find(d => d.fuente === 'oficial')?.promedio;
                     if (bcvOld) bcv = bcvOld;
@@ -69,8 +85,9 @@ export async function obtenerIndicadoresVenezuela() {
 
         // 3. Extraer tasa de Peso Colombiano
         let tasaCop = null;
-        if (resGlobal.ok) {
-            const dataGlobal = await resGlobal.json();
+        const globalResult = resGlobal.status === 'fulfilled' ? resGlobal.value : null;
+        if (globalResult && globalResult.ok) {
+            const dataGlobal = await globalResult.json();
             tasaCop = dataGlobal.usd?.cop;
         }
 

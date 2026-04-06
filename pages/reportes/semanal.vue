@@ -93,6 +93,25 @@
                 </b-card>
               </b-col>
             </b-row>
+
+            <!-- NUEVO: GRAFICO DE EFICIENCIA DE EMPLEADOS (CENTRO) -->
+            <b-row class="mb-4">
+              <b-col lg="12">
+                <b-card class="shadow-sm border-0">
+                  <h5 class="font-weight-bold mb-3 d-flex align-items-center">
+                    <b-icon icon="person-bounding-box" class="mr-2 text-info"></b-icon> Eficiencia del Período por Empleado
+                  </h5>
+                  <div v-if="employeeEfficiencyData.length > 0">
+                    <charts-EmployeeEfficiencyChart :dataMap="employeeEfficiencyData" :height="350" />
+                  </div>
+                  <div v-else class="text-center py-5 text-muted small">
+                    <b-spinner v-if="loadingEfficiency" small class="mr-2"></b-spinner>
+                    <span v-if="loadingEfficiency">Cargando eficiencia...</span>
+                    <span v-else>No hay datos de eficiencia de empleados para este periodo.</span>
+                  </div>
+                </b-card>
+              </b-col>
+            </b-row>
             
             <!-- RESUMEN DE PRODUCTOS FABRICADOS (BANNER CENTRAL) -->
             <b-row class="mb-4 justify-content-center" v-if="items.length > 0">
@@ -312,17 +331,20 @@
 <script>
 import { mapState } from 'vuex';
 import mixin from "~/mixins/mixins.js";
+import mixintime from "~/mixins/mixin-time.js";
 import mixinLogin from "~/mixins/mixin-login.js";
 import WeeklyOrdersChart from "~/components/charts/WeeklyOrdersChart.vue";
 import DonutChart from "~/components/charts/DonutChart.vue";
 import BarChart from "~/components/charts/BarChart.vue";
+import EmployeeEfficiencyChart from "~/components/charts/EmployeeEfficiencyChart.vue";
 
 export default {
-  mixins: [mixin, mixinLogin],
+  mixins: [mixin, mixinLogin, mixintime],
   components: {
     'charts-WeeklyOrdersChart': WeeklyOrdersChart,
     'charts-DonutChart': DonutChart,
-    'charts-BarChart': BarChart
+    'charts-BarChart': BarChart,
+    'charts-EmployeeEfficiencyChart': EmployeeEfficiencyChart
   },
   data() {
     return {
@@ -331,9 +353,11 @@ export default {
       today: new Date().toISOString().substring(0, 10),
       dateError: null,
       loading: false,
+      loadingEfficiency: false,
       items: [],
       topProducts: [],
       allProducts: [],
+      employeeEfficiencyData: [],
       totalManufactured: 0,
       allProductsFields: [
         { key: "name", label: "Producto", sortable: true },
@@ -475,6 +499,9 @@ export default {
           console.log("Resumen de productos cargado:", this.allProducts.length, "items");
           this.calculateManufacturedTotal();
         }
+        
+        // Cargar gráfica de eficiencia global en paralelo
+        this.fetchEmployeeEfficiency();
 
       } catch (error) {
         console.error("Error fetching report data:", error);
@@ -489,6 +516,76 @@ export default {
 
     calculateManufacturedTotal() {
       this.totalManufactured = this.items.reduce((acc, curr) => acc + (parseFloat(curr.total_unidades) || 0), 0);
+    },
+
+    async fetchEmployeeEfficiency() {
+      if (!this.fechaInicio || !this.fechaFin) return;
+      this.loadingEfficiency = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/reportes/employee-efficiency-global`, {
+          params: { inicio: this.fechaInicio, fin: this.fechaFin }
+        });
+
+        if (res.data && res.data.tareas) {
+          const tareas_crudo = res.data.tareas;
+          const horarioLaboral = this.$store.state.login.dataEmpresa.horario_laboral;
+          let agrupacion_empleados = {};
+
+          tareas_crudo.forEach(row => {
+            const nom = row.empleado_nombre;
+            if (!agrupacion_empleados[nom]) {
+              agrupacion_empleados[nom] = { proyectado: 0, real: 0 };
+            }
+
+            agrupacion_empleados[nom].proyectado += parseFloat(row.projected_seconds);
+
+            let rawFin = row.fecha_terminado;
+            // Si la tarea sigue en curso, usamos la fecha contemporánea (como lo hace el panel)
+            if (!rawFin) {
+              const dObj = new Date();
+              rawFin = new Date(dObj.getTime() - (dObj.getTimezoneOffset() * 60000))
+                .toISOString().replace('T', ' ').substring(0, 19);
+            }
+
+            // Normalización para navegadores estrictos
+            let strIni = row.fecha_inicio.replace(' ', 'T');
+            let strFin = rawFin.replace(' ', 'T');
+
+            const tareaParseada = {
+              fecha_inicio: new Date(strIni),
+              fecha_fin: new Date(strFin)
+            };
+
+            const tiempoEfectivoMs = this.calcularTiempoTrabajoIndividual(tareaParseada, [], horarioLaboral);
+            agrupacion_empleados[nom].real += (tiempoEfectivoMs / 1000); 
+          });
+
+          // Compilar el Array para el Chart
+          let finalData = [];
+          for (const [empleado, vals] of Object.entries(agrupacion_empleados)) {
+            let eff = 100;
+            if (vals.real > 0) {
+              eff = (vals.proyectado / vals.real) * 100;
+            } else if (vals.proyectado > 0 && vals.real === 0) {
+               // Si tienen proyectado pero no gastaron tiempo (!?) raro en mixin
+               eff = 100;
+            }
+            finalData.push({
+               name: empleado,
+               efficiency: parseFloat(eff).toFixed(1)
+            });
+          }
+
+          // Ordenarlos alfabéticamente
+          finalData.sort((a,b) => a.name.localeCompare(b.name));
+          this.employeeEfficiencyData = finalData;
+        }
+
+      } catch (err) {
+        console.error("Error cargando eficiencia empleados:", err);
+      } finally {
+        this.loadingEfficiency = false;
+      }
     },
 
     getEfficiencyClass(value) {

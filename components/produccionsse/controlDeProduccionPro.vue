@@ -35,6 +35,13 @@
             <div class="list-group-header-item">Detalles</div>
           </div>
 
+          <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
+            <template #overlay>
+              <div class="text-center">
+                <b-spinner variant="success"></b-spinner>
+                <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
+              </div>
+            </template>
           <draggable v-model="reposiciones_solicitadas" @end="afterDragRep" tag="ul" class="list-group">
             <li v-for="(el, index) in reposiciones_solicitadas" :key="`rep-${el.id_reposicion}-${refreshKey}`"
               class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
@@ -68,6 +75,7 @@
               </b-list-group>
             </li>
           </draggable>
+          </b-overlay>
         </b-container>
       </div>
     </b-overlay>
@@ -135,9 +143,16 @@
             <div class="list-group-header-item">Acciones</div>
           </div>
 
+          <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
+            <template #overlay>
+              <div class="text-center">
+                <b-spinner variant="success"></b-spinner>
+                <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
+              </div>
+            </template>
           <draggable v-model="itemsFiltrados" @end="afterDrag" tag="ul" class="list-group" handle=".drag-handle-zone"
-            :disabled="isUserFiltering">
-            <li v-for="(el, index) in itemsFiltrados" :key="`${el.orden}-${refreshKey}`" class="list-group-item"
+            :disabled="isUserFiltering || isReordering">
+            <li v-for="(el, index) in itemsMostrados" :key="`${el.orden}-${refreshKey}`" class="list-group-item"
               style="list-style: none; padding: 0; margin: 0; border: none">
               <b-list-group class="list-group-draggable">
                 <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
@@ -195,7 +210,7 @@
                     <!-- Se reemplaza @reload por los eventos de modal -->
                     <progreso-tiempo-semaforo :key="el.orden" @modal-shown="handleModalShown"
                       @modal-hidden="handleModalHidden" :ordenesTodas="fechas" :id_orden="el.orden"
-                      :ordenesProyectadas2="ordenesProyectadas2" />
+                      :ordenesProyectadas2="ordenesProyectadas2" :is-parent-loading="isProyeccionLoading" />
                     <!-- ====================== FIN DE MODIFICACIÓN ====================== -->
                   </div>
                 </b-list-group-item>
@@ -233,6 +248,18 @@
               </b-list-group>
             </li>
           </draggable>
+
+          <!-- 🆕 SENTINELA PARA INFINITE SCROLL -->
+          <div id="infinite-scroll-sentinel" style="height: 50px; display: flex; align-items: center; justify-content: center;">
+            <div v-if="itemsMostrados.length < itemsFiltrados.length" class="text-muted italic">
+              <b-spinner small variant="success" class="mr-2"></b-spinner>
+              Cargando más órdenes ({{ itemsMostrados.length }} de {{ itemsFiltrados.length }})...
+            </div>
+            <div v-else-if="itemsFiltrados.length > 0" class="text-muted small">
+              Fin de la lista ({{ itemsFiltrados.length }} órdenes mostradas)
+            </div>
+          </div>
+          </b-overlay>
         </b-container>
       </div>
     </b-overlay>
@@ -252,6 +279,9 @@ export default {
   data() {
     return {
       isLoading: true,
+      isProyeccionLoading: false, // Nuevo: para rastrear el endpoint pesado de proyecciones
+      visibleOrders: 10,        // Nuevo: para carga incremental en bloques de 10
+      physicalOrdersMap: {},     // Nuevo: índice para búsqueda instantánea de productos físicos
       hasNewData: false,
       toastShown: false,
       isCheckingForUpdates: false,
@@ -285,6 +315,7 @@ export default {
       pasos: [],
       refreshKey: 0,
       reloadMe: false,
+      isReordering: false,
       events: [],
       fields_reposiciones: [{ key: "id_orden", label: " " }],
       fields: [
@@ -360,97 +391,131 @@ export default {
 
     initTiemposDeProduccion() {
       this.isLoading = true;
+      this.isProyeccionLoading = true; // Iniciamos ambas cargas
       this.hasNewData = false;
       this.toastShown = false;
-      this.$bvToast.hide('new-data-toast'); // Ocultar el toast de nuevos datos
+      this.$bvToast.hide('new-data-toast');
 
+      // 1. Cargamos los datos básicos de producción (rápido)
       this.loadOrdersProduction().then(() => {
-        this.refreshKey++; // Incrementar para forzar reactividad en hijos
-        this.getOrdenesFechas().then(() => {
-          this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
-            this.fechas,
-            this.$store.state.login.dataEmpresa.horario_laboral
-          );
-        });
+        // Al terminar el primer bloque, forzamos reactividad para mostrar la lista
+        this.refreshKey++;
+        // NOTA: isLoading ya se pone en false dentro de loadOrdersProduction.finally()
+        
+        // 2. Iniciamos el proceso pesado en paralelo o diferido 
+        // para que no bloquee los primeros renders
+        setTimeout(() => {
+           this.getOrdenesFechas().then(() => {
+            // El cálculo también es pesado, lo hacemos en el siguiente tick
+            setTimeout(() => {
+                this.ordenesProyectadas2 = this.generarPlanProduccionCompleto(
+                    this.fechas,
+                    this.$store.state.login.dataEmpresa.horario_laboral
+                );
+                this.isProyeccionLoading = false;
+            }, 0);
+          }).catch(() => {
+            this.isProyeccionLoading = false;
+          });
+        }, 300); // Pequeño margen para que el navegador respire
       });
     },
 
     async getOrdenesFechas() {
+      this.isProyeccionLoading = true;
+      // Limpiamos datos viejos para que los hijos vuelvan a estado de carga
+      this.ordenesProyectadas2 = []; 
+      
       await this.$axios
         .get(`${this.$config.API}/ordenes/proyeccion-entrega`)
         .then((res) => {
           this.fechas = res.data;
         })
         .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<P>No se recibieron las fechas</p><p>${err}</p>`,
-            type: "warning",
+          console.error("Error cargando proyecciones:", err);
+          this.$bvToast.toast('No se pudieron sincronizar las proyecciones de entrega (endpoint pesado).', {
+            title: "Advertencia",
+            variant: "warning",
+            solid: true,
           });
         })
+        // No ponemos isProyeccionLoading=false aquí porque falta el procesamiento
     },
 
-    afterDrag(evt) {
-      const nuevosOrdenes = this.items.map((dep, index) => ({
-        orden: dep.orden,
+    async afterDrag(evt) {
+      // Construir el lote con el nuevo orden por posición en el array
+      const batch = this.items.map((dep, index) => ({
+        id_orden: dep.orden,
         orden_fila: index + 1,
       }));
+
+      this.isReordering = true;
       try {
-        this.initTiemposDeProduccion();
-        this.items = nuevosOrdenes;
-        this.items.forEach((el) => {
-          this.updateFilaOren(el.orden, el.orden_fila);
-        });
+        const res = await this.$axios.post(
+          `${this.$config.API}/ordenes/actualizar-filas-batch`,
+          batch,
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        if (res.data && res.data.success) {
+          // Refrescar datos del servidor una sola vez
+          await this.loadOrdersProduction();
+        } else {
+          const msg = (res.data && res.data.message) || 'Error desconocido al guardar el orden.';
+          this.$bvToast.toast(msg, {
+            title: 'Error al reordenar',
+            variant: 'danger',
+            solid: true,
+          });
+        }
       } catch (error) {
-        console.error("Error al actualizar orden:", error);
+        console.error('Error al actualizar orden de filas:', error);
+        this.$bvToast.toast('No se pudo guardar el nuevo orden. Verifique la conexión.', {
+          title: 'Error al reordenar',
+          variant: 'danger',
+          solid: true,
+        });
+      } finally {
+        this.isReordering = false;
       }
     },
 
-    afterDragRep(evt) {
-      const nuevasReposiciones = this.reposiciones_solicitadas.map(
-        (dep, index) => ({
-          id_reposicion: dep.id_reposicion,
-          orden_fila: index + 1,
-        })
-      );
+    async afterDragRep(evt) {
+      // Construir el lote con el nuevo orden de reposiciones
+      const batch = this.reposiciones_solicitadas.map((dep, index) => ({
+        id_reposicion: dep.id_reposicion,
+        orden_fila: index + 1,
+      }));
+
+      this.isReordering = true;
       try {
-        this.reposiciones_solicitadas = nuevasReposiciones;
-        this.reposiciones_solicitadas.forEach((el) => {
-          this.updateFilaReposicionNueva(el.id_reposicion, el.orden_fila);
-        });
+        const res = await this.$axios.post(
+          `${this.$config.API}/reposiciones/actualizar-filas-batch`,
+          batch,
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        if (res.data && res.data.success) {
+          // Solo refrescamos la lista de reposiciones (parte del mismo endpoint)
+          await this.loadOrdersProduction();
+        } else {
+          const msg = (res.data && res.data.message) || 'Error desconocido al guardar el orden.';
+          this.$bvToast.toast(msg, {
+            title: 'Error al reordenar reposiciones',
+            variant: 'danger',
+            solid: true,
+          });
+        }
       } catch (error) {
-        console.error("Error al actualizar orden:", error);
+        console.error('Error al actualizar orden de reposiciones:', error);
+        this.$bvToast.toast('No se pudo guardar el nuevo orden de reposiciones. Verifique la conexión.', {
+          title: 'Error al reordenar',
+          variant: 'danger',
+          solid: true,
+        });
+      } finally {
+        this.isReordering = false;
       }
-    },
-
-    async updateFilaOren(idOrden, ordenFila) {
-      const data = new URLSearchParams();
-      data.set("id_orden", idOrden);
-      data.set("orden_fila", ordenFila);
-      await this.$axios
-        .post(`${this.$config.API}/ordenes/actualizar-fila`, data)
-        .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<p>No se eliminó el registro</p><p>${err}</p>`,
-            type: "warning",
-          });
-        })
-    },
-
-    async updateFilaReposicionNueva(idReposicion, ordenFila) {
-      const data = new URLSearchParams();
-      data.set("id_reposicion", idReposicion);
-      data.set("orden_fila", ordenFila);
-      await this.$axios
-        .post(`${this.$config.API}/reposiciones/actualizar-fila`, data)
-        .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<p>No se eliminó el registro</p><p>${err}</p>`,
-            type: "warning",
-          });
-        })
     },
 
     productsFilter(id) {
@@ -524,6 +589,17 @@ export default {
           this.lote_detalles = res.data.lote_detalles || [];
           this.lotes_fisicos = res.data.lotes_fisicos || [];
           this.pasos = res.data.pasos || [];
+
+          // 🆕 PRE-INDEXACIÓN: Crear mapa de órdenes con productos físicos
+          const map = {};
+          if (res.data.orden_productos) {
+            res.data.orden_productos.forEach(p => {
+              if (p.fisico == 1) {
+                map[p.id_orden] = true;
+              }
+            });
+          }
+          this.physicalOrdersMap = map;
         })
         .catch((err) => {
           this.$bvToast.toast("No se pudieron cargar los datos de producción.", {
@@ -559,21 +635,9 @@ export default {
           return [];
         }
 
-        // 1. Filtrado base (Productos físicos)
+        // 1. Filtrado base (Productos físicos) usando el mapa pre-indexado (O(1))
         let filtered = this.items.filter((order) => {
-          const productosDeLaOrden = this.orden_productos.filter(
-            (p) => p.id_orden === order.orden
-          );
-
-          if (productosDeLaOrden.length === 0) {
-            return false;
-          }
-
-          const tieneProductoFisico = productosDeLaOrden.some(
-            (p) => p.fisico == 1
-          );
-
-          return tieneProductoFisico;
+          return this.physicalOrdersMap[order.orden] === true;
         });
 
         // 2. Aplicar filtros de usuario si existen
@@ -601,22 +665,16 @@ export default {
         return filtered;
       },
       set(reorderedItems) {
+        // ... (resto del set igual)
         // Si el usuario está filtrando, NO permitimos reordenar (aunque el drag se haya disparado)
         // Esto es una medida de seguridad adicional, aunque el UI debería estar bloqueado.
         if (this.isUserFiltering) {
           return;
         }
 
-        // 1. Obtenemos los items que fueron filtrados (los que son solo no-físicos)
-        // NOTA: Aquí solo consideramos el filtro base de "no físicos" para la lógica de reordenamiento original.
-        // Si hubiera filtros de usuario activos, reorderedItems sería un subconjunto y perderíamos datos al guardar.
-        // Por eso bloqueamos el set si isUserFiltering es true.
-
+        // 1. Obtenemos los items que no son físicos usando el mapa pre-indexado (O(1))
         const itemsNoFisicos = this.items.filter((order) => {
-          const productosDeLaOrden = this.orden_productos.filter(
-            (p) => p.id_orden === order.orden
-          );
-          return !productosDeLaOrden.some((p) => p.fisico == 1);
+          return this.physicalOrdersMap[order.orden] !== true;
         });
 
         // 2. Concatenamos la lista reordenada con los no físicos al final.
@@ -645,6 +703,11 @@ export default {
         disabled: false,
       };
     },
+
+    // 🆕 COMPUTED PARA RENDERIZADO INCREMENTAL
+    itemsMostrados() {
+      return this.itemsFiltrados.slice(0, this.visibleOrders);
+    }
   },
 
   mounted() {
@@ -654,10 +717,37 @@ export default {
         this.checkForUpdates();
       }
     }, 60000);
+
+    // 🆕 INTERSECTION OBSERVER PARA CARGA INCREMENTAL
+    this.$nextTick(() => {
+      const sentinel = document.getElementById('infinite-scroll-sentinel');
+      if (sentinel) {
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting && !this.isLoading) {
+            if (this.itemsMostrados.length < this.itemsFiltrados.length) {
+              console.log('📥 Cargando bloque de 10 órdenes adicionales...');
+              this.visibleOrders += 10;
+            }
+          }
+        }, { threshold: 0.1 });
+        observer.observe(sentinel);
+        this.scrollObserver = observer;
+      }
+    });
   },
 
   beforeDestroy() {
     clearInterval(this.intervaloRecargaDatos);
+    if (this.scrollObserver) {
+      this.scrollObserver.disconnect();
+    }
+  },
+
+  watch: {
+    // 🆕 RESETEAR PAGINACIÓN AL FILTRAR
+    filterOrden() { this.visibleOrders = 10; },
+    filterCliente() { this.visibleOrders = 10; },
+    filterEstatus() { this.visibleOrders = 10; },
   },
 
   mixins: [mixin, mixin3],

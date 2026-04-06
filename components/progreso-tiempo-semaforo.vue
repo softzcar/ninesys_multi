@@ -185,6 +185,10 @@ export default {
       type: Function,
       default: () => { },
     },
+    isParentLoading: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -308,8 +312,8 @@ export default {
     },
 
     variant() {
-      // Si está cargando, el botón es 'light'.
-      if (this.isLoading) {
+      // Si está cargando internamente o el padre indica que la proyección sigue en curso, el botón es 'light'.
+      if (this.isLoading || this.isParentLoading) {
         return 'light';
       }
       // Si ordenReactiva existe (no es null), usamos su 'variant'.
@@ -318,7 +322,7 @@ export default {
     },
 
     textButton() {
-      if (this.isLoading) return "Calculando fecha...";
+      if (this.isLoading || this.isParentLoading) return "Calculando fecha...";
       if (this.ordenReactiva && this.ordenReactiva.variant_text === "PAUSADA")
         return "PAUSADA";
       if (!this.ordenReactiva) return "POR ASIGNAR";

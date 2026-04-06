@@ -1,6 +1,8 @@
 <template>
   <div>
-    <b-link @click="showModal">{{ valor.toFixed(2) }}%</b-link>
+    <b-link @click="showModal">
+      {{ typeof valor === 'string' ? valor : (parseFloat(valor) || 0).toFixed(2) + '%' }}
+    </b-link>
 
     <b-modal
       :id="modalId"
@@ -17,7 +19,7 @@
           responsive
         >
           <template #cell(eficiencia)="data">
-            <strong>{{ data.item.eficiencia ? data.item.eficiencia.toFixed(2) : '0.00' }}%</strong>
+            <strong>{{ typeof data.item.eficiencia === 'string' ? data.item.eficiencia : ((parseFloat(data.item.eficiencia) || 0).toFixed(2) + '%') }}</strong>
           </template>
         </b-table>
       </div>
@@ -35,7 +37,7 @@ export default {
       required: true,
     },
     valor: {
-      type: Number,
+      type: [Number, String],
       required: true,
     },
     insumos_detalles: {

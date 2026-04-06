@@ -35,35 +35,34 @@
                   :items="dataTable.items"
                 >
                   <template #cell(departamentos)="data">
-                    <!-- {{ data.item.departamentos }} -->
-                    <div
-                      v-for="dep in data.item.departamentos"
-                      :key="dep.id"
-                    >
-                      {{ dep.nombre }}
+                    <div v-if="data.item.departamentos">
+                      <div
+                        v-for="dep in data.item.departamentos"
+                        :key="dep.id"
+                      >
+                        {{ dep.nombre }}
+                      </div>
                     </div>
                   </template>
 
                   <template #cell(acciones)="data">
-                    <span class="floatme">
-                      <AdminEmpleadoEditar
-                        :departamentos="departamentos"
-                        :item="data.item"
-                        @reload="handleReload"
-                      />
-                    </span>
-                    <span class="floatme">
-                      <b-button
-                        variant="danger"
-                        v-on:click="
-                                                deleteEmpleado(
-                                                    data.item._id
-                                                )
-                                                "
-                      >
-                        <b-icon icon="trash"></b-icon>
-                      </b-button>
-                    </span>
+                    <div class="d-flex">
+                      <span class="floatme mr-2">
+                        <AdminEmpleadoEditar
+                          :departamentos="departamentos"
+                          :item="data.item"
+                          @reload="handleReload"
+                        />
+                      </span>
+                      <span class="floatme">
+                        <b-button
+                          variant="danger"
+                          v-on:click="deleteEmpleado(data.item._id)"
+                        >
+                          <b-icon icon="trash"></b-icon>
+                        </b-button>
+                      </span>
+                    </div>
                   </template>
                 </b-table>
               </b-col>
@@ -92,6 +91,7 @@ export default {
       overlay: true,
       dataTable: [],
       departamentos: [],
+      isFetching: false,
     };
   },
   computed: {
@@ -99,61 +99,72 @@ export default {
   },
   methods: {
     async loadData() {
-      console.log('[DEBUG] loadData: Recargando datos de empleados y departamentos')
-      await Promise.all([this.getDepartamentos(), this.getEmpleados()]);
-    },
-    async handleReload(data) {
-      console.log('[DEBUG] handleReload: Evento reload recibido desde AdminEmpleadoEditar', data)
-      console.log('[DEBUG] handleReload: Llamando a loadData()')
+      if (this.isFetching) {
+        console.log('[DEBUG] loadData: Ya hay una carga en curso, ignorando duplicado');
+        return;
+      }
+
+      console.log('[DEBUG] loadData: Iniciando carga de datos habitual');
+      this.overlay = true;
+      this.isFetching = true;
+
       try {
-        await this.loadData()
-        console.log('[DEBUG] handleReload: Datos recargados exitosamente')
+        await Promise.all([this.getDepartamentos(), this.getEmpleados()]);
+        console.log('[DEBUG] loadData: Carga completada');
       } catch (error) {
-        console.log('[DEBUG] handleReload: Error al recargar datos', error)
+        console.error('[DEBUG] loadData: Error durante la carga', error);
+      } finally {
+        this.overlay = false;
+        this.isFetching = false;
       }
     },
+    async handleReload(data) {
+      console.log('[DEBUG] handleReload: Recargando datos')
+      await this.loadData()
+    },
     async getDepartamentos() {
-      this.overlay = true;
-      await this.$axios
-        .get(`${this.$config.API}/departamentos`)
-        .then((res) => {
-          this.departamentos = res.data;
-          this.$store.commit("login/setDepartamentos", res.data);
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Error cargando los departamentos",
-            html: `<p>${err}</p>`,
-            type: "warning",
-          });
-        })
-        .finally(() => {
-          this.overlay = false;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/departamentos`)
+        this.departamentos = res.data;
+        this.$store.commit("login/setDepartamentos", res.data);
+      } catch (err) {
+        this.$fire({
+          title: "Error cargando los departamentos",
+          html: `<p>${err}</p>`,
+          type: "warning",
         });
+      }
     },
 
     async getEmpleados() {
       console.log('[DEBUG] getEmpleados: Solicitando lista de empleados')
       try {
         const resp = await this.$axios.get(`${this.$config.API}/empleados`)
-        console.log('[DEBUG] getEmpleados: Datos recibidos', resp.data)
+        
+        // --- HABILITACIÓN DE ORDENAMIENTO (SOLO NOMBRE Y USUARIO) ---
+        if (resp.data && resp.data.fields) {
+          resp.data.fields = resp.data.fields.map(field => {
+            if (field.key === 'nombre' || field.key === 'username') {
+              return { ...field, sortable: true };
+            }
+            return field;
+          });
+        }
+        
         this.dataTable = resp.data;
-        this.overlay = false;
+        console.log('[DEBUG] getEmpleados: Datos cargados exitosamente')
       } catch (error) {
         console.log('[DEBUG] getEmpleados: Error al obtener empleados', error)
-        this.overlay = false;
       }
     },
 
     deleteEmpleado(id_emp) {
-      console.log('[DEBUG] deleteEmpleado: Iniciando eliminación de empleado', id_emp)
       this.$confirm(
         `¿Desea Elimiar el empleado ${id_emp} ?`,
         "Eliminar Empleado",
         "question"
       )
       .then(() => {
-        console.log('[DEBUG] deleteEmpleado: Usuario confirmó eliminación')
         this.overlay = true;
         const data = new URLSearchParams();
         data.set("id", id_emp);
@@ -161,22 +172,8 @@ export default {
         this.$axios
           .post(`${this.$config.API}/empleados/eliminar`, data)
           .then((res) => {
-            console.log('[DEBUG] deleteEmpleado: API respondió', res.data)
-            let msgDat;
-            if (parseInt(res.data.eliinado)) {  // Note: API returns 'eliinado' not 'eliminado'
-              msgDat = {
-                icon: "success",
-              };
-              console.log('[DEBUG] deleteEmpleado: Empleado eliminado exitosamente, llamando loadData()')
-              this.loadData();
-            } else {
-              msgDat = {
-                icon: "warning",
-              };
-              console.log('[DEBUG] deleteEmpleado: Empleado NO eliminado (deshabilitado), llamando loadData()')
-              this.loadData();  // Also reload when disabled
-            }
-
+            let msgDat = { icon: parseInt(res.data.eliinado) ? "success" : "warning" };
+            this.loadData();
             this.$fire({
               title: "Eliminar Empleado",
               html: `<p>${res.data.message}</p>`,
@@ -184,7 +181,6 @@ export default {
             });
           })
           .catch((err) => {
-            console.log('[DEBUG] deleteEmpleado: Error en API', err)
             this.$fire({
               title: "Eliminar Empleado",
               html: `<p>Ocurrió un error al eliminar el empleado</p><p>${err}</p>`,
@@ -192,25 +188,15 @@ export default {
             });
           })
           .finally(() => {
-            console.log('[DEBUG] deleteEmpleado: Finalizando overlay')
             this.overlay = false;
           });
       })
-      .catch((err) => {
-        console.log('[DEBUG] deleteEmpleado: Usuario canceló eliminación', err);
-        return false;
-      });
+      .catch(() => {});
     },
   },
   mounted() {
-    console.log('[DEBUG] mounted: Componente montado, iniciando carga inicial')
-    this.loadData().then(() => {
-      console.log('[DEBUG] mounted: Carga inicial completada', this.dataTable);
-      this.overlay = false;
-    }).catch(error => {
-      console.log('[DEBUG] mounted: Error en carga inicial', error)
-      this.overlay = false;
-    });
+    console.log('[DEBUG] mounted: Página montada');
+    this.loadData();
   },
 };
 </script>

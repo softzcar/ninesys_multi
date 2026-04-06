@@ -269,8 +269,8 @@ export default {
       // Verificar estado inicial del servicio para actualizar el icono
       this.checkInitialStatus();
 
-      // Iniciar conexión WebSocket persistente
-      this.initSocket();
+      // Iniciar conexión WebSocket persistente NO NECESARIO EN MOUNTED
+      // movido a onModalShow para ahorro de recursos
     }
   },
 
@@ -287,15 +287,20 @@ export default {
   methods: {
     async checkInitialStatus() {
       try {
-        const response = await axios.get(`${this.$config.WS_API}/ws-info/${this.getCompanyId}`);
+        // Usar la instancia aislada con timeout corto para no interferir
+        const response = await this.$wsApi.get(`/ws-info/${this.getCompanyId}`, {
+          timeout: 3000 // 3s max para la verificación visual
+        });
         if (response.data && response.data.ws_ready) {
           this.statusWs.variant = 'success';
-          console.log('[CHECK] Servicio WhatsApp activo para empresa', this.getCompanyId);
+          this.ws.ws_ready = true;
+          console.log('[CHECK-WS] Servicio WhatsApp activo para empresa', this.getCompanyId);
         } else {
           this.statusWs.variant = 'danger';
+          this.ws.ws_ready = false;
         }
       } catch (error) {
-        console.warn('[CHECK] No se pudo verificar estado inicial:', error.message);
+        console.warn('[CHECK-WS] No se pudo verificar estado inicial:', error.message);
         this.statusWs.variant = 'danger';
       }
     },
@@ -478,10 +483,13 @@ export default {
     },
 
     onModalShow() {
-      console.log("Modal abierto.");
+      console.log("Modal abierto. Conectando Socket...");
       this.modalOpen = true;
       this.intentoAutoActivacion = false; // Resetear bandera
-      // La conexión ya está iniciada en mounted
+      
+      // Iniciar socket al abrir el modal
+      this.initSocket();
+
       if (this.$socket && this.socketConnected) {
         // Solicitar estado actualizado al abrir modal por si acaso
         this.$socket.emit('subscribe', this.getCompanyId);
@@ -489,9 +497,10 @@ export default {
     },
 
     onModalHide() {
-      console.log("Modal cerrado.");
+      console.log("Modal cerrado. Desconectando Socket...");
       this.modalOpen = false;
-      // No desconectar socket para mantener escucha de eventos globales
+      // Desconectar socket para liberar recursos si no se está usando
+      this.disconnectSocket();
     },
 
     beforeDestroy() {

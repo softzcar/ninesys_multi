@@ -42,13 +42,13 @@
                     <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Departamento:</label>
                     <b-form-select v-model="departamento" :options="opcionesDepartamentos" size="sm" @change="loadReport" class="border-info"></b-form-select>
                   </b-col>
-                  <b-col md="3" class="mb-3 mb-md-0">
+                  <b-col md="2" class="mb-3 mb-md-0">
                     <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Insumo (Nombre/SKU):</label>
                     <b-form-input v-model="searchInsumo" placeholder="Ej: Tela, Poliester..." size="sm" debounce="500" @input="loadReport" class="border-info"></b-form-input>
                   </b-col>
-                  <b-col md="3">
-                    <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Responsable:</label>
-                    <b-form-select v-model="filtroResponsable" :options="responsableOpciones" size="sm" class="border-info"></b-form-select>
+                  <b-col md="2" class="mb-3 mb-md-0">
+                    <label class="small font-weight-bold text-muted text-uppercase mb-2 d-block">ID del Insumo:</label>
+                    <b-form-input v-model="searchIdInsumo" placeholder="Ej: 12345" size="sm" debounce="500" @input="loadReport" class="border-info"></b-form-input>
                   </b-col>
                 </b-row>
               </b-card-body>
@@ -62,6 +62,8 @@
                     striped
                     :items="itemsFiltrados"
                     :fields="fields"
+                    :sort-by="sortBy"
+                    :sort-desc="sortDesc"
                     class="bg-white m-0"
                     :busy="loading"
                   >
@@ -80,9 +82,7 @@
                     </template>
 
                     <template #cell(id_orden)="data">
-                      <b-badge pill variant="light" class="border text-info p-2 px-3">
-                        <b-icon icon="hash" class="mr-1"></b-icon>{{ data.value }}
-                      </b-badge>
+                      <LinkSearch :id="data.value" />
                     </template>
 
                     <template #cell(cantidad_consumida)="data">
@@ -138,8 +138,10 @@
 <script>
 import { mapState } from "vuex";
 import mixin from "~/mixins/mixin-login.js";
+import LinkSearch from "~/components/linkSearch.vue";
 
 export default {
+  components: { LinkSearch },
   mixins: [mixin],
   data() {
     return {
@@ -149,6 +151,7 @@ export default {
       fechaFin: new Date().toISOString().split('T')[0],
       departamento: "Todas",
       searchInsumo: "",
+      searchIdInsumo: "",
       filtroResponsable: null,
       opcionesDepartamentos: [
         { text: "Todos los Departamentos", value: "Todas" },
@@ -159,10 +162,13 @@ export default {
         { text: "Diseño", value: "Diseño" },
         { text: "Administración", value: "Administración" }
       ],
+      sortBy: "moment",
+      sortDesc: false,
       fields: [
+        { key: "id_orden", label: "Nº Orden", sortable: true },
+        { key: "id_insumo", label: "ID Insumo", sortable: true },
         { key: "moment", label: "Fecha/Hora", sortable: true },
         { key: "nombre_insumo", label: "Insumo", sortable: true },
-        { key: "id_orden", label: "Nº Órden", sortable: true },
         { key: "departamento", label: "Dpto", sortable: true },
         { key: "cantidad_consumida", label: "Consumo", sortable: true },
         { key: "valor_inicial", label: "Inicial", sortable: true },
@@ -175,8 +181,25 @@ export default {
   computed: {
     ...mapState("login", ["dataUser", "access"]),
     itemsFiltrados() {
-      if (!this.filtroResponsable) return this.items;
-      return this.items.filter(i => i.usuario_nombre === this.filtroResponsable);
+      let filtered = [...this.items];
+
+      if (this.filtroResponsable) {
+        filtered = filtered.filter(i => i.usuario_nombre === this.filtroResponsable);
+      }
+
+      if (this.searchIdInsumo) {
+        const idBuscado = String(this.searchIdInsumo).trim();
+        filtered = filtered.filter(i => String(i.id_insumo).trim() === idBuscado);
+      }
+
+      // Ordenar siempre por fecha/hora descendente al mostrar los resultados filtrados
+      filtered.sort((a, b) => {
+        const fechaA = a.moment ? new Date(a.moment).getTime() : 0;
+        const fechaB = b.moment ? new Date(b.moment).getTime() : 0;
+        return fechaA - fechaB;
+      });
+
+      return filtered;
     },
     responsableOpciones() {
       const nombres = [...new Set(this.items.map(i => i.usuario_nombre))]
@@ -199,7 +222,8 @@ export default {
             inicio: this.fechaInicio,
             fin: this.fechaFin,
             departamento: this.departamento,
-            insumo: this.searchInsumo
+            insumo: this.searchInsumo,
+            id_insumo: this.searchIdInsumo
           }
         });
         if (response.data.success) {
@@ -218,6 +242,7 @@ export default {
       this.fechaFin = new Date().toISOString().split('T')[0];
       this.departamento = "Todas";
       this.searchInsumo = "";
+      this.searchIdInsumo = "";
       this.filtroResponsable = null;
       this.loadReport();
     },

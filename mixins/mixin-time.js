@@ -245,11 +245,12 @@ export default {
 
             let tiempoTrabajoEfectivoMs = 0;
             let fechaActual = new Date(tarea.fecha_inicio);
+            const diasLaboralesNum = horarioLaboral.diasLaborales.map(d => parseInt(d));
 
             while (fechaActual < tarea.fecha_fin) {
                 const diaSemana = fechaActual.getDay();
 
-                if (horarioLaboral.diasLaborales.includes(diaSemana)) {
+                if (diasLaboralesNum.includes(diaSemana)) {
                     const inicioDia = new Date(fechaActual);
                     inicioDia.setHours(0, 0, 0, 0);
                     const finDia = new Date(fechaActual);
@@ -345,12 +346,6 @@ export default {
          * @returns {number} Costo total en salarios para la orden, redondeado a 2 decimales.
          */
         calcularCostoSalariosOrden(idOrden, empleadosIds, empleadosData, horarioLaboral, tareasData) {
-            console.log('DEBUG - idOrden:', idOrden);
-            console.log('DEBUG - empleadosIds:', empleadosIds);
-            console.log('DEBUG - empleadosData:', empleadosData);
-            console.log('DEBUG - horarioLaboral:', horarioLaboral);
-            console.log('DEBUG - tareasData:', tareasData);
-
             try {
                 // Convertir empleadosIds a array de números, manejar string, número o vacío
                 let empleadosIdsArray = [];
@@ -369,20 +364,21 @@ export default {
 
                 // Filtrar empleados que cobran salario y están en la lista
                 const empleadosSalario = empleadosData.filter(empleado =>
-                    empleadosIdsArray.includes(empleado.id_usuario) &&
-                    empleado.salario_tipo.includes('Salario')
+                    empleadosIdsArray.includes(Number(empleado.id_usuario ?? empleado.id_empleado)) &&
+                    empleado.salario_tipo?.includes('Salario')
                 );
 
                 // Crear mapa de id_usuario a costo_por_hora
                 const costoPorHoraMap = {};
                 empleadosSalario.forEach(empleado => {
-                    costoPorHoraMap[empleado.id_usuario] = empleado.costo_por_hora;
+                    const idEmp = Number(empleado.id_usuario ?? empleado.id_empleado);
+                    costoPorHoraMap[idEmp] = empleado.costo_por_hora;
                 });
 
                 // Filtrar tareas por orden y empleados relevantes
                 const tareasFiltradas = tareasData.filter(tarea =>
-                    tarea.id_orden === idOrden &&
-                    empleadosIdsArray.includes(tarea.id_empleado)
+                    Number(tarea.id_orden) === Number(idOrden) &&
+                    empleadosIdsArray.includes(Number(tarea.id_empleado))
                 );
 
                 let costoTotal = 0;
@@ -390,7 +386,7 @@ export default {
                 // Calcular costo por cada tarea
                 tareasFiltradas.forEach(tarea => {
                     const horasLaboradas = this.calcularHorasLaboradasReales(tarea.fecha_inicio, tarea.fecha_terminado, horarioLaboral);
-                    const costoPorHora = costoPorHoraMap[tarea.id_empleado];
+                    const costoPorHora = costoPorHoraMap[Number(tarea.id_empleado)];
                     if (costoPorHora) {
                         costoTotal += horasLaboradas * costoPorHora;
                     }
@@ -421,12 +417,13 @@ export default {
 
             let horasTotales = 0;
             let fechaActual = new Date(fechaInicio);
+            const diasLaboralesNum = horarioLaboral.diasLaborales.map(d => parseInt(d));
 
             while (fechaActual < fechaTerminado) {
                 const diaSemana = fechaActual.getDay(); // 0 = Domingo, 1 = Lunes, etc.
 
                 // Verificar si es día laboral
-                if (horarioLaboral.diasLaborales.includes(diaSemana)) {
+                if (diasLaboralesNum.includes(diaSemana)) {
                     // Calcular tiempo en horario de mañana
                     const inicioManana = new Date(fechaActual);
                     inicioManana.setHours(Math.floor(horarioLaboral.horaInicioManana), (horarioLaboral.horaInicioManana % 1) * 60, 0, 0);

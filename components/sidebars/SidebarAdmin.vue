@@ -385,6 +385,44 @@
       </b-collapse>
     </li>
 
+    <!-- Gastos -->
+    <li class="nav-item">
+      <a class="nav-link" v-b-toggle="'sidebar-gastos'">
+        <b-icon icon="receipt" />
+        <span>Gastos</span>
+        <b-icon icon="chevron-down" class="menu-arrow" />
+      </a>
+      <b-collapse id="sidebar-gastos" class="sub-menu">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/gastos-fijos">
+              Gastos Fijos
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/gastos-variables">
+              Gastos Variables
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/gastos-adicionales">
+              Gastos Adicionales
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/gastos-historial">
+              Historial de Pagos
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/empresa/gastos-bitacora">
+              Bitácora de Gastos
+            </router-link>
+          </li>
+        </ul>
+      </b-collapse>
+    </li>
+
     <!-- Configuración -->
     <li class="nav-item">
       <a class="nav-link" v-b-toggle="'sidebar-configuracion'">
@@ -397,11 +435,6 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/empresa/configuracion">
               Configuración de Empresa
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/empresa/gastos-fijos">
-              Gastos Fijos
             </router-link>
           </li>
         </ul>

@@ -297,32 +297,34 @@ export default {
     const isAdmin = this.$store.state.login.dataUser.departamento === 'Administración';
 
     if (isAdmin || !this.tasasEstanConfiguradas) {
-      console.log('🔄 Iniciando carga de tasas de referencia en segundo plano...');
-      this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: false }).then((resultado) => {
-        if (!resultado.success) {
-          console.warn('⚠️ No se pudieron cargar las tasas automáticamente:', resultado.error);
-          
-          // Solo notificamos con Toast si es Administración para no molestar a otros usuarios
-          if (isAdmin) {
-             this.$bvToast.toast('No se pudo sincronizar la tasa BCV oficial automáticamente. Se usará la última tasa configurada en la base de datos.', {
-                title: 'Sincronización de Tasas',
-                variant: 'warning',
-                solid: true,
-                autoHideDelay: 7000,
-                appendToast: true
-              });
+      setTimeout(() => {
+        console.log('🔄 Iniciando carga de tasas de referencia en segundo plano (deferred)...');
+        this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: false }).then((resultado) => {
+          if (!resultado.success) {
+            console.warn('⚠️ No se pudieron cargar las tasas automáticamente:', resultado.error);
+            
+            // Solo notificamos con Toast si es Administración para no molestar a otros usuarios
+            if (isAdmin) {
+               this.$bvToast.toast('No se pudo sincronizar la tasa BCV oficial automáticamente. Se usará la última tasa configurada en la base de datos.', {
+                  title: 'Sincronización de Tasas',
+                  variant: 'warning',
+                  solid: true,
+                  autoHideDelay: 7000,
+                  appendToast: true
+                });
 
-              // Si además de fallar el BCV, no hay ninguna tasa en la BD (> 0), forzamos el modal
-              if (!this.tasasEstanConfiguradas) {
-                this.$bvModal.show("modal-tasas-iniciales");
-              }
+                // Si además de fallar el BCV, no hay ninguna tasa en la BD (> 0), forzamos el modal
+                if (!this.tasasEstanConfiguradas) {
+                  this.$bvModal.show("modal-tasas-iniciales");
+                }
+            }
+          } else {
+            console.log('✅ Tasas cargadas automáticamente:', resultado.fallback ? 'desde caché' : 'desde APIs');
           }
-        } else {
-          console.log('✅ Tasas cargadas automáticamente:', resultado.fallback ? 'desde caché' : 'desde APIs');
-        }
-      }).catch(error => {
-        console.error('❌ Error crítico al cargar tasas:', error);
-      });
+        }).catch(error => {
+          console.error('❌ Error crítico al cargar tasas:', error);
+        });
+      }, 3000); // Diferir 3 segundos para liberar el hilo principal durante el render
     }
   },
 };

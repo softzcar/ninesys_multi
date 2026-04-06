@@ -76,6 +76,7 @@ export default {
 
         closeModal() {
             this.$bvModal.hide(this.modal)
+            this.$emit("reload")
         },
 
         /* updateEmpId(id_empleado, index) {

@@ -8,8 +8,9 @@
       <h2
         class="alert-heading"
         style="margin: 2rem"
+        v-if="text || (hasRequestedReporteData && !isLoading)"
       >
-        {{ text }}
+        {{ text || 'Sin datos de tiempo' }}
       </h2>
       
       <!-- Barra 1: Tareas Terminadas (Eficiencia Real) -->
@@ -116,8 +117,9 @@ export default {
   data() {
     return {
       variant: "light",
-      text: "Esperando ordenes...",
+      text: "",
       variantTerminadas: "light",
+      hasRequestedReporteData: false,
       variantEnCurso: "light",
       horario: null,
       tiempoTrabajoMs: [],
@@ -181,7 +183,13 @@ export default {
           } else if (progresoTitulo) {
             this.text = `⏳ Progreso Tareas En Curso: ${progresoTitulo.split(': ')[1]}`;
           } else {
-            this.text = "Sin datos de tiempo";
+            if (this.isLoading) {
+              this.text = "";
+            } else if (this.hasRequestedReporteData) {
+              this.text = "Sin datos de tiempo";
+            } else {
+              this.text = "";
+            }
             this.variant = "light";
           }
 
@@ -209,7 +217,13 @@ export default {
             }
           }
         } else {
-            this.text = this.isLoading ? "Calculando..." : "Sin datos de tiempo";
+            if (this.isLoading) {
+              this.text = "";
+            } else if (this.hasRequestedReporteData) {
+              this.text = "Sin datos de tiempo";
+            } else {
+              this.text = "";
+            }
             this.variant = "light";
         }
       },
@@ -233,11 +247,21 @@ export default {
       deep: true,
       immediate: true
     },
-    isLoading(val) {
-        if (val) {
-            this.text = "Calculando...";
-            this.variant = "light";
-        }
+    isLoading: {
+        handler(val) {
+            if (val === true) {
+                this.hasRequestedReporteData = true;
+                this.text = "";
+                this.variant = "light";
+            } else if (val === false) {
+                if (!this.reporteData && this.hasRequestedReporteData) {
+                    this.text = "Sin datos de tiempo";
+                }
+                // if reporteData already set, the reporteData watcher should set text appropriately
+                this.variant = "light";
+            }
+        },
+        immediate: true
     }
   },
 

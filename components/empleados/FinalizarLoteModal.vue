@@ -356,23 +356,21 @@ export default {
       return result;
     },
     formValid() {
-      const activeIds = Object.keys(this.consumosPorOrden).filter(k => this.consumosPorOrden[k][0].active);
-      if (activeIds.length === 0) return true;
-      const materialesValidos = activeIds.every(id => {
-        return this.consumosPorOrden[id].every((c, index) => {
-          return c.id_insumo && c.cantidad > 0 && this.validarStockItem(id, index);
-        });
+      const requeridas = this.ordenesQueRequierenInsumos.map(o => o.id_orden);
+      if (requeridas.length === 0) return true;
+      const todasActivas = requeridas.every(id => this.consumosPorOrden[id] && this.consumosPorOrden[id][0].active);
+      if (!todasActivas) return false;
+      const materialesValidos = requeridas.every(id => {
+        return this.consumosPorOrden[id].every((c, index) => c.id_insumo && c.cantidad > 0 && this.validarStockItem(id, index));
       });
       if (!materialesValidos) return false;
-      // Validación adicional para Impresión: al menos 1 impresora con 1 color > 0
       if (this.isImpresion) {
-        return activeIds.every(id => {
+        const tintasOk = requeridas.every(id => {
           const tintas = this.tintasPorOrden[id];
           if (!tintas || tintas.length === 0) return false;
-          return tintas.every(t => {
-            return t.id_impresora && (t.c > 0 || t.m > 0 || t.y > 0 || t.k > 0 || t.w > 0);
-          });
+          return tintas.every(t => t.id_impresora && (t.c > 0 || t.m > 0 || t.y > 0 || t.k > 0 || t.w > 0));
         });
+        if (!tintasOk) return false;
       }
       return true;
     },

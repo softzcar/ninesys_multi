@@ -4,7 +4,7 @@
             <b-icon icon="pencil"></b-icon>
         </b-button>
 
-        <b-modal :size="size" :title="title" :id="modal" hide-footer>
+        <b-modal :size="size" :title="modalTitle" :id="modal" hide-footer>
             <b-overlay :show="overlay" spinner-small>
 
                 <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
@@ -207,7 +207,6 @@ export default {
             ],
             departamentOptions: this.depOptions,
             size: "xl",
-            title: "Editar Empleado",
             overlay: false,
         }
     },
@@ -216,6 +215,9 @@ export default {
         modal: function () {
             const rand = Math.random().toString(36).substring(2, 7)
             return `modal-${rand}`
+        },
+        modalTitle() {
+            return `Editar Empleado: ${this.item ? this.item.nombre : ''}`;
         },
 
         depOptions() {

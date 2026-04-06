@@ -105,15 +105,14 @@
         <b-row>
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card class="mb-4" :header="contarItems(reposicionesPendientes.length)">
+              <b-card class="mb-4" :header="contarItems(reposicionesPendientesFiltradas.length)">
                 <h3>Reposiciones Pendientes</h3>
 
-                <b-alert class="text-center" v-if="reposicionesPendientes.length < 1" show variant="info">
+                <b-alert class="text-center" v-if="reposicionesPendientesFiltradas.length < 1" show variant="info">
                   No tienes reposiciones pendientes</b-alert>
 
                 <!-- TABLA DE REPOSICIONES PENDIENTES -->
-                <b-table v-else stacked :items="reposicionesPendientesVisibles" :fields="filedsLista"
-                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                <b-table stacked :items="reposicionesPendientesVisibles" :fields="filedsLista">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <b-col cols="auto">
@@ -152,10 +151,11 @@
 
                   <!-- Lista de productos -->
                 </b-table>
-                <div id="sentinel-reposiciones-pendientes" class="text-center mt-2" v-if="visibleReposicionesPendientes < reposicionesPendientes.length">
-                  <b-spinner small variant="info"></b-spinner>
-                  <small class="text-muted">Cargando más... {{ visibleReposicionesPendientes }} de {{ reposicionesPendientes.length }}</small>
-                </div>
+                <div id="sentinel-reposiciones-pendientes" class="text-center mt-2" 
+                  v-show="!filter && visibleReposicionesPendientes < reposicionesPendientesFiltradas.length">
+                   <b-spinner small variant="info"></b-spinner>
+                   <small class="text-muted">Cargando más... {{ visibleReposicionesPendientes }} de {{ reposicionesPendientesFiltradas.length }}</small>
+                 </div>
               </b-card>
             </b-overlay>
           </b-col>
@@ -165,12 +165,11 @@
         <b-row v-if="reposicionesEnCurso.length > 0">
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card class="mb-4" :header="contarItems(reposicionesEnCurso.length)">
+              <b-card class="mb-4" :header="contarItems(reposicionesEnCursoFiltradas.length)">
                 <h3>Reposiciones En Curso</h3>
 
                 <!-- TABLA DE REPOSICIONES EN CURSO -->
-                <b-table stacked :items="reposicionesEnCursoVisibles" :fields="filedsLista"
-                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                <b-table stacked :items="reposicionesEnCursoVisibles" :fields="filedsLista">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <b-col cols="auto">
@@ -219,10 +218,11 @@
                     </b-row>
                   </template>
                 </b-table>
-                <div id="sentinel-reposiciones-en-curso" class="text-center mt-2" v-if="visibleReposicionesEnCurso < reposicionesEnCurso.length">
-                  <b-spinner small variant="info"></b-spinner>
-                  <small class="text-muted">Cargando más... {{ visibleReposicionesEnCurso }} de {{ reposicionesEnCurso.length }}</small>
-                </div>
+                <div id="sentinel-reposiciones-en-curso" class="text-center mt-2" 
+                  v-show="!filter && visibleReposicionesEnCurso < reposicionesEnCursoFiltradas.length">
+                   <b-spinner small variant="info"></b-spinner>
+                   <small class="text-muted">Cargando más... {{ visibleReposicionesEnCurso }} de {{ reposicionesEnCursoFiltradas.length }}</small>
+                 </div>
               </b-card>
             </b-overlay>
           </b-col>
@@ -232,13 +232,12 @@
         <b-row>
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card class="mb-4" :header="contarItems(dataTableEnCurso.length)">
+              <b-card class="mb-4" :header="contarItems(dataTableEnCursoFiltradas.length)">
                 <h3>Ordenes En Curso</h3>
-                <b-alert class="text-center" v-if="dataTableEnCurso.length < 1" show variant="info">No tienes tareas en
+                <b-alert class="text-center" v-if="dataTableEnCursoFiltradas.length < 1" show variant="info">No tienes tareas en
                   curso</b-alert>
-                <!-- BOTONES EN CURSO -->
-                <b-table v-else stacked :items="dataTableEnCursoVisibles" :fields="filedsLista"
-                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                <!-- TABLA DE ORDENES EN CURSO -->
+                <b-table stacked :items="dataTableEnCursoVisibles" :fields="filedsLista">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Número de orden -->
@@ -289,28 +288,13 @@
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(row.item.orden)" />
                       </b-col>
 
-                      <!-- <span class="floatme">
-                        <b-alert
-                          :variant="filterFechaEstimada(row.item.orden).variant"
-                          show
-                        >
-                          <h4 class="alert-heading">
-                            {{
-                              filterFechaEstimada(row.item.orden).variant_text
-                            }}
-                            {{
-                              filterFechaEstimada(row.item.orden)
-                                .fecha_estimada_fin_formateada
-                            }}
-                          </h4> mmmmm
-                        </b-alert>
-                      </span> -->
                     </b-row>
                   </template>
                 </b-table>
-                <div id="sentinel-en-curso" class="text-center mt-2" v-if="visibleEnCurso < dataTableEnCurso.length">
+                <div id="sentinel-en-curso" class="text-center mt-2" 
+                  v-show="!filter && visibleEnCurso < dataTableEnCursoFiltradas.length">
                   <b-spinner small variant="info"></b-spinner>
-                  <small class="text-muted">Cargando más... {{ visibleEnCurso }} de {{ dataTableEnCurso.length }}</small>
+                  <small class="text-muted">Cargando más... {{ visibleEnCurso }} de {{ dataTableEnCursoFiltradas.length }}</small>
                 </div>
               </b-card>
             </b-overlay>
@@ -345,15 +329,14 @@
         <b-row>
           <b-col>
             <b-overlay :show="loadingOrders" spinner-small rounded="sm">
-              <b-card :header="contarItems(dataTablePendiente.length)">
+              <b-card :header="contarItems(dataTablePendienteFiltradas.length)">
                 <h3>Ordenes Pendientes</h3>
 
 
-                <b-alert class="text-center" v-if="dataTablePendiente.length < 1" show variant="info">No tienes tareas
+                <b-alert class="text-center" v-if="dataTablePendienteFiltradas.length < 1" show variant="info">No tienes tareas
                   pendientes</b-alert>
 
-                <b-table v-else stacked :items="dataTablePendienteVisibles" :fields="filedsLista"
-                  :filter-included-fields="includedFields" @filtered="onFiltered" :filter="filter">
+                <b-table v-else stacked :items="dataTablePendienteVisibles" :fields="filedsLista">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
                       <!-- Checkbox de selección -->
@@ -423,9 +406,10 @@
                     </b-row>
                   </template>
                 </b-table>
-                <div id="sentinel-pendientes" class="text-center mt-2" v-if="visiblePendientes < dataTablePendiente.length">
+                <div id="sentinel-pendientes" class="text-center mt-2" 
+                  v-show="!filter && visiblePendientes < dataTablePendienteFiltradas.length">
                   <b-spinner small variant="info"></b-spinner>
-                  <small class="text-muted">Cargando más... {{ visiblePendientes }} de {{ dataTablePendiente.length }}</small>
+                  <small class="text-muted">Cargando más... {{ visiblePendientes }} de {{ dataTablePendienteFiltradas.length }}</small>
                 </div>
               </b-card>
             </b-overlay>
@@ -536,7 +520,11 @@ export default {
       // New loading states and data for sectioned loading
       loadingEfficiency: false,
       loadingOrders: false,
+      isFetchingOrders: false,
       isFetchingEfficiency: false,
+      lastFetchOrdersAt: null,
+      lastFetchEfficiencyAt: null,
+      fetchEfficiencyPromise: null,
       reporteData: null,
       inputEfficiencyData: null,
       eficienciaOrdenCache: {},
@@ -621,6 +609,7 @@ export default {
           label: ".",
         },
       ],
+      isReloading: false,
     };
   },
 
@@ -973,24 +962,78 @@ export default {
         });
     },
 
+    // --- LOGICA /TEST: FILTRAR -> RECORTAR ---
+
+    reposicionesPendientesFiltradas() {
+      let data = this.reposicionesPendientes;
+      if (this.filter && this.filter.trim()) {
+        const st = this.filter.trim().toLowerCase();
+        data = data.filter(item => {
+          if (!item) return false;
+          return (item.orden && String(item.orden).toLowerCase().includes(st)) ||
+                 (item.cliente && String(item.cliente).toLowerCase().includes(st));
+        });
+      }
+      return data;
+    },
+
+    reposicionesEnCursoFiltradas() {
+      let data = this.reposicionesEnCurso;
+      if (this.filter && this.filter.trim()) {
+        const st = this.filter.trim().toLowerCase();
+        data = data.filter(item => {
+          if (!item) return false;
+          return (item.orden && String(item.orden).toLowerCase().includes(st)) ||
+                 (item.cliente && String(item.cliente).toLowerCase().includes(st));
+        });
+      }
+      return data;
+    },
+
+    dataTableEnCursoFiltradas() {
+      let data = this.dataTableEnCurso;
+      if (this.filter && this.filter.trim()) {
+        const st = this.filter.trim().toLowerCase();
+        data = data.filter(item => {
+          if (!item) return false;
+          return (item.orden && String(item.orden).toLowerCase().includes(st)) ||
+                 (item.cliente && String(item.cliente).toLowerCase().includes(st));
+        });
+      }
+      return data;
+    },
+
+    dataTablePendienteFiltradas() {
+      let data = this.dataTablePendiente;
+      if (this.filter && this.filter.trim()) {
+        const st = this.filter.trim().toLowerCase();
+        data = data.filter(item => {
+          if (!item) return false;
+          return (item.orden && String(item.orden).toLowerCase().includes(st)) ||
+                 (item.cliente && String(item.cliente).toLowerCase().includes(st));
+        });
+      }
+      return data;
+    },
+
     // Infinite scroll - items visibles de reposiciones pendientes
     reposicionesPendientesVisibles() {
-      return this.reposicionesPendientes.slice(0, this.visibleReposicionesPendientes);
+      return this.reposicionesPendientesFiltradas.slice(0, this.visibleReposicionesPendientes);
     },
 
     // Infinite scroll - items visibles de reposiciones en curso
     reposicionesEnCursoVisibles() {
-      return this.reposicionesEnCurso.slice(0, this.visibleReposicionesEnCurso);
+      return this.reposicionesEnCursoFiltradas.slice(0, this.visibleReposicionesEnCurso);
     },
 
     // Infinite scroll - items visibles de ordenes en curso
     dataTableEnCursoVisibles() {
-      return this.dataTableEnCurso.slice(0, this.visibleEnCurso);
+      return this.dataTableEnCursoFiltradas.slice(0, this.visibleEnCurso);
     },
 
     // Infinite scroll - items visibles de ordenes pendientes
     dataTablePendienteVisibles() {
-      return this.dataTablePendiente.slice(0, this.visiblePendientes);
+      return this.dataTablePendienteFiltradas.slice(0, this.visiblePendientes);
     },
 
     ordersListPendiente() {
@@ -1112,6 +1155,16 @@ export default {
         { name: 'EnCurso', loadMore: this.loadMoreEnCurso, id: 'sentinel-en-curso' },
         { name: 'Pendientes', loadMore: this.loadMorePendientes, id: 'sentinel-pendientes' }
       ];
+
+      // Desconectar observadores previos si existen
+      if (this.loadingObservers && Object.keys(this.loadingObservers).length > 0) {
+        Object.values(this.loadingObservers).forEach(observer => {
+          if (observer && typeof observer.disconnect === 'function') {
+            observer.disconnect();
+          }
+        });
+        this.loadingObservers = {};
+      }
 
       sections.forEach(section => {
         const observer = new IntersectionObserver((entries) => {
@@ -1608,6 +1661,20 @@ export default {
     },
 
     async getOrdenesAsignadas() {
+      if (this.isFetchingOrders) {
+        console.log('getOrdenesAsignadas already in progress, skipping');
+        return;
+      }
+
+      const now = Date.now();
+      if (this.lastFetchOrdersAt && now - this.lastFetchOrdersAt < 5000) {
+        console.log('getOrdenesAsignadas debounced (5s)');
+        return;
+      }
+      this.lastFetchOrdersAt = now;
+
+      this.isFetchingOrders = true;
+      console.log('[SseOrdenesAsignadasV4] getOrdenesAsignadas called');
       this.loadingOrders = true; // Start loading orders
       await this.$axios
         .get(
@@ -1631,6 +1698,7 @@ export default {
         })
         .finally(() => {
           this.loadingOrders = false; // Stop loading orders
+          this.isFetchingOrders = false;
         });
     },
 
@@ -1693,11 +1761,18 @@ export default {
     },
 
     async fetchEfficiency() {
+      const now = Date.now();
+      // evitar ejecuciones en ráfaga por reconciliación de Vue o recargas rápidas
       if (this.isFetchingEfficiency) {
         console.log('fetchEfficiency already in progress, skipping');
         return;
       }
+      if (this.lastFetchEfficiencyAt && now - this.lastFetchEfficiencyAt < 5000) {
+        console.log('fetchEfficiency debounced (3-5s)');
+        return;
+      }
       console.log('fetchEfficiency called at', new Date().toISOString());
+      this.lastFetchEfficiencyAt = now;
       this.isFetchingEfficiency = true;
       this.loadingEfficiency = true;
       try {
@@ -1851,6 +1926,7 @@ export default {
             totalProjected: totalProjectedTerminadas + totalProjectedEnCurso,
             totalElapsed: 0
           };
+          console.debug('[SseOrdenesAsignadasV4] reporteData', this.reporteData);
         }
 
         // Process Input Efficiency
@@ -1934,45 +2010,47 @@ export default {
       return "";
     },
 
-    reloadMe() {
-      this.getLotesActivos();
-      this.getInsumos();
-      this.getOrdenesAsignadas();
-      this.getOrdenesFechas().then(() => {
-        this.fechasResult = this.generarPlanProduccionCompleto(
-          this.fechas,
-          this.$store.state.login.dataEmpresa.horario_laboral
-        );
-      });
+    async reloadMe() {
+      if (this.isReloading) {
+        console.log('[SseOrdenesAsignadasV4] reloadMe already in progress, skipping');
+        return;
+      }
+      this.isReloading = true;
+      console.log('[SseOrdenesAsignadasV4] reloadMe called');
+
+      try {
+        // Ejecutar todas las cargas en paralelo para eficiencia
+        await Promise.all([
+          this.getLotesActivos(),
+          this.getInsumos(),
+          this.getOrdenesAsignadas().then(() => {
+            // Después de cargar ordenes, configurar scroll infinito
+            this.$nextTick(() => {
+              this.setupInfiniteScroll();
+            });
+          }),
+          this.getOrdenesFechas().then(() => {
+            this.fechasResult = this.generarPlanProduccionCompleto(
+              this.fechas,
+              this.$store.state.login.dataEmpresa.horario_laboral
+            );
+          }),
+          // Si es impresión, cargar impresoras
+          this.$store.state.login.currentDepartament === "Impresión" ? this.getImpresoras() : Promise.resolve()
+        ]);
+      } catch (error) {
+        console.error('[SseOrdenesAsignadasV4] Error during reload:', error);
+      } finally {
+        this.isReloading = false;
+      }
     },
   },
 
   mounted() {
-    this.getLotesActivos();
-    // CArgar datos de las ordenes asignadas
-    /* this.sourceEvent = new EventSource(
-      `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`
-      ); */
-    this.getOrdenesFechas().then(() => {
-      this.fechasResult = this.generarPlanProduccionCompleto(
-        this.fechas,
-        this.$store.state.login.dataEmpresa.horario_laboral
-      );
-      console.log("fechasResult", this.fechasResult);
-    });
-
-    this.getOrdenesAsignadas().then(() => {
-      // console.log("Pausas en  V4", this.pausas);
-      this.$nextTick(() => {
-        this.setupInfiniteScroll();
-      });
-    });
+    // Inicializar configuración visual
     if (this.$store.state.login.currentDepartament === "Impresión") {
-      // Cargar Impresoras
-      this.getImpresoras()
       this.promptHTML = "<h2>Ingrese la cantidad en metros</h2>";
       this.prompInputType = "number";
-      // Cargar Insumos
     } else if (this.$store.state.login.currentDepartament === "Estampado") {
       this.promptHTML = "<h2>Ingrese el número de rollo</h2>";
       this.prompInputType = "number";
@@ -1980,8 +2058,12 @@ export default {
       this.promptHTML = "<h2>Ingrese el peso del desperdicio en Gramos</h2>";
       this.prompInputType = "number";
     }
-    this.getInsumos();
+
+    // Ejecutar recarga única centralizada
+    this.reloadMe();
   },
+
+  watch: {},
 
   beforeDestroy() {
     Object.values(this.loadingObservers).forEach(observer => observer.disconnect());
