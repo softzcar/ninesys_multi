@@ -135,23 +135,11 @@
               Ha seleccionado todas las impresoras disponibles.
             </b-alert>
           </div>
-          <!-- INPUT DE DESPERDICIO PARA CORTE (SIEMPRE VISIBLE) -->
-          <div v-if="$store.state.login.currentDepartament === 'Corte'" class="mb-4">
-            <b-card bg-variant="light" border-variant="danger" class="mb-3">
-              <h6 class="text-danger font-weight-bold mb-2">
-                <b-icon icon="trash"></b-icon> Registro de Desperdicio
-              </h6>
-              <b-form-group label="Peso del desperdicio en kilos" label-size="sm" class="mb-0">
-                <b-form-input id="input-13" v-model="desperdicioCorte" type="number" step="0.01" min="0" size="lg"
-                  placeholder="Peso desperdicio (Kg)" required></b-form-input>
-              </b-form-group>
-            </b-card>
-          </div>
+
           <!-- <div v-if="$store.state.login.currentDepartament === 'Corte'">
             <b-form-group label="Peso del desperdicio en kilos" label-for="desperdicio-corte">
               <b-form-input
                 id="desperdicio-corte"
-                v-model="desperdicioCorte"
                 type="number"
                 step="0.01"
                 min="0"
@@ -258,10 +246,17 @@
                   </b-form-group>
                 </b-col>
 
-                <b-col md="3" class="px-2 pb-1">
+                <b-col md="3" class="px-2" v-if="needsDesperdicio(index)">
+                  <b-form-group label="Desperdicio" label-size="sm" class="mb-0 text-danger font-weight-bold">
+                    <b-form-input v-model.number="itemForm.desperdicio" type="number" step="0.01" min="0"
+                      class="border-danger" placeholder="Gramos/Kilos" required></b-form-input>
+                  </b-form-group>
+                </b-col>
+
+                <b-col md="2" class="px-2 pb-1">
                   <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo"
                     class="small font-weight-bold text-danger">
-                    Terminar Material
+                    Terminar
                   </b-form-checkbox>
                 </b-col>
 
@@ -356,7 +351,6 @@ export default {
       datosEficiencia: {},
       eficienciaCalculada: null,
       intentoDeCalculo: false,
-      desperdicioCorte: 0,
       // Mapa de colores para inputs de tinta
       colorMap: {
         c: '#00FFFF',    // Cyan
@@ -395,6 +389,24 @@ export default {
       return (index) => {
         const unidad = this.getUnidadRow(index);
         return unidad ? `Cantidad (${unidad})` : 'Cantidad';
+      };
+    },
+
+    needsDesperdicio() {
+      return (index) => {
+        const itemForm = this.form[index];
+        if (!itemForm || !itemForm.select || !itemForm.validInsumo) return false;
+        
+        let parts = itemForm.select.split('|');
+        if (parts.length > 0) {
+          const idInsumo = parseInt(parts[0].trim());
+          const insumoReal = this.insumosTodos.find(ins => ins._id == idInsumo);
+          if (insumoReal) {
+             const matchingAssignments = this.dataInsumosFiltrado.filter(d => d.id_catalogo_insumos_productos == insumoReal.id_catalogo);
+             return matchingAssignments.some(d => d.usa_desperdicio == 1);
+          }
+        }
+        return false;
       };
     },
 
@@ -1144,19 +1156,6 @@ export default {
           }
         }
 
-        // Handle desperdicioCorte if applicable
-        if (this.$store.state.login.currentDepartament === "Corte") {
-          await this.postInventarioMovimientos(
-            0, // cantidad consumida (no aplica para desperdicio)
-            null, // id insumo (no aplica)
-            null, // id catalogo (no aplica)
-            this.item.id_woo,
-            this.desperdicioCorte, // desperdicio del corte
-            0, // remanente
-            'desperdicio' // Custom type for desperdicio
-          );
-        }
-
         // Finally, register the state (finish the step)
         await this.registrarEstado("fin", this.idorden, 0);
 
@@ -1220,7 +1219,6 @@ export default {
 
     clearForms() {
       this.form = [];
-      this.desperdicioCorte = 0;
       // Reset array de impresoras a estado inicial
       this.impresorasSeleccionadas = [
         { id: 1, id_impresora: null, colorCyan: '', colorMagenta: '', colorYellow: '', colorBlack: '', colorWhite: '' }
@@ -1324,14 +1322,7 @@ export default {
           }
         }
 
-        if (this.$store.state.login.currentDepartament === "Corte") {
-          // VALIDAR DESPERDICIO DEL CORTE
-          if (this.desperdicioCorte === null || this.desperdicioCorte === "") {
-            ok = false;
-            msg = msg + "<p>Ingrese el peso del desperdicio del corte</p>";
-          }
-          // Si es 0, permitir pero con confirmación
-        }
+
 
         if (this.form.length === 0) {
           ok = false;
@@ -1356,6 +1347,14 @@ export default {
           for (let i = 0; i < this.form.length; i++) {
             const itemForm = this.form[i];
             const cantidadIngresada = parseFloat(itemForm.input);
+
+            // Validar si requiere desperdicio
+            if (this.needsDesperdicio(i)) {
+              if (itemForm.desperdicio === null || itemForm.desperdicio === "") {
+                ok = false;
+                msg = msg + `<p>Ingrese el peso del desperdicio para el insumo de la fila ${i + 1}</p>`;
+              }
+            }
 
             // Obtener ID del insumo seleccionado
             // El v-model 'select' tiene el string del typeahead: "ID | Nombre ..."
@@ -1392,26 +1391,20 @@ export default {
             html: msg,
           });
           this.ButtonDisabled = false;
-          // ok = false;
         } else {
-          // Validación especial para Corte: confirmar si desperdicio es 0
-          if (
-            this.$store.state.login.currentDepartament === "Corte" &&
-            this.desperdicioCorte === 0
-          ) {
+          // Validación especial para Desperdicio: confirmar si alguno es 0
+          const alMenosUnDesperdicioCero = this.form.some((item, index) => this.needsDesperdicio(index) && parseFloat(item.desperdicio || 0) === 0);
+
+          if (alMenosUnDesperdicioCero) {
             this.$confirm(
-              "¿Está seguro que desea enviar el desperdicio con valor 0? Esto significa que no hubo desperdicio de material.",
+              "Hay uno o más insumos con el desperdicio en 0. ¿Está seguro que desea enviar así? Esto significa que no hubo desperdicio en esos materiales.",
               "Confirmar desperdicio",
               "question"
             )
               .then(() => {
-                // Usuario confirmó, continuar con el envío
                 this.prepareBatchTerminar();
-                // this.terminarTodo(); // Moved inside prepare/handle
               })
-
               .catch(() => {
-                // Usuario canceló, no hacer nada
                 this.ButtonDisabled = false;
                 return false;
               });
@@ -1421,7 +1414,6 @@ export default {
               this.postImp();
             }
             this.prepareBatchTerminar();
-            // this.terminarTodo();
           }
         }
       } else {
@@ -1662,18 +1654,6 @@ export default {
 
     terminarTodo() {
       this.registrarEstado("fin", this.idorden, 0);
-      // this.sendMsgCustom(this.idorden, 'fin', this.$store.state.login.currentDepartamentId);
-
-      // Para Corte, enviar el desperdicio único
-      if (this.$store.state.login.currentDepartament === "Corte") {
-        this.postInventarioMovimientos(
-          0, // cantidad consumida (no aplica para desperdicio)
-          null, // id insumo (no aplica)
-          null, // id catalogo (no aplica)
-          this.item.id_woo,
-          this.desperdicioCorte // desperdicio del corte
-        );
-      }
 
       // Para otros departamentos, enviar los elementos del formulario
       this.form.forEach((el) => {
