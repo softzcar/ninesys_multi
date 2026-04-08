@@ -214,7 +214,7 @@
           </div>
 
           <!-- MUESTRA ROLLOS DE MATEERIAL SI ESTA EN CONFIGURACION -->
-          <div v-if="showSelect && materialEstimadoPorCatalogo.length > 0">
+          <div v-if="showSelect">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="mb-0 text-muted font-weight-bold">
                 <b-icon icon="layers-half"></b-icon> Asignación de Materiales
@@ -403,7 +403,15 @@ export default {
           const insumoReal = this.insumosTodos.find(ins => ins._id == idInsumo);
           if (insumoReal) {
              const matchingAssignments = this.dataInsumosFiltrado.filter(d => d.id_catalogo_insumos_productos == insumoReal.id_catalogo);
-             return matchingAssignments.some(d => d.usa_desperdicio == 1);
+             if (matchingAssignments.length > 0) {
+                 return matchingAssignments.some(d => d.usa_desperdicio == 1);
+             } else {
+                 // Fallback si no hay mapeo explícito pero el producto lo requiere
+                 let fallback = false;
+                 if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) fallback = true;
+                 else if (this.item && this.item.usa_desperdicio == 1) fallback = true;
+                 return fallback;
+             }
           }
         }
         return false;
@@ -655,7 +663,30 @@ export default {
         this.dataInsumosFiltrado.map(item => item.id_catalogo_insumos_productos)
       );
 
-      // Filtrar insumosTodos para solo mostrar los insumos cuyo id_catalogo 
+      
+      // Si idsCatalogoAsignados está vacío pero necesitamos mostrar insumos por desperdicio global
+      if (idsCatalogoAsignados.size === 0) {
+        let myOptions = [];
+        const dep = this.$store.state.login.currentDepartament;
+        if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
+          myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
+          if (["Estampado", "Corte"].includes(dep)) {
+            const telInsumos = this.insumosTodos.filter((item) => item.departamento === "Telas");
+            myOptions = [...myOptions, ...telInsumos];
+          }
+        }
+        return myOptions.map((el) => {
+          if (el.tipo_insumo === 'tela') {
+            const rendimiento = parseFloat(el.rendimiento) || 1;
+            const availableMeters = (parseFloat(el.cantidad) * rendimiento).toFixed(2);
+            return `${el._id} | ${el.insumo} ${availableMeters} Mt`;
+          }
+          return `${el._id} | ${el.insumo} ${el.cantidad} ${el.unidad}`;
+        });
+      }
+
+      // Filtrar insumosTodos para solo mostrar los insumos cuyo id_catalogo
+ 
       // está en el conjunto de catálogos asignados para esta orden y departamento
       const insumosFiltrados = this.insumosTodos.filter(el => 
         idsCatalogoAsignados.has(el.id_catalogo)
@@ -803,6 +834,21 @@ export default {
     evaluateShowSelect() {
       // Reset showSelect antes de re-evaluar
       this.showSelect = false;
+
+      // Revisar tanto insumos como los items de la orden actual para ver si requieren desperdicio
+      let necesitaDesperdicio = false;
+      if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) {
+        necesitaDesperdicio = true;
+      } else if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) {
+        necesitaDesperdicio = true;
+      } else if (this.item && this.item.usa_desperdicio == 1) {
+        necesitaDesperdicio = true;
+      }
+
+      if (necesitaDesperdicio) {
+        this.showSelect = true;
+        return;
+      }
 
       if (this.$store.state.login.currentDepartament === "Impresión") {
         this.showSelect = true;
