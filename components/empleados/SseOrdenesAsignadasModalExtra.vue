@@ -230,7 +230,7 @@
                 <b-col md="5" class="px-2">
                   <b-form-group label="Material" label-size="sm" class="mb-0">
                     <!-- Eficiencia de Insumo -->
-                    <empleados-eficienciaInsumos v-if="itemForm.validInsumo && getCatalogosUnicos().length > 0" class="mb-1" :idorden="idorden"
+                    <empleados-eficienciaInsumos v-if="itemForm.validInsumo && getCatalogosUnicos.length > 0" class="mb-1" :idorden="idorden"
                       :idinsumo="getId(itemForm.select)" :datainsumos="getCatalogosUnicos"
                       @update_catalogo="updateCatalogo(index, $event)" />
 
@@ -1387,15 +1387,19 @@ export default {
 
         const formTmp = this.form;
 
-        const errors = formTmp.find(
-          (el) => el.input === 0 || el.select === null
-        );
-
-        if (errors) {
-          ok = false;
-          msg =
-            msg +
-            "<p>Debe seleccionar el tipo de insumo y llenar todos los campos del formulario.</p>";
+        for (let i = 0; i < formTmp.length; i++) {
+          const el = formTmp[i];
+          if (el.input === 0 || el.input === "" || el.input === null) {
+            ok = false;
+            msg += `<p>Ingrese la cantidad para la fila ${i + 1}</p>`;
+          }
+          if (!el.select || el.select === "") {
+            ok = false;
+            msg += `<p>Seleccione un insumo en el buscador para la fila ${i + 1}</p>`;
+          } else if (!el.idCatalogo && this.getCatalogosUnicos.length > 0) {
+            ok = false;
+            msg += `<p>Seleccione una opción en la sección "Seleccione el tipo de insumo" (ej. Tela) para la fila ${i + 1}</p>`;
+          }
         }
 
         // VALIDAR CANTIDAD DISPONIBLE (Especialmente para Estampado)
