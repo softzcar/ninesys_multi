@@ -1592,12 +1592,17 @@ export default {
         );
       }
 
+      let parsedIdInsumo = idInsumo;
+      if (typeof parsedIdInsumo === 'string' && parsedIdInsumo.includes('|')) {
+        parsedIdInsumo = parseInt(parsedIdInsumo.split('|')[0].trim());
+      }
+
       const data = new URLSearchParams();
       data.set("id_orden", this.idorden);
       data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("id_departamento", this.$store.state.login.currentDepartamentId);
       data.set("departamento", this.$store.state.login.currentDepartament);
-      data.set("id_insumo", idInsumo);
+      data.set("id_insumo", parsedIdInsumo);
       data.set("id_catalogo", idCatalogo);
       data.set("id_ordenes_productos", this.id_ordenes_productos);
       data.set("es_reposicion", this.esReposicion);

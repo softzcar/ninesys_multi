@@ -291,13 +291,23 @@ export default {
         const response = await this.$wsApi.get(`/ws-info/${this.getCompanyId}`, {
           timeout: 3000 // 3s max para la verificación visual
         });
-        if (response.data && response.data.ws_ready) {
+        const data = response.data || {};
+        if (data.ws_ready) {
           this.statusWs.variant = 'success';
           this.ws.ws_ready = true;
+          this.ws.qr = null;
+          this.ws.error = null;
           console.log('[CHECK-WS] Servicio WhatsApp activo para empresa', this.getCompanyId);
         } else {
           this.statusWs.variant = 'danger';
           this.ws.ws_ready = false;
+          // Si el backend ya entregó un QR (REQUIRES_QR), guardarlo para
+          // que el modal lo pinte inmediatamente sin esperar al socket.
+          if (data.qr) {
+            this.ws.qr = data.qr;
+            this.ws.error = null;
+            this.ws.details = data.message || null;
+          }
         }
       } catch (error) {
         console.warn('[CHECK-WS] No se pudo verificar estado inicial:', error.message);
@@ -486,7 +496,12 @@ export default {
       console.log("Modal abierto. Conectando Socket...");
       this.modalOpen = true;
       this.intentoAutoActivacion = false; // Resetear bandera
-      
+
+      // Refrescar estado vía HTTP inmediatamente para que, si ya hay un QR
+      // cacheado en el backend (REQUIRES_QR), el modal lo pinte sin esperar
+      // al evento socket.
+      this.checkInitialStatus();
+
       // Iniciar socket al abrir el modal
       this.initSocket();
 

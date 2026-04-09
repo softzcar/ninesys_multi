@@ -18,6 +18,10 @@
       <b-button @click="saveTime" class="ml-2" variant="success">
         <b-icon icon="check-lg"></b-icon>
       </b-button>
+
+      <b-form-checkbox v-model="usaDesperdicio" switch class="ml-4" size="lg" @change="updateUsaDesperdicio">
+        Cargar desperdicio
+      </b-form-checkbox>
     </b-form>
 
     <h3 class="mt-4">Asignación Masiva de Insumos por Talla</h3>
@@ -142,6 +146,7 @@ export default {
   data() {
     return {
       tiempo: null,
+      usaDesperdicio: false,
       ButtonDisabled: false,
       nuevoInsumo: "",
       overlay: false,
@@ -330,21 +335,50 @@ export default {
       return `${horasFormateadas}:${minutosFormateados}`;
     },
 
+    async updateUsaDesperdicio() {
+      this.overlay = true;
+      const data = new URLSearchParams();
+      data.set("id_product", this.idprod);
+      data.set("id_departamento", this.item._id);
+      data.set("usa_desperdicio", this.usaDesperdicio ? 1 : 0);
+
+      await this.$axios
+        .post(`${this.$config.API}/tiempos-de-produccion/usa-desperdicio`, data)
+        .then((res) => {
+          this.$emit("reload");
+          this.$fire({
+            title: "Configuración actualizada",
+            html: `<p>El registro de desperdicio se ha actualizado correctamente.</p>`,
+            type: "success",
+          });
+        })
+        .catch((err) => {
+          this.$fire({
+            title: "Error",
+            html: `<p>Error al actualizar el registro de desperdicio</p><p>${err}</p>`,
+            type: "error",
+          });
+        })
+        .finally(() => {
+          this.overlay = false;
+        });
+    },
+
     async updateTiempo() {
       this.overlay = true;
       const data = new URLSearchParams();
       data.set("id_product", this.idprod);
       data.set("id_departamento", this.item._id);
       data.set("tiempo", this.tiempo);
+      data.set("usa_desperdicio", this.usaDesperdicio ? 1 : 0);
 
       await this.$axios
         .post(`${this.$config.API}/tiempos-de-produccion`, data)
         .then((res) => {
-          this.SegundosAMinutos;
           this.$emit("reload");
           this.$fire({
-            title: "Tiempo",
-            html: `<p>Se ha asignado el tiempo de procicción</p>`,
+            title: "Configuración actualizada",
+            html: `<p>Los ajustes de producción se han guardado correctamente.</p>`,
             type: "success",
           });
         })
@@ -696,6 +730,14 @@ export default {
 
   mounted() {
     this.tiempo = this.tiempoInicial || this.clacTimeProduction();
+    
+    // Buscar si ya tiene configurado el desperdicio en los tiempos de producción
+    const config = this.tiemposprod.find(
+      (el) => el.id_product === this.idprod && el.id_departamento === this.iddep
+    );
+    if (config && config.usa_desperdicio) {
+      this.usaDesperdicio = !!config.usa_desperdicio;
+    }
   },
 
   props: [

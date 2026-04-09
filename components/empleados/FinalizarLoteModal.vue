@@ -159,13 +159,13 @@
                       <empleados-InsumoTypeHead v-model="consumo.id_insumo" :insumos="insumos" />
                     </b-form-group>
                   </b-col>
-                  <b-col :md="isCorte ? 2 : 3" class="px-2">
+                  <b-col :md="orden.usa_desperdicio ? 2 : 3" class="px-2">
                     <b-form-group :label="getLabelCantidad(consumo.id_insumo)" label-size="sm" class="mb-0">
                       <b-form-input v-model.number="consumo.cantidad" type="number" step="0.01" size="sm"
                         :state="consumo.cantidad > 0" :placeholder="getItemUnidad(consumo.id_insumo)" />
                     </b-form-group>
                   </b-col>
-                  <b-col v-if="isCorte" md="2" class="px-2">
+                  <b-col v-if="orden.usa_desperdicio" md="2" class="px-2">
                     <b-form-group label="Desperdicio (Kg)" label-size="sm" class="mb-0">
                       <b-form-input v-model.number="consumo.desperdicio" type="number" step="0.01" size="sm" />
                     </b-form-group>
@@ -449,9 +449,13 @@ export default {
         .join(', ');
     },
     debeMostrarOrden(idOrden) {
-      // Si hay estimados para esta orden en este departamento (o hermanos), mostrar
+      // Si hay estimados para esta orden en este departamento (o hermanos), O requiere desperdicio, mostrar
       const estimado = this.estimadosPorOrden[idOrden];
       if (estimado && estimado !== '') return true;
+
+      // Buscar si alguna versión de este producto en el lote requiere desperdicio
+      const ordenBase = this.ordenes.find(o => o.id_orden === idOrden);
+      if (ordenBase && ordenBase.usa_desperdicio) return true;
 
       // Si no hay estimados, dependemos de la configuración manual (legacy support)
       const dep = this.$store.state.login.currentDepartament;
