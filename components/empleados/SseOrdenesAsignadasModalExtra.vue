@@ -230,7 +230,7 @@
                 <b-col md="5" class="px-2">
                   <b-form-group label="Material" label-size="sm" class="mb-0">
                     <!-- Eficiencia de Insumo -->
-                    <empleados-eficienciaInsumos v-if="itemForm.validInsumo" class="mb-1" :idorden="idorden"
+                    <empleados-eficienciaInsumos v-if="itemForm.validInsumo && getCatalogosUnicos().length > 0" class="mb-1" :idorden="idorden"
                       :idinsumo="getId(itemForm.select)" :datainsumos="getCatalogosUnicos"
                       @update_catalogo="updateCatalogo(index, $event)" />
 
@@ -395,25 +395,35 @@ export default {
     needsDesperdicio() {
       return (index) => {
         const itemForm = this.form[index];
-        if (!itemForm || !itemForm.select || !itemForm.validInsumo) return false;
+        if (!itemForm || !itemForm.validInsumo) return false;
         
-        let parts = itemForm.select.split('|');
-        if (parts.length > 0) {
-          const idInsumo = parseInt(parts[0].trim());
-          const insumoReal = this.insumosTodos.find(ins => ins._id == idInsumo);
-          if (insumoReal) {
-             const matchingAssignments = this.dataInsumosFiltrado.filter(d => d.id_catalogo_insumos_productos == insumoReal.id_catalogo);
-             if (matchingAssignments.length > 0) {
-                 return matchingAssignments.some(d => d.usa_desperdicio == 1);
-             } else {
-                 // Fallback si no hay mapeo explícito pero el producto lo requiere
-                 let fallback = false;
-                 if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) fallback = true;
-                 else if (this.item && this.item.usa_desperdicio == 1) fallback = true;
-                 return fallback;
-             }
+        // El usuario solicitó que la caja de desperdicio se muestre SÓLO cuando
+        // ha hecho click en el botón que selecciona el catálogo (itemForm.idCatalogo)
+        if (itemForm.idCatalogo) {
+          // Buscamos a qué producto pertenece este catálogo
+          const matchingAssignment = this.dataInsumosFiltrado.find(d => d.id_catalogo_insumos_productos == itemForm.idCatalogo);
+          if (matchingAssignment) {
+            const idProduct = matchingAssignment.id_product;
+            // Buscamos si ese producto tiene usa_desperdicio=1 en el departamento actual
+            let prodDesperdicio = false;
+            
+            if (this.items && Array.isArray(this.items)) {
+              const prod = this.items.find(p => p.id_woo == idProduct);
+              if (prod && prod.usa_desperdicio == 1) prodDesperdicio = true;
+            } else if (this.item) {
+              if (this.item.id_woo == idProduct && this.item.usa_desperdicio == 1) prodDesperdicio = true;
+            }
+            
+            return prodDesperdicio;
+          } else {
+            // Fallback si no hay matching explícito
+            let fallback = false;
+            if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) fallback = true;
+            else if (this.item && this.item.usa_desperdicio == 1) fallback = true;
+            return fallback;
           }
         }
+        
         return false;
       };
     },

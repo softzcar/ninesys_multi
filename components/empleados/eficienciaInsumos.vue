@@ -38,6 +38,18 @@ export default {
       });
     },
   },
+  
+  watch: {
+    options: {
+      immediate: true,
+      handler(newOptions) {
+        if (newOptions && newOptions.length === 1) {
+          this.selected = newOptions[0].value;
+          this.sendData();
+        }
+      }
+    }
+  },
 
   methods: {
     sendData() {
