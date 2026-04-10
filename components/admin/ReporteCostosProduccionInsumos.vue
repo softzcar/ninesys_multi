@@ -64,10 +64,14 @@ export default {
   },
   methods: {
     showModal() {
-      // Filtrar insumos_detalles por la orden específica
-      this.reporte.insumos_detalles = this.insumos_detalles.filter(item =>
-        item.id_orden == this.id_orden
-      );
+      // Filtrar insumos_detalles por la orden específica y asegurar que sea un arreglo
+      if (Array.isArray(this.insumos_detalles)) {
+        this.reporte.insumos_detalles = this.insumos_detalles.filter(
+          (item) => item.id_orden == this.id_orden
+        );
+      } else {
+        this.reporte.insumos_detalles = [];
+      }
       this.$bvModal.show(this.modalId);
     },
   },
