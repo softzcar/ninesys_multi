@@ -165,7 +165,14 @@
                 </template>
 
                 <template v-else-if="msg.type === 'audio'">
-                  <audio v-if="msg.mediaBlobUrl" :src="msg.mediaBlobUrl" controls class="wa-media-audio" />
+                  <audio
+                    v-if="msg.mediaBlobUrl"
+                    :src="msg.mediaBlobUrl"
+                    controls
+                    preload="metadata"
+                    class="wa-media-audio"
+                    @error="onMediaElementError(msg, 'audio', $event)"
+                  />
                   <div v-else-if="msg.mediaError" class="wa-media-error">
                     <b-icon icon="exclamation-triangle" /> No se pudo cargar el audio
                   </div>
@@ -175,7 +182,15 @@
                 </template>
 
                 <template v-else-if="msg.type === 'video'">
-                  <video v-if="msg.mediaBlobUrl" :src="msg.mediaBlobUrl" controls class="wa-media-video" />
+                  <video
+                    v-if="msg.mediaBlobUrl"
+                    :src="msg.mediaBlobUrl"
+                    controls
+                    playsinline
+                    preload="metadata"
+                    class="wa-media-video"
+                    @error="onMediaElementError(msg, 'video', $event)"
+                  />
                   <div v-else-if="msg.mediaError" class="wa-media-error">
                     <b-icon icon="exclamation-triangle" /> No se pudo cargar el video
                   </div>
@@ -624,6 +639,16 @@ export default {
 
     openMedia(url) {
       if (url) window.open(url, '_blank');
+    },
+
+    onMediaElementError(msg, kind, ev) {
+      // Disparado cuando <audio>/<video> no logra cargar el blob (codec
+      // no soportado, archivo corrupto, etc.). Marcamos el mensaje como
+      // mediaError para mostrar el aviso y log a consola para debug.
+      const code = ev?.target?.error?.code;
+      console.warn(`[WaInbox] ${kind} element error`, msg.wa_message_id, 'code:', code);
+      this.$set(msg, 'mediaError', true);
+      this.$set(msg, 'mediaBlobUrl', null);
     },
 
     async onFileSelected(event) {
@@ -1116,15 +1141,26 @@ export default {
 
 .wa-media-audio {
   display: block;
-  max-width: 260px;
-  width: 100%;
+  /* Ancho explícito para que el control HTML5 no colapse cuando la
+     burbuja padre no fija ancho. Sin esto Chrome muestra solo el botón
+     play y el menú de 3 puntos. */
+  width: 260px;
+  max-width: 100%;
+  min-height: 40px;
 }
 
 .wa-media-video {
   display: block;
-  max-width: 300px;
-  max-height: 260px;
+  /* width explícito + min-height para que el <video> no colapse a 0×0
+     mientras la metadata aún no carga. */
+  width: 300px;
+  max-width: 100%;
+  height: auto;
+  min-height: 180px;
+  max-height: 320px;
+  background: #000;
   border-radius: 6px;
+  object-fit: contain;
 }
 
 .wa-media-doc {
