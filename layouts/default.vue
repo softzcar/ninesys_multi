@@ -23,7 +23,10 @@
     </div>
 
     <!-- AI Chat Widget - disponible en todas las páginas -->
+    <!-- Comentado temporalmente para pruebas de WhatsApp multimedia (estorba la interfaz).
+         Para reactivar, descomentar la línea siguiente.
     <AiChatWidget v-if="isLoggedIn" />
+    -->
   </div>
 </template>
 
