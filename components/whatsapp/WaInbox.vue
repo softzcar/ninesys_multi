@@ -1,5 +1,5 @@
 <template>
-  <div class="wa-inbox">
+  <div class="wa-inbox" :class="{ 'wa-chat-open': !!selectedJid }">
     <b-row no-gutters class="wa-inbox-row">
       <!-- Panel izquierdo: lista de conversaciones -->
       <b-col md="4" lg="3" class="wa-sidebar-panel">
@@ -77,9 +77,18 @@
         <template v-if="selectedJid">
           <!-- Header del chat -->
           <div class="wa-chat-header">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{{ selectedConv.name || formatPhone(selectedJid) }}</strong>
+            <div class="d-flex justify-content-between align-items-center flex-wrap wa-chat-header-row">
+              <div class="d-flex align-items-center flex-wrap wa-chat-header-title">
+                <b-button
+                  variant="link"
+                  size="sm"
+                  class="wa-back-btn d-md-none p-0 mr-2"
+                  @click="clearSelection"
+                  title="Volver a conversaciones"
+                >
+                  <b-icon icon="arrow-left" font-scale="1.3" />
+                </b-button>
+                <strong class="wa-chat-title">{{ selectedConv.name || formatPhone(selectedJid) }}</strong>
                 <b-badge v-if="selectedConv.mode === 'human'" variant="warning" class="ml-2">Modo Humano</b-badge>
                 <b-badge v-else-if="selectedConv.aiEnabled" variant="info" class="ml-2">IA Activa</b-badge>
                 <b-badge v-if="selectedConv.agentName" variant="light" class="ml-1">{{ selectedConv.agentName }}</b-badge>
@@ -529,6 +538,12 @@ export default {
       } finally {
         this.loadingMessages = false;
       }
+    },
+
+    clearSelection() {
+      this.selectedJid = null;
+      this.selectedConv = {};
+      this.messages = [];
     },
 
     async sendMessage() {
@@ -1194,5 +1209,103 @@ export default {
   justify-content: center;
   height: 100%;
   background: #f0f0f0;
+}
+
+.wa-back-btn {
+  color: #17a2b8;
+  line-height: 1;
+
+  &:hover,
+  &:focus {
+    color: #117a8b;
+    text-decoration: none;
+  }
+}
+
+.wa-chat-title {
+  word-break: break-word;
+}
+
+/* --- Responsive: mobile one-pane view (WhatsApp-style) --- */
+@media (max-width: 767.98px) {
+  .wa-inbox {
+    height: calc(100vh - 100px);
+    min-height: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  /* Sin conversación seleccionada: solo lista */
+  .wa-inbox:not(.wa-chat-open) {
+    .wa-sidebar-panel {
+      border-right: 0;
+    }
+    .wa-chat-panel {
+      display: none;
+    }
+  }
+
+  /* Conversación abierta: solo chat */
+  .wa-inbox.wa-chat-open {
+    .wa-sidebar-panel {
+      display: none;
+    }
+    .wa-chat-panel {
+      display: flex;
+    }
+  }
+
+  .wa-chat-header {
+    padding: 8px 10px;
+
+    strong.wa-chat-title {
+      font-size: 0.95rem;
+    }
+    .btn-sm {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.4rem;
+    }
+    .badge {
+      font-size: 0.65rem;
+    }
+    .wa-chat-header-row {
+      gap: 6px;
+    }
+    .wa-chat-header-title {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+  }
+
+  .wa-messages {
+    padding: 10px;
+  }
+
+  .wa-bubble {
+    max-width: 85%;
+  }
+
+  .wa-media-image {
+    max-width: 100%;
+    max-height: 320px;
+  }
+
+  .wa-media-video {
+    max-width: 100%;
+    max-height: 320px;
+  }
+
+  .wa-media-audio {
+    max-width: 100%;
+  }
+
+  .wa-conv-preview {
+    max-width: none;
+  }
+
+  .wa-input-bar {
+    padding: 8px;
+  }
 }
 </style>
