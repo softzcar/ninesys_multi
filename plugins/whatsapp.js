@@ -1,5 +1,8 @@
 
 export default function ({ $axios, store, $config }, inject) {
+  // Token propio para msg_ninesys, aislado del token principal de la app
+  let _wsToken = null
+
   // Crear una instancia aislada de Axios para el servicio de WhatsApp
   const wsApi = $axios.create({
     baseURL: $config.WS_API,
@@ -10,7 +13,7 @@ export default function ({ $axios, store, $config }, inject) {
     }
   })
 
-  // Función para obtener token JWT aislada para esta instancia
+  // Función para obtener token JWT del servicio msg_ninesys
   const getJWTToken = async () => {
     const username = $config.jwtUsername || 'admin'
     const password = $config.jwtPassword || 'Ninesys@2024'
@@ -23,11 +26,8 @@ export default function ({ $axios, store, $config }, inject) {
       })
 
       if (response.data.token) {
-        store.commit('login/setToken', response.data.token)
-        if (response.data.refreshToken) {
-          store.commit('login/setRefreshToken', response.data.refreshToken)
-        }
-        return response.data.token
+        _wsToken = response.data.token
+        return _wsToken
       }
     } catch (error) {
       console.error('[WS-API] Error obteniendo token JWT:', error.message)
@@ -35,64 +35,42 @@ export default function ({ $axios, store, $config }, inject) {
     }
   }
 
-  // Interceptor de Petición para $wsApi
+  // Interceptor de Peticion para $wsApi
   wsApi.onRequest(async (config) => {
     // Si no es la ruta de login, intentar adjuntar token
     if (!config.url.includes('/login')) {
-      let token = store.state.login?.token || localStorage.getItem('jwt_token')
-
-      // Si no hay token, intentar obtenerlo
-      if (!token) {
+      // Si no hay token propio, obtener uno nuevo
+      if (!_wsToken) {
         try {
-          token = await getJWTToken()
+          await getJWTToken()
         } catch (e) {
-          // Continuar, el error de respuesta manejará el 401 si es necesario
+          // Continuar, el error de respuesta manejara el 401/403 si es necesario
         }
       }
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+      if (_wsToken) {
+        config.headers.Authorization = `Bearer ${_wsToken}`
       }
     }
     return config
   })
 
-  // Interceptor de Respuesta para $wsApi (Manejo de 401/Refresco)
+  // Interceptor de Respuesta para $wsApi (Manejo de 401/403 / Refresco)
   wsApi.onResponseError(async (error) => {
     const originalRequest = error.config
+    const status = error.response?.status
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Reintentar en 401 (no proporcionado) o 403 (token invalido/expirado)
+    if ((status === 401 || status === 403) && !originalRequest._retry) {
       originalRequest._retry = true
-      const refreshToken = store.state.login?.refreshToken || localStorage.getItem('refresh_token')
 
-      if (refreshToken) {
-        try {
-          console.log('[WS-API] Refrescando token JWT...')
-          const response = await wsApi.post('/refresh', { refreshToken })
-          const newToken = response.data.token
-          store.commit('login/setToken', newToken)
-          originalRequest.headers.Authorization = `Bearer ${newToken}`
-          return wsApi.request(originalRequest)
-        } catch (refreshError) {
-          // Si falla refresco, intentar login completo
-          try {
-            const newToken = await getJWTToken()
-            originalRequest.headers.Authorization = `Bearer ${newToken}`
-            return wsApi.request(originalRequest)
-          } catch (loginError) {
-            store.commit('login/setToken', null)
-            store.commit('login/setRefreshToken', null)
-          }
-        }
-      } else {
-        // No hay refresh token, intentar login completo
-        try {
-          const newToken = await getJWTToken()
-          originalRequest.headers.Authorization = `Bearer ${newToken}`
-          return wsApi.request(originalRequest)
-        } catch (loginError) {
-          store.commit('login/setToken', null)
-        }
+      try {
+        const newToken = await getJWTToken()
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return wsApi.request(originalRequest)
+      } catch (loginError) {
+        _wsToken = null
+        console.error('[WS-API] No se pudo renovar el token:', loginError.message)
       }
     }
 

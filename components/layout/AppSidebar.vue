@@ -38,6 +38,55 @@
           </router-link>
         </li>
 
+        <!-- WhatsApp (siempre visible, con badge de no leídos en tiempo real) -->
+        <li class="nav-item">
+          <a class="nav-link" v-b-toggle="'sidebar-whatsapp'">
+            <b-icon icon="whatsapp" />
+            <span>WhatsApp</span>
+            <b-badge
+              v-if="waUnreadCount > 0"
+              variant="success"
+              pill
+              class="ml-2"
+            >
+              {{ waUnreadCount > 99 ? '99+' : waUnreadCount }}
+            </b-badge>
+            <b-icon icon="chevron-down" class="menu-arrow" />
+          </a>
+          <b-collapse id="sidebar-whatsapp" class="sub-menu">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <router-link class="nav-link" to="/whatsapp">
+                  Conversaciones
+                  <b-badge
+                    v-if="waUnreadCount > 0"
+                    variant="success"
+                    pill
+                    class="ml-2"
+                  >
+                    {{ waUnreadCount > 99 ? '99+' : waUnreadCount }}
+                  </b-badge>
+                </router-link>
+              </li>
+              <li class="nav-item">
+                <router-link class="nav-link" to="/whatsapp/agentes">
+                  Agentes IA
+                </router-link>
+              </li>
+              <li class="nav-item">
+                <router-link class="nav-link" to="/whatsapp/configuracion">
+                  Configuración IA
+                </router-link>
+              </li>
+              <li class="nav-item">
+                <router-link class="nav-link" to="/whatsapp/conexion">
+                  Estado de Conexión
+                </router-link>
+              </li>
+            </ul>
+          </b-collapse>
+        </li>
+
         <!-- Componente de menú dinámico -->
         <component :is="sidebarMenuComponent" v-if="currentComponent" />
       </ul>
@@ -72,6 +121,9 @@ export default {
     return {
       isCollapsed: false,
       selectedDepartamento: null,
+      // Mapa jid → unreadCount para poder recalcular el total rápido
+      waUnreadByJid: {},
+      waSocketSubscribed: false,
     };
   },
   computed: {
@@ -80,6 +132,8 @@ export default {
       "currentDepartament",
       "currentComponent",
       "currentMinOrdenProcesoId",
+      "idEmpresa",
+      "access",
     ]),
     ...mapGetters("login", ["getDepartamentosEmpleadoSelect"]),
     empresaNombre() {
@@ -88,6 +142,9 @@ export default {
     sidebarMenuComponent() {
       if (!this.currentComponent) return null;
       return sidebarComponentMap[this.currentComponent] || null;
+    },
+    waUnreadCount() {
+      return Object.values(this.waUnreadByJid).reduce((a, b) => a + (b || 0), 0);
     },
   },
   watch: {
@@ -104,8 +161,94 @@ export default {
         }
       },
     },
+    access: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && this.idEmpresa) {
+          this.initWaBadge();
+        }
+      },
+    },
+  },
+  mounted() {
+    if (this.access && this.idEmpresa) {
+      this.initWaBadge();
+    }
+    // Escuchar eventos de otros componentes (ej. WaInbox al marcar como leído)
+    this.$nuxt.$on('wa:conv-read', this.onConversationRead);
+  },
+  beforeDestroy() {
+    this.$nuxt.$off('wa:conv-read', this.onConversationRead);
+    const socket = this.$wsSocket;
+    if (socket) {
+      socket.off('message:new', this.onWaMessageNew);
+      socket.off('conversation:updated', this.onWaConvUpdated);
+    }
   },
   methods: {
+    // ---- Badge de WhatsApp (no leídos) ----
+    async initWaBadge() {
+      try {
+        const { data } = await this.$wsApi.get(`/chats/${this.idEmpresa}?limit=200`);
+        const map = {};
+        for (const c of data || []) {
+          if (c.unreadCount > 0) map[c.id] = c.unreadCount;
+        }
+        this.waUnreadByJid = map;
+      } catch (e) {
+        console.warn('[AppSidebar] No se pudo cargar contador no-leídos:', e.message);
+      }
+      this.subscribeWaSocket();
+    },
+
+    subscribeWaSocket() {
+      if (this.waSocketSubscribed) return;
+      const socket = this.$wsSocket;
+      if (!socket) return;
+
+      const doSubscribe = () => {
+        socket.emit('subscribe', this.idEmpresa);
+      };
+      if (socket.connected) {
+        doSubscribe();
+      } else {
+        socket.once('connect', doSubscribe);
+        if (!socket.connected) socket.connect();
+      }
+
+      socket.on('message:new', this.onWaMessageNew);
+      socket.on('conversation:updated', this.onWaConvUpdated);
+      this.waSocketSubscribed = true;
+    },
+
+    onWaMessageNew(data) {
+      if (String(data.companyId) !== String(this.idEmpresa)) return;
+      // Solo incrementa con mensajes entrantes (no los nuestros)
+      if (data.from_me) return;
+      // Si el usuario está en la página de la conversación activa, WaInbox
+      // emitirá 'wa:conv-read' inmediatamente después.
+      this.$set(
+        this.waUnreadByJid,
+        data.jid,
+        (this.waUnreadByJid[data.jid] || 0) + 1
+      );
+    },
+
+    onWaConvUpdated(data) {
+      if (String(data.companyId) !== String(this.idEmpresa)) return;
+      // Si el backend reporta que la conv volvió a 0 no leídos
+      if (data.unread_count === 0 && this.waUnreadByJid[data.jid]) {
+        this.$delete(this.waUnreadByJid, data.jid);
+      }
+    },
+
+    onConversationRead(jid) {
+      // Emitido por WaInbox cuando el usuario abre una conv
+      if (this.waUnreadByJid[jid]) {
+        this.$delete(this.waUnreadByJid, jid);
+      }
+    },
+
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed;
       this.$emit("toggle", this.isCollapsed);
