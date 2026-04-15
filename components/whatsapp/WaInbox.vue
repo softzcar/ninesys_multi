@@ -1229,11 +1229,42 @@ export default {
 /* --- Responsive: mobile one-pane view (WhatsApp-style) --- */
 @media (max-width: 767.98px) {
   .wa-inbox {
-    height: calc(100vh - 100px);
+    /* Fallback para navegadores sin soporte de dvh */
+    height: calc(100vh - 60px);
+    /* dvh = dynamic viewport height: se ajusta al área realmente visible,
+       descontando la barra de URL dinámica del navegador móvil. Esto evita
+       que el input de escribir quede fuera del fold. */
+    height: calc(100dvh - 60px);
     min-height: 0;
     border-radius: 0;
     border-left: 0;
     border-right: 0;
+  }
+
+  .wa-inbox-row {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .wa-sidebar-panel,
+  .wa-chat-panel {
+    /* min-height:0 permite que los hijos flex con overflow (la lista de
+       mensajes) se encojan en lugar de empujar al input bar fuera del
+       contenedor. */
+    min-height: 0;
+  }
+
+  .wa-chat-header {
+    flex: 0 0 auto;
+  }
+
+  .wa-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .wa-input-bar {
+    flex: 0 0 auto;
   }
 
   /* Sin conversación seleccionada: solo lista */
