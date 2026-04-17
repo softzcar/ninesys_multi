@@ -126,9 +126,42 @@
                 >
                   Devolver a IA
                 </b-button>
+                <!-- Eliminar chat -->
+                <b-button
+                  size="sm"
+                  variant="outline-danger"
+                  class="ml-1"
+                  title="Eliminar chat"
+                  @click="confirmDeleteConversation"
+                >
+                  <b-icon icon="trash" />
+                </b-button>
               </div>
             </div>
           </div>
+
+          <!-- Modal confirmación eliminar chat -->
+          <b-modal
+            v-model="showDeleteModal"
+            title="Eliminar conversación"
+            ok-title="Eliminar"
+            ok-variant="danger"
+            cancel-title="Cancelar"
+            @ok="deleteConversation"
+            :ok-disabled="deleting"
+          >
+            <p>
+              Vas a eliminar la conversación con
+              <strong>{{ selectedConv.name || formatPhone(selectedJid) }}</strong>.
+            </p>
+            <ul class="small text-muted">
+              <li>Se ocultará de la bandeja (puedes restaurarla desde Configuración → Papelera).</li>
+              <li>Se intentará borrar también del WhatsApp vinculado; esto <strong>no</strong> borra el chat del teléfono del contacto.</li>
+            </ul>
+            <p v-if="deleting" class="text-info mb-0">
+              <b-spinner small /> Eliminando...
+            </p>
+          </b-modal>
 
           <!-- Mensajes -->
           <div class="wa-messages" ref="messagesContainer">
@@ -320,6 +353,8 @@ export default {
       loadingConversations: false,
       loadingMessages: false,
       uploadingFile: false,
+      showDeleteModal: false,
+      deleting: false,
       mediaTypes: ['image', 'audio', 'video', 'document', 'sticker'],
       // Grabación de notas de voz (MediaRecorder)
       recording: false,
@@ -426,6 +461,9 @@ export default {
       socket.off('message:new');
       socket.off('conversation:updated');
       socket.off('conversation:handoff');
+      socket.off('conversation:deleted');
+      socket.off('conversation:restored');
+      socket.off('conversation:purged');
 
       const myCompany = String(this.idEmpresa);
 
@@ -486,6 +524,24 @@ export default {
         }
       });
 
+      // Eliminación (soft) desde cualquier sesión: quitar de la lista activa
+      const removeFromList = (jid) => {
+        this.conversations = this.conversations.filter((c) => c.id !== jid);
+        if (this.selectedJid === jid) this.clearSelection();
+      };
+      socket.on('conversation:deleted', (data) => {
+        if (String(data.companyId) !== myCompany) return;
+        removeFromList(data.jid);
+      });
+      socket.on('conversation:restored', (data) => {
+        if (String(data.companyId) !== myCompany) return;
+        this.fetchConversations();
+      });
+      socket.on('conversation:purged', (data) => {
+        if (String(data.companyId) !== myCompany) return;
+        removeFromList(data.jid);
+      });
+
       // Handoff: cambio de modo en la conversación
       socket.on('conversation:handoff', (data) => {
         console.log('[WaInbox] conversation:handoff', data.jid, data.mode);
@@ -510,6 +566,9 @@ export default {
       socket.off('message:new');
       socket.off('conversation:updated');
       socket.off('conversation:handoff');
+      socket.off('conversation:deleted');
+      socket.off('conversation:restored');
+      socket.off('conversation:purged');
     },
 
     async fetchConversations() {
@@ -914,6 +973,42 @@ export default {
           title: "Error",
           variant: "danger",
         });
+      }
+    },
+
+    confirmDeleteConversation() {
+      if (!this.selectedJid) return;
+      this.showDeleteModal = true;
+    },
+
+    async deleteConversation(bvEvt) {
+      if (!this.selectedJid) return;
+      if (bvEvt && typeof bvEvt.preventDefault === 'function') bvEvt.preventDefault();
+      this.deleting = true;
+      const jid = this.selectedJid;
+      try {
+        const { data } = await this.$wsApi.delete(
+          `/conversations/${this.idEmpresa}/${jid}`,
+          { data: { userId: this.currentUserId } }
+        );
+        // Quitar de la lista local de inmediato; el evento WS puede llegar después
+        this.conversations = this.conversations.filter((c) => c.id !== jid);
+        this.clearSelection();
+        this.showDeleteModal = false;
+        const waMsg = data?.whatsapp?.ok
+          ? 'También se borró del WhatsApp vinculado.'
+          : 'No se pudo borrar del WhatsApp vinculado (sesión no lista).';
+        this.$bvToast.toast(`Conversación eliminada. ${waMsg}`, {
+          title: 'Eliminada',
+          variant: 'success',
+        });
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: 'Error eliminando',
+          variant: 'danger',
+        });
+      } finally {
+        this.deleting = false;
       }
     },
 

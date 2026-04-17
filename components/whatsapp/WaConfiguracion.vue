@@ -144,6 +144,118 @@
           {{ saving ? 'Guardando...' : 'Guardar configuración' }}
         </b-button>
       </div>
+
+      <!-- Papelera de conversaciones -->
+      <b-card class="mb-4 border-0 shadow-sm">
+        <template #header>
+          <div class="d-flex justify-content-between align-items-center">
+            <span>
+              <b-icon icon="trash" class="mr-2" />
+              Papelera de conversaciones
+              <b-badge variant="secondary" class="ml-1">{{ deletedChats.length }}</b-badge>
+            </span>
+            <div>
+              <b-button size="sm" variant="outline-secondary" @click="fetchDeleted" :disabled="loadingDeleted" class="mr-1">
+                <b-spinner v-if="loadingDeleted" small /> Recargar
+              </b-button>
+              <b-button
+                size="sm"
+                variant="outline-danger"
+                :disabled="deletedChats.length === 0 || purgingAll"
+                @click="confirmPurgeAll"
+              >
+                Purgar todo
+              </b-button>
+            </div>
+          </div>
+        </template>
+
+        <p class="text-muted small">
+          Aquí aparecen los chats que eliminaste desde la bandeja. Puedes restaurarlos
+          o purgarlos de forma definitiva (borrado físico en base de datos y archivos).
+          La purga es <strong>irreversible</strong>.
+        </p>
+
+        <b-table
+          v-if="deletedChats.length"
+          :items="deletedChats"
+          :fields="deletedFields"
+          small
+          striped
+          hover
+          responsive
+        >
+          <template #cell(name)="row">
+            <strong>{{ row.item.name || formatPhone(row.item.id) }}</strong>
+            <small class="d-block text-muted">{{ row.item.id }}</small>
+          </template>
+          <template #cell(deletedAt)="row">
+            {{ formatDate(row.item.deletedAt) }}
+          </template>
+          <template #cell(actions)="row">
+            <b-button
+              size="sm"
+              variant="outline-success"
+              class="mr-1"
+              :disabled="busyJid === row.item.id"
+              @click="restoreChat(row.item)"
+            >
+              Restaurar
+            </b-button>
+            <b-button
+              size="sm"
+              variant="outline-danger"
+              :disabled="busyJid === row.item.id"
+              @click="confirmPurge(row.item)"
+            >
+              Purgar
+            </b-button>
+          </template>
+        </b-table>
+
+        <div v-else class="text-center text-muted py-3">
+          <em>No hay conversaciones en la papelera.</em>
+        </div>
+      </b-card>
+
+      <!-- Modal: purga individual -->
+      <b-modal
+        v-model="showPurgeModal"
+        title="Purgar conversación"
+        ok-title="Purgar definitivamente"
+        ok-variant="danger"
+        cancel-title="Cancelar"
+        @ok="purgeChat"
+      >
+        <p>
+          Vas a <strong>eliminar definitivamente</strong> la conversación con
+          <strong>{{ purgeTarget?.name || formatPhone(purgeTarget?.id) }}</strong>.
+        </p>
+        <p class="text-danger">
+          Se borrarán todos los mensajes y archivos multimedia asociados del servidor.
+          Esta acción no se puede deshacer.
+        </p>
+      </b-modal>
+
+      <!-- Modal: purga masiva (doble confirmación) -->
+      <b-modal
+        v-model="showPurgeAllModal"
+        title="Purgar TODA la papelera"
+        ok-title="Sí, borrar todo definitivamente"
+        ok-variant="danger"
+        cancel-title="Cancelar"
+        :ok-disabled="purgeAllConfirmText !== 'PURGAR'"
+        @ok="purgeAllChats"
+      >
+        <p>
+          Vas a <strong>eliminar definitivamente {{ deletedChats.length }} conversación(es)</strong>
+          y todos sus mensajes/archivos multimedia.
+        </p>
+        <p class="text-danger">Esta acción no se puede deshacer.</p>
+        <b-form-group label="Escribe PURGAR para confirmar:">
+          <b-form-input v-model="purgeAllConfirmText" placeholder="PURGAR" />
+        </b-form-group>
+      </b-modal>
     </div>
   </div>
 </template>
@@ -180,6 +292,20 @@ export default {
         { value: "gemini-2.0-flash", text: "Gemini 2.0 Flash" },
         { value: "gemini-1.5-pro", text: "Gemini 1.5 Pro" },
       ],
+      // Papelera
+      deletedChats: [],
+      loadingDeleted: false,
+      busyJid: null,
+      showPurgeModal: false,
+      showPurgeAllModal: false,
+      purgingAll: false,
+      purgeTarget: null,
+      purgeAllConfirmText: "",
+      deletedFields: [
+        { key: "name", label: "Contacto" },
+        { key: "deletedAt", label: "Eliminado" },
+        { key: "actions", label: "Acciones", class: "text-right" },
+      ],
     };
   },
   computed: {
@@ -212,6 +338,7 @@ export default {
   },
   mounted() {
     this.fetchSettings();
+    this.fetchDeleted();
   },
   methods: {
     async fetchSettings() {
@@ -325,6 +452,113 @@ export default {
       } finally {
         this.saving = false;
       }
+    },
+
+    // ---------- Papelera de conversaciones ----------
+    async fetchDeleted() {
+      this.loadingDeleted = true;
+      try {
+        const { data } = await this.$wsApi.get(
+          `/conversations/${this.idEmpresa}/deleted?limit=500`
+        );
+        this.deletedChats = data || [];
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: "Error cargando papelera",
+          variant: "danger",
+        });
+      } finally {
+        this.loadingDeleted = false;
+      }
+    },
+
+    async restoreChat(item) {
+      this.busyJid = item.id;
+      try {
+        await this.$wsApi.post(
+          `/conversations/${this.idEmpresa}/${item.id}/restore`
+        );
+        this.deletedChats = this.deletedChats.filter((c) => c.id !== item.id);
+        this.$bvToast.toast("Conversación restaurada.", { variant: "success" });
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: "Error restaurando",
+          variant: "danger",
+        });
+      } finally {
+        this.busyJid = null;
+      }
+    },
+
+    confirmPurge(item) {
+      this.purgeTarget = item;
+      this.showPurgeModal = true;
+    },
+
+    async purgeChat(bvEvt) {
+      if (!this.purgeTarget) return;
+      if (bvEvt && typeof bvEvt.preventDefault === 'function') bvEvt.preventDefault();
+      const jid = this.purgeTarget.id;
+      this.busyJid = jid;
+      try {
+        await this.$wsApi.delete(
+          `/conversations/${this.idEmpresa}/${jid}/purge`
+        );
+        this.deletedChats = this.deletedChats.filter((c) => c.id !== jid);
+        this.showPurgeModal = false;
+        this.purgeTarget = null;
+        this.$bvToast.toast("Conversación purgada definitivamente.", {
+          variant: "success",
+        });
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: "Error purgando",
+          variant: "danger",
+        });
+      } finally {
+        this.busyJid = null;
+      }
+    },
+
+    confirmPurgeAll() {
+      this.purgeAllConfirmText = "";
+      this.showPurgeAllModal = true;
+    },
+
+    async purgeAllChats(bvEvt) {
+      if (bvEvt && typeof bvEvt.preventDefault === 'function') bvEvt.preventDefault();
+      if (this.purgeAllConfirmText !== "PURGAR") return;
+      this.purgingAll = true;
+      try {
+        const { data } = await this.$wsApi.delete(
+          `/conversations/${this.idEmpresa}/purge-all`
+        );
+        this.deletedChats = [];
+        this.showPurgeAllModal = false;
+        this.$bvToast.toast(
+          `Papelera purgada: ${data.purgedCount} conversación(es), ${data.filesDeleted} archivo(s) eliminados.`,
+          { title: "Purga completada", variant: "success" }
+        );
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: "Error purgando papelera",
+          variant: "danger",
+        });
+      } finally {
+        this.purgingAll = false;
+      }
+    },
+
+    formatPhone(jid) {
+      if (!jid) return "";
+      return "+" + String(jid).replace(/@.*/, "");
+    },
+
+    formatDate(v) {
+      if (!v) return "";
+      const d = new Date(v);
+      if (isNaN(d.getTime())) return v;
+      return d.toLocaleString("es");
     },
   },
 };
