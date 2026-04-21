@@ -12,8 +12,21 @@
               @input="filterConversations"
             />
           </b-input-group>
-          <!-- Filtros -->
-          <div class="mt-2 d-flex flex-wrap gap-1">
+          <!-- Tabs de vista (server-side): Mías / Cola / Todas (admin) -->
+          <div class="mt-2 d-flex flex-wrap wa-view-tabs">
+            <b-button
+              v-for="v in availableViews"
+              :key="v.value"
+              size="sm"
+              :variant="viewMode === v.value ? 'info' : 'outline-info'"
+              class="mr-1 mb-1"
+              @click="setViewMode(v.value)"
+            >
+              {{ v.label }}
+            </b-button>
+          </div>
+          <!-- Filtros secundarios (client-side) -->
+          <div class="mt-1 d-flex flex-wrap gap-1">
             <b-button
               v-for="f in filters"
               :key="f.value"
@@ -49,6 +62,36 @@
                 {{ conv.lastMessage || 'Sin mensajes' }}
               </small>
               <div class="d-flex align-items-center">
+                <b-badge
+                  v-if="isMyOwner(conv)"
+                  variant="primary"
+                  pill
+                  class="mr-1"
+                  style="font-size:0.65rem"
+                  title="Eres el vendedor dueño de esta conversación"
+                >
+                  Tuyo
+                </b-badge>
+                <b-badge
+                  v-else-if="conv.assignedTo && conv.assignedTo !== currentUserId"
+                  variant="secondary"
+                  pill
+                  class="mr-1"
+                  style="font-size:0.65rem"
+                  :title="`Asignada a ${vendorName(conv.assignedTo) || '#' + conv.assignedTo}`"
+                >
+                  {{ isAdmin ? vendorName(conv.assignedTo) || '#' + conv.assignedTo : 'Asignada' }}
+                </b-badge>
+                <b-badge
+                  v-else-if="isAdmin && !conv.assignedTo && conv.mode === 'human'"
+                  variant="warning"
+                  pill
+                  class="mr-1"
+                  style="font-size:0.65rem"
+                  title="En cola: sin vendedor asignado"
+                >
+                  En cola
+                </b-badge>
                 <b-badge v-if="conv.agentName" variant="info" pill class="mr-1" style="font-size:0.65rem">
                   {{ conv.agentName }}
                 </b-badge>
@@ -91,6 +134,23 @@
                 <strong class="wa-chat-title">{{ selectedConv.name || formatPhone(selectedJid) }}</strong>
                 <b-badge v-if="selectedConv.mode === 'human'" variant="warning" class="ml-2">Modo Humano</b-badge>
                 <b-badge v-else-if="selectedConv.aiEnabled" variant="info" class="ml-2">IA Activa</b-badge>
+                <b-badge v-if="isMyOwner(selectedConv)" variant="primary" class="ml-1" title="Eres el dueño">Tuyo</b-badge>
+                <b-badge
+                  v-else-if="selectedConv.assignedTo && selectedConv.assignedTo !== currentUserId"
+                  variant="secondary"
+                  class="ml-1"
+                  title="Asignada a otro vendedor"
+                >
+                  Asignada a {{ vendorName(selectedConv.assignedTo) || '#' + selectedConv.assignedTo }}
+                </b-badge>
+                <b-badge
+                  v-else-if="isAdmin && !selectedConv.assignedTo && selectedConv.mode === 'human'"
+                  variant="warning"
+                  class="ml-1"
+                  title="En cola: ningún vendedor asignado"
+                >
+                  En cola
+                </b-badge>
                 <b-badge v-if="selectedConv.agentName" variant="light" class="ml-1">{{ selectedConv.agentName }}</b-badge>
               </div>
               <div>
@@ -109,6 +169,38 @@
                     Sin agente (usar default)
                   </b-dropdown-item>
                 </b-dropdown>
+                <!-- Reasignar (solo admin) -->
+                <b-dropdown
+                  v-if="isAdmin && vendors.length"
+                  size="sm"
+                  variant="outline-primary"
+                  text="Reasignar"
+                  class="mr-1"
+                  right
+                  :disabled="reassigning"
+                >
+                  <b-dropdown-item
+                    v-for="v in vendors"
+                    :key="v._id"
+                    :active="selectedConv.assignedTo === v._id"
+                    @click="reassignTo(v._id)"
+                  >
+                    {{ v.nombre }}
+                    <small v-if="v.acceso" class="text-muted">(admin)</small>
+                  </b-dropdown-item>
+                </b-dropdown>
+                <!-- Devolver a cola (solo admin y si hay alguien asignado) -->
+                <b-button
+                  v-if="isAdmin && selectedConv.assignedTo"
+                  size="sm"
+                  variant="outline-warning"
+                  class="mr-1"
+                  :disabled="reassigning"
+                  @click="returnToQueue"
+                  title="Quitar vendedor actual y dejar en cola"
+                >
+                  Devolver a cola
+                </b-button>
                 <!-- Tomar / Liberar -->
                 <b-button
                   v-if="selectedConv.mode !== 'human'"
@@ -265,13 +357,14 @@
 
           <!-- Input de mensaje -->
           <div class="wa-input-bar">
+            <!-- IA activa: se reemplaza el input por un aviso -->
             <div v-if="inputDisabled" class="wa-input-locked text-center">
               <b-icon icon="robot" class="mr-1" />
               La IA está manejando esta conversación. Pulsa
               <strong>Tomar conversación</strong> para responder manualmente.
             </div>
             <!-- Indicador de grabación -->
-            <div v-if="recording" class="wa-recording-indicator">
+            <div v-else-if="recording" class="wa-recording-indicator">
               <b-icon icon="record-fill" variant="danger" class="recording-pulse mr-2" />
               <span>Grabando... {{ formatRecTime(recordingTime) }}</span>
               <div class="ml-auto">
@@ -345,8 +438,13 @@ export default {
       conversations: [],
       messages: [],
       agents: [],
+      // D.4: cache de vendedores de ninesys-api para mostrar nombres y
+      // poblar el dropdown de reasignación. Solo se carga si isAdmin.
+      vendors: [],
+      reassigning: false,
       search: "",
       activeFilter: "all",
+      viewMode: "mine", // 'mine' | 'queue' | 'all' — filtro server-side por vendedor
       selectedJid: null,
       selectedConv: {},
       newMessage: "",
@@ -385,6 +483,26 @@ export default {
         null
       );
     },
+    isAdmin() {
+      // dataUser.acceso === 1 → administrador (convención app_multi).
+      return Number(this.dataUser?.acceso) === 1;
+    },
+    // Indexa vendedores por _id para búsquedas O(1) en vendorName().
+    vendorsById() {
+      const map = new Map();
+      for (const v of this.vendors) map.set(Number(v._id), v);
+      return map;
+    },
+    availableViews() {
+      // Vendedor: solo "Mías" (solo sus conversaciones).
+      // Admin: Mías + Cola + Todas (supervisor).
+      const tabs = [{ label: "Mías", value: "mine" }];
+      if (this.isAdmin) {
+        tabs.push({ label: "Cola", value: "queue" });
+        tabs.push({ label: "Todas", value: "all" });
+      }
+      return tabs;
+    },
     // Input bloqueado cuando la conv la maneja la IA y no la hemos tomado
     inputDisabled() {
       if (!this.selectedJid) return true;
@@ -416,6 +534,7 @@ export default {
   mounted() {
     this.fetchConversations();
     this.fetchAgents();
+    if (this.isAdmin) this.fetchVendors();
     this.initSocket();
   },
   beforeDestroy() {
@@ -464,6 +583,11 @@ export default {
       socket.off('conversation:deleted');
       socket.off('conversation:restored');
       socket.off('conversation:purged');
+      // D.4
+      socket.off('conversation:assigned');
+      socket.off('conversation:returned-to-queue');
+      socket.off('conversation:returned-to-ai');
+      socket.off('conversation:mode-changed');
 
       const myCompany = String(this.idEmpresa);
 
@@ -551,13 +675,132 @@ export default {
         if (conv) {
           conv.mode = data.mode;
           conv.aiEnabled = data.mode !== 'human';
+          conv.assignedTo = data.assignedTo != null ? data.assignedTo : conv.assignedTo;
         }
         if (this.selectedJid === data.jid) {
           this.selectedConv.mode = data.mode;
           this.selectedConv.aiEnabled = data.mode !== 'human';
           this.selectedConv.assignedTo = data.assignedTo || null;
         }
+
+        // Si la vista actual ya no aplica (queue ahora asignada, o mía ya no lo es),
+        // refrescamos la lista desde el servidor para reflejar la visibilidad correcta.
+        const assignedTo = data.assignedTo != null ? Number(data.assignedTo) : null;
+        const me = Number(this.currentUserId);
+        const shouldRefetch =
+          (this.viewMode === 'queue' && assignedTo != null) ||
+          (this.viewMode === 'mine' && assignedTo !== me);
+        if (shouldRefetch) this.fetchConversations();
       });
+
+      // ---- D.4: eventos de reasignación manual ----
+      // Cualquiera de los 3 eventos siguientes puede afectar a la visibilidad
+      // de la conversación según el viewMode actual. La lógica común vive en
+      // applyAssignmentChange().
+      socket.on('conversation:assigned', (data) => {
+        console.log('[WaInbox] conversation:assigned', data);
+        if (String(data.companyId) !== myCompany) return;
+        this.applyAssignmentChange({
+          jid: data.jid,
+          assignedTo: data.assignedTo != null ? Number(data.assignedTo) : null,
+          previousAssignee: data.previousAssignee != null ? Number(data.previousAssignee) : null,
+          mode: 'human',
+          aiEnabled: false,
+          kind: 'assigned',
+          by: data.by,
+        });
+      });
+
+      socket.on('conversation:returned-to-queue', (data) => {
+        console.log('[WaInbox] conversation:returned-to-queue', data);
+        if (String(data.companyId) !== myCompany) return;
+        this.applyAssignmentChange({
+          jid: data.jid,
+          assignedTo: null,
+          previousAssignee: data.previousAssignee != null ? Number(data.previousAssignee) : null,
+          mode: 'human',
+          aiEnabled: false,
+          kind: 'queued',
+          by: data.by,
+        });
+      });
+
+      socket.on('conversation:returned-to-ai', (data) => {
+        console.log('[WaInbox] conversation:returned-to-ai', data);
+        if (String(data.companyId) !== myCompany) return;
+        this.applyAssignmentChange({
+          jid: data.jid,
+          assignedTo: null,
+          previousAssignee: data.previousAssignee != null ? Number(data.previousAssignee) : null,
+          mode: 'hybrid',
+          aiEnabled: true,
+          kind: 'ai',
+          by: data.by,
+        });
+      });
+
+      socket.on('conversation:mode-changed', (data) => {
+        if (String(data.companyId) !== myCompany) return;
+        const conv = this.conversations.find((c) => c.id === data.jid);
+        if (conv) {
+          conv.mode = data.mode;
+          conv.aiEnabled = data.mode !== 'human';
+        }
+        if (this.selectedJid === data.jid) {
+          this.selectedConv.mode = data.mode;
+          this.selectedConv.aiEnabled = data.mode !== 'human';
+        }
+      });
+    },
+
+    // D.4: aplica el cambio a la lista local y decide si la conv debe
+    // desaparecer / aparecer según viewMode. También muestra toast al
+    // vendedor que pierde un chat.
+    applyAssignmentChange({ jid, assignedTo, previousAssignee, mode, aiEnabled, kind, by }) {
+      const me = Number(this.currentUserId);
+      const conv = this.conversations.find((c) => c.id === jid);
+      if (conv) {
+        conv.assignedTo = assignedTo;
+        conv.mode = mode;
+        conv.aiEnabled = aiEnabled;
+      }
+      if (this.selectedJid === jid) {
+        this.selectedConv.assignedTo = assignedTo;
+        this.selectedConv.mode = mode;
+        this.selectedConv.aiEnabled = aiEnabled;
+      }
+
+      // Toast al vendedor que perdió el chat (siempre que no lo haya hecho él mismo).
+      if (previousAssignee === me && by !== me) {
+        const byName = this.vendorName(by) || (by ? `#${by}` : 'un administrador');
+        let msg;
+        if (kind === 'assigned') {
+          const toName = this.vendorName(assignedTo) || `#${assignedTo}`;
+          msg = `${byName} reasignó este chat a ${toName}`;
+        } else if (kind === 'queued') {
+          msg = `${byName} devolvió este chat a la cola`;
+        } else {
+          msg = `${byName} devolvió este chat a la IA`;
+        }
+        this.$bvToast.toast(msg, { title: 'Chat reasignado', variant: 'warning' });
+      }
+
+      // Si la vista actual ya no aplica tras el cambio, refetchear.
+      const shouldRefetch =
+        (this.viewMode === 'queue' && (assignedTo != null || mode !== 'human')) ||
+        (this.viewMode === 'mine' && assignedTo !== me);
+      if (shouldRefetch) {
+        // Si este chat ya no me pertenece, sacarlo de la lista local YA
+        // para que la UI no muestre algo que ya no debería ver.
+        if (this.viewMode === 'mine' && previousAssignee === me && assignedTo !== me) {
+          this.conversations = this.conversations.filter((c) => c.id !== jid);
+          if (this.selectedJid === jid) this.clearSelection();
+        }
+        this.fetchConversations();
+      } else if (this.viewMode === 'mine' && assignedTo === me && !conv) {
+        // Me acaban de asignar un chat que no estaba en mi lista.
+        this.fetchConversations();
+      }
     },
 
     teardownSocket() {
@@ -569,12 +812,23 @@ export default {
       socket.off('conversation:deleted');
       socket.off('conversation:restored');
       socket.off('conversation:purged');
+      // D.4
+      socket.off('conversation:assigned');
+      socket.off('conversation:returned-to-queue');
+      socket.off('conversation:returned-to-ai');
+      socket.off('conversation:mode-changed');
     },
 
     async fetchConversations() {
       this.loadingConversations = true;
       try {
-        const { data } = await this.$wsApi.get(`/chats/${this.idEmpresa}?limit=200`);
+        const params = new URLSearchParams({ limit: "200", view: this.viewMode });
+        if (this.viewMode === "mine" && this.currentUserId) {
+          params.set("userId", String(this.currentUserId));
+        }
+        const { data } = await this.$wsApi.get(
+          `/chats/${this.idEmpresa}?${params.toString()}`
+        );
         this.conversations = data;
       } catch (e) {
         console.error("Error cargando conversaciones:", e);
@@ -583,11 +837,103 @@ export default {
       }
     },
 
+    setViewMode(mode) {
+      if (this.viewMode === mode) return;
+      this.viewMode = mode;
+      this.clearSelection();
+      this.fetchConversations();
+    },
+
+    isMyOwner(conv) {
+      if (!conv || this.currentUserId == null) return false;
+      return Number(conv.ownerId) === Number(this.currentUserId);
+    },
+
     async fetchAgents() {
       try {
         const { data } = await this.$wsApi.get(`/ai/agents/${this.idEmpresa}`);
         this.agents = data;
       } catch (_) { /* silencioso si no hay agentes */ }
+    },
+
+    // D.4: lista de empleados desde ninesys-api. Usada por admin para
+    // mostrar nombres de vendedores en las tarjetas y poblar el dropdown
+    // de reasignación. La cabecera Authorization ya la agrega el interceptor
+    // global de $axios.
+    async fetchVendors() {
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/empleados`);
+        const list = Array.isArray(data) ? data : [];
+        list.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
+        this.vendors = list;
+      } catch (e) {
+        console.error('[WaInbox] fetchVendors error:', e);
+      }
+    },
+
+    vendorName(userId) {
+      if (userId == null) return '';
+      const v = this.vendorsById.get(Number(userId));
+      return v ? (v.nombre || '').trim() : '';
+    },
+
+    async reassignTo(userId) {
+      if (!this.selectedJid || !userId) return;
+      if (Number(this.selectedConv.assignedTo) === Number(userId)) return;
+      this.reassigning = true;
+      try {
+        const { data } = await this.$wsApi.post(
+          `/conversations/${this.idEmpresa}/${this.selectedJid}/assign`,
+          { userId, by: this.currentUserId }
+        );
+        const uid = Number(userId);
+        this.selectedConv.assignedTo = uid;
+        this.selectedConv.mode = 'human';
+        this.selectedConv.aiEnabled = false;
+        const conv = this.conversations.find((c) => c.id === this.selectedJid);
+        if (conv) {
+          conv.assignedTo = uid;
+          conv.mode = 'human';
+          conv.aiEnabled = false;
+        }
+        const name = this.vendorName(uid) || `#${uid}`;
+        this.$bvToast.toast(`Reasignada a ${name}`, { variant: 'success' });
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: 'Error reasignando',
+          variant: 'danger',
+        });
+      } finally {
+        this.reassigning = false;
+      }
+    },
+
+    async returnToQueue() {
+      if (!this.selectedJid) return;
+      this.reassigning = true;
+      try {
+        await this.$wsApi.post(
+          `/conversations/${this.idEmpresa}/${this.selectedJid}/return-to-queue`,
+          { by: this.currentUserId }
+        );
+        this.selectedConv.assignedTo = null;
+        this.selectedConv.mode = 'human';
+        this.selectedConv.aiEnabled = false;
+        const conv = this.conversations.find((c) => c.id === this.selectedJid);
+        if (conv) {
+          conv.assignedTo = null;
+          conv.mode = 'human';
+          conv.aiEnabled = false;
+        }
+        this.$bvToast.toast('Conversación devuelta a la cola', { variant: 'info' });
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: 'Error',
+          variant: 'danger',
+        });
+      } finally {
+        this.reassigning = false;
+      }
     },
 
     async selectConversation(conv) {
@@ -962,10 +1308,19 @@ export default {
         });
         this.selectedConv.mode = "human";
         this.selectedConv.aiEnabled = false;
+        this.selectedConv.assignedTo = Number(userId);
+        this.selectedConv.ownerId = this.selectedConv.ownerId || Number(userId);
         const conv = this.conversations.find((c) => c.id === this.selectedJid);
         if (conv) {
           conv.mode = "human";
           conv.aiEnabled = false;
+          conv.assignedTo = Number(userId);
+          conv.ownerId = conv.ownerId || Number(userId);
+        }
+        // Si la tomamos desde la cola, saltamos a "Mías" para no perderla de vista.
+        if (this.viewMode === "queue") {
+          this.viewMode = "mine";
+          this.fetchConversations();
         }
         this.$bvToast.toast("Has tomado la conversación", { variant: "info" });
       } catch (e) {
