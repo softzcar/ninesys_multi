@@ -169,16 +169,20 @@
                     Sin agente (usar default)
                   </b-dropdown-item>
                 </b-dropdown>
-                <!-- Reasignar (solo admin) -->
+                <!-- Asignar vendedor (solo admin). Si ya hay uno,
+                     funciona como reasignación. -->
                 <b-dropdown
-                  v-if="isAdmin && vendors.length"
+                  v-if="isAdmin"
                   size="sm"
                   variant="outline-primary"
-                  text="Reasignar"
+                  :text="selectedConv.assignedTo ? 'Reasignar' : 'Asignar vendedor'"
                   class="mr-1"
                   right
-                  :disabled="reassigning"
+                  :disabled="reassigning || !vendors.length"
                 >
+                  <b-dropdown-item v-if="!vendors.length" disabled>
+                    Cargando vendedores...
+                  </b-dropdown-item>
                   <b-dropdown-item
                     v-for="v in vendors"
                     :key="v._id"
@@ -534,7 +538,10 @@ export default {
   mounted() {
     this.fetchConversations();
     this.fetchAgents();
-    if (this.isAdmin) this.fetchVendors();
+    // Cargamos siempre (aunque no sea admin) para que vendorName() funcione
+    // en cualquier tarjeta y para evitar una carrera de timing con el
+    // hidratado de Vuex (dataUser.acceso podría no estar listo en mounted).
+    this.fetchVendors();
     this.initSocket();
   },
   beforeDestroy() {
@@ -866,8 +873,14 @@ export default {
         const list = Array.isArray(data) ? data : [];
         list.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
         this.vendors = list;
+        console.log('[WaInbox] fetchVendors OK, total:', list.length);
       } catch (e) {
-        console.error('[WaInbox] fetchVendors error:', e);
+        console.error(
+          '[WaInbox] fetchVendors error:',
+          e.response?.status,
+          e.response?.data,
+          e.message
+        );
       }
     },
 
