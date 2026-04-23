@@ -1,6 +1,8 @@
 <template>
   <div>
-    <b-link @click="showModal">$ {{ totalManoObra.toFixed(2) }}</b-link>
+    <b-link @click="showModal">
+      $ {{ Number(costoManoObra || 0).toFixed(2) }}
+    </b-link>
 
     <b-modal
       :id="modalId"
@@ -47,10 +49,10 @@
               <strong>$ {{ sumaComisiones.toFixed(2) }}</strong>
             </template>
             <template #foot(total_bonos)>
-              <strong class="text-success">$ {{ sumaBonos.toFixed(2) }}</strong>
+              <strong>$ {{ sumaBonos.toFixed(2) }}</strong>
             </template>
             <template #foot(total_descuentos)>
-              <strong class="text-danger">$ {{ sumaDescuentos.toFixed(2) }}</strong>
+              <strong>$ {{ sumaDescuentos.toFixed(2) }}</strong>
             </template>
             <template #foot(subtotal_variable)>
               <strong class="text-primary">$ {{ totalVariable.toFixed(2) }}</strong>
@@ -95,12 +97,16 @@
 
           <div class="mt-4 p-3 bg-light border rounded">
             <div class="d-flex justify-content-between align-items-center">
-              <h3 class="mb-0">TOTAL MANO DE OBRA</h3>
-              <h3 class="mb-0 text-primary">$ {{ totalGeneral.toFixed(2) }}</h3>
+              <h3 class="mb-0">TOTAL MANO DE OBRA (API)</h3>
+              <h3 class="mb-0 text-primary">$ {{ Number(costoManoObra || 0).toFixed(2) }}</h3>
             </div>
             <hr />
+            <div v-if="Math.abs(totalGeneral - costoManoObra) > 0.01" class="text-muted small">
+              <p>Suma del desglose: $ {{ totalGeneral.toFixed(2) }}</p>
+              <p>Diferencia de ajuste: $ {{ (costoManoObra - totalGeneral).toFixed(2) }}</p>
+            </div>
             <small class="text-muted">
-              * El total incluye la sumatoria neta de Comisiones, Bonos, Descuentos y Salarios calculados por tiempo.
+              * Este monto es el valor oficial retornado por la API para esta orden.
             </small>
           </div>
         </div>
@@ -168,15 +174,6 @@ export default {
     modalId() {
       return `modal-mano-obra-salarios-${this.id_orden}`;
     },
-    totalManoObra() {
-      const salarios = this.calcularCostoSalariosOrden(
-        this.id_orden,
-        this.empleadosAsignados,
-        this.horaEmpleadosPrecios,
-        this.horarioLaboral,
-      );
-      return (Number(this.costoManoObra) || 0) + (Number(salarios) || 0);
-    },
     totalHoras() {
       return this.detallesSalarios.reduce((sum, item) => sum + (Number(item.horas_laboradas) || 0), 0);
     },
@@ -211,11 +208,7 @@ export default {
           const salarioPagado = Number(item.total_salario_pagado || 0);
           const montoPago = Number(item.monto_pago || 0);
 
-          // Si ya fue pagado, monto_pago incluye bonos, descuentos y salario.
-          // Queremos aislar la "Comisión" pura para el reporte de costos por orden.
-          const comisionPura = salarioPagado > 0 
-            ? (montoPago - bonos + descuentos - salarioPagado)
-            : montoPago;
+          const comisionPura = montoPago - bonos + descuentos - salarioPagado;
 
           return {
             ...item,
@@ -229,11 +222,6 @@ export default {
         }) : [];
       } catch (error) {
         this.manoDeObraData = [];
-        this.$bvToast.toast("No se pudieron cargar los detalles de la mano de obra.", {
-          title: "Error",
-          variant: "danger",
-          solid: true,
-        });
       }
     },
     calcularDetallesSalarios() {
@@ -250,7 +238,6 @@ export default {
           }
         }
 
-        // Crear un mapa de nombres para TODOS los empleados disponibles en las tasas de precios
         const nombreEmpleadoMap = {};
         this.horaEmpleadosPrecios.forEach((emp) => {
           const idEmp = Number(emp.id_usuario ?? emp.id_empleado);
@@ -299,12 +286,29 @@ export default {
           empleadosAgrupados[idEmpleado].horas_totales += horasTarea;
         });
 
+        this.manoDeObraData.forEach(pago => {
+          const idEmp = Number(pago.id_empleado);
+          const salarioPagado = Number(pago.total_salario_pagado || 0);
+          
+          if (salarioPagado > 0 && !empleadosAgrupados[idEmp]) {
+            empleadosAgrupados[idEmp] = {
+              id_empleado: idEmp,
+              nombre_empleado: pago.nombre_empleado,
+              costo_por_hora: 0,
+              horas_totales: 0,
+              salario_pagado_fijo: salarioPagado
+            };
+          }
+        });
+
         this.detallesSalarios = Object.values(empleadosAgrupados).map(
           (empleado) => ({
             nombre_empleado: empleado.nombre_empleado,
             horas_laboradas: empleado.horas_totales,
             costo_por_hora: empleado.costo_por_hora,
-            subtotal: empleado.horas_totales * empleado.costo_por_hora,
+            subtotal: empleado.horas_totales > 0 
+              ? (empleado.horas_totales * empleado.costo_por_hora) 
+              : (empleado.salario_pagado_fijo || 0),
           })
         );
       } catch (error) {
@@ -321,6 +325,13 @@ export default {
         this.isLoading = false;
       }
     },
+  },
+  mounted() {
+    // No es necesario cargar al montar si solo queremos los datos al abrir el modal,
+    // pero lo mantenemos por coherencia con la carga de detalles
+    this.getManoDeObra().then(() => {
+      this.calcularDetallesSalarios();
+    });
   },
 };
 </script>

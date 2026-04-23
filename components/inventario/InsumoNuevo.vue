@@ -299,6 +299,7 @@ export default {
             data.set("sku", this.form.sku);
             data.set("unidad", this.form.unidad);
             data.set("cantidad", this.form.cantidad);
+            data.set("cantidad_inicial", this.form.cantidad);
             data.set("rendimiento", this.form.rendimiento);
             data.set("costo", this.form.costo);
             data.set("departamento", this.form.departamento);

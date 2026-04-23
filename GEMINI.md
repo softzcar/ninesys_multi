@@ -16,6 +16,9 @@
 
 - **Prohibición de Contabo (Producción):** Queda ESTRICTAMENTE PROHIBIDO realizar cualquier tipo de despliegue, sincronización o comando remoto hacia el servidor de Contabo sin una orden explícita, directa y literal del usuario para esa acción específica.
 - **Prohibición de Despliegue Automático:** NUNCA asumas que un cambio debe ser desplegado inmediatamente a PRODUCCIÓN. 
+- **🛑 SCRIPTS DE DESPLIEGUE — UBICACIÓN CENTRALIZADA:** Todos los scripts de despliegue deben ejecutarse ÚNICAMENTE desde `/home/developer/Escritorio/niesys/ninesys-hub/bin/`. Los scripts en directorios individuales del proyecto (`app_multi/deploy.sh`, etc.) pueden estar DESACTUALIZADOS en rutas de VPS. **NO ejecutar scripts de despliegue que no estén en `ninesys-hub/bin/`.**
+  - Frontend: `ninesys-hub/bin/deploy.sh` (opción 2 para Hostinger)
+  - Backend: `ninesys-hub/bin/deploy_backend.sh` (opción 2 para Hostinger)
 - **Sincronización Obligatoria Backend (Hostinger):** TODO cambio realizado en el código local del backend (`ninesys-api`) DEBE ser subido inmediatamente al servidor de DESARROLLO (Hostinger - `vps-ninesys`) una vez verificado mínimamente en local. Los cambios no sincronizados se consideran inútiles.
 - **Protocolo Pre-Despliegue Producción:** Antes de sugerir o ejecutar un despliegue a Contabo, DEBES:
     1. Releer esta sección de `GEMINI.md`.

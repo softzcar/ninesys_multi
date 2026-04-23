@@ -68,17 +68,17 @@
                   </b-badge>
                 </router-link>
               </li>
-              <li class="nav-item">
+              <li v-if="isAdmin" class="nav-item">
                 <router-link class="nav-link" to="/whatsapp/agentes">
                   Agentes IA
                 </router-link>
               </li>
-              <li class="nav-item">
+              <li v-if="isAdmin" class="nav-item">
                 <router-link class="nav-link" to="/whatsapp/configuracion">
                   Configuración IA
                 </router-link>
               </li>
-              <li class="nav-item">
+              <li v-if="isAdmin" class="nav-item">
                 <router-link class="nav-link" to="/whatsapp/conexion">
                   Estado de Conexión
                 </router-link>
@@ -146,6 +146,19 @@ export default {
     waUnreadCount() {
       return Object.values(this.waUnreadByJid).reduce((a, b) => a + (b || 0), 0);
     },
+    // dataUser.acceso === 1 → administrador (convención app_multi).
+    isAdmin() {
+      return Number(this.dataUser?.acceso) === 1;
+    },
+    // Id del usuario autenticado (mismo fallback que WaInbox).
+    currentUserId() {
+      return (
+        this.dataUser?.id_empleado ||
+        this.$store.state.login?.empleado?.id_empleado ||
+        this.$store.state.login?.empleado?.id ||
+        null
+      );
+    },
   },
   watch: {
     currentDepartament: {
@@ -183,13 +196,22 @@ export default {
     if (socket) {
       socket.off('message:new', this.onWaMessageNew);
       socket.off('conversation:updated', this.onWaConvUpdated);
+      socket.off('conversation:assigned', this.onWaConvAssigned);
+      socket.off('conversation:handoff', this.onWaConvAssigned);
     }
   },
   methods: {
     // ---- Badge de WhatsApp (no leídos) ----
     async initWaBadge() {
       try {
-        const { data } = await this.$wsApi.get(`/chats/${this.idEmpresa}?limit=200`);
+        const params = new URLSearchParams({ limit: '200' });
+        if (!this.isAdmin && this.currentUserId) {
+          params.set('view', 'mine');
+          params.set('userId', String(this.currentUserId));
+        }
+        const { data } = await this.$wsApi.get(
+          `/chats/${this.idEmpresa}?${params.toString()}`
+        );
         const map = {};
         for (const c of data || []) {
           if (c.unreadCount > 0) map[c.id] = c.unreadCount;
@@ -218,13 +240,35 @@ export default {
 
       socket.on('message:new', this.onWaMessageNew);
       socket.on('conversation:updated', this.onWaConvUpdated);
+      socket.on('conversation:assigned', this.onWaConvAssigned);
+      socket.on('conversation:handoff', this.onWaConvAssigned);
       this.waSocketSubscribed = true;
+    },
+
+    // Cuando al vendedor le asignan un chat (manual o por auto-handoff), el
+    // badge debe reflejarlo. Refrescamos desde el backend en vez de intentar
+    // adivinar el unreadCount localmente — así quedamos consistentes con la
+    // lista "Mías" del WaInbox.
+    onWaConvAssigned(data) {
+      if (String(data.companyId) !== String(this.idEmpresa)) return;
+      if (this.isAdmin) return;
+      const myId = this.currentUserId;
+      if (!myId) return;
+      const assigned = Number(data.assignedTo);
+      const prev = Number(data.previousAssignee);
+      if (assigned === Number(myId) || prev === Number(myId)) {
+        this.initWaBadge();
+      }
     },
 
     onWaMessageNew(data) {
       if (String(data.companyId) !== String(this.idEmpresa)) return;
       // Solo incrementa con mensajes entrantes (no los nuestros)
       if (data.from_me) return;
+      // Vendedor: el evento no trae assigned_to, así que solo incrementamos
+      // si el jid ya estaba en el mapa (= ya era "mío"). Si me asignan un
+      // chat nuevo, onWaConvAssigned lo incorpora al mapa.
+      if (!this.isAdmin && !(data.jid in this.waUnreadByJid)) return;
       // Si el usuario está en la página de la conversación activa, WaInbox
       // emitirá 'wa:conv-read' inmediatamente después.
       this.$set(

@@ -11,12 +11,13 @@
       >
         <template #cell(prioridad)="data">
           <produccion-check-prioridad
+            :key="data.item.orden + '-prioridad'"
             :id="data.item.orden"
             :prioridad="data.item.prioridad"
           />
         </template>
         <template #cell(orden)="data">
-          <link-search :id="data.item.orden" />
+          <link-search :key="data.item.orden + '-link'" :id="data.item.orden" />
         </template>
 
         <template #cell(inicio)="data">
@@ -29,12 +30,13 @@
 
         <template #cell(paso)="data">
           <span class="floatme">
-            <produccion-progress-bar :item="data.item" />
+            <produccion-progress-bar :key="data.item.orden + '-progress'" :item="data.item" />
           </span>
         </template>
 
         <template #cell(detalles)="data">
           <produccion-control-de-produccion-detalles
+            :key="data.item.orden + '-detalles'"
             :idorden="data.item.orden"
             :detalles="data.item.detalles"
           />
@@ -42,20 +44,20 @@
 
         <template #cell(vinculada)="data">
           <span class="floatme">
-            <ordenes-vinculadas-v2 :id_orden="data.item.acciones" />
+            <ordenes-vinculadas-v2 :key="data.item.acciones + '-vinculada'" :id_orden="data.item.acciones" />
           </span>
         </template>
 
         <template #cell(acciones)="data">
           <span class="floatme">
-            <ordenes-editar :data="data.item" />
+            <ordenes-editar :key="data.item.orden + '-editar'" :data="data.item" />
           </span>
           <span class="floatme">
-            <diseno-view-image :id="data.item.acciones" />
+            <diseno-view-image :key="data.item.acciones + '-image'" :id="data.item.acciones" />
           </span>
 
           <span class="floatme">
-            <produccion-terminar :id="data.item.acciones" />
+            <produccion-terminar :key="data.item.acciones + '-terminar'" :id="data.item.acciones" />
           </span>
           <!-- <div class="float-me">
             <produccion-asignar :reload="reloadMe" :id="data.item.orden" />

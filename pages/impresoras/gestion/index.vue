@@ -31,7 +31,7 @@
                                 <b-table v-if="dataTable.items.length > 0" responsive :fields="dataTable.fields" :items="dataTable.items">
                                     <template #cell(acciones)="data">
                                         <span class="floatme">
-                                            <admin-ImpresoraEditar :item="data.item" @reload="getImpresoras" />
+                                            <admin-ImpresoraEditar :key="data.item._id" :item="data.item" @reload="getImpresoras" />
                                         </span>
                                         <span class="floatme">
                                             <b-button variant="danger" @click="deleteImpresora(data.item._id)">

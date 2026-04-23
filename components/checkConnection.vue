@@ -332,38 +332,38 @@ export default {
     // --- MÉTODOS DE WEBSOCKET ---
 
     initSocket() {
-      if (!this.$socket) {
+      if (!this.$wsSocket) {
         console.error('[WS] Plugin de socket no disponible');
         this.ws.error = 'Error interno: Socket no disponible';
         return;
       }
 
       console.log('[WS] Iniciando conexión WebSocket...');
-      this.$socket.connect();
+      this.$wsSocket.connect();
       this.setupSocketListeners();
     },
 
     setupSocketListeners() {
-      if (!this.$socket) return;
+      if (!this.$wsSocket) return;
 
       // Limpiar listeners anteriores
-      this.$socket.off('connect');
-      this.$socket.off('disconnect');
-      this.$socket.off('status');
-      this.$socket.off('qr');
-      this.$socket.off('ready');
-      this.$socket.off('disconnected');
-      this.$socket.off('error');
+      this.$wsSocket.off('connect');
+      this.$wsSocket.off('disconnect');
+      this.$wsSocket.off('status');
+      this.$wsSocket.off('qr');
+      this.$wsSocket.off('ready');
+      this.$wsSocket.off('disconnected');
+      this.$wsSocket.off('error');
 
-      this.$socket.on('connect', () => {
+      this.$wsSocket.on('connect', () => {
         console.log('[WS] Conectado al servidor');
         this.socketConnected = true;
         this.ws.error = null;
         // Suscribirse a eventos de la empresa
-        this.$socket.emit('subscribe', this.getCompanyId);
+        this.$wsSocket.emit('subscribe', this.getCompanyId);
       });
 
-      this.$socket.on('disconnect', (reason) => {
+      this.$wsSocket.on('disconnect', (reason) => {
         console.log('[WS] Desconectado:', reason);
         this.socketConnected = false;
         this.ws.ws_ready = false;
@@ -376,12 +376,12 @@ export default {
         }
       });
 
-      this.$socket.on('status', (data) => {
+      this.$wsSocket.on('status', (data) => {
         console.log('[WS] Estado recibido:', data);
         this.updateState(data);
       });
 
-      this.$socket.on('qr', (data) => {
+      this.$wsSocket.on('qr', (data) => {
         console.log('[WS] QR recibido');
         this.ws.qr = data.qr;
         this.ws.ws_ready = false;
@@ -395,7 +395,7 @@ export default {
         }
       });
 
-      this.$socket.on('ready', (data) => {
+      this.$wsSocket.on('ready', (data) => {
         console.log('[WS] Cliente listo');
         this.ws.ws_ready = true;
         this.ws.qr = null;
@@ -407,7 +407,7 @@ export default {
         this.currentAction = null;
       });
 
-      this.$socket.on('disconnected', (data) => {
+      this.$wsSocket.on('disconnected', (data) => {
         console.log('[WS] Cliente desconectado:', data.reason);
         this.ws.ws_ready = false;
         this.ws.qr = null;
@@ -422,7 +422,7 @@ export default {
         this.currentAction = null;
       });
 
-      this.$socket.on('error', (error) => {
+      this.$wsSocket.on('error', (error) => {
         console.error('[WS] Error:', error);
         this.ws.error = error.message || 'Error de conexión';
         this.statusWs.variant = 'danger';
@@ -432,10 +432,10 @@ export default {
     },
 
     disconnectSocket() {
-      if (this.$socket && this.socketConnected) {
+      if (this.$wsSocket && this.socketConnected) {
         console.log('[WS] Desconectando socket...');
-        this.$socket.emit('unsubscribe', this.getCompanyId);
-        this.$socket.disconnect();
+        this.$wsSocket.emit('unsubscribe', this.getCompanyId);
+        this.$wsSocket.disconnect();
         this.socketConnected = false;
       }
     },
@@ -505,9 +505,9 @@ export default {
       // Iniciar socket al abrir el modal
       this.initSocket();
 
-      if (this.$socket && this.socketConnected) {
+      if (this.$wsSocket && this.socketConnected) {
         // Solicitar estado actualizado al abrir modal por si acaso
-        this.$socket.emit('subscribe', this.getCompanyId);
+        this.$wsSocket.emit('subscribe', this.getCompanyId);
       }
     },
 
@@ -532,8 +532,8 @@ export default {
       this.ws.error = null;
       this.ws.qr = null;
 
-      if (this.$socket && this.socketConnected) {
-        this.$socket.emit('activate', companyId);
+      if (this.$wsSocket && this.socketConnected) {
+        this.$wsSocket.emit('activate', companyId);
         // Timeout de seguridad
         setTimeout(() => {
           if (this.isActionLoading && this.currentAction === 'activate') {
@@ -551,8 +551,8 @@ export default {
 
         // Esperar brevemente a que conecte
         setTimeout(() => {
-          if (this.$socket && this.socketConnected) {
-            this.$socket.emit('activate', companyId);
+          if (this.$wsSocket && this.socketConnected) {
+            this.$wsSocket.emit('activate', companyId);
           } else {
             this.ws.error = 'No conectado al servidor. Intente nuevamente.';
             this.isActionLoading = false;
@@ -580,8 +580,8 @@ export default {
       this.$bvModal.hide("confirm-restart-modal");
       this.ws.error = null;
 
-      if (this.$socket && this.socketConnected) {
-        this.$socket.emit('restart', companyId);
+      if (this.$wsSocket && this.socketConnected) {
+        this.$wsSocket.emit('restart', companyId);
         setTimeout(() => {
           if (this.isActionLoading && this.currentAction === 'restart') {
             this.isActionLoading = false;
@@ -606,8 +606,8 @@ export default {
       this.currentAction = "disconnect";
       this.$bvModal.hide("confirm-disconnect-modal");
 
-      if (this.$socket && this.socketConnected) {
-        this.$socket.emit('disconnect-client', companyId);
+      if (this.$wsSocket && this.socketConnected) {
+        this.$wsSocket.emit('disconnect-client', companyId);
         // La respuesta vendrá por el evento 'disconnected' o 'status'
         setTimeout(() => {
           if (this.isActionLoading && this.currentAction === 'disconnect') {

@@ -213,8 +213,8 @@ export default {
 
     computed: {
         modal: function () {
-            const rand = Math.random().toString(36).substring(2, 7)
-            return `modal-${rand}`
+            const id = this.item ? this.item._id : 'new';
+            return `modal-empleado-editar-${id}`;
         },
         modalTitle() {
             return `Editar Empleado: ${this.item ? this.item.nombre : ''}`;
@@ -555,9 +555,48 @@ export default {
         removerDependiente(index) {
             this.form.dependientes.splice(index, 1)
         },
+
+        setForm(item) {
+            const myDeps = item.departamentos ? item.departamentos.map((el) => {
+                return el.id
+            }) : [];
+            
+            this.form = {
+                // Datos Básicos
+                username: item.username || "",
+                password: item.password || "",
+                nombre: item.nombre || "",
+                email: item.email || "",
+                telefono: item.telefono || "",
+                acceso: item.acceso,
+                departamentos: myDeps,
+
+                // Datos de Nómina y Compensación
+                id_legal: item.dni || "",
+                fecha_ingreso: item.fecha_ingreso || "",
+                id_seguridad_social: item.id_seguridad_social || "",
+                salario_tipo: item.salario_tipo || null,
+                salario: item.salario_monto || 0,
+                periodo_pago: item.salario_periodo || null,
+                comision: item.comision || 0,
+                comsionTipo: item.comision_tipo || null,
+                comisionPorcentaje: item.comision_porcentaje || 0,
+
+                // Carga Familiar
+                dependientes: item.carga_familiar ? [...item.carga_familiar] : [],
+            }
+        },
     },
 
     watch: {
+        item: {
+            handler(newItem) {
+                if (newItem) {
+                    this.setForm(newItem);
+                }
+            },
+            deep: true
+        },
         'form.departamentos': function () {
             if (this.esComisionVariableDeshabilitada && this.form.comsionTipo === 'variable') {
                  this.form.comsionTipo = null;
@@ -572,32 +611,8 @@ export default {
     },
 
     mounted() {
-        const myDeps = this.item.departamentos.map((el) => {
-            return el.id
-        })
-        this.form = {
-            // Datos Básicos
-            username: this.item.username,
-            password: this.item.password,
-            nombre: this.item.nombre,
-            email: this.item.email,
-            telefono: this.item.telefono || "",
-            acceso: this.item.acceso,
-            departamentos: myDeps,
-
-            // Datos de Nómina y Compensación
-            id_legal: this.item.dni || "",
-            fecha_ingreso: this.item.fecha_ingreso || "",
-            id_seguridad_social: this.item.id_seguridad_social || "",
-            salario_tipo: this.item.salario_tipo || null,
-            salario: this.item.salario_monto || 0,
-            periodo_pago: this.item.salario_periodo || null,
-            comision: this.item.comision,
-            comsionTipo: this.item.comision_tipo,
-            comisionPorcentaje: this.item.comision_porcentaje || 0,
-
-            // Carga Familiar
-            dependientes: this.item.carga_familiar || [],
+        if (this.item) {
+            this.setForm(this.item);
         }
     },
 

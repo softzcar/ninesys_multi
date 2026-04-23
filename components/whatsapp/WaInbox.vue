@@ -38,6 +38,10 @@
               {{ f.label }}
             </b-button>
           </div>
+          <!-- Descripción contextual de la vista seleccionada -->
+          <p v-if="viewDescription" class="wa-view-desc mt-2 mb-0">
+            {{ viewDescription }}
+          </p>
         </div>
 
         <div class="wa-conversations-list" ref="convList">
@@ -507,6 +511,18 @@ export default {
       }
       return tabs;
     },
+    viewDescription() {
+      if (this.viewMode === "mine") {
+        return "Conversaciones asignadas a ti.";
+      }
+      if (this.viewMode === "queue") {
+        return "Conversaciones en modo humano sin vendedor asignado. Tómalas o reasígnalas desde el chat.";
+      }
+      if (this.viewMode === "all") {
+        return "Todas las conversaciones de la empresa (incluye las gestionadas por IA).";
+      }
+      return "";
+    },
     // Input bloqueado cuando la conv la maneja la IA y no la hemos tomado
     inputDisabled() {
       if (!this.selectedJid) return true;
@@ -870,10 +886,23 @@ export default {
     async fetchVendors() {
       try {
         const { data } = await this.$axios.get(`${this.$config.API}/empleados`);
-        const list = Array.isArray(data) ? data : [];
-        list.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
-        this.vendors = list;
-        console.log('[WaInbox] fetchVendors OK, total:', list.length);
+        // El endpoint devuelve { items, fields }. Mantener fallback por si
+        // en algún tenant responde un array plano.
+        const raw = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+        // Solo Administración (dpto 7) y Comercialización (dpto 8) pueden
+        // recibir asignaciones de chats. Un empleado puede tener varios
+        // departamentos, basta con que incluya uno de los dos.
+        const ALLOWED_DEPTS = new Set([7, 8]);
+        const filtered = raw.filter((emp) => {
+          const deps = Array.isArray(emp?.departamentos) ? emp.departamentos : [];
+          return deps.some((d) => ALLOWED_DEPTS.has(Number(d?.id)));
+        });
+        filtered.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
+        this.vendors = filtered;
+        console.log(
+          '[WaInbox] fetchVendors OK — total recibidos:', raw.length,
+          '| elegibles (dptos 7/8):', filtered.length
+        );
       } catch (e) {
         console.error(
           '[WaInbox] fetchVendors error:',
@@ -1487,6 +1516,12 @@ export default {
   padding: 12px;
   border-bottom: 1px solid #dee2e6;
   background: #f8f9fa;
+}
+
+.wa-view-desc {
+  font-size: 0.75rem;
+  color: #6c757d;
+  line-height: 1.3;
 }
 
 .wa-conversations-list {

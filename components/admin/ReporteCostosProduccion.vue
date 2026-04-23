@@ -60,6 +60,7 @@
               :filter="tableFilter"
               :filter-included-fields="['id_orden']"
               @filtered="onFiltered"
+              primary-key="id_orden"
               responsive
               foot-clone
             >
@@ -81,11 +82,11 @@
               <template #cell(costo_mano_de_obra_total)="data">
                 <reporte-costos-produccion-labor
                   :id_orden="data.item.id_orden"
-                  :costo-mano-obra="Number(data.item.costo_mano_de_obra || 0)"
+                  :costo-mano-obra="Number(data.item.costo_mano_de_obra_total || 0)"
                   :empleados-asignados="data.item.empleados_asignados"
                   :hora-empleados-precios="horaEmpleadosPrecios"
                   :hora-empleados-tiempos="horaEmpleadosTiempos"
-                  :horario-laboral="$store.state.login.dataEmpresa.horario_laboral"
+                  :horario-laboral="getHorarioLaboral()"
                 />
               </template>
               <template #cell(eficiencia_insumos)="data">
@@ -291,42 +292,33 @@ export default {
       };
 
       dataToProcess.forEach((item) => {
-        totals.total_productos += item.total_productos;
-        totals.costo_insumos_total += Number(item.costo_insumos_total || 0);
-        totals.costo_mano_de_obra_total += Number(item.costo_mano_de_obra_total || 0);
-        totals.material_consumido += Number(item.material_consumido || 0);
+        totals.total_productos += Number(item.total_productos || 0);
+        
+        // Acumular valores redondeados a 2 decimales (tal como se muestran en la tabla)
+        totals.costo_insumos_total += this.roundToTwoDecimals(item.costo_insumos_total);
+        totals.costo_mano_de_obra_total += this.roundToTwoDecimals(item.costo_mano_de_obra_total);
+        totals.material_consumido += this.roundToTwoDecimals(item.material_consumido);
+        totals.pago_total += this.roundToTwoDecimals(item.pago_total);
+        totals.costo_total += this.roundToTwoDecimals(item.costo_total);
+        totals.ganancia += this.roundToTwoDecimals(item.ganancia);
+        
+        totals.reposiciones += Number(item.reposiciones || 0);
+        totals.tiempo_de_produccion += Number(item.tiempo_de_produccion || 0);
+
         // Para eficiencia_insumos, acumulamos para calcular promedio después
         const effVal = parseFloat(item.eficiencia_insumos);
         if (!isNaN(effVal) && effVal > 0) {
           totals.eficiencia_insumos += effVal;
-          totals.eficiencia_count = (totals.eficiencia_count || 0) + 1;
+          totals.eficiencia_count++;
         }
-        totals.reposiciones += Number(item.reposiciones || 0);
-        totals.tiempo_de_produccion += Number(item.tiempo_de_produccion || 0);
-
-        // Calcular los valores EXACTOS que se muestran en las filas (antes del toFixed)
-        const pagoTotalFila = Number(item.pago_total || 0);
-        const costoTotalFila = Number(item.costo_total || 0);
-        const gananciaFila = Number(item.ganancia || 0);
-
-        // Acumular los valores redondeados individualmente (como se muestran en la tabla)
-        totals.pago_total += this.roundToTwoDecimals(pagoTotalFila);
-        totals.costo_total += this.roundToTwoDecimals(costoTotalFila);
-        // La ganancia se calcula después, no se acumula por fila
       });
 
-      // Los totales ya están redondeados individualmente, ahora calcular la ganancia total
-      // como la suma de las ganancias individuales redondeadas
-      let gananciaTotal = 0;
-      dataToProcess.forEach((item) => {
-        const gananciaFila = Number(item.ganancia || 0);
-        gananciaTotal += this.roundToTwoDecimals(gananciaFila);
-      });
-      totals.ganancia = gananciaTotal;
-
-      // Redondear los otros totales que no se acumularon por fila
+      // Redondear los totales finales por seguridad
       totals.costo_insumos_total = this.roundToTwoDecimals(totals.costo_insumos_total);
       totals.costo_mano_de_obra_total = this.roundToTwoDecimals(totals.costo_mano_de_obra_total);
+      totals.pago_total = this.roundToTwoDecimals(totals.pago_total);
+      totals.costo_total = this.roundToTwoDecimals(totals.costo_total);
+      totals.ganancia = this.roundToTwoDecimals(totals.ganancia);
 
       // Calcular promedio de eficiencia_insumos
       if (totals.eficiencia_count > 0) {
@@ -354,9 +346,16 @@ export default {
       return this.insumosDetalles || [];
     },
 
+    getHorarioLaboral() {
+      const horarioRaw = this.$store.state.login.dataEmpresa.horario_laboral;
+      const parsed = typeof horarioRaw === "string"
+        ? JSON.parse(horarioRaw || "{}")
+        : horarioRaw || {};
+      return parsed;
+    },
+
     onFiltered(filteredItems) {
       this.filteredReportData = filteredItems;
-      // Re-combinar datos después del filtrado con los items filtrados
       this.combineReportDataWithTintas(filteredItems);
       this.combineReportDataWithInsumos(filteredItems);
       this.updateUnifiedColumns(filteredItems);
@@ -364,16 +363,25 @@ export default {
     updateUnifiedColumns(dataToProcess = null) {
       const data = dataToProcess || this.reportData;
       data.forEach((item) => {
-        const pago = Number(item.pago_total || 0);
+        const pago = this.roundToTwoDecimals(item.pago_total || 0);
         const insumos = Number(item.costos_de_insumos || 0);
         const tintas = Number(item.total_tinta_costo || 0);
-        const manoObra = Number(item.costo_mano_de_obra || 0);
-        const salarios = Number(item.salario_invertido || 0);
+        
+        // MANTENER EL VALOR REAL: Si ya fue actualizado por el hijo (vía updated-cost), 
+        // no lo sobreescribimos con el valor (posiblemente incompleto) de la API batch.
+        const costo_mano_de_obra_actual = Number(item.costo_mano_de_obra_total || 0);
+        const costo_mano_de_obra_api = Number(item.costo_mano_de_obra || 0);
+        
+        const costo_mano_de_obra_total = costo_mano_de_obra_actual > 0 
+            ? costo_mano_de_obra_actual 
+            : costo_mano_de_obra_api;
 
-        item.costo_insumos_total = insumos + tintas;
-        item.costo_mano_de_obra_total = manoObra + salarios;
-        item.costo_total = insumos + tintas + manoObra + salarios;
-        item.ganancia = pago - item.costo_total;
+        item.pago_total = pago;
+        item.costo_insumos_total = this.roundToTwoDecimals(insumos + tintas);
+        item.costo_mano_de_obra_total = this.roundToTwoDecimals(costo_mano_de_obra_total);
+        
+        item.costo_total = this.roundToTwoDecimals(item.costo_insumos_total + item.costo_mano_de_obra_total);
+        item.ganancia = this.roundToTwoDecimals(item.pago_total - item.costo_total);
       });
 
       if (!dataToProcess) {
@@ -482,7 +490,7 @@ export default {
         const processedData = data.reporte_data.map(item => {
           const id = item.id_orden;
           
-          // 1. Salario Invertido (Mixin)
+          // 1. Salario Invertido por tiempo (SÓLO para la eficiencia, ya que el costo real está en pagos)
           const salario_invertido = this.calcularCostoSalariosOrden(
             id,
             item.empleados_asignados,
@@ -499,27 +507,25 @@ export default {
           const eficiencia = insumosMap[id]?.eficiencia || 0;
           const insumos_costo = Number(item.costos_de_insumos || 0);
 
-          // 4. Mano de Obra (Pagos)
-          const mano_obra_pagos = Number(item.costo_mano_de_obra || 0);
+          // 4. Insumos y Mano de Obra (Totales Unificados)
+          const pago_total_venta = this.roundToTwoDecimals(item.pago_total || 0);
+          const costo_insumos_total = this.roundToTwoDecimals(insumos_costo + tinta_costo);
+          const costo_mano_de_obra_total = this.roundToTwoDecimals(item.costo_mano_de_obra || 0);
+          const costo_total = this.roundToTwoDecimals(costo_insumos_total + costo_mano_de_obra_total);
+          const ganancia = this.roundToTwoDecimals(pago_total_venta - costo_total);
 
-          // 5. Totales Unificados (Calculados LOCALMENTE para asegurar consistencia con el link del hijo)
-          const pago_total_venta = Number(item.pago_total || 0);
-          const costo_insumos_total = insumos_costo + tinta_costo;
-          const costo_mano_de_obra_total = mano_obra_pagos + salario_invertido;
-          const costo_total = costo_insumos_total + costo_mano_de_obra_total;
-          const ganancia = pago_total_venta - costo_total;
-
-          return {
-            ...item,
-            salario_invertido,
-            total_tinta_consumo_ml: tinta_consumo,
-            total_tinta_costo: tinta_costo,
-            eficiencia_insumos: eficiencia,
-            costo_insumos_total,
-            costo_mano_de_obra_total,
-            costo_total,
-            ganancia
-          };
+return {
+  ...item,
+  salario_invertido,
+  total_tinta_consumo_ml: tinta_consumo,
+  total_tinta_costo: tinta_costo,
+  eficiencia_insumos: eficiencia,
+  pago_total: pago_total_venta,
+  costo_insumos_total,
+  costo_mano_de_obra_total,
+  costo_total,
+  ganancia
+};
         });
 
         this.reportData = processedData;

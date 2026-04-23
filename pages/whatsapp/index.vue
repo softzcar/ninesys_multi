@@ -5,7 +5,12 @@
     </div>
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="accessModule.accessData.id_modulo === 1">
+      <div
+        v-if="
+          accessModule.accessData.id_modulo === 1 ||
+          accessModule.accessData.id_modulo === 2
+        "
+      >
         <b-container fluid>
           <b-row>
             <b-col>

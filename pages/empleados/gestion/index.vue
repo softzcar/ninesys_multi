@@ -33,6 +33,7 @@
                   responsive
                   :fields="dataTable.fields"
                   :items="dataTable.items"
+                  primary-key="_id"
                 >
                   <template #cell(departamentos)="data">
                     <div v-if="data.item.departamentos">
@@ -49,6 +50,7 @@
                     <div class="d-flex">
                       <span class="floatme mr-2">
                         <AdminEmpleadoEditar
+                          :key="data.item._id"
                           :departamentos="departamentos"
                           :item="data.item"
                           @reload="handleReload"

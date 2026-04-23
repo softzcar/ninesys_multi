@@ -448,13 +448,22 @@ export default {
         // Si es el mismo departamento ID, incluir
         if (el.id_departamento == depId) return true;
 
-        // Lógica de departamentos hermanos (Estampado y Corte suelen compartir configuración de telas)
+        // Lógica de departamentos hermanos
         const materialDepts = ["Estampado", "Corte"];
         if (
           materialDepts.includes(depName) &&
           materialDepts.includes(el.departamento)
         ) {
           return true;
+        }
+
+        // Hermandad: Revisión y Limpieza heredan de "Producción"
+        const controlDepts = ["Revisión", "Limpieza"];
+        if (
+            controlDepts.includes(depName) &&
+            el.departamento === "Producción"
+        ) {
+            return true;
         }
 
         return false;
@@ -844,15 +853,20 @@ export default {
     evaluateShowSelect() {
       // Reset showSelect antes de re-evaluar
       this.showSelect = false;
+      const dep = this.$store.state.login.currentDepartament;
 
-      // Revisar tanto insumos como los items de la orden actual para ver si requieren desperdicio
+      // 1. DETERMINAR SI REQUIERE DESPERDICIO (Solo en departamentos de fabricación primaria)
       let necesitaDesperdicio = false;
-      if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) {
-        necesitaDesperdicio = true;
-      } else if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) {
-        necesitaDesperdicio = true;
-      } else if (this.item && this.item.usa_desperdicio == 1) {
-        necesitaDesperdicio = true;
+      const deptsDesperdicio = ["Corte", "Estampado", "Corte de papel"];
+      
+      if (deptsDesperdicio.includes(dep)) {
+          if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) {
+            necesitaDesperdicio = true;
+          } else if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) {
+            necesitaDesperdicio = true;
+          } else if (this.item && this.item.usa_desperdicio == 1) {
+            necesitaDesperdicio = true;
+          }
       }
 
       if (necesitaDesperdicio) {
@@ -860,41 +874,33 @@ export default {
         return;
       }
 
-      if (this.$store.state.login.currentDepartament === "Impresión") {
+      // 2. IMPRESIÓN SIEMPRE MUESTRA (Por lógica de tintas interna)
+      if (dep === "Impresión") {
         this.showSelect = true;
         return;
       }
 
-      // DETECCIÓN AUTOMÁTICA ESTRICTA: Solo mostrar si el producto tiene insumos
-      // configurados específicamente para el departamento actual (sin lógica de hermanos).
-      // Esto evita que departamentos como Corte hereden los insumos de Estampado
-      // cuando el producto no tiene material asignado para Corte.
+      // 3. DETECCIÓN AUTOMÁTICA EN DEPARTAMENTOS DE CONTROL (Smarter Check)
+      // Para Revisión, Limpieza y Costura, SOLO mostramos si hay insumos asignados realmente
+      const deptsControl = ["Revisión", "Limpieza", "Costura"];
+      if (deptsControl.includes(dep)) {
+          if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.length > 0) {
+              this.showSelect = true;
+              return;
+          }
+          // Si no hay insumos asignados, no mostramos nada para estos depts (aunque la configuración global diga sí)
+          this.showSelect = false;
+          return;
+      }
+
+      // 4. DETECCIÓN AUTOMÁTICA ESTRICTA (Demás departamentos)
       if (
         this.dataInsumosFiltradoEstricto &&
         this.dataInsumosFiltradoEstricto.length > 0
       ) {
         this.showSelect = true;
-        console.log(
-          "DEBUG - Modal Extra - Detección automática estricta exitosa (Insumos para este departamento encontrados)"
-        );
         return;
       }
-
-      // CAÍDA A CONFIGURACIÓN MANUAL: Si no hay insumos detectados, respetamos la configuración global
-      const dep = this.$store.state.login.currentDepartament;
-      const dataSys = this.$store.state.login.datos_personalizacion || {};
-
-      const showEstampado = dataSys.sys_mostrar_rollo_en_empleado_estampado;
-      const showCorte = dataSys.sys_mostrar_rollo_en_empleado_corte;
-      const showCostura = dataSys.sys_mostrar_insumo_en_empleado_costura;
-      const showLimpieza = dataSys.sys_mostrar_insumo_en_empleado_limpieza;
-      const showRevision = dataSys.sys_mostrar_insumo_en_empleado_revision;
-
-      if (dep === "Estampado" && showEstampado) this.showSelect = true;
-      if (dep === "Corte" && showCorte) this.showSelect = true;
-      if (dep === "Costura" && showCostura) this.showSelect = true;
-      if (dep === "Limpieza" && showLimpieza) this.showSelect = true;
-      if (dep === "Revisión" && showRevision) this.showSelect = true;
 
       console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
     },
@@ -1596,6 +1602,18 @@ export default {
       if (typeof parsedIdInsumo === 'string' && parsedIdInsumo.includes('|')) {
         parsedIdInsumo = parseInt(parsedIdInsumo.split('|')[0].trim());
       }
+
+      // --- VALIDACIÓN: No enviar si el ID del insumo no es válido ---
+      if (!parsedIdInsumo || isNaN(parsedIdInsumo) || parsedIdInsumo <= 0) {
+        console.error('postInventarioMovimientos: id_insumo inválido:', idInsumo, '-> parsed:', parsedIdInsumo);
+        this.$fire({
+          type: 'warning',
+          title: 'Insumo no seleccionado',
+          html: '<p>Debe seleccionar un insumo válido del buscador antes de enviar el consumo.</p>',
+        });
+        return null;
+      }
+      // --- FIN VALIDACIÓN ---
 
       const data = new URLSearchParams();
       data.set("id_orden", this.idorden);
