@@ -77,7 +77,7 @@
                   Tuyo
                 </b-badge>
                 <b-badge
-                  v-else-if="conv.assignedTo && conv.assignedTo !== currentUserId"
+                  v-else-if="conv.assignedTo && (isAdmin || conv.assignedTo !== currentUserId)"
                   variant="secondary"
                   pill
                   class="mr-1"
@@ -140,10 +140,10 @@
                 <b-badge v-else-if="selectedConv.aiEnabled" variant="info" class="ml-2">IA Activa</b-badge>
                 <b-badge v-if="isMyOwner(selectedConv)" variant="primary" class="ml-1" title="Eres el dueño">Tuyo</b-badge>
                 <b-badge
-                  v-else-if="selectedConv.assignedTo && selectedConv.assignedTo !== currentUserId"
+                  v-else-if="selectedConv.assignedTo && (isAdmin || selectedConv.assignedTo !== currentUserId)"
                   variant="secondary"
                   class="ml-1"
-                  title="Asignada a otro vendedor"
+                  :title="`Asignada a ${vendorName(selectedConv.assignedTo) || '#' + selectedConv.assignedTo}`"
                 >
                   Asignada a {{ vendorName(selectedConv.assignedTo) || '#' + selectedConv.assignedTo }}
                 </b-badge>
