@@ -37,6 +37,19 @@
                             </span>
                         </template>
 
+                        <!-- Columna Material Consumido (Metros) -->
+                        <template #cell(material_consumido_metros)="data">
+                            <div v-if="(data.item.tipo_insumo || '').toLowerCase() === 'tela'">
+                                <span v-if="data.item.editing" class="text-info font-weight-bold">
+                                    {{ (parseFloat(data.item.editedValue || 0) * parseFloat(data.item.rendimiento || 0)).toFixed(2) }}
+                                </span>
+                                <span v-else>
+                                    {{ data.item.material_consumido_metros }}
+                                </span>
+                            </div>
+                            <div v-else class="text-muted text-center">-</div>
+                        </template>
+
                         <!-- Columna Material Consumido (editable) -->
                         <template #cell(material_consumido)="data">
                             <div v-if="data.item.editing">
@@ -134,13 +147,19 @@ export default {
                 { key: "nombre_empleado", label: "Empleado", sortable: true },
                 {
                     key: "material_estimado",
-                    label: "Material Estimado",
+                    label: "Material Estimado (Kilos)",
+                    sortable: true,
+                    class: "text-right"
+                },
+                {
+                    key: "material_consumido_metros",
+                    label: "Material Consumido (Metros)",
                     sortable: true,
                     class: "text-right"
                 },
                 {
                     key: "material_consumido",
-                    label: "Material Consumido",
+                    label: "Material Consumido (Kilos)",
                     sortable: true,
                     class: "text-right"
                 },
@@ -184,12 +203,19 @@ export default {
                 );
 
                 if (response.data.success) {
-                    this.consumoData = response.data.data.map((item) => ({
-                        ...item,
-                        editing: false,
-                        editedValue: item.material_consumido,
-                        originalValue: item.material_consumido,
-                    }));
+                    this.consumoData = response.data.data.map((item) => {
+                        const kilos = parseFloat(item.material_consumido) || 0;
+                        const rendimiento = parseFloat(item.rendimiento) || 0;
+                        const metros = (kilos * rendimiento).toFixed(2);
+
+                        return {
+                            ...item,
+                            material_consumido_metros: metros,
+                            editing: false,
+                            editedValue: item.material_consumido,
+                            originalValue: item.material_consumido,
+                        };
+                    });
                 } else {
                     this.$bvToast.toast("Error al cargar los datos de consumo", {
                         title: "Error",
