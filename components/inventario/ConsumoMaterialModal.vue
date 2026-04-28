@@ -30,7 +30,17 @@
                             <link-search :id="data.item.id_orden" />
                         </template>
 
-                        <!-- Columna Material Estimado -->
+                        <!-- Columna Material Estimado (Metros) -->
+                        <template #cell(material_estimado_metros)="data">
+                            <div v-if="(data.item.tipo_insumo || '').toLowerCase() === 'tela'">
+                                <span :class="{'text-danger font-weight-bold': !data.item.material_estimado_metros || data.item.material_estimado_metros <= 0}">
+                                    {{ data.item.material_estimado_metros }}
+                                </span>
+                            </div>
+                            <div v-else class="text-muted text-center">-</div>
+                        </template>
+
+                        <!-- Columna Material Estimado (Kilos) -->
                         <template #cell(material_estimado)="data">
                             <span :class="{'text-danger font-weight-bold': !data.item.material_estimado || data.item.material_estimado <= 0}">
                                 {{ data.item.material_estimado ? Number(data.item.material_estimado).toFixed(2) : '0.00' }}
@@ -146,6 +156,12 @@ export default {
                 { key: "departamento", label: "Departamento", sortable: true },
                 { key: "nombre_empleado", label: "Empleado", sortable: true },
                 {
+                    key: "material_estimado_metros",
+                    label: "Material Estimado (Metros)",
+                    sortable: true,
+                    class: "text-right"
+                },
+                {
                     key: "material_estimado",
                     label: "Material Estimado (Kilos)",
                     sortable: true,
@@ -205,12 +221,15 @@ export default {
                 if (response.data.success) {
                     this.consumoData = response.data.data.map((item) => {
                         const kilos = parseFloat(item.material_consumido) || 0;
+                        const kilos_estimado = parseFloat(item.material_estimado) || 0;
                         const rendimiento = parseFloat(item.rendimiento) || 0;
                         const metros = (kilos * rendimiento).toFixed(2);
+                        const metros_estimado = (kilos_estimado * rendimiento).toFixed(2);
 
                         return {
                             ...item,
                             material_consumido_metros: metros,
+                            material_estimado_metros: metros_estimado,
                             editing: false,
                             editedValue: item.material_consumido,
                             originalValue: item.material_consumido,
