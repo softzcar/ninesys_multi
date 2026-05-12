@@ -66,16 +66,17 @@
             <template #cell(sku)="data">
               {{ data.item.sku }} - {{ data.item.id_insumo }}
             </template>
+            <template #cell(costo)="data">
+              $ {{ (Number(data.item.costo) || 0).toFixed(4) }}/mts
+            </template>
             <template #cell(total_insumo)="data">
               $ {{ (Number(data.item.total_insumo) || 0).toFixed(2) }}
             </template>
             <template #cell(cantidad_utilizada)="data">
-              {{ (Number(data.item.cantidad_utilizada) || 0).toFixed(2) }}
-              {{ data.item.unidad }}
+              {{ (Number(data.item.cantidad_utilizada) || 0).toFixed(2) }} mts
             </template>
             <template #cell(cantidad_restante)="data">
-              {{ (Number(data.item.cantidad_restante) || 0).toFixed(2) }}
-              {{ data.item.unidad }}
+              {{ (Number(data.item.cantidad_restante) || 0).toFixed(2) }} mts
             </template>
 
             <!-- Footer para Insumos -->
@@ -147,12 +148,12 @@ export default {
         { key: "total_tinta_costo", label: "Total Costo" }, // New field
       ],
       fieldsInsumos: [
-        { key: "sku", label: "SKU" }, // New field
+        { key: "sku", label: "SKU" },
         { key: "nombre_insumo", label: "Insumo" },
-        { key: "costo", label: "Costo" },
-        { key: "cantidad_utilizada", label: "Utilizado" },
-        { key: "cantidad_restante", label: "Restante" },
-        { key: "total_insumo", label: "Total Insumo" },
+        { key: "costo", label: "Costo/mts" },
+        { key: "cantidad_utilizada", label: "Consumido (mts)" },
+        { key: "cantidad_restante", label: "Restante (mts)" },
+        { key: "total_insumo", label: "Total ($)" },
       ],
     };
   },
