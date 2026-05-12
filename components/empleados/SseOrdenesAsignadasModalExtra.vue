@@ -229,20 +229,44 @@
               <b-row class="align-items-end no-gutters">
                 <b-col md="5" class="px-2">
                   <b-form-group label="Material" label-size="sm" class="mb-0">
-                    <!-- Eficiencia de Insumo -->
-                    <empleados-eficienciaInsumos v-if="itemForm.validInsumo && getCatalogosUnicos.length > 0" class="mb-1" :idorden="idorden"
-                      :idinsumo="getId(itemForm.select)" :datainsumos="getCatalogosUnicos"
-                      @update_catalogo="updateCatalogo(index, $event)" />
+                    <!-- Visualización para Insumos Precargados (Escenario 1) -->
+                    <div v-if="itemForm.precargado" class="p-2 border rounded bg-light small shadow-sm">
+                      <b-icon icon="info-circle-fill" variant="info" class="mr-1"></b-icon>
+                      <strong class="text-dark">{{ itemForm.insumoNombre }}</strong><br />
+                      <span class="text-muted">ID: <strong>{{ itemForm.idInsumo }}</strong> | SKU: {{ itemForm.sku }}</span>
+                      <span class="badge badge-info ml-1">Consumido en Estampado</span>
+                    </div>
 
-                    <vue-typeahead-bootstrap @hit="loadInsumos(index)" :data="dataSearchInsumo" size="sm"
-                      v-model="itemForm.select" placeholder="Buscar Insumo" @input="itemForm.validInsumo = false" />
+                    <!-- Buscador Original (Escenario 2) -->
+                    <template v-else>
+                      <!-- Eficiencia de Insumo -->
+                      <empleados-eficienciaInsumos v-if="itemForm.validInsumo && getCatalogosUnicos.length > 0" class="mb-1" :idorden="idorden"
+                        :idinsumo="getId(itemForm.select)" :datainsumos="getCatalogosUnicos"
+                        @update_catalogo="updateCatalogo(index, $event)" />
+
+                      <vue-typeahead-bootstrap @hit="loadInsumos(index)" :data="dataSearchInsumo" size="sm"
+                        v-model="itemForm.select" placeholder="Buscar Insumo" @input="itemForm.validInsumo = false" />
+                    </template>
                   </b-form-group>
                 </b-col>
 
                 <b-col md="3" class="px-2">
-                  <b-form-group :label="getPlaceholderRow(index)" label-size="sm" class="mb-0">
-                    <b-form-input v-model.number="itemForm.input" type="number" step="0.01" min="0"
-                      :state="itemForm.input > 0" :placeholder="getUnidadRow(index)" required></b-form-input>
+                  <b-form-group
+                    :label="getPlaceholderRow(index)"
+                    :description="descripcionCantidadRow(index)"
+                    label-size="sm"
+                    class="mb-0"
+                  >
+                    <b-form-input
+                      v-model.number="itemForm.input"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      :readonly="itemForm.precargado"
+                      :state="$store.state.login.currentDepartament === 'Corte' ? (itemForm.input >= 0 && itemForm.input !== '') : itemForm.input > 0"
+                      :placeholder="getUnidadRow(index)"
+                      required
+                    />
                   </b-form-group>
                 </b-col>
 
@@ -261,7 +285,7 @@
                 </b-col>
 
                 <b-col md="1" class="text-right pb-1">
-                  <b-button v-if="form.length > 1" variant="link" class="text-danger p-0" title="Eliminar fila"
+                  <b-button v-if="form.length > 1 && !itemForm.precargado" variant="link" class="text-danger p-0" title="Eliminar fila"
                     @click="removeItem(index)">
                     <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
                   </b-button>
@@ -273,6 +297,31 @@
                   <b-icon icon="check-circle-fill" variant="success"></b-icon> Insumo validado correctamente
                 </small>
               </div>
+
+              <!-- Alerta poka-yoke: confusión kg vs metros en tela -->
+              <b-alert
+                v-if="warningCantidadTela(index)"
+                show
+                variant="warning"
+                class="mt-2 mb-0 py-2 small"
+              >
+                <template v-if="warningCantidadTela(index).tipo === 'kg_coincidence'">
+                  <b-icon icon="exclamation-triangle-fill" class="mr-1"></b-icon>
+                  <strong>¿Estás ingresando el peso del rollo?</strong>
+                  Este campo espera <strong>metros de tela usados</strong>, no kilos.
+                  Si consumiste <strong>{{ warningCantidadTela(index).kg }} kg</strong> de tela,
+                  eso equivale a <strong>{{ warningCantidadTela(index).metros_equivalentes }} metros</strong>
+                  (rendimiento: {{ warningCantidadTela(index).rendimiento }} mts/kg).
+                </template>
+                <template v-else-if="warningCantidadTela(index).tipo === 'alto_vs_estimado'">
+                  <b-icon icon="exclamation-triangle-fill" class="mr-1"></b-icon>
+                  <strong>Consumo inusualmente alto:</strong>
+                  ingresaste <strong>{{ itemForm.input }} mts</strong>,
+                  el sistema estimaba <strong>{{ warningCantidadTela(index).estimado }} mts</strong>
+                  ({{ warningCantidadTela(index).porcentaje }}% del estimado).
+                  Verifica que estás midiendo la tela <em>usada en esta orden</em>, no el rollo completo.
+                </template>
+              </b-alert>
             </div>
           </div>
 
@@ -396,6 +445,9 @@ export default {
       return (index) => {
         const itemForm = this.form[index];
         if (!itemForm || !itemForm.validInsumo) return false;
+
+        // Si es Corte, SIEMPRE pedimos desperdicio
+        if (this.$store.state.login.currentDepartament === 'Corte') return true;
         
         // El usuario solicitó que la caja de desperdicio se muestre SÓLO cuando
         // ha hecho click en el botón que selecciona el catálogo (itemForm.idCatalogo)
@@ -452,7 +504,7 @@ export default {
         const materialDepts = ["Estampado", "Corte"];
         if (
           materialDepts.includes(depName) &&
-          materialDepts.includes(el.departamento)
+          (materialDepts.includes(el.departamento) || el.departamento === "Impresión")
         ) {
           return true;
         }
@@ -670,6 +722,67 @@ export default {
       return ((estimado / utilizado) * 100).toFixed(2);
     },
 
+    // Devuelve el objeto insumo del inventario para la fila `index` del formulario
+    insumoDeFormRow() {
+      return (index) => {
+        const item = this.form[index];
+        if (!item || !item.select) return null;
+        const id = parseInt(item.select.split('|')[0].trim());
+        return this.insumosTodos ? (this.insumosTodos.find(i => i._id == id) || null) : null;
+      };
+    },
+
+    // Texto de ayuda bajo el campo Cantidad: solo muestra hint para telas
+    descripcionCantidadRow() {
+      return (index) => {
+        const insumo = this.insumoDeFormRow(index);
+        if (insumo && insumo.tipo_insumo === 'tela') {
+          return 'Metros de tela que usaste. NO el peso del rollo en kg.';
+        }
+        return '';
+      };
+    },
+
+    // Detecta dos patrones de error humano para el campo Cantidad en telas:
+    // 1. El valor ingresado es numéricamente similar al stock del rollo en kg → el empleado confundió unidad
+    // 2. El valor supera 3× el estimado del sistema → consumo anómalamente alto
+    warningCantidadTela() {
+      return (index) => {
+        const item = this.form[index];
+        if (!item || !item.validInsumo) return null;
+        const insumo = this.insumoDeFormRow(index);
+        if (!insumo || insumo.tipo_insumo !== 'tela') return null;
+
+        const valor = parseFloat(item.input) || 0;
+        if (valor <= 0) return null;
+
+        const rendimiento = parseFloat(insumo.rendimiento) || 1;
+        const cantidadKg = parseFloat(insumo.cantidad) || 0;
+
+        // Patrón 1: valor ≈ kg del stock (±1.5 kg de margen) → confusión de unidad
+        if (cantidadKg > 0 && Math.abs(valor - cantidadKg) <= 1.5) {
+          return {
+            tipo: 'kg_coincidence',
+            kg: valor.toFixed(2),
+            metros_equivalentes: (valor * rendimiento).toFixed(2),
+            rendimiento,
+          };
+        }
+
+        // Patrón 2: valor > 3× el estimado del sistema → consumo sospechosamente alto
+        const estimado = parseFloat(this.materialEstimadoDepartamento.total) || 0;
+        if (estimado > 0 && valor > estimado * 3) {
+          return {
+            tipo: 'alto_vs_estimado',
+            porcentaje: ((valor / estimado) * 100).toFixed(0),
+            estimado: estimado.toFixed(2),
+          };
+        }
+
+        return null;
+      };
+    },
+
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7);
       return `modal-${rand}`;
@@ -688,10 +801,15 @@ export default {
         let myOptions = [];
         const dep = this.$store.state.login.currentDepartament;
         if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
-          myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
-          if (["Estampado", "Corte"].includes(dep)) {
-            const telInsumos = this.insumosTodos.filter((item) => item.departamento === "Telas");
-            myOptions = [...myOptions, ...telInsumos];
+          // Ajuste por inversión de categorías en DB
+          if (dep === "Impresión") {
+            // Impresión debería mostrar Papeles (marcados como Telas)
+            myOptions = this.insumosTodos.filter((item) => item.departamento === "Telas");
+          } else if (["Estampado", "Corte"].includes(dep)) {
+            // Estampado/Corte deberían mostrar Telas (marcadas como Impresión)
+            myOptions = this.insumosTodos.filter((item) => item.departamento === "Impresión" || item.departamento === "Estampado");
+          } else {
+            myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
           }
         }
         return myOptions.map((el) => {
@@ -742,23 +860,20 @@ export default {
 
       // Lógica dinámica basada en insumosTodos filtrado por el departamento actual
       if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
-        // Filtrar insumos que corresponden directamente al departamento
-        myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
+        // Ajuste por inversión de categorías en DB
+        const depFilter = dep === "Impresión" ? "Telas" : (["Estampado", "Corte"].includes(dep) ? "Impresión" : dep);
+        
+        // Filtrar insumos que corresponden directamente al departamento (ajustado)
+        myOptions = this.insumosTodos.filter((item) => item.departamento === depFilter);
 
-        // Casos especiales de mapeo de departamentos (Telas -> Estampado/Corte)
+        // Casos especiales de mapeo de departamentos
         if (["Estampado", "Corte"].includes(dep)) {
-          const telInsumos = this.insumosTodos.filter(
-            (item) => item.departamento === "Telas"
+          // Si estamos en Estampado/Corte, también mostramos lo que esté en Estampado (insumos propios)
+          const estInsumos = this.insumosTodos.filter(
+            (item) => item.departamento === "Estampado"
           );
 
-          let estInsumos = [];
-          if (dep === "Corte") {
-            estInsumos = this.insumosTodos.filter(
-              (item) => item.departamento === "Estampado"
-            );
-          }
-
-          myOptions = [...myOptions, ...telInsumos, ...estInsumos];
+          myOptions = [...myOptions, ...estInsumos];
         }
 
         // Casos especiales de mapeo de departamentos (Producción -> Revisión/Limpieza)
@@ -860,7 +975,10 @@ export default {
       const deptsDesperdicio = ["Corte", "Estampado", "Corte de papel"];
       
       if (deptsDesperdicio.includes(dep)) {
-          if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) {
+          if (dep === 'Corte') {
+            // En Corte siempre habilitamos para poder registrar desperdicio de estampados previos
+            necesitaDesperdicio = true;
+          } else if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) {
             necesitaDesperdicio = true;
           } else if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) {
             necesitaDesperdicio = true;
@@ -1279,6 +1397,43 @@ export default {
         });
     },
 
+    async cargarConsumosPrevios() {
+      const isCorte = this.$store.state.login.currentDepartament === 'Corte';
+      if (!isCorte || !this.idorden) return;
+      
+      try {
+        const response = await this.$axios.get(`${this.$config.API}/inventario/historial/${this.idorden}`);
+        const movimientos = response.data.items || [];
+        
+        movimientos.forEach(mov => {
+          // Si el material fue consumido por Estampado, lo traemos a Corte
+          if (mov.departamento === 'Estampado') {
+            const insumoInfo = this.insumosTodos.find(ins => ins._id == mov.id_insumo);
+            if (insumoInfo && insumoInfo.tipo_insumo === 'tela') {
+              // Evitar duplicados en el form
+              const existe = this.form.find(f => f.select && f.select.split(' | ')[0] == mov.id_insumo);
+              if (!existe) {
+                this.form.push({
+                  select: `${mov.id_insumo} | ${insumoInfo.insumo} | SKU: ${insumoInfo.sku}`,
+                  input: 0,
+                  desperdicio: null,
+                  idCatalogo: insumoInfo.id_catalogo,
+                  validInsumo: true,
+                  precargado: true,
+                  idInsumo: mov.id_insumo,
+                  insumoNombre: insumoInfo.insumo,
+                  sku: insumoInfo.sku,
+                  terminar: false
+                });
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error al cargar consumos previos:", error);
+      }
+    },
+
     clearForms() {
       this.form = [];
       // Reset array de impresoras a estado inicial
@@ -1309,8 +1464,9 @@ export default {
       // selectOptions always has at least at least 1 item ("Seleccione una opción").
       // If it has > 1, it means there are insumos populated for this department.
       const hayInsumosDisponibles = this.selectOptions && this.selectOptions.length > 1;
+      const isCorte = this.$store.state.login.currentDepartament === 'Corte';
 
-      if (this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) {
+      if ((this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) || isCorte) {
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
@@ -1388,17 +1544,30 @@ export default {
 
         if (this.form.length === 0) {
           ok = false;
-          msg = msg + "<p>Debe asignar al menos un insumo</p>";
+          if (isCorte) {
+            msg = msg + "<p>Debe asignar al menos un insumo (puede dejar el consumo en 0) para registrar el desperdicio.</p>";
+          } else {
+            msg = msg + "<p>Debe asignar al menos un insumo</p>";
+          }
         }
 
         const formTmp = this.form;
 
         for (let i = 0; i < formTmp.length; i++) {
           const el = formTmp[i];
-          if (el.input === 0 || el.input === "" || el.input === null) {
-            ok = false;
-            msg += `<p>Ingrese la cantidad para la fila ${i + 1}</p>`;
+          
+          if (!isCorte) {
+            if (el.input === 0 || el.input === "" || el.input === null) {
+              ok = false;
+              msg += `<p>Ingrese la cantidad para la fila ${i + 1}</p>`;
+            }
+          } else {
+            // En Corte permitimos consumo 0 si no requieren descontar material
+            if (el.input === "" || el.input === null) {
+              el.input = 0;
+            }
           }
+
           if (!el.select || el.select === "") {
             ok = false;
             msg += `<p>Seleccione un insumo en el buscador para la fila ${i + 1}</p>`;
@@ -1419,6 +1588,10 @@ export default {
               if (itemForm.desperdicio === null || itemForm.desperdicio === "") {
                 ok = false;
                 msg = msg + `<p>Ingrese el peso del desperdicio para el insumo de la fila ${i + 1}</p>`;
+              } else if (isCorte && parseFloat(itemForm.input) === 0 && parseFloat(itemForm.desperdicio) === 0) {
+                // Si en Corte el consumo es 0 y el desperdicio también, no tiene sentido la fila
+                ok = false;
+                msg = msg + `<p>Debe ingresar un consumo de material o un desperdicio en la fila ${i + 1}</p>`;
               }
             }
 
@@ -1946,12 +2119,14 @@ export default {
       if (modal === this.modal) {
         this.getEficienciaEstimada();
         this.refreshConfig();
+        this.cargarConsumosPrevios();
       }
     });
 
     if (this.tipo === "todo") this.btnText = `Terminar Todo`;
 
     this.evaluateShowSelect();
+    this.cargarConsumosPrevios();
   },
 
   props: [
