@@ -1302,6 +1302,9 @@ export default {
 
         for (let i = 0; i < this.form.length; i++) {
           const formItem = this.form[i];
+          // Items precargados de Estampado son solo referencia — ya registraron su consumo
+          if (formItem.precargado) continue;
+
           const batchItem = this.batchItems.find(b => b.originalIndex === i);
 
           // 1. Send Consumption (Always)
@@ -1913,6 +1916,9 @@ export default {
 
       // Para otros departamentos, enviar los elementos del formulario
       this.form.forEach((el) => {
+        // Items precargados de Estampado son solo referencia — ya registraron su consumo
+        if (el.precargado) return;
+
         console.log("Enviamos elemento del formulario", el);
 
         this.postInventarioMovimientos(
