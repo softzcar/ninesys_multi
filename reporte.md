@@ -4,6 +4,7 @@
 
 | Solicitud (Resumen) | Logro Conseguido |
 | :--- | :--- |
+| Agregar barra de eficiencia de tiempo en el modal Reporte de Pago de `/empleados/planilla-de-pagos`. | `PagosReporteEmpleado.vue`: agrega `mixin-time`, extrae `id_orden` únicos de `data.pagos` y hace POST a `/reports/manufacturing-time`; calcula tiempo real con `calcularTiempoTrabajoIndividual` (horario laboral) sobre `tareas_detalles`; muestra `charts-EfficiencyChart` si hay datos; invisible para empleados sin tareas de producción. |
 | Analizar y verificar cálculo de eficiencia de tiempo del empleado en `/empleados/dashboard`. | Confirmado que los cálculos son correctos: Eficiencia = (proyectado/real)×100 usando `calcularTiempoTrabajoIndividual` (mixin de horario laboral). Porcentajes inusuales eran datos de prueba. |
 | Eliminar popup DEBUG de `horarioLaboral` que aparecía en cada recarga. | Reemplazado `this.$fire(...)` por `console.warn` en `SseOrdenesAsignadasV4.vue`. Commit `1a4b073`. |
 | Corregir label semántico "Tiempo Total Disponible" en barra de En Progreso. | Renombrado a "Tiempo Estimado" en `RendimientoGeneral.vue`. Commit `9a93738`. |

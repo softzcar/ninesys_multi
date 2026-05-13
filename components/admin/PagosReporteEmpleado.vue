@@ -22,6 +22,18 @@
       </div>
 
       <div v-else-if="data" ref="reporteContenido">
+        <!-- Eficiencia de Tiempo -->
+        <div v-if="cargandoEficiencia" class="text-center py-2 mb-3">
+          <b-spinner small /> <small class="text-muted">Calculando eficiencia de tiempo...</small>
+        </div>
+        <div v-else-if="eficienciaData" class="mb-3 p-2 border rounded bg-light">
+          <h6 class="text-center mb-0">Eficiencia de Tiempo — Período del Reporte</h6>
+          <charts-EfficiencyChart
+            :realTime="eficienciaData.tiempo_real"
+            :estimatedTime="eficienciaData.tiempo_estimado"
+          />
+        </div>
+
         <!-- Cabecera empresa -->
         <div class="reporte-header mb-3">
           <strong class="d-block">{{ data.empresa.nombre_empresa }}</strong>
@@ -139,9 +151,11 @@
 
 <script>
 import PrintService from '@/utils/PrintService'
+import mixinTime from '~/mixins/mixin-time.js'
 
 export default {
   name: 'PagosReporteEmpleado',
+  mixins: [mixinTime],
   props: {
     idEmpleado: { type: [Number, String], required: true },
     nombreEmpleado: { type: String, default: 'Empleado' },
@@ -153,6 +167,8 @@ export default {
     return {
       cargando: false,
       data: null,
+      eficienciaData: null,
+      cargandoEficiencia: false,
     }
   },
   computed: {
@@ -225,6 +241,58 @@ export default {
         console.error('Error cargando reporte empleado:', e)
       } finally {
         this.cargando = false
+      }
+      // Calcular eficiencia en paralelo una vez que tenemos los id_orden del reporte
+      this.fetchEficiencia()
+    },
+
+    async fetchEficiencia() {
+      if (!this.data?.pagos?.length) return
+
+      const uniqueIds = [...new Set(
+        this.data.pagos.map(p => p.id_orden).filter(Boolean).map(Number)
+      )]
+      if (uniqueIds.length === 0) return
+
+      this.cargandoEficiencia = true
+      try {
+        const mfgResp = await this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, {
+          id_ordenes: uniqueIds,
+          id_empleado: this.idEmpleado,
+        })
+
+        if (!mfgResp.data?.resumen) return
+
+        const detalles = mfgResp.data.tareas_detalles || []
+
+        let horarioLaboral = this.$store.state.login.dataEmpresa.horario_laboral
+        if (typeof horarioLaboral === 'string') {
+          try { horarioLaboral = JSON.parse(horarioLaboral) } catch (e) { horarioLaboral = null }
+        }
+
+        let totalReal = 0
+        if (horarioLaboral && detalles.length > 0) {
+          detalles.forEach(task => {
+            if (!task.fecha_inicio || !task.fecha_terminado) return
+            const tareaObj = {
+              fecha_inicio: new Date(task.fecha_inicio.replace(' ', 'T')),
+              fecha_fin: new Date(task.fecha_terminado.replace(' ', 'T')),
+            }
+            totalReal += this.calcularTiempoTrabajoIndividual(tareaObj, [], horarioLaboral) / 1000
+          })
+        }
+
+        const totalEstimado = mfgResp.data.resumen.reduce(
+          (acc, item) => acc + (item.totalProjectedTerminadas || 0), 0
+        )
+
+        if (totalReal > 0 || totalEstimado > 0) {
+          this.eficienciaData = { tiempo_real: totalReal, tiempo_estimado: totalEstimado }
+        }
+      } catch (e) {
+        console.error('Error calculando eficiencia en reporte de pago:', e)
+      } finally {
+        this.cargandoEficiencia = false
       }
     },
 
