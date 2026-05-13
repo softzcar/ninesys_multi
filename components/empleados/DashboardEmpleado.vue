@@ -28,17 +28,18 @@
                             </b-card>
                         </b-col>
 
-                        <!-- Gráfico de Eficiencia - Oculto para Impresión y Diseño -->
+                        <!-- Gráfico de Eficiencia - Oculto solo para Diseño -->
                         <b-col md="4" sm="12" class="mb-4"
-                            v-if="currentDepartamentId !== 7 && currentDepartamentId !== 1">
+                            v-if="currentDepartamentId !== 7">
                             <b-card title="Eficiencia de Tiempo">
                                 <charts-EfficiencyChart :realTime="stats.eficiencia.tiempo_real"
                                     :estimatedTime="stats.eficiencia.tiempo_estimado" />
                             </b-card>
                         </b-col>
 
-                        <!-- Gráfico de Pagos Semanales - Oculto para Producción -->
-                        <b-col md="4" sm="12" class="mb-4" v-if="accessModule.accessData.id_modulo !== 5">
+                        <!-- Gráfico de Pagos Semanales - Oculto para Producción e Impresión -->
+                        <b-col md="4" sm="12" class="mb-4"
+                            v-if="accessModule.accessData.id_modulo !== 5 && currentDepartamentId !== 1">
                             <b-card title="Pagos Semanales">
                                 <charts-BarChart title="" :seriesData="pagosSemana.valores"
                                     :categories="pagosSemana.dias" seriesName="Pago" color="#00E396" valuePrefix="$"
