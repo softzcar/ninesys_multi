@@ -53,6 +53,7 @@ export default {
         return 'text-danger';
     },
     chartOptions() {
+      const actual = this.efficiencyPercentage;
       return {
         chart: {
           height: 300,
@@ -72,14 +73,14 @@ export default {
                     show: true,
                     fontSize: '36px',
                     fontWeight: 'bold',
-                    formatter: function (val) {
-                        return val + "%";
+                    formatter: function () {
+                        return actual + "%";
                     }
                 }
             }
           },
         },
-        colors: [this.getColor(this.efficiencyPercentage)],
+        colors: [this.getColor(actual)],
         labels: ['Eficiencia'],
       };
     }
