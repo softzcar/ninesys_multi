@@ -641,8 +641,9 @@ export default {
 
     insumosImpresion() {
       if (!Array.isArray(this.insumos)) return [];
+      // Ajuste: Papeles están en la categoría 'Telas'
       let options = this.insumos.filter(
-        (item) => item.departamento === "Impresión"
+        (item) => item.departamento === "Telas"
       );
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
@@ -650,8 +651,9 @@ export default {
 
     insumosEstampado() {
       if (!Array.isArray(this.insumos)) return [];
+      // Ajuste: Telas están en la categoría 'Impresión'
       let options = this.insumos.filter(
-        (item) => item.departamento === "Telas" || item.departamento === "Estampado"
+        (item) => item.departamento === "Impresión" || item.departamento === "Estampado"
       );
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
@@ -686,8 +688,9 @@ export default {
 
     insumosCorte() {
       if (!Array.isArray(this.insumos)) return [];
+      // Ajuste: Telas están en la categoría 'Impresión'
       let options = this.insumos.filter(
-        (item) => item.departamento === "Telas"
+        (item) => item.departamento === "Impresión"
       );
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
@@ -1869,11 +1872,7 @@ export default {
           }
 
           if (!horarioLaboral) {
-             this.$fire({
-                 title: 'DEBUG',
-                 text: 'horarioLaboral no es válido o está ausente',
-                 type: 'warning'
-             });
+            console.warn('[fetchEfficiency] horarioLaboral no configurado — el cálculo de tiempo real no se puede realizar.');
           }
 
           // Recalcular Tiempos Reales usando el Mixin (considerando horario laboral y pausas)
