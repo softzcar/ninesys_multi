@@ -12,6 +12,7 @@
 | Gráfico "Eficiencia de tiempo" no se mostraba para Impresión (dept 1); reemplazar "Pagos semanales" por este gráfico. | Backend: bloque de Impresión en `dashboard-stats` ejecuta el mismo SQL de eficiencia que Producción (antes devolvía 0/0). Frontend: gráfico de Eficiencia visible para todos excepto Diseño (dept 7); Pagos oculto para Impresión (dept 1). |
 | Gráfico de inicio mostraba 0% aunque las barras del dashboard mostraban 105%. | `dashboard-stats` usaba raw TIMESTAMPDIFF sin horario laboral y filtraba por `id_departamento` del store (16) que no coincide con el dept guardado en los registros (1). `DashboardEmpleado` ahora usa el mismo flujo exacto: `ordenes-asignadas/v2` + `terminadas-hoy` → `POST /reports/manufacturing-time` → `calcularTiempoTrabajoIndividual` (mixin-time). Commit `e226689`. |
 | Label del radialBar mostraba 100% aunque la eficiencia real era 105%. | `EfficiencyChart`: el formatter de ApexCharts recibía el valor de la serie (limitado a 100 para el arco). Corregido capturando `efficiencyPercentage` via closure en la computed `chartOptions`. Commit `d18e96b`. |
+| Eficiencia mezclaba tareas de todos los departamentos del empleado al cambiar de dept en el sidebar. | Backend `manufacturing-time` ahora acepta `id_departamento` en el body y filtra CTE, subqueries de proyección, `tareas_detalles` y `tarea_terminada` por ese departamento. Frontend pasa `currentDepartamentId` desde `SseOrdenesAsignadasV4` y `DashboardEmpleado`. Commits `c7e98d5` (frontend) y `b5b41a5` (backend, desplegado). |
 
 ---
 
