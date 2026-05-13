@@ -189,6 +189,7 @@ export default {
                 const mfgResp = await this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, {
                     id_ordenes: uniqueIds,
                     id_empleado: idEmpleado,
+                    id_departamento: idDepartamento,
                 });
 
                 if (!mfgResp.data?.resumen) return;

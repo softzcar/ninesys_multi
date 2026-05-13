@@ -1840,7 +1840,8 @@ export default {
 
         const postData = {
           id_ordenes: uniqueIds,
-          id_empleado: empId || null
+          id_empleado: empId || null,
+          id_departamento: this.$store.state.login.currentDepartamentId || null,
         };
 
         // Parallel requests for Manufacturing Time and Input Efficiency
