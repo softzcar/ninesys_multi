@@ -70,10 +70,11 @@
 import { mapState } from "vuex";
 import axios from "axios";
 import mixin from "~/mixins/mixin-login.js";
+import mixinTime from "~/mixins/mixin-time.js";
 
 export default {
     name: "DashboardEmpleado",
-    mixins: [mixin],
+    mixins: [mixin, mixinTime],
     props: {
         showCharts: {
             type: Boolean,
@@ -128,67 +129,106 @@ export default {
         async fetchStats() {
             try {
                 const idEmpleado = this.dataUser.id_empleado;
-                // Usar departamento actual si existe, sino intentar obtenerlo de dataUser
-                // dataUser tiene departamentos como array a veces, o departamento como string.
-                // currentDepartamentId viene del SelectDepartament.vue que guarda en Vuex
-
                 let idDepartamento = this.currentDepartamentId;
 
                 if (!idDepartamento) {
-                    // Fallback logica simple si no hay currentDepartament set
-                    console.warn("No currentDepartamentId found in store, defaulting to 4 (Produccion)");
+                    console.warn("No currentDepartamentId found in store, defaulting to 4");
                     idDepartamento = 4;
                 }
 
-                console.log(`Fetching dashboard stats for Emp: ${idEmpleado}, Dept: ${idDepartamento}`);
+                const [statsResponse] = await Promise.all([
+                    this.$axios.get(`${this.$config.API}/empleados/dashboard-stats/${idEmpleado}/${idDepartamento}`),
+                    this.fetchEficienciaChart(idEmpleado, idDepartamento),
+                ]);
 
-                const response = await this.$axios.get(`${this.$config.API}/empleados/dashboard-stats/${idEmpleado}/${idDepartamento}`);
-
-                if (response.data) {
-                    const data = response.data;
-                    console.log("Stats received:", data);
-
-                    // Actualizar status
+                if (statsResponse.data) {
+                    const data = statsResponse.data;
                     if (data.status) this.stats.status = data.status;
-
-                    // Actualizar reposiciones
                     if (data.reposiciones) this.stats.reposiciones = data.reposiciones;
 
-                    // Actualizar eficiencia
-                    if (data.eficiencia) this.stats.eficiencia = data.eficiencia;
-
-                    // Actualizar pagos
                     if (data.pagos_semana && Array.isArray(data.pagos_semana)) {
-                        // Configuración de categorías para el gráfico (Lun-Dom)
                         const diasEtiquetas = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
                         const valores = [0, 0, 0, 0, 0, 0, 0];
-
-                        // Llenar datos usando la fecha para ser agnóstico del idioma del servidor
                         data.pagos_semana.forEach(item => {
                             if (item.fecha) {
-                                // Crear fecha asumiendo YYYY-MM-DD. 
-                                // Nota: new Date('2025-12-30') en UTC puede variar, mejor dividir string o usar una librería si hubiera.
-                                // Usamos constructor seguro para evitar timezone shifts locales inesperados con strings simples
                                 const partes = item.fecha.split('-');
                                 const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
-
-                                const dayOfWeek = fecha.getDay(); // 0 = Domingo, 1 = Lunes...
-
-                                // Convertir a índice 0=Lunes, ..., 6=Domingo
-                                // Lunes (1) -> 0
-                                // Domingo (0) -> 6
-                                const chartIndex = (dayOfWeek + 6) % 7;
-
+                                const chartIndex = (fecha.getDay() + 6) % 7;
                                 valores[chartIndex] = parseFloat(item.total_pagado);
                             }
                         });
-
                         this.pagosSemana.valores = valores;
                         this.pagosSemana.dias = diasEtiquetas;
                     }
                 }
             } catch (e) {
                 console.error("Error fetching stats:", e);
+            }
+        },
+
+        async fetchEficienciaChart(idEmpleado, idDepartamento) {
+            try {
+                const ordenProceso = this.$store.state.login.currentOrdenProceso || 1;
+
+                // 1. Órdenes activas + reposiciones + terminadas hoy
+                const [ordenesResp, terminadasResp] = await Promise.all([
+                    this.$axios.get(`${this.$config.API}/empleados/ordenes-asignadas/v2/${idEmpleado}/${idDepartamento}/${ordenProceso}`),
+                    this.$axios.get(`${this.$config.API}/empleados/terminadas-hoy/${idEmpleado}/${idDepartamento}`).catch(() => ({ data: [] })),
+                ]);
+
+                const { ordenes = [], reposiciones = [], vinculadas = [], pausas = [] } = ordenesResp.data;
+                const finishedToday = Array.isArray(terminadasResp.data) ? terminadasResp.data : [];
+
+                const activePool = [...ordenes, ...reposiciones, ...vinculadas];
+                const activeIds = activePool.map(o => o.orden || o.id_orden).filter(Boolean);
+                const uniqueIds = [...new Set([...activeIds, ...finishedToday])];
+
+                if (uniqueIds.length === 0) return;
+
+                // 2. Tiempos proyectados y detalles de tareas desde manufacturing-time
+                const mfgResp = await this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, {
+                    id_ordenes: uniqueIds,
+                    id_empleado: idEmpleado,
+                });
+
+                if (!mfgResp.data?.resumen) return;
+
+                const resumen = mfgResp.data.resumen;
+                const detalles = mfgResp.data.tareas_detalles || [];
+
+                // 3. Tiempos reales con horario laboral (igual que SseOrdenesAsignadasV4)
+                let horarioLaboral = this.$store.state.login.dataEmpresa.horario_laboral;
+                if (typeof horarioLaboral === 'string') {
+                    try { horarioLaboral = JSON.parse(horarioLaboral); } catch (e) { horarioLaboral = null; }
+                }
+
+                const pausasProcesadas = pausas.map(p => ({
+                    fecha_inicio: new Date(p.pausa_inicio),
+                    fecha_fin: p.pausa_fin ? new Date(p.pausa_fin) : new Date(),
+                }));
+
+                let totalRealTerminadas = 0;
+                if (horarioLaboral && detalles.length > 0) {
+                    detalles.forEach(task => {
+                        if (!task.fecha_inicio || !task.fecha_terminado) return;
+                        const tareaObj = {
+                            fecha_inicio: new Date(task.fecha_inicio.replace(' ', 'T')),
+                            fecha_fin: new Date(task.fecha_terminado.replace(' ', 'T')),
+                        };
+                        totalRealTerminadas += this.calcularTiempoTrabajoIndividual(tareaObj, pausasProcesadas, horarioLaboral) / 1000;
+                    });
+                }
+
+                const totalProjectedTerminadas = resumen.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+
+                if (totalProjectedTerminadas > 0 || totalRealTerminadas > 0) {
+                    this.stats.eficiencia = {
+                        tiempo_estimado: totalProjectedTerminadas,
+                        tiempo_real: totalRealTerminadas,
+                    };
+                }
+            } catch (e) {
+                console.error("Error fetching eficiencia chart:", e);
             }
         },
     },
