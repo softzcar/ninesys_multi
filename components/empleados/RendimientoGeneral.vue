@@ -40,7 +40,7 @@
          <div class="d-flex justify-content-between mb-1 small">
             <strong style="color: #000; font-size: 14px;">⏳ Tareas En Progreso - Avance Actual:</strong>
             <span>Tiempo Usado: {{ formatSeconds(reporteData.totalRealEnCurso) }}</span>
-            <span>Tiempo Total Disponible: {{ formatSeconds(reporteData.totalProjectedEnCurso) }}</span>
+            <span>Tiempo Estimado: {{ formatSeconds(reporteData.totalProjectedEnCurso) }}</span>
          </div>
          <div class="position-relative" style="height: 20px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
             <div 
