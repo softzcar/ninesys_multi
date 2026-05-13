@@ -1111,7 +1111,7 @@ export default {
         return 0;
       }
 
-      const size = parseInt(this.ordenes.length || 0);
+      const size = (this.ordenes?.length || 0) + (this.reposiciones?.length || 0) + (this.vinculadas?.length || 0);
       if (size < 1) {
         this.msg = 'No tienes tareas asignadas';
       } else {
@@ -1781,11 +1781,15 @@ export default {
       try {
         let itemsForEfficiency = [];
 
-        // If we have orders, use them. Otherwise check for unpaid orders.
+        // Preferencia: ordenes activas → reposiciones → vinculadas → unpaid-orders
         if (this.ordenes && this.ordenes.length > 0) {
           itemsForEfficiency = this.ordenes;
+        } else if (this.reposiciones && this.reposiciones.length > 0) {
+          itemsForEfficiency = this.reposiciones;
+        } else if (this.vinculadas && this.vinculadas.length > 0) {
+          itemsForEfficiency = this.vinculadas;
         } else {
-          // Fetch unpaid orders logic
+          // Último recurso: órdenes pendientes de pago
           const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
           const idDepartamento = this.$store.state.login.currentDepartamentId;
 
