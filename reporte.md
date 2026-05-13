@@ -10,6 +10,8 @@
 | Datos de prueba inflaban la eficiencia (órdenes con fechas absurdas de 8 días). | Registros `_id 5762, 6074` (orden 3597) corregidos a sesión realista de 10 min el 20-ene. `_id 8800` (orden 4495) corregido a 2 min el mismo día de inicio (2026-05-07). Resultado: ~105% eficiencia (correcto). |
 | Página mostraba "No tienes tareas asignadas" al terminar todas las órdenes aunque hubiera reposiciones. | `ordenesSize` ahora suma `ordenes + reposiciones + vinculadas`. `fetchEfficiency` usa reposiciones/vinculadas como fallback antes de `unpaid-orders`. Commit `61a2697`. |
 | Gráfico "Eficiencia de tiempo" no se mostraba para Impresión (dept 1); reemplazar "Pagos semanales" por este gráfico. | Backend: bloque de Impresión en `dashboard-stats` ejecuta el mismo SQL de eficiencia que Producción (antes devolvía 0/0). Frontend: gráfico de Eficiencia visible para todos excepto Diseño (dept 7); Pagos oculto para Impresión (dept 1). |
+| Gráfico de inicio mostraba 0% aunque las barras del dashboard mostraban 105%. | `dashboard-stats` usaba raw TIMESTAMPDIFF sin horario laboral y filtraba por `id_departamento` del store (16) que no coincide con el dept guardado en los registros (1). `DashboardEmpleado` ahora usa el mismo flujo exacto: `ordenes-asignadas/v2` + `terminadas-hoy` → `POST /reports/manufacturing-time` → `calcularTiempoTrabajoIndividual` (mixin-time). Commit `e226689`. |
+| Label del radialBar mostraba 100% aunque la eficiencia real era 105%. | `EfficiencyChart`: el formatter de ApexCharts recibía el valor de la serie (limitado a 100 para el arco). Corregido capturando `efficiencyPercentage` via closure en la computed `chartOptions`. Commit `d18e96b`. |
 
 ---
 
