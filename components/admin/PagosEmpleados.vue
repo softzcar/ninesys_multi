@@ -56,15 +56,24 @@
 
           <template #cell(pago)="data">
             <div class="floatme" style="width: 100%">
+              <!-- Salario ya pagado este período (salario configurado, monto calculado = 0) -->
               <span
                 v-if="data.item.pago === '0.00' && data.item.monto_salario === 0 && data.item.salario_tipo !== 'Comisión' && data.item.salario_monto_base > 0"
                 class="text-success font-weight-bold">
                 <small><b-icon icon="check-circle"></b-icon> Salario Pagado</small>
               </span>
+              <!-- Sin salario configurado -->
+              <span
+                v-else-if="data.item.pago === '0.00' && data.item.salario_monto_base === 0 && data.item.salario_tipo !== 'Comisión'"
+                class="text-warning">
+                <small><b-icon icon="exclamation-circle"></b-icon> Sin salario configurado</small>
+              </span>
+              <!-- Sin comisiones pendientes -->
               <span v-else-if="data.item.pago === '0.00' && data.item.salario_tipo === 'Comisión'" class="text-muted">
                 <small>Sin comisiones</small>
               </span>
-              <span v-else> <strong>${{ data.item.pago }}</strong></span>
+              <!-- Monto a pagar -->
+              <span v-else><strong>${{ data.item.pago }}</strong></span>
             </div>
           </template>
         </b-table>
@@ -244,17 +253,7 @@ export default {
         return acc;
       }, []);
 
-      return result
-        .filter(item => {
-          // Ocultar empleados donde no hay nada que pagar Y el salario no está configurado.
-          // Evita mostrar "Salario Pagado" para empleados con salario_monto=0 (sin configurar).
-          const sinPago = parseFloat(item.pago) === 0;
-          const sinSalarioConfigurado = item.salario_monto_base === 0;
-          const sinComision = item.monto_comision === 0;
-          if (sinPago && sinSalarioConfigurado && sinComision) return false;
-          return true;
-        })
-        .sort((a, b) => {
+      return result.sort((a, b) => {
           const nameA = a.nombre || "";
           const nameB = b.nombre || "";
           return nameA.localeCompare(nameB);
