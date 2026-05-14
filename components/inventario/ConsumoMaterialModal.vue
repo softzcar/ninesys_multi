@@ -18,49 +18,55 @@
                 <!-- Leyenda sobre Material Estimado -->
                 <b-alert show variant="warning" class="mb-3 small">
                     <b-icon icon="info-circle-fill" class="mr-2"></b-icon>
-                    <strong>Nota importante:</strong> Si el <strong>Material Estimado</strong> se muestra en <span class="text-danger font-weight-bold">0.00</span> rojo, significa que no se ha configurado un consumo esperado de este material para ciertos productos de la orden.
+                    <strong>Nota importante:</strong> Si el <strong>Material Estimado</strong> se muestra en
+                    <span class="text-danger font-weight-bold">0.00</span> rojo, significa que no se ha configurado
+                    un consumo esperado de este material para ciertos productos de la orden.
                 </b-alert>
 
                 <!-- Tabla de consumo -->
                 <div v-if="!loading && consumoData.length > 0">
                     <b-table striped hover responsive small :items="consumoData" :fields="fields" :per-page="perPage"
                         :current-page="currentPage" :tbody-tr-class="rowClass">
+
                         <!-- Columna ID Orden con linkSearch -->
                         <template #cell(id_orden)="data">
                             <link-search :id="data.item.id_orden" />
                         </template>
 
-                        <!-- Columna Material Estimado (Metros) -->
-                        <template #cell(material_estimado_metros)="data">
-                            <div v-if="(data.item.tipo_insumo || '').toLowerCase() === 'tela'">
-                                <span :class="{'text-danger font-weight-bold': !data.item.material_estimado_metros || data.item.material_estimado_metros <= 0}">
-                                    {{ data.item.material_estimado_metros }}
-                                </span>
-                            </div>
-                            <div v-else class="text-muted text-center">-</div>
-                        </template>
+                        <!-- ===== COLUMNAS EXCLUSIVAS DE TELA ===== -->
 
-                        <!-- Columna Material Estimado (Kilos) -->
-                        <template #cell(material_estimado)="data">
-                            <span :class="{'text-danger font-weight-bold': !data.item.material_estimado || data.item.material_estimado <= 0}">
-                                {{ data.item.material_estimado ? Number(data.item.material_estimado).toFixed(2) : '0.00' }}
+                        <!-- Estimado (Metros) -->
+                        <template #cell(material_estimado_metros)="data">
+                            <span :class="{'text-danger font-weight-bold': !parseFloat(data.item.material_estimado_metros)}">
+                                {{ data.item.material_estimado_metros }}
                             </span>
                         </template>
 
-                        <!-- Columna Material Consumido (Metros) -->
-                        <template #cell(material_consumido_metros)="data">
-                            <div v-if="(data.item.tipo_insumo || '').toLowerCase() === 'tela'">
-                                <span v-if="data.item.editing" class="text-info font-weight-bold">
-                                    {{ (parseFloat(data.item.editedValue || 0) * parseFloat(data.item.rendimiento || 0)).toFixed(2) }}
-                                </span>
-                                <span v-else>
-                                    {{ data.item.material_consumido_metros }}
-                                </span>
-                            </div>
-                            <div v-else class="text-muted text-center">-</div>
+                        <!-- Estimado (Kilos) -->
+                        <template #cell(material_estimado_kilos)="data">
+                            <span :class="{'text-danger font-weight-bold': !parseFloat(data.item.material_estimado_kilos)}">
+                                {{ data.item.material_estimado_kilos }}
+                            </span>
                         </template>
 
-                        <!-- Columna Material Consumido (editable) -->
+                        <!-- Consumido (Metros) -->
+                        <template #cell(material_consumido_metros)="data">
+                            <span v-if="data.item.editing" class="text-info font-weight-bold">
+                                {{ (parseFloat(data.item.editedValue || 0) * parseFloat(data.item.rendimiento || 0)).toFixed(2) }}
+                            </span>
+                            <span v-else>{{ data.item.material_consumido_metros }}</span>
+                        </template>
+
+                        <!-- ===== COLUMNAS EXCLUSIVAS DE OTROS INSUMOS ===== -->
+
+                        <!-- Estimado (unidad dinámica: Mts, ML, etc.) -->
+                        <template #cell(material_estimado_unidad)="data">
+                            <span :class="{'text-danger font-weight-bold': !parseFloat(data.item.material_estimado_unidad)}">
+                                {{ data.item.material_estimado_unidad }}
+                            </span>
+                        </template>
+
+                        <!-- ===== COLUMNA COMÚN: Consumido (editable) ===== -->
                         <template #cell(material_consumido)="data">
                             <div v-if="data.item.editing">
                                 <b-form-input v-model.number="data.item.editedValue" type="number" step="0.01" size="sm"
@@ -150,51 +156,51 @@ export default {
             consumoData: [],
             currentPage: 1,
             perPage: 10,
-            fields: [
-                { key: "id_orden", label: "ID Orden", sortable: true },
-                { key: "cliente_nombre", label: "Cliente", sortable: true },
-                { key: "departamento", label: "Departamento", sortable: true },
-                { key: "nombre_empleado", label: "Empleado", sortable: true },
-                {
-                    key: "material_estimado_metros",
-                    label: "Material Estimado (Metros)",
-                    sortable: true,
-                    class: "text-right"
-                },
-                {
-                    key: "material_estimado",
-                    label: "Material Estimado (Kilos)",
-                    sortable: true,
-                    class: "text-right"
-                },
-                {
-                    key: "material_consumido_metros",
-                    label: "Material Consumido (Metros)",
-                    sortable: true,
-                    class: "text-right"
-                },
-                {
-                    key: "material_consumido",
-                    label: "Material Consumido (Kilos)",
-                    sortable: true,
-                    class: "text-right"
-                },
-                {
-                    key: "valor_inicial",
-                    label: "Valor Inicial",
-                    sortable: true,
-                    class: "text-right"
-                },
-                {
-                    key: "valor_final",
-                    label: "Valor Final",
-                    sortable: true,
-                    class: "text-right"
-                },
-                { key: "fecha_del_consumo", label: "Fecha", sortable: true },
-                { key: "acciones", label: "Acciones" },
-            ],
         };
+    },
+
+    computed: {
+        esTela() {
+            if (!this.consumoData.length) return false;
+            return (this.consumoData[0].tipo_insumo || "").toLowerCase() === "tela";
+        },
+
+        unidadInsumo() {
+            if (!this.consumoData.length) return "";
+            return this.consumoData[0].unidad || "";
+        },
+
+        fields() {
+            const base = [
+                { key: "id_orden",        label: "ID Orden",     sortable: true },
+                { key: "cliente_nombre",  label: "Cliente",      sortable: true },
+                { key: "departamento",    label: "Departamento", sortable: true },
+                { key: "nombre_empleado", label: "Empleado",     sortable: true },
+            ];
+
+            if (this.esTela) {
+                base.push(
+                    { key: "material_estimado_metros", label: "Estimado (Metros)", sortable: true, class: "text-right" },
+                    { key: "material_estimado_kilos",  label: "Estimado (Kilos)",  sortable: true, class: "text-right" },
+                    { key: "material_consumido_metros", label: "Consumido (Metros)", sortable: true, class: "text-right" },
+                    { key: "material_consumido",        label: "Consumido (Kilos)", sortable: true, class: "text-right" },
+                );
+            } else {
+                base.push(
+                    { key: "material_estimado_unidad", label: `Estimado (${this.unidadInsumo})`,  sortable: true, class: "text-right" },
+                    { key: "material_consumido",       label: `Consumido (${this.unidadInsumo})`, sortable: true, class: "text-right" },
+                );
+            }
+
+            base.push(
+                { key: "valor_inicial",    label: "Valor Inicial", sortable: true, class: "text-right" },
+                { key: "valor_final",      label: "Valor Final",   sortable: true, class: "text-right" },
+                { key: "fecha_del_consumo", label: "Fecha",        sortable: true },
+                { key: "acciones",         label: "Acciones" },
+            );
+
+            return base;
+        },
     },
 
     methods: {
@@ -220,16 +226,35 @@ export default {
 
                 if (response.data.success) {
                     this.consumoData = response.data.data.map((item) => {
-                        const kilos = parseFloat(item.material_consumido) || 0;
-                        const kilos_estimado = parseFloat(item.material_estimado) || 0;
                         const rendimiento = parseFloat(item.rendimiento) || 0;
-                        const metros = (kilos * rendimiento).toFixed(2);
-                        const metros_estimado = (kilos_estimado * rendimiento).toFixed(2);
+                        const unidadNorm = (item.unidad || "").toLowerCase();
+                        const esKilos = unidadNorm === "kg" || unidadNorm === "kilos" || unidadNorm === "kilo";
+                        const esTela = (item.tipo_insumo || "").toLowerCase() === "tela";
+                        const estimadoBase = parseFloat(item.material_estimado) || 0;
+
+                        let extra = {};
+
+                        if (esTela) {
+                            const consumidoBase = parseFloat(item.material_consumido) || 0;
+                            extra = {
+                                material_estimado_metros: estimadoBase.toFixed(2),
+                                material_estimado_kilos: (esKilos && rendimiento > 0)
+                                    ? (estimadoBase / rendimiento).toFixed(2)
+                                    : estimadoBase.toFixed(2),
+                                material_consumido_metros: (esKilos && rendimiento > 0)
+                                    ? (consumidoBase * rendimiento).toFixed(2)
+                                    : consumidoBase.toFixed(2),
+                            };
+                        } else {
+                            // Para otros insumos, el estimado ya viene en la unidad nativa del insumo
+                            extra = {
+                                material_estimado_unidad: estimadoBase.toFixed(2),
+                            };
+                        }
 
                         return {
                             ...item,
-                            material_consumido_metros: metros,
-                            material_estimado_metros: metros_estimado,
+                            ...extra,
                             editing: false,
                             editedValue: item.material_consumido,
                             originalValue: item.material_consumido,
@@ -260,15 +285,15 @@ export default {
         enableEdit(item) {
             item.editing = true;
             item.editedValue = item.material_consumido;
-            item.observaciones = ''; // Inicializar observaciones vacías
-            this.$set(item, '_showDetails', true); // Mostrar row details
+            item.observaciones = '';
+            this.$set(item, '_showDetails', true);
         },
 
         cancelEdit(item) {
             item.editing = false;
             item.editedValue = item.originalValue;
             item.observaciones = '';
-            this.$set(item, '_showDetails', false); // Ocultar row details
+            this.$set(item, '_showDetails', false);
         },
 
         validateMaterialConsumido(value) {
@@ -288,12 +313,11 @@ export default {
                 );
 
                 if (response.data.success) {
-                    // Actualizar el valor en la tabla
                     item.material_consumido = item.editedValue;
                     item.originalValue = item.editedValue;
                     item.editing = false;
                     item.observaciones = '';
-                    this.$set(item, '_showDetails', false); // Ocultar row details
+                    this.$set(item, '_showDetails', false);
 
                     this.$bvToast.toast('Material consumido actualizado correctamente', {
                         title: 'Éxito',
@@ -301,11 +325,7 @@ export default {
                         solid: true,
                     });
 
-
-                    // Recargar datos para mostrar cambios
                     await this.fetchConsumoData();
-
-                    // Notificar al componente padre para recargar la tabla principal
                     this.$emit('reload');
                 } else {
                     this.$bvToast.toast(response.data.message || 'Error al guardar', {
