@@ -57,7 +57,7 @@
           <template #cell(pago)="data">
             <div class="floatme" style="width: 100%">
               <span
-                v-if="data.item.pago === '0.00' && data.item.monto_salario === 0 && data.item.salario_tipo !== 'Comisión'"
+                v-if="data.item.pago === '0.00' && data.item.monto_salario === 0 && data.item.salario_tipo !== 'Comisión' && data.item.salario_monto_base > 0"
                 class="text-success font-weight-bold">
                 <small><b-icon icon="check-circle"></b-icon> Salario Pagado</small>
               </span>
@@ -215,6 +215,7 @@ export default {
             salario_tipo: tipoSalario,
             pago: totalPago,
             monto_salario: tipoSalario !== 'Comisión' ? salarioPago : 0,
+            salario_monto_base: parseFloat(empleado?.salario_monto || 0),
             monto_comision: comisionParaRegistro,
             id_pagos: curr.id_pago ? [curr.id_pago] : [],
             fecha_pago: curr.ultima_fecha_pago || empleado?.ultima_fecha_pago || null,
@@ -243,18 +244,28 @@ export default {
         return acc;
       }, []);
 
-      return result.sort((a, b) => {
-        const nameA = a.nombre || "";
-        const nameB = b.nombre || "";
-        return nameA.localeCompare(nameB);
-      }).map(item => {
-        // Solo mostrar la fecha de pago si el empleado está totalmente liquidado (pago == 0)
-        if (parseFloat(item.pago) > 0) {
-          item.fecha_pago = null;
-        }
-        item.pago = parseFloat(item.pago).toFixed(2);
-        return item;
-      });
+      return result
+        .filter(item => {
+          // Ocultar empleados donde no hay nada que pagar Y el salario no está configurado.
+          // Evita mostrar "Salario Pagado" para empleados con salario_monto=0 (sin configurar).
+          const sinPago = parseFloat(item.pago) === 0;
+          const sinSalarioConfigurado = item.salario_monto_base === 0;
+          const sinComision = item.monto_comision === 0;
+          if (sinPago && sinSalarioConfigurado && sinComision) return false;
+          return true;
+        })
+        .sort((a, b) => {
+          const nameA = a.nombre || "";
+          const nameB = b.nombre || "";
+          return nameA.localeCompare(nameB);
+        }).map(item => {
+          // Solo mostrar la fecha de pago si el empleado está totalmente liquidado (pago == 0)
+          if (parseFloat(item.pago) > 0) {
+            item.fecha_pago = null;
+          }
+          item.pago = parseFloat(item.pago).toFixed(2);
+          return item;
+        });
     },
 
     departamentosUnicos() {
