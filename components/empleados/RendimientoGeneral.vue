@@ -143,13 +143,16 @@ export default {
           // 1. Calcular Eficiencia (Tareas Terminadas)
           if (val.totalProjectedTerminadas > 0 && val.totalRealTerminadas > 0) {
             const eficiencia = (val.totalProjectedTerminadas / val.totalRealTerminadas) * 100;
+            const MAX_EFI = 500;
             const eficienciaRedondeada = Math.round(eficiencia);
-            eficienciaTitulo = `Eficiencia: ${eficienciaRedondeada}%`;
-            
+            const esCapped = eficienciaRedondeada > MAX_EFI;
+            const eficienciaDisplay = esCapped ? `>${MAX_EFI}` : eficienciaRedondeada;
+            eficienciaTitulo = `Eficiencia: ${eficienciaDisplay}%`;
+
             if (eficiencia >= 100) vTerm = "success";
             else if (eficiencia >= 80) vTerm = "warning";
             else vTerm = "danger";
-            
+
             this.variantTerminadas = vTerm;
           }
 
@@ -203,6 +206,8 @@ export default {
             } else {
               this.variantTerminadas = "danger";
             }
+            // Si la eficiencia es absurdamente alta (ej. datos de prueba), forzar success
+            if (eficiencia > 500) this.variantTerminadas = "success";
           }
 
           // Calcular variant para TAREAS EN CURSO (progreso) - para la barra específica
@@ -362,6 +367,9 @@ export default {
       if (!seconds) return '0s';
       const h = Math.floor(seconds / 3600);
       const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      if (h === 0 && m === 0) return `${s}s`;
+      if (h === 0) return `${m}m ${s}s`;
       return `${h}h ${m}m`;
     },
 
