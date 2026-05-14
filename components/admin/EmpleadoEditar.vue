@@ -159,6 +159,7 @@
 export default {
     data() {
         return {
+            isSettingForm: false,
             form: {
                 // Datos Básicos
                 username: "",
@@ -557,10 +558,11 @@ export default {
         },
 
         setForm(item) {
+            this.isSettingForm = true;
             const myDeps = item.departamentos ? item.departamentos.map((el) => {
                 return el.id
             }) : [];
-            
+
             this.form = {
                 // Datos Básicos
                 username: item.username || "",
@@ -584,7 +586,8 @@ export default {
 
                 // Carga Familiar
                 dependientes: item.carga_familiar ? [...item.carga_familiar] : [],
-            }
+            };
+            this.$nextTick(() => { this.isSettingForm = false; });
         },
     },
 
@@ -598,6 +601,7 @@ export default {
             deep: true
         },
         'form.departamentos': function () {
+            if (this.isSettingForm) return;
             if (this.esComisionVariableDeshabilitada && this.form.comsionTipo === 'variable') {
                  this.form.comsionTipo = null;
                  this.$fire({
