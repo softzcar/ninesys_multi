@@ -70,30 +70,30 @@
             responsive
             foot-clone
           >
-            <template #cell(horas_laboradas)="data">
-              {{ data.item.horas_laboradas.toFixed(2) }} hrs
+            <template #cell(horas_trabajadas)="data">
+              {{ data.item.horas_trabajadas.toFixed(2) }} h
             </template>
             <template #cell(costo_por_hora)="data">
-              $ {{ data.item.costo_por_hora.toFixed(2) }}
+              $ {{ data.item.costo_por_hora.toFixed(4) }}
             </template>
-            <template #cell(subtotal)="data">
-              <strong>$ {{ data.item.subtotal.toFixed(2) }}</strong>
+            <template #cell(salario_proporcional)="data">
+              <strong>$ {{ data.item.salario_proporcional.toFixed(2) }}</strong>
             </template>
 
             <template #foot(nombre_empleado)>
               <strong>Subtotal:</strong>
             </template>
-            <template #foot(horas_laboradas)>
-              <strong>{{ totalHoras.toFixed(2) }} hrs</strong>
+            <template #foot(horas_trabajadas)>
+              <span>&nbsp;</span>
             </template>
             <template #foot(costo_por_hora)>
               <span>&nbsp;</span>
             </template>
-            <template #foot(subtotal)>
+            <template #foot(salario_proporcional)>
               <strong class="text-primary">$ {{ totalSalarios.toFixed(2) }}</strong>
             </template>
           </b-table>
-          <p v-else>No se encontraron detalles de salarios para esta orden.</p>
+          <p v-else>No se encontraron salarios proporcionales para esta orden.</p>
 
           <div class="mt-4 p-3 bg-light border rounded">
             <div class="d-flex justify-content-between align-items-center">
@@ -131,22 +131,6 @@ export default {
       required: true,
       default: 0,
     },
-    empleadosAsignados: {
-      type: [String, Number],
-      required: true,
-    },
-    horaEmpleadosPrecios: {
-      type: Array,
-      required: true,
-    },
-    horaEmpleadosTiempos: {
-      type: Array,
-      required: true,
-    },
-    horarioLaboral: {
-      type: Object,
-      required: true,
-    },
   },
   data() {
     return {
@@ -164,9 +148,9 @@ export default {
       ],
       fieldsSalarios: [
         { key: "nombre_empleado", label: "Empleado" },
-        { key: "horas_laboradas", label: "Horas Laboradas" },
-        { key: "costo_por_hora", label: "Costo/Hora" },
-        { key: "subtotal", label: "Subtotal" },
+        { key: "horas_trabajadas", label: "Horas", class: "text-right" },
+        { key: "costo_por_hora", label: "Costo/Hora", class: "text-right" },
+        { key: "salario_proporcional", label: "Salario Proporcional", class: "text-right" },
       ],
     };
   },
@@ -174,11 +158,8 @@ export default {
     modalId() {
       return `modal-mano-obra-salarios-${this.id_orden}`;
     },
-    totalHoras() {
-      return this.detallesSalarios.reduce((sum, item) => sum + (Number(item.horas_laboradas) || 0), 0);
-    },
     totalSalarios() {
-      return this.detallesSalarios.reduce((sum, item) => sum + (Number(item.subtotal) || 0), 0);
+      return this.detallesSalarios.reduce((sum, item) => sum + (Number(item.salario_proporcional) || 0), 0);
     },
     sumaComisiones() {
       return this.manoDeObraData.reduce((sum, item) => sum + (item.comision_pura || 0), 0);
@@ -201,15 +182,14 @@ export default {
       try {
         const url = `${this.$config.API}/reportes/mano-obra-por-orden/${this.id_orden}`;
         const { data } = await this.$axios.get(url);
-        
-        this.manoDeObraData = Array.isArray(data) ? data.map(item => {
+
+        const pagos = Array.isArray(data.pagos) ? data.pagos : (Array.isArray(data) ? data : []);
+        this.manoDeObraData = pagos.map(item => {
           const bonos = Number(item.total_bonos || 0);
           const descuentos = Number(item.total_descuentos || 0);
           const salarioPagado = Number(item.total_salario_pagado || 0);
           const montoPago = Number(item.monto_pago || 0);
-
           const comisionPura = montoPago - bonos + descuentos - salarioPagado;
-
           return {
             ...item,
             total_bonos: bonos,
@@ -217,101 +197,13 @@ export default {
             total_salario_pagado: salarioPagado,
             monto_pago: montoPago,
             comision_pura: comisionPura,
-            subtotal_variable: comisionPura + bonos - descuentos
+            subtotal_variable: comisionPura + bonos - descuentos,
           };
-        }) : [];
+        });
+
+        this.detallesSalarios = Array.isArray(data.salarios) ? data.salarios : [];
       } catch (error) {
         this.manoDeObraData = [];
-      }
-    },
-    calcularDetallesSalarios() {
-      try {
-        const ordenId = Number(this.id_orden);
-        let empleadosIds = [];
-        if (this.empleadosAsignados) {
-          if (typeof this.empleadosAsignados === "number") {
-            empleadosIds = [this.empleadosAsignados];
-          } else if (typeof this.empleadosAsignados === "string") {
-            empleadosIds = this.empleadosAsignados
-              .split(",")
-              .map((id) => parseInt(id.trim()));
-          }
-        }
-
-        const nombreEmpleadoMap = {};
-        this.horaEmpleadosPrecios.forEach((emp) => {
-          const idEmp = Number(emp.id_usuario ?? emp.id_empleado);
-          nombreEmpleadoMap[idEmp] = emp.nombre;
-        });
-
-        const empleadosSalario = this.horaEmpleadosPrecios.filter(
-          (empleado) =>
-            empleadosIds.includes(Number(empleado.id_usuario ?? empleado.id_empleado)) &&
-            empleado.salario_tipo?.includes("Salario")
-        );
-
-        const costoPorHoraMap = {};
-        empleadosSalario.forEach((empleado) => {
-          const idEmp = Number(empleado.id_usuario ?? empleado.id_empleado);
-          costoPorHoraMap[idEmp] = {
-            costo_por_hora: empleado.costo_por_hora,
-          };
-        });
-
-        const tareasFiltradas = this.horaEmpleadosTiempos.filter(
-          (tarea) =>
-            Number(tarea.id_orden) === ordenId &&
-            empleadosIds.includes(Number(tarea.id_empleado))
-        );
-
-        const empleadosAgrupados = {};
-        tareasFiltradas.forEach((tarea) => {
-          const idEmpleado = tarea.id_empleado;
-          if (!empleadosAgrupados[idEmpleado]) {
-            empleadosAgrupados[idEmpleado] = {
-              id_empleado: idEmpleado,
-              nombre_empleado:
-                nombreEmpleadoMap[Number(idEmpleado)] || `Empleado ${idEmpleado}`,
-              costo_por_hora: costoPorHoraMap[Number(idEmpleado)]?.costo_por_hora || 0,
-              horas_totales: 0,
-            };
-          }
-
-          const horasTarea = this.calcularHorasLaboradasReales(
-            tarea.fecha_inicio,
-            tarea.fecha_terminado,
-            this.horarioLaboral
-          );
-
-          empleadosAgrupados[idEmpleado].horas_totales += horasTarea;
-        });
-
-        this.manoDeObraData.forEach(pago => {
-          const idEmp = Number(pago.id_empleado);
-          const salarioPagado = Number(pago.total_salario_pagado || 0);
-          
-          if (salarioPagado > 0 && !empleadosAgrupados[idEmp]) {
-            empleadosAgrupados[idEmp] = {
-              id_empleado: idEmp,
-              nombre_empleado: pago.nombre_empleado,
-              costo_por_hora: 0,
-              horas_totales: 0,
-              salario_pagado_fijo: salarioPagado
-            };
-          }
-        });
-
-        this.detallesSalarios = Object.values(empleadosAgrupados).map(
-          (empleado) => ({
-            nombre_empleado: empleado.nombre_empleado,
-            horas_laboradas: empleado.horas_totales,
-            costo_por_hora: empleado.costo_por_hora,
-            subtotal: empleado.horas_totales > 0 
-              ? (empleado.horas_totales * empleado.costo_por_hora) 
-              : (empleado.salario_pagado_fijo || 0),
-          })
-        );
-      } catch (error) {
         this.detallesSalarios = [];
       }
     },
@@ -320,18 +212,13 @@ export default {
       this.isLoading = true;
       try {
         await this.getManoDeObra();
-        this.calcularDetallesSalarios();
       } finally {
         this.isLoading = false;
       }
     },
   },
   mounted() {
-    // No es necesario cargar al montar si solo queremos los datos al abrir el modal,
-    // pero lo mantenemos por coherencia con la carga de detalles
-    this.getManoDeObra().then(() => {
-      this.calcularDetallesSalarios();
-    });
+    this.getManoDeObra();
   },
 };
 </script>
