@@ -114,9 +114,11 @@
       </b-form>
 
       <template #modal-footer="{ ok, cancel }">
-        <pagos-vendedor-resumen :item="empleado" :detalles="detalles" :tipo-empleado="tipoEmpleado" :showbutton="false"
-          :bonos="datosPago.bonos" :descuentos="datosPago.descuentos" :salario="salarioBase"
-          :comision="comisionEfectiva" />
+        <pagos-reporte-empleado
+          :id-empleado="empleado.id_empleado"
+          :nombre-empleado="empleado.nombre"
+          :pendiente="true"
+        />
         <b-button variant="secondary" @click="cancel">Cancelar</b-button>
         <b-button variant="primary" @click="ok" :disabled="parseFloat(totalFinal) <= 0">
           Confirmar y Procesar Pago
@@ -194,14 +196,14 @@
 <script>
 import PagosBonoForm from './PagosBonoForm.vue'
 import PagosDescuentoForm from './PagosDescuentoForm.vue'
-import PagosVendedorResumen from './PagosVendedorResumen.vue'
+import PagosReporteEmpleado from './PagosReporteEmpleado.vue'
 
 export default {
   name: 'PagosConfirmacionModal',
   components: {
     PagosBonoForm,
     PagosDescuentoForm,
-    PagosVendedorResumen
+    PagosReporteEmpleado
   },
   data() {
     return {

@@ -220,7 +220,9 @@ export default {
                     });
                 }
 
-                const totalProjectedTerminadas = resumen.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+                const totalProjectedTerminadas = resumen
+                    .filter(item => item.tarea_terminada == 1)
+                    .reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
 
                 if (totalProjectedTerminadas > 0 || totalRealTerminadas > 0) {
                     this.stats.eficiencia = {

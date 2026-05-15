@@ -1,5 +1,16 @@
 # Reporte Frontend
 
+## Jueves, 15 de mayo de 2026
+
+| Solicitud (Resumen) | Logro Conseguido |
+| :--- | :--- |
+| Empleado de Impresión no aparecía en planilla de pagos en empresas nuevas. | `manufacturing.php`: 7 INSERTs/SELECTs de `pagos` usaban `id_reposicion = 0` → FK violation (tabla `reposiciones` vacía en empresas nuevas). Corregido a `NULL` / `IS NULL`. Commits `19b7ba5`, `ebc1be5`. Desplegado a Hostinger. |
+| Subtotal de comisiones mostraba `$ NaN` en modal de costos de mano de obra. | `ReporteCostosProduccionLabor.vue`: `sumaSalariosPagados` referenciada en el footer nunca fue definida como computed. Reemplazado por `totalVariable` (ya tiene la resta incluida). Commit `7b43dfd`. |
+| Reemplazar botón "Ver Detalles" del modal "Confirmar Pago" por el ícono de reporte de la tabla. | `PagosConfirmacionModal.vue`: sustituido `PagosVendedorResumen` por `PagosReporteEmpleado` en el footer. El ícono 📄 abre el mismo reporte detallado que aparece en la tabla principal. |
+| Eficiencia Tareas Completadas se inflaba ~100% por cada nueva orden asignada. | `SseOrdenesAsignadasV4.vue` y `DashboardEmpleado.vue`: `totalProjectedTerminadas` ahora filtra `resumen` por `tarea_terminada == 1` antes de acumular, ignorando órdenes nuevas no iniciadas. `totalProjectedEnCurso` filtra por `tarea_terminada != 1`. |
+
+---
+
 ## Miércoles, 13 de mayo de 2026
 
 | Solicitud (Resumen) | Logro Conseguido |

@@ -1917,8 +1917,13 @@ export default {
           }
 
           // Los tiempos proyectados (estimados) los seguimos tomando del resumen del backend
-          const totalProjectedTerminadas = resumen.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
-          const totalProjectedEnCurso = resumen.reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
+          // Filtramos por tarea_terminada=1 para no inflar el proyectado con órdenes no iniciadas
+          const totalProjectedTerminadas = resumen
+            .filter(item => item.tarea_terminada == 1)
+            .reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+          const totalProjectedEnCurso = resumen
+            .filter(item => item.tarea_terminada != 1)
+            .reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
 
           this.reporteData = {
             totalRealTerminadas,
