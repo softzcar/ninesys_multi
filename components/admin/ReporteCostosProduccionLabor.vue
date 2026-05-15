@@ -32,7 +32,7 @@
               <span class="text-danger">- $ {{ (data.item.total_descuentos || 0).toFixed(2) }}</span>
             </template>
             <template #cell(subtotal_variable)="data">
-              <strong>$ {{ (data.item.subtotal_variable || 0).toFixed(2) }}</strong>
+              <strong>$ {{ (data.item.monto_pago - data.item.total_salario_pagado || 0).toFixed(2) }}</strong>
             </template>
 
             <!-- Footer para Comisiones -->
