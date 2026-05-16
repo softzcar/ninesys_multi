@@ -83,15 +83,12 @@
         
         <b-row class="mt-4">
              <b-col class="text-right">
-                <admin-pagos-vendedor-resumen
-                  :item="empleado"
-                  :detalles="detalles"
-                  :tipo-empleado="'Empleado'"
-                  :showbutton="true"
-                  :bonos="bonos"
-                  :descuentos="descuentos"
-                  :salario="salario"
-                  :comision="comision"
+                <pagos-reporte-empleado
+                  :id-empleado="empleado.id_empleado"
+                  :nombre-empleado="empleado.nombre"
+                  :fecha-inicio="fechaInicio"
+                  :fecha-fin="fechaFin"
+                  :button-size="null"
                 />
              </b-col>
         </b-row>
@@ -102,13 +99,8 @@
 </template>
 
 <script>
-// import PagosVendedorResumen from './PagosVendedorResumen.vue'
-
 export default {
   name: 'PagosHistoricoModal',
-  /* components: {
-    PagosVendedorResumen
-  }, */
   props: {
     empleado: {
       type: Object,
@@ -133,6 +125,14 @@ export default {
     descuentos: {
       type: Array,
       default: () => []
+    },
+    fechaInicio: {
+      type: String,
+      default: ''
+    },
+    fechaFin: {
+      type: String,
+      default: ''
     }
   },
 
@@ -152,7 +152,7 @@ export default {
         return s + c + b - d; 
     },
     modalId() {
-        return `modal-historico-${this.empleado.id_empleado || Math.random().toString(36).substring(2, 7)}`
+        return `modal-historico-${this.empleado.id_empleado}-${this._uid}`
     }
   },
 

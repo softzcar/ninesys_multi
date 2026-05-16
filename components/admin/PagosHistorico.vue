@@ -38,7 +38,9 @@
                 :detalles="[...filterVendedor(data.item.id_empleado), ...filterEmpleado(data.item.id_empleado), ...filterDesigner(data.item.id_empleado)]"
                 :salario="filterSalario(data.item.id_empleado)" :bonos="filterBonos(data.item.id_empleado)"
                 :descuentos="filterDescuentos(data.item.id_empleado)"
-                :comision="calculateComisionReal(parseFloat(data.item.pago), data.item.id_empleado)" />
+                :comision="calculateComisionReal(parseFloat(data.item.pago), data.item.id_empleado)"
+                :fecha-inicio="semanaInicio"
+                :fecha-fin="semanaFin" />
             </template>
 
             <template #cell(reporte)="data">
