@@ -431,7 +431,9 @@ export default {
       try {
         const [timeResponse, inputResponse] = await Promise.all([
           this.$axios.get(`${this.$config.API}/reports/manufacturing-time`, { params: { id_orden: this.id_orden } }),
-          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${this.id_orden}`)
+          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${this.id_orden}`, {
+            params: { id_departamento: this.$store.state.login.currentDepartamentId }
+          })
         ]);
 
         // Process Time Report
