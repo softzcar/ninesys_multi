@@ -118,7 +118,7 @@
           :id-empleado="empleado.id_empleado"
           :nombre-empleado="empleado.nombre"
           :pendiente="true"
-          button-size="md"
+          :button-size="null"
         />
         <b-button variant="secondary" @click="cancel">Cancelar</b-button>
         <b-button variant="primary" @click="ok" :disabled="parseFloat(totalFinal) <= 0">
