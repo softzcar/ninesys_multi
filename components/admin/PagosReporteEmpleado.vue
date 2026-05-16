@@ -2,7 +2,7 @@
   <span>
     <b-button
       variant="outline-secondary"
-      :size="pendiente ? '' : 'sm'"
+      :size="pendiente ? undefined : 'sm'"
       title="Ver reporte detallado de pago"
       class="ml-1 btn-reporte-empleado"
       @click="abrirReporte"
