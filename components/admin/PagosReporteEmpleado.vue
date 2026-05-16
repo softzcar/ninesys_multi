@@ -2,7 +2,7 @@
   <span>
     <b-button
       variant="outline-secondary"
-      :size="pendiente ? undefined : 'sm'"
+      :size="buttonSize"
       title="Ver reporte detallado de pago"
       class="ml-1 btn-reporte-empleado"
       @click="abrirReporte"
@@ -160,6 +160,7 @@ export default {
     idEmpleado: { type: [Number, String], required: true },
     nombreEmpleado: { type: String, default: 'Empleado' },
     pendiente: { type: Boolean, default: false },
+    buttonSize: { type: String, default: 'sm' },
     fechaInicio: { type: String, default: '' },
     fechaFin:   { type: String, default: '' },
   },
