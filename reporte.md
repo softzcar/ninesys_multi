@@ -1,5 +1,17 @@
 # Reporte Frontend
 
+## Viernes, 16 de mayo de 2026
+
+| Solicitud (Resumen) | Logro Conseguido |
+| :--- | :--- |
+| Sección "Salarios" del modal Mano de Obra debe mostrar salario proporcional al tiempo trabajado en la orden. | `reports.php`: endpoint `/reportes/mano-obra-por-orden` refactorizado; retorna `{ pagos, salarios }`. `salarios` calcula `costo_por_hora × horas_trabajadas` desde `lotes_detalles_empleados_asignados`, solo para tipo Salario/Salario+Comisión. `ReporteCostosProduccionLabor.vue`: tabla Salarios ahora muestra Horas / Costo/Hora / Salario Proporcional. Commits `e8d8cce` (backend), `e13b542` (frontend). |
+| Departamento Estampado veía materiales de Impresión en el typeahead y botones de tipo de insumo. | `SseOrdenesAsignadasModalExtra.vue`: eliminada lógica de "departamentos hermanos" en `dataInsumosFiltrado`, `dataSearchInsumo` y `selectOptions`. Cada departamento ve solo insumos con su `id_departamento`. Solo se conserva inversión histórica `Impresión → "Telas"` en inventario. Commit `62128d2`. |
+| Material Estimado en Estampado mostraba "Kg" para telas en lugar de "Mt". | `SseOrdenesAsignadasModalExtra.vue`: reemplazado check `tipo_insumo === 'tela'` (que nunca disparaba porque el endpoint no devuelve ese campo) por `unidad.toLowerCase() === 'kg'` en `materialEstimadoDepartamento` y `materialEstimadoPorCatalogo`. Commit `bb40584`. |
+| Checkbox "Terminar" en modal de Corte estaba habilitado para insumos consumidos por Estampado. | `SseOrdenesAsignadasModalExtra.vue`: añadido `|| itemForm.precargado` a la condición `:disabled` del checkbox. Los ítems precargados (de otro departamento) no se pueden terminar desde Corte. Commit `5e7b36c`. |
+| Material Estimado mostraba "No hay datos" para departamento Costura (custom) aunque tenía insumos asignados. | `SseOrdenesAsignadasModalExtra.vue`: (1) `dataInsumosComputed` ahora filtra el prop por `id_orden` actual antes de decidir si usar `dataInsumosLocal`, evitando que datos de otras órdenes oculten insumos del departamento. (2) `evaluateShowSelect` eliminó lista hardcodeada de nombres; cualquier departamento fijo o custom activa la sección si `dataInsumosFiltrado.length > 0`. Commit `e4ae3de`. |
+
+---
+
 ## Jueves, 15 de mayo de 2026
 
 | Solicitud (Resumen) | Logro Conseguido |
