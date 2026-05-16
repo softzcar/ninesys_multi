@@ -500,19 +500,9 @@ export default {
         // Si es el mismo departamento ID, incluir
         if (el.id_departamento == depId) return true;
 
-        // Lógica de departamentos hermanos
-        const materialDepts = ["Estampado", "Corte"];
-        if (
-          materialDepts.includes(depName) &&
-          (materialDepts.includes(el.departamento) || el.departamento === "Impresión")
-        ) {
-          return true;
-        }
-
         // Hermandad: Revisión y Limpieza heredan de "Producción"
-        const controlDepts = ["Revisión", "Limpieza"];
         if (
-            controlDepts.includes(depName) &&
+            (depName === "Revisión" || depName === "Limpieza") &&
             el.departamento === "Producción"
         ) {
             return true;
@@ -805,9 +795,6 @@ export default {
           if (dep === "Impresión") {
             // Impresión debería mostrar Papeles (marcados como Telas)
             myOptions = this.insumosTodos.filter((item) => item.departamento === "Telas");
-          } else if (["Estampado", "Corte"].includes(dep)) {
-            // Estampado/Corte deberían mostrar Telas (marcadas como Impresión)
-            myOptions = this.insumosTodos.filter((item) => item.departamento === "Impresión" || item.departamento === "Estampado");
           } else {
             myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
           }
@@ -860,21 +847,9 @@ export default {
 
       // Lógica dinámica basada en insumosTodos filtrado por el departamento actual
       if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
-        // Ajuste por inversión de categorías en DB
-        const depFilter = dep === "Impresión" ? "Telas" : (["Estampado", "Corte"].includes(dep) ? "Impresión" : dep);
-        
-        // Filtrar insumos que corresponden directamente al departamento (ajustado)
+        // Impresión usa insumos catalogados como "Telas" (inversión histórica en DB)
+        const depFilter = dep === "Impresión" ? "Telas" : dep;
         myOptions = this.insumosTodos.filter((item) => item.departamento === depFilter);
-
-        // Casos especiales de mapeo de departamentos
-        if (["Estampado", "Corte"].includes(dep)) {
-          // Si estamos en Estampado/Corte, también mostramos lo que esté en Estampado (insumos propios)
-          const estInsumos = this.insumosTodos.filter(
-            (item) => item.departamento === "Estampado"
-          );
-
-          myOptions = [...myOptions, ...estInsumos];
-        }
 
         // Casos especiales de mapeo de departamentos (Producción -> Revisión/Limpieza)
         if (["Revisión", "Limpieza"].includes(dep)) {
