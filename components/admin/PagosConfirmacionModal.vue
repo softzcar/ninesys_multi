@@ -120,10 +120,10 @@
           :pendiente="true"
           :button-size="null"
         />
-        <b-button variant="secondary" @click="cancel">Cancelar</b-button>
         <b-button variant="primary" @click="ok" :disabled="parseFloat(totalFinal) <= 0">
           Confirmar y Procesar Pago
         </b-button>
+        <b-button variant="secondary" @click="cancel">Cancelar</b-button>
       </template>
     </b-modal>
 
