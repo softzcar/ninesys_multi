@@ -2,7 +2,7 @@
   <span>
     <b-button
       variant="outline-secondary"
-      size="sm"
+      :size="pendiente ? '' : 'sm'"
       title="Ver reporte detallado de pago"
       class="ml-1 btn-reporte-empleado"
       @click="abrirReporte"
@@ -11,7 +11,7 @@
     </b-button>
 
     <b-modal
-      :id="`reporte-modal-${idEmpleado}`"
+      :id="modalUid"
       :title="`Reporte de Pago — ${nombreEmpleado}`"
       size="xl"
       scrollable
@@ -140,7 +140,7 @@
 
       <!-- Botones del modal -->
       <template #modal-footer>
-        <b-button variant="secondary" @click="$bvModal.hide(`reporte-modal-${idEmpleado}`)">Cerrar</b-button>
+        <b-button variant="secondary" @click="$bvModal.hide(modalUid)">Cerrar</b-button>
         <b-button variant="primary" :disabled="!data" @click="imprimir">
           <b-icon icon="printer-fill" class="mr-1" /> Imprimir
         </b-button>
@@ -172,6 +172,9 @@ export default {
     }
   },
   computed: {
+    modalUid() {
+      return `reporte-modal-${this.idEmpleado}-${this._uid}`
+    },
     fechaEmision() {
       return new Date().toLocaleDateString('es-VE', { day:'2-digit', month:'2-digit', year:'numeric' })
     },
@@ -224,7 +227,7 @@ export default {
   },
   methods: {
     async abrirReporte() {
-      this.$bvModal.show(`reporte-modal-${this.idEmpleado}`)
+      this.$bvModal.show(this.modalUid)
       if (this.data) return // ya cargado
       this.cargando = true
       try {
