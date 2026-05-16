@@ -36,6 +36,7 @@
                                     Tallas y Personalización
                                 </span>
                             </router-link>
+
                             <!-- <router-link
                 class="nav-link"
                 to="/logout"

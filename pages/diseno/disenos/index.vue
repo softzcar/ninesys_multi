@@ -14,9 +14,18 @@
                 "
             >
                 <b-container>
+                    <b-row class="mb-3 align-items-center">
+                        <b-col>
+                            <h1 class="mb-0">{{ titulo }}</h1>
+                        </b-col>
+                        <b-col cols="auto">
+                            <b-button variant="outline-secondary" @click="$router.push('/diseno/galeria')">
+                                📷 Galería de Catálogo
+                            </b-button>
+                        </b-col>
+                    </b-row>
                     <b-row>
                         <b-col>
-                            <h1 class="mb-4">{{ titulo }}</h1>
                             <disenosse-asignados />
                         </b-col>
                     </b-row>

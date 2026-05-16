@@ -83,6 +83,11 @@
                   Estado de Conexión
                 </router-link>
               </li>
+              <li v-if="isAdmin" class="nav-item">
+                <router-link class="nav-link" to="/diseno/galeria">
+                  Galería de Catálogo
+                </router-link>
+              </li>
             </ul>
           </b-collapse>
         </li>
