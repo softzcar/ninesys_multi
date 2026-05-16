@@ -312,6 +312,9 @@
                   <div v-else class="wa-media-loading">
                     <b-spinner small variant="secondary" /> Cargando audio...
                   </div>
+                  <div v-if="msg.transcript" class="wa-transcript">
+                    <b-icon icon="mic-fill" class="mr-1" />{{ msg.transcript }}
+                  </div>
                 </template>
 
                 <template v-else-if="msg.type === 'video'">
@@ -601,6 +604,7 @@ export default {
     setupSocketListeners(socket) {
       // Limpiar listeners previos para evitar duplicados
       socket.off('message:new');
+      socket.off('message:transcript');
       socket.off('conversation:updated');
       socket.off('conversation:handoff');
       socket.off('conversation:deleted');
@@ -774,6 +778,17 @@ export default {
           this.selectedConv.aiEnabled = data.mode !== 'human';
         }
       });
+
+      // Transcripción de nota de voz lista (Whisper procesó el audio)
+      socket.on('message:transcript', (data) => {
+        if (String(data.companyId) !== myCompany) return;
+        if (data.jid !== this.selectedJid) return;
+        const msg = this.messages.find((m) => m.wa_message_id === data.wa_message_id);
+        if (msg) {
+          this.$set(msg, 'transcript', data.transcript);
+          this.$set(msg, 'transcript_lang', data.transcript_lang);
+        }
+      });
     },
 
     // D.4: aplica el cambio a la lista local y decide si la conv debe
@@ -830,6 +845,7 @@ export default {
       const socket = this.$wsSocket;
       if (!socket) return;
       socket.off('message:new');
+      socket.off('message:transcript');
       socket.off('conversation:updated');
       socket.off('conversation:handoff');
       socket.off('conversation:deleted');
@@ -1028,18 +1044,25 @@ export default {
           message: text,
           sent_by_user: userId,
         });
-        // Agregar mensaje local con el wa_message_id real para evitar duplicados
-        // cuando llegue el evento message:new por socket
+        // Agregar mensaje local solo si el socket aún no lo insertó.
+        // message:new llega antes que la respuesta HTTP porque el servidor
+        // emite el evento dentro de sendText(), previo al return.
         const sent = resp.data || {};
-        this.messages.push({
-          wa_message_id: sent.wa_message_id || `local-${Date.now()}`,
-          from_me: true,
-          body: text,
-          type: "text",
-          via: "human",
-          status: sent.status || "sent",
-          ts: sent.ts || Math.floor(Date.now() / 1000),
-        });
+        const msgId = sent.wa_message_id || `local-${Date.now()}`;
+        const alreadyAdded = this.messages.some(
+          (m) => m.wa_message_id && m.wa_message_id === msgId
+        );
+        if (!alreadyAdded) {
+          this.messages.push({
+            wa_message_id: msgId,
+            from_me: true,
+            body: text,
+            type: "text",
+            via: "human",
+            status: sent.status || "sent",
+            ts: sent.ts || Math.floor(Date.now() / 1000),
+          });
+        }
         // Si el envío dispara handoff manual (sent_by_user), reflejarlo en UI
         if (userId) {
           this.selectedConv.mode = "human";
@@ -1687,6 +1710,18 @@ export default {
 
 .wa-media-error {
   color: #b02a37;
+}
+
+.wa-transcript {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: #555;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.wa-bubble.outgoing .wa-transcript {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .wa-recording-indicator {

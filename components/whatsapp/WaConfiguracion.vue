@@ -126,10 +126,22 @@
 
       <!-- Opciones adicionales -->
       <b-card class="mb-4 border-0 shadow-sm" header="Opciones adicionales">
-        <b-form-checkbox v-model="form.respond_in_groups" switch>
+        <b-form-checkbox v-model="form.respond_in_groups" switch class="mb-3">
           Responder en grupos de WhatsApp
           <small class="text-muted d-block">
             Si está activo, la IA también responderá en conversaciones grupales.
+          </small>
+        </b-form-checkbox>
+
+        <b-form-checkbox v-model="form.always_ai" switch>
+          IA siempre activa (sin pasar a modo humano)
+          <small class="text-muted d-block">
+            <strong>Desactivado (predeterminado):</strong> cuando se genera un presupuesto o
+            se dispara un evento de atención, la conversación pasa automáticamente a un
+            asesor humano y la IA deja de responder.<br>
+            <strong>Activado:</strong> la IA sigue respondiendo en todas las conversaciones
+            sin excepción. El sistema igual notifica al asesor asignado en cada evento, pero
+            no silencia al bot ni cambia el modo de la conversación.
           </small>
         </b-form-checkbox>
       </b-card>
@@ -144,6 +156,147 @@
           {{ saving ? 'Guardando...' : 'Guardar configuración' }}
         </b-button>
       </div>
+
+      <!-- Consumo de IA y transcripciones -->
+      <b-card class="mb-4 border-0 shadow-sm">
+        <template #header>
+          <div class="d-flex justify-content-between align-items-center">
+            <span><b-icon icon="bar-chart-fill" class="mr-2" />Consumo de IA y transcripciones</span>
+            <div class="d-flex align-items-center">
+              <b-form-select
+                v-model="selectedUsageMonth"
+                :options="usageMonthOptions"
+                size="sm"
+                style="width:140px"
+                class="mr-2"
+                @change="fetchSttUsage"
+              />
+              <b-button size="sm" variant="outline-secondary" :disabled="loadingStt" @click="fetchSttUsage">
+                <b-spinner v-if="loadingStt" small />
+                <b-icon v-else icon="arrow-clockwise" />
+              </b-button>
+            </div>
+          </div>
+        </template>
+
+        <div v-if="loadingStt" class="text-center py-3">
+          <b-spinner variant="secondary" small />
+        </div>
+        <div v-else-if="sttUsage">
+          <b-row class="mb-3">
+            <b-col sm="6" class="mb-3 mb-sm-0">
+              <div class="border rounded p-3 h-100">
+                <div class="text-muted small mb-1">
+                  <b-icon icon="mic-fill" class="mr-1" />Whisper (STT)
+                </div>
+                <div class="h4 mb-0 font-weight-bold">
+                  ${{ whisperUsd.toFixed(4) }}
+                </div>
+                <div class="small text-muted">{{ whisperCalls }} transcripción(es)</div>
+                <b-progress
+                  class="mt-2"
+                  :value="whisperPercent"
+                  :max="100"
+                  :variant="whisperPercent >= 90 ? 'danger' : whisperPercent >= 70 ? 'warning' : 'success'"
+                  height="6px"
+                />
+                <div class="small text-muted mt-1">
+                  ${{ whisperUsd.toFixed(4) }} / ${{ sttConfig.stt_monthly_usd_limit.toFixed(2) }} límite mensual
+                </div>
+              </div>
+            </b-col>
+            <b-col sm="6">
+              <div class="border rounded p-3 h-100">
+                <div class="text-muted small mb-1">
+                  <b-icon icon="cpu-fill" class="mr-1" />Gemini (LLM)
+                </div>
+                <div class="h4 mb-0 font-weight-bold">
+                  ${{ geminiUsd.toFixed(4) }}
+                </div>
+                <div class="small text-muted">{{ geminiCalls }} llamada(s)</div>
+              </div>
+            </b-col>
+          </b-row>
+          <div class="text-right small text-muted">
+            Total del mes: <strong>${{ sttUsage.total_usd.toFixed(4) }}</strong>
+          </div>
+        </div>
+        <div v-else class="text-center text-muted py-3 small">Sin datos de consumo para este mes.</div>
+      </b-card>
+
+      <!-- Configuración de transcripciones (STT) -->
+      <b-card class="mb-4 border-0 shadow-sm" header="Transcripción de notas de voz (Whisper)">
+        <b-row>
+          <b-col md="12" class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Activar transcripción automática</strong>
+                <p class="text-muted small mb-0">
+                  Convierte notas de voz entrantes en texto para que la IA pueda responderlas.
+                </p>
+              </div>
+              <b-form-checkbox
+                v-model="sttConfig.stt_enabled"
+                switch
+                size="lg"
+              >
+                <b-badge :variant="sttConfig.stt_enabled ? 'success' : 'secondary'">
+                  {{ sttConfig.stt_enabled ? 'Activa' : 'Inactiva' }}
+                </b-badge>
+              </b-form-checkbox>
+            </div>
+          </b-col>
+          <b-col md="4">
+            <b-form-group
+              label="Límite mensual (USD)"
+              label-for="stt-limit"
+              description="Al alcanzar este gasto, los audios se pasan a un agente humano."
+            >
+              <b-form-input
+                id="stt-limit"
+                v-model.number="sttConfig.stt_monthly_usd_limit"
+                type="number"
+                min="0"
+                step="0.5"
+              />
+            </b-form-group>
+          </b-col>
+          <b-col md="4">
+            <b-form-group
+              label="Umbral de audio largo (seg)"
+              label-for="stt-seconds"
+              description="Notas de voz más largas se pasan a humano sin transcribir."
+            >
+              <b-form-input
+                id="stt-seconds"
+                v-model.number="sttConfig.stt_long_audio_seconds"
+                type="number"
+                min="10"
+                step="10"
+              />
+            </b-form-group>
+          </b-col>
+          <b-col md="4">
+            <b-form-group
+              label="Idioma de transcripción"
+              label-for="stt-lang"
+              description="Hint para Whisper. Vacío = autodetección."
+            >
+              <b-form-select
+                id="stt-lang"
+                v-model="sttConfig.stt_language"
+                :options="sttLanguageOptions"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+        <div class="d-flex justify-content-end">
+          <b-button variant="info" :disabled="savingStt" @click="saveSttConfig">
+            <b-spinner v-if="savingStt" small class="mr-1" />
+            {{ savingStt ? 'Guardando...' : 'Guardar configuración STT' }}
+          </b-button>
+        </div>
+      </b-card>
 
       <!-- Papelera de conversaciones -->
       <b-card class="mb-4 border-0 shadow-sm">
@@ -278,6 +431,7 @@ export default {
         temperature: 0.3,
         max_tokens: 1024,
         respond_in_groups: false,
+        always_ai: false,
       },
       // Snapshot para detectar cambios
       originalForm: null,
@@ -291,6 +445,24 @@ export default {
         { value: "gemini-2.5-flash", text: "Gemini 2.5 Flash" },
         { value: "gemini-2.0-flash", text: "Gemini 2.0 Flash" },
         { value: "gemini-1.5-pro", text: "Gemini 1.5 Pro" },
+      ],
+      // STT
+      sttConfig: {
+        stt_enabled: true,
+        stt_monthly_usd_limit: 3.00,
+        stt_long_audio_seconds: 120,
+        stt_language: 'es',
+      },
+      sttUsage: null,
+      loadingStt: false,
+      savingStt: false,
+      selectedUsageMonth: '',
+      sttLanguageOptions: [
+        { value: 'es', text: 'Español (es)' },
+        { value: 'en', text: 'Inglés (en)' },
+        { value: 'pt', text: 'Portugués (pt)' },
+        { value: 'fr', text: 'Francés (fr)' },
+        { value: '', text: 'Autodetección' },
       ],
       // Papelera
       deletedChats: [],
@@ -319,6 +491,43 @@ export default {
         return false;
       }
     },
+    usageMonthOptions() {
+      const opts = [];
+      const now = new Date();
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const val = `${y}-${m}`;
+        opts.push({ value: val, text: `${y}/${m}` });
+      }
+      return opts;
+    },
+    whisperUsd() {
+      if (!this.sttUsage) return 0;
+      const p = this.sttUsage.providers.find((x) => x.provider === 'whisper');
+      return p ? p.usd : 0;
+    },
+    whisperCalls() {
+      if (!this.sttUsage) return 0;
+      const p = this.sttUsage.providers.find((x) => x.provider === 'whisper');
+      return p ? p.call_count : 0;
+    },
+    geminiUsd() {
+      if (!this.sttUsage) return 0;
+      const p = this.sttUsage.providers.find((x) => x.provider === 'gemini');
+      return p ? p.usd : 0;
+    },
+    geminiCalls() {
+      if (!this.sttUsage) return 0;
+      const p = this.sttUsage.providers.find((x) => x.provider === 'gemini');
+      return p ? p.call_count : 0;
+    },
+    whisperPercent() {
+      const limit = this.sttConfig.stt_monthly_usd_limit;
+      if (!limit) return 0;
+      return Math.min(100, Math.round((this.whisperUsd / limit) * 100));
+    },
     hasChanges() {
       if (!this.originalForm) return false;
       const fields = [
@@ -328,6 +537,7 @@ export default {
         "temperature",
         "max_tokens",
         "respond_in_groups",
+        "always_ai",
       ];
       for (const f of fields) {
         if (this.form[f] !== this.originalForm[f]) return true;
@@ -339,6 +549,12 @@ export default {
   mounted() {
     this.fetchSettings();
     this.fetchDeleted();
+    // Inicializar mes seleccionado al mes actual
+    const now = new Date();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    this.selectedUsageMonth = `${now.getFullYear()}-${m}`;
+    this.fetchSttConfig();
+    this.fetchSttUsage();
   },
   methods: {
     async fetchSettings() {
@@ -370,6 +586,7 @@ export default {
         (data.maxTokens != null ? Number(data.maxTokens) : null) ??
         (data.max_tokens != null ? Number(data.max_tokens) : 1024);
       this.form.respond_in_groups = !!(data.respondInGroups ?? data.respond_in_groups);
+      this.form.always_ai = !!(data.alwaysAi ?? data.always_ai);
 
       const kb = data.knowledgeBase ?? data.knowledge_base ?? null;
       if (kb && typeof kb === "object") {
@@ -430,6 +647,7 @@ export default {
           temperature: this.form.temperature,
           max_tokens: this.form.max_tokens,
           respond_in_groups: this.form.respond_in_groups ? 1 : 0,
+          always_ai: this.form.always_ai ? 1 : 0,
           knowledge_base: this.knowledgeBaseText.trim()
             ? JSON.parse(this.knowledgeBaseText)
             : null,
@@ -451,6 +669,60 @@ export default {
         });
       } finally {
         this.saving = false;
+      }
+    },
+
+    // ---------- STT ----------
+    async fetchSttConfig() {
+      try {
+        const { data } = await this.$wsApi.get(`/stt/config/${this.idEmpresa}`);
+        this.sttConfig.stt_enabled = !!data.stt_enabled;
+        this.sttConfig.stt_monthly_usd_limit = Number(data.stt_monthly_usd_limit) || 3;
+        this.sttConfig.stt_long_audio_seconds = Number(data.stt_long_audio_seconds) || 120;
+        this.sttConfig.stt_language = data.stt_language || 'es';
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: 'Error cargando config STT', variant: 'danger',
+        });
+      }
+    },
+
+    async saveSttConfig() {
+      this.savingStt = true;
+      try {
+        const { data } = await this.$wsApi.put(`/stt/config/${this.idEmpresa}`, {
+          stt_enabled: this.sttConfig.stt_enabled,
+          stt_monthly_usd_limit: this.sttConfig.stt_monthly_usd_limit,
+          stt_long_audio_seconds: this.sttConfig.stt_long_audio_seconds,
+          stt_language: this.sttConfig.stt_language,
+        });
+        this.sttConfig.stt_enabled = !!data.stt_enabled;
+        this.sttConfig.stt_monthly_usd_limit = Number(data.stt_monthly_usd_limit);
+        this.sttConfig.stt_long_audio_seconds = Number(data.stt_long_audio_seconds);
+        this.sttConfig.stt_language = data.stt_language || '';
+        this.$bvToast.toast('Configuración STT guardada.', { variant: 'success', title: 'STT' });
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: 'Error guardando config STT', variant: 'danger',
+        });
+      } finally {
+        this.savingStt = false;
+      }
+    },
+
+    async fetchSttUsage() {
+      this.loadingStt = true;
+      try {
+        const { data } = await this.$wsApi.get(
+          `/stt/usage/${this.idEmpresa}?month=${this.selectedUsageMonth}`
+        );
+        this.sttUsage = data;
+      } catch (e) {
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: 'Error cargando consumo STT', variant: 'danger',
+        });
+      } finally {
+        this.loadingStt = false;
       }
     },
 
