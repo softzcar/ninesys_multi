@@ -143,6 +143,39 @@ export const mutations = {
 }
 
 export const actions = {
+    async refreshData({ commit, state }) {
+        try {
+            const userId = state.dataUser?.id_empleado;
+            if (!userId) return { success: false, error: 'No user ID found' };
+
+            const response = await this.$axios.get(`${this.$config.API}/refresh-session/${userId}`);
+            
+            if (response.data) {
+                const data = response.data;
+                
+                // Actualizar datos del usuario
+                if (data.data) {
+                    commit('setDataUser', data.data);
+                }
+                
+                // Actualizar datos de la empresa
+                if (data.datos_empresa) {
+                    commit('setDataEmpresa', data.datos_empresa);
+                }
+                
+                // Actualizar personalización
+                if (data.datos_personalizacion) {
+                    commit('setDatosPersonalizacion', data.datos_personalizacion);
+                }
+
+                return { success: true };
+            }
+            return { success: false, error: 'Empty response' };
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            return { success: false, error: error.message };
+        }
+    },
     getLoading({ commit }, data) {
         commit("loading", data)
     },
