@@ -4,6 +4,13 @@
 
 | Solicitud (Resumen) | Logro Conseguido |
 | :--- | :--- |
+| Modal de reporte se abría dos veces al hacer click desde el modal "Confirmar Pago". | `PagosReporteEmpleado.vue`: modal ID cambiado a `reporte-modal-${idEmpleado}-${_uid}`. El `_uid` de Vue es único por instancia, evitando que dos instancias del mismo empleado compartan ID y abran ambos modales. Commit `4dfbfc1`. |
+| Botón de reporte dentro del modal "Confirmar Pago" se veía más pequeño que Cancelar y Confirmar. | `PagosReporteEmpleado.vue`: la clase CSS `.btn-reporte-empleado` sobreescribía Bootstrap con `padding/font-size` fijos. Se agrega prop `buttonSize` y se usa `v-if/v-else`: el botón del modal (`v-else`) no lleva esa clase CSS, respetando el tamaño Bootstrap por defecto. `PagosConfirmacionModal.vue` pasa `:button-size="null"`. Commits `09792a0`, `d2f8f3d`, `b96421a`. |
+
+---
+
+| Solicitud (Resumen) | Logro Conseguido |
+| :--- | :--- |
 | Sección "Salarios" del modal Mano de Obra debe mostrar salario proporcional al tiempo trabajado en la orden. | `reports.php`: endpoint `/reportes/mano-obra-por-orden` refactorizado; retorna `{ pagos, salarios }`. `salarios` calcula `costo_por_hora × horas_trabajadas` desde `lotes_detalles_empleados_asignados`, solo para tipo Salario/Salario+Comisión. `ReporteCostosProduccionLabor.vue`: tabla Salarios ahora muestra Horas / Costo/Hora / Salario Proporcional. Commits `e8d8cce` (backend), `e13b542` (frontend). |
 | Departamento Estampado veía materiales de Impresión en el typeahead y botones de tipo de insumo. | `SseOrdenesAsignadasModalExtra.vue`: eliminada lógica de "departamentos hermanos" en `dataInsumosFiltrado`, `dataSearchInsumo` y `selectOptions`. Cada departamento ve solo insumos con su `id_departamento`. Solo se conserva inversión histórica `Impresión → "Telas"` en inventario. Commit `62128d2`. |
 | Material Estimado en Estampado mostraba "Kg" para telas en lugar de "Mt". | `SseOrdenesAsignadasModalExtra.vue`: reemplazado check `tipo_insumo === 'tela'` (que nunca disparaba porque el endpoint no devuelve ese campo) por `unidad.toLowerCase() === 'kg'` en `materialEstimadoDepartamento` y `materialEstimadoPorCatalogo`. Commit `bb40584`. |
