@@ -1778,38 +1778,34 @@ export default {
       try {
         let itemsForEfficiency = [];
 
-        // If we have orders, use them. Otherwise check for unpaid orders.
+        // Preferencia: ordenes activas → reposiciones → vinculadas → unpaid-orders
         if (this.ordenes && this.ordenes.length > 0) {
           itemsForEfficiency = this.ordenes;
+        } else if (this.reposiciones && this.reposiciones.length > 0) {
+          itemsForEfficiency = this.reposiciones;
+        } else if (this.vinculadas && this.vinculadas.length > 0) {
+          itemsForEfficiency = this.vinculadas;
         } else {
-          // Fetch unpaid orders logic
+          // Último recurso: órdenes pendientes de pago
           const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
           const idDepartamento = this.$store.state.login.currentDepartamentId;
 
-          if (!idEmpleado || !idDepartamento) {
-            this.loadingEfficiency = false;
-            return;
+          if (idEmpleado && idDepartamento) {
+            const unpaidResponse = await this.$axios.get(
+              `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
+            );
+            if (unpaidResponse.data && unpaidResponse.data.length > 0) {
+              itemsForEfficiency = unpaidResponse.data;
+            }
           }
-
-          const unpaidResponse = await this.$axios.get(
-            `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
-          );
-
-          if (unpaidResponse.data && unpaidResponse.data.length > 0) {
-            itemsForEfficiency = unpaidResponse.data;
-          }
-        }
-
-        if (itemsForEfficiency.length === 0) {
-          this.reporteData = null;
-          this.inputEfficiencyData = null;
-          this.loadingEfficiency = false;
-          return;
         }
 
         const empId = this.$store.state.login?.dataUser?.id_empleado;
         const deptoId = this.$store.state.login.currentDepartamentId;
 
+        // Siempre buscar terminadas-hoy antes de decidir si hay datos:
+        // el empleado puede haber terminado todas sus órdenes y no tener activas,
+        // pero sí tener datos de eficiencia de las que terminó hoy.
         let finishedToday = [];
         if (empId && deptoId) {
           try {
@@ -1820,16 +1816,21 @@ export default {
           }
         }
 
-        // Recolectar IDs de órdenes activas y terminadas hoy
+        // Recolectar IDs de órdenes activas + unpaid + terminadas hoy
         const activePool = [...this.ordenes, ...this.reposiciones, ...this.vinculadas];
         const activeIds = activePool.map(o => o.orden || o.id_orden).filter(id => id);
-        let uniqueIds = [...new Set([...activeIds, ...finishedToday])];
+        const unpaidIds = itemsForEfficiency.map(o => o.orden || o.id_orden).filter(id => id);
+        let uniqueIds = [...new Set([...activeIds, ...unpaidIds, ...finishedToday])];
 
-        const ids = uniqueIds.join(',');
-        if (!ids) {
+        // Solo salir si no hay absolutamente ninguna orden que calcular
+        if (uniqueIds.length === 0) {
+          this.reporteData = null;
+          this.inputEfficiencyData = null;
           this.loadingEfficiency = false;
           return;
         }
+
+        const ids = uniqueIds.join(',');
 
         const postData = {
           id_ordenes: uniqueIds,
