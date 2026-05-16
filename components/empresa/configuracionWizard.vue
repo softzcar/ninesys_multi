@@ -48,204 +48,57 @@
         </tab-content>
 
         <tab-content :title="getStepTitle('Datos del Administrador')" icon="ti ti-user" :before-change="validateAdminStep">
-          <b-row class="justify-content-center">
-            <b-col md="8">
-              <b-form>
-                <b-form-group
-                  label="Nombre Completo del Administrador:"
-                  label-for="admin-nombre"
-                >
-                  <b-form-input
-                    id="admin-nombre"
-                    v-model="adminData.nombre"
-                    placeholder="Ingrese su nombre y apellido"
-                    required
-                  ></b-form-input>
-                </b-form-group>
-
-                <b-form-group
-                  label="Teléfono de Contacto (WhatsApp):"
-                  label-for="admin-telefono"
-                >
-                  <b-input-group>
-                    <b-form-select
-                      v-model="adminData.countryCode"
-                      :options="countryCodes"
-                      style="max-width: 150px"
-                    ></b-form-select>
-                    <b-form-input
-                      id="admin-telefono"
-                      v-model="adminData.phoneNumber"
-                      type="number"
-                      placeholder="Ej: 4141234567"
-                      required
-                      @input="adminData.phoneNumber = cleanPhoneInput($event)"
-                      @blur="handlePhoneBlur('admin')"
-                    ></b-form-input>
-                  </b-input-group>
-                </b-form-group>
-
-                <hr class="my-4" />
-                <h5>Cambiar Contraseña</h5>
-
-                <b-form-group label="Nueva Contraseña:" label-for="admin-new-password">
-                  <b-input-group>
-                    <b-form-input
-                      id="admin-new-password"
-                      v-model="adminData.newPassword"
-                      :type="adminData.newPasswordType"
-                      placeholder="Ingrese la nueva contraseña"
-                    ></b-form-input>
-                    <b-input-group-append>
-                      <b-button @click="togglePasswordVisibility('new')">
-                        <b-icon :icon="adminData.newPasswordType === 'password' ? 'eye-slash' : 'eye'"></b-icon>
-                      </b-button>
-                    </b-input-group-append>
-                  </b-input-group>
-                  <b-form-text>
-                    La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial (ej: !@#$%).
-                  </b-form-text>
-                </b-form-group>
-
-                <b-form-group
-                  label="Confirmar Nueva Contraseña:"
-                  label-for="admin-confirm-password"
-                >
-                  <b-input-group>
-                    <b-form-input
-                      id="admin-confirm-password"
-                      v-model="adminData.confirmPassword"
-                      :type="adminData.confirmPasswordType"
-                      placeholder="Repita la nueva contraseña"
-                    ></b-form-input>
-                    <b-input-group-append>
-                      <b-button @click="togglePasswordVisibility('confirm')">
-                        <b-icon :icon="adminData.confirmPasswordType === 'password' ? 'eye-slash' : 'eye'"></b-icon>
-                      </b-button>
-                    </b-input-group-append>
-                  </b-input-group>
-                </b-form-group>
-              </b-form>
-            </b-col>
-          </b-row>
+          <config-admin-form
+            ref="adminForm"
+            :initial-data="adminData"
+            :country-codes="countryCodes"
+            :show-save-button="false"
+            @phone-blur="handlePhoneBlur"
+          />
         </tab-content>
 
         <tab-content :title="getStepTitle('Datos de la Empresa')" icon="ti ti-home" :before-change="validateEmpresaStep">
-          <b-row class="justify-content-center">
-            <b-col md="8">
-              <b-form>
-                <b-form-group label="Nombre de la Empresa:" label-for="empresa-nombre">
-                  <b-form-input
-                    id="empresa-nombre"
-                    v-model="empresaData.nombre"
-                    placeholder="Ingrese el nombre comercial"
-                    required
-                  ></b-form-input>
-                </b-form-group>
-
-                <b-form-group
-                  label="Número de Registro Legal (RIF/NIT/RUT):"
-                  label-for="empresa-registro"
-                >
-                  <b-form-input
-                    id="empresa-registro"
-                    v-model="empresaData.numero_registro_legal"
-                    placeholder="Ingrese el identificador fiscal"
-                    required
-                  ></b-form-input>
-                </b-form-group>
-
-                <b-form-group label="País:" label-for="empresa-pais">
-                  <b-form-select
-                    id="empresa-pais"
-                    v-model="empresaData.pais"
-                    :options="countryOptions"
-                    required
-                  ></b-form-select>
-                </b-form-group>
-
-                <b-form-group label="Dirección Fiscal:" label-for="empresa-direccion">
-                  <b-form-textarea
-                    id="empresa-direccion"
-                    v-model="empresaData.direccion"
-                    placeholder="Ingrese la dirección completa"
-                    rows="3"
-                    required
-                  ></b-form-textarea>
-                </b-form-group>
-
-                <b-form-group label="Teléfono de la Empresa:" label-for="empresa-telefono">
-                  <b-input-group>
-                    <b-form-select
-                      v-model="empresaData.countryCode"
-                      :options="countryCodes"
-                      style="max-width: 150px"
-                    ></b-form-select>
-                    <b-form-input
-                      id="empresa-telefono"
-                      v-model="empresaData.phoneNumber"
-                      type="number"
-                      placeholder="Ej: 2121234567"
-                      required
-                      @input="empresaData.phoneNumber = cleanPhoneInput($event)"
-                      @blur="handlePhoneBlur('empresa')"
-                    ></b-form-input>
-                  </b-input-group>
-                </b-form-group>
-
-                <b-form-group label="Email de la Empresa:" label-for="empresa-email">
-                  <b-form-input
-                    id="empresa-email"
-                    v-model="empresaData.email"
-                    type="email"
-                    placeholder="Ingrese un correo electrónico"
-                    required
-                  ></b-form-input>
-                </b-form-group>
-              </b-form>
-            </b-col>
-          </b-row>
+          <config-empresa-form
+            ref="empresaForm"
+            :initial-data="empresaData"
+            :country-codes="countryCodes"
+            :country-options="countryOptions"
+            :show-save-button="false"
+            @phone-blur="handlePhoneBlur"
+          />
         </tab-content>
 
-        <!-- <tab-content :title="getStepTitle('Monedas')" icon="ti ti-money" :before-change="validateMonedasStep">
-           <monedas-manager :initial-currencies="monedasData" @change="updateMonedas($event)" />
-         </tab-content> -->
+        <tab-content :title="getStepTitle('Monedas')" icon="ti ti-money" :before-change="validateMonedasStep">
+          <config-monedas-form
+            ref="monedasForm"
+            :initial-data="monedasData"
+            :show-save-button="false"
+          />
+        </tab-content>
 
         <tab-content :title="getStepTitle('Horario Laboral')" icon="ti ti-alarm-clock" :before-change="validateHorarioStep">
-           <horario-laboral-editor :initial-horario="horarioData" @change="updateHorario($event)" />
+           <config-horario-form
+            ref="horarioForm"
+            :initial-data="horarioData"
+            :show-save-button="false"
+           />
          </tab-content>
 
         <tab-content :title="getStepTitle('Personalización')" icon="ti ti-palette" :before-change="validatePersonalizacionStep">
-           <b-row class="justify-content-center">
-             <b-col md="8">
-               <b-form>
-                 <div
-                   v-for="(item, index) in personalizacionItems"
-                   :key="item.key"
-                   class="mb-4"
-                 >
-                   <b-form-group
-                     :label="item.label"
-                     class="d-flex justify-content-between align-items-center"
-                   >
-                     <b-form-checkbox
-                       v-model="personalizacionData[item.key]"
-                       switch
-                       size="lg"
-                     ></b-form-checkbox>
-                   </b-form-group>
-
-                   <!-- Línea horizontal entre switches (excepto después del último) -->
-                   <hr v-if="index < personalizacionItems.length - 1" class="my-3" />
-                 </div>
-               </b-form>
-
-             </b-col>
-           </b-row>
+           <config-personalizacion-form
+            ref="personalizacionForm"
+            :initial-data="personalizacionData"
+            :show-save-button="false"
+           />
          </tab-content>
 
         <tab-content :title="getStepTitle('Gastos Fijos')" icon="ti ti-receipt" :before-change="validateGastosStep">
-           <gastos-manager :monedas="monedasData" :initial-gastos="gastosData" @change="updateGastos($event)" />
+           <config-gastos-form
+            ref="gastosForm"
+            :initial-data="gastosData"
+            :monedas="monedasData"
+            :show-save-button="false"
+           />
          </tab-content>
 
         <tab-content :title="getStepTitle('Resumen')" icon="ti ti-check-box">
@@ -332,6 +185,9 @@ import { mapState } from "vuex";
 import MonedasManager from "./MonedasManager.vue";
 import HorarioLaboralEditor from "./HorarioLaboralEditor.vue";
 import GastosManager from "./GastosManager.vue";
+import ConfigAdminForm from "./ConfigAdminForm.vue";
+import ConfigEmpresaForm from "./ConfigEmpresaForm.vue";
+import ConfigPersonalizacionForm from "./ConfigPersonalizacionForm.vue";
 import phoneValidation from "~/mixins/phoneValidation.js";
 
 
@@ -343,6 +199,9 @@ export default {
     MonedasManager,
     HorarioLaboralEditor,
     GastosManager,
+    ConfigAdminForm,
+    ConfigEmpresaForm,
+    ConfigPersonalizacionForm,
   },
   mixins: [phoneValidation],
 
@@ -817,33 +676,27 @@ export default {
       }
     },
 
-    handlePhoneBlur(type) {
-      const data = type === 'admin' ? this.adminData : this.empresaData;
-      if (!data.phoneNumber) return;
+    handlePhoneBlur(event) {
+      const { type, data } = event && event.type ? event : { type: arguments[0], data: null };
+      
+      const targetData = type === 'admin' ? this.adminData : this.empresaData;
+      // Si recibimos data del componente, actualizamos la local
+      if (data) {
+          Object.assign(targetData, data);
+      }
 
-      // Construir número completo para validar
-      const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
+      if (!targetData.phoneNumber) return;
+
+      const countryCodeData = this.countryCodes.find(c => c.value === targetData.countryCode);
       const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
+      const fullNumberToValidate = `+${phoneCode}${targetData.phoneNumber}`;
       
-      // Si el usuario pegó el número completo con código de país, intentamos limpiarlo
-      let rawNumber = data.phoneNumber;
-      
-      // Validar usando el mixin
-      // Pasamos el número concatenado con el código si es necesario, 
-      // pero si el usuario ya puso el código en el input, el mixin debería manejarlo si pasamos todo.
-      // Vamos a intentar pasar el código + número.
-      const fullNumberToValidate = `+${phoneCode}${rawNumber}`;
-      
-      const result = this.validateAndFormatPhone(fullNumberToValidate, data.countryCode);
+      const result = this.validateAndFormatPhone(fullNumberToValidate, targetData.countryCode);
 
       if (result.isValid) {
-        // El resultado viene sin +, ej: 58414...
-        // Necesitamos separar el código de país del número nacional para actualizar la UI
-        // Usamos parseAndSetPhoneNumber que ya existe en el componente
         this.parseAndSetPhoneNumber(type, result.formatted);
       } else {
-        // Si falló con el código concatenado, probamos solo el número (quizás el usuario puso el código en el input)
-        const resultRaw = this.validateAndFormatPhone(rawNumber, data.countryCode);
+        const resultRaw = this.validateAndFormatPhone(targetData.phoneNumber, targetData.countryCode);
         if (resultRaw.isValid) {
            this.parseAndSetPhoneNumber(type, resultRaw.formatted);
         } else {
@@ -859,83 +712,7 @@ export default {
 
 
     async validateAdminStep() {
-      const errors = [];
-      const data = this.adminData;
-
-      // 1. Validar Nombre
-      if (!data.nombre.trim()) errors.push("El nombre completo es obligatorio.");
-
-      // 2. Validar Teléfono
-      if (!data.phoneNumber.trim()) {
-        errors.push("El número de teléfono es obligatorio.");
-      } else {
-        // Validar usando el mixin
-        const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
-        const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
-        const fullPhoneNumber = `+${phoneCode}${data.phoneNumber}`;
-        const result = this.validateAndFormatPhone(fullPhoneNumber, data.countryCode);
-        
-        if (!result.isValid) {
-           errors.push("El número de teléfono no es válido.");
-        }
-      }
-
-      // 3. Validar Contraseña
-      let passwordPayload = null; // Por defecto, null si no se cambia
-      if (data.newPassword !== "" || data.confirmPassword !== "") {
-        const pass = data.newPassword;
-        if (pass.length < 8) errors.push("La contraseña debe tener al menos 8 caracteres.");
-        if (!/[a-z]/.test(pass)) errors.push("La contraseña debe contener al menos una letra minúscula.");
-        if (!/[A-Z]/.test(pass)) errors.push("La contraseña debe contener al menos una letra mayúscula.");
-        if (!/\d/.test(pass)) errors.push("La contraseña debe contener al menos un número.");
-        if (!/[!@#$%^&*]/.test(pass)) errors.push("La contraseña debe contener al menos un carácter especial (ej: !@#$%).");
-        if (pass !== data.confirmPassword) errors.push("Las contraseñas no coinciden.");
-        
-        // Si no hay errores de formato, preparamos la contraseña para el envío
-        if (errors.filter(e => e.includes("contraseña") || e.includes("contraseñas")).length === 0) {
-          passwordPayload = pass;
-        }
-      }
-
-      // 4. Manejar el resultado de la validación
-      if (errors.length > 0) {
-        this.$fire({
-          title: "Datos Incompletos o Inválidos",
-          html: `<div class="text-left"><ul>${errors.map((e) => `<li>${e}</li>`).join("")}</ul></div>`,
-          type: "warning",
-        });
-        return false; // Bloquear el avance
-      }
-
-      // 5. Si la validación es exitosa, guardar datos en la API
-      this.overlay = true;
-      try {
-        const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
-        const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
-        const fullPhoneNumber = `${phoneCode}${data.phoneNumber}`;
-
-        const payload = new URLSearchParams();
-        payload.set("nombre", data.nombre);
-        payload.set("telefono", fullPhoneNumber);
-        // Enviar siempre el campo de la contraseña, será null si no se cambió
-        payload.set("password", passwordPayload);
-
-        const adminUserId = this.$store.state.login.dataUser.id_empleado;
-        await this.$axios.post(`${this.$config.API}/configuracion/admin/${adminUserId}`, payload);
-
-        // Si todo va bien, actualizamos la store para quitar el error y avanzamos
-        this.$store.commit("login/removeConfiguracionFaltante", ["Teléfono del usuario"]);
-        this.overlay = false;
-        return true; // Permitir el avance
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudieron guardar los datos del administrador. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        this.overlay = false;
-        return false; // Bloquear el avance
-      }
+      return await this.$refs.adminForm.save();
     },
 
     togglePasswordVisibility(field) {
@@ -947,188 +724,23 @@ export default {
     },
 
     async validateEmpresaStep() {
-      console.log('validateEmpresaStep called');
-      console.log('empresaData:', this.empresaData);
-      const errors = [];
-      const data = this.empresaData;
-
-      if (!data.nombre.trim()) errors.push("El nombre de la empresa es obligatorio.");
-      if (!data.numero_registro_legal || !String(data.numero_registro_legal).trim()) errors.push("El número de registro legal es obligatorio.");
-      if (!data.pais) errors.push("Debe seleccionar un país.");
-      if (!data.direccion || !data.direccion.trim()) errors.push("La dirección es obligatoria.");
-
-      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-      if (!data.email.trim()) {
-        errors.push("El email de la empresa es obligatorio.");
-      } else if (!emailRegex.test(data.email.trim())) {
-        errors.push("El formato del email no es válido.");
-      }
-
-      const phoneRegex = /^\d{7,15}$/;
-      if (!data.phoneNumber || !String(data.phoneNumber).trim()) {
-        errors.push("El número de teléfono de la empresa es obligatorio.");
-      } else {
-         const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
-        const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
-        const fullPhoneNumber = `+${phoneCode}${data.phoneNumber}`;
-        const result = this.validateAndFormatPhone(fullPhoneNumber, data.countryCode);
-        
-        if (!result.isValid) {
-           errors.push("El número de teléfono de la empresa no es válido.");
-        }
-      }
-
-      console.log('Validation errors:', errors);
-      console.log('Validation errors:', errors);
-      if (errors.length > 0) {
-        this.$fire({
-          title: "Datos Incompletos o Inválidos",
-          html: `<div class="text-left"><ul>${errors.map(e => `<li>${e}</li>`).join("")}</ul></div>`,
-          type: "warning",
-        });
-        return false;
-      }
-      console.log('Validation passed, proceeding to POST');
-      console.log('Validation passed, proceeding to POST');
-
-      // Enviar datos a la API
-      this.overlay = true;
-      try {
-        const countryCodeData = this.countryCodes.find(c => c.value === data.countryCode);
-        const phoneCode = countryCodeData ? countryCodeData.text.match(/\+(\d+)/)[1] : '';
-        const fullPhoneNumber = `${phoneCode}${data.phoneNumber}`;
-
-        const payload = new URLSearchParams();
-        payload.set("nombre", data.nombre);
-        payload.set("numero_registro_legal", data.numero_registro_legal);
-        payload.set("pais", data.pais);
-        payload.set("direccion", data.direccion);
-        payload.set("telefono", fullPhoneNumber);
-        payload.set("email", data.email);
-
-        const employeeId = this.$store.state.login.dataUser?.id_empleado;
-        console.log('employeeId:', employeeId);
-        if (!employeeId) {
-          this.$fire({
-            title: "Error",
-            html: "ID de empleado no disponible. Por favor, recarga la página.",
-            type: "error",
-          });
-          return false;
-        }
-        const url = `${this.$config.API}/configuracion/empresa/${employeeId}`;
-        console.log('Sending POST to', url, 'with payload', payload);
-        await this.$axios.post(url, payload);
-        console.log('POST success');
-
-        const errorsToRemove = [
-          "Número de registro legal de la empresa",
-          "Dirección de la empresa (en empresas)",
-          "Teléfono de la empresa"
-        ];
-        this.$store.commit("login/removeConfiguracionFaltante", errorsToRemove);
-
-        this.overlay = false;
-        return true;
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudieron guardar los datos de la empresa. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        this.overlay = false;
-        return false;
-      }
+      return await this.$refs.empresaForm.save();
     },
 
     async validateMonedasStep() {
-      if (!this.monedasData || this.monedasData.length === 0) {
-        this.$fire({
-          title: "Datos Incompletos",
-          html: "Debe seleccionar al menos una moneda.",
-          type: "warning",
-        });
-        return false;
-      }
-
-      try {
-        const employeeId = this.$store.state.login.dataUser.id_empleado;
-        await this.$axios.post(`${this.$config.API}/configuracion/monedas`, {
-          id_empleado: employeeId,
-          monedas: this.monedasData
-        });
-        return true;
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudieron guardar las monedas. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        return false;
-      }
+      return await this.$refs.monedasForm.save();
     },
 
     async validateHorarioStep() {
-      if (!this.horarioData || !this.horarioData.diasLaborales || this.horarioData.diasLaborales.length === 0) {
-        this.$fire({
-          title: "Datos Incompletos",
-          html: "Debe configurar al menos un día laboral.",
-          type: "warning",
-        });
-        return false;
-      }
-
-      try {
-        const employeeId = this.$store.state.login.dataUser.id_empleado;
-        await this.$axios.post(`${this.$config.API}/configuracion/horario`, {
-          id_empleado: employeeId,
-          ...this.horarioData
-        });
-        return true;
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudo guardar el horario laboral. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        return false;
-      }
+      return await this.$refs.horarioForm.save();
     },
 
     async validatePersonalizacionStep() {
-      try {
-        const employeeId = this.$store.state.login.dataUser.id_empleado;
-        await this.$axios.post(`${this.$config.API}/configuracion/personalizacion`, {
-          id_empleado: employeeId,
-          personalizacion: this.personalizacionData
-        });
-        return true;
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudieron guardar las opciones de personalización. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        return false;
-      }
+      return await this.$refs.personalizacionForm.save();
     },
 
     async validateGastosStep() {
-      try {
-        const employeeId = this.$store.state.login.dataUser.id_empleado;
-        await this.$axios.post(`${this.$config.API}/configuracion/gastos`, {
-          id_empleado: employeeId,
-          gastos: this.gastosData || []
-        });
-        return true;
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudieron guardar los gastos fijos. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        return false;
-      }
+      return await this.$refs.gastosForm.save();
     },
 
     guardarConfiguracion() {
