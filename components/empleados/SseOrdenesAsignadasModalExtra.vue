@@ -618,12 +618,7 @@ export default {
         unidad = value.unidad; // Tomar la última unidad (asumiendo que son iguales)
       });
 
-      // Override visual de la unidad para Telas (Kg -> Mt)
-      // Buscamos si alguno de los insumos filtrados es de tipo tela
-      const esTela = insumosDept.some(ins => ins.tipo_insumo === 'tela');
-      if (esTela && unidad === 'Kg') {
-        unidad = 'Mt';
-      }
+      if (unidad.toLowerCase() === 'kg') unidad = 'Mt';
 
       return { total: total.toFixed(2), unidad: unidad };
     },
@@ -680,20 +675,11 @@ export default {
         }
       });
 
-      // Convertir a array y formatear totales
-      return Array.from(catalogoMap.values()).map(item => {
-        let unidadMostrar = item.unidad;
-        // Override visual de la unidad para Telas (Kg -> Mt)
-        if (item.tipo_insumo === 'tela' && unidadMostrar === 'Kg') {
-          unidadMostrar = 'Mt';
-        }
-
-        return {
-          catalogo: item.catalogo,
-          total: item.total.toFixed(2),
-          unidad: unidadMostrar
-        }
-      });
+      return Array.from(catalogoMap.values()).map(item => ({
+        catalogo: item.catalogo,
+        total: item.total.toFixed(2),
+        unidad: item.unidad.toLowerCase() === 'kg' ? 'Mt' : item.unidad,
+      }));
     },
 
     /**
