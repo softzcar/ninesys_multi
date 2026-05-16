@@ -206,7 +206,7 @@
                   <span :class="eficienciaPorcentaje >= 100 ? 'text-success' : 'text-danger'">
                     {{ eficienciaPorcentaje }}%
                   </span>
-                  <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por encima del estimado'
+                  <small class="text-muted">({{ eficienciaPorcentaje >= 100 ? 'Óptimo' : 'Por debajo del estimado'
                   }})</small>
                 </p>
               </div>

@@ -92,10 +92,6 @@
                 <reporte-costos-produccion-labor
                   :id_orden="data.item.id_orden"
                   :costo-mano-obra="Number(data.item.costo_mano_de_obra_total || 0)"
-                  :empleados-asignados="data.item.empleados_asignados"
-                  :hora-empleados-precios="horaEmpleadosPrecios"
-                  :hora-empleados-tiempos="horaEmpleadosTiempos"
-                  :horario-laboral="getHorarioLaboral()"
                 />
               </template>
 

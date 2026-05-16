@@ -641,9 +641,8 @@ export default {
 
     insumosImpresion() {
       if (!Array.isArray(this.insumos)) return [];
-      // Ajuste: Papeles están en la categoría 'Telas'
       let options = this.insumos.filter(
-        (item) => item.departamento === "Telas"
+        (item) => item.departamento === "Impresión"
       );
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
@@ -651,9 +650,8 @@ export default {
 
     insumosEstampado() {
       if (!Array.isArray(this.insumos)) return [];
-      // Ajuste: Telas están en la categoría 'Impresión'
       let options = this.insumos.filter(
-        (item) => item.departamento === "Impresión" || item.departamento === "Estampado"
+        (item) => item.departamento === "Telas" || item.departamento === "Estampado"
       );
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
@@ -688,9 +686,8 @@ export default {
 
     insumosCorte() {
       if (!Array.isArray(this.insumos)) return [];
-      // Ajuste: Telas están en la categoría 'Impresión'
       let options = this.insumos.filter(
-        (item) => item.departamento === "Impresión"
+        (item) => item.departamento === "Telas"
       );
       options = options.concat({ value: 0, text: "Seleccion insumo" });
       return options;
@@ -1111,7 +1108,7 @@ export default {
         return 0;
       }
 
-      const size = (this.ordenes?.length || 0) + (this.reposiciones?.length || 0) + (this.vinculadas?.length || 0);
+      const size = parseInt(this.ordenes.length || 0);
       if (size < 1) {
         this.msg = 'No tienes tareas asignadas';
       } else {
@@ -1781,15 +1778,11 @@ export default {
       try {
         let itemsForEfficiency = [];
 
-        // Preferencia: ordenes activas → reposiciones → vinculadas → unpaid-orders
+        // If we have orders, use them. Otherwise check for unpaid orders.
         if (this.ordenes && this.ordenes.length > 0) {
           itemsForEfficiency = this.ordenes;
-        } else if (this.reposiciones && this.reposiciones.length > 0) {
-          itemsForEfficiency = this.reposiciones;
-        } else if (this.vinculadas && this.vinculadas.length > 0) {
-          itemsForEfficiency = this.vinculadas;
         } else {
-          // Último recurso: órdenes pendientes de pago
+          // Fetch unpaid orders logic
           const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
           const idDepartamento = this.$store.state.login.currentDepartamentId;
 
@@ -1840,8 +1833,7 @@ export default {
 
         const postData = {
           id_ordenes: uniqueIds,
-          id_empleado: empId || null,
-          id_departamento: this.$store.state.login.currentDepartamentId || null,
+          id_empleado: empId || null
         };
 
         // Parallel requests for Manufacturing Time and Input Efficiency
@@ -1877,7 +1869,11 @@ export default {
           }
 
           if (!horarioLaboral) {
-            console.warn('[fetchEfficiency] horarioLaboral no configurado — el cálculo de tiempo real no se puede realizar.');
+             this.$fire({
+                 title: 'DEBUG',
+                 text: 'horarioLaboral no es válido o está ausente',
+                 type: 'warning'
+             });
           }
 
           // Recalcular Tiempos Reales usando el Mixin (considerando horario laboral y pausas)
@@ -1917,13 +1913,8 @@ export default {
           }
 
           // Los tiempos proyectados (estimados) los seguimos tomando del resumen del backend
-          // Filtramos por tarea_terminada=1 para no inflar el proyectado con órdenes no iniciadas
-          const totalProjectedTerminadas = resumen
-            .filter(item => item.tarea_terminada == 1)
-            .reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
-          const totalProjectedEnCurso = resumen
-            .filter(item => item.tarea_terminada != 1)
-            .reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
+          const totalProjectedTerminadas = resumen.reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+          const totalProjectedEnCurso = resumen.reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
 
           this.reporteData = {
             totalRealTerminadas,

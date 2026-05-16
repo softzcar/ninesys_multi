@@ -234,8 +234,9 @@ export default {
       }))
     },
     insumosOptions() {
+      // Ajuste: Papeles están en la categoría 'Telas'
       const insumosPapel = this.insumos.filter(
-        (i) => i.departamento === 'Impresión'
+        (i) => i.departamento === 'Telas'
       )
       if (!insumosPapel || insumosPapel.length === 0) return []
       const options = insumosPapel.map((insumo) => {
