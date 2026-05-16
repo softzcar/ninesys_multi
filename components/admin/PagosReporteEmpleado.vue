@@ -2,7 +2,7 @@
   <span>
     <b-button
       v-if="buttonSize"
-      variant="outline-secondary"
+      variant="primary"
       :size="buttonSize"
       title="Ver reporte detallado de pago"
       class="ml-1 btn-reporte-empleado"
@@ -12,12 +12,12 @@
     </b-button>
     <b-button
       v-else
-      variant="outline-secondary"
+      variant="primary"
       title="Ver reporte detallado de pago"
-      class="ml-1 btn-reporte-empleado"
+      class="ml-1"
       @click="abrirReporte"
     >
-      <b-icon icon="file-earmark-text" />
+      <b-icon icon="file-earmark-text" /> Reporte
     </b-button>
 
     <b-modal
