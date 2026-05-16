@@ -1,8 +1,18 @@
 <template>
   <span>
     <b-button
+      v-if="buttonSize"
       variant="outline-secondary"
-      v-bind="buttonSize ? { size: buttonSize } : {}"
+      :size="buttonSize"
+      title="Ver reporte detallado de pago"
+      class="ml-1 btn-reporte-empleado"
+      @click="abrirReporte"
+    >
+      <b-icon icon="file-earmark-text" />
+    </b-button>
+    <b-button
+      v-else
+      variant="outline-secondary"
       title="Ver reporte detallado de pago"
       class="ml-1 btn-reporte-empleado"
       @click="abrirReporte"
