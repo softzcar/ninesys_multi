@@ -278,7 +278,7 @@
                 </b-col>
 
                 <b-col md="2" class="px-2 pb-1">
-                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo"
+                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
                     class="small font-weight-bold text-danger">
                     Terminar
                   </b-form-checkbox>
