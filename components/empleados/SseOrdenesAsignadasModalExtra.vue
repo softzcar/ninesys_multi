@@ -480,12 +480,12 @@ export default {
       };
     },
 
-    // Computed que combina datos del prop y datos locales del API
+    // Combina datos del prop y datos locales, priorizando datos para la orden actual
     dataInsumosComputed() {
-      // Priorizar datos del prop si existen, sino usar los locales
-      if (this.dataInsumos && this.dataInsumos.length > 0) {
-        return this.dataInsumos;
-      }
+      // El prop contiene insumos de TODAS las órdenes. Filtrar solo los de esta orden.
+      const fromProp = (this.dataInsumos || []).filter(item => item.id_orden == this.idorden);
+      if (fromProp.length > 0) return fromProp;
+      // Si el prop no tiene datos para esta orden, usar los cargados localmente
       return this.dataInsumosLocal;
     },
 
@@ -927,61 +927,38 @@ export default {
     },
 
     evaluateShowSelect() {
-      // Reset showSelect antes de re-evaluar
       this.showSelect = false;
       const dep = this.$store.state.login.currentDepartament;
 
-      // 1. DETERMINAR SI REQUIERE DESPERDICIO (Solo en departamentos de fabricación primaria)
-      let necesitaDesperdicio = false;
-      const deptsDesperdicio = ["Corte", "Estampado", "Corte de papel"];
-      
+      // 1. Corte siempre muestra (necesita registrar desperdicio de etapas previas)
+      if (dep === 'Corte') {
+        this.showSelect = true;
+        return;
+      }
+
+      // 2. Impresión siempre muestra (lógica de tintas interna)
+      if (dep === 'Impresión') {
+        this.showSelect = true;
+        return;
+      }
+
+      // 3. Departamentos con desperdicio habilitado en el producto
+      const deptsDesperdicio = ['Estampado', 'Corte de papel'];
       if (deptsDesperdicio.includes(dep)) {
-          if (dep === 'Corte') {
-            // En Corte siempre habilitamos para poder registrar desperdicio de estampados previos
-            necesitaDesperdicio = true;
-          } else if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) {
-            necesitaDesperdicio = true;
-          } else if (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) {
-            necesitaDesperdicio = true;
-          } else if (this.item && this.item.usa_desperdicio == 1) {
-            necesitaDesperdicio = true;
-          }
-      }
-
-      if (necesitaDesperdicio) {
-        this.showSelect = true;
-        return;
-      }
-
-      // 2. IMPRESIÓN SIEMPRE MUESTRA (Por lógica de tintas interna)
-      if (dep === "Impresión") {
-        this.showSelect = true;
-        return;
-      }
-
-      // 3. DETECCIÓN AUTOMÁTICA EN DEPARTAMENTOS DE CONTROL (Smarter Check)
-      // Para Revisión, Limpieza y Costura, SOLO mostramos si hay insumos asignados realmente
-      const deptsControl = ["Revisión", "Limpieza", "Costura"];
-      if (deptsControl.includes(dep)) {
-          if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.length > 0) {
-              this.showSelect = true;
-              return;
-          }
-          // Si no hay insumos asignados, no mostramos nada para estos depts (aunque la configuración global diga sí)
-          this.showSelect = false;
+        const tieneDesperdicio =
+          (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) ||
+          (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) ||
+          (this.item && this.item.usa_desperdicio == 1);
+        if (tieneDesperdicio) {
+          this.showSelect = true;
           return;
+        }
       }
 
-      // 4. DETECCIÓN AUTOMÁTICA ESTRICTA (Demás departamentos)
-      if (
-        this.dataInsumosFiltradoEstricto &&
-        this.dataInsumosFiltradoEstricto.length > 0
-      ) {
+      // 4. Cualquier departamento (fijo o custom) con insumos asignados a esta orden
+      if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.length > 0) {
         this.showSelect = true;
-        return;
       }
-
-      console.log("DEBUG - Modal Extra - showSelect final:", this.showSelect);
     },
 
     reloadMe() {
