@@ -1827,6 +1827,7 @@ export default {
           this.reporteData = null;
           this.inputEfficiencyData = null;
           this.loadingEfficiency = false;
+          this.isFetchingEfficiency = false;
           return;
         }
 
@@ -1894,7 +1895,7 @@ export default {
                 fecha_inicio: fStartStr ? new Date(fStartStr) : new Date(),
                 fecha_fin: fEndStr ? new Date(fEndStr) : new Date()
               };
-              
+
               // No calcular nada si la tarea no ha iniciado realmente en la BD
               if (!task.fecha_inicio) return;
 
@@ -1908,6 +1909,14 @@ export default {
                 totalRealEnCurso += tiempoEfectivoSegundos;
               }
             });
+          } else {
+            // Fallback: usar tiempos calculados por el backend cuando horario no está configurado
+            totalRealTerminadas = resumen
+              .filter(item => item.tarea_terminada == 1)
+              .reduce((acc, item) => acc + (parseFloat(item.totalRealTerminadas) || 0), 0);
+            totalRealEnCurso = resumen
+              .filter(item => item.tarea_terminada != 1)
+              .reduce((acc, item) => acc + (parseFloat(item.totalRealEnCurso) || 0), 0);
           }
 
           // Los tiempos proyectados (estimados) los seguimos tomando del resumen del backend
