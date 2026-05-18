@@ -1899,6 +1899,19 @@ export default {
               .reduce((acc, item) => acc + (parseFloat(item.totalRealEnCurso) || 0), 0);
           }
 
+          // Si el cálculo de horario dio 0 (ej: trabajo realizado un sábado/día no laboral),
+          // usar los valores brutos del backend (TIMESTAMPDIFF) como fallback.
+          if (totalRealTerminadas === 0) {
+            totalRealTerminadas = resumen
+              .filter(item => item.tarea_terminada == 1)
+              .reduce((acc, item) => acc + (parseFloat(item.totalRealTerminadas) || 0), 0);
+          }
+          if (totalRealEnCurso === 0) {
+            totalRealEnCurso = resumen
+              .filter(item => item.tarea_terminada != 1)
+              .reduce((acc, item) => acc + (parseFloat(item.totalRealEnCurso) || 0), 0);
+          }
+
           // Los tiempos proyectados (estimados) los seguimos tomando del resumen del backend
           // Filtramos por tarea_terminada=1 para no inflar el proyectado con órdenes no iniciadas
           const totalProjectedTerminadas = resumen

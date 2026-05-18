@@ -224,6 +224,13 @@ export default {
                         totalRealTerminadas += this.calcularTiempoTrabajoIndividual(tareaObj, pausasProcesadas, horarioLaboral) / 1000;
                     });
                 }
+                // Si el cálculo de horario dio 0 (ej: trabajo realizado un sábado/día no laboral),
+                // usar los valores brutos del backend como fallback.
+                if (totalRealTerminadas === 0) {
+                    totalRealTerminadas = resumen
+                        .filter(item => item.tarea_terminada == 1)
+                        .reduce((acc, item) => acc + (parseFloat(item.totalRealTerminadas) || 0), 0);
+                }
 
                 const totalProjectedTerminadas = resumen
                     .filter(item => item.tarea_terminada == 1)
