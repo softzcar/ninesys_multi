@@ -190,7 +190,16 @@ export default {
         const nameB = b.nombre || "";
         return nameA.localeCompare(nameB);
       }).map(item => {
-        item.pago = item.pago.toFixed(2);
+        // Agregar salario, bonos y descontar descuentos para mostrar el total real pagado
+        const salarioRecord = this.salariosDetalles.find(s => s.id_empleado === item.id_empleado);
+        const salario = salarioRecord ? parseFloat(salarioRecord.monto) : 0;
+        const bonos = this.bonosDetalles
+          .filter(b => b.id_empleado === item.id_empleado)
+          .reduce((sum, b) => sum + parseFloat(b.monto), 0);
+        const descuentos = this.descuentosDetalles
+          .filter(d => d.id_empleado === item.id_empleado)
+          .reduce((sum, d) => sum + parseFloat(d.monto), 0);
+        item.pago = (item.pago + salario + bonos - descuentos).toFixed(2);
         return item;
       });
     },
