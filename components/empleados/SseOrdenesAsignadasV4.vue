@@ -1811,6 +1811,12 @@ export default {
           return;
         }
 
+        // input-efficiency solo debe incluir las órdenes activas + terminadas hoy.
+        // Incluir todas las impagadas inflaría el "Estimado" porque se sumaría
+        // cantidad_estandar × N órdenes aunque el empleado solo haya procesado una.
+        const inputEffIds = [...new Set([...activeIds, ...finishedToday])];
+        const idsForInputEff = inputEffIds.length > 0 ? inputEffIds.join(',') : uniqueIds.join(',');
+
         const ids = uniqueIds.join(',');
 
         const postData = {
@@ -1825,12 +1831,12 @@ export default {
           body: postData
         });
         console.log("fetchEfficiency: calling input efficiency endpoint", {
-          url: `${this.$config.API}/reports/input-efficiency/${ids}`
+          url: `${this.$config.API}/reports/input-efficiency/${idsForInputEff}`
         });
 
         const [timeResponse, inputResponse] = await Promise.all([
           this.$axios.post(`${this.$config.API}/reports/manufacturing-time`, postData),
-          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${ids}`)
+          this.$axios.get(`${this.$config.API}/reports/input-efficiency/${idsForInputEff}`)
         ]);
 
         // Process Manufacturing Time
