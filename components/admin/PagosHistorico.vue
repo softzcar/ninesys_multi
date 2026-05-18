@@ -301,13 +301,14 @@ export default {
       const url = `${this.$config.API}/pagos/historico/${semana}?fecha_inicio=${this.semanaInicio}&fecha_fin=${this.semanaFin}`;
       await this.$axios.get(url).then((res) => {
         this.dataReporte = res.data;
-        this.pagosVendedores = res.data.data.vendedores || [];
-        this.pagosEmpleados = res.data.data.empleados || [];
-        this.pagosDiseno = res.data.data.diseno || [];
+        const d = res.data.data || {};
+        this.pagosVendedores = Array.isArray(d.vendedores) ? d.vendedores : [];
+        this.pagosEmpleados = Array.isArray(d.empleados) ? d.empleados : [];
+        this.pagosDiseno = Array.isArray(d.diseno) ? d.diseno : [];
 
-        this.salariosDetalles = res.data.data.salarios_detalles || [];
-        this.bonosDetalles = res.data.data.bonos_detalles || [];
-        this.descuentosDetalles = res.data.data.descuentos_detalles || [];
+        this.salariosDetalles = Array.isArray(d.salarios_detalles) ? d.salarios_detalles : [];
+        this.bonosDetalles = Array.isArray(d.bonos_detalles) ? d.bonos_detalles : [];
+        this.descuentosDetalles = Array.isArray(d.descuentos_detalles) ? d.descuentos_detalles : [];
       });
     },
 
