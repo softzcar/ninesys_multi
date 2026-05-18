@@ -1811,10 +1811,14 @@ export default {
           return;
         }
 
-        // input-efficiency solo debe incluir las órdenes activas + terminadas hoy.
+        // input-efficiency solo debe incluir las órdenes INICIADAS + terminadas hoy.
+        // Excluir "por iniciar" (fecha_inicio IS NULL): no tiene sentido calcular el estimado
+        // de material para trabajo que aún no ha empezado.
         // Incluir todas las impagadas inflaría el "Estimado" porque se sumaría
         // cantidad_estandar × N órdenes aunque el empleado solo haya procesado una.
-        const inputEffIds = [...new Set([...activeIds, ...finishedToday])];
+        const startedPool = [...this.ordenes, ...this.reposiciones].filter(o => o.fecha_inicio != null);
+        const startedIds = startedPool.map(o => o.orden || o.id_orden).filter(id => id);
+        const inputEffIds = [...new Set([...startedIds, ...finishedToday])];
         const idsForInputEff = inputEffIds.length > 0 ? inputEffIds.join(',') : uniqueIds.join(',');
 
         const ids = uniqueIds.join(',');
