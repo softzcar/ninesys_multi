@@ -128,19 +128,24 @@ export default {
   computed: {
     semanaInicio() {
       if (!this.value) return ''
-      const d = new Date(this.value)
-      const day = d.getDay() // 0=domingo
-      const diff = d.getDate() - day + (day === 0 ? -6 : 1) // lunes
-      const lunes = new Date(d.setDate(diff))
-      return lunes.toISOString().substring(0, 10)
+      // Parsear en hora local para evitar desfase UTC (new Date('YYYY-MM-DD') usa UTC midnight)
+      const [y, m, d] = this.value.split('-').map(Number)
+      const fecha = new Date(y, m - 1, d)
+      const day = fecha.getDay() // 0=domingo
+      fecha.setDate(fecha.getDate() - day + (day === 0 ? -6 : 1)) // retroceder al lunes
+      return fecha.getFullYear() + '-' +
+        String(fecha.getMonth() + 1).padStart(2, '0') + '-' +
+        String(fecha.getDate()).padStart(2, '0')
     },
     semanaFin() {
       if (!this.value) return ''
-      const d = new Date(this.value)
-      const day = d.getDay()
-      const diff = d.getDate() - day + (day === 0 ? 0 : 7) // domingo
-      const domingo = new Date(d.setDate(diff))
-      return domingo.toISOString().substring(0, 10)
+      const [y, m, d] = this.value.split('-').map(Number)
+      const fecha = new Date(y, m - 1, d)
+      const day = fecha.getDay()
+      fecha.setDate(fecha.getDate() - day + (day === 0 ? 0 : 7)) // avanzar al domingo
+      return fecha.getFullYear() + '-' +
+        String(fecha.getMonth() + 1).padStart(2, '0') + '-' +
+        String(fecha.getDate()).padStart(2, '0')
     },
     pagosResumenUnificado() {
       const todosLosPagos = [
@@ -298,11 +303,13 @@ export default {
     },
 
     obtenerNumeroSemana(fechaStr) {
-      const fecha = new Date(fechaStr);
+      // Parsear en hora local para evitar desfase UTC
+      const [y, m, d] = fechaStr.split('-').map(Number)
+      const fecha = new Date(y, m - 1, d)
       if (isNaN(fecha.getTime())) {
         throw new Error("Fecha no válida. Formato esperado: YYYY-MM-DD");
       }
-      // Ajustar para que coincida con WEEK(fecha, 1) de MySQL (Lunes es primer día, 1-53)
+      // ISO 8601 week number — coincide con WEEK(fecha, 3) de MySQL (Lunes primer día)
       const target = new Date(fecha.valueOf());
       const dayNr = (fecha.getDay() + 6) % 7;
       target.setDate(target.getDate() - dayNr + 3);
