@@ -63,7 +63,6 @@
     </div>
   </div>
 </template>
-</template>
 
 <script>
 import mixin from "~/mixins/mixins.js";
@@ -284,23 +283,18 @@ export default {
     },
 
     async getPagosHistorico() {
-      await this.$axios
-        .get(
-          `${this.$config.API}/pagos/historico/${this.obtenerNumeroSemana(
-            this.value
-          )}`
-        )
-        .then((res) => {
-          this.dataReporte = res.data;
-          this.pagosVendedores = res.data.data.vendedores || [];
-          this.pagosEmpleados = res.data.data.empleados || [];
-          this.pagosDiseno = res.data.data.diseno || [];
-          
-          // Nuevos datos
-          this.salariosDetalles = res.data.data.salarios_detalles || [];
-          this.bonosDetalles = res.data.data.bonos_detalles || [];
-          this.descuentosDetalles = res.data.data.descuentos_detalles || [];
-        });
+      const semana = this.obtenerNumeroSemana(this.value);
+      const url = `${this.$config.API}/pagos/historico/${semana}?fecha_inicio=${this.semanaInicio}&fecha_fin=${this.semanaFin}`;
+      await this.$axios.get(url).then((res) => {
+        this.dataReporte = res.data;
+        this.pagosVendedores = res.data.data.vendedores || [];
+        this.pagosEmpleados = res.data.data.empleados || [];
+        this.pagosDiseno = res.data.data.diseno || [];
+
+        this.salariosDetalles = res.data.data.salarios_detalles || [];
+        this.bonosDetalles = res.data.data.bonos_detalles || [];
+        this.descuentosDetalles = res.data.data.descuentos_detalles || [];
+      });
     },
 
     obtenerNumeroSemana(fechaStr) {
