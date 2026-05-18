@@ -419,12 +419,6 @@ export default {
         return
       }
 
-      // Validar que hay detalles disponibles
-      if (!this.detalles || !Array.isArray(this.detalles) || this.detalles.length === 0) {
-        this.erroresValidacion.push('No hay datos de pago disponibles para procesar')
-        return
-      }
-
       // Mostrar modal de confirmación final usando $bvModal
       this.$bvModal.show(this.modalConfirmacionFinalId)
     },
@@ -450,31 +444,15 @@ export default {
         return
       }
 
-      // Validar que hay detalles disponibles
-      if (!this.detalles || !Array.isArray(this.detalles) || this.detalles.length === 0) {
-        this.erroresValidacion.push('No hay datos de pago disponibles para procesar')
-        bvModalEvt.preventDefault()
-        return
-      }
-
-      // Extraer los id_pago de los detalles y filtrar valores válidos
-      const idPagos = this.detalles
-        .map((el) => el.id_pago)
-        .filter(id => id != null && id !== '' && id !== undefined)
-
-      // Validar que hay IDs válidos
-      let totalItemsPagos = 0
-      if (idPagos.length === 0) {
-        this.erroresValidacion.push('No se encontraron IDs de pago válidos')
-        bvModalEvt.preventDefault()
-        return
-      } else {
-        totalItemsPagos = idPagos.length
-      }
+      // Extraer los id_pago de los detalles (vacío para empleados solo-salario)
+      const idPagos = Array.isArray(this.detalles)
+        ? this.detalles.map((el) => el.id_pago).filter(id => id != null && id !== '' && id !== undefined)
+        : []
 
       // Preparar datos como el endpoint espera
       const data = new URLSearchParams()
-      data.set('id_pagos', idPagos.join(','))
+      data.set('id_pagos', idPagos.length > 0 ? idPagos.join(',') : '0')
+      data.set('id_empleado', String(this.empleado.id_empleado))
 
       // Agregar bonos si existen
       if (this.datosPago.bonos && this.datosPago.bonos.length > 0) {
