@@ -170,18 +170,23 @@ export default {
             try {
                 const ordenProceso = this.$store.state.login.currentOrdenProceso || 1;
 
-                // 1. Órdenes activas + reposiciones + terminadas hoy
-                const [ordenesResp, terminadasResp] = await Promise.all([
+                // 1. Órdenes activas + terminadas hoy + unpaid (órdenes completadas no pagadas)
+                // unpaid-orders cubre órdenes terminadas días anteriores que terminadas-hoy pierde
+                const [ordenesResp, terminadasResp, unpaidResp] = await Promise.all([
                     this.$axios.get(`${this.$config.API}/empleados/ordenes-asignadas/v2/${idEmpleado}/${idDepartamento}/${ordenProceso}`),
                     this.$axios.get(`${this.$config.API}/empleados/terminadas-hoy/${idEmpleado}/${idDepartamento}`).catch(() => ({ data: [] })),
+                    this.$axios.get(`${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`).catch(() => ({ data: [] })),
                 ]);
 
                 const { ordenes = [], reposiciones = [], vinculadas = [], pausas = [] } = ordenesResp.data;
                 const finishedToday = Array.isArray(terminadasResp.data) ? terminadasResp.data : [];
+                const unpaidIds = Array.isArray(unpaidResp.data)
+                    ? unpaidResp.data.map(o => o.id_orden).filter(Boolean)
+                    : [];
 
                 const activePool = [...ordenes, ...reposiciones, ...vinculadas];
                 const activeIds = activePool.map(o => o.orden || o.id_orden).filter(Boolean);
-                const uniqueIds = [...new Set([...activeIds, ...finishedToday])];
+                const uniqueIds = [...new Set([...activeIds, ...unpaidIds, ...finishedToday])];
 
                 if (uniqueIds.length === 0) return;
 
@@ -223,10 +228,15 @@ export default {
                 const totalProjectedTerminadas = resumen
                     .filter(item => item.tarea_terminada == 1)
                     .reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+                // Fallback: si no hay tareas terminadas, usar el tiempo proyectado de órdenes
+                // asignadas (tiempo_proyectado_segundos) para que el gráfico muestre datos
+                const totalProjectedFallback = totalProjectedTerminadas > 0
+                    ? totalProjectedTerminadas
+                    : resumen.reduce((acc, item) => acc + (item.tiempo_proyectado_segundos || 0), 0);
 
-                if (totalProjectedTerminadas > 0 || totalRealTerminadas > 0) {
+                if (totalProjectedFallback > 0 || totalRealTerminadas > 0) {
                     this.stats.eficiencia = {
-                        tiempo_estimado: totalProjectedTerminadas,
+                        tiempo_estimado: totalProjectedFallback,
                         tiempo_real: totalRealTerminadas,
                     };
                 }

@@ -1776,50 +1776,30 @@ export default {
       this.isFetchingEfficiency = true;
       this.loadingEfficiency = true;
       try {
-        let itemsForEfficiency = [];
-
-        // Preferencia: ordenes activas → reposiciones → vinculadas → unpaid-orders
-        if (this.ordenes && this.ordenes.length > 0) {
-          itemsForEfficiency = this.ordenes;
-        } else if (this.reposiciones && this.reposiciones.length > 0) {
-          itemsForEfficiency = this.reposiciones;
-        } else if (this.vinculadas && this.vinculadas.length > 0) {
-          itemsForEfficiency = this.vinculadas;
-        } else {
-          // Último recurso: órdenes pendientes de pago
-          const idEmpleado = this.$store.state.login.dataUser?.id_empleado;
-          const idDepartamento = this.$store.state.login.currentDepartamentId;
-
-          if (idEmpleado && idDepartamento) {
-            const unpaidResponse = await this.$axios.get(
-              `${this.$config.API}/empleados/unpaid-orders/${idEmpleado}/${idDepartamento}`
-            );
-            if (unpaidResponse.data && unpaidResponse.data.length > 0) {
-              itemsForEfficiency = unpaidResponse.data;
-            }
-          }
-        }
-
         const empId = this.$store.state.login?.dataUser?.id_empleado;
         const deptoId = this.$store.state.login.currentDepartamentId;
 
-        // Siempre buscar terminadas-hoy antes de decidir si hay datos:
-        // el empleado puede haber terminado todas sus órdenes y no tener activas,
-        // pero sí tener datos de eficiencia de las que terminó hoy.
+        // Siempre buscar terminadas-hoy y unpaid-orders en paralelo.
+        // unpaid-orders cubre órdenes completadas días anteriores (no solo hoy),
+        // que es la fuente correcta de eficiencia reciente.
         let finishedToday = [];
+        let unpaidIds = [];
         if (empId && deptoId) {
-          try {
-            const respTerminadas = await this.$axios.get(`${this.$config.API}/empleados/terminadas-hoy/${empId}/${deptoId}`);
-            finishedToday = Array.isArray(respTerminadas.data) ? respTerminadas.data : [];
-          } catch (error) {
-            console.error("Error fetching finished orders today:", error);
+          const [respTerminadas, respUnpaid] = await Promise.allSettled([
+            this.$axios.get(`${this.$config.API}/empleados/terminadas-hoy/${empId}/${deptoId}`),
+            this.$axios.get(`${this.$config.API}/empleados/unpaid-orders/${empId}/${deptoId}`),
+          ]);
+          if (respTerminadas.status === 'fulfilled') {
+            finishedToday = Array.isArray(respTerminadas.value.data) ? respTerminadas.value.data : [];
+          }
+          if (respUnpaid.status === 'fulfilled' && Array.isArray(respUnpaid.value.data)) {
+            unpaidIds = respUnpaid.value.data.map(o => o.id_orden).filter(Boolean);
           }
         }
 
         // Recolectar IDs de órdenes activas + unpaid + terminadas hoy
         const activePool = [...this.ordenes, ...this.reposiciones, ...this.vinculadas];
         const activeIds = activePool.map(o => o.orden || o.id_orden).filter(id => id);
-        const unpaidIds = itemsForEfficiency.map(o => o.orden || o.id_orden).filter(id => id);
         let uniqueIds = [...new Set([...activeIds, ...unpaidIds, ...finishedToday])];
 
         // Solo salir si no hay absolutamente ninguna orden que calcular
@@ -1924,9 +1904,12 @@ export default {
           const totalProjectedTerminadas = resumen
             .filter(item => item.tarea_terminada == 1)
             .reduce((acc, item) => acc + (item.totalProjectedTerminadas || 0), 0);
+          // totalProjectedEnCurso viene en 0 cuando la orden está asignada pero no iniciada
+          // (el backend requiere fecha_inicio IS NOT NULL). Fallback a tiempo_proyectado_segundos
+          // para que la barra muestre el tiempo estimado aunque la tarea no haya comenzado.
           const totalProjectedEnCurso = resumen
             .filter(item => item.tarea_terminada != 1)
-            .reduce((acc, item) => acc + (item.totalProjectedEnCurso || 0), 0);
+            .reduce((acc, item) => acc + (item.totalProjectedEnCurso || item.tiempo_proyectado_segundos || 0), 0);
 
           this.reporteData = {
             totalRealTerminadas,
