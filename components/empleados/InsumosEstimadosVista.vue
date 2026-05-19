@@ -130,7 +130,7 @@ export default {
                     let unidadMostrar = producto.unidad;
 
                     // Override visual de la unidad para Telas (Kg -> Mt)
-                    if (producto.tipo_insumo === 'tela' && unidadMostrar === 'Kg') {
+                    if (producto.tipo_insumo === 'tela' || unidadMostrar.toLowerCase() === 'kg') {
                         unidadMostrar = 'Mt';
                     }
 
