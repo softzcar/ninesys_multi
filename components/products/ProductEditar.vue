@@ -30,13 +30,13 @@
                 >
                   <h3>Comisiones de productos</h3>
                   <p>
-                    Para que el producto a crerar esté activo en el sistema debe asignar comisiones a los departamentos para este producto.
+                    Para que el producto esté activo en el sistema debe asignar comisiones a los departamentos. Use el botón <strong>+ Insumos</strong> en la página de Insumos de Productos para configurar la comisión de cada departamento.
                   </p>
                   <hr>
                   <p class="mb-0">
                     <router-link
                       class="nav-link"
-                      to="/comisiones-productos"
+                      to="/insumos-productos"
                       custom
                       v-slot="{ navigate }"
                     >
@@ -45,7 +45,7 @@
                         @keypress.enter="navigate"
                         role="link"
                       >
-                        <strong>Haga Click Aqui para asignar comisiones a productos</strong>
+                        <strong>Ir a Insumos de Productos</strong>
                       </span>
                     </router-link>
                   </p>

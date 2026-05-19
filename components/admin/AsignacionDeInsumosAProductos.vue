@@ -35,6 +35,7 @@
               <admin-AsignacionDeInsumosAProductosTab :key="dep._id" :form="form[dep._id]" :item="dep" :idprod="item.cod"
                 :iddep="dep._id" :tiemposprod="tiemposprod" :insumosasignados="insumosasignados"
                 :selectinsumos="selectinsumos" :selecttallas="selectTallas" :tiempoInicial="getTiempo(item, dep._id)"
+                :comisionInicial="getComisionForDep(item, dep._id)"
                 @reload="reloadParent" />
             </div>
           </b-tab>
@@ -107,6 +108,12 @@ export default {
     loadDataTab(idDepartamento) {
       // this.$emit("reload"); // Eliminado para evitar recarga del padre al abrir modal/tab
       this.showDom = true;
+    },
+
+    getComisionForDep(product, depId) {
+      if (!product.comisiones || !Array.isArray(product.comisiones)) return 0;
+      const found = product.comisiones.find(c => c.id_departamento === depId);
+      return found ? parseFloat(found.comision) : 0;
     },
     getTiempo(product, depId) {
       const tiempos = this.tiemposprod.filter(

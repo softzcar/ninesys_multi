@@ -1,28 +1,45 @@
 <template>
   <div>
-    <h3>Tiempo Promedio</h3>
-    <b-form-group id="input-group-4" label-for="input-tiempo"
-      description="Indique el promedio de tiempo en minutos, por ejemplo 3.5 equivale a tres minutos y medio">
-    </b-form-group>
-    <b-form inline>
-      <b-form-input id="input-tiempo" type="text" v-model="tiempoFormateado" :state="tiempoValido"
-        :invalid-feedback="mensajeError" style="width: 160px">
-        <template #append>
-          <span class="input-group-text">minutos</span>
-        </template>
-      </b-form-input>
+    <b-row class="mb-2">
+      <b-col md="6">
+        <h3>Tiempo Promedio</h3>
+        <b-form-group id="input-group-4" label-for="input-tiempo"
+          description="Indique el promedio de tiempo en minutos, por ejemplo 3.5 equivale a tres minutos y medio">
+        </b-form-group>
+        <b-form inline>
+          <b-form-input id="input-tiempo" type="text" v-model="tiempoFormateado" :state="tiempoValido"
+            :invalid-feedback="mensajeError" style="width: 160px">
+            <template #append>
+              <span class="input-group-text">minutos</span>
+            </template>
+          </b-form-input>
 
+          <b-button @click="saveTime" class="ml-2" variant="success">
+            <b-icon icon="check-lg"></b-icon>
+          </b-button>
 
-      <!-- {{ clacTimeProduction() }} -->
+          <b-form-checkbox v-model="usaDesperdicio" switch class="ml-4" size="lg" @change="updateUsaDesperdicio">
+            Cargar desperdicio
+          </b-form-checkbox>
+        </b-form>
+      </b-col>
 
-      <b-button @click="saveTime" class="ml-2" variant="success">
-        <b-icon icon="check-lg"></b-icon>
-      </b-button>
-
-      <b-form-checkbox v-model="usaDesperdicio" switch class="ml-4" size="lg" @change="updateUsaDesperdicio">
-        Cargar desperdicio
-      </b-form-checkbox>
-    </b-form>
+      <b-col md="6">
+        <h3>Comisión del Departamento</h3>
+        <p class="text-muted small mb-2">Monto de comisión por unidad producida en este departamento</p>
+        <b-form inline>
+          <b-form-input
+            type="number" min="0" step="0.01" style="width: 140px"
+            v-model.number="comisionActual"
+            :disabled="savingComision"
+          />
+          <b-button @click="saveComision" class="ml-2" variant="success" :disabled="savingComision">
+            <b-spinner v-if="savingComision" small />
+            <b-icon v-else icon="check-lg"></b-icon>
+          </b-button>
+        </b-form>
+      </b-col>
+    </b-row>
 
     <h3 class="mt-4">Asignación Masiva de Insumos por Talla</h3>
     <b-form-group id="input-group-insumo-base" label-for="select-insumo-base"
@@ -151,6 +168,8 @@ export default {
       nuevoInsumo: "",
       overlay: false,
       savingInProgress: false,
+      comisionActual: 0,
+      savingComision: false,
       selectedInsumoBase: null,
       selectedUnitForMassAssignment: null,
       optionsUnidad: [
@@ -668,6 +687,31 @@ export default {
       }
     },
 
+    async saveComision() {
+      this.savingComision = true;
+      try {
+        const params = new URLSearchParams();
+        params.set('id_product', this.idprod);
+        params.set('id_departamento', this.iddep);
+        params.set('comision', this.comisionActual);
+        await this.$axios.post(
+          `${this.$config.API}/product-set-comision-producto`,
+          params.toString(),
+          { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
+        this.$bvToast.toast('Comisión guardada correctamente', {
+          variant: 'success',
+          noCloseButton: true,
+          autoHideDelay: 2000,
+        });
+        this.$emit('reload');
+      } catch {
+        this.$bvToast.toast('Error al guardar la comisión', { variant: 'danger' });
+      } finally {
+        this.savingComision = false;
+      }
+    },
+
     /* saveAllAssignments_fire_not_work() {
       this.$fire({
         title: '¿Está seguro?',
@@ -728,9 +772,16 @@ export default {
   },
 
 
+  watch: {
+    comisionInicial(val) {
+      this.comisionActual = parseFloat(val) || 0;
+    },
+  },
+
   mounted() {
     this.tiempo = this.tiempoInicial || this.clacTimeProduction();
-    
+    this.comisionActual = parseFloat(this.comisionInicial) || 0;
+
     // Buscar si ya tiene configurado el desperdicio en los tiempos de producción
     const config = this.tiemposprod.find(
       (el) => el.id_product === this.idprod && el.id_departamento === this.iddep
@@ -751,6 +802,7 @@ export default {
     "item",
     "tiempoInicial",
     "form",
+    "comisionInicial",
   ],
 };
 </script>
