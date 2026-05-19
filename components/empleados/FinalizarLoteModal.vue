@@ -35,7 +35,7 @@
 
         <!-- Lista de órdenes -->
         <b-row v-for="(orden, index) in ordenesDeduplicadas" :key="orden.id_orden"
-          v-if="debeMostrarOrden(orden.id_orden)" class="mb-3 align-items-center">
+          v-if="debeMostrarOrden(orden.id_orden) || isImpresion" class="mb-3 align-items-center">
           <b-col md="12">
             <b-card border-variant="dark" shadow-sm>
               <b-row class="align-items-center">
@@ -59,59 +59,59 @@
                 </b-col>
               </b-row>
 
+              <!-- Sección de Tintas (solo Impresión) - siempre visible, no requiere activar consumo -->
+              <div v-if="isImpresion">
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0 text-muted font-weight-bold">
+                    <b-icon icon="printer-fill"></b-icon> Registro de Tintas
+                  </h6>
+                  <b-button variant="outline-info" size="sm" @click="addImpresora(orden.id_orden)" pill
+                    :disabled="!puedeAnadirImpresoraOrden(orden.id_orden)">
+                    <b-icon icon="plus-circle-fill"></b-icon> Añadir Impresora
+                  </b-button>
+                </div>
+
+                <b-card v-for="(tinta, tIndex) in tintasPorOrden[orden.id_orden]" :key="'tinta-' + tIndex"
+                  bg-variant="light" class="mb-2" body-class="py-2 px-3">
+                  <b-row align-v="center">
+                    <b-col md="5">
+                      <b-form-group label="Impresora" label-size="sm" class="mb-0">
+                        <b-form-select v-model="tinta.id_impresora" size="sm"
+                          :options="getImpresorasOptionsForOrden(orden.id_orden, tIndex)">
+                        </b-form-select>
+                      </b-form-group>
+                    </b-col>
+                    <b-col v-for="color in ['c', 'm', 'y', 'k']" :key="color" class="px-1">
+                      <b-form-group :label="color.toUpperCase()" label-size="sm" class="mb-0">
+                        <b-form-input v-model.number="tinta[color]" type="number" step="0.1" size="sm" :style="{
+                          backgroundColor: colorMap[color],
+                          color: 'black',
+                          fontWeight: 'bold'
+                        }" :disabled="!tinta.id_impresora"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                    <b-col v-if="showWhiteInkField(orden.id_orden, tIndex)" class="px-1">
+                      <b-form-group label="W" label-size="sm" class="mb-0">
+                        <b-form-input v-model.number="tinta.w" type="number" step="0.1" size="sm" :style="{
+                          backgroundColor: colorMap.w,
+                          color: 'black',
+                          fontWeight: 'bold'
+                        }" :disabled="!tinta.id_impresora"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                    <b-col md="1" class="text-right" v-if="tintasPorOrden[orden.id_orden].length > 1">
+                      <b-button variant="link" class="text-danger p-0"
+                        @click="removeImpresora(orden.id_orden, tIndex)">
+                        <b-icon icon="trash-fill" font-scale="1.1"></b-icon>
+                      </b-button>
+                    </b-col>
+                  </b-row>
+                </b-card>
+              </div>
+
               <!-- Inputs si está activo -->
               <div v-if="consumosPorOrden[orden.id_orden].length > 0 && consumosPorOrden[orden.id_orden][0].active">
-
-                <!-- Sección de Tintas (solo Impresión) - PRIMERO para coherencia con modal individual -->
-                <div v-if="isImpresion">
-                  <hr>
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0 text-muted font-weight-bold">
-                      <b-icon icon="printer-fill"></b-icon> Registro de Tintas
-                    </h6>
-                    <b-button variant="outline-info" size="sm" @click="addImpresora(orden.id_orden)" pill
-                      :disabled="!puedeAnadirImpresoraOrden(orden.id_orden)">
-                      <b-icon icon="plus-circle-fill"></b-icon> Añadir Impresora
-                    </b-button>
-                  </div>
-
-                  <b-card v-for="(tinta, tIndex) in tintasPorOrden[orden.id_orden]" :key="'tinta-' + tIndex"
-                    bg-variant="light" class="mb-2" body-class="py-2 px-3">
-                    <b-row align-v="center">
-                      <b-col md="5">
-                        <b-form-group label="Impresora" label-size="sm" class="mb-0">
-                          <b-form-select v-model="tinta.id_impresora" size="sm"
-                            :options="getImpresorasOptionsForOrden(orden.id_orden, tIndex)">
-                          </b-form-select>
-                        </b-form-group>
-                      </b-col>
-                      <b-col v-for="color in ['c', 'm', 'y', 'k']" :key="color" class="px-1">
-                        <b-form-group :label="color.toUpperCase()" label-size="sm" class="mb-0">
-                          <b-form-input v-model.number="tinta[color]" type="number" step="0.1" size="sm" :style="{
-                            backgroundColor: colorMap[color],
-                            color: 'black',
-                            fontWeight: 'bold'
-                          }" :disabled="!tinta.id_impresora"></b-form-input>
-                        </b-form-group>
-                      </b-col>
-                      <b-col v-if="showWhiteInkField(orden.id_orden, tIndex)" class="px-1">
-                        <b-form-group label="W" label-size="sm" class="mb-0">
-                          <b-form-input v-model.number="tinta.w" type="number" step="0.1" size="sm" :style="{
-                            backgroundColor: colorMap.w,
-                            color: 'black',
-                            fontWeight: 'bold'
-                          }" :disabled="!tinta.id_impresora"></b-form-input>
-                        </b-form-group>
-                      </b-col>
-                      <b-col md="1" class="text-right" v-if="tintasPorOrden[orden.id_orden].length > 1">
-                        <b-button variant="link" class="text-danger p-0"
-                          @click="removeImpresora(orden.id_orden, tIndex)">
-                          <b-icon icon="trash-fill" font-scale="1.1"></b-icon>
-                        </b-button>
-                      </b-col>
-                    </b-row>
-                  </b-card>
-                </div>
 
                 <!-- Resumen de Material por Orden -->
                 <div v-if="estimadosPorOrden[orden.id_orden]" class="mt-3 mb-2 px-2">
@@ -356,6 +356,15 @@ export default {
       return result;
     },
     formValid() {
+      // Tintas siempre requeridas para Impresión, independiente del flag active/materiales
+      if (this.isImpresion) {
+        const tintasOk = this.ordenesDeduplicadas.every(o => {
+          const tintas = this.tintasPorOrden[o.id_orden];
+          if (!tintas || tintas.length === 0) return false;
+          return tintas.every(t => t.id_impresora && (t.c > 0 || t.m > 0 || t.y > 0 || t.k > 0 || t.w > 0));
+        });
+        if (!tintasOk) return false;
+      }
       const requeridas = this.ordenesQueRequierenInsumos.map(o => o.id_orden);
       if (requeridas.length === 0) return true;
       const todasActivas = requeridas.every(id => this.consumosPorOrden[id] && this.consumosPorOrden[id][0].active);
@@ -364,14 +373,6 @@ export default {
         return this.consumosPorOrden[id].every((c, index) => c.id_insumo && c.cantidad > 0 && this.validarStockItem(id, index));
       });
       if (!materialesValidos) return false;
-      if (this.isImpresion) {
-        const tintasOk = requeridas.every(id => {
-          const tintas = this.tintasPorOrden[id];
-          if (!tintas || tintas.length === 0) return false;
-          return tintas.every(t => t.id_impresora && (t.c > 0 || t.m > 0 || t.y > 0 || t.k > 0 || t.w > 0));
-        });
-        if (!tintasOk) return false;
-      }
       return true;
     },
     ordenesDeduplicadas() {
@@ -695,27 +696,24 @@ export default {
         consumos_lote: consumosParaEnviar,
       }
 
-      // Si es Impresión, agregar consumo de tintas por orden
+      // Si es Impresión, agregar consumo de tintas por orden (para todas las órdenes, sin requerir active)
       if (this.isImpresion) {
         const tintasParaEnviar = [];
         Object.keys(this.tintasPorOrden).forEach(idOrden => {
-          // Solo enviar tintas de órdenes con consumo activo
-          if (this.consumosPorOrden[idOrden]?.[0]?.active) {
-            const tintas = this.tintasPorOrden[idOrden];
-            tintas.forEach(t => {
-              if (t.id_impresora) {
-                tintasParaEnviar.push({
-                  id_orden: parseInt(idOrden),
-                  id_impresora: t.id_impresora,
-                  c: t.c || 0,
-                  m: t.m || 0,
-                  y: t.y || 0,
-                  k: t.k || 0,
-                  w: t.w || 0,
-                });
-              }
-            });
-          }
+          const tintas = this.tintasPorOrden[idOrden];
+          tintas.forEach(t => {
+            if (t.id_impresora) {
+              tintasParaEnviar.push({
+                id_orden: parseInt(idOrden),
+                id_impresora: t.id_impresora,
+                c: t.c || 0,
+                m: t.m || 0,
+                y: t.y || 0,
+                k: t.k || 0,
+                w: t.w || 0,
+              });
+            }
+          });
         });
         payload.consumo_tintas = tintasParaEnviar;
       }
