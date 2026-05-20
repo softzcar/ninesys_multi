@@ -819,8 +819,14 @@ export default {
         insumosFiltrados
       );
 
+      // Si no hay stock para los catálogos asignados y es Corte, mostrar todas las telas disponibles
+      const dep = this.$store.state.login.currentDepartament;
+      const listaFinal = (insumosFiltrados.length === 0 && dep === 'Corte' && this.insumosTodos)
+        ? this.insumosTodos.filter(el => el.tipo_insumo === 'tela')
+        : insumosFiltrados;
+
       // Mapear al formato de búsqueda
-      return insumosFiltrados.map((el) => {
+      return listaFinal.map((el) => {
         if (el.tipo_insumo === 'tela') {
           const rendimiento = parseFloat(el.rendimiento) || 1;
           const availableMeters = (parseFloat(el.cantidad) * rendimiento).toFixed(2);
