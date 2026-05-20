@@ -597,10 +597,10 @@ export default {
         return { total: '0.00', unidad: 'Metros' };
       }
 
-      // Usar un Map para evitar contar el mismo producto múltiples veces
+      // Deduplicar por producto + catálogo para incluir todos los materiales asignados
       const productosUnicos = new Map();
       insumosDept.forEach((item) => {
-        const key = item.id_ordenes_productos;
+        const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
           productosUnicos.set(key, {
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
