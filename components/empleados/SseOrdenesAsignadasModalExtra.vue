@@ -1507,6 +1507,23 @@ export default {
           }
         }
 
+        // VALIDAR QUE CORTE HAYA CARGADO TODOS LOS CATÁLOGOS ASIGNADOS
+        if (isCorte && this.getCatalogosUnicos.length > 0) {
+          const catalogosCubiertos = new Set(
+            this.form
+              .filter(f => !f.precargado && f.validInsumo && f.idCatalogo)
+              .map(f => f.idCatalogo)
+          );
+          const faltantes = this.getCatalogosUnicos.filter(
+            c => !catalogosCubiertos.has(c.id_catalogo_insumos_productos)
+          );
+          if (faltantes.length > 0) {
+            ok = false;
+            const nombres = faltantes.map(c => c.catalogo).join(', ');
+            msg += `<p>Debe registrar el consumo de todos los materiales asignados. Faltan: <strong>${nombres}</strong></p>`;
+          }
+        }
+
         // VALIDAR CANTIDAD DISPONIBLE (Especialmente para Estampado)
         if (ok) { // Solo si no hay errores previos
           for (let i = 0; i < this.form.length; i++) {
