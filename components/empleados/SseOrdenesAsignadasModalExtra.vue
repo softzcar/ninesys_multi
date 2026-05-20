@@ -782,8 +782,8 @@ export default {
             // Impresión debería mostrar Papeles (marcados como Telas)
             myOptions = this.insumosTodos.filter((item) => item.departamento === "Telas");
           } else if (dep === "Corte") {
-            // Corte necesita ver rollos de tela (catalogados como "Telas" o "Estampado")
-            myOptions = this.insumosTodos.filter((item) => ["Telas", "Estampado"].includes(item.departamento));
+            // Corte necesita ver todos los rollos de tela disponibles en inventario
+            myOptions = this.insumosTodos.filter((item) => item.tipo_insumo === 'tela');
           } else {
             myOptions = this.insumosTodos.filter((item) => item.departamento === dep);
           }
