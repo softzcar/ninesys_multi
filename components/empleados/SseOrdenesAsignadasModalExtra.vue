@@ -270,7 +270,7 @@
                   </b-form-group>
                 </b-col>
 
-                <b-col md="4" class="px-2" v-if="needsDesperdicio(index)">
+                <b-col md="5" class="px-2" v-if="needsDesperdicio(index)">
                   <label class="small font-weight-bold text-danger mb-1">Desperdicio</label>
                   <div style="display:flex; align-items:center; gap:8px;">
                     <b-form-input v-model.number="itemForm.desperdicio" type="number" step="0.01" min="0"
@@ -281,12 +281,16 @@
                         Terminar
                       </b-form-checkbox>
                     </div>
+                    <b-button v-if="form.length > 1 && !itemForm.precargado" variant="link" class="text-danger p-0" title="Eliminar fila"
+                      @click="removeItem(index)" style="flex-shrink:0;">
+                      <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
+                    </b-button>
                   </div>
                 </b-col>
 
-                <b-col :md="needsDesperdicio(index) ? '1' : '2'" class="px-2 pb-1 d-flex align-items-end justify-content-end align-self-end">
-                  <b-form-checkbox v-if="!needsDesperdicio(index)" v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
-                    class="small font-weight-bold text-danger mr-auto">
+                <b-col md="2" class="px-2 pb-1 d-flex align-items-start justify-content-between" v-if="!needsDesperdicio(index)">
+                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
+                    class="small font-weight-bold text-danger">
                     Terminar
                   </b-form-checkbox>
                   <b-button v-if="form.length > 1 && !itemForm.precargado" variant="link" class="text-danger p-0" title="Eliminar fila"
