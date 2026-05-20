@@ -1524,23 +1524,25 @@ export default {
           }
         }
 
+        // VALIDAR DESPERDICIO (siempre, independiente de errores previos)
+        for (let i = 0; i < this.form.length; i++) {
+          const itemForm = this.form[i];
+          if (this.needsDesperdicio(i)) {
+            if (itemForm.desperdicio === null || itemForm.desperdicio === "") {
+              ok = false;
+              msg = msg + `<p>Ingrese el peso del desperdicio para el insumo de la fila ${i + 1}</p>`;
+            } else if (isCorte && parseFloat(itemForm.input) === 0 && parseFloat(itemForm.desperdicio) === 0) {
+              ok = false;
+              msg = msg + `<p>Debe ingresar un consumo de material o un desperdicio en la fila ${i + 1}</p>`;
+            }
+          }
+        }
+
         // VALIDAR CANTIDAD DISPONIBLE (Especialmente para Estampado)
         if (ok) { // Solo si no hay errores previos
           for (let i = 0; i < this.form.length; i++) {
             const itemForm = this.form[i];
             const cantidadIngresada = parseFloat(itemForm.input);
-
-            // Validar si requiere desperdicio
-            if (this.needsDesperdicio(i)) {
-              if (itemForm.desperdicio === null || itemForm.desperdicio === "") {
-                ok = false;
-                msg = msg + `<p>Ingrese el peso del desperdicio para el insumo de la fila ${i + 1}</p>`;
-              } else if (isCorte && parseFloat(itemForm.input) === 0 && parseFloat(itemForm.desperdicio) === 0) {
-                // Si en Corte el consumo es 0 y el desperdicio también, no tiene sentido la fila
-                ok = false;
-                msg = msg + `<p>Debe ingresar un consumo de material o un desperdicio en la fila ${i + 1}</p>`;
-              }
-            }
 
             // Obtener ID del insumo seleccionado
             // El v-model 'select' tiene el string del typeahead: "ID | Nombre ..."
