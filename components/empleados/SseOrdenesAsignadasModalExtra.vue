@@ -798,32 +798,12 @@ export default {
         });
       }
 
-      // Filtrar insumosTodos para solo mostrar los insumos cuyo id_catalogo
- 
-      // está en el conjunto de catálogos asignados para esta orden y departamento
-      const insumosFiltrados = this.insumosTodos.filter(el => 
-        idsCatalogoAsignados.has(el.id_catalogo)
-      );
-
-      // Log de depuración para validar que el filtrado coincide con orden + departamento
-      console.log(
-        '[Log || dataSearchInsumo]',
-        'orden',
-        this.idorden,
-        'deptId',
-        this.$store.state.login.currentDepartamentId,
-        'catalogosAsignados',
-        Array.from(idsCatalogoAsignados),
-        'insumosFiltrados',
-        insumosFiltrados.length,
-        insumosFiltrados
-      );
-
-      // Si no hay stock para los catálogos asignados y es Corte, mostrar todas las telas disponibles
       const dep = this.$store.state.login.currentDepartament;
-      const listaFinal = (insumosFiltrados.length === 0 && dep === 'Corte' && this.insumosTodos)
+
+      // Corte puede usar cualquier tela disponible en inventario, sin restringir por catálogo asignado
+      const listaFinal = (dep === 'Corte' && this.insumosTodos)
         ? this.insumosTodos.filter(el => el.tipo_insumo === 'tela')
-        : insumosFiltrados;
+        : this.insumosTodos.filter(el => idsCatalogoAsignados.has(el.id_catalogo));
 
       // Mapear al formato de búsqueda
       return listaFinal.map((el) => {
