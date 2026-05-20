@@ -927,9 +927,11 @@ export default {
       this.showSelect = false;
       const dep = this.$store.state.login.currentDepartament;
 
-      // 1. Corte siempre muestra (necesita registrar desperdicio de etapas previas)
+      // 1. Corte: solo si tiene insumos asignados para los productos de esta orden
       if (dep === 'Corte') {
-        this.showSelect = true;
+        if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.length > 0) {
+          this.showSelect = true;
+        }
         return;
       }
 
