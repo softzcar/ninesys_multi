@@ -800,8 +800,8 @@ export default {
 
       const dep = this.$store.state.login.currentDepartament;
 
-      // Corte puede usar cualquier tela disponible en inventario, sin restringir por catálogo asignado
-      const listaFinal = (dep === 'Corte' && this.insumosTodos)
+      // Corte y Estampado siempre ven todas las telas disponibles en inventario
+      const listaFinal = (['Corte', 'Estampado'].includes(dep) && this.insumosTodos)
         ? this.insumosTodos.filter(el => el.tipo_insumo === 'tela')
         : this.insumosTodos.filter(el => idsCatalogoAsignados.has(el.id_catalogo));
 
