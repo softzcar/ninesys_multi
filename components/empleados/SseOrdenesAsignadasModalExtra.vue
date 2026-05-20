@@ -227,7 +227,7 @@
             <div v-for="(itemForm, index) in form" :key="index"
               class="mb-3 p-3 border rounded bg-white shadow-sm position-relative">
               <b-row class="align-items-end no-gutters">
-                <b-col md="5" class="px-2">
+                <b-col md="4" class="px-2">
                   <b-form-group label="Material" label-size="sm" class="mb-0">
                     <!-- Visualización para Insumos Precargados (Escenario 1) -->
                     <div v-if="itemForm.precargado" class="p-2 border rounded bg-light small shadow-sm">
@@ -277,14 +277,11 @@
                   </b-form-group>
                 </b-col>
 
-                <b-col md="2" class="px-2 pb-1">
+                <b-col md="2" class="px-2 pb-1 d-flex align-items-end justify-content-between">
                   <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
                     class="small font-weight-bold text-danger">
                     Terminar
                   </b-form-checkbox>
-                </b-col>
-
-                <b-col md="1" class="text-right pb-1">
                   <b-button v-if="form.length > 1 && !itemForm.precargado" variant="link" class="text-danger p-0" title="Eliminar fila"
                     @click="removeItem(index)">
                     <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
