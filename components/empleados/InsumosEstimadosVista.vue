@@ -74,26 +74,10 @@ export default {
             return [...new Set(telas)];
         },
         dataInsumosFiltrado() {
-            const depName = this.currentDepartamentName;
             const depId = this.departamentoId;
 
             return this.dataInsumos.filter((el) => {
-                const isSameOrder = el.id_orden == this.idorden;
-                if (!isSameOrder) return false;
-
-                // Si es el mismo departamento ID, incluir
-                if (el.id_departamento == depId) return true;
-
-                // Lógica de departamentos hermanos (Estampado y Corte suelen compartir configuración de telas)
-                const materialDepts = ["Estampado", "Corte"];
-                if (
-                    materialDepts.includes(depName) &&
-                    materialDepts.includes(el.departamento)
-                ) {
-                    return true;
-                }
-
-                return false;
+                return el.id_orden == this.idorden && el.id_departamento == depId;
             });
         },
         resumenMaterial() {
