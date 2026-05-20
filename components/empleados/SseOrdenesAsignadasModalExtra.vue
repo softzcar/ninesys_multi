@@ -270,15 +270,16 @@
                   </b-form-group>
                 </b-col>
 
-                <b-col md="3" class="px-2" v-if="needsDesperdicio(index)">
-                  <b-form-group label="Desperdicio" label-size="sm" class="mb-1 text-danger font-weight-bold">
+                <b-col md="4" class="px-2" v-if="needsDesperdicio(index)">
+                  <label class="small font-weight-bold text-danger mb-1">Desperdicio</label>
+                  <div class="d-flex align-items-center">
                     <b-form-input v-model.number="itemForm.desperdicio" type="number" step="0.01" min="0"
-                      class="border-danger" placeholder="Gramos/Kilos" required></b-form-input>
-                  </b-form-group>
-                  <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
-                    class="small font-weight-bold text-danger">
-                    Terminar
-                  </b-form-checkbox>
+                      class="border-danger mr-2" placeholder="Gramos/Kilos" required style="min-width:0"></b-form-input>
+                    <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
+                      class="small font-weight-bold text-danger text-nowrap">
+                      Terminar
+                    </b-form-checkbox>
+                  </div>
                 </b-col>
 
                 <b-col :md="needsDesperdicio(index) ? '1' : '2'" class="px-2 pb-1 d-flex align-items-end justify-content-end align-self-end">
