@@ -226,7 +226,7 @@
 
             <div v-for="(itemForm, index) in form" :key="index"
               class="mb-3 p-3 border rounded bg-white shadow-sm position-relative">
-              <b-row class="align-items-end no-gutters">
+              <b-row class="align-items-start no-gutters">
                 <b-col md="4" class="px-2">
                   <b-form-group label="Material" label-size="sm" class="mb-0">
                     <!-- Visualización para Insumos Precargados (Escenario 1) -->
@@ -277,7 +277,7 @@
                   </b-form-group>
                 </b-col>
 
-                <b-col md="2" class="px-2 pb-1 d-flex align-items-end justify-content-between">
+                <b-col md="2" class="px-2 pb-1 d-flex align-items-end justify-content-between align-self-end">
                   <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
                     class="small font-weight-bold text-danger">
                     Terminar
