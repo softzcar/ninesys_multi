@@ -277,17 +277,22 @@
 
                 <b-col md="5" class="px-2" v-if="needsDesperdicio(index)">
                   <label class="small font-weight-bold text-danger mb-1">Desperdicio</label>
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <b-form-input v-model.number="itemForm.desperdicio" type="number" step="0.01" min="0"
-                      class="border-danger" placeholder="Gramos/Kilos" required style="flex:1; min-width:0;"></b-form-input>
-                    <div style="flex-shrink:0; white-space:nowrap;">
+                  <div style="display:flex; align-items:flex-start; gap:8px;">
+                    <div style="flex:1; min-width:0;">
+                      <b-form-input v-model.number="itemForm.desperdicio" type="number" step="0.01" min="0"
+                        class="border-danger" placeholder="0.00" required></b-form-input>
+                      <small class="text-muted d-block mt-1" style="font-size: 0.75rem; line-height: 1.15;">
+                        Ingresa el desperdicio en Kilos. NO en gramos.
+                      </small>
+                    </div>
+                    <div style="flex-shrink:0; white-space:nowrap; margin-top: 6px;">
                       <b-form-checkbox v-model="itemForm.terminar" :disabled="!itemForm.validInsumo || itemForm.precargado"
                         class="small font-weight-bold text-danger">
                         Terminar
                       </b-form-checkbox>
                     </div>
                     <b-button v-if="form.length > 1 && !itemForm.precargado" variant="link" class="text-danger p-0" title="Eliminar fila"
-                      @click="removeItem(index)" style="flex-shrink:0;">
+                      @click="removeItem(index)" style="flex-shrink:0; margin-top: 6px;">
                       <b-icon icon="trash-fill" font-scale="1.2"></b-icon>
                     </b-button>
                   </div>
@@ -516,7 +521,9 @@ export default {
         // Hermandad: Estampado y Corte deben ver los materiales asignados como 'tela' sin importar el departamento asignado
         if (
           (depName === "Corte" || depName === "Estampado") &&
-          (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela") || el.tela_vendedor?.toLowerCase().includes("tela"))
+          (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela") || el.tela_vendedor?.toLowerCase().includes("tela")) &&
+          el.departamento !== "Impresión" &&
+          !el.catalogo?.toLowerCase().includes("papel")
         ) {
           return true;
         }
@@ -1510,7 +1517,7 @@ export default {
         if (isCorte && this.getCatalogosUnicos.length > 0) {
           const catalogosCubiertos = new Set(
             this.form
-              .filter(f => !f.precargado && f.validInsumo && f.idCatalogo)
+              .filter(f => f.validInsumo && f.idCatalogo)
               .map(f => f.idCatalogo)
           );
           const faltantes = this.getCatalogosUnicos.filter(
