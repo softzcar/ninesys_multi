@@ -1513,8 +1513,9 @@ export default {
           }
         }
 
-        // VALIDAR QUE CORTE HAYA CARGADO TODOS LOS CATÁLOGOS ASIGNADOS
-        if (isCorte && this.getCatalogosUnicos.length > 0) {
+        // VALIDAR QUE SE HAYA CARGADO TODOS LOS CATÁLOGOS ASIGNADOS AL DEPARTAMENTO
+        const isImpresion = this.$store.state.login.currentDepartament === 'Impresión';
+        if (!isImpresion && this.getCatalogosUnicos.length > 0) {
           const catalogosCubiertos = new Set(
             this.form
               .filter(f => f.validInsumo && f.idCatalogo)
