@@ -513,6 +513,14 @@ export default {
         // Si es el mismo departamento ID, incluir
         if (el.id_departamento == depId) return true;
 
+        // Hermandad: Estampado y Corte deben ver los materiales asignados como 'tela' sin importar el departamento asignado
+        if (
+          (depName === "Corte" || depName === "Estampado") &&
+          (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela") || el.tela_vendedor?.toLowerCase().includes("tela"))
+        ) {
+          return true;
+        }
+
         // Hermandad: Revisión y Limpieza heredan de "Producción"
         if (
             (depName === "Revisión" || depName === "Limpieza") &&
@@ -1198,82 +1206,60 @@ export default {
       this.$bvModal.hide(`modal-terminar-batch-${this.idorden}`);
 
       try {
-        // 1. Process standard consumption for ALL items (finished or not)
-        // But wait, the user wants: "primero registramos el consumo ... y acto seguido solicitamos terminar"
-        // My implementation of termineTodo sends consumption.
-
-        // Strategy:
-        // Iterate through batchItems.
-        // For each:
-        //   1. Send Consumption (standard call, wait response).
-        //   2. Check response.
-        //   3. If success, Send Finish (tipo='fin', remanente).
-
-        // For items NOT in batchItems but in form? They should be processed normally?
-        // terminateTodo iterates over everything.
-
-        // Modified approach: We will handle the "Terminar" items specifically here, 
-        // AND we must ensure the `terminarTodo` logic doesn't double-submit or conflict.
-        // Ideally `terminarTodo` should only process items that are NOT being finished here?
-        // OR `validateForm` calls `prepareBatchTerminar`, and `handleBatchTerminarConfirm` 
-        // takes over the responsibility of submitting EVERYTHING.
-
-        // Let's implement full submission loop here for consistency.
-
-        // Separate items into: "To Finish" and "Just Update".
-        const indexesToFinish = this.batchItems.map(i => i.originalIndex);
-
-        // Process "Just Update" items (Consumption only)
-        for (let i = 0; i < this.form.length; i++) {
-          if (!indexesToFinish.includes(i)) {
-            // Standard submission logic from postImp/terminarTodo
-            // ... (Reuse or call postInventarioMovimientos for normal items)
-            // For now, let's focus on the batch items logic requested.
-            // The user said: "Intercept submit... register consumption... then finish".
-
-            // We will modify logic to:
-            // 1. Submit consumption for ALL validated items (including batch ones).
-            // 2. THEN, submit 'Finish' signal for the batch ones.
-          }
-        }
-
-        // Let's assume validateForm calls prepareBatchTerminar.
         // We will iterate ALL form items.
-
         for (let i = 0; i < this.form.length; i++) {
           const formItem = this.form[i];
-          // Items precargados de Estampado son solo referencia — ya registraron su consumo
-          if (formItem.precargado) continue;
-
           const batchItem = this.batchItems.find(b => b.originalIndex === i);
 
-          // 1. Send Consumption (Always)
           let idInsumo = formItem.select;
           if (idInsumo && idInsumo.includes('|')) {
             idInsumo = idInsumo.split('|')[0].trim();
           }
 
-          // Call API Consumption
+          if (formItem.precargado) {
+            // For precargados, register only waste via soloRendimiento
+            await this.postInventarioMovimientos(
+              formItem.input,
+              idInsumo,
+              formItem.idCatalogo,
+              this.item.id_woo,
+              formItem.desperdicio,
+              0,
+              'consumo',
+              false,
+              true // soloRendimiento = true
+            );
+            continue;
+          }
+
+          // 1. Send Consumption (Always)
+          // Call API Consumption with correct arguments
           const res = await this.postInventarioMovimientos(
             formItem.input,
             idInsumo,
+            formItem.idCatalogo,
             this.item.id_woo,
-            null, null, 0, // No remanente
-            'consumo' // Explicitly send as consumption
+            formItem.desperdicio,
+            0, // No remanente
+            'consumo', // Explicitly send as consumption
+            false, // autoRemanente = false
+            false // soloRendimiento = false
           );
 
-          // 2. If item is in batch AND response success (ignore update_success flag for robustness)
-          if (batchItem && res && res.data) { // Removed && res.data.update_success
-            // Send Finish Signal with Auto Remanente
+          // 2. If item is in batch AND response success
+          if (batchItem && res && res.data) {
+            // Send Finish Signal with Auto Remanente and correct arguments
             console.log(`Finishing item ${batchItem.insumoName} automatically. AutoRemanente=true`);
             await this.postInventarioMovimientos(
               0, // Consumption 0 (already sent)
               idInsumo,
+              formItem.idCatalogo,
               this.item.id_woo,
-              null, null,
+              formItem.desperdicio,
               0, // remanente value ignored by backend if auto_remanente is true, but sent as 0
               'fin', // Type 'fin'
-              true // auto_remanente = true
+              true, // auto_remanente = true
+              false // soloRendimiento = false
             );
             console.log(`Finish request sent for ${batchItem.insumoName}`);
           }
@@ -1712,7 +1698,8 @@ export default {
       desperdicio,
       remanente = 0,
       forceTipo = null,
-      autoRemanente = false
+      autoRemanente = false,
+      soloRendimiento = false
     ) {
       // this.overlay = true;
       // Buscar cantidad actual del insumo
@@ -1770,6 +1757,9 @@ export default {
       data.set("remanente", remanente);
       if (autoRemanente) {
         data.set("auto_remanente", "true");
+      }
+      if (soloRendimiento) {
+        data.set("solo_rendimiento", "true");
       }
 
       const response = await this.$axios
@@ -1875,18 +1865,18 @@ export default {
 
       // Para otros departamentos, enviar los elementos del formulario
       this.form.forEach((el) => {
-        // Items precargados de Estampado son solo referencia — ya registraron su consumo
-        if (el.precargado) return;
-
         console.log("Enviamos elemento del formulario", el);
 
         this.postInventarioMovimientos(
-          // this.formImp.inputImp1,
           el.input,
           el.select,
           el.idCatalogo,
           this.item.id_woo,
-          el.desperdicio
+          el.desperdicio,
+          0,
+          null,
+          false,
+          el.precargado
         );
       });
 
