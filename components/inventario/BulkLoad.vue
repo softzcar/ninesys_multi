@@ -19,10 +19,10 @@
       <ul>
         <li>No modifique los nombres de las columnas ni el de las hojas.</li>
         <li>
-          La columna <strong>SKU</strong> es obligatoria y ya <strong>no</strong> requiere ser única. Puede registrar múltiples insumos (como varios rollos de tela) con el mismo SKU.
+          La columna <strong>SKU</strong> es obligatoria y ya <strong>no</strong> requiere ser única. Puede registrar múltiples insumos (como varios rollos de tela) con el mismo SKU de manera independiente.
         </li>
         <li>
-          La columna <strong>ID</strong> (opcional, al inicio) se utiliza para actualizar un insumo existente de forma precisa por su identificador único. Si desea registrar un insumo nuevo, deje la columna ID vacía.
+          La carga masiva se utiliza exclusivamente para <strong>registrar/insertar nuevos insumos</strong> en el inventario.
         </li>
         <li>
           Para las columnas con listas desplegables (como Tipo de Insumo, Producto del Catálogo, Unidad o Departamento), seleccione una de las opciones disponibles.
@@ -195,14 +195,10 @@ export default {
               if (item['Costo Total'] === undefined || item['Costo Total'] === null) rowErrors.push('El campo Costo Total es obligatorio.');
               if (!item.Departamento) rowErrors.push('El campo Departamento es obligatorio.');
 
-              // Obtener el ID opcional si existe
-              const idVal = item.ID || item.id || null;
-
               if (rowErrors.length > 0) {
                 validationErrors.push({ row: rowNumber, messages: rowErrors });
               } else {
                 validatedInventoryItems.push({
-                  'ID': idVal,
                   'SKU': item.SKU,
                   'Nombre Insumo': item['Nombre Insumo'],
                   'Tipo de Insumo': item['Tipo de Insumo'],
