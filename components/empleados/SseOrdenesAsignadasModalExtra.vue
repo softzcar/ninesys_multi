@@ -219,7 +219,7 @@
               <h5 class="mb-0 text-muted font-weight-bold">
                 <b-icon icon="layers-half"></b-icon> Asignación de Materiales
               </h5>
-              <b-button v-if="getCatalogosUnicos.length > 0" variant="outline-primary" @click="addItem" pill size="sm">
+              <b-button v-if="dataInsumosFiltradoEstricto.length > 0" variant="outline-primary" @click="addItem" pill size="sm">
                 <b-icon icon="plus-circle-fill"></b-icon> Añadir Material
               </b-button>
             </div>
