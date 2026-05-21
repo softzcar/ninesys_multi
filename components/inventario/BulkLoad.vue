@@ -19,15 +19,13 @@
       <ul>
         <li>No modifique los nombres de las columnas ni el de las hojas.</li>
         <li>
-          La columna <strong>Rollo</strong> es obligatoria y se usa para
-          identificar si un ítem de inventario es nuevo o si se debe actualizar uno
-          existente.
+          La columna <strong>SKU</strong> es obligatoria y ya <strong>no</strong> requiere ser única. Puede registrar múltiples insumos (como varios rollos de tela) con el mismo SKU.
         </li>
         <li>
-          Para las columnas con listas desplegables, seleccione una de las opciones disponibles.
+          La columna <strong>ID</strong> (opcional, al inicio) se utiliza para actualizar un insumo existente de forma precisa por su identificador único. Si desea registrar un insumo nuevo, deje la columna ID vacía.
         </li>
         <li>
-          En la hoja <strong>Inventario</strong>, asegúrese de que el campo 'Rollo' sea único para cada ítem.
+          Para las columnas con listas desplegables (como Tipo de Insumo, Producto del Catálogo, Unidad o Departamento), seleccione una de las opciones disponibles.
         </li>
       </ul>
       <b-overlay :show="loading" spinner-small>
@@ -180,6 +178,12 @@ export default {
 
             inventoryRaw.forEach((item, index) => {
               const rowNumber = index + 2; // +1 for 0-based index, +1 for header row
+
+              // Si la fila está vacía o contiene solo datos residuales (sin SKU, Nombre ni Tipo de Insumo), la omitimos
+              if (!item.SKU && !item['Nombre Insumo'] && !item['Tipo de Insumo']) {
+                return;
+              }
+
               const rowErrors = [];
 
               if (!item.SKU) rowErrors.push('El campo SKU es obligatorio.');
@@ -191,15 +195,14 @@ export default {
               if (item['Costo Total'] === undefined || item['Costo Total'] === null) rowErrors.push('El campo Costo Total es obligatorio.');
               if (!item.Departamento) rowErrors.push('El campo Departamento es obligatorio.');
 
-              // Validación de unicidad del Rollo (ahora SKU)
-              if (validatedInventoryItems.some(existingItem => existingItem.SKU === item.SKU)) {
-                rowErrors.push('El campo SKU debe ser único.');
-              }
+              // Obtener el ID opcional si existe
+              const idVal = item.ID || item.id || null;
 
               if (rowErrors.length > 0) {
                 validationErrors.push({ row: rowNumber, messages: rowErrors });
               } else {
                 validatedInventoryItems.push({
+                  'ID': idVal,
                   'SKU': item.SKU,
                   'Nombre Insumo': item['Nombre Insumo'],
                   'Tipo de Insumo': item['Tipo de Insumo'],
