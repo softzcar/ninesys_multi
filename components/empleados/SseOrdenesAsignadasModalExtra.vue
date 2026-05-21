@@ -219,12 +219,17 @@
               <h5 class="mb-0 text-muted font-weight-bold">
                 <b-icon icon="layers-half"></b-icon> Asignación de Materiales
               </h5>
-              <b-button variant="outline-primary" @click="addItem" pill size="sm">
+              <b-button v-if="getCatalogosUnicos.length > 0" variant="outline-primary" @click="addItem" pill size="sm">
                 <b-icon icon="plus-circle-fill"></b-icon> Añadir Material
               </b-button>
             </div>
 
-            <div v-for="(itemForm, index) in form" :key="index"
+            <b-alert v-if="getCatalogosUnicos.length === 0" show variant="info" class="mb-0">
+              <b-icon icon="info-circle" class="mr-1"></b-icon>
+              Este departamento no tiene materiales asignados para los productos de esta orden.
+            </b-alert>
+
+            <div v-if="getCatalogosUnicos.length > 0" v-for="(itemForm, index) in form" :key="index"
               class="mb-3 p-3 border rounded bg-white shadow-sm position-relative">
               <b-row class="align-items-start no-gutters">
                 <b-col md="4" class="px-2">
@@ -927,11 +932,9 @@ export default {
       this.showSelect = false;
       const dep = this.$store.state.login.currentDepartament;
 
-      // 1. Corte: solo si tiene insumos asignados para los productos de esta orden
+      // 1. Corte siempre muestra (necesita registrar desperdicio de etapas previas)
       if (dep === 'Corte') {
-        if (this.dataInsumosFiltrado && this.dataInsumosFiltrado.length > 0) {
-          this.showSelect = true;
-        }
+        this.showSelect = true;
         return;
       }
 
