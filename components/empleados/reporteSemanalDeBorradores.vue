@@ -2,7 +2,7 @@
   <div>
     <a href="#" @click.prevent="showModal" class="nav-link">
       <b-icon icon="journal-text" class="mr-1"></b-icon>
-      Reporte de Borradores
+      <span>Reporte de Borradores</span>
     </a>
 
     <b-modal :id="modalId" :title="title" size="lg" hide-footer>

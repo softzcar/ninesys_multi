@@ -1,13 +1,13 @@
 <template>
   <div class="app-wrapper">
     <!-- Sidebar - solo visible si está logueado y no está en páginas de auth -->
-    <AppSidebar v-if="showSidebar" @toggle="onSidebarToggle" :class="{ 'show': sidebarVisible }" />
+    <AppSidebar v-if="showSidebar" @toggle="onSidebarToggle" @close-mobile="sidebarVisible = false" :class="{ 'show': sidebarVisible }" />
 
     <!-- Overlay para móvil -->
     <div v-if="showSidebar && sidebarVisible" class="sidebar-overlay d-lg-none" @click="sidebarVisible = false" />
 
     <!-- Contenido Principal -->
-    <div class="main-wrapper" :class="{ 'with-sidebar': showSidebar }">
+    <div class="main-wrapper" :class="{ 'with-sidebar': showSidebar, 'sidebar-collapsed': sidebarCollapsed }">
       <!-- Header móvil con toggle -->
       <div v-if="showSidebar" class="mobile-header d-lg-none">
         <button class="btn btn-link sidebar-toggle-btn" @click="sidebarVisible = !sidebarVisible">
@@ -44,6 +44,7 @@ export default {
   data() {
     return {
       sidebarVisible: false,
+      sidebarCollapsed: false,
     };
   },
   computed: {
@@ -67,7 +68,7 @@ export default {
   },
   methods: {
     onSidebarToggle(collapsed) {
-      this.sidebarVisible = !collapsed;
+      this.sidebarCollapsed = collapsed;
     },
   },
   watch: {
@@ -99,6 +100,12 @@ $primary-color: #17a2b8;
   &.with-sidebar {
     @media (min-width: 992px) {
       margin-left: $sidebar-width;
+    }
+
+    &.sidebar-collapsed {
+      @media (min-width: 992px) {
+        margin-left: 70px;
+      }
     }
   }
 }

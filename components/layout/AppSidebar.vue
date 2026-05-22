@@ -3,9 +3,15 @@
     <!-- Header del Sidebar -->
     <div class="sidebar-header">
       <div class="sidebar-brand">
-        <span class="brand-name">{{ empresaNombre }}</span>
+        <span class="brand-name" v-show="!isCollapsed">{{ empresaNombre }}</span>
+        <span class="brand-name-short" v-show="isCollapsed">{{ empresaNombre.substring(0, 2).toUpperCase() }}</span>
       </div>
-      <button class="sidebar-toggle d-lg-none" @click="toggleSidebar">
+      <!-- Botón para escritorio -->
+      <button class="sidebar-toggle d-none d-lg-block" @click="toggleSidebar">
+        <b-icon :icon="isCollapsed ? 'chevron-right' : 'chevron-left'" />
+      </button>
+      <!-- Botón para móvil -->
+      <button class="sidebar-toggle d-lg-none" @click="closeSidebarMobile">
         <b-icon icon="x" />
       </button>
     </div>
@@ -15,45 +21,45 @@
       <div class="profile-avatar">
         <b-icon icon="person-circle" scale="2" />
       </div>
-      <div class="profile-info">
+      <div class="profile-info" v-show="!isCollapsed">
         <span class="profile-name">{{ dataUser.nombre }}</span>
         <small class="profile-dept">{{ currentDepartament }}</small>
       </div>
     </div>
 
     <!-- Selector de Departamento (si tiene múltiples) -->
-    <div v-if="getDepartamentosEmpleadoSelect.length > 1" class="dept-selector">
+    <div v-if="getDepartamentosEmpleadoSelect.length > 1 && !isCollapsed" class="dept-selector">
       <b-form-select v-model="selectedDepartamento" :options="getDepartamentosEmpleadoSelect" size="sm"
         @change="onDepartamentoChange" />
     </div>
 
     <!-- Menú dinámico según departamento -->
-    <div class="sidebar-menu">
+    <div class="sidebar-menu" @click="handleMenuClick">
       <ul class="nav flex-column">
         <!-- Item Inicio -->
         <li class="nav-item">
           <router-link class="nav-link" to="/" exact>
             <b-icon icon="house" />
-            <span>Inicio</span>
+            <span v-show="!isCollapsed">Inicio</span>
           </router-link>
         </li>
 
         <!-- WhatsApp (siempre visible, con badge de no leídos en tiempo real) -->
         <li class="nav-item">
-          <a class="nav-link" v-b-toggle="'sidebar-whatsapp'">
+          <a class="nav-link" v-b-toggle="isCollapsed ? null : 'sidebar-whatsapp'">
             <b-icon icon="whatsapp" />
-            <span>WhatsApp</span>
+            <span v-show="!isCollapsed">WhatsApp</span>
             <b-badge
               v-if="waUnreadCount > 0"
               variant="success"
               pill
-              class="ml-2"
+              :class="isCollapsed ? 'collapsed-badge' : 'ml-2'"
             >
               {{ waUnreadCount > 99 ? '99+' : waUnreadCount }}
             </b-badge>
-            <b-icon icon="chevron-down" class="menu-arrow" />
+            <b-icon v-show="!isCollapsed" icon="chevron-down" class="menu-arrow" />
           </a>
-          <b-collapse id="sidebar-whatsapp" class="sub-menu">
+          <b-collapse v-if="!isCollapsed" id="sidebar-whatsapp" class="sub-menu">
             <ul class="nav flex-column">
               <li class="nav-item">
                 <router-link class="nav-link" to="/whatsapp">
@@ -99,9 +105,9 @@
 
     <!-- Footer del Sidebar -->
     <div class="sidebar-footer">
-      <button class="btn btn-sidebar-logout" @click="goOut">
+      <button class="btn btn-sidebar-logout" @click="goOut" data-title="Salir">
         <b-icon icon="box-arrow-left" />
-        <span>Salir</span>
+        <span v-show="!isCollapsed">Salir</span>
       </button>
     </div>
   </nav>
@@ -166,6 +172,16 @@ export default {
     },
   },
   watch: {
+    isCollapsed(val) {
+      if (val) {
+        this.updateMenuTooltips();
+      }
+    },
+    currentComponent() {
+      if (this.isCollapsed) {
+        this.updateMenuTooltips();
+      }
+    },
     currentDepartament: {
       immediate: true,
       handler(newVal) {
@@ -194,6 +210,7 @@ export default {
     }
     // Escuchar eventos de otros componentes (ej. WaInbox al marcar como leído)
     this.$nuxt.$on('wa:conv-read', this.onConversationRead);
+    this.updateMenuTooltips();
   },
   beforeDestroy() {
     this.$nuxt.$off('wa:conv-read', this.onConversationRead);
@@ -298,9 +315,32 @@ export default {
       }
     },
 
+    closeSidebarMobile() {
+      this.$emit("close-mobile");
+    },
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed;
       this.$emit("toggle", this.isCollapsed);
+    },
+    handleMenuClick(event) {
+      if (this.isCollapsed) {
+        const navLink = event.target.closest('.nav-link');
+        if (navLink) {
+          this.isCollapsed = false;
+          this.$emit("toggle", this.isCollapsed);
+        }
+      }
+    },
+    updateMenuTooltips() {
+      this.$nextTick(() => {
+        const links = this.$el.querySelectorAll('.sidebar-menu .nav-link');
+        links.forEach(link => {
+          const span = link.querySelector('span');
+          if (span) {
+            link.setAttribute('data-title', span.textContent.trim());
+          }
+        });
+      });
     },
     onDepartamentoChange(value) {
       const depto = this.getDepartamentosEmpleadoSelect.find(
@@ -355,10 +395,16 @@ $active-bg: rgba(23, 162, 184, 0.15);
   z-index: 1040;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
   border-right: 1px solid $sidebar-border;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, width 0.3s ease;
 
   &.collapsed {
-    transform: translateX(-100%);
+    @media (min-width: 992px) {
+      width: 70px;
+
+      .sidebar-menu {
+        overflow-y: visible !important;
+      }
+    }
   }
 }
 
@@ -369,11 +415,19 @@ $active-bg: rgba(23, 162, 184, 0.15);
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(135deg, $accent-color 0%, darken($accent-color, 10%) 100%);
+  transition: padding 0.3s ease;
 
   .brand-name {
     font-size: 1.1rem;
     font-weight: 600;
     color: #fff;
+  }
+
+  .brand-name-short {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
   }
 
   .sidebar-toggle {
@@ -382,6 +436,25 @@ $active-bg: rgba(23, 162, 184, 0.15);
     color: #fff;
     font-size: 1.25rem;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  .app-sidebar.collapsed & {
+    @media (min-width: 992px) {
+      padding: 1rem 0.5rem;
+      flex-direction: column;
+      gap: 0.75rem;
+      justify-content: center;
+    }
   }
 }
 
@@ -392,6 +465,7 @@ $active-bg: rgba(23, 162, 184, 0.15);
   gap: 0.75rem;
   border-bottom: 1px solid $sidebar-border;
   background: #f8f9fa;
+  transition: padding 0.3s ease, justify-content 0.3s ease;
 
   .profile-avatar {
     color: $accent-color;
@@ -410,6 +484,13 @@ $active-bg: rgba(23, 162, 184, 0.15);
     .profile-dept {
       color: $text-secondary;
       font-size: 0.8rem;
+    }
+  }
+
+  .app-sidebar.collapsed & {
+    @media (min-width: 992px) {
+      padding: 1rem 0.5rem;
+      justify-content: center;
     }
   }
 }
@@ -440,6 +521,8 @@ $active-bg: rgba(23, 162, 184, 0.15);
 
   // Estilos para links principales (con ::v-deep para aplicar a componentes hijos)
   ::v-deep .nav-item {
+    position: relative;
+
     .nav-link {
       color: $text-primary !important;
       padding: 0.75rem 1.25rem;
@@ -497,12 +580,76 @@ $active-bg: rgba(23, 162, 184, 0.15);
       }
     }
   }
+
+  // Estilos específicos para modo colapsado
+  .app-sidebar.collapsed & {
+    @media (min-width: 992px) {
+      ::v-deep .nav-item {
+        .nav-link {
+          justify-content: center;
+          padding: 0.75rem 0.5rem;
+
+          // Ocultar texto y flechas
+          span {
+            display: none !important;
+          }
+
+          .menu-arrow {
+            display: none !important;
+          }
+
+          // Ajustar badges
+          .badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+            margin-left: 0 !important;
+          }
+
+          // Tooltip elegante
+          &[data-title]::after {
+            content: attr(data-title);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%) scale(0.85);
+            margin-left: 10px;
+            background: rgba(33, 37, 41, 0.95);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            z-index: 1060;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+          }
+
+          &:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+          }
+        }
+
+        // Ocultar submenús
+        .sub-menu {
+          display: none !important;
+        }
+      }
+    }
+  }
 }
 
 .sidebar-footer {
   padding: 1rem 1.25rem;
   border-top: 1px solid $sidebar-border;
   background: #f8f9fa;
+  transition: padding 0.3s ease;
 
   .btn-sidebar-logout {
     width: 100%;
@@ -516,10 +663,51 @@ $active-bg: rgba(23, 162, 184, 0.15);
     gap: 0.5rem;
     border-radius: 4px;
     transition: all 0.2s ease;
+    position: relative;
 
     &:hover {
       background: #dc3545;
       color: #fff;
+    }
+  }
+
+  .app-sidebar.collapsed & {
+    @media (min-width: 992px) {
+      padding: 1rem 0.5rem;
+
+      .btn-sidebar-logout {
+        padding: 0.6rem 0.25rem;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto;
+
+        &[data-title]::after {
+          content: attr(data-title);
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%) scale(0.85);
+          margin-left: 15px;
+          background: rgba(33, 37, 41, 0.95);
+          color: #fff;
+          padding: 5px 10px;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          white-space: nowrap;
+          z-index: 1060;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        &:hover::after {
+          opacity: 1;
+          transform: translateY(-50%) scale(1);
+        }
+      }
     }
   }
 }
