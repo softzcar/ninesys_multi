@@ -850,9 +850,9 @@ export default {
 
       // Lógica dinámica basada en insumosTodos filtrado por el departamento actual
       if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
-        // Impresión usa insumos catalogados como "Telas" (inversión histórica en DB)
-        const depFilter = dep === "Impresión" ? "Telas" : dep;
-        myOptions = this.insumosTodos.filter((item) => item.departamento === depFilter);
+        // Impresión usa insumos catalogados como "Telas" (inversión histórica en DB) o "Impresión"
+        const depFilters = dep === "Impresión" ? ["Telas", "Impresión"] : [dep];
+        myOptions = this.insumosTodos.filter((item) => depFilters.includes(item.departamento));
 
         // Casos especiales de mapeo de departamentos (Producción -> Revisión/Limpieza)
         if (["Revisión", "Limpieza"].includes(dep)) {
@@ -1401,8 +1401,9 @@ export default {
       // If it has > 1, it means there are insumos populated for this department.
       const hayInsumosDisponibles = this.selectOptions && this.selectOptions.length > 1;
       const isCorte = this.$store.state.login.currentDepartament === 'Corte';
+      const isImpresion = this.$store.state.login.currentDepartament === 'Impresión';
 
-      if ((this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) || isCorte) {
+      if ((this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) || isCorte || isImpresion) {
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
@@ -1478,7 +1479,7 @@ export default {
 
 
 
-        if (this.form.length === 0) {
+        if (this.form.length === 0 && this.getCatalogosUnicos.length > 0) {
           ok = false;
           if (isCorte) {
             msg = msg + "<p>Debe asignar al menos un insumo (puede dejar el consumo en 0) para registrar el desperdicio.</p>";
@@ -1514,8 +1515,7 @@ export default {
         }
 
         // VALIDAR QUE SE HAYA CARGADO TODOS LOS CATÁLOGOS ASIGNADOS AL DEPARTAMENTO
-        const isImpresion = this.$store.state.login.currentDepartament === 'Impresión';
-        if (!isImpresion && this.getCatalogosUnicos.length > 0) {
+        if (this.getCatalogosUnicos.length > 0) {
           const catalogosCubiertos = new Set(
             this.form
               .filter(f => f.validInsumo && f.idCatalogo)

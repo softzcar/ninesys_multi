@@ -147,7 +147,11 @@ export default {
                     label: 'Black',
                 },
                 {
-                    key: 'total_tinta',
+                    key: 'white',
+                    label: 'White',
+                },
+                {
+                    key: 'total_tinta_consumo_ml',
                     label: 'Total Tinta',
                 },
             ],
@@ -216,8 +220,8 @@ export default {
         },
 
         totales() {
-            const tinta = this.dataTable.tintas.reduce((sum, item) => sum + item.total_tinta, 0)
-            const insumos = this.dataTable.insumos_consumidos.reduce((sum, item) => sum + item.total_insumo, 0)
+            const tinta = this.dataTable.tintas.reduce((sum, item) => sum + (Number(item.total_tinta_consumo_ml) || 0), 0)
+            const insumos = this.dataTable.insumos_consumidos.reduce((sum, item) => sum + (Number(item.total_insumo) || 0), 0)
             return {
                 tinta: tinta.toFixed(2),
                 insumo: insumos.toFixed(2)

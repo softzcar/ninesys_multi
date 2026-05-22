@@ -45,6 +45,9 @@
             <template #foot(black)>
               <span>&nbsp;</span>
             </template>
+            <template #foot(white)>
+              <span>&nbsp;</span>
+            </template>
             <template #foot(total_tinta_consumo_ml)>
               <strong>{{ totalTintaML.toFixed(2) }} ml</strong>
             </template>
@@ -144,6 +147,7 @@ export default {
         { key: "magenta", label: "Magenta" },
         { key: "yellow", label: "Yellow" },
         { key: "black", label: "Black" },
+        { key: "white", label: "White" },
         { key: "total_tinta_consumo_ml", label: "Total Tinta" }, // Changed key
         { key: "total_tinta_costo", label: "Total Costo" }, // New field
       ],

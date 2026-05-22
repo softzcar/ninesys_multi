@@ -1,0 +1,34 @@
+import os
+
+file_path = '/home/developer/Escritorio/niesys/ninesys-api/app/routes/reports.php'
+with open(file_path, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Modificar el bloque de debug para traer una muestra de la tabla sin filtros
+old_block = """            if ($debug) {
+                $finalResponse['debug_gastos'] = [
+                    'sql' => $sqlGastosReales,
+                    'params' => [':inicio' => $inicio, ':fin' => $fin],
+                    'raw_results' => $gastosRealesRaw,
+                    'company_db' => $companyDB
+                ];
+            }"""
+
+new_block = """            if ($debug) {
+                $sample = $dbEmpresas->goQuery("SELECT * FROM $companyDB.gastos_registros ORDER BY _id DESC LIMIT 10");
+                $finalResponse['debug_gastos'] = [
+                    'sql' => $sqlGastosReales,
+                    'params' => [':inicio' => $inicio, ':fin' => $fin],
+                    'raw_results' => $gastosRealesRaw,
+                    'sample_data' => $sample,
+                    'company_db' => $companyDB
+                ];
+            }"""
+
+if old_block in content:
+    new_content = content.replace(old_block, new_block)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    print("Debug V2 inyectado.")
+else:
+    print("No se encontró el bloque anterior.")

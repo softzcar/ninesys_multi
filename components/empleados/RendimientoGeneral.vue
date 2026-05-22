@@ -176,9 +176,7 @@ export default {
           else if (allVariants.includes("success")) this.variant = "success";
           else this.variant = "light";
 
-          if (eficienciaTitulo && progresoTitulo) {
-            this.text = `✓ ${eficienciaTitulo} | ⏳ ${progresoTitulo}`;
-          } else if (eficienciaTitulo) {
+          if (eficienciaTitulo) {
             this.text = `✓ Eficiencia Tareas Completadas: ${eficienciaTitulo.split(': ')[1]}`;
           } else if (progresoTitulo) {
             this.text = `⏳ Progreso Tareas En Curso: ${progresoTitulo.split(': ')[1]}`;
