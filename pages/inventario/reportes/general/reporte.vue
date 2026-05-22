@@ -56,7 +56,7 @@
                   :series-data="chartData.materiales.map(i => i.value)"
                   :categories="chartData.materiales.map(i => i.label)"
                   :units="chartData.materiales.map(i => i.unidad)"
-                  :title="'Telas e Insumos Más Usados (' + rangoFechasLabel + ')'"
+                  :title="filtroStock === 'enStock' ? 'Telas e Insumos Disponibles (Stock)' : 'Telas e Insumos Más Usados (' + rangoFechasLabel + ')'"
                 />
               </b-col>
               <b-col lg="4" md="6" class="mb-4">
@@ -65,7 +65,7 @@
                   :values="chartData.tintas.values"
                   :labels="chartData.tintas.labels"
                   :colors="chartData.tintas.colors"
-                  :title="'Distribución de Tintas (' + rangoFechasLabel + ')'"
+                  :title="filtroStock === 'enStock' ? 'Distribución de Tintas en Stock' : 'Distribución de Tintas Consumidas (' + rangoFechasLabel + ')'"
                 />
               </b-col>
               <b-col lg="4" md="12" class="mb-4">
@@ -73,7 +73,7 @@
                   v-if="chartData.papel && chartData.papel.length > 0"
                   :series-data="chartData.papel.map(i => i.value)"
                   :categories="chartData.papel.map(i => i.label)"
-                  :title="'Consumo de Papel Semanal (' + rangoFechasLabel + ')'"
+                  :title="filtroStock === 'enStock' ? 'Stock de Papel Disponible' : 'Consumo de Papel Semanal (' + rangoFechasLabel + ')'"
                   unit="m"
                 />
               </b-col>
@@ -90,7 +90,7 @@
                   button-variant="outline-primary"
                   size="md"
                   name="radio-btn-dept"
-                  @input="loadReport"
+                  @change="loadReport"
                 ></b-form-radio-group>
               </b-col>
               <b-col md="6">
@@ -102,7 +102,7 @@
                   button-variant="outline-primary"
                   size="md"
                   name="radio-btn-stock"
-                  @input="loadReport"
+                  @change="loadReport"
                 ></b-form-radio-group>
               </b-col>
             </b-row>
@@ -136,6 +136,9 @@
                   :filter="filter"
                   v-model="itemsFiltrados"
                 >
+                  <template #cell(cantidad)="data">
+                    {{ displayCantidad(data.item) }}
+                  </template>
                   <template #cell(costo)="data">
                     ${{ data.value }}
                   </template>
@@ -195,9 +198,8 @@ export default {
       itemsFiltrados: [],
       filtroStock: 'enStock',
       opcionesStock: [
-        { text: "Sólo en Stock", value: "enStock" },
-        { text: "Sólo Terminados", value: "terminados" },
-        { text: "Todos los Ítems", value: "todos" }
+        { text: "Material en Stock", value: "enStock" },
+        { text: "Material Consumido", value: "terminados" }
       ],
       chartData: null
     };
@@ -213,12 +215,19 @@ export default {
     datosParaElReporte() {
       return {
         items: this.itemsFiltrados.length > 0 ? this.itemsFiltrados : this.items,
-        departamento: this.departamentoSeleccionado
+        departamento: this.departamentoSeleccionado,
+        filtroStock: this.filtroStock
       };
     },
   },
   methods: {
     async loadReport() {
+      console.log("loadReport calling API with params:", {
+        departamento: this.departamentoSeleccionado,
+        filtroStock: this.filtroStock,
+        fechaDesde: this.fechaDesde,
+        fechaHasta: this.fechaHasta
+      });
       this.loading = true;
       try {
         const res = await this.$axios.get(`${this.$config.API}/inventario/reportes/general`, {
@@ -231,7 +240,15 @@ export default {
         });
         if (res.data.success) {
           this.items = res.data.items;
-          this.fields = res.data.fields;
+          this.fields = res.data.fields.map(field => {
+            if (field.key === 'cantidad') {
+              return {
+                ...field,
+                label: this.filtroStock === 'terminados' ? 'Consumido' : 'Stock'
+              };
+            }
+            return field;
+          });
           this.chartData = res.data.chartData || null;
           
           // Actualizar opciones de departamentos dinámicamente
@@ -259,6 +276,15 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    displayCantidad(item) {
+      const cant = parseFloat(item.cantidad || 0);
+      const cantIni = parseFloat(item.cantidad_inicial) || cant || 0;
+      if (this.filtroStock === 'terminados') {
+        const consumed = cantIni - cant;
+        return consumed > 0 ? consumed.toFixed(2) : '0.00';
+      }
+      return cant.toFixed(2);
     },
     async fetchChartsData() {
       // Método conservado por compatibilidad pero ya no se usa

@@ -1,7 +1,7 @@
 <template>
   <div class="report-container">
     <div class="report-header">
-      <h1>Reporte de Inventario</h1>
+      <h1>{{ datosReporte.filtroStock === 'terminados' ? 'Reporte de Material Consumido' : 'Reporte de Inventario en Stock' }}</h1>
       <h2>{{ nombreEmpresa }}</h2>
       <div class="report-info">
         <p><strong>Departamento:</strong> {{ datosReporte.departamento || 'Todas' }}</p>
@@ -20,7 +20,7 @@
           <th>SKU</th>
           <th>Insumo</th>
           <th>Unidad</th>
-          <th>Stock</th>
+          <th>{{ datosReporte.filtroStock === 'terminados' ? 'Consumido' : 'Stock' }}</th>
           <th>Costo</th>
           <th>Departamento</th>
         </tr>
@@ -82,8 +82,12 @@ export default {
     },
     calcularStockIndividual(item) {
       const cant = parseFloat(item.cantidad || 0);
+      const cantIni = parseFloat(item.cantidad_inicial) || cant || 0;
       const rend = parseFloat(item.rendimiento || 1);
-      // Nueva regla: división por rendimiento/eficiencia
+      if (this.datosReporte.filtroStock === 'terminados') {
+        const consumed = cantIni - cant;
+        return (consumed > 0 ? (consumed / rend) : 0).toFixed(2);
+      }
       return (cant / rend).toFixed(2);
     },
     calcularValorIndividual(item) {
