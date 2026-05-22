@@ -521,7 +521,7 @@ export default {
         // Hermandad: Estampado y Corte deben ver los materiales asignados como 'tela' sin importar el departamento asignado
         if (
           (depName === "Corte" || depName === "Estampado") &&
-          (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela") || el.tela_vendedor?.toLowerCase().includes("tela")) &&
+          (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela")) &&
           el.departamento !== "Impresión" &&
           !el.catalogo?.toLowerCase().includes("papel")
         ) {
@@ -630,9 +630,13 @@ export default {
       insumosDept.forEach((item) => {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
+          const dep = this.$store.state.login.currentDepartament;
+          const u = (dep === 'Corte')
+            ? (parseFloat(item.unidades) || 0)
+            : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0);
           productosUnicos.set(key, {
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-            unidades: parseFloat(item.unidades) || 0,
+            unidades: u,
             unidad: item.unidad_de_medida || 'Metros'
           });
         }
@@ -676,10 +680,14 @@ export default {
       insumosDept.forEach((item) => {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
+          const dep = this.$store.state.login.currentDepartament;
+          const u = (dep === 'Corte')
+            ? (parseFloat(item.unidades) || 0)
+            : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0);
           productosUnicos.set(key, {
             catalogo: item.catalogo || 'Sin catálogo',
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
-            unidades: parseFloat(item.unidades) || 0,
+            unidades: u,
             unidad: item.unidad_de_medida || 'Metros'
           });
         }
@@ -1402,8 +1410,14 @@ export default {
       const hayInsumosDisponibles = this.selectOptions && this.selectOptions.length > 1;
       const isCorte = this.$store.state.login.currentDepartament === 'Corte';
       const isImpresion = this.$store.state.login.currentDepartament === 'Impresión';
+      const hasStrictInsumos = this.dataInsumosFiltradoEstricto && this.dataInsumosFiltradoEstricto.length > 0;
 
-      if ((this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) || isCorte || isImpresion) {
+      if (
+        (this.showSelect && hayInsumosDisponibles && this.materialEstimadoPorCatalogo.length > 0) ||
+        isCorte ||
+        isImpresion ||
+        hasStrictInsumos
+      ) {
         let msg = "";
 
         if (this.$store.state.login.currentDepartament === "Impresión") {
@@ -1477,7 +1491,13 @@ export default {
           }
         }
 
+        // --- NUEVA VALIDACIÓN: Obligar a registrar insumos si hay asignados estrictamente ---
+        const formNonPrecargado = this.form.filter(f => !f.precargado && f.validInsumo && f.idCatalogo);
 
+        if (hasStrictInsumos && formNonPrecargado.length === 0) {
+          ok = false;
+          msg += `<p>Debe añadir y registrar al menos un insumo específico para el departamento de ${this.$store.state.login.currentDepartament}.</p>`;
+        }
 
         if (this.form.length === 0 && this.getCatalogosUnicos.length > 0) {
           ok = false;
@@ -1531,6 +1551,30 @@ export default {
           }
         }
 
+        // --- NUEVA VALIDACIÓN: Garantizar cobertura estricta (no precargada) ---
+        if (hasStrictInsumos) {
+          const catalogosStrict = new Set(
+            this.dataInsumosFiltradoEstricto
+              .filter(item => item.id_catalogo_insumos_productos)
+              .map(item => item.id_catalogo_insumos_productos)
+          );
+
+          if (catalogosStrict.size > 0) {
+            const catalogosCubiertosStrict = new Set(formNonPrecargado.map(f => f.idCatalogo));
+            const faltantesStrict = [...catalogosStrict].filter(idCat => !catalogosCubiertosStrict.has(idCat));
+
+            if (faltantesStrict.length > 0) {
+              ok = false;
+              const nombresFaltantes = this.dataInsumosFiltradoEstricto
+                .filter(item => faltantesStrict.includes(item.id_catalogo_insumos_productos))
+                .map(item => item.catalogo)
+                .filter((value, index, self) => self.indexOf(value) === index)
+                .join(', ');
+              msg += `<p>Debe registrar el consumo de los materiales asignados a este departamento. Faltan: <strong>${nombresFaltantes}</strong></p>`;
+            }
+          }
+        }
+
         // VALIDAR DESPERDICIO (siempre, independiente de errores previos)
         for (let i = 0; i < this.form.length; i++) {
           const itemForm = this.form[i];
@@ -1538,7 +1582,7 @@ export default {
             if (itemForm.desperdicio === null || itemForm.desperdicio === "") {
               ok = false;
               msg = msg + `<p>Ingrese el peso del desperdicio para el insumo de la fila ${i + 1}</p>`;
-            } else if (isCorte && parseFloat(itemForm.input) === 0 && parseFloat(itemForm.desperdicio) === 0) {
+            } else if (isCorte && !itemForm.precargado && parseFloat(itemForm.input) === 0 && parseFloat(itemForm.desperdicio) === 0) {
               ok = false;
               msg = msg + `<p>Debe ingresar un consumo de material o un desperdicio en la fila ${i + 1}</p>`;
             }
