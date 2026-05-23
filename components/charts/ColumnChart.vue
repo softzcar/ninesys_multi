@@ -92,7 +92,10 @@ export default {
         yaxis: {
           labels: {
             show: true,
-            formatter: (val) => val + " " + this.unit
+            formatter: (val) => {
+              const unit = this.units && this.units.length > 0 ? this.units[0] : '';
+              return val + " " + unit;
+            }
           }
         },
         legend: {
@@ -118,7 +121,13 @@ export default {
         },
         tooltip: {
           y: {
-            formatter: (val) => val + " " + this.unit
+            formatter: (val, opt) => {
+              if (opt && opt.dataPointIndex !== undefined) {
+                const unit = this.units[opt.dataPointIndex] || '';
+                return val + " " + unit;
+              }
+              return val;
+            }
           }
         }
       }
