@@ -97,6 +97,11 @@
                                                 @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>
                                         <span class="floatme">
+                                            <inventario-InsumoClonar @reload="getInsumos" :data="data.item"
+                                                :catalogoProductosData="catalogoInsumosProductos"
+                                                @reloadCatalogo="fetchCatalogoInsumosProductos" />
+                                        </span>
+                                        <span class="floatme">
                                             <!-- Nuevo Componente Terminar Insumo -->
                                             <inventario-InsumoTerminar :idInsumo="data.item._id"
                                                 :nombreInsumo="data.item.insumo" :cantidadActual="data.item.cantidad"

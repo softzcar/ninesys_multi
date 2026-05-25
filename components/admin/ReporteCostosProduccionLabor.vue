@@ -71,10 +71,16 @@
             foot-clone
           >
             <template #cell(horas_trabajadas)="data">
-              {{ data.item.horas_trabajadas.toFixed(2) }} h
+              <span v-if="data.item.horas_trabajadas !== null && data.item.horas_trabajadas !== undefined">
+                {{ data.item.horas_trabajadas.toFixed(2) }} h
+              </span>
+              <span v-else class="text-muted">—</span>
             </template>
             <template #cell(costo_por_hora)="data">
-              $ {{ data.item.costo_por_hora.toFixed(4) }}
+              <span v-if="data.item.costo_por_hora !== null && data.item.costo_por_hora !== undefined">
+                $ {{ data.item.costo_por_hora.toFixed(4) }}
+              </span>
+              <span v-else class="text-muted">—</span>
             </template>
             <template #cell(salario_proporcional)="data">
               <strong>$ {{ data.item.salario_proporcional.toFixed(2) }}</strong>
@@ -201,7 +207,30 @@ export default {
           };
         });
 
-        this.detallesSalarios = Array.isArray(data.salarios) ? data.salarios : [];
+        const salarios = Array.isArray(data.salarios) ? [...data.salarios] : [];
+        const idsConSalario = new Set(salarios.map(s => Number(s.id_empleado)));
+
+        this.manoDeObraData.forEach(p => {
+          const idEmp = Number(p.id_empleado);
+          const salarioPagado = Number(p.total_salario_pagado || 0);
+          
+          if (salarioPagado > 0 && !idsConSalario.has(idEmp)) {
+            const existingIndex = salarios.findIndex(s => Number(s.id_empleado) === idEmp);
+            if (existingIndex > -1) {
+              salarios[existingIndex].salario_proporcional += salarioPagado;
+            } else {
+              salarios.push({
+                id_empleado: idEmp,
+                nombre_empleado: p.nombre_empleado,
+                horas_trabajadas: null,
+                costo_por_hora: null,
+                salario_proporcional: salarioPagado
+              });
+            }
+          }
+        });
+
+        this.detallesSalarios = salarios;
       } catch (error) {
         this.manoDeObraData = [];
         this.detallesSalarios = [];

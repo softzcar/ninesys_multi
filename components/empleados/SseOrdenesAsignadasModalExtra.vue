@@ -224,7 +224,7 @@
               </b-button>
             </div>
 
-            <b-alert v-if="getCatalogosUnicos.length === 0" show variant="info" class="mb-0">
+            <b-alert v-if="dataInsumosFiltradoEstricto.length === 0" show variant="info" class="mb-0">
               <b-icon icon="info-circle" class="mr-1"></b-icon>
               Este departamento no tiene materiales asignados para los productos de esta orden.
             </b-alert>
@@ -515,8 +515,15 @@ export default {
         const isSameOrder = el.id_orden == this.idorden;
         if (!isSameOrder) return false;
 
-        // Si es el mismo departamento ID, incluir
-        if (el.id_departamento == depId) return true;
+        // Si es el mismo departamento (por Nombre o por ID), incluir
+        let isStrictDepto = false;
+        if (depName && el.departamento && el.departamento === depName) {
+          isStrictDepto = true;
+        } else if (depId && el.id_departamento && parseInt(el.id_departamento) === parseInt(depId)) {
+          isStrictDepto = true;
+        }
+
+        if (isStrictDepto) return true;
 
         // Hermandad: Estampado y Corte deben ver los materiales asignados como 'tela' sin importar el departamento asignado
         if (
@@ -562,9 +569,19 @@ export default {
      * Se usa para decidir si mostrar la sección de material (sin lógica de hermanos).
      */
     dataInsumosFiltradoEstricto() {
+      const depName = this.$store.state.login.currentDepartament;
       const depId = this.$store.state.login.currentDepartamentId;
       return this.dataInsumosComputed.filter((el) => {
-        return el.id_orden == this.idorden && el.id_departamento == depId;
+        const isSameOrder = el.id_orden == this.idorden;
+        if (!isSameOrder) return false;
+
+        // Coincidencia estricta por Nombre de Departamento (Robusto ante migraciones de IDs)
+        if (depName && el.departamento && el.departamento === depName) return true;
+
+        // Fallback por ID de Departamento
+        if (depId && el.id_departamento && parseInt(el.id_departamento) === parseInt(depId)) return true;
+
+        return false;
       });
     },
 
@@ -1499,7 +1516,7 @@ export default {
           msg += `<p>Debe añadir y registrar al menos un insumo específico para el departamento de ${this.$store.state.login.currentDepartament}.</p>`;
         }
 
-        if (this.form.length === 0 && this.getCatalogosUnicos.length > 0) {
+        if (this.form.length === 0 && this.getCatalogosUnicos.length > 0 && hasStrictInsumos) {
           ok = false;
           if (isCorte) {
             msg = msg + "<p>Debe asignar al menos un insumo (puede dejar el consumo en 0) para registrar el desperdicio.</p>";
@@ -1535,7 +1552,7 @@ export default {
         }
 
         // VALIDAR QUE SE HAYA CARGADO TODOS LOS CATÁLOGOS ASIGNADOS AL DEPARTAMENTO
-        if (this.getCatalogosUnicos.length > 0) {
+        if (this.getCatalogosUnicos.length > 0 && hasStrictInsumos) {
           const catalogosCubiertos = new Set(
             this.form
               .filter(f => f.validInsumo && f.idCatalogo)

@@ -189,6 +189,52 @@ export default {
       if (!this.showUpload) this.newFile = null
     },
 
+    resizeImage(file, maxWidth = 1200, maxHeight = 1200) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  resolve(new File([blob], file.name, { type: file.type }));
+                } else {
+                  reject(new Error("Canvas toBlob failed"));
+                }
+              },
+              file.type || "image/png"
+            );
+          };
+          img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+      });
+    },
+
     async uploadImage() {
       if (!this.newFile) return
       if (!this.idEmpresa) {
@@ -197,8 +243,17 @@ export default {
       }
       this.uploading = true
       try {
+        let fileToUpload = this.newFile
+        if (this.newFile && this.newFile.type.startsWith("image/")) {
+          try {
+            fileToUpload = await this.resizeImage(this.newFile)
+          } catch (e) {
+            console.error("Error client-side resizing image:", e)
+          }
+        }
+
         const formData = new FormData()
-        formData.append('file', this.newFile)
+        formData.append('file', fileToUpload)
 
         const url = `${this.galleryCdn}/?action=gallery_upload&id_empresa=${this.idEmpresa}&product=${this.categoria.name}`
         const { data } = await axios.post(url, formData, {

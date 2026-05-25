@@ -33,6 +33,17 @@
                             <b-td>
                                 <strong>{{ prod.name }}</strong><br>
                                 <small class="text-muted">{{ prod.tela }}</small>
+                                <div v-if="prod.disponibles && prod.disponibles.length > 0" class="mt-1">
+                                    <div class="d-flex flex-wrap align-items-center">
+                                        <b-badge variant="success" class="d-inline-flex align-items-center px-2 py-1 shadow-sm font-weight-bold" style="border-radius: 4px; font-size: 0.75rem;">
+                                            <b-icon icon="scissors" class="mr-1"></b-icon>
+                                            {{ obtenerTotalDisponibles(prod) }} piezas en stock previo
+                                        </b-badge>
+                                        <span class="text-muted small ml-2" style="font-size: 0.7rem;" v-b-tooltip.hover title="Órdenes de origen">
+                                            (Órdenes: {{ obtenerOrdenesDisponibles(prod) }})
+                                        </span>
+                                    </div>
+                                </div>
                             </b-td>
                             <b-td class="text-center">{{ prod.talla }}</b-td>
                             <b-td class="text-center">{{ prod.cantidad }}</b-td>
@@ -215,6 +226,15 @@ export default {
         } finally {
             this.loading = false
         }
+    },
+    obtenerTotalDisponibles(prod) {
+        if (!prod.disponibles) return 0;
+        return prod.disponibles.reduce((acc, item) => acc + (parseFloat(item.cantidad) || 0), 0);
+    },
+    obtenerOrdenesDisponibles(prod) {
+        if (!prod.disponibles) return '';
+        const ordenes = prod.disponibles.map(item => `#${item.id_orden}`);
+        return [...new Set(ordenes)].join(', ');
     }
   }
 }

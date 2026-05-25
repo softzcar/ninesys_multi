@@ -72,10 +72,19 @@ export default {
     },
 
     watch: {
-        newImage() {
+        async newImage() {
+            if (!this.newImage) return
             this.overlay = true
+            let fileToUpload = this.newImage
+            if (this.newImage && this.newImage.type.startsWith("image/")) {
+                try {
+                    fileToUpload = await this.resizeImage(this.newImage)
+                } catch (e) {
+                    console.error("Error client-side resizing image:", e)
+                }
+            }
             let formData = new FormData()
-            formData.append("file", this.newImage)
+            formData.append("file", fileToUpload)
             this.$axios
                 // .post(`${this.$config.CDN}/?id=${this.id}`, formData, {
                 .post(
@@ -97,6 +106,51 @@ export default {
     },
 
     methods: {
+        resizeImage(file, maxWidth = 1200, maxHeight = 1200) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob) {
+                                    resolve(new File([blob], file.name, { type: file.type }));
+                                } else {
+                                    reject(new Error("Canvas toBlob failed"));
+                                }
+                            },
+                            file.type || "image/png"
+                        );
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
+            });
+        },
         async getImagen() {
             await this.$axios(`${this.$config.CDN}/?id=${this.id}`)
                 .then((res) => res.json())

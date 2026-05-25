@@ -57,8 +57,8 @@
                                     </b-form-group>
 
                                     <div v-if="form.salario_tipo === 'Salario' || form.salario_tipo === 'Salario más Comisión'">
-                                        <b-form-group label="Salario Base:" label-for="input-salario">
-                                            <b-form-input id="input-salario" v-model="form.salario" placeholder="Ingrese el salario" type="number" step="0.01" min="0" required></b-form-input>
+                                        <b-form-group label="Salario Base Mensual:" label-for="input-salario">
+                                            <b-form-input id="input-salario" v-model="form.salario" placeholder="Ingrese el salario base mensual" type="number" step="0.01" min="0" required></b-form-input>
                                         </b-form-group>
                                         <b-form-group label="Periodo de pago:" label-for="input-periodo">
                                             <b-form-select id="input-periodo" v-model="form.periodo_pago" :options="periodoOptions"></b-form-select>
