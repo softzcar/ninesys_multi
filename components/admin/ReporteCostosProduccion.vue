@@ -117,6 +117,16 @@
                   :total-productos-orden="Number(data.item.total_productos || 0)"
                 />
               </template>
+              <template #cell(gasto_mantenimiento)="data">
+                <reporte-costos-produccion-mantenimiento
+                  :id_orden="data.item.id_orden"
+                  :valor="Number(data.item.gasto_mantenimiento || 0)"
+                  :mantenimiento-detalles="costosOperativos.mantenimiento_detalles || []"
+                  :total-productos-periodo="Number(costosOperativos.total_productos_periodo || 0)"
+                  :total-mantenimiento-periodo="Number(costosOperativos.total_mantenimiento_periodo || 0)"
+                  :total-productos-orden="Number(data.item.total_productos || 0)"
+                />
+              </template>
 
               <template #cell(eficiencia_insumos)="data">
                 <reporte-costos-produccion-insumos-eficiencia
@@ -171,6 +181,9 @@
               </template>
               <template #foot(gasto_remanente)>
                 <strong>$ {{ (reportTotals.gasto_remanente || 0).toFixed(2) }}</strong>
+              </template>
+              <template #foot(gasto_mantenimiento)>
+                <strong>$ {{ (reportTotals.gasto_mantenimiento || 0).toFixed(2) }}</strong>
               </template>
 
               <template #foot(material_consumido)>
@@ -230,6 +243,10 @@
                   <span>Pérdidas por Remanentes (Descartes):</span>
                   <b-badge variant="danger" pill>$ {{ totalRemanentesUSD.toFixed(2) }}</b-badge>
                 </b-list-group-item>
+                <b-list-group-item v-if="totalMantenimientoUSD > 0" class="d-flex justify-content-between align-items-center">
+                  <span>Mantenimiento de Impresoras (Servicios):</span>
+                  <b-badge variant="warning" pill>$ {{ totalMantenimientoUSD.toFixed(2) }}</b-badge>
+                </b-list-group-item>
                 <b-list-group-item class="d-flex justify-content-between align-items-center bg-light">
                   <strong>Utilidad Neta del Periodo (Estimada):</strong>
                   <strong :class="reportTotals.ganancia > 0 ? 'text-success' : 'text-danger'">
@@ -252,6 +269,7 @@ import ReporteCostosProduccionMaterial from "./ReporteCostosProduccionMaterial.v
 import ReporteCostosProduccionLabor from "./ReporteCostosProduccionLabor.vue";
 import ReporteCostosProduccionInsumosEficiencia from "./ReporteCostosProduccionInsumos.vue";
 import ReporteCostosProduccionRemanentes from "./ReporteCostosProduccionRemanentes.vue";
+import ReporteCostosProduccionMantenimiento from "./ReporteCostosProduccionMantenimiento.vue";
 
 import mixintime from "~/mixins/mixin-time.js";
 import { mapState } from "vuex";
@@ -265,6 +283,7 @@ export default {
     ReporteCostosProduccionLabor,
     ReporteCostosProduccionInsumosEficiencia,
     ReporteCostosProduccionRemanentes,
+    ReporteCostosProduccionMantenimiento,
   },
   data() {
     return {
@@ -288,7 +307,8 @@ export default {
         { text: 'Fijos', value: 'fijo' },
         { text: 'Variables', value: 'variable' },
         { text: 'Adicionales', value: 'adicional' },
-        { text: 'Remanentes', value: 'remanente' }
+        { text: 'Remanentes', value: 'remanente' },
+        { text: 'Mant. Impresoras', value: 'mantenimiento' }
       ],
       baseFields: [
         { key: "id_orden", label: "Orden", sortable: true },
@@ -316,6 +336,9 @@ export default {
       }
       if (this.selectedExpenses.includes('remanente')) {
         fields.push({ key: "gasto_remanente", label: "Remanentes", sortable: true });
+      }
+      if (this.selectedExpenses.includes('mantenimiento')) {
+        fields.push({ key: "gasto_mantenimiento", label: "Mant. Impresoras", sortable: true });
       }
       
       fields.push(
@@ -349,8 +372,12 @@ export default {
       return parseFloat(this.costosOperativos.total_remanentes_periodo) || 0;
     },
 
+    totalMantenimientoUSD() {
+      return parseFloat(this.costosOperativos.total_mantenimiento_periodo) || 0;
+    },
+
     costPerUnitByType() {
-      const costs = { fijo: 0, variable: 0, adicional: 0, remanente: 0 };
+      const costs = { fijo: 0, variable: 0, adicional: 0, remanente: 0, mantenimiento: 0 };
       const totalUnits = this.costosOperativos.total_productos_periodo || 0;
       
       if (totalUnits > 0) {
@@ -359,6 +386,7 @@ export default {
         costs.variable = totalsUSD.variable / totalUnits;
         costs.adicional = totalsUSD.adicional / totalUnits;
         costs.remanente = this.totalRemanentesUSD / totalUnits;
+        costs.mantenimiento = this.totalMantenimientoUSD / totalUnits;
       }
       return costs;
     },
@@ -373,6 +401,7 @@ export default {
         gasto_variable: 0,
         gasto_adicional: 0,
         gasto_remanente: 0,
+        gasto_mantenimiento: 0,
         material_consumido: 0,
         eficiencia_insumos: 0,
         eficiencia_count: 0,
@@ -395,6 +424,7 @@ export default {
         if (this.selectedExpenses.includes('variable')) totals.gasto_variable += (item.gasto_variable || 0);
         if (this.selectedExpenses.includes('adicional')) totals.gasto_adicional += (item.gasto_adicional || 0);
         if (this.selectedExpenses.includes('remanente')) totals.gasto_remanente += (item.gasto_remanente || 0);
+        if (this.selectedExpenses.includes('mantenimiento')) totals.gasto_mantenimiento += (item.gasto_mantenimiento || 0);
 
         totals.material_consumido += this.roundToTwoDecimals(item.material_consumido);
         totals.pago_total += this.roundToTwoDecimals(item.pago_total);
@@ -474,8 +504,9 @@ export default {
         item.gasto_variable = this.selectedExpenses.includes('variable') ? (costsPerUnit.variable * numProds) : 0;
         item.gasto_adicional = this.selectedExpenses.includes('adicional') ? (costsPerUnit.adicional * numProds) : 0;
         item.gasto_remanente = this.selectedExpenses.includes('remanente') ? (costsPerUnit.remanente * numProds) : 0;
+        item.gasto_mantenimiento = this.selectedExpenses.includes('mantenimiento') ? (costsPerUnit.mantenimiento * numProds) : 0;
         
-        const gastos_totales_fila = item.gasto_fijo + item.gasto_variable + item.gasto_adicional + item.gasto_remanente;
+        const gastos_totales_fila = item.gasto_fijo + item.gasto_variable + item.gasto_adicional + item.gasto_remanente + item.gasto_mantenimiento;
 
         const pago = this.roundToTwoDecimals(item.pago_total || 0);
         const insumos = Number(item.costos_de_insumos || 0);
