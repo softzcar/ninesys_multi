@@ -15,6 +15,58 @@
             (reporte.tintas.length || reporte.insumos_consumidos.length)
           "
         >
+          <!-- Panel de Fórmula de Insumos -->
+          <b-row class="mb-4">
+            <b-col md="12">
+              <b-card bg-variant="light" border-variant="primary" class="shadow-sm">
+                <h5 class="text-primary mb-3">
+                  <b-icon-collection class="mr-2"></b-icon-collection>
+                  Estructura de Costos de Insumos
+                </h5>
+                <p class="text-muted mb-3">
+                  El costo de insumos de una orden representa la sumatoria total del valor del material consumido físicamente (telas, accesorios, avíos) y la porción proporcional de tintas utilizadas durante el proceso de impresión.
+                </p>
+                <b-row class="align-items-center">
+                  <b-col md="4" class="border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span>Costo de Tintas:</span>
+                      <b-badge variant="info" pill class="px-3 py-2 font-weight-bold">
+                        $ {{ totalTintaCosto.toFixed(2) }}
+                      </b-badge>
+                    </div>
+                    <small class="text-muted d-block text-right">
+                      Consumo Total: {{ totalTintaML.toFixed(2) }} ml
+                    </small>
+                  </b-col>
+                  <b-col md="4" class="border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span>Costo de Materiales:</span>
+                      <b-badge variant="secondary" pill class="px-3 py-2 font-weight-bold">
+                        $ {{ totalInsumosCosto.toFixed(2) }}
+                      </b-badge>
+                    </div>
+                    <small class="text-muted d-block text-right">
+                      Insumos Físicos de la Orden
+                    </small>
+                  </b-col>
+                  <b-col md="4" class="text-center">
+                    <div class="p-3 bg-white border rounded">
+                      <small class="text-muted d-block uppercase font-weight-bold mb-1">
+                        CÁLCULO DEL COSTO DE INSUMOS
+                      </small>
+                      <code class="d-block font-weight-bold text-dark mb-1" style="font-size: 1.1rem;">
+                        $ {{ totalTintaCosto.toFixed(2) }} + $ {{ totalInsumosCosto.toFixed(2) }}
+                      </code>
+                      <strong class="text-primary" style="font-size: 1.3rem;">
+                        = $ {{ totalGeneralInsumos.toFixed(2) }}
+                      </strong>
+                    </div>
+                  </b-col>
+                </b-row>
+              </b-card>
+            </b-col>
+          </b-row>
+
           <!-- Tabla de Tintas -->
           <h4 class="mt-4">Tintas</h4>
           <b-table

@@ -12,6 +12,58 @@
     >
       <b-overlay :show="isLoading" rounded="sm">
         <div v-if="!isLoading">
+          <!-- Panel de Fórmula de Mano de Obra -->
+          <b-row class="mb-4">
+            <b-col md="12">
+              <b-card bg-variant="light" border-variant="info" class="shadow-sm">
+                <h5 class="text-info mb-3">
+                  <b-icon-people-fill class="mr-2"></b-icon-people-fill>
+                  Estructura de Costos de Mano de Obra
+                </h5>
+                <p class="text-muted mb-3">
+                  El costo de mano de obra de una orden representa la sumatoria total de las comisiones variables pagadas por la ejecución física de las tareas (Corte, Estampado, Costura, etc.) y la porción proporcional de los salarios fijos mensuales de los operarios directos y del personal de soporte prorrateado del periodo.
+                </p>
+                <b-row class="align-items-center">
+                  <b-col md="4" class="border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span>Comisiones de Fabricación:</span>
+                      <b-badge variant="info" pill class="px-3 py-2 font-weight-bold">
+                        $ {{ totalVariable.toFixed(2) }}
+                      </b-badge>
+                    </div>
+                    <small class="text-muted d-block text-right">
+                      Compensación por tareas físicas
+                    </small>
+                  </b-col>
+                  <b-col md="4" class="border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span>Salarios Asignados:</span>
+                      <b-badge variant="secondary" pill class="px-3 py-2 font-weight-bold">
+                        $ {{ totalSalarios.toFixed(2) }}
+                      </b-badge>
+                    </div>
+                    <small class="text-muted d-block text-right">
+                      Sueldos directos y prorrateados
+                    </small>
+                  </b-col>
+                  <b-col md="4" class="text-center">
+                    <div class="p-3 bg-white border rounded">
+                      <small class="text-muted d-block uppercase font-weight-bold mb-1">
+                        CÁLCULO TOTAL DE MANO DE OBRA
+                      </small>
+                      <code class="d-block font-weight-bold text-dark mb-1" style="font-size: 1.1rem;">
+                        $ {{ totalVariable.toFixed(2) }} + $ {{ totalSalarios.toFixed(2) }}
+                      </code>
+                      <strong class="text-info" style="font-size: 1.3rem;">
+                        = $ {{ totalGeneral.toFixed(2) }}
+                      </strong>
+                    </div>
+                  </b-col>
+                </b-row>
+              </b-card>
+            </b-col>
+          </b-row>
+
           <h4 class="mt-2">Comisiones</h4>
           <b-table
             v-if="manoDeObraData.length"
