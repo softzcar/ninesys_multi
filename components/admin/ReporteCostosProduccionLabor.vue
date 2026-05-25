@@ -204,19 +204,15 @@ export default {
 
         const pagos = Array.isArray(data.pagos) ? data.pagos : (Array.isArray(data) ? data : []);
         this.manoDeObraData = pagos.map(item => {
-          const bonos = Number(item.total_bonos || 0);
-          const descuentos = Number(item.total_descuentos || 0);
-          const salarioPagado = Number(item.total_salario_pagado || 0);
-          const montoPago = Number(item.monto_pago || 0);
-          const comisionPura = montoPago - bonos + descuentos;
+          const comisionPura = Number(item.monto_pago || 0);
           return {
             ...item,
-            total_bonos: bonos,
-            total_descuentos: descuentos,
-            total_salario_pagado: salarioPagado,
-            monto_pago: montoPago,
+            total_bonos: 0,
+            total_descuentos: 0,
+            total_salario_pagado: Number(item.total_salario_pagado || 0),
+            monto_pago: comisionPura,
             comision_pura: comisionPura,
-            subtotal_variable: comisionPura + bonos - descuentos,
+            subtotal_variable: comisionPura,
           };
         });
 

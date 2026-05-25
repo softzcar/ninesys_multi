@@ -620,6 +620,21 @@
 
                 <router-link
                   class="nav-link"
+                  to="/comisiones-productos"
+                  custom
+                  v-slot="{ navigate }"
+                >
+                  <span
+                    @click="navigate"
+                    @keypress.enter="navigate"
+                    role="link"
+                  >
+                    Comisiones de Productos
+                  </span>
+                </router-link>
+
+                <router-link
+                  class="nav-link"
                   to="/atributos-productos"
                   custom
                   v-slot="{ navigate }"

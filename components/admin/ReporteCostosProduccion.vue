@@ -107,6 +107,9 @@
               <template #cell(gasto_adicional)="data">
                 $ {{ (data.item.gasto_adicional || 0).toFixed(2) }}
               </template>
+              <template #cell(gasto_remanente)="data">
+                $ {{ (data.item.gasto_remanente || 0).toFixed(2) }}
+              </template>
 
               <template #cell(eficiencia_insumos)="data">
                 <reporte-costos-produccion-insumos-eficiencia
@@ -158,6 +161,9 @@
               </template>
               <template #foot(gasto_adicional)>
                 <strong>$ {{ (reportTotals.gasto_adicional || 0).toFixed(2) }}</strong>
+              </template>
+              <template #foot(gasto_remanente)>
+                <strong>$ {{ (reportTotals.gasto_remanente || 0).toFixed(2) }}</strong>
               </template>
 
               <template #foot(material_consumido)>
@@ -212,6 +218,10 @@
                 <b-list-group-item v-for="(val, tipo) in totalGastosPorTipoUSD" :key="tipo" class="d-flex justify-content-between align-items-center">
                   Total Gastos {{ tipo.charAt(0).toUpperCase() + tipo.slice(1) }}s:
                   <b-badge variant="info" pill>$ {{ val.toFixed(2) }}</b-badge>
+                </b-list-group-item>
+                <b-list-group-item v-if="totalRemanentesUSD > 0" class="d-flex justify-content-between align-items-center">
+                  <span>Pérdidas por Remanentes (Descartes):</span>
+                  <b-badge variant="danger" pill>$ {{ totalRemanentesUSD.toFixed(2) }}</b-badge>
                 </b-list-group-item>
                 <b-list-group-item class="d-flex justify-content-between align-items-center bg-light">
                   <strong>Utilidad Neta del Periodo (Estimada):</strong>
@@ -268,7 +278,8 @@ export default {
       expenseOptions: [
         { text: 'Fijos', value: 'fijo' },
         { text: 'Variables', value: 'variable' },
-        { text: 'Adicionales', value: 'adicional' }
+        { text: 'Adicionales', value: 'adicional' },
+        { text: 'Remanentes', value: 'remanente' }
       ],
       baseFields: [
         { key: "id_orden", label: "Orden", sortable: true },
@@ -293,6 +304,9 @@ export default {
       }
       if (this.selectedExpenses.includes('adicional')) {
         fields.push({ key: "gasto_adicional", label: "G. Adic.", sortable: true });
+      }
+      if (this.selectedExpenses.includes('remanente')) {
+        fields.push({ key: "gasto_remanente", label: "Remanentes", sortable: true });
       }
       
       fields.push(
@@ -322,8 +336,12 @@ export default {
       return totals;
     },
 
+    totalRemanentesUSD() {
+      return parseFloat(this.costosOperativos.total_remanentes_periodo) || 0;
+    },
+
     costPerUnitByType() {
-      const costs = { fijo: 0, variable: 0, adicional: 0 };
+      const costs = { fijo: 0, variable: 0, adicional: 0, remanente: 0 };
       const totalUnits = this.costosOperativos.total_productos_periodo || 0;
       
       if (totalUnits > 0) {
@@ -331,6 +349,7 @@ export default {
         costs.fijo = totalsUSD.fijo / totalUnits;
         costs.variable = totalsUSD.variable / totalUnits;
         costs.adicional = totalsUSD.adicional / totalUnits;
+        costs.remanente = this.totalRemanentesUSD / totalUnits;
       }
       return costs;
     },
@@ -344,6 +363,7 @@ export default {
         gasto_fijo: 0,
         gasto_variable: 0,
         gasto_adicional: 0,
+        gasto_remanente: 0,
         material_consumido: 0,
         eficiencia_insumos: 0,
         eficiencia_count: 0,
@@ -365,6 +385,7 @@ export default {
         if (this.selectedExpenses.includes('fijo')) totals.gasto_fijo += (item.gasto_fijo || 0);
         if (this.selectedExpenses.includes('variable')) totals.gasto_variable += (item.gasto_variable || 0);
         if (this.selectedExpenses.includes('adicional')) totals.gasto_adicional += (item.gasto_adicional || 0);
+        if (this.selectedExpenses.includes('remanente')) totals.gasto_remanente += (item.gasto_remanente || 0);
 
         totals.material_consumido += this.roundToTwoDecimals(item.material_consumido);
         totals.pago_total += this.roundToTwoDecimals(item.pago_total);
@@ -443,8 +464,9 @@ export default {
         item.gasto_fijo = this.selectedExpenses.includes('fijo') ? (costsPerUnit.fijo * numProds) : 0;
         item.gasto_variable = this.selectedExpenses.includes('variable') ? (costsPerUnit.variable * numProds) : 0;
         item.gasto_adicional = this.selectedExpenses.includes('adicional') ? (costsPerUnit.adicional * numProds) : 0;
+        item.gasto_remanente = this.selectedExpenses.includes('remanente') ? (costsPerUnit.remanente * numProds) : 0;
         
-        const gastos_totales_fila = item.gasto_fijo + item.gasto_variable + item.gasto_adicional;
+        const gastos_totales_fila = item.gasto_fijo + item.gasto_variable + item.gasto_adicional + item.gasto_remanente;
 
         const pago = this.roundToTwoDecimals(item.pago_total || 0);
         const insumos = Number(item.costos_de_insumos || 0);

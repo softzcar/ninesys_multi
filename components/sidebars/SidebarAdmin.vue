@@ -254,6 +254,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/comisiones-productos">
+              Comisiones de Productos
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/atributos-productos">
               Atributos de Productos
             </router-link>
