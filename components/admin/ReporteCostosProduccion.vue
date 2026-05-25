@@ -108,7 +108,14 @@
                 $ {{ (data.item.gasto_adicional || 0).toFixed(2) }}
               </template>
               <template #cell(gasto_remanente)="data">
-                $ {{ (data.item.gasto_remanente || 0).toFixed(2) }}
+                <reporte-costos-produccion-remanentes
+                  :id_orden="data.item.id_orden"
+                  :valor="Number(data.item.gasto_remanente || 0)"
+                  :remanentes-detalles="costosOperativos.remanentes_detalles || []"
+                  :total-productos-periodo="Number(costosOperativos.total_productos_periodo || 0)"
+                  :total-remanentes-periodo="Number(costosOperativos.total_remanentes_periodo || 0)"
+                  :total-productos-orden="Number(data.item.total_productos || 0)"
+                />
               </template>
 
               <template #cell(eficiencia_insumos)="data">
@@ -244,6 +251,7 @@ import ReporteCostosProduccionInsumos from "./ReporteCostosDeProduccionInsumos.v
 import ReporteCostosProduccionMaterial from "./ReporteCostosProduccionMaterial.vue";
 import ReporteCostosProduccionLabor from "./ReporteCostosProduccionLabor.vue";
 import ReporteCostosProduccionInsumosEficiencia from "./ReporteCostosProduccionInsumos.vue";
+import ReporteCostosProduccionRemanentes from "./ReporteCostosProduccionRemanentes.vue";
 
 import mixintime from "~/mixins/mixin-time.js";
 import { mapState } from "vuex";
@@ -256,6 +264,7 @@ export default {
     ReporteCostosProduccionMaterial,
     ReporteCostosProduccionLabor,
     ReporteCostosProduccionInsumosEficiencia,
+    ReporteCostosProduccionRemanentes,
   },
   data() {
     return {
