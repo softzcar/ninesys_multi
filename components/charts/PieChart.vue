@@ -115,6 +115,14 @@ export default {
           labels: {
             colors: ['#333'] // Forzar color de texto de leyenda a gris oscuro/negro
           }
+        },
+        tooltip: {
+          enabled: true,
+          theme: 'light',
+          style: {
+            fontSize: '12px',
+            fontFamily: 'Helvetica, Arial, sans-serif'
+          }
         }
       }
     }
@@ -128,5 +136,10 @@ export default {
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+/* Forzar texto de tooltip a negro para máximo contraste en tooltips coloreados */
+::v-deep .apexcharts-tooltip,
+::v-deep .apexcharts-tooltip * {
+  color: #000 !important;
 }
 </style>
