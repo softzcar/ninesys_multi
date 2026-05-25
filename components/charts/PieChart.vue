@@ -137,9 +137,22 @@ export default {
   padding: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
-/* Forzar texto de tooltip a negro para máximo contraste en tooltips coloreados */
-::v-deep .apexcharts-tooltip,
-::v-deep .apexcharts-tooltip * {
+/* Colores contrastantes en tooltips según el color del fondo de la serie de tinta */
+/* Texto negro para fondos claros: Cyan (0), Yellow (2) y White (4) */
+::v-deep .apexcharts-tooltip-series-group-0,
+::v-deep .apexcharts-tooltip-series-group-0 *,
+::v-deep .apexcharts-tooltip-series-group-2,
+::v-deep .apexcharts-tooltip-series-group-2 *,
+::v-deep .apexcharts-tooltip-series-group-4,
+::v-deep .apexcharts-tooltip-series-group-4 * {
   color: #000 !important;
+}
+
+/* Texto blanco para fondos oscuros: Magenta (1) y Black (3) */
+::v-deep .apexcharts-tooltip-series-group-1,
+::v-deep .apexcharts-tooltip-series-group-1 *,
+::v-deep .apexcharts-tooltip-series-group-3,
+::v-deep .apexcharts-tooltip-series-group-3 * {
+  color: #fff !important;
 }
 </style>
