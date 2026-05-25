@@ -92,6 +92,8 @@
                 <reporte-costos-produccion-labor
                   :id_orden="data.item.id_orden"
                   :costo-mano-obra="Number(data.item.costo_mano_de_obra_total || 0)"
+                  :inicio="filters.inicio"
+                  :fin="filters.fin"
                 />
               </template>
 

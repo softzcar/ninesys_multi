@@ -137,6 +137,16 @@ export default {
       required: true,
       default: 0,
     },
+    inicio: {
+      type: String,
+      required: false,
+      default: "",
+    },
+    fin: {
+      type: String,
+      required: false,
+      default: "",
+    },
   },
   data() {
     return {
@@ -186,7 +196,10 @@ export default {
   methods: {
     async getManoDeObra() {
       try {
-        const url = `${this.$config.API}/reportes/mano-obra-por-orden/${this.id_orden}`;
+        let url = `${this.$config.API}/reportes/mano-obra-por-orden/${this.id_orden}`;
+        if (this.inicio && this.fin) {
+          url += `?inicio=${this.inicio}&fin=${this.fin}`;
+        }
         const { data } = await this.$axios.get(url);
 
         const pagos = Array.isArray(data.pagos) ? data.pagos : (Array.isArray(data) ? data : []);
