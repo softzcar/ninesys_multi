@@ -32,7 +32,7 @@
               <span class="text-danger">- $ {{ (data.item.total_descuentos || 0).toFixed(2) }}</span>
             </template>
             <template #cell(subtotal_variable)="data">
-              <strong>$ {{ (data.item.monto_pago - data.item.total_salario_pagado || 0).toFixed(2) }}</strong>
+              <strong>$ {{ (data.item.monto_pago || 0).toFixed(2) }}</strong>
             </template>
 
             <!-- Footer para Comisiones -->
@@ -208,7 +208,7 @@ export default {
           const descuentos = Number(item.total_descuentos || 0);
           const salarioPagado = Number(item.total_salario_pagado || 0);
           const montoPago = Number(item.monto_pago || 0);
-          const comisionPura = montoPago - bonos + descuentos - salarioPagado;
+          const comisionPura = montoPago - bonos + descuentos;
           return {
             ...item,
             total_bonos: bonos,
