@@ -99,13 +99,40 @@
 
               <!-- Celdas Dinámicas de Gastos -->
               <template #cell(gasto_fijo)="data">
-                $ {{ (data.item.gasto_fijo || 0).toFixed(2) }}
+                <reporte-costos-produccion-gastos
+                  :id_orden="data.item.id_orden"
+                  tipo="fijo"
+                  :valor="Number(data.item.gasto_fijo || 0)"
+                  :total-productos-periodo="Number(costosOperativos.total_productos_periodo || 0)"
+                  :total-productos-orden="Number(data.item.total_productos || 0)"
+                  :total-gastos-usd="Number(totalGastosPorTipoUSD.fijo || 0)"
+                  :gastos-plantillas-fijas="costosOperativos.gastos_plantillas_fijas || []"
+                  :gastos-reales-detalles="costosOperativos.gastos_reales_detalles ? costosOperativos.gastos_reales_detalles.fijo : []"
+                />
               </template>
               <template #cell(gasto_variable)="data">
-                $ {{ (data.item.gasto_variable || 0).toFixed(2) }}
+                <reporte-costos-produccion-gastos
+                  :id_orden="data.item.id_orden"
+                  tipo="variable"
+                  :valor="Number(data.item.gasto_variable || 0)"
+                  :total-productos-periodo="Number(costosOperativos.total_productos_periodo || 0)"
+                  :total-productos-orden="Number(data.item.total_productos || 0)"
+                  :total-gastos-usd="Number(totalGastosPorTipoUSD.variable || 0)"
+                  :gastos-plantillas-fijas="[]"
+                  :gastos-reales-detalles="costosOperativos.gastos_reales_detalles ? costosOperativos.gastos_reales_detalles.variable : []"
+                />
               </template>
               <template #cell(gasto_adicional)="data">
-                $ {{ (data.item.gasto_adicional || 0).toFixed(2) }}
+                <reporte-costos-produccion-gastos
+                  :id_orden="data.item.id_orden"
+                  tipo="adicional"
+                  :valor="Number(data.item.gasto_adicional || 0)"
+                  :total-productos-periodo="Number(costosOperativos.total_productos_periodo || 0)"
+                  :total-productos-orden="Number(data.item.total_productos || 0)"
+                  :total-gastos-usd="Number(totalGastosPorTipoUSD.adicional || 0)"
+                  :gastos-plantillas-fijas="[]"
+                  :gastos-reales-detalles="costosOperativos.gastos_reales_detalles ? costosOperativos.gastos_reales_detalles.adicional : []"
+                />
               </template>
               <template #cell(gasto_remanente)="data">
                 <reporte-costos-produccion-remanentes
@@ -270,6 +297,7 @@ import ReporteCostosProduccionLabor from "./ReporteCostosProduccionLabor.vue";
 import ReporteCostosProduccionInsumosEficiencia from "./ReporteCostosProduccionInsumos.vue";
 import ReporteCostosProduccionRemanentes from "./ReporteCostosProduccionRemanentes.vue";
 import ReporteCostosProduccionMantenimiento from "./ReporteCostosProduccionMantenimiento.vue";
+import ReporteCostosProduccionGastos from "./ReporteCostosProduccionGastos.vue";
 
 import mixintime from "~/mixins/mixin-time.js";
 import { mapState } from "vuex";
@@ -284,6 +312,7 @@ export default {
     ReporteCostosProduccionInsumosEficiencia,
     ReporteCostosProduccionRemanentes,
     ReporteCostosProduccionMantenimiento,
+    ReporteCostosProduccionGastos,
   },
   data() {
     return {
