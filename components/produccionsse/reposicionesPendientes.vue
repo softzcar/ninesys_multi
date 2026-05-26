@@ -294,6 +294,51 @@ export default {
           "<p>Seleccione un departamento para el empleado involucrado.</p>";
       }
 
+      if (
+        ok &&
+        this.form.id_departamento &&
+        this.item.id_departamento_solicitante
+      ) {
+        // Buscar objetos completos de departamento en el store global para obtener orden_proceso y asignar_numero_de_paso
+        const deptoInicio = this.$store.state.login.departamentos.find(
+          (d) => d._id == this.item.id_departamento_solicitante
+        );
+        const deptoFin = this.$store.state.login.departamentos.find(
+          (d) => d._id == this.form.id_departamento
+        );
+
+        if (!deptoInicio || !deptoFin) {
+          ok = false;
+          msg += "<p>No se encontró la información detallada de los departamentos seleccionados.</p>";
+        } else {
+          // Verificar que pertenezcan a la cola de producción (pasos activos)
+          if (
+            parseInt(deptoInicio.asignar_numero_de_paso) !== 1 ||
+            parseInt(deptoFin.asignar_numero_de_paso) !== 1
+          ) {
+            ok = false;
+            msg += "<p>Las reposiciones solo pueden circular dentro de los departamentos de la cola de producción activos.</p>";
+          } else {
+            // Validar que tengamos los datos de orden_proceso
+            if (
+              deptoInicio.orden_proceso !== undefined && deptoInicio.orden_proceso !== null &&
+              deptoFin.orden_proceso !== undefined && deptoFin.orden_proceso !== null
+            ) {
+              if (
+                parseInt(deptoInicio.orden_proceso) <
+                parseInt(deptoFin.orden_proceso)
+              ) {
+                ok = false;
+                msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
+              }
+            } else {
+              ok = false;
+              msg += "<p>No se pudo determinar el orden de proceso de los departamentos seleccionados. Por favor, verifique la configuración del flujo de producción.</p>";
+            }
+          }
+        }
+      }
+
       if (this.form.detalle.trim() === "") {
         ok = false;
         msg += "<p>Debe proporcioar el detalle de la reposición</p>";

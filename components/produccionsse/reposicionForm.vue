@@ -344,39 +344,46 @@ export default {
         this.form.id_departamento_visibilidad &&
         this.form.id_departamento_asignado
       ) {
-        // Buscar objetos completos de departamento para obtener orden_proceso
-        // Nota: El endpoint backend fue actualizado para devolver 'orden_proceso'
-
-        const deptoInicio = this.inicioEmployeeDepartments.find(
-          (d) => d.id_departamento == this.form.id_departamento_visibilidad
+        // Buscar objetos completos de departamento en el store global para obtener orden_proceso y asignar_numero_de_paso
+        const deptoInicio = this.$store.state.login.departamentos.find(
+          (d) => d._id == this.form.id_departamento_visibilidad
         );
-        const deptoFin = this.selectedEmployeeDepartments.find(
-          (d) => d.id_departamento == this.form.id_departamento_asignado
+        const deptoFin = this.$store.state.login.departamentos.find(
+          (d) => d._id == this.form.id_departamento_asignado
         );
 
         if (!deptoInicio || !deptoFin) {
           valido = false;
           msg += "<p>No se encontró la información detallada de los departamentos seleccionados.</p>";
         } else {
-          // Validar que tengamos los datos de orden_proceso
+          // Verificar que pertenezcan a la cola de producción (pasos activos)
           if (
-            deptoInicio.orden_proceso !== undefined && deptoInicio.orden_proceso !== null &&
-            deptoFin.orden_proceso !== undefined && deptoFin.orden_proceso !== null
+            parseInt(deptoInicio.asignar_numero_de_paso) !== 1 ||
+            parseInt(deptoFin.asignar_numero_de_paso) !== 1
           ) {
-            // Regla: El departamento del error (Inicio) debe tener un orden de proceso MAYOR o IGUAL
-            // al departamento que lo corrige (Fin). Es decir, la pieza "regresa" o se queda.
-            // Si Inicio < Fin, estamos enviando el error hacia adelante, lo cual es incorrecto para una reposición.
-
-            if (
-              parseInt(deptoInicio.orden_proceso) <
-              parseInt(deptoFin.orden_proceso)
-            ) {
-              valido = false;
-              msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
-            }
-          } else {
             valido = false;
-            msg += "<p>No se pudo determinar el orden de proceso de los departamentos seleccionados. Por favor, verifique la configuración del flujo de producción.</p>";
+            msg += "<p>Las reposiciones solo pueden circular dentro de los departamentos de la cola de producción activos.</p>";
+          } else {
+            // Validar que tengamos los datos de orden_proceso
+            if (
+              deptoInicio.orden_proceso !== undefined && deptoInicio.orden_proceso !== null &&
+              deptoFin.orden_proceso !== undefined && deptoFin.orden_proceso !== null
+            ) {
+              // Regla: El departamento del error (Inicio) debe tener un orden de proceso MAYOR o IGUAL
+              // al departamento que lo corrige (Fin). Es decir, la pieza "regresa" o se queda.
+              // Si Inicio < Fin, estamos enviando el error hacia adelante, lo cual es incorrecto para una reposición.
+
+              if (
+                parseInt(deptoInicio.orden_proceso) <
+                parseInt(deptoFin.orden_proceso)
+              ) {
+                valido = false;
+                msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
+              }
+            } else {
+              valido = false;
+              msg += "<p>No se pudo determinar el orden de proceso de los departamentos seleccionados. Por favor, verifique la configuración del flujo de producción.</p>";
+            }
           }
         }
       }
