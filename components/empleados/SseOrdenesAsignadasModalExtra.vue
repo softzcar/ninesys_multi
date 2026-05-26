@@ -151,8 +151,7 @@
 
 
           <!-- MOSTRAR CANTIDAD DE MATERIAL UTILIZADO (PARA TODOS LOS DEPARTAMENTOS CONFIGURADOS) -->
-          <!-- Ocultar para reposiciones porque no aplica el cálculo por pieza -->
-          <div v-if="showSelect && !esReposicion" class="mb-4">
+          <div v-if="showSelect" class="mb-4">
             <h5><strong>📊 Resumen de Material</strong></h5>
 
             <!-- INFO TELA VENDEDOR -->
@@ -648,9 +647,12 @@ export default {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
           const dep = this.$store.state.login.currentDepartament;
-          const u = (dep === 'Corte')
-            ? (parseFloat(item.unidades) || 0)
-            : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0);
+          const isRepo = !!(this.esReposicion || this.esreposicion || (this.item && (this.item.esreposicion || this.item.es_reposicion)));
+          const u = isRepo
+            ? (parseFloat(this.item.unidades) || 0)
+            : (dep === 'Corte'
+                ? (parseFloat(item.unidades) || 0)
+                : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0));
           productosUnicos.set(key, {
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
             unidades: u,
@@ -698,9 +700,12 @@ export default {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
           const dep = this.$store.state.login.currentDepartament;
-          const u = (dep === 'Corte')
-            ? (parseFloat(item.unidades) || 0)
-            : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0);
+          const isRepo = !!(this.esReposicion || this.esreposicion || (this.item && (this.item.esreposicion || this.item.es_reposicion)));
+          const u = isRepo
+            ? (parseFloat(this.item.unidades) || 0)
+            : (dep === 'Corte'
+                ? (parseFloat(item.unidades) || 0)
+                : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0));
           productosUnicos.set(key, {
             catalogo: item.catalogo || 'Sin catálogo',
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
