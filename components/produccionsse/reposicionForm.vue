@@ -369,16 +369,16 @@ export default {
               deptoInicio.orden_proceso !== undefined && deptoInicio.orden_proceso !== null &&
               deptoFin.orden_proceso !== undefined && deptoFin.orden_proceso !== null
             ) {
-              // Regla: El departamento del error (Inicio) debe tener un orden de proceso MAYOR o IGUAL
-              // al departamento que lo corrige (Fin). Es decir, la pieza "regresa" o se queda.
-              // Si Inicio < Fin, estamos enviando el error hacia adelante, lo cual es incorrecto para una reposición.
+              // Regla: El departamento de inicio de la corrección (Inicio) debe tener un orden de proceso MENOR o IGUAL
+              // al departamento donde finaliza la corrección (Fin). Es decir, el flujo de reparación corre hacia adelante.
+              // Si Inicio > Fin, significa que la reparación iniciaría en un paso posterior al de entrega, lo cual es un error de flujo.
 
               if (
-                parseInt(deptoInicio.orden_proceso) <
+                parseInt(deptoInicio.orden_proceso) >
                 parseInt(deptoFin.orden_proceso)
               ) {
                 valido = false;
-                msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
+                msg += `<p>Error de flujo: El departamento de inicio de la corrección (<b>${deptoInicio.departamento}</b>) tiene un paso posterior al departamento de finalización (<b>${deptoFin.departamento}</b>).<br>La reposición debe iniciar en una etapa anterior o permanecer en la misma.</p>`;
               }
             } else {
               valido = false;
