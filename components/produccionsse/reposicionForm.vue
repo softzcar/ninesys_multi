@@ -421,11 +421,11 @@ export default {
       data.set("id_orden", this.item.item.Orden);
       data.set("cantidad", this.form.cantidad);
       data.set("detalle", this.form.detalle);
-      if (this.emp && this.emp !== 0) {
-        data.set("id_empleado", this.emp); // Empleado que realizará la reposición
-      }
       if (this.emp_inicio_reposicion && this.emp_inicio_reposicion !== 0) {
-        data.set("id_empleado_emisor", this.emp_inicio_reposicion); // Empleado que inició la reposición
+        data.set("id_empleado", this.emp_inicio_reposicion); // Empleado que iniciará la reposición (corregir error)
+      }
+      if (this.emp && this.emp !== 0) {
+        data.set("id_empleado_emisor", this.emp); // Empleado donde termina / solicitante
       }
       // id_departamento: Departamento donde se cometió el error (Empleado Inicio Reposición)
       // Este es el departamento donde INICIA la reposición en el flujo de producción
