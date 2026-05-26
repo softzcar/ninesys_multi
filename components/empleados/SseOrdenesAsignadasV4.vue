@@ -1108,7 +1108,7 @@ export default {
         return 0;
       }
 
-      const size = parseInt(this.ordenes.length || 0);
+      const size = parseInt((this.ordenes.length || 0) + (this.reposiciones.length || 0));
       if (size < 1) {
         this.msg = 'No tienes tareas asignadas';
       } else {
@@ -1681,7 +1681,7 @@ export default {
           `${this.$config.API}/empleados/ordenes-asignadas/v2/${this.emp}/${this.$store.state.login.currentDepartamentId}/${this.$store.state.login.currentOrdenProceso}`
         )
         .then(async (resp) => {
-          if (resp.data.ordenes.length === 0) {
+          if (resp.data.ordenes.length === 0 && resp.data.reposiciones.length === 0) {
             this.msg = "Usted no tiene ordenes asignadas";
           }
           this.ordenes = resp.data.ordenes;
