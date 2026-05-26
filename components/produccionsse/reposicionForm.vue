@@ -39,23 +39,37 @@
 
                 <hr />
 
-                <!-- Selector de Departamento donde INICIA la Reposición -->
-                <b-form-group id="input-group-departamento-visibilidad" label="Departamento Donde INICIA la Reposición:"
-                  label-for="select-departamento-visibilidad"
-                  description="Seleccione el departamento donde se cometió el error y donde la pieza debe regresar para iniciar la corrección.">
-                  <b-form-select id="select-departamento-visibilidad" v-model="form.id_departamento_visibilidad"
-                    :options="selectDepartamentosCola">
-                  </b-form-select>
+                <!-- Selector de Empleado donde INICIA la Reposición -->
+                <b-form-group
+                  id="input-group-empleado-reposicion"
+                  label="Empleado Donde INICIA la Reposición:"
+                  label-for="select-empleado"
+                  description="Seleccione el empleado que iniciará la corrección de las piezas."
+                >
+                  <b-form-select
+                    id="select-empleado"
+                    v-model="form.id_empleado"
+                    :options="selectEmpleados"
+                    size="sm"
+                    style="width: 45%"
+                  ></b-form-select>
                 </b-form-group>
 
-                <hr />
-
-                <!-- Selector de Departamento donde TERMINA la Reposición -->
-                <b-form-group id="input-group-departamento-reposicion-form" label="Departamento Donde TERMINA la Reposición:"
-                  label-for="select-departamento-reposicion-form"
-                  description="Seleccione el departamento donde se completará el trabajo de reposición una vez corregido el error.">
-                  <b-form-select id="select-departamento-reposicion-form" v-model="form.id_departamento_asignado"
-                    :options="selectDepartamentosCola"></b-form-select>
+                <!-- Selector de Departamento del Empleado -->
+                <b-form-group
+                  v-if="form.id_empleado && form.id_empleado !== 0 && selectedEmployeeDepartments.length > 0"
+                  id="input-group-departamento-reposicion"
+                  label="Departamento del Empleado:"
+                  label-for="select-departamento-reposicion"
+                  description="Seleccione el departamento del empleado para la reposición."
+                >
+                  <b-form-select
+                    id="select-departamento-reposicion"
+                    v-model="form.id_departamento"
+                    :options="selectDepartmentOptions"
+                    size="sm"
+                    style="width: 45%"
+                  ></b-form-select>
                 </b-form-group>
 
                 <hr />
@@ -90,11 +104,12 @@ export default {
       repos: null,
       hideMe: false,
       form: {
-        id_departamento_asignado: null,
-        id_departamento_visibilidad: null,
+        id_empleado: 0,
+        id_departamento: null,
         cantidad: 0,
         detalle: "",
       },
+      selectedEmployeeDepartments: [],
     };
   },
 
@@ -116,18 +131,28 @@ export default {
       return `modal-${rand}`;
     },
 
-    selectDepartamentosCola() {
-      if (!this.$store.state.login.departamentos) return [];
-      let activeDeps = this.$store.state.login.departamentos.filter(
-        (dep) => parseInt(dep.asignar_numero_de_paso) === 1
-      );
-      // Clonamos y ordenamos
-      let sortedDeps = [...activeDeps].sort(
-        (a, b) => parseInt(a.orden_proceso) - parseInt(b.orden_proceso)
-      );
-      let options = sortedDeps.map((dep) => ({
-        value: dep._id,
-        text: dep.departamento || dep.nombre,
+    selectEmpleados() {
+      if (!this.empleados) return [];
+      let tmp = this.empleados.map((item) => {
+        return {
+          value: item._id,
+          text: item.nombre,
+        };
+      });
+      tmp.unshift({ value: 0, text: "Seleccione un empleado" });
+      return tmp;
+    },
+
+    selectDepartmentOptions() {
+      if (
+        !this.selectedEmployeeDepartments ||
+        this.selectedEmployeeDepartments.length === 0
+      ) {
+        return [{ value: null, text: "Seleccione un departamento" }];
+      }
+      let options = this.selectedEmployeeDepartments.map((dep) => ({
+        value: dep.id_departamento || dep.id,
+        text: dep.departamento || dep.nombre_departamento || dep.nombre,
       }));
       options.unshift({ value: null, text: "Seleccione un departamento" });
       return options;
@@ -143,6 +168,34 @@ export default {
         .then((res) => {
           this.repos = res.data.data;
         });
+    },
+
+    async fetchEmployeeDepartments(employeeId) {
+      if (!employeeId || employeeId === 0) {
+        this.selectedEmployeeDepartments = [];
+        this.form.id_departamento = null;
+        return;
+      }
+      this.overlay = true;
+      try {
+        const response = await this.$axios.get(
+          `${this.$config.API}/departamentos-empleado/${employeeId}`
+        );
+        this.selectedEmployeeDepartments =
+          response.data.departamentos || response.data || [];
+        this.form.id_departamento = null;
+      } catch (error) {
+        console.error("Error fetching employee departments:", error);
+        this.selectedEmployeeDepartments = [];
+        this.form.id_departamento = null;
+        this.$fire({
+          title: "Error",
+          html: "<p>No se pudieron cargar los departamentos del empleado.</p>",
+          type: "warning",
+        });
+      } finally {
+        this.overlay = false;
+      }
     },
 
     onSubmit(event) {
@@ -164,81 +217,35 @@ export default {
         msg = msg + "<p>Escriba el detalle de la reposición</p>";
       }
 
-      if (!this.form.id_departamento_visibilidad) {
+      if (!this.form.id_empleado || this.form.id_empleado === 0) {
         valido = false;
-        msg +=
-          "<p>Debe seleccionar el <b>Departamento de Inicio</b> donde se originó el problema.</p>";
+        msg += "<p>Debe seleccionar el <b>Empleado</b> donde se iniciará la reposición.</p>";
       }
 
-      if (!this.form.id_departamento_asignado) {
+      if (!this.form.id_departamento) {
         valido = false;
-        msg +=
-          "<p>Debe seleccionar el <b>Departamento de Finalización</b> donde terminará la reposición.</p>";
+        msg += "<p>Debe seleccionar el <b>Departamento del Empleado</b> para iniciar la reposición.</p>";
       }
 
-      // Validación de Orden de Proceso (Lógica de "Retroceso")
-      if (
-        valido &&
-        this.form.id_departamento_visibilidad &&
-        this.form.id_departamento_asignado
-      ) {
-        // Buscar objetos completos de departamento en el store global para obtener orden_proceso y asignar_numero_de_paso
+      // Validación de progresión de inicio
+      if (valido && this.form.id_departamento && this.pasoActual) {
         const deptoInicio = this.$store.state.login.departamentos.find(
-          (d) => d._id == this.form.id_departamento_visibilidad
+          (d) => d._id == this.form.id_departamento
         );
-        const deptoFin = this.$store.state.login.departamentos.find(
-          (d) => d._id == this.form.id_departamento_asignado
+        const deptoActual = this.$store.state.login.departamentos.find(
+          (d) => d.departamento.toLowerCase().trim() === this.pasoActual.toLowerCase().trim()
         );
 
-        if (!deptoInicio || !deptoFin) {
-          valido = false;
-          msg += "<p>No se encontró la información detallada de los departamentos seleccionados.</p>";
-        } else {
-          // Verificar que pertenezcan a la cola de producción (pasos activos)
-          if (
-            parseInt(deptoInicio.asignar_numero_de_paso) !== 1 ||
-            parseInt(deptoFin.asignar_numero_de_paso) !== 1
-          ) {
+        if (deptoInicio && deptoActual) {
+          if (parseInt(deptoInicio.orden_proceso) > parseInt(deptoActual.orden_proceso)) {
             valido = false;
-            msg += "<p>Las reposiciones solo pueden circular dentro de los departamentos de la cola de producción activos.</p>";
-          } else {
-            // Validar que tengamos los datos de orden_proceso
-            if (
-              deptoInicio.orden_proceso !== undefined && deptoInicio.orden_proceso !== null &&
-              deptoFin.orden_proceso !== undefined && deptoFin.orden_proceso !== null
-            ) {
-              if (
-                parseInt(deptoInicio.orden_proceso) >
-                parseInt(deptoFin.orden_proceso)
-              ) {
-                valido = false;
-                msg += `<p>Error de flujo: El departamento de inicio de la corrección (<b>${deptoInicio.departamento}</b>) tiene un paso posterior al departamento de finalización (<b>${deptoFin.departamento}</b>).<br>La reposición debe iniciar en una etapa anterior o permanecer en la misma.</p>`;
-              }
-
-              // Regla: El departamento de finalización no puede ser posterior al departamento actual de la orden principal
-              if (this.pasoActual) {
-                const deptoActual = this.$store.state.login.departamentos.find(
-                  (d) => d.departamento.toLowerCase().trim() === this.pasoActual.toLowerCase().trim()
-                );
-                if (deptoActual) {
-                  if (parseInt(deptoFin.orden_proceso) > parseInt(deptoActual.orden_proceso)) {
-                    valido = false;
-                    msg += `<p>Error de flujo: No se puede finalizar la reposición en <b>${deptoFin.departamento}</b> porque es un paso posterior al departamento actual de la orden principal (<b>${deptoActual.departamento}</b>).</p>`;
-                  }
-                }
-              }
-            } else {
-              valido = false;
-              msg += "<p>No se pudo determinar el orden de proceso de los departamentos seleccionados. Por favor, verifique la configuración del flujo de producción.</p>";
-            }
+            msg += `<p>Error de flujo: No se puede iniciar la reposición en <b>${deptoInicio.departamento}</b> porque es un paso posterior al departamento actual de la orden principal (<b>${deptoActual.departamento}</b>).</p>`;
           }
         }
       }
 
       if (valido) {
-        this.createReposicion().then(() => {
-          // this.$refs.repoControl.setReload(true)
-        });
+        this.createReposicion().then(() => {});
       } else {
         this.$fire({
           type: "error",
@@ -252,9 +259,10 @@ export default {
       this.form = {
         cantidad: 0,
         detalle: "",
-        id_departamento_asignado: null,
-        id_departamento_visibilidad: null,
+        id_empleado: 0,
+        id_departamento: null,
       };
+      this.selectedEmployeeDepartments = [];
     },
 
     async createReposicion() {
@@ -265,17 +273,16 @@ export default {
       data.set("cantidad", this.form.cantidad);
       data.set("detalle", this.form.detalle);
       
-      // Mapeo directo para creación por supervisor (opción A)
-      // id_departamento: Paso activo inicial de la reposición
-      data.set("id_departamento", this.form.id_departamento_visibilidad);
-      // id_departamento_solicitante: Paso destino final de la reposición
-      data.set("id_departamento_solicitante", this.form.id_departamento_asignado);
+      // Enviamos el empleado y el departamento de inicio
+      data.set("id_empleado", this.form.id_empleado);
+      data.set("id_departamento", this.form.id_departamento);
 
-      // Agregamos id_empleado_emisor como el emisor de la petición (supervisor/usuario logueado)
-      // para que el backend reconozca que es una solicitud desde producción y aplique auto-asignación
+      // Flag para el backend
+      data.set("creado_por_supervisor", "1");
+
       const currentEmployeeId = this.$store.state.login.dataUser?.id_empleado;
       if (currentEmployeeId) {
-        data.set("id_empleado_emisor", currentEmployeeId);
+        data.set("id_empleado_supervisor", currentEmployeeId);
       }
 
       await this.$axios
@@ -310,19 +317,19 @@ export default {
     },
   },
 
-  watch: {},
+  watch: {
+    "form.id_empleado": function (newEmpId) {
+      this.form.id_departamento = null;
+      this.selectedEmployeeDepartments = [];
+      if (newEmpId && newEmpId !== 0) {
+        this.fetchEmployeeDepartments(newEmpId);
+      }
+    },
+  },
 
   props: ["item", "departamento", "empleados", "reload_this", "pasoActual"],
 
-  mounted() {
-    /* this.overlay = true
-    this.getRepositions().then(() => {
-      if (this.repos.length) {
-        this.myVariant = 'success'
-      }
-      this.getEmpleados().then(() => (this.overlay = false))
-    }) */
-  },
+  mounted() {},
 };
 </script>
 
