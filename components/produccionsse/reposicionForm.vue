@@ -354,22 +354,15 @@ export default {
           (d) => d.id_departamento == this.form.id_departamento_asignado
         );
 
-        if (deptoInicio && deptoFin) {
-
-          /* console.log("DEBUG VALIDATION RECOVERY:", {
-            inicio: deptoInicio,
-            fin: deptoFin,
-            o_inicio: deptoInicio.orden_proceso,
-            o_fin: deptoFin.orden_proceso
-          }); */
-
+        if (!deptoInicio || !deptoFin) {
+          valido = false;
+          msg += "<p>No se encontró la información detallada de los departamentos seleccionados.</p>";
+        } else {
           // Validar que tengamos los datos de orden_proceso
           if (
-            deptoInicio.orden_proceso !== undefined &&
-            deptoFin.orden_proceso !== undefined
+            deptoInicio.orden_proceso !== undefined && deptoInicio.orden_proceso !== null &&
+            deptoFin.orden_proceso !== undefined && deptoFin.orden_proceso !== null
           ) {
-            /* alert(`DEBUG: Inicio(${deptoInicio.orden_proceso}) vs Fin(${deptoFin.orden_proceso})`); */
-
             // Regla: El departamento del error (Inicio) debe tener un orden de proceso MAYOR o IGUAL
             // al departamento que lo corrige (Fin). Es decir, la pieza "regresa" o se queda.
             // Si Inicio < Fin, estamos enviando el error hacia adelante, lo cual es incorrecto para una reposición.
@@ -382,7 +375,8 @@ export default {
               msg += `<p>Error de flujo: El departamento responsable (<b>${deptoInicio.departamento}</b>) tiene un paso anterior al departamento asignado (<b>${deptoFin.departamento}</b>).<br>La reposición debe regresar a una etapa anterior o permanecer en la misma.</p>`;
             }
           } else {
-            console.warn("DEBUG: orden_proceso field is missing or undefined");
+            valido = false;
+            msg += "<p>No se pudo determinar el orden de proceso de los departamentos seleccionados. Por favor, verifique la configuración del flujo de producción.</p>";
           }
         }
       }
