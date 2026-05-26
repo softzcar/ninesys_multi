@@ -65,6 +65,7 @@
                   <produccionsse-reposicion-form
                     :item="data"
                     :empleados="empleados"
+                    :paso-actual="item.paso"
                   />
                 </template>
               </b-table>

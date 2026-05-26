@@ -214,6 +214,19 @@ export default {
                 valido = false;
                 msg += `<p>Error de flujo: El departamento de inicio de la corrección (<b>${deptoInicio.departamento}</b>) tiene un paso posterior al departamento de finalización (<b>${deptoFin.departamento}</b>).<br>La reposición debe iniciar en una etapa anterior o permanecer en la misma.</p>`;
               }
+
+              // Regla: El departamento de finalización no puede ser posterior al departamento actual de la orden principal
+              if (this.pasoActual) {
+                const deptoActual = this.$store.state.login.departamentos.find(
+                  (d) => d.departamento.toLowerCase().trim() === this.pasoActual.toLowerCase().trim()
+                );
+                if (deptoActual) {
+                  if (parseInt(deptoFin.orden_proceso) > parseInt(deptoActual.orden_proceso)) {
+                    valido = false;
+                    msg += `<p>Error de flujo: No se puede finalizar la reposición en <b>${deptoFin.departamento}</b> porque es un paso posterior al departamento actual de la orden principal (<b>${deptoActual.departamento}</b>).</p>`;
+                  }
+                }
+              }
             } else {
               valido = false;
               msg += "<p>No se pudo determinar el orden de proceso de los departamentos seleccionados. Por favor, verifique la configuración del flujo de producción.</p>";
@@ -299,7 +312,7 @@ export default {
 
   watch: {},
 
-  props: ["item", "departamento", "empleados", "reload_this"],
+  props: ["item", "departamento", "empleados", "reload_this", "pasoActual"],
 
   mounted() {
     /* this.overlay = true
