@@ -193,13 +193,21 @@
                     </b-list-group-item>
 
                     <b-list-group-item data-label="Asignación">
-                      <div class="d-flex flex-column align-items-start" style="gap: 2px;">
-                        <b-badge variant="light" class="text-dark border" style="font-size: 0.85em; font-weight: 600;">
-                          <b-icon icon="person-fill" class="mr-1"></b-icon>{{ el.empleado }}
-                        </b-badge>
-                        <b-badge variant="primary" style="font-size: 0.75em; font-weight: 500;">
-                          <b-icon icon="building" class="mr-1"></b-icon>{{ el.nombre_departamento }}
-                        </b-badge>
+                      <div class="d-flex align-items-center justify-content-between w-100">
+                        <div class="d-flex flex-column align-items-start" style="gap: 2px;">
+                          <b-badge v-if="el.empleado" variant="light" class="text-dark border" style="font-size: 0.85em; font-weight: 600;">
+                            <b-icon icon="person-fill" class="mr-1"></b-icon>{{ el.empleado }}
+                          </b-badge>
+                          <b-badge v-else variant="warning" style="font-size: 0.85em; font-weight: 600;">
+                            <b-icon icon="person-dash-fill" class="mr-1"></b-icon>Sin asignar
+                          </b-badge>
+                          <b-badge variant="primary" style="font-size: 0.75em; font-weight: 500;">
+                            <b-icon icon="building" class="mr-1"></b-icon>{{ el.nombre_departamento }}
+                          </b-badge>
+                        </div>
+                        <b-button variant="outline-info" size="sm" class="px-2 py-1 ml-3" @click="showRepDetalle(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em; white-space: nowrap;">
+                          <b-icon icon="info-circle" class="mr-1"></b-icon>Info Completa
+                        </b-button>
                       </div>
                     </b-list-group-item>
 
@@ -447,6 +455,156 @@
         </div>
       </b-overlay>
     </b-collapse>
+    <!-- Modal Detalle Completo de la Reposición -->
+    <b-modal id="modal-detalle-reposicion" title="Detalle Completo de la Reposición" hide-footer size="lg" @hidden="selectedRep = null; repQueue = []; handleModalHidden()">
+      <div v-if="selectedRep">
+        <b-container fluid class="p-0">
+          <b-row class="mb-3">
+            <b-col md="6">
+              <div class="card h-100 shadow-sm border-light">
+                <div class="card-header bg-dark text-white font-weight-bold d-flex align-items-center justify-content-between py-2">
+                  <span><b-icon icon="info-square" class="mr-1"></b-icon> Información Básica</span>
+                  <b-badge variant="light">ID: #{{ selectedRep.id_reposicion }}</b-badge>
+                </div>
+                <b-list-group flush>
+                  <b-list-group-item>
+                    <strong>Orden Vinculada:</strong> <link-search :id="selectedRep.id_orden" :key="selectedRep.id_orden" class="ml-1" />
+                  </b-list-group-item>
+                  <b-list-group-item>
+                    <strong>Unidades a Reponer:</strong> <b-badge variant="info" pill class="px-2 font-weight-bold">{{ selectedRep.unidades }}</b-badge>
+                  </b-list-group-item>
+                  <b-list-group-item>
+                    <strong>Creador original:</strong> <span class="text-secondary font-weight-bold">{{ selectedRep.emisor }}</span>
+                  </b-list-group-item>
+                  <b-list-group-item>
+                    <strong>Fecha de Solicitud:</strong> <small class="text-muted"><b-icon icon="calendar3" class="mr-1"></b-icon>{{ selectedRep.fecha }} {{ selectedRep.hora }}</small>
+                  </b-list-group-item>
+                </b-list-group>
+              </div>
+            </b-col>
+            
+            <b-col md="6">
+              <div class="card h-100 shadow-sm border-light">
+                <div class="card-header bg-primary text-white font-weight-bold py-2">
+                  <b-icon icon="person-badge" class="mr-1"></b-icon> Asignación Actual
+                </div>
+                <b-list-group flush>
+                  <b-list-group-item class="d-flex align-items-center justify-content-between">
+                    <strong>Empleado Responsable:</strong>
+                    <b-badge v-if="selectedRep.empleado" variant="light" class="text-dark border font-weight-bold">
+                      <b-icon icon="person-fill" class="mr-1"></b-icon>{{ selectedRep.empleado }}
+                    </b-badge>
+                    <b-badge v-else variant="warning" class="font-weight-bold">
+                      <b-icon icon="person-dash-fill" class="mr-1"></b-icon>Sin asignar
+                    </b-badge>
+                  </b-list-group-item>
+                  <b-list-group-item class="d-flex align-items-center justify-content-between">
+                    <strong>Departamento Asignado:</strong>
+                    <b-badge variant="primary" class="font-weight-bold">
+                      <b-icon icon="building" class="mr-1"></b-icon>{{ selectedRep.nombre_departamento }}
+                    </b-badge>
+                  </b-list-group-item>
+                  <b-list-group-item>
+                    <strong>Departamento Solicitante:</strong>
+                    <b-badge variant="secondary" class="font-weight-bold">
+                      <b-icon icon="arrow-return-left" class="mr-1"></b-icon>Dpto. Solicitante #{{ selectedRep.id_departamento_solicitante }}
+                    </b-badge>
+                  </b-list-group-item>
+                </b-list-group>
+              </div>
+            </b-col>
+          </b-row>
+
+          <b-row class="mb-3">
+            <b-col>
+              <div class="card shadow-sm border-light">
+                <div class="card-header bg-light font-weight-bold py-2">
+                  <b-icon icon="tag" class="mr-1 text-secondary"></b-icon> Detalles del Producto
+                </div>
+                <div class="card-body py-3">
+                  <h6 class="font-weight-bold text-dark mb-1">{{ selectedRep.producto }}</h6>
+                  <p class="mb-0 text-muted small">
+                    <strong>Talla:</strong> {{ selectedRep.talla }} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    <strong>Corte:</strong> {{ selectedRep.corte }} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    <strong>Tela:</strong> {{ selectedRep.tela }}
+                  </p>
+                </div>
+              </div>
+            </b-col>
+          </b-row>
+
+          <b-row class="mb-3">
+            <b-col md="6">
+              <div class="card shadow-sm border-light">
+                <div class="card-header font-weight-bold py-2" style="background-color: rgba(255,193,7,0.1); border-bottom: 1px solid rgba(255,193,7,0.2);">
+                  <b-icon icon="exclamation-circle" class="mr-1 text-warning"></b-icon> Detalle de Solicitud (Emisor)
+                </div>
+                <div class="card-body p-3 bg-light text-dark" style="min-height: 80px; font-size: 0.95em; white-space: pre-line;">
+                  {{ selectedRep.detalle_emisor || 'Ninguno proporcionado.' }}
+                </div>
+              </div>
+            </b-col>
+            <b-col md="6">
+              <div class="card shadow-sm border-light">
+                <div class="card-header font-weight-bold py-2" style="background-color: rgba(40,167,69,0.1); border-bottom: 1px solid rgba(40,167,69,0.2);">
+                  <b-icon icon="check2-circle" class="mr-1 text-success"></b-icon> Detalle de Aprobación (Supervisor)
+                </div>
+                <div class="card-body p-3 bg-light text-dark" style="min-height: 80px; font-size: 0.95em; white-space: pre-line;">
+                  {{ selectedRep.detalle || 'Ninguno proporcionado.' }}
+                </div>
+              </div>
+            </b-col>
+          </b-row>
+
+          <!-- Cola de Departamentos (Timeline dinámico) -->
+          <b-row v-if="loadingRepQueue" class="my-4">
+            <b-col class="text-center">
+              <b-spinner variant="primary" small></b-spinner>
+              <span class="ml-2 text-muted small">Cargando cola de departamentos...</span>
+            </b-col>
+          </b-row>
+          <b-row v-else-if="repQueue.length > 0">
+            <b-col>
+              <div class="card shadow-sm border-light">
+                <div class="card-header bg-dark text-white font-weight-bold py-2">
+                  <b-icon icon="list-check" class="mr-1"></b-icon> Cola de Departamentos para el Retrabajo
+                </div>
+                <div class="card-body bg-light py-3">
+                  <div class="d-flex flex-wrap" style="gap: 10px;">
+                    <div
+                      v-for="(dep, idx) in repQueue"
+                      :key="dep.id_departamento"
+                      class="d-flex align-items-center p-2 border rounded shadow-sm bg-white"
+                      :class="{
+                        'border-success': dep.es_inicio == 1,
+                        'border-primary': dep.es_destino == 1,
+                        'border-light text-muted': dep.excluido == 1
+                      }"
+                      style="min-width: 170px; font-size: 0.85em;"
+                    >
+                      <div class="flex-grow-1 text-truncate" :title="dep.departamento">
+                        <strong class="mr-1 text-secondary">#{{ idx + 1 }}</strong>
+                        <span :class="{ 'text-muted text-decoration-line-through': dep.excluido == 1 }">
+                          {{ dep.departamento }}
+                        </span>
+                        <div class="mt-1">
+                          <b-badge v-if="dep.es_inicio == 1" variant="success" style="font-size:0.65em">inicio</b-badge>
+                          <b-badge v-if="dep.es_destino == 1" variant="primary" style="font-size:0.65em">destino</b-badge>
+                          <b-badge v-if="dep.excluido == 1" variant="secondary" style="font-size:0.65em">omitido</b-badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
+      <div class="text-right mt-3 border-top pt-2">
+        <b-button variant="secondary" size="sm" @click="$bvModal.hide('modal-detalle-reposicion')">Cerrar</b-button>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -499,6 +657,9 @@ export default {
       lotes_fisicos: [],
       reposiciones_solicitadas: [],
       reposiciones_en_curso: [],
+      selectedRep: null,
+      repQueue: [],
+      loadingRepQueue: false,
       empleados: [],
       pasos: [],
       refreshKey: 0,
@@ -579,6 +740,25 @@ export default {
     },
     handleModalHidden() {
       this.activeModalCount--;
+    },
+
+    async showRepDetalle(rep) {
+      this.selectedRep = rep;
+      this.repQueue = [];
+      this.loadingRepQueue = true;
+      this.handleModalShown();
+      this.$bvModal.show("modal-detalle-reposicion");
+
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/reposicion/${rep.id_reposicion}/departamentos-cola`
+        );
+        this.repQueue = res.data || [];
+      } catch (e) {
+        console.error("Error al cargar la cola de departamentos para la reposición:", e);
+      } finally {
+        this.loadingRepQueue = false;
+      }
     },
 
     initTiemposDeProduccion() {
