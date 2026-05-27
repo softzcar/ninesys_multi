@@ -156,8 +156,8 @@
 
         <div v-else>
           <b-container fluid>
-            <!-- Cabeceras para Reposiciones en Curso (misma grilla de 10 columnas) -->
-            <div class="list-group-header-reposiciones">
+            <!-- Cabeceras para Reposiciones en Curso (grilla compacta de 8 columnas) -->
+            <div class="list-group-header-reposiciones-curso">
               <div class="list-group-header-item">⋮</div>
               <div class="list-group-header-item">Orden</div>
               <div class="list-group-header-item">Asignación</div>
@@ -165,8 +165,6 @@
               <div class="list-group-header-item">Producto</div>
               <div class="list-group-header-item">Fecha</div>
               <div class="list-group-header-item">Creador</div>
-              <div class="list-group-header-item">Detalle Solicitud</div>
-              <div class="list-group-header-item">Detalle Aprobación</div>
               <div class="list-group-header-item">Acciones</div>
             </div>
 
@@ -180,7 +178,7 @@
               <draggable v-model="reposiciones_en_curso" @end="afterDragRepCurso" tag="ul" class="list-group">
                 <li v-for="el in reposiciones_en_curso" :key="`rep-curso-${el.id_reposicion}-${refreshKey}`"
                   class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
-                  <b-list-group class="list-group-reposiciones">
+                  <b-list-group class="list-group-reposiciones-curso">
                     <b-list-group-item class="pb-3 drag-handle d-flex align-items-center" style="gap: 8px;">
                       <span class="drag-handle-zone" style="cursor: grab; padding-top: 4px;">☰</span>
                       <b-icon icon="play-circle-fill" variant="info" animation="pulse" style="font-size: 0.95rem;"></b-icon>
@@ -232,18 +230,6 @@
                     <b-list-group-item data-label="Creador">
                       <div class="text-truncate" :title="el.emisor">
                         <small>{{ el.emisor }}</small>
-                      </div>
-                    </b-list-group-item>
-
-                    <b-list-group-item data-label="Detalle Solicitud">
-                      <div class="text-truncate" :title="el.detalle_emisor">
-                        <small>{{ el.detalle_emisor }}</small>
-                      </div>
-                    </b-list-group-item>
-
-                    <b-list-group-item data-label="Detalle Aprobación">
-                      <div class="text-truncate" :title="el.detalle">
-                        <small>{{ el.detalle }}</small>
                       </div>
                     </b-list-group-item>
 
@@ -1458,6 +1444,35 @@ export default {
   margin: 0;
 }
 
+/* Reposiciones en curso: grilla compacta de 8 columnas */
+.list-group-header-reposiciones-curso {
+  display: grid;
+  grid-template-columns: 50px 0.8fr 3.5fr 60px 340px 160px 80px 120px;
+  background-color: #375a7f;
+  border: 1px solid #4e5d6c;
+  border-bottom: 2px solid #00bc8c;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.list-group-reposiciones-curso {
+  display: grid;
+  grid-template-columns: 50px 0.8fr 3.5fr 60px 340px 160px 80px 120px;
+  padding: 0;
+  margin: 0;
+}
+
+.list-group-reposiciones-curso .list-group-item {
+  padding: 0.5rem 0.5rem;
+  border: none;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid #4e5d6c;
+}
+
 .list-group-reposiciones .list-group-item {
   padding: 0.5rem 0.5rem;
   border: none;
@@ -1615,11 +1630,13 @@ export default {
   }
 
   /* REPOSICIONES MOBILE — misma estructura que ordenes */
-  .list-group-header-reposiciones {
+  .list-group-header-reposiciones,
+  .list-group-header-reposiciones-curso {
     display: none;
   }
 
-  .list-group-reposiciones {
+  .list-group-reposiciones,
+  .list-group-reposiciones-curso {
     display: flex;
     flex-direction: column;
     border: 1px solid #ddd;
