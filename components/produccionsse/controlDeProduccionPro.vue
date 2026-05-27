@@ -10,292 +10,443 @@
         @reload="initTiemposDeProduccion" />
     </div>
 
-    <h3 class="mt-4">Reposiciones</h3>
+    <!-- 1. Reposiciones por asignar (Cabecera y Collapse) -->
+    <div class="section-header bg-warning-accent d-flex align-items-center justify-content-between mt-4 mb-3" @click="toggleSection('isReposicionesAsignarVisible')">
+      <div class="d-flex align-items-center">
+        <h3 class="section-title mb-0">Reposiciones por asignar</h3>
+        <b-badge pill variant="warning" class="ml-3 px-2 py-1 count-badge">
+          {{ reposiciones_solicitadas.length }}
+        </b-badge>
+      </div>
+      <b-button variant="link" class="collapse-toggle-btn text-decoration-none p-0">
+        <b-icon icon="chevron-down" class="chevron-icon" :class="{ 'rotated': !isReposicionesAsignarVisible }"></b-icon>
+      </b-button>
+    </div>
 
-    <b-overlay :show="isLoading" opacity="0.6" rounded="sm" spinner-variant="success">
-      <template #overlay>
-        <div class="text-center">
-          <b-spinner variant="success" label="Cargando..."></b-spinner>
-          <h3 class="mt-2">Cargando reposiciones...</h3>
+    <b-collapse v-model="isReposicionesAsignarVisible" class="mb-4">
+      <b-overlay :show="isLoading" opacity="0.6" rounded="sm" spinner-variant="success">
+        <template #overlay>
+          <div class="text-center">
+            <b-spinner variant="success" label="Cargando..."></b-spinner>
+            <h3 class="mt-2">Cargando reposiciones...</h3>
+          </div>
+        </template>
+
+        <div v-if="reposiciones_solicitadas.length === 0 && !isLoading">
+          <b-alert class="text-center mb-4" show variant="info">
+            <h4 class="mb-0">No hay reposiciones para asignar</h4>
+          </b-alert>
         </div>
-      </template>
 
-      <div v-if="reposiciones_solicitadas.length === 0 && !isLoading">
-        <b-alert class="text-cetner mb-4" show variant="info">
-          <h3>No hay reposiciones para revisar</h3>
-        </b-alert>
-      </div>
+        <div v-else>
+          <b-container fluid>
+            <!-- Cabeceras para Reposiciones (misma estructura que Ordenes en curso) -->
+            <div class="list-group-header-reposiciones">
+              <div class="list-group-header-item">⋮</div>
+              <div class="list-group-header-item">Orden</div>
+              <div class="list-group-header-item">Interacción</div>
+              <div class="list-group-header-item">Und.</div>
+              <div class="list-group-header-item">Producto</div>
+              <div class="list-group-header-item">Fecha</div>
+              <div class="list-group-header-item">Empleado</div>
+              <div class="list-group-header-item">Detalle</div>
+              <div class="list-group-header-item"></div>
+              <div class="list-group-header-item">Acciones</div>
+            </div>
 
-      <div v-else>
-        <b-container fluid>
-          <!-- Cabeceras para Reposiciones (misma estructura que Ordenes en curso) -->
-          <div class="list-group-header-reposiciones">
-            <div class="list-group-header-item">⋮</div>
-            <div class="list-group-header-item">Orden</div>
-            <div class="list-group-header-item">Interacción</div>
-            <div class="list-group-header-item">Und.</div>
-            <div class="list-group-header-item">Producto</div>
-            <div class="list-group-header-item">Fecha</div>
-            <div class="list-group-header-item">Empleado</div>
-            <div class="list-group-header-item">Detalle</div>
-            <div class="list-group-header-item"></div>
-            <div class="list-group-header-item">Acciones</div>
-          </div>
+            <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
+              <template #overlay>
+                <div class="text-center">
+                  <b-spinner variant="success"></b-spinner>
+                  <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
+                </div>
+              </template>
+              <draggable v-model="reposiciones_solicitadas" @end="afterDragRep" tag="ul" class="list-group">
+                <li v-for="(el, index) in reposiciones_solicitadas" :key="`rep-${el.id_reposicion}-${refreshKey}`"
+                  class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
+                  <b-list-group class="list-group-reposiciones">
+                    <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
+                      <span class="drag-handle-zone" style="padding-top: 12px; padding-right: 16px; cursor: grab;">☰</span>
+                    </b-list-group-item>
 
-          <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
-            <template #overlay>
-              <div class="text-center">
-                <b-spinner variant="success"></b-spinner>
-                <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
-              </div>
-            </template>
-          <draggable v-model="reposiciones_solicitadas" @end="afterDragRep" tag="ul" class="list-group">
-            <li v-for="(el, index) in reposiciones_solicitadas" :key="`rep-${el.id_reposicion}-${refreshKey}`"
-              class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
-              <b-list-group class="list-group-reposiciones">
-                <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
-                  <span class="drag-handle-zone" style="padding-top: 12px; padding-right: 16px; cursor: grab;">☰</span>
-                </b-list-group-item>
+                    <b-list-group-item data-label="Orden">
+                      <div>
+                        <link-search :id="el.id_orden" :key="el.id_orden" />
+                      </div>
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Orden">
-                  <div>
-                    <link-search :id="el.id_orden" :key="el.id_orden" />
-                  </div>
-                </b-list-group-item>
+                    <b-list-group-item data-label="Interacción">
+                      <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index"
+                        @reload="initTiemposDeProduccion" />
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Interacción">
-                  <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index"
-                    @reload="initTiemposDeProduccion" />
-                </b-list-group-item>
+                    <b-list-group-item data-label="Unidades">
+                      <div>{{ el.unidades }}</div>
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Unidades">
-                  <div>{{ el.unidades }}</div>
-                </b-list-group-item>
+                    <b-list-group-item data-label="Producto">
+                      <div>
+                        <strong>{{ el.producto }}</strong>
+                        <br />
+                        <small class="text-muted">{{ el.talla }} · {{ el.corte }} · {{ el.tela }}</small>
+                      </div>
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Producto">
-                  <div>
-                    <strong>{{ el.producto }}</strong>
-                    <br />
-                    <small class="text-muted">{{ el.talla }} · {{ el.corte }} · {{ el.tela }}</small>
-                  </div>
-                </b-list-group-item>
+                    <b-list-group-item data-label="Fecha">
+                      <div>
+                        <small>{{ el.fecha }}<br />{{ el.hora }}</small>
+                      </div>
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Fecha">
-                  <div>
-                    <small>{{ el.fecha }}<br />{{ el.hora }}</small>
-                  </div>
-                </b-list-group-item>
+                    <b-list-group-item data-label="Empleado">
+                      <div class="text-truncate" :title="el.empleado">
+                        <small>{{ el.empleado }}</small>
+                      </div>
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Empleado">
-                  <div class="text-truncate" :title="el.empleado">
-                    <small>{{ el.empleado }}</small>
-                  </div>
-                </b-list-group-item>
+                    <b-list-group-item data-label="Detalle">
+                      <div class="text-truncate" :title="el.detalle_emisor">
+                        <small>{{ el.detalle_emisor }}</small>
+                      </div>
+                    </b-list-group-item>
 
-                <b-list-group-item data-label="Detalle">
-                  <div class="text-truncate" :title="el.detalle_emisor">
-                    <small>{{ el.detalle_emisor }}</small>
-                  </div>
-                </b-list-group-item>
+                    <b-list-group-item>
+                      <!-- Reservado -->
+                    </b-list-group-item>
 
-                <b-list-group-item>
-                  <!-- Reservado -->
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Acciones">
-                  <!-- De momento vacía -->
-                </b-list-group-item>
-              </b-list-group>
-            </li>
-          </draggable>
-          </b-overlay>
-        </b-container>
-      </div>
-    </b-overlay>
-
-    <h3 class="mt-4">Ordenes en curso</h3>
-
-    <!-- Filtros -->
-    <b-row class="mb-3">
-      <b-col md="3">
-        <b-form-group label="Filtrar por Orden" label-for="filter-orden">
-          <b-form-input id="filter-orden" v-model="filterOrden" placeholder="Ej: 1234" type="text"
-            debounce="300"></b-form-input>
-        </b-form-group>
-      </b-col>
-      <b-col md="3">
-        <b-form-group label="Filtrar por Cliente" label-for="filter-cliente">
-          <b-form-input id="filter-cliente" v-model="filterCliente" placeholder="Nombre del cliente"
-            debounce="300"></b-form-input>
-        </b-form-group>
-      </b-col>
-      <b-col md="3">
-        <b-form-group label="Filtrar por Estado" label-for="filter-estatus">
-          <b-form-input id="filter-estatus" v-model="filterEstatus" placeholder="Estado de la orden"
-            debounce="300"></b-form-input>
-        </b-form-group>
-      </b-col>
-      <b-col md="3" class="d-flex align-items-end flex-column">
-        <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="mb-2 w-100">
-          <b-icon icon="x-circle"></b-icon> Limpiar Filtros
-        </b-button>
-        <b-alert v-if="isUserFiltering" show variant="warning" class="m-0 p-2 w-100 text-center">
-          <small><strong>Reordenamiento desactivado</strong> por filtros
-            activos.</small>
-        </b-alert>
-      </b-col>
-    </b-row>
-
-    <b-overlay :show="isLoading" opacity="0.6" rounded="sm" spinner-variant="success">
-      <template #overlay>
-        <div class="text-center">
-          <b-spinner variant="success" label="Cargando..."></b-spinner>
-          <h3 class="mt-2">Cargando Ordenes...</h3>
+                    <b-list-group-item data-label="Acciones">
+                      <!-- De momento vacía -->
+                    </b-list-group-item>
+                  </b-list-group>
+                </li>
+              </draggable>
+            </b-overlay>
+          </b-container>
         </div>
-      </template>
+      </b-overlay>
+    </b-collapse>
 
-      <div v-if="items.length === 0 && !isLoading">
-        <b-alert show class="mt-2 mb-4" variant="info">
-          <h3>No hay ordenes en curso</h3>
-        </b-alert>
+    <!-- 2. Reposiciones en curso (Cabecera y Collapse) -->
+    <div class="section-header bg-info-accent d-flex align-items-center justify-content-between mt-4 mb-3" @click="toggleSection('isReposicionesCursoVisible')">
+      <div class="d-flex align-items-center">
+        <h3 class="section-title mb-0">Reposiciones en curso</h3>
+        <b-badge pill variant="info" class="ml-3 px-2 py-1 count-badge">
+          {{ reposiciones_en_curso.length }}
+        </b-badge>
       </div>
+      <b-button variant="link" class="collapse-toggle-btn text-decoration-none p-0">
+        <b-icon icon="chevron-down" class="chevron-icon" :class="{ 'rotated': !isReposicionesCursoVisible }"></b-icon>
+      </b-button>
+    </div>
 
-      <div v-else>
-        <b-container fluid>
-          <!-- Cabeceras fijas con el mismo grid -->
-          <div class="list-group-header">
-            <div class="list-group-header-item">⋮</div>
-            <div class="list-group-header-item">Orden</div>
-            <div class="list-group-header-item">Cliente</div>
-            <div class="list-group-header-item">Und.</div>
-            <div class="list-group-header-item">Progreso</div>
-            <div class="list-group-header-item">Entrega</div>
-            <div class="list-group-header-item">Vinc.</div>
-            <div class="list-group-header-item">Estatus</div>
-            <div class="list-group-header-item">Detalles</div>
-            <div class="list-group-header-item">Acciones</div>
+    <b-collapse v-model="isReposicionesCursoVisible" class="mb-4">
+      <b-overlay :show="isLoading" opacity="0.6" rounded="sm" spinner-variant="success">
+        <template #overlay>
+          <div class="text-center">
+            <b-spinner variant="success" label="Cargando..."></b-spinner>
+            <h3 class="mt-2">Cargando reposiciones en curso...</h3>
           </div>
+        </template>
 
-          <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
-            <template #overlay>
-              <div class="text-center">
-                <b-spinner variant="success"></b-spinner>
-                <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
+        <div v-if="reposiciones_en_curso.length === 0 && !isLoading">
+          <b-alert class="text-center mb-4" show variant="info">
+            <h4 class="mb-0">No hay reposiciones en curso</h4>
+          </b-alert>
+        </div>
+
+        <div v-else>
+          <b-container fluid>
+            <!-- Cabeceras para Reposiciones en Curso (misma grilla de 10 columnas) -->
+            <div class="list-group-header-reposiciones">
+              <div class="list-group-header-item">⋮</div>
+              <div class="list-group-header-item">Orden</div>
+              <div class="list-group-header-item">Asignación</div>
+              <div class="list-group-header-item">Und.</div>
+              <div class="list-group-header-item">Producto</div>
+              <div class="list-group-header-item">Fecha</div>
+              <div class="list-group-header-item">Creador</div>
+              <div class="list-group-header-item">Detalle Solicitud</div>
+              <div class="list-group-header-item">Detalle Aprobación</div>
+              <div class="list-group-header-item">Acciones</div>
+            </div>
+
+            <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
+              <template #overlay>
+                <div class="text-center">
+                  <b-spinner variant="success"></b-spinner>
+                  <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
+                </div>
+              </template>
+              <draggable v-model="reposiciones_en_curso" @end="afterDragRepCurso" tag="ul" class="list-group">
+                <li v-for="el in reposiciones_en_curso" :key="`rep-curso-${el.id_reposicion}-${refreshKey}`"
+                  class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
+                  <b-list-group class="list-group-reposiciones">
+                    <b-list-group-item class="pb-3 drag-handle d-flex align-items-center" style="gap: 8px;">
+                      <span class="drag-handle-zone" style="cursor: grab; padding-top: 4px;">☰</span>
+                      <b-icon icon="play-circle-fill" variant="info" animation="pulse" style="font-size: 0.95rem;"></b-icon>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Orden">
+                      <div>
+                        <link-search :id="el.id_orden" :key="el.id_orden" />
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Asignación">
+                      <div class="d-flex flex-column align-items-start" style="gap: 2px;">
+                        <b-badge variant="light" class="text-dark border" style="font-size: 0.85em; font-weight: 600;">
+                          <b-icon icon="person-fill" class="mr-1"></b-icon>{{ el.empleado }}
+                        </b-badge>
+                        <b-badge variant="primary" style="font-size: 0.75em; font-weight: 500;">
+                          <b-icon icon="building" class="mr-1"></b-icon>{{ el.nombre_departamento }}
+                        </b-badge>
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Unidades">
+                      <div><strong>{{ el.unidades }}</strong></div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Producto">
+                      <div>
+                        <strong>{{ el.producto }}</strong>
+                        <br />
+                        <small class="text-muted">{{ el.talla }} · {{ el.corte }} · {{ el.tela }}</small>
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Fecha">
+                      <div>
+                        <small>{{ el.fecha }}<br />{{ el.hora }}</small>
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Creador">
+                      <div class="text-truncate" :title="el.emisor">
+                        <small>{{ el.emisor }}</small>
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Detalle Solicitud">
+                      <div class="text-truncate" :title="el.detalle_emisor">
+                        <small>{{ el.detalle_emisor }}</small>
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Detalle Aprobación">
+                      <div class="text-truncate" :title="el.detalle">
+                        <small>{{ el.detalle }}</small>
+                      </div>
+                    </b-list-group-item>
+
+                    <b-list-group-item data-label="Acciones">
+                      <!-- De momento vacía -->
+                    </b-list-group-item>
+                  </b-list-group>
+                </li>
+              </draggable>
+            </b-overlay>
+          </b-container>
+        </div>
+      </b-overlay>
+    </b-collapse>
+
+    <!-- 3. Órdenes en curso (Cabecera y Collapse) -->
+    <div class="section-header bg-success-accent d-flex align-items-center justify-content-between mt-4 mb-3" @click="toggleSection('isOrdenesCursoVisible')">
+      <div class="d-flex align-items-center">
+        <h3 class="section-title mb-0">Órdenes en curso</h3>
+        <b-badge pill variant="success" class="ml-3 px-2 py-1 count-badge">
+          {{ itemsFiltrados.length }}
+        </b-badge>
+      </div>
+      <b-button variant="link" class="collapse-toggle-btn text-decoration-none p-0">
+        <b-icon icon="chevron-down" class="chevron-icon" :class="{ 'rotated': !isOrdenesCursoVisible }"></b-icon>
+      </b-button>
+    </div>
+
+    <b-collapse v-model="isOrdenesCursoVisible" class="mb-4">
+      <!-- Filtros -->
+      <b-row class="mb-3">
+        <b-col md="3">
+          <b-form-group label="Filtrar por Orden" label-for="filter-orden">
+            <b-form-input id="filter-orden" v-model="filterOrden" placeholder="Ej: 1234" type="text"
+              debounce="300"></b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col md="3">
+          <b-form-group label="Filtrar por Cliente" label-for="filter-cliente">
+            <b-form-input id="filter-cliente" v-model="filterCliente" placeholder="Nombre del cliente"
+              debounce="300"></b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col md="3">
+          <b-form-group label="Filtrar por Estado" label-for="filter-estatus">
+            <b-form-input id="filter-estatus" v-model="filterEstatus" placeholder="Estado de la orden"
+              debounce="300"></b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col md="3" class="d-flex align-items-end flex-column">
+          <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="mb-2 w-100">
+            <b-icon icon="x-circle"></b-icon> Limpiar Filtros
+          </b-button>
+          <b-alert v-if="isUserFiltering" show variant="warning" class="m-0 p-2 w-100 text-center">
+            <small><strong>Reordenamiento desactivado</strong> por filtros
+              activos.</small>
+          </b-alert>
+        </b-col>
+      </b-row>
+
+      <b-overlay :show="isLoading" opacity="0.6" rounded="sm" spinner-variant="success">
+        <template #overlay>
+          <div class="text-center">
+            <b-spinner variant="success" label="Cargando..."></b-spinner>
+            <h3 class="mt-2">Cargando Ordenes...</h3>
+          </div>
+        </template>
+
+        <div v-if="items.length === 0 && !isLoading">
+          <b-alert show class="mt-2 mb-4" variant="info">
+            <h3>No hay ordenes en curso</h3>
+          </b-alert>
+        </div>
+
+        <div v-else>
+          <b-container fluid>
+            <!-- Cabeceras fijas con el mismo grid -->
+            <div class="list-group-header">
+              <div class="list-group-header-item">⋮</div>
+              <div class="list-group-header-item">Orden</div>
+              <div class="list-group-header-item">Cliente</div>
+              <div class="list-group-header-item">Und.</div>
+              <div class="list-group-header-item">Progreso</div>
+              <div class="list-group-header-item">Entrega</div>
+              <div class="list-group-header-item">Vinc.</div>
+              <div class="list-group-header-item">Estatus</div>
+              <div class="list-group-header-item">Detalles</div>
+              <div class="list-group-header-item">Acciones</div>
+            </div>
+
+            <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
+              <template #overlay>
+                <div class="text-center">
+                  <b-spinner variant="success"></b-spinner>
+                  <p class="mt-2 mb-0"><strong>Guardando nuevo orden...</strong></p>
+                </div>
+              </template>
+            <draggable v-model="itemsFiltrados" @end="afterDrag" tag="ul" class="list-group" handle=".drag-handle-zone"
+              :disabled="isUserFiltering || isReordering">
+              <li v-for="(el, index) in itemsMostrados" :key="`${el.orden}-${refreshKey}`" class="list-group-item"
+                style="list-style: none; padding: 0; margin: 0; border: none">
+                <b-list-group class="list-group-draggable">
+                  <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
+                    <span class="drag-handle-zone" :style="{
+                      cursor: isUserFiltering ? 'not-allowed' : 'grab',
+                      paddingTop: '4px',
+                      paddingRight: '16px',
+                      paddingTop: '12px',
+                      opacity: isUserFiltering ? 0.3 : 1
+                    }">☰</span>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Orden">
+                    <div>
+                      <link-search :id="el.orden" :key="el.orden" />
+                    </div>
+                    <div v-if="el.estatus_revision === 'Aprobado'" class="h1 mt-2">
+                      <b-button variant="outline-light">
+                        <b-icon icon="exclamation-circle-fill" variant="success" @click="showDesigner(el.disenador)"
+                          :key="el.orden"></b-icon>
+                      </b-button>
+                    </div>
+
+                    <div v-else class="h1 mt-2">
+                      <b-button variant="outline-light" @click="showDesigner(el.disenador)" :key="el.orden">
+                        <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
+                      </b-button>
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Cliente">
+                    {{ el.cliente }}
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Unidades">
+                    <div>
+                      {{ el.unidades }}
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Progreso">
+                    <div>
+                      <produccionsse-progress-bar :pasos="pasos" :asignacion="asignacion"
+                        :emp_asignados="empleadosAsignados" :empleados="empleados" :por_asignar="por_asignar"
+                        :depart="pActivo(el.orden)" :item="el" :orden_productos="filterOrdenProductos(el.orden)"
+                        :reposicion_ordenes_productos="reposicion_ordenes_productos
+                          " :lote_detalles="filterLoteDetalles(el.orden)" :lotes_fisicos="lotes_fisicos" :key="el.orden"
+                        @reload="initTiemposDeProduccion" />
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Entrega">
+                    <div style="margin-top: 32px">
+                      <!-- ===================== INICIO DE MODIFICACIÓN ==================== -->
+                      <!-- Se reemplaza @reload por los eventos de modal -->
+                      <progreso-tiempo-semaforo :key="el.orden" @modal-shown="handleModalShown"
+                        @modal-hidden="handleModalHidden" :ordenesTodas="fechas" :id_orden="el.orden"
+                        :ordenesProyectadas2="ordenesProyectadas2" :is-parent-loading="isProyeccionLoading" />
+                      <!-- ====================== FIN DE MODIFICACIÓN ====================== -->
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Vinculada">
+                    <div class="floatme">
+                      <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculadas(el.acciones)" :key="el.orden"
+                        :id_orden="el.orden" />
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Estatus">
+                    <div>
+                      {{ el.estatus }}
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Detalles">
+                    <div>
+                      <produccion-control-de-produccion-detalles-editor :idorden="el.orden" :item="el"
+                        :detalles="el.detalles" :detalle_empleado="el.detalle_empleado" :key="el.orden"
+                        :productos="productsFilter(el.orden)" />
+                      <produccionsse-ModalNotasProduccion :id_orden="el.orden" />
+                    </div>
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Acciones">
+                    <div class="d-flex" style="gap: 5px;">
+                      <b-button variant="info" size="sm" @click="$bvModal.show('modal-notas-' + el.orden)" title="Ver notas de empleados">
+                        <b-icon icon="chat-left-text"></b-icon>
+                      </b-button>
+                      <ordenes-editar :data="el" :key="el.orden" />
+                    </div>
+                  </b-list-group-item>
+                </b-list-group>
+              </li>
+            </draggable>
+
+            <!-- 🆕 SENTINELA PARA INFINITE SCROLL -->
+            <div id="infinite-scroll-sentinel" style="height: 50px; display: flex; align-items: center; justify-content: center;">
+              <div v-if="itemsMostrados.length < itemsFiltrados.length" class="text-muted italic">
+                <b-spinner small variant="success" class="mr-2"></b-spinner>
+                Cargando más órdenes ({{ itemsMostrados.length }} de {{ itemsFiltrados.length }})...
               </div>
-            </template>
-          <draggable v-model="itemsFiltrados" @end="afterDrag" tag="ul" class="list-group" handle=".drag-handle-zone"
-            :disabled="isUserFiltering || isReordering">
-            <li v-for="(el, index) in itemsMostrados" :key="`${el.orden}-${refreshKey}`" class="list-group-item"
-              style="list-style: none; padding: 0; margin: 0; border: none">
-              <b-list-group class="list-group-draggable">
-                <b-list-group-item class="pb-3 drag-handle d-flex align-items-left">
-                  <span class="drag-handle-zone" :style="{
-                    cursor: isUserFiltering ? 'not-allowed' : 'grab',
-                    paddingTop: '4px',
-                    paddingRight: '16px',
-                    paddingTop: '12px',
-                    opacity: isUserFiltering ? 0.3 : 1
-                  }">☰</span>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Orden">
-                  <div>
-                    <link-search :id="el.orden" :key="el.orden" />
-                  </div>
-                  <div v-if="el.estatus_revision === 'Aprobado'" class="h1 mt-2">
-                    <b-button variant="outline-light">
-                      <b-icon icon="exclamation-circle-fill" variant="success" @click="showDesigner(el.disenador)"
-                        :key="el.orden"></b-icon>
-                    </b-button>
-                  </div>
-
-                  <div v-else class="h1 mt-2">
-                    <b-button variant="outline-light" @click="showDesigner(el.disenador)" :key="el.orden">
-                      <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
-                    </b-button>
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Cliente">
-                  {{ el.cliente }}
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Unidades">
-                  <div>
-                    {{ el.unidades }}
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Progreso">
-                  <div>
-                    <produccionsse-progress-bar :pasos="pasos" :asignacion="asignacion"
-                      :emp_asignados="empleadosAsignados" :empleados="empleados" :por_asignar="por_asignar"
-                      :depart="pActivo(el.orden)" :item="el" :orden_productos="filterOrdenProductos(el.orden)"
-                      :reposicion_ordenes_productos="reposicion_ordenes_productos
-                        " :lote_detalles="filterLoteDetalles(el.orden)" :lotes_fisicos="lotes_fisicos" :key="el.orden"
-                      @reload="initTiemposDeProduccion" />
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Entrega">
-                  <div style="margin-top: 32px">
-                    <!-- ===================== INICIO DE MODIFICACIÓN ==================== -->
-                    <!-- Se reemplaza @reload por los eventos de modal -->
-                    <progreso-tiempo-semaforo :key="el.orden" @modal-shown="handleModalShown"
-                      @modal-hidden="handleModalHidden" :ordenesTodas="fechas" :id_orden="el.orden"
-                      :ordenesProyectadas2="ordenesProyectadas2" :is-parent-loading="isProyeccionLoading" />
-                    <!-- ====================== FIN DE MODIFICACIÓN ====================== -->
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Vinculada">
-                  <div class="floatme">
-                    <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculadas(el.acciones)" :key="el.orden"
-                      :id_orden="el.orden" />
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Estatus">
-                  <div>
-                    {{ el.estatus }}
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Detalles">
-                  <div>
-                    <produccion-control-de-produccion-detalles-editor :idorden="el.orden" :item="el"
-                      :detalles="el.detalles" :detalle_empleado="el.detalle_empleado" :key="el.orden"
-                      :productos="productsFilter(el.orden)" />
-                    <produccionsse-ModalNotasProduccion :id_orden="el.orden" />
-                  </div>
-                </b-list-group-item>
-
-                <b-list-group-item data-label="Acciones">
-                  <div class="d-flex" style="gap: 5px;">
-                    <b-button variant="info" size="sm" @click="$bvModal.show('modal-notas-' + el.orden)" title="Ver notas de empleados">
-                      <b-icon icon="chat-left-text"></b-icon>
-                    </b-button>
-                    <ordenes-editar :data="el" :key="el.orden" />
-                  </div>
-                </b-list-group-item>
-              </b-list-group>
-            </li>
-          </draggable>
-
-          <!-- 🆕 SENTINELA PARA INFINITE SCROLL -->
-          <div id="infinite-scroll-sentinel" style="height: 50px; display: flex; align-items: center; justify-content: center;">
-            <div v-if="itemsMostrados.length < itemsFiltrados.length" class="text-muted italic">
-              <b-spinner small variant="success" class="mr-2"></b-spinner>
-              Cargando más órdenes ({{ itemsMostrados.length }} de {{ itemsFiltrados.length }})...
+              <div v-else-if="itemsFiltrados.length > 0" class="text-muted small">
+                Fin de la lista ({{ itemsFiltrados.length }} órdenes mostradas)
+              </div>
             </div>
-            <div v-else-if="itemsFiltrados.length > 0" class="text-muted small">
-              Fin de la lista ({{ itemsFiltrados.length }} órdenes mostradas)
-            </div>
-          </div>
-          </b-overlay>
-        </b-container>
-      </div>
-    </b-overlay>
+            </b-overlay>
+          </b-container>
+        </div>
+      </b-overlay>
+    </b-collapse>
   </div>
 </template>
 
@@ -340,10 +491,14 @@ export default {
       asignacion: [],
       empleadosAsignados: [],
       orden_productos: [],
+      isReposicionesAsignarVisible: true,
+      isReposicionesCursoVisible: true,
+      isOrdenesCursoVisible: true,
       reposicion_ordenes_productos: [],
       lote_detalles: [],
       lotes_fisicos: [],
       reposiciones_solicitadas: [],
+      reposiciones_en_curso: [],
       empleados: [],
       pasos: [],
       refreshKey: 0,
@@ -384,6 +539,7 @@ export default {
         .then((res) => {
           const newItems = res.data.items;
           const newReposiciones = res.data.reposiciones_solicitadas;
+          const newReposicionesEnCurso = res.data.reposiciones_en_curso || [];
 
           const currentItemsStr = JSON.stringify(this.items.map(i => i.orden));
           const newItemsStr = JSON.stringify(newItems.map(i => i.orden));
@@ -391,7 +547,10 @@ export default {
           const currentReposicionesStr = JSON.stringify(this.reposiciones_solicitadas.map(r => r.id_reposicion));
           const newReposicionesStr = JSON.stringify(newReposiciones.map(r => r.id_reposicion));
 
-          if (currentItemsStr !== newItemsStr || currentReposicionesStr !== newReposicionesStr) {
+          const currentReposicionesEnCursoStr = JSON.stringify(this.reposiciones_en_curso.map(r => r.id_reposicion));
+          const newReposicionesEnCursoStr = JSON.stringify(newReposicionesEnCurso.map(r => r.id_reposicion));
+
+          if (currentItemsStr !== newItemsStr || currentReposicionesStr !== newReposicionesStr || currentReposicionesEnCursoStr !== newReposicionesEnCursoStr) {
             if (!this.toastShown) {
               this.$bvToast.toast("Hay nuevas órdenes o reposiciones.", {
                 id: 'new-data-toast',
@@ -551,6 +710,43 @@ export default {
       }
     },
 
+    async afterDragRepCurso(evt) {
+      // Construir el lote con el nuevo orden de reposiciones en curso
+      const batch = this.reposiciones_en_curso.map((dep, index) => ({
+        id_reposicion: dep.id_reposicion,
+        orden_fila: index + 1,
+      }));
+
+      this.isReordering = true;
+      try {
+        const res = await this.$axios.post(
+          `${this.$config.API}/reposiciones/actualizar-filas-batch`,
+          batch,
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        if (res.data && res.data.success) {
+          await this.loadOrdersProduction();
+        } else {
+          const msg = (res.data && res.data.message) || 'Error desconocido al guardar el orden.';
+          this.$bvToast.toast(msg, {
+            title: 'Error al reordenar reposiciones en curso',
+            variant: 'danger',
+            solid: true,
+          });
+        }
+      } catch (error) {
+        console.error('Error al actualizar orden de reposiciones en curso:', error);
+        this.$bvToast.toast('No se pudo guardar el nuevo orden de reposiciones en curso. Verifique la conexión.', {
+          title: 'Error al reordenar',
+          variant: 'danger',
+          solid: true,
+        });
+      } finally {
+        this.isReordering = false;
+      }
+    },
+
     productsFilter(id) {
       return this.products.filter((el) => el.id_orden == id);
     },
@@ -600,6 +796,11 @@ export default {
       this.filterEstatus = "";
     },
 
+    toggleSection(key) {
+      this[key] = !this[key];
+      localStorage.setItem(key, this[key]);
+    },
+
     async loadOrdersProduction() {
       await this.$axios
         .get(`${this.$config.API}/sse/produccion`)
@@ -614,6 +815,8 @@ export default {
           this.products = res.data.productos || [];
           this.reposiciones_solicitadas =
             res.data.reposiciones_solicitadas || [];
+          this.reposiciones_en_curso =
+            res.data.reposiciones_en_curso || [];
           this.asignacion = res.data.asignacion || [];
           this.empleados = res.data.empleados || [];
           this.orden_productos = res.data.orden_productos || [];
@@ -744,6 +947,16 @@ export default {
   },
 
   mounted() {
+    if (localStorage.getItem('isReposicionesAsignarVisible') !== null) {
+      this.isReposicionesAsignarVisible = localStorage.getItem('isReposicionesAsignarVisible') === 'true';
+    }
+    if (localStorage.getItem('isReposicionesCursoVisible') !== null) {
+      this.isReposicionesCursoVisible = localStorage.getItem('isReposicionesCursoVisible') === 'true';
+    }
+    if (localStorage.getItem('isOrdenesCursoVisible') !== null) {
+      this.isOrdenesCursoVisible = localStorage.getItem('isOrdenesCursoVisible') === 'true';
+    }
+
     this.initTiemposDeProduccion();
     this.intervaloRecargaDatos = setInterval(() => {
       if (this.activeModalCount === 0) {
@@ -788,6 +1001,93 @@ export default {
 </script>
 
 <style scoped>
+.section-header {
+  background: linear-gradient(90deg, rgba(55, 90, 127, 0.3) 0%, rgba(55, 90, 127, 0.02) 100%);
+  border-left: 5px solid #4e5d6c;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.section-header:hover {
+  background: linear-gradient(90deg, rgba(55, 90, 127, 0.5) 0%, rgba(55, 90, 127, 0.08) 100%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.section-accent-line {
+  margin-right: 12px;
+}
+
+.bg-warning-accent {
+  border-left: 5px solid #f39c12 !important;
+}
+
+.bg-info-accent {
+  border-left: 5px solid #3498db !important;
+}
+
+.bg-success-accent {
+  border-left: 5px solid #00bc8c !important;
+}
+
+.section-title {
+  font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+  color: #2c3e50;
+  transition: color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .section-title {
+  color: #ffffff;
+}
+
+.section-header:hover .section-title {
+  color: #1a252f;
+}
+
+[data-bs-theme="dark"] .section-header:hover .section-title {
+  color: #ffffff;
+}
+
+.count-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.section-header:hover .count-badge {
+  transform: scale(1.1);
+}
+
+.chevron-icon {
+  font-size: 1.2rem;
+  color: #5d6d7e;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .chevron-icon {
+  color: #aebbc9;
+}
+
+.section-header:hover .chevron-icon {
+  color: #1a252f;
+}
+
+[data-bs-theme="dark"] .section-header:hover .chevron-icon {
+  color: #ffffff;
+}
+
+.chevron-icon.rotated {
+  transform: rotate(-90deg);
+}
+
 .float-me {
   float: left;
   margin-right: 4px;
@@ -1041,8 +1341,9 @@ export default {
     padding-bottom: 0.25rem;
   }
 
-  /* Interacción: Resaltar como el cliente en ordenes */
-  .list-group-reposiciones .list-group-item[data-label="Interacción"] {
+  /* Interacción / Asignación: Resaltar como el cliente en ordenes */
+  .list-group-reposiciones .list-group-item[data-label="Interacción"],
+  .list-group-reposiciones .list-group-item[data-label="Asignación"] {
     font-size: 1.1em;
     font-weight: bold;
     background-color: #f8f9fa;
