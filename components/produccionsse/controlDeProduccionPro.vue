@@ -1472,7 +1472,7 @@ export default {
 /* Reposiciones: misma grilla de 10 columnas que Ordenes en curso */
 .list-group-header-reposiciones {
   display: grid;
-  grid-template-columns: 40px 75px 1.5fr 50px 2.2fr 110px 100px 1.8fr 110px;
+  grid-template-columns: 40px 75px 1.5fr 50px 2.2fr 110px 100px 1.8fr 125px;
   background-color: #375a7f;
   border: 1px solid #4e5d6c;
   border-bottom: 2px solid #00bc8c;
@@ -1483,14 +1483,14 @@ export default {
 
 .list-group-reposiciones {
   display: grid;
-  grid-template-columns: 40px 75px 1.5fr 50px 2.2fr 110px 100px 1.8fr 110px;
+  grid-template-columns: 40px 75px 1.5fr 50px 2.2fr 110px 100px 1.8fr 125px;
   padding: 0;
   margin: 0;
 }
 
 .list-group-header-reposiciones-curso {
   display: grid;
-  grid-template-columns: 40px 75px 2fr 50px 2.2fr 110px 90px 120px;
+  grid-template-columns: 40px 75px 1.4fr 50px 2fr 110px 90px 165px;
   background-color: #375a7f;
   border: 1px solid #4e5d6c;
   border-bottom: 2px solid #00bc8c;
@@ -1501,7 +1501,7 @@ export default {
 
 .list-group-reposiciones-curso {
   display: grid;
-  grid-template-columns: 40px 75px 2fr 50px 2.2fr 110px 90px 120px;
+  grid-template-columns: 40px 75px 1.4fr 50px 2fr 110px 90px 165px;
   padding: 0;
   margin: 0;
 }
