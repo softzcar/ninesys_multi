@@ -248,7 +248,9 @@
                     </b-list-group-item>
 
                     <b-list-group-item data-label="Acciones">
-                      <!-- De momento vacía -->
+                      <b-button variant="outline-primary" size="sm" class="px-3 py-1" @click="showAssignRepModal(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em; white-space: nowrap;">
+                        <b-icon icon="person-plus-fill" class="mr-1"></b-icon> Asignar
+                      </b-button>
                     </b-list-group-item>
                   </b-list-group>
                 </li>
@@ -605,6 +607,48 @@
         <b-button variant="secondary" size="sm" @click="$bvModal.hide('modal-detalle-reposicion')">Cerrar</b-button>
       </div>
     </b-modal>
+
+    <!-- Modal Asignar Empleado a Reposición -->
+    <b-modal id="modal-asignar-reposicion" title="Asignar Empleado a Reposición" hide-footer size="md" @hidden="onAssignModalHidden">
+      <b-overlay :show="assignOverlay" spinner-small>
+        <div v-if="assignRepItem">
+          <p class="small text-muted mb-3">
+            Asigna un responsable y departamento para la reposición de la orden <strong>#{{ assignRepItem.id_orden }}</strong> ({{ assignRepItem.unidades }} unds. {{ assignRepItem.producto }}).
+          </p>
+
+          <b-form @submit.prevent="submitAssignRep">
+            <b-form-group label="Empleado:" label-for="rep-assign-emp">
+              <b-form-select
+                id="rep-assign-emp"
+                v-model="assignRepForm.emp"
+                :options="selectEmpleados"
+                size="sm"
+                required
+              ></b-form-select>
+            </b-form-group>
+
+            <b-form-group
+              v-if="assignRepForm.emp && assignRepForm.emp !== 0 && selectedEmployeeDepartmentsAssign.length > 0"
+              label="Departamento del Empleado:"
+              label-for="rep-assign-dep"
+            >
+              <b-form-select
+                id="rep-assign-dep"
+                v-model="assignRepForm.id_departamento"
+                :options="selectDepartmentOptionsAssign"
+                size="sm"
+                required
+              ></b-form-select>
+            </b-form-group>
+
+            <div class="text-right mt-4 border-top pt-2">
+              <b-button variant="secondary" size="sm" @click="$bvModal.hide('modal-asignar-reposicion')" class="mr-2">Cancelar</b-button>
+              <b-button type="submit" variant="success" size="sm" :disabled="!assignRepForm.emp || !assignRepForm.id_departamento">Guardar Asignación</b-button>
+            </div>
+          </b-form>
+        </div>
+      </b-overlay>
+    </b-modal>
   </div>
 </template>
 
@@ -660,6 +704,13 @@ export default {
       selectedRep: null,
       repQueue: [],
       loadingRepQueue: false,
+      assignRepItem: null,
+      assignRepForm: {
+        emp: 0,
+        id_departamento: null,
+      },
+      selectedEmployeeDepartmentsAssign: [],
+      assignOverlay: false,
       empleados: [],
       pasos: [],
       refreshKey: 0,
@@ -758,6 +809,82 @@ export default {
         console.error("Error al cargar la cola de departamentos para la reposición:", e);
       } finally {
         this.loadingRepQueue = false;
+      }
+    },
+
+    showAssignRepModal(rep) {
+      this.assignRepItem = rep;
+      this.assignRepForm.emp = rep.id_empleado || 0;
+      this.assignRepForm.id_departamento = rep.id_departamento || null;
+      this.handleModalShown();
+      this.$bvModal.show("modal-asignar-reposicion");
+    },
+
+    onAssignModalHidden() {
+      this.assignRepItem = null;
+      this.assignRepForm.emp = 0;
+      this.assignRepForm.id_departamento = null;
+      this.selectedEmployeeDepartmentsAssign = [];
+      this.assignOverlay = false;
+      this.handleModalHidden();
+    },
+
+    async fetchEmployeeDepartmentsAssign(employeeId) {
+      this.assignOverlay = true;
+      try {
+        const response = await this.$axios.get(
+          `${this.$config.API}/departamentos-empleado/${employeeId}`
+        );
+        this.selectedEmployeeDepartmentsAssign =
+          response.data.departamentos || response.data || [];
+      } catch (error) {
+        console.error("Error fetching employee departments for assign:", error);
+        this.selectedEmployeeDepartmentsAssign = [];
+        this.$fire({
+          title: "Error",
+          html: "<p>No se pudieron cargar los departamentos del empleado.</p>",
+          type: "warning",
+        });
+      } finally {
+        this.assignOverlay = false;
+      }
+    },
+
+    async submitAssignRep() {
+      if (!this.assignRepForm.emp || !this.assignRepForm.id_departamento) return;
+      
+      this.assignOverlay = true;
+      const data = new URLSearchParams();
+      data.set("id_orden", this.assignRepItem.id_orden);
+      data.set("id_reposicion", this.assignRepItem.id_reposicion);
+      data.set("aprobada", "1");
+      data.set("id_departamento", this.assignRepForm.id_departamento);
+      data.set("id_empleado", this.assignRepForm.emp);
+      data.set("id_empleado_emisor", this.$store.state.login.dataUser.id_empleado);
+      data.set("detalle", this.assignRepItem.detalle || "Asignado desde panel de producción");
+      data.set("detalle_emisor", this.assignRepItem.detalle_emisor || "");
+      data.set("cantidad", this.assignRepItem.unidades);
+      data.set("id_ordenes_productos", this.assignRepItem.id_ordenes_productos);
+
+      try {
+        await this.$axios.post(`${this.$config.API}/produccion/reposicion/final`, data);
+        this.$fire({
+          title: "Asignación Exitosa",
+          html: `<p>El empleado ha sido asignado correctamente a la reposición.</p>`,
+          type: "success",
+        });
+        this.$bvModal.hide("modal-asignar-reposicion");
+        this.initTiemposDeProduccion(); // Recargar datos de producción
+      } catch (err) {
+        this.$fire({
+          title: "Error",
+          html: `<p>No se pudo guardar la asignación.</p><p>${
+            err.response?.data?.message || err.message
+          }</p>`,
+          type: "error",
+        });
+      } finally {
+        this.assignOverlay = false;
       }
     },
 
@@ -1045,6 +1172,31 @@ export default {
       );
     },
 
+    selectEmpleados() {
+      let tmp = this.empleados.map((item) => {
+        return {
+          value: item._id,
+          text: item.nombre,
+        };
+      });
+      tmp.unshift({ value: 0, text: "Seleccione un empleado" });
+      return tmp;
+    },
+
+    selectDepartmentOptionsAssign() {
+      if (!this.selectedEmployeeDepartmentsAssign || this.selectedEmployeeDepartmentsAssign.length === 0) {
+        return [{ value: null, text: "Seleccione un departamento" }];
+      }
+      let options = this.selectedEmployeeDepartmentsAssign.map((dep) => {
+        return {
+          value: dep.id_departamento || dep.id,
+          text: dep.departamento || dep.nombre_departamento || dep.nombre,
+        };
+      });
+      options.unshift({ value: null, text: "Seleccione un departamento" });
+      return options;
+    },
+
     itemsFiltrados: {
       get() {
         if (!this.items.length || !this.orden_productos.length) {
@@ -1174,6 +1326,14 @@ export default {
     filterOrden() { this.visibleOrders = 10; },
     filterCliente() { this.visibleOrders = 10; },
     filterEstatus() { this.visibleOrders = 10; },
+
+    "assignRepForm.emp": function (newEmpId) {
+      this.assignRepForm.id_departamento = null;
+      this.selectedEmployeeDepartmentsAssign = [];
+      if (newEmpId && newEmpId !== 0) {
+        this.fetchEmployeeDepartmentsAssign(newEmpId);
+      }
+    },
   },
 
   mixins: [mixin, mixin3],
