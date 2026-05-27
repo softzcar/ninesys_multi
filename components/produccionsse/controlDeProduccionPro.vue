@@ -50,7 +50,6 @@
               <div class="list-group-header-item">Fecha</div>
               <div class="list-group-header-item">Empleado</div>
               <div class="list-group-header-item">Detalle</div>
-              <div class="list-group-header-item"></div>
               <div class="list-group-header-item">Acciones</div>
             </div>
 
@@ -108,10 +107,6 @@
                       <div class="text-truncate" :title="el.detalle_emisor">
                         <small>{{ el.detalle_emisor }}</small>
                       </div>
-                    </b-list-group-item>
-
-                    <b-list-group-item>
-                      <!-- Reservado -->
                     </b-list-group-item>
 
                     <b-list-group-item data-label="Acciones">
@@ -193,9 +188,9 @@
                     </b-list-group-item>
 
                     <b-list-group-item data-label="Asignación">
-                      <div class="d-flex align-items-center justify-content-between w-100">
-                        <div class="d-flex flex-column align-items-start" style="gap: 2px;">
-                          <b-badge v-if="el.empleado" variant="light" class="text-dark border" style="font-size: 0.85em; font-weight: 600;">
+                      <div class="d-flex align-items-center justify-content-start w-100" style="gap: 12px;">
+                        <div class="d-flex flex-column align-items-start" style="gap: 2px; min-width: 100px;">
+                          <b-badge v-if="el.empleado" variant="light" class="text-dark border text-truncate" style="font-size: 0.85em; font-weight: 600; max-width: 120px;" :title="el.empleado">
                             <b-icon icon="person-fill" class="mr-1"></b-icon>{{ el.empleado }}
                           </b-badge>
                           <b-badge v-else variant="warning" style="font-size: 0.85em; font-weight: 600;">
@@ -205,8 +200,8 @@
                             <b-icon icon="building" class="mr-1"></b-icon>{{ el.nombre_departamento }}
                           </b-badge>
                         </div>
-                        <b-button variant="outline-info" size="sm" class="px-2 py-1 ml-3" @click="showRepDetalle(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em; white-space: nowrap;">
-                          <b-icon icon="info-circle" class="mr-1"></b-icon>Info Completa
+                        <b-button variant="outline-info" size="sm" class="px-2 py-1" @click="showRepDetalle(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em; white-space: nowrap;">
+                          <b-icon icon="info-circle" class="mr-1"></b-icon>Info
                         </b-button>
                       </div>
                     </b-list-group-item>
@@ -1477,7 +1472,7 @@ export default {
 /* Reposiciones: misma grilla de 10 columnas que Ordenes en curso */
 .list-group-header-reposiciones {
   display: grid;
-  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 90px;
+  grid-template-columns: 40px 75px 1.5fr 50px 2.2fr 110px 100px 1.8fr 110px;
   background-color: #375a7f;
   border: 1px solid #4e5d6c;
   border-bottom: 2px solid #00bc8c;
@@ -1488,15 +1483,14 @@ export default {
 
 .list-group-reposiciones {
   display: grid;
-  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 90px;
+  grid-template-columns: 40px 75px 1.5fr 50px 2.2fr 110px 100px 1.8fr 110px;
   padding: 0;
   margin: 0;
 }
 
-/* Reposiciones en curso: grilla compacta de 8 columnas */
 .list-group-header-reposiciones-curso {
   display: grid;
-  grid-template-columns: 50px 0.8fr 3.5fr 60px 340px 160px 80px 120px;
+  grid-template-columns: 40px 75px 2fr 50px 2.2fr 110px 90px 120px;
   background-color: #375a7f;
   border: 1px solid #4e5d6c;
   border-bottom: 2px solid #00bc8c;
@@ -1507,7 +1501,7 @@ export default {
 
 .list-group-reposiciones-curso {
   display: grid;
-  grid-template-columns: 50px 0.8fr 3.5fr 60px 340px 160px 80px 120px;
+  grid-template-columns: 40px 75px 2fr 50px 2.2fr 110px 90px 120px;
   padding: 0;
   margin: 0;
 }
@@ -1696,7 +1690,8 @@ export default {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
-  .list-group-reposiciones .list-group-item {
+  .list-group-reposiciones .list-group-item,
+  .list-group-reposiciones-curso .list-group-item {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #eee;
     display: flex;
@@ -1709,11 +1704,13 @@ export default {
   }
 
   /* Quitar borde del último item */
-  .list-group-reposiciones .list-group-item:last-child {
+  .list-group-reposiciones .list-group-item:last-child,
+  .list-group-reposiciones-curso .list-group-item:last-child {
     border-bottom: none;
   }
 
-  .list-group-reposiciones .list-group-item::before {
+  .list-group-reposiciones .list-group-item::before,
+  .list-group-reposiciones-curso .list-group-item::before {
     content: attr(data-label);
     font-weight: bold;
     color: #00bc8c;
@@ -1723,33 +1720,38 @@ export default {
   }
 
   /* Handle: Estilo de cabecera */
-  .list-group-reposiciones .list-group-item:first-child {
+  .list-group-reposiciones .list-group-item:first-child,
+  .list-group-reposiciones-curso .list-group-item:first-child {
     background-color: #375a7f;
     justify-content: center;
     padding: 0.5rem;
     color: white;
   }
 
-  .list-group-reposiciones .list-group-item:first-child::before {
+  .list-group-reposiciones .list-group-item:first-child::before,
+  .list-group-reposiciones-curso .list-group-item:first-child::before {
     display: none;
   }
 
   /* Producto: Dar más espacio */
-  .list-group-reposiciones .list-group-item[data-label="Producto"] {
+  .list-group-reposiciones .list-group-item[data-label="Producto"],
+  .list-group-reposiciones-curso .list-group-item[data-label="Producto"] {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .list-group-reposiciones .list-group-item[data-label="Producto"]::before {
+  .list-group-reposiciones .list-group-item[data-label="Producto"]::before,
+  .list-group-reposiciones-curso .list-group-item[data-label="Producto"]::before {
     margin-bottom: 0.5rem;
     border-bottom: 1px solid #eee;
     width: 100%;
     padding-bottom: 0.25rem;
   }
 
-  /* Interacción / Asignación: Resaltar como el cliente en ordenes */
+  /* Interacción / Asignación: Resaltar */
   .list-group-reposiciones .list-group-item[data-label="Interacción"],
-  .list-group-reposiciones .list-group-item[data-label="Asignación"] {
+  .list-group-reposiciones .list-group-item[data-label="Asignación"],
+  .list-group-reposiciones-curso .list-group-item[data-label="Asignación"] {
     font-size: 1.1em;
     font-weight: bold;
     background-color: #f8f9fa;
