@@ -115,7 +115,9 @@
                     </b-list-group-item>
 
                     <b-list-group-item data-label="Acciones">
-                      <!-- De momento vacía -->
+                      <b-button variant="outline-danger" size="sm" class="px-2 py-1" @click="confirmarEliminarReposicion(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em; white-space: nowrap;">
+                        <b-icon icon="trash-fill" class="mr-1"></b-icon> Eliminar
+                      </b-button>
                     </b-list-group-item>
                   </b-list-group>
                 </li>
@@ -233,9 +235,12 @@
                       </div>
                     </b-list-group-item>
 
-                    <b-list-group-item data-label="Acciones">
+                    <b-list-group-item data-label="Acciones" class="d-flex align-items-center" style="gap: 8px;">
                       <b-button variant="outline-primary" size="sm" class="px-3 py-1" @click="showAssignRepModal(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em; white-space: nowrap;">
                         <b-icon icon="person-plus-fill" class="mr-1"></b-icon> Asignar
+                      </b-button>
+                      <b-button variant="outline-danger" size="sm" class="px-2 py-1" @click="confirmarEliminarReposicion(el)" style="border-radius: 20px; font-weight: 500; font-size: 0.8em;">
+                        <b-icon icon="trash-fill"></b-icon>
                       </b-button>
                     </b-list-group-item>
                   </b-list-group>
@@ -871,6 +876,50 @@ export default {
         });
       } finally {
         this.assignOverlay = false;
+      }
+    },
+
+    async confirmarEliminarReposicion(repo) {
+      const confirm = await this.$bvModal.msgBoxConfirm(
+        `¿Estás seguro de que deseas eliminar esta reposición de la Orden #${repo.id_orden}? Esta acción no se puede deshacer de forma directa.`,
+        {
+          title: 'Confirmar Eliminación',
+          size: 'md',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'Sí, Eliminar',
+          cancelTitle: 'Cancelar',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true
+        }
+      );
+      if (confirm) {
+        await this.eliminarReposicion(repo.id_reposicion);
+      }
+    },
+
+    async eliminarReposicion(id_reposicion) {
+      try {
+        this.isLoading = true;
+        await this.$axios.post(`${this.$config.API}/produccion/reposicion/eliminar`, {
+          id_reposicion
+        });
+        this.$bvToast.toast('La reposición ha sido eliminada lógicamente con éxito.', {
+          title: 'Eliminación Exitosa',
+          variant: 'success',
+          solid: true
+        });
+        await this.initTiemposDeProduccion();
+      } catch (error) {
+        console.error('Error al eliminar la reposición:', error);
+        this.$bvToast.toast('Hubo un error al intentar eliminar la reposición.', {
+          title: 'Error de Red',
+          variant: 'danger',
+          solid: true
+        });
+      } finally {
+        this.isLoading = false;
       }
     },
 
