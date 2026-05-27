@@ -28,11 +28,18 @@
 
       <div v-else>
         <b-container fluid>
-          <!-- Cabeceras para Reposiciones -->
+          <!-- Cabeceras para Reposiciones (misma estructura que Ordenes en curso) -->
           <div class="list-group-header-reposiciones">
             <div class="list-group-header-item">⋮</div>
             <div class="list-group-header-item">Orden</div>
-            <div class="list-group-header-item">Detalles</div>
+            <div class="list-group-header-item">Interacción</div>
+            <div class="list-group-header-item">Und.</div>
+            <div class="list-group-header-item">Producto</div>
+            <div class="list-group-header-item">Fecha</div>
+            <div class="list-group-header-item">Empleado</div>
+            <div class="list-group-header-item">Detalle</div>
+            <div class="list-group-header-item"></div>
+            <div class="list-group-header-item">Acciones</div>
           </div>
 
           <b-overlay :show="isReordering" rounded="sm" spinner-variant="success" opacity="0.7">
@@ -54,23 +61,51 @@
                   <div>
                     <link-search :id="el.id_orden" :key="el.id_orden" />
                   </div>
-                  <div v-if="el.estatus_revision === 'Aprobado'" class="h1 mt-2">
-                    <b-button variant="outline-light">
-                      <b-icon icon="exclamation-circle-fill" variant="success" @click="showDesigner(el.disenador)"
-                        :key="el.orden"></b-icon>
-                    </b-button>
-                  </div>
+                </b-list-group-item>
 
-                  <div v-else class="h1 mt-2">
-                    <b-button variant="outline-light" @click="showDesigner(el.disenador)" :key="el.orden">
-                      <b-icon icon="exclamation-circle-fill" style="color: lightgray"></b-icon>
-                    </b-button>
+                <b-list-group-item data-label="Interacción">
+                  <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index"
+                    @reload="initTiemposDeProduccion" />
+                </b-list-group-item>
+
+                <b-list-group-item data-label="Unidades">
+                  <div>{{ el.unidades }}</div>
+                </b-list-group-item>
+
+                <b-list-group-item data-label="Producto">
+                  <div>
+                    <strong>{{ el.producto }}</strong>
+                    <br />
+                    <small class="text-muted">{{ el.talla }} · {{ el.corte }} · {{ el.tela }}</small>
                   </div>
                 </b-list-group-item>
 
-                <b-list-group-item data-label="Detalles">
-                  <produccionsse-reposicionesPendientes :empleados="empleados" :item="el" :key="index"
-                    @reload="initTiemposDeProduccion" />
+                <b-list-group-item data-label="Fecha">
+                  <div>
+                    <small>{{ el.fecha }}<br />{{ el.hora }}</small>
+                  </div>
+                </b-list-group-item>
+
+                <b-list-group-item data-label="Empleado">
+                  <div class="text-truncate" :title="el.empleado">
+                    <small>{{ el.empleado }}</small>
+                  </div>
+                </b-list-group-item>
+
+                <b-list-group-item data-label="Detalle">
+                  <div class="text-truncate" :title="el.detalle_emisor">
+                    <small>{{ el.detalle_emisor }}</small>
+                  </div>
+                </b-list-group-item>
+
+                <b-list-group-item>
+                  <!-- Reservado -->
+                </b-list-group-item>
+
+                <b-list-group-item data-label="Acciones">
+                  <produccionsse-reposicion-departamentos-queue
+                    :id_reposicion="el.id_reposicion"
+                  />
                 </b-list-group-item>
               </b-list-group>
             </li>
@@ -766,9 +801,10 @@ export default {
   grid-template-columns: auto auto auto auto 1fr;
 } */
 /* Nueva grilla para reposiciones */
+/* Reposiciones: misma grilla de 10 columnas que Ordenes en curso */
 .list-group-header-reposiciones {
   display: grid;
-  grid-template-columns: 50px 100px 1fr;
+  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 90px;
   background-color: #375a7f;
   border: 1px solid #4e5d6c;
   border-bottom: 2px solid #00bc8c;
@@ -779,7 +815,7 @@ export default {
 
 .list-group-reposiciones {
   display: grid;
-  grid-template-columns: 50px 100px 1fr;
+  grid-template-columns: 50px 0.8fr 3fr 60px 340px 160px 70px 100px 80px 90px;
   padding: 0;
   margin: 0;
 }
@@ -940,7 +976,7 @@ export default {
     /* Gris muy claro para resaltar */
   }
 
-  /* REPOSICIONES MOBILE */
+  /* REPOSICIONES MOBILE — misma estructura que ordenes */
   .list-group-header-reposiciones {
     display: none;
   }
@@ -968,6 +1004,11 @@ export default {
     color: #333;
   }
 
+  /* Quitar borde del último item */
+  .list-group-reposiciones .list-group-item:last-child {
+    border-bottom: none;
+  }
+
   .list-group-reposiciones .list-group-item::before {
     content: attr(data-label);
     font-weight: bold;
@@ -977,6 +1018,7 @@ export default {
     display: block;
   }
 
+  /* Handle: Estilo de cabecera */
   .list-group-reposiciones .list-group-item:first-child {
     background-color: #375a7f;
     justify-content: center;
@@ -986,6 +1028,26 @@ export default {
 
   .list-group-reposiciones .list-group-item:first-child::before {
     display: none;
+  }
+
+  /* Producto: Dar más espacio */
+  .list-group-reposiciones .list-group-item[data-label="Producto"] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-group-reposiciones .list-group-item[data-label="Producto"]::before {
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    width: 100%;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Interacción: Resaltar como el cliente en ordenes */
+  .list-group-reposiciones .list-group-item[data-label="Interacción"] {
+    font-size: 1.1em;
+    font-weight: bold;
+    background-color: #f8f9fa;
   }
 }
 </style>
