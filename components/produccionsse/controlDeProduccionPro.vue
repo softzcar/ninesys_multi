@@ -10,10 +10,10 @@
         @reload="initTiemposDeProduccion" />
     </div>
 
-    <!-- 1. Reposiciones por asignar (Cabecera y Collapse) -->
+    <!-- 1. Reposiciones por aprobar (Cabecera y Collapse) -->
     <div class="section-header bg-warning-accent d-flex align-items-center justify-content-between mt-4 mb-3" @click="toggleSection('isReposicionesAsignarVisible')">
       <div class="d-flex align-items-center">
-        <h3 class="section-title mb-0">Reposiciones por asignar</h3>
+        <h3 class="section-title mb-0">Reposiciones por aprobar</h3>
         <b-badge pill variant="warning" class="ml-3 px-2 py-1 count-badge">
           {{ reposiciones_solicitadas.length }}
         </b-badge>
