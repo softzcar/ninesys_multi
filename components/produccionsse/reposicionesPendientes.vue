@@ -5,7 +5,7 @@
       {{ item.unidades }} unidades
     </b-button>
 
-    <b-modal :id="modal" :title="title" hide-footer size="lg">
+    <b-modal :id="modal" :title="title" hide-footer size="lg" @show="onModalShow" @hidden="onModalHidden">
       <b-overlay :show="overlay" spinner-small>
         <!-- <buscar-resultadoModal :id="id" /> -->
 
@@ -43,22 +43,61 @@
         </b-list-group>
 
         <b-form @submit="onSubmit">
-          <!-- <b-form-group
-            id="input-group-1"
-            label="Cantidad:"
-            label-for="input-1"
-            description="Cantidad de piezas a reponer."
-          >
-             <b-form-input
-              style="width: 90px"
-              id="input-1"
-              step="1"
-              min="0"
-              v-model="form.cantidad"
-              type="number"
-            >
-            </b-form-input>
-          </b-form-group> -->
+          <!-- Visualizador y Gestor de la Cola de Departamentos -->
+          <div v-if="loadingQueue" class="text-center py-3 mb-3 border rounded bg-light">
+            <b-spinner small variant="primary" />
+            <small class="ml-2 text-muted">Cargando cola de departamentos...</small>
+          </div>
+
+          <div v-else-if="queueError" class="text-danger py-2 mb-3 border rounded bg-light text-center">
+            <b-icon icon="exclamation-triangle" />
+            <small class="ml-2">{{ queueError }}</small>
+          </div>
+
+          <div v-else-if="queueDepartamentos.length > 0" class="mb-4">
+            <label class="font-weight-bold d-block mb-1 text-muted">
+              <b-icon icon="list-check" class="mr-1" />
+              Cola de Departamentos para el Retrabajo:
+            </label>
+            <small class="text-muted d-block mb-2">
+              Desmarca los pasos que deseas omitir en la reposición. Los pasos omitidos se deshabilitarán en la selección inferior.
+            </small>
+
+            <div class="d-flex flex-wrap p-2 border rounded bg-light" style="gap: 8px;">
+              <div
+                v-for="dep in queueDepartamentos"
+                :key="dep.id_departamento"
+                class="d-flex align-items-center p-1 px-2 border rounded bg-white"
+                :class="{
+                  'border-success': dep.es_inicio == 1,
+                  'border-primary': dep.es_destino == 1,
+                  'border-light text-muted': dep.excluido == 1 && dep.es_inicio == 0 && dep.es_destino == 0
+                }"
+                style="min-width: 160px;"
+              >
+                <!-- Checkbox deshabilitado para inicio/destino -->
+                <b-form-checkbox
+                  :checked="dep.excluido != 1"
+                  :disabled="dep.es_inicio == 1 || dep.es_destino == 1 || dep.saving"
+                  @change="(val) => toggleExclusion(dep, !val)"
+                  class="mr-2 mb-0"
+                  size="sm"
+                />
+
+                <!-- Nombre del departamento -->
+                <div class="flex-grow-1 text-truncate" :title="dep.departamento">
+                  <span :class="{ 'text-muted text-decoration-line-through': dep.excluido == 1 && dep.es_inicio == 0 && dep.es_destino == 0 }">
+                    {{ dep.departamento }}
+                  </span>
+                  <b-badge v-if="dep.es_inicio == 1" variant="success" class="ml-1" style="font-size:0.65em">inicio</b-badge>
+                  <b-badge v-if="dep.es_destino == 1" variant="primary" class="ml-1" style="font-size:0.65em">destino</b-badge>
+                </div>
+
+                <!-- Spinner por dep mientras guarda -->
+                <b-spinner v-if="dep.saving" small variant="secondary" class="ml-1" />
+              </div>
+            </div>
+          </div>
 
           <b-form-group
             id="input-group-empleado-reposicion"
@@ -137,6 +176,9 @@ export default {
         id_departamento: null,
       },
       selectedEmployeeDepartments: [],
+      queueDepartamentos: [],
+      loadingQueue: false,
+      queueError: null,
     };
   },
 
@@ -153,10 +195,17 @@ export default {
       ) {
         return [{ value: null, text: "Seleccione un departamento" }];
       }
-      let options = this.selectedEmployeeDepartments.map((dep) => ({
-        value: dep.id_departamento || dep.id, // Ajusta según la estructura de tu API
-        text: dep.departamento || dep.nombre_departamento || dep.nombre, // Ajusta según la estructura de tu API
-      }));
+      let options = this.selectedEmployeeDepartments.map((dep) => {
+        const depId = dep.id_departamento || dep.id;
+        const queueDep = this.queueDepartamentos.find(q => q.id_departamento == depId);
+        const isExcluded = queueDep && queueDep.excluido == 1;
+
+        return {
+          value: depId,
+          text: (dep.departamento || dep.nombre_departamento || dep.nombre) + (isExcluded ? " (Omitido)" : ""),
+          disabled: isExcluded ? true : false,
+        };
+      });
       options.unshift({ value: null, text: "Seleccione un departamento" });
       return options;
     },
@@ -180,11 +229,70 @@ export default {
   },
 
   methods: {
+    onModalShow() {
+      this.fetchQueueDepartamentos();
+    },
+
+    onModalHidden() {
+      this.form.emp = 0;
+      this.selectedEmployeeDepartments = [];
+      this.form.detalle = "";
+      this.form.aprobada = null;
+      this.form.id_departamento = null;
+      this.queueDepartamentos = [];
+      this.loadingQueue = false;
+      this.queueError = null;
+    },
+
+    async fetchQueueDepartamentos() {
+      this.loadingQueue = true;
+      this.queueError = null;
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/reposicion/${this.item.id_reposicion}/departamentos-cola`
+        );
+        this.queueDepartamentos = (res.data || []).map(d => ({ ...d, saving: false }));
+      } catch (e) {
+        this.queueError = 'No se pudo cargar la cola de departamentos.';
+        console.error('[ReposicionesPendientes] Error fetching queue:', e);
+      } finally {
+        this.loadingQueue = false;
+      }
+    },
+
+    async toggleExclusion(dep, excluir) {
+      dep.saving = true;
+      try {
+        await this.$axios.post(
+          `${this.$config.API}/reposicion/${this.item.id_reposicion}/excluir-departamento`,
+          {
+            id_departamento: dep.id_departamento,
+            excluir: excluir,
+          }
+        );
+        dep.excluido = excluir ? 1 : 0;
+        
+        // Si el departamento que acabamos de excluir es el seleccionado en el formulario, lo deseleccionamos
+        if (excluir && this.form.id_departamento == dep.id_departamento) {
+          this.form.id_departamento = null;
+        }
+      } catch (e) {
+        const msg = e?.response?.data?.error || 'Error al actualizar la exclusión.';
+        this.$bvToast.toast(msg, {
+          title: 'Error',
+          variant: 'danger',
+          solid: true,
+          toaster: 'b-toaster-top-right',
+        });
+        console.error('[ReposicionesPendientes] toggleExclusion error:', e);
+      } finally {
+        dep.saving = false;
+      }
+    },
+
     onSubmit(event) {
       event.preventDefault();
       this.validarReposicion();
-      //   alert(JSON.stringify(this.form));
-      //this.guardarEmpleado().then(() => this.$emit('reload'))
     },
 
     async fetchEmployeeDepartments(employeeId) {

@@ -103,9 +103,7 @@
                 </b-list-group-item>
 
                 <b-list-group-item data-label="Acciones">
-                  <produccionsse-reposicion-departamentos-queue
-                    :id_reposicion="el.id_reposicion"
-                  />
+                  <!-- De momento vacía -->
                 </b-list-group-item>
               </b-list-group>
             </li>
