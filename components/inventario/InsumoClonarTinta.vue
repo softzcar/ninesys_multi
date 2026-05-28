@@ -282,6 +282,7 @@ export default {
             data.set("rendimiento", this.form.rendimiento)
             data.set("costo", this.form.costo)
             data.set("departamento", 'Impresión')
+            data.set("tipo_insumo", "tinta")
             data.set("es_tinta", 1)
             data.set("color", this.selectedColor)
 
@@ -325,6 +326,8 @@ export default {
             this.resetForm();
         },
     },
+
+    props: ["data"],
     mounted() {
         this.fetchCatalogoProductos();
         this.fetchCatalogoTintas();
