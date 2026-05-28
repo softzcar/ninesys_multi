@@ -64,6 +64,11 @@ export default {
     flat: {
       type: Boolean,
       default: false
+    },
+    // Mostrar porcentajes sobre las secciones del gráfico
+    showDataLabels: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -129,7 +134,7 @@ export default {
           }
         },
         dataLabels: {
-          enabled: false
+          enabled: this.showDataLabels
         },
         stroke: {
           width: 2,

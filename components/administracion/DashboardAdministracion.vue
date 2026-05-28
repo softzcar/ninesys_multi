@@ -31,20 +31,25 @@
           <!-- Gráfico 3: Top 10 Productos -->
           <b-col lg="3" md="6" sm="12" class="mb-4">
             <b-card title="Top 10 Productos (Semana)">
-              <div v-if="stats.topProducts && stats.topProducts.length > 0">
-                <charts-DonutChart 
-                  :values="topProductsSeries" 
-                  :labels="topProductsCategories" 
+              <div v-if="stats.topProducts === null" class="text-center py-5">
+                <b-spinner small variant="primary" class="mb-2"></b-spinner>
+                <div class="text-muted small">Cargando datos...</div>
+              </div>
+              <div v-else-if="stats.topProducts.length > 0">
+                <charts-DonutChart
+                  :values="topProductsSeries"
+                  :labels="topProductsCategories"
                   :colors="topProductsColors"
-                  :height="320" 
-                  :showLegend="false"
+                  :height="380"
+                  :showLegend="true"
+                  :showDataLabels="true"
                   :flat="true"
                   title=""
                   valueSuffix="unidades"
                 />
               </div>
               <div v-else class="text-center py-5 text-muted small">
-                Cargando datos...
+                Sin datos de productos en esta semana.
               </div>
             </b-card>
           </b-col>
@@ -85,47 +90,42 @@
 </template>
 
 <script>
-// Variables estáticas compartidas entre todas las instancias
-let statsAlreadyLoaded = false;
-let sharedStats = {
-  resumen_semanal: [],
-  estado_ordenes: {
-    en_espera: 0,
-    pausadas: 0,
-    activas: 0,
-    terminadas: 0
-  },
-  progreso_activas: [],
-  topProducts: [],
-  ventas_vs_saldo: {
-    ventas_mes: 0,
-    cobrado_mes: 0,
-    saldo_por_cobrar: 0
-  },
-  estado_disenos: {
-    asignados: 0,
-    propuestas_enviadas: 0,
-    aprobados_pagados: 0
-  },
-  tiempos_entrega: {
-    por_iniciar: 0,
-    retrasado: 0,
-    en_el_dia: 0,
-    a_tiempo: 0,
-    pausadas: 0
-  },
-  ordenes_por_departamento: []
-};
-
 export default {
   name: 'DashboardAdministracion',
 
   data() {
     return {
       overlay: false,
-      isLoading: false, // Flag para evitar llamadas duplicadas
-      // Usar referencia a stats compartidos
-      stats: sharedStats
+      isLoading: false, // Flag para evitar llamadas duplicadas en la misma instancia
+      stats: {
+        resumen_semanal: [],
+        estado_ordenes: {
+          en_espera: 0,
+          pausadas: 0,
+          activas: 0,
+          terminadas: 0
+        },
+        progreso_activas: [],
+        topProducts: null, // null indica que los datos están cargando
+        ventas_vs_saldo: {
+          ventas_mes: 0,
+          cobrado_mes: 0,
+          saldo_por_cobrar: 0
+        },
+        estado_disenos: {
+          asignados: 0,
+          propuestas_enviadas: 0,
+          aprobados_pagados: 0
+        },
+        tiempos_entrega: {
+          por_iniciar: 0,
+          retrasado: 0,
+          en_el_dia: 0,
+          a_tiempo: 0,
+          pausadas: 0
+        },
+        ordenes_por_departamento: []
+      }
     };
   },
 
@@ -147,27 +147,19 @@ export default {
   },
 
   created() {
-    // Solo ejecutar en el cliente y solo si no se han cargado ya los datos
-    if (process.client && !statsAlreadyLoaded && !this.isLoading) {
-      console.log('[DashboardAdministracion] Primera carga - obteniendo datos');
+    if (process.client) {
       this.fetchStats();
-    } else {
-      console.log('[DashboardAdministracion] Skip - statsAlreadyLoaded:', statsAlreadyLoaded, 'isLoading:', this.isLoading);
     }
   },
 
-  beforeDestroy() {
-    // Resetear la bandera después de un delay
-    // Si el componente se vuelve a crear inmediatamente (doble montaje),
-    // el timeout se cancelará y la bandera no se reseteará
-    console.log('[DashboardAdministracion] beforeDestroy - programando reset en 100ms');
-    setTimeout(() => {
-      console.log('[DashboardAdministracion] Reseteando statsAlreadyLoaded (timeout completado)');
-      statsAlreadyLoaded = false;
-    }, 100);
-  },
-
   methods: {
+    toLocalDateString(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    },
+
     async fetchTopProducts() {
       try {
         const d = new Date();
@@ -178,8 +170,10 @@ export default {
         const domingo = new Date(lunes);
         domingo.setDate(lunes.getDate() + 6);
 
-        const fechaInicio = lunes.toISOString().substring(0, 10);
-        const fechaFin = domingo.toISOString().substring(0, 10);
+        const fechaInicio = this.toLocalDateString(lunes);
+        const fechaFin = this.toLocalDateString(domingo);
+
+        console.log('[DashboardAdministracion] consultando top products rango local:', fechaInicio, 'a', fechaFin);
 
         const res = await this.$axios.get(`${this.$config.API}/reportes/semanal-detallado`, {
           params: { inicio: fechaInicio, fin: fechaFin }
@@ -193,14 +187,13 @@ export default {
 
     async fetchStats() {
       // Evitar llamadas duplicadas
-      if (this.isLoading || statsAlreadyLoaded) {
-        console.log('[DashboardAdministracion] fetchStats() bloqueado');
+      if (this.isLoading) {
+        console.log('[DashboardAdministracion] fetchStats() bloqueado (ya cargando)');
         return;
       }
 
       console.log('[DashboardAdministracion] fetchStats() iniciando...');
       this.isLoading = true;
-      statsAlreadyLoaded = true; // Marcar como cargado ANTES de la petición
       this.overlay = true;
 
       try {
@@ -214,13 +207,12 @@ export default {
 
         console.log('[DashboardAdministracion] Respuesta de API:', dashboardData);
 
-        // Actualizar stats compartidos para que TODAS las instancias vean los datos
-        Object.assign(sharedStats, dashboardData);
+        // Actualizar stats locales de la instancia
+        this.stats = dashboardData;
 
-        console.log('[DashboardAdministracion] Stats actualizados:', sharedStats);
+        console.log('[DashboardAdministracion] Stats actualizados:', this.stats);
       } catch (error) {
         console.error('[DashboardAdministracion] Error al obtener estadísticas:', error);
-        statsAlreadyLoaded = false; // Permitir reintentar en caso de error
         this.$fire({
           title: 'Error',
           html: 'No se pudieron cargar las estadísticas del dashboard',

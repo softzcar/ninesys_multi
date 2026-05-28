@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** (1) Corregir que el gráfico "Top 10 Productos (Semana)" no mostraba datos en el Dashboard de Administración. (2) Agregar leyenda de productos en la parte inferior del gráfico. (3) Mostrar porcentajes sobre las secciones del gráfico donut, igual que los demás gráficos del dashboard.
+
+- **Fecha y Hora:** 2026-05-28 17:30:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - components/administracion/DashboardAdministracion.vue
+  - components/charts/DonutChart.vue
+
+- **Acciones Realizadas:**
+
+  1. **DashboardAdministracion.vue** — Ajustes en el componente `charts-DonutChart` del bloque "Top 10 Productos (Semana)":
+     - `showLegend` cambiado de `false` a `true` para mostrar la leyenda de productos.
+     - Agregado `:showDataLabels="true"` para mostrar porcentajes sobre las secciones.
+     - `height` aumentado de 320 a 380 para acomodar la leyenda.
+
+  2. **DonutChart.vue** — Agregado prop `showDataLabels` (Boolean, default: false):
+     - Controla `dataLabels.enabled` en las opciones de ApexCharts.
+     - El default `false` preserva el comportamiento existente en todos los demás usos del componente (eficiencia tiempo/material en /reportes/semanal).
+
+- **Commits Relacionados:**
+  - Backend: 5a45a18 (ver log de ninesys-api)
+  - Frontend: pendiente en este commit
+
+- **Resultado:** Éxito. El gráfico muestra datos, leyenda y porcentajes.
+- **Verificación:** Confirmado visualmente por el usuario en el navegador.
