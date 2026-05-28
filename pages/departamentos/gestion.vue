@@ -228,7 +228,7 @@ export default {
   },
 
   computed: {
-    ...mapState("login", ["dataUser", "access", "departamentos"]),
+    ...mapState("login", ["dataUser", "access", "departamentos", "modulos"]),
     ...mapGetters("login", ["getDepartamentosSelect"]),
   },
 
@@ -364,14 +364,9 @@ export default {
 
   mounted() {
     this.getDepartamentos();
-    /* this.getProductsAttributes()
-        this.getProducts().then(() => {
-            console.log(
-                `vamos a crear los datos de los clientes con`,
-                this.dataTable
-            )
-            this.overlay = false
-        }) */
+    if (!this.modulos || this.modulos.length === 0) {
+      this.$store.dispatch("login/refreshData");
+    }
   },
 };
 </script>

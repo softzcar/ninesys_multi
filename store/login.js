@@ -168,6 +168,11 @@ export const actions = {
                     commit('setDatosPersonalizacion', data.datos_personalizacion);
                 }
 
+                // Actualizar módulos
+                if (data.modulos) {
+                    commit('setModulos', data.modulos);
+                }
+
                 return { success: true };
             }
             return { success: false, error: 'Empty response' };

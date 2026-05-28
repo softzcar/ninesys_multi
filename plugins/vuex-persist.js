@@ -21,6 +21,7 @@ export default ({ store }) => {
                     if (parsedState.login.departamentos) store.commit('login/setDepartamentos', parsedState.login.departamentos)
                     if (parsedState.login.dataEmpresa) store.commit('login/setDataEmpresa', parsedState.login.dataEmpresa)
                     if (parsedState.login.datos_personalizacion) store.commit('login/setDatosPersonalizacion', parsedState.login.datos_personalizacion)
+                    if (parsedState.login.modulos) store.commit('login/setModulos', parsedState.login.modulos)
                 }
             } catch (e) {
                 console.error('Error restaurando estado Vuex:', e)
@@ -43,7 +44,8 @@ export default ({ store }) => {
                         empleado: state.login.empleado,
                         departamentos: state.login.departamentos,
                         dataEmpresa: state.login.dataEmpresa,
-                        datos_personalizacion: state.login.datos_personalizacion
+                        datos_personalizacion: state.login.datos_personalizacion,
+                        modulos: state.login.modulos
                     }
                 }
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
