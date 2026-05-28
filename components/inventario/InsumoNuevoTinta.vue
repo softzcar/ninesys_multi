@@ -56,6 +56,20 @@
                             </div>
 
                             <b-form-group
+                                id="input-group-tinta-type"
+                                label="Tipo de Tinta:"
+                                label-for="input-tinta-type"
+                                class="mt-3"
+                            >
+                                <b-form-select
+                                    id="input-tinta-type"
+                                    v-model="selectedTintaType"
+                                    :options="catalogoTintasOptions"
+                                    required
+                                ></b-form-select>
+                            </b-form-group>
+
+                            <b-form-group
                                 id="input-group-3"
                                 label="Cantidad:"
                                 label-for="input-cantidad"
@@ -185,7 +199,9 @@ export default {
                 color: "",
             },
             catalogoProductos: [],
+            catalogoTintas: [],
             selectedProduct: null,
+            selectedTintaType: null,
             selectedColor: '',
             colorOptions: [
                 { name: 'Cyan', value: 'C' },
@@ -217,6 +233,16 @@ export default {
             options.unshift({ value: null, text: "Seleccione un producto" });
             return options;
         },
+        catalogoTintasOptions() {
+            if (!this.catalogoTintas || this.catalogoTintas.length === 0) {
+                return [{ value: null, text: "Cargando catálogo de tintas..." }];
+            }
+            let options = this.catalogoTintas.map(t => {
+                return { value: t._id, text: t.nombre };
+            });
+            options.unshift({ value: null, text: "Seleccione un tipo de tinta" });
+            return options;
+        },
     },
 
     methods: {
@@ -234,6 +260,7 @@ export default {
             }
             this.selectedColor = ''
             this.selectedProduct = null
+            this.selectedTintaType = null
         },
         async fetchCatalogoProductos() {
             try {
@@ -243,11 +270,20 @@ export default {
                 console.error("Error al obtener el catálogo de productos:", error);
             }
         },
+        async fetchCatalogoTintas() {
+            try {
+                const response = await this.$axios.get(`${this.$config.API}/catalogo-tintas`);
+                this.catalogoTintas = response.data.data;
+            } catch (error) {
+                console.error("Error al obtener el catálogo de tintas:", error);
+            }
+        },
         async guardarInsumo() {
             const requiredFields = {
                 insumo: 'Insumo',
                 sku: 'SKU',
                 selectedColor: 'Color de la Tinta',
+                selectedTintaType: 'Tipo de Tinta',
                 cantidad: 'Cantidad',
                 mililitros: 'Mililitros', // New required field
                 selectedProduct: 'Producto del Catálogo',
@@ -259,6 +295,8 @@ export default {
                 let fieldValue;
                 if (fieldKey === 'selectedColor') {
                     fieldValue = this.selectedColor;
+                } else if (fieldKey === 'selectedTintaType') {
+                    fieldValue = this.selectedTintaType;
                 } else if (fieldKey === 'selectedProduct') {
                     fieldValue = this.selectedProduct;
                 } else {
@@ -293,6 +331,7 @@ export default {
             data.set("cantidad", this.form.cantidad)
             data.set("mililitros", this.form.mililitros) // New data to send
             data.set("id_catalogo_producto", this.selectedProduct)
+            data.set("id_catalogo_tintas", this.selectedTintaType)
             data.set("rendimiento", this.form.rendimiento)
             data.set("costo", this.form.costo)
             data.set("departamento", 'Impresión')
@@ -355,6 +394,7 @@ export default {
             }
             this.selectedColor = ''
             this.selectedProduct = null
+            this.selectedTintaType = null
             // Trick to reset/clear native browser form validation state
             this.show = false
             this.$nextTick(() => {
@@ -364,6 +404,7 @@ export default {
     },
     created() {
         this.fetchCatalogoProductos();
+        this.fetchCatalogoTintas();
     },
 }
 </script>

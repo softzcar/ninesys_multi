@@ -124,6 +124,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/impresoras/catalogo-tintas">
+              Catálogo de Tintas
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/servicios">
               Servicio Técnico
             </router-link>
