@@ -87,7 +87,7 @@
                     >
                         <b-form-select
                             id="select-modulo"
-                            :disabled="overlay"
+                            :disabled="overlay || isDefaultDepartment"
                             v-model="modulo"
                             :options="getModulosSelect"
                             :value="modulo"
@@ -174,6 +174,7 @@ export default {
                 data.set("departamento", this.newDep);
                 data.set("asignar_paso", this.asiganr_numero_de_paso);
                 data.set("enviar_mensaje", this.enviarMensaje);
+                data.set("modulo", this.modulo);
 
                 await this.$axios
                     .post(
