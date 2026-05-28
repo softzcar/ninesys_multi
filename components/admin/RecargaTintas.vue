@@ -23,25 +23,95 @@
                   </b-form-group>
                 </b-col>
 
-                <b-col md="6" lg="4">
+                <b-col md="6" lg="8">
                   <b-form-group
-                    label="Seleccionar Insumo (Tinta):"
-                    label-for="supplySelect"
+                    label="Insumo (Tinta):"
+                    label-for="supplyAutocomplete"
                   >
-                    <!-- Buscador reactivo por ID / SKU / Nombre -->
-                    <b-form-input
-                      v-model="supplyFilterText"
-                      placeholder="🔍 Buscar por ID, SKU o Nombre..."
-                      size="sm"
-                      class="mb-2 bg-white"
-                      autocomplete="off"
-                    />
-                    <b-form-select
-                      id="supplySelect"
-                      v-model="selectedSupplyId"
-                      :options="suppliesOptions"
-                      required
-                    ></b-form-select>
+                    <!-- Chip de selección activa -->
+                    <div v-if="selectedSupply" class="supply-chip mb-2">
+                      <span
+                        class="ink-badge mr-2"
+                        :class="'ink-' + (selectedSupply.color ? selectedSupply.color.toLowerCase() : 'k')"
+                      >
+                        {{ selectedSupply.color || '?' }}
+                      </span>
+                      <span class="supply-chip-text">
+                        <strong>ID {{ selectedSupply.id_insumo }}</strong>
+                        · SKU: {{ selectedSupply.sku || 'N/A' }}
+                        · {{ selectedSupply.insumo }}
+                        · <em>Stock: {{ selectedSupply.cantidad }} ml</em>
+                      </span>
+                      <button
+                        type="button"
+                        class="supply-chip-clear"
+                        @click="clearSupplySelection"
+                        title="Limpiar selección"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <!-- Input de búsqueda con autocomplete -->
+                    <div v-else class="supply-autocomplete" ref="autocompleteWrapper">
+                      <div class="supply-search-box">
+                        <span class="supply-search-icon">🔍</span>
+                        <input
+                          id="supplyAutocomplete"
+                          ref="supplyInput"
+                          v-model="supplyFilterText"
+                          type="text"
+                          class="supply-search-input"
+                          placeholder="Escribe ID, SKU o Nombre para buscar tinta..."
+                          autocomplete="off"
+                          @focus="showDropdown = true"
+                          @blur="onInputBlur"
+                          @keydown.down.prevent="moveHighlight(1)"
+                          @keydown.up.prevent="moveHighlight(-1)"
+                          @keydown.enter.prevent="selectHighlighted"
+                          @keydown.esc="closeDropdown"
+                        />
+                        <span
+                          v-if="supplyFilterText"
+                          class="supply-search-clear"
+                          @mousedown.prevent="supplyFilterText = ''"
+                        >
+                          &times;
+                        </span>
+                      </div>
+
+                      <!-- Dropdown de resultados -->
+                      <div v-if="showDropdown && supplyFilterText.trim().length > 0" class="supply-dropdown">
+                        <template v-if="filteredSupplies.length > 0">
+                          <div
+                            v-for="(item, idx) in filteredSupplies"
+                            :key="item.id_insumo"
+                            class="supply-dropdown-item"
+                            :class="{ 'is-highlighted': idx === highlightIndex }"
+                            @mousedown.prevent="selectSupply(item)"
+                          >
+                            <span
+                              class="ink-badge flex-shrink-0"
+                              :class="'ink-' + (item.color ? item.color.toLowerCase() : 'k')"
+                            >
+                              {{ item.color || '?' }}
+                            </span>
+                            <div class="supply-dropdown-info">
+                              <span class="supply-dropdown-name">{{ item.insumo }}</span>
+                              <span class="supply-dropdown-meta">
+                                ID: {{ item.id_insumo }} · SKU: {{ item.sku || 'N/A' }} · Stock: {{ item.cantidad }} ml
+                              </span>
+                            </div>
+                          </div>
+                        </template>
+                        <div v-else class="supply-dropdown-empty">
+                          Sin resultados para "{{ supplyFilterText }}"
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Campo oculto para validación del formulario -->
+                    <input type="hidden" :value="selectedSupplyId" required />
                   </b-form-group>
                 </b-col>
               </b-row>
@@ -227,7 +297,9 @@ export default {
       impresoras: [], // Aquí se cargarán las impresoras desde la API
       supplies: [], // Aquí se cargarán los insumos (tintas) desde la API
       loading: true, // Nuevo: para el b-overlay
-      supplyFilterText: "", // Buscador reactivo para el select
+      supplyFilterText: "", // Buscador reactivo para el autocomplete
+      showDropdown: false,
+      highlightIndex: -1,
       selectedPrinterId: "",
       selectedSupplyId: "",
       selectedColor: "",
@@ -255,7 +327,6 @@ export default {
       return this.impresorasDisponibles && this.tintasDisponibles;
     },
     impresorasOptions() {
-      console.log("impresoras prop in impresorasOptions:", this.impresoras);
       if (!this.impresoras || this.impresoras.length === 0) {
         return [{ value: null, text: "No hay impresoras disponibles" }];
       }
@@ -269,39 +340,21 @@ export default {
       options.unshift({ value: null, text: "Seleccione una impresora" });
       return options;
     },
-    suppliesOptions() {
-      if (!this.supplies || this.supplies.length === 0) {
-        return [{ value: null, text: "No hay insumos disponibles" }];
-      }
-      
-      let filtered = this.supplies;
-      if (this.supplyFilterText && this.supplyFilterText.trim()) {
-        const query = this.supplyFilterText.toLowerCase().trim();
-        filtered = this.supplies.filter(s => {
-          const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
-          const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
-          const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
-          const colorStr = s.color ? String(s.color).toLowerCase() : "";
-          
-          return idStr.includes(query) || 
-                 skuStr.includes(query) || 
-                 insumoStr.includes(query) || 
-                 colorStr === query;
-        });
-      }
-
-      let options = filtered.map((supply) => {
-        return {
-          value: supply.id_insumo,
-          text: `ID: ${supply.id_insumo} - SKU: ${supply.sku || 'N/A'} - Color: ${supply.color || 'N/A'} - ${supply.insumo || ''}`,
-        };
-      });
-      
-      options.unshift({ 
-        value: null, 
-        text: filtered.length > 0 ? "Seleccione un insumo" : "No se encontraron coincidencias" 
-      });
-      return options;
+    filteredSupplies() {
+      if (!this.supplies || this.supplies.length === 0) return [];
+      const query = this.supplyFilterText.toLowerCase().trim();
+      if (!query) return [];
+      return this.supplies.filter(s => {
+        const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
+        const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
+        const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
+        const colorStr = s.color ? String(s.color).toLowerCase() : "";
+        
+        return idStr.includes(query) || 
+               skuStr.includes(query) || 
+               insumoStr.includes(query) || 
+               colorStr === query;
+      }).slice(0, 10); // Límite de 10 resultados para que no sea inmenso
     },
     filteredColorOptions() {
       // Si no hay impresora seleccionada o la tecnología es CMYK, deshabilitar 'White'
@@ -358,25 +411,46 @@ export default {
       }
     },
     supplyFilterText(newVal) {
-      // Auto-seleccionar si el filtro reduce el resultado a exactamente 1 coincidencia
-      if (newVal && newVal.trim()) {
-        const query = newVal.toLowerCase().trim();
-        const filtered = this.supplies.filter(s => {
-          const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
-          const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
-          const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
-          
-          return idStr.includes(query) || 
-                 skuStr.includes(query) || 
-                 insumoStr.includes(query);
-        });
-        if (filtered.length === 1) {
-          this.selectedSupplyId = filtered[0].id_insumo;
-        }
-      }
+      this.highlightIndex = -1;
+      this.showDropdown = true;
     }
   },
   methods: {
+    selectSupply(item) {
+      this.selectedSupplyId = item.id_insumo;
+      this.supplyFilterText = "";
+      this.showDropdown = false;
+      this.highlightIndex = -1;
+    },
+    clearSupplySelection() {
+      this.selectedSupplyId = "";
+      this.selectedColor = "";
+      this.supplyFilterText = "";
+      this.showDropdown = false;
+      this.$nextTick(() => {
+        if (this.$refs.supplyInput) this.$refs.supplyInput.focus();
+      });
+    },
+    onInputBlur() {
+      // Usar setTimeout para permitir que el evento mousedown del item se ejecute antes de cerrar
+      setTimeout(() => {
+        this.showDropdown = false;
+      }, 200);
+    },
+    closeDropdown() {
+      this.showDropdown = false;
+      this.highlightIndex = -1;
+    },
+    moveHighlight(direction) {
+      const len = this.filteredSupplies.length;
+      if (len === 0) return;
+      this.highlightIndex = (this.highlightIndex + direction + len) % len;
+    },
+    selectHighlighted() {
+      if (this.highlightIndex >= 0 && this.filteredSupplies[this.highlightIndex]) {
+        this.selectSupply(this.filteredSupplies[this.highlightIndex]);
+      }
+    },
     async getImpresoras() {
       try {
         const resp = await this.$axios.get(`${this.$config.API}/impresoras`);
@@ -474,5 +548,145 @@ export default {
 /* Estilo específico para el color blanco para que sea visible */
 .form-check-label[for="color-W"] {
   border: 1px solid #ccc;
+}
+
+/* ===== Autocomplete de Insumos ===== */
+.supply-autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.supply-search-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background: #fff;
+  padding: 0 10px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.supply-search-box:focus-within {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+.supply-search-icon {
+  font-size: 14px;
+  margin-right: 6px;
+  color: #6c757d;
+  pointer-events: none;
+}
+.supply-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 0;
+  font-size: 14px;
+  background: transparent;
+  min-width: 0;
+  color: #495057;
+}
+.supply-search-clear {
+  cursor: pointer;
+  font-size: 18px;
+  color: #adb5bd;
+  line-height: 1;
+  padding: 0 2px;
+  user-select: none;
+  transition: color 0.15s;
+}
+.supply-search-clear:hover {
+  color: #495057;
+}
+
+.supply-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1050;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.supply-dropdown-hint,
+.supply-dropdown-empty {
+  padding: 14px 16px;
+  color: #6c757d;
+  font-size: 13px;
+  text-align: center;
+}
+
+.supply-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease-in-out;
+  border-bottom: 1px solid #f1f3f5;
+}
+.supply-dropdown-item:last-child {
+  border-bottom: none;
+}
+.supply-dropdown-item:hover,
+.supply-dropdown-item.is-highlighted {
+  background: #e9f3ff;
+}
+
+.supply-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.supply-dropdown-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.supply-dropdown-meta {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+/* Chip de selección activa */
+.supply-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f7ff;
+  border: 1px solid #cce3fd;
+  border-radius: 8px;
+  padding: 10px 14px;
+  transition: all 0.2s ease-in-out;
+}
+.supply-chip-text {
+  flex: 1;
+  font-size: 13px;
+  color: #212529;
+  min-width: 0;
+  line-height: 1.4;
+}
+.supply-chip-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #6c757d;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.supply-chip-clear:hover {
+  background: #fce4e4;
+  color: #dc3545;
 }
 </style>
