@@ -1,25 +1,75 @@
-- **Solicitud del Usuario:** (1) Corregir que el gráfico "Top 10 Productos (Semana)" no mostraba datos en el Dashboard de Administración. (2) Agregar leyenda de productos en la parte inferior del gráfico. (3) Mostrar porcentajes sobre las secciones del gráfico donut, igual que los demás gráficos del dashboard.
+- **Solicitud del Usuario:** (1) Corregir que el gráfico "Top 10 Productos (Semana)" no mostraba datos en el Dashboard de Administración. (2) Una vez con datos visibles, agregar la leyenda de productos en la parte inferior del gráfico. (3) Mostrar porcentajes sobre las secciones del gráfico donut, igual que los demás gráficos del dashboard ("Estado de Órdenes", "Estado de Diseños").
 
 - **Fecha y Hora:** 2026-05-28 17:30:00
+
 - **Proyecto(s):** Frontend (app_multi)
+
 - **Archivos Involucrados:**
-  - components/administracion/DashboardAdministracion.vue
-  - components/charts/DonutChart.vue
-
-- **Acciones Realizadas:**
-
-  1. **DashboardAdministracion.vue** — Ajustes en el componente `charts-DonutChart` del bloque "Top 10 Productos (Semana)":
-     - `showLegend` cambiado de `false` a `true` para mostrar la leyenda de productos.
-     - Agregado `:showDataLabels="true"` para mostrar porcentajes sobre las secciones.
-     - `height` aumentado de 320 a 380 para acomodar la leyenda.
-
-  2. **DonutChart.vue** — Agregado prop `showDataLabels` (Boolean, default: false):
-     - Controla `dataLabels.enabled` en las opciones de ApexCharts.
-     - El default `false` preserva el comportamiento existente en todos los demás usos del componente (eficiencia tiempo/material en /reportes/semanal).
+  - `components/administracion/DashboardAdministracion.vue`
+  - `components/charts/DonutChart.vue`
 
 - **Commits Relacionados:**
-  - Backend: 5a45a18 (ver log de ninesys-api)
-  - Frontend: pendiente en este commit
+  - Frontend: `c6a6bb8` — "feat: mostrar leyenda y porcentajes en gráfico Top 10 Productos del dashboard admin"
+  - Backend: `5a45a18` — ver log de ninesys-api
 
-- **Resultado:** Éxito. El gráfico muestra datos, leyenda y porcentajes.
-- **Verificación:** Confirmado visualmente por el usuario en el navegador.
+- **Acción Realizada:**
+
+  **1. DashboardAdministracion.vue** — Ajustes en la instancia de `charts-DonutChart` del bloque "Top 10 Productos (Semana)":
+  - `showLegend` cambiado de `false` a `true` para activar la leyenda de ApexCharts en posición `bottom`.
+  - Agregado `:showDataLabels="true"` para mostrar los porcentajes de cada segmento sobre el gráfico.
+  - `height` aumentado de `320` a `380` para dar espacio visual a la leyenda sin comprimir el gráfico.
+
+  ```html
+  <!-- ANTES -->
+  <charts-DonutChart
+    :height="320"
+    :showLegend="false"
+    ...
+  />
+
+  <!-- DESPUÉS -->
+  <charts-DonutChart
+    :height="380"
+    :showLegend="true"
+    :showDataLabels="true"
+    ...
+  />
+  ```
+
+  **2. DonutChart.vue** — Agregado nuevo prop `showDataLabels`:
+  ```js
+  // Prop agregado:
+  showDataLabels: {
+    type: Boolean,
+    default: false  // ← default false para no romper usos existentes
+  }
+
+  // Aplicado en chartOptions:
+  dataLabels: {
+    enabled: this.showDataLabels  // ← antes era: enabled: false (hardcoded)
+  }
+  ```
+
+- **Inconvenientes y Desafíos:**
+  El componente `DonutChart.vue` tenía `dataLabels.enabled` hardcodeado en `false`. No existía un prop para controlarlo. Era necesario agregarlo de forma retrocompatible para no afectar los demás usos del componente (pequeños donuts de eficiencia tiempo/material en `/reportes/semanal` donde los porcentajes no caben).
+
+- **Decisión Final y Justificación:**
+  Se agregó el prop `showDataLabels` con `default: false` en lugar de cambiar el valor hardcoded directamente, para mantener el comportamiento actual en todos los demás contextos donde se usa `DonutChart` sin ese prop. Esto sigue el principio de menor invasividad: el cambio solo activa la funcionalidad donde explícitamente se solicita.
+
+  Se descartó crear un componente nuevo específico para el dashboard porque `DonutChart` ya tenía toda la lógica necesaria; solo faltaba exponer el control de `dataLabels`.
+
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git add -f, git commit, git push)
+
+- **Resultado:** Éxito.
+
+- **Verificación:** El usuario confirmó visualmente en el navegador (localhost:3000) que el gráfico "Top 10 Productos (Semana)" muestra: datos del gráfico donut (Total: 25), porcentajes sobre cada segmento de color, y leyenda con nombres de productos en la parte inferior. Capturas de pantalla confirmadas por el usuario durante la sesión.
+
+- **Logro Conseguido:** El gráfico "Top 10 Productos (Semana)" del Dashboard de Administración ahora es completamente informativo: muestra los productos más fabricados en la semana con sus porcentajes y leyenda, a la par de los demás gráficos del dashboard. Adicionalmente, `DonutChart` queda mejorado con el nuevo prop `showDataLabels` reutilizable en futuros contextos.
+
+- **Referencias de Sesión (Contexto):**
+  - Task: N/A
+  - Walkthrough: N/A
+
+- **Observaciones de Claude:** El prop `showLegend` ya existía en `DonutChart` pero estaba desactivado en el dashboard. Solo faltaba exponer `dataLabels` de la misma manera. Ambos cambios son de una línea cada uno en el componente consumidor. La estrategia de props con defaults conservadores es la correcta para componentes compartidos.
+
+- **Respuesta de Claude:** Se activaron la leyenda y los porcentajes en el gráfico "Top 10 Productos (Semana)" del Dashboard de Administración. Se extendió `DonutChart.vue` con el prop `showDataLabels` de forma retrocompatible. Cambios commiteados y pusheados a GitHub.
