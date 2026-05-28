@@ -84,8 +84,8 @@
             <b-card class="shadow-sm border-0 mb-4 bg-light">
               <b-row class="align-items-center">
                 <!-- Buscador de Texto -->
-                <b-col md="5" class="mb-3 mb-md-0">
-                  <label for="search-input" class="font-weight-bold text-muted small text-uppercase">Búsqueda Rápida</label>
+                <b-col md="8" class="mb-3 mb-md-0">
+                  <label for="search-input" class="font-weight-bold text-muted small text-uppercase mb-2 d-block">Búsqueda Rápida de Tintas</label>
                   <b-input-group>
                     <b-input-group-prepend is-text class="bg-white border-right-0 text-muted">
                       <b-icon icon="search" />
@@ -93,7 +93,7 @@
                     <b-form-input
                       id="search-input"
                       v-model="filterText"
-                      placeholder="Buscar por insumo, SKU..."
+                      placeholder="Buscar por insumo, SKU o ID..."
                       class="border-left-0 bg-white"
                     />
                     <b-input-group-append v-if="filterText">
@@ -102,27 +102,36 @@
                   </b-input-group>
                 </b-col>
 
-                <!-- Selector de Catálogo de Tintas -->
-                <b-col md="4" class="mb-3 mb-md-0">
-                  <label for="catalog-select" class="font-weight-bold text-muted small text-uppercase">Clasificación de Catálogo</label>
-                  <b-form-select
-                    id="catalog-select"
-                    v-model="selectedTintaCatalog"
-                    :options="catalogOptions"
-                    class="bg-white"
-                  />
-                </b-col>
-
                 <!-- Botones de Acción de Filtro -->
-                <b-col md="3" class="text-md-right mt-md-4">
+                <b-col md="4" class="text-md-right mt-md-4">
                   <b-button
                     variant="outline-secondary"
-                    class="font-weight-bold px-3 w-100 w-md-auto"
+                    class="font-weight-bold px-3 w-100"
                     :disabled="!filterText && !selectedTintaCatalog"
                     @click="resetFilters"
                   >
-                    <b-icon icon="x-circle" class="mr-1" /> Reestablecer
+                    <b-icon icon="x-circle" class="mr-1" /> Reestablecer Filtros
                   </b-button>
+                </b-col>
+              </b-row>
+
+              <!-- Filtro de Categorías con Botones Horizontales Segmentados -->
+              <b-row class="mt-3">
+                <b-col cols="12">
+                  <hr class="my-3" style="border-top: 1px solid #e2e8f0;" />
+                  <label class="font-weight-bold text-muted small text-uppercase mb-2 d-block">Filtrar por Categoría de Tinta:</label>
+                  <div class="d-flex flex-wrap">
+                    <b-form-radio-group
+                      id="btn-radios-categories"
+                      v-model="selectedTintaCatalog"
+                      :options="catalogOptions"
+                      button-variant="outline-info"
+                      size="md"
+                      name="radio-btn-categories"
+                      buttons
+                      class="segmented-buttons flex-wrap"
+                    />
+                  </div>
                 </b-col>
               </b-row>
             </b-card>
@@ -261,17 +270,30 @@ export default {
   computed: {
     ...mapState("login", ["dataUser", "access"]),
 
-    // Opciones para el selector de tipos de tinta (Catálogo)
+    // Opciones para el selector de tipos de tinta (Catálogo) generadas dinámicamente
     catalogOptions() {
-      if (!this.tintaCatalog || this.tintaCatalog.length === 0) {
-        return [{ value: null, text: "Cargando tipos de tinta..." }];
+      if (!this.inkList || this.inkList.length === 0) {
+        return [{ text: "Todas", value: null }];
       }
-      const options = this.tintaCatalog.map(t => ({
-        value: t._id,
-        text: t.nombre
-      }));
-      options.unshift({ value: null, text: "Todos los tipos de tinta" });
-      return options;
+      
+      const categoriesMap = new Map();
+      this.inkList.forEach(ink => {
+        if (ink.id_catalogo_tintas && ink.tipo_tinta) {
+          categoriesMap.set(ink.id_catalogo_tintas, ink.tipo_tinta);
+        }
+      });
+
+      const parsedCategories = Array.from(categoriesMap.entries()).map(([id, name]) => {
+        return { text: name, value: id };
+      });
+
+      // Ordenar alfabéticamente
+      parsedCategories.sort((a, b) => a.text.localeCompare(b.text));
+
+      return [
+        { text: "Todas", value: null },
+        ...parsedCategories
+      ];
     },
 
     // Filtrado reactivo en el frontend por texto de búsqueda y clasificación
