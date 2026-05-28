@@ -629,8 +629,8 @@ export default {
 
   computed: {
     esDepartamentoDeMateriales() {
-      const depto = this.$store.state.login.currentDepartament;
-      return ['Estampado', 'Corte', 'Impresión'].includes(depto);
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
+      return ['estampado', 'corte', 'impresion'].includes(tipo);
     },
 
     ordenProceso() {
@@ -701,7 +701,7 @@ export default {
       )
 
       let enCurso = []
-      if (this.$store.state.login.currentDepartament === 'Impresión') {
+      if (this.$store.getters['login/currentDepartamentTipo'] === 'impresion') {
         enCurso = this.ordenes
           .filter(
             (el) =>
@@ -743,7 +743,7 @@ export default {
             }
             return acc
           }, [])
-      } else if (this.$store.state.login.currentDepartament === 'Estampado') {
+      } else if (this.$store.getters['login/currentDepartamentTipo'] === 'estampado') {
         enCurso = this.ordenes
           .filter(
             (el) =>
@@ -779,7 +779,7 @@ export default {
             }
             return acc
           }, [])
-      } else if (this.$store.state.login.currentDepartament === 'Corte') {
+      } else if (this.$store.getters['login/currentDepartamentTipo'] === 'corte') {
         enCurso = this.ordenes
           .filter(
             (el) =>
@@ -1584,11 +1584,12 @@ export default {
     },
 
     checkTerminar(idOrden, items) {
-      if (this.$store.state.login.currentDepartament === "Impresión") {
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
+      if (tipo === "impresion") {
         alert("Solicitar números de rollos de papel");
-      } else if (this.$store.state.login.currentDepartament === "Estampado") {
+      } else if (tipo === "estampado") {
         alert("Solicitar datos de Estampado");
-      } else if (this.$store.state.login.currentDepartament === "Corte") {
+      } else if (tipo === "corte") {
         alert("Solicitar datos de Corte");
       } else {
         alert("No preguntar nada, empleado normal");
@@ -2056,7 +2057,7 @@ export default {
             );
           }),
           // Si es impresión, cargar impresoras
-          this.$store.state.login.currentDepartament === "Impresión" ? this.getImpresoras() : Promise.resolve()
+          this.$store.getters['login/currentDepartamentTipo'] === "impresion" ? this.getImpresoras() : Promise.resolve()
         ]);
       } catch (error) {
         console.error('[SseOrdenesAsignadasV4] Error during reload:', error);
@@ -2068,13 +2069,14 @@ export default {
 
   mounted() {
     // Inicializar configuración visual
-    if (this.$store.state.login.currentDepartament === "Impresión") {
+    const tipo = this.$store.getters['login/currentDepartamentTipo'];
+    if (tipo === "impresion") {
       this.promptHTML = "<h2>Ingrese la cantidad en metros</h2>";
       this.prompInputType = "number";
-    } else if (this.$store.state.login.currentDepartament === "Estampado") {
+    } else if (tipo === "estampado") {
       this.promptHTML = "<h2>Ingrese el número de rollo</h2>";
       this.prompInputType = "number";
-    } else if (this.$store.state.login.currentDepartament === "Corte") {
+    } else if (tipo === "corte") {
       this.promptHTML = "<h2>Ingrese el peso del desperdicio en Gramos</h2>";
       this.prompInputType = "number";
     }

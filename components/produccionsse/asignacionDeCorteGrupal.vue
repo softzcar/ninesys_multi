@@ -9,8 +9,8 @@
           <b-col>
             <b-card
               v-if="
-                this.$store.state.login.dataUser.departamento === 'Corte' ||
-                this.$store.state.login.dataUser.departamento ===
+                $store.getters['login/currentDepartamentTipo'] === 'corte' ||
+                $store.state.login.dataUser.departamento ===
                   'Administración'
               "
               bg-variant="default"
@@ -515,7 +515,7 @@ export default {
     },
 
     inicio() {
-      if (this.$store.state.login.dataUser.departamento === "Corte") {
+      if (this.$store.getters['login/currentDepartamentTipo'] === "corte") {
         this.fields = [
           {
             key: "acciones",

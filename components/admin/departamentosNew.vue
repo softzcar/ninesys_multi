@@ -80,6 +80,20 @@
                         ></b-form-select>
                     </b-form-group>
 
+                    <b-form-group
+                        id="input-group-tipo"
+                        label="Tipo de Comportamiento:"
+                        description="Define las interfaces y reglas especiales de negocio. Solo asignable a departamentos vinculados al módulo 'Empleado'."
+                    >
+                        <b-form-select
+                            id="select-tipo"
+                            :disabled="overlay || !isEmpleadoModule"
+                            v-model="tipo"
+                            :options="tipoOptions"
+                            class="floatme"
+                        ></b-form-select>
+                    </b-form-group>
+
                     <b-button
                         class="floatme"
                         @click="crearDepartamento()"
@@ -108,6 +122,14 @@ export default {
             modulo: null,
             asiganr_numero_de_paso: 0,
             enviarMensaje: 0,
+            tipo: "general",
+            tipoOptions: [
+                { value: "general", text: "General (Comportamiento General)" },
+                { value: "corte", text: "Corte (Comportamiento de Corte)" },
+                { value: "impresion", text: "Impresión (Comportamiento de Impresión)" },
+                { value: "estampado", text: "Estampado (Comportamiento de Estampado)" },
+                { value: "costura", text: "Costura (Comportamiento de Costura)" },
+            ],
         };
     },
 
@@ -117,12 +139,26 @@ export default {
             const rand = Math.random().toString(36).substring(2, 7);
             return `modal-${rand}`;
         },
+        isEmpleadoModule() {
+            if (!this.modulo) return false;
+            const selected = this.getModulosSelect.find(m => m.value === this.modulo);
+            return selected && selected.text === 'Empleado';
+        },
+    },
+
+    watch: {
+        modulo(newVal) {
+            if (!this.isEmpleadoModule) {
+                this.tipo = "general";
+            }
+        }
     },
 
     methods: {
         onModalHidden() {
             this.newDep = "";
             this.asiganr_numero_de_paso = 0;
+            this.tipo = "general";
         },
         async crearDepartamento() {
             let ok = true;
@@ -154,6 +190,7 @@ export default {
                 data.set("asignar_paso", this.asiganr_numero_de_paso);
                 data.set("modulo", this.modulo);
                 data.set("enviar_mensaje", this.enviarMensaje);
+                data.set("tipo", this.tipo);
 
                 await this.$axios
                     .post(

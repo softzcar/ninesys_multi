@@ -95,6 +95,20 @@
                         ></b-form-select>
                     </b-form-group>
 
+                    <b-form-group
+                        id="input-group-tipo"
+                        label="Tipo de Comportamiento:"
+                        description="Define las interfaces y reglas especiales de negocio. Solo asignable a departamentos vinculados al módulo 'Empleado'."
+                    >
+                        <b-form-select
+                            id="select-tipo"
+                            :disabled="overlay || isDefaultDepartment || !isEmpleadoModule"
+                            v-model="tipo"
+                            :options="tipoOptions"
+                            class="floatme"
+                        ></b-form-select>
+                    </b-form-group>
+
                     <b-button
                         class="floatme"
                         @click="guardarOrdenDepartamento()"
@@ -121,6 +135,14 @@ export default {
             modulo: null,
             asiganr_numero_de_paso: 0,
             enviarMensaje: 0,
+            tipo: "general",
+            tipoOptions: [
+                { value: "general", text: "General (Comportamiento General)" },
+                { value: "corte", text: "Corte (Comportamiento de Corte)" },
+                { value: "impresion", text: "Impresión (Comportamiento de Impresión)" },
+                { value: "estampado", text: "Estampado (Comportamiento de Estampado)" },
+                { value: "costura", text: "Costura (Comportamiento de Costura)" },
+            ],
         };
     },
 
@@ -135,6 +157,20 @@ export default {
         isDefaultDepartment() {
             // Los IDs 1-8 son departamentos por defecto del sistema (incluye Producción ID 8)
             return this.item && this.item._id >= 1 && this.item._id <= 8;
+        },
+
+        isEmpleadoModule() {
+            if (!this.modulo) return false;
+            const selected = this.getModulosSelect.find(m => m.value === this.modulo);
+            return selected && selected.text === 'Empleado';
+        },
+    },
+
+    watch: {
+        modulo(newVal) {
+            if (!this.isEmpleadoModule) {
+                this.tipo = "general";
+            }
         }
     },
 
@@ -175,6 +211,7 @@ export default {
                 data.set("asignar_paso", this.asiganr_numero_de_paso);
                 data.set("enviar_mensaje", this.enviarMensaje);
                 data.set("modulo", this.modulo);
+                data.set("tipo", this.tipo);
 
                 await this.$axios
                     .post(
@@ -210,6 +247,7 @@ export default {
         this.modulo = this.item.id_modulo;
         this.asiganr_numero_de_paso = this.item.asignar_numero_de_paso;
         this.enviarMensaje = this.item.enviar_mensaje;
+        this.tipo = this.item.tipo || "general";
     },
 
     props: ["item", "reload"],

@@ -15,7 +15,7 @@
       <b-overlay :show="overlay" spinner-small>
 
         <!-- Alerta cuando faltan impresoras o insumos -->
-        <b-alert v-if="$store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion" show
+        <b-alert v-if="$store.getters['login/currentDepartamentTipo'] === 'impresion' && !puedeUsarModalImpresion" show
           variant="warning" class="mb-4">
           <h5 class="alert-heading">
             <b-icon icon="exclamation-triangle"></b-icon>
@@ -47,7 +47,7 @@
                     "
                 > -->
         <b-form @reset="onReserForm">
-          <div v-if="$store.state.login.currentDepartament === 'Impresión'">
+          <div v-if="$store.getters['login/currentDepartamentTipo'] === 'impresion'">
             <!-- Iteración sobre impresoras seleccionadas -->
             <b-card v-for="(impresora, index) in impresorasSeleccionadas" :key="impresora.id" class="mb-3"
               :header="'Impresora ' + (index + 1)" header-bg-variant="light">
@@ -267,7 +267,7 @@
                       step="0.01"
                       min="0"
                       :readonly="itemForm.precargado"
-                      :state="$store.state.login.currentDepartament === 'Corte' ? (itemForm.input >= 0 && itemForm.input !== '') : itemForm.input > 0"
+                      :state="$store.getters['login/currentDepartamentTipo'] === 'corte' ? (itemForm.input >= 0 && itemForm.input !== '') : itemForm.input > 0"
                       :placeholder="getUnidadRow(index)"
                       required
                     />
@@ -343,10 +343,10 @@
           </div>
 
           <b-button
-            :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
+            :disabled="ButtonDisabled || ($store.getters['login/currentDepartamentTipo'] === 'impresion' && !puedeUsarModalImpresion)"
             @click="validateForm" variant="primary" data-testid="btn-enviar-datos-extra">Enviar</b-button>
           <b-button
-            :disabled="ButtonDisabled || ($store.state.login.currentDepartament === 'Impresión' && !puedeUsarModalImpresion)"
+            :disabled="ButtonDisabled || ($store.getters['login/currentDepartamentTipo'] === 'impresion' && !puedeUsarModalImpresion)"
             type="reset" variant="danger" data-testid="btn-borrar-datos-extra">Borrar</b-button>
         </b-form>
       </b-overlay>
@@ -464,7 +464,7 @@ export default {
         if (!itemForm || !itemForm.validInsumo) return false;
 
         // Si es Corte, SIEMPRE pedimos desperdicio
-        if (this.$store.state.login.currentDepartament === 'Corte') return true;
+        if (this.$store.getters['login/currentDepartamentTipo'] === 'corte') return true;
         
         // El usuario solicitó que la caja de desperdicio se muestre SÓLO cuando
         // ha hecho click en el botón que selecciona el catálogo (itemForm.idCatalogo)
@@ -525,10 +525,12 @@ export default {
         if (isStrictDepto) return true;
 
         // Hermandad: Estampado y Corte deben ver los materiales asignados como 'tela' sin importar el departamento asignado
+        const currentTipo = this.$store.getters['login/currentDepartamentTipo'];
+        const elTipo = this.getDeptTipoById(el.id_departamento);
         if (
-          (depName === "Corte" || depName === "Estampado") &&
+          (['corte', 'estampado'].includes(currentTipo)) &&
           (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela")) &&
-          el.departamento !== "Impresión" &&
+          elTipo !== "impresion" &&
           !el.catalogo?.toLowerCase().includes("papel")
         ) {
           return true;
@@ -646,11 +648,11 @@ export default {
       insumosDept.forEach((item) => {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
-          const dep = this.$store.state.login.currentDepartament;
+          const tipo = this.$store.getters['login/currentDepartamentTipo'];
           const isRepo = !!(this.esReposicion || this.esreposicion || (this.item && (this.item.esreposicion || this.item.es_reposicion)));
           const u = isRepo
             ? (parseFloat(this.item.unidades) || 0)
-            : (dep === 'Corte'
+            : (tipo === 'corte'
                 ? (parseFloat(item.unidades) || 0)
                 : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0));
           productosUnicos.set(key, {
@@ -699,11 +701,11 @@ export default {
       insumosDept.forEach((item) => {
         const key = `${item.id_ordenes_productos}_${item.catalogo}`;
         if (!productosUnicos.has(key)) {
-          const dep = this.$store.state.login.currentDepartament;
+          const tipo = this.$store.getters['login/currentDepartamentTipo'];
           const isRepo = !!(this.esReposicion || this.esreposicion || (this.item && (this.item.esreposicion || this.item.es_reposicion)));
           const u = isRepo
             ? (parseFloat(this.item.unidades) || 0)
-            : (dep === 'Corte'
+            : (tipo === 'corte'
                 ? (parseFloat(item.unidades) || 0)
                 : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0));
           productosUnicos.set(key, {
@@ -834,12 +836,13 @@ export default {
       if (idsCatalogoAsignados.size === 0) {
         let myOptions = [];
         const dep = this.$store.state.login.currentDepartament;
+        const tipo = this.$store.getters['login/currentDepartamentTipo'];
         if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
           // Ajuste por inversión de categorías en DB
-          if (dep === "Impresión") {
+          if (tipo === "impresion") {
             // Impresión debería mostrar Papeles (marcados como Telas)
             myOptions = this.insumosTodos.filter((item) => item.departamento === "Telas");
-          } else if (dep === "Corte") {
+          } else if (tipo === "corte") {
             // Corte necesita ver todos los rollos de tela disponibles en inventario
             myOptions = this.insumosTodos.filter((item) => item.tipo_insumo === 'tela');
           } else {
@@ -857,9 +860,10 @@ export default {
       }
 
       const dep = this.$store.state.login.currentDepartament;
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
 
       // Corte y Estampado siempre ven todas las telas disponibles en inventario
-      const listaFinal = (['Corte', 'Estampado'].includes(dep) && this.insumosTodos)
+      const listaFinal = (['corte', 'estampado'].includes(tipo) && this.insumosTodos)
         ? this.insumosTodos.filter(el => el.tipo_insumo === 'tela')
         : this.insumosTodos.filter(el => idsCatalogoAsignados.has(el.id_catalogo));
 
@@ -877,11 +881,12 @@ export default {
     selectOptions() {
       let myOptions = [];
       const dep = this.$store.state.login.currentDepartament;
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
 
       // Lógica dinámica basada en insumosTodos filtrado por el departamento actual
       if (this.insumosTodos && Array.isArray(this.insumosTodos)) {
         // Impresión usa insumos catalogados como "Telas" (inversión histórica en DB) o "Impresión"
-        const depFilters = dep === "Impresión" ? ["Telas", "Impresión"] : [dep];
+        const depFilters = tipo === "impresion" ? ["Telas", "Impresión"] : [dep];
         myOptions = this.insumosTodos.filter((item) => depFilters.includes(item.departamento));
 
         // Casos especiales de mapeo de departamentos (Producción -> Revisión/Limpieza)
@@ -976,22 +981,23 @@ export default {
     evaluateShowSelect() {
       this.showSelect = false;
       const dep = this.$store.state.login.currentDepartament;
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
 
       // 1. Corte siempre muestra (necesita registrar desperdicio de etapas previas)
-      if (dep === 'Corte') {
+      if (tipo === 'corte') {
         this.showSelect = true;
         return;
       }
 
       // 2. Impresión siempre muestra (lógica de tintas interna)
-      if (dep === 'Impresión') {
+      if (tipo === 'impresion') {
         this.showSelect = true;
         return;
       }
 
       // 3. Departamentos con desperdicio habilitado en el producto
       const deptsDesperdicio = ['Estampado', 'Corte de papel'];
-      if (deptsDesperdicio.includes(dep)) {
+      if (deptsDesperdicio.includes(dep) || tipo === 'estampado') {
         const tieneDesperdicio =
           (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) ||
           (this.items && Array.isArray(this.items) && this.items.some(el => el.usa_desperdicio == 1)) ||
@@ -1227,7 +1233,7 @@ export default {
       const originalItem = this.insumosTodos.find(i => i._id == item.idInsumoClean);
 
       if (originalItem) {
-        if (this.$store.state.login.currentDepartament === 'Estampado') {
+        if (this.$store.getters['login/currentDepartamentTipo'] === 'estampado') {
           const rendimiento = parseFloat(originalItem.rendimiento) || 1;
           const availableMeters = (parseFloat(originalItem.cantidad) * rendimiento).toFixed(2);
           this.batchItems[idx].remanente = availableMeters;
@@ -1364,7 +1370,7 @@ export default {
     },
 
     async cargarConsumosPrevios() {
-      const isCorte = this.$store.state.login.currentDepartament === 'Corte';
+      const isCorte = this.$store.getters['login/currentDepartamentTipo'] === 'corte';
       if (!isCorte || !this.idorden) return;
       
       try {
@@ -1416,6 +1422,13 @@ export default {
       };
     },
 
+    getDeptTipoById(id) {
+      if (!id) return 'general';
+      const dept = this.$store.state.login.departamentos.find(el => parseInt(el._id) === parseInt(id));
+      if (dept && dept.tipo) return dept.tipo;
+      return 'general';
+    },
+
     onReserForm(event) {
       event.preventDefault();
       this.clearForms();
@@ -1430,8 +1443,8 @@ export default {
       // selectOptions always has at least at least 1 item ("Seleccione una opción").
       // If it has > 1, it means there are insumos populated for this department.
       const hayInsumosDisponibles = this.selectOptions && this.selectOptions.length > 1;
-      const isCorte = this.$store.state.login.currentDepartament === 'Corte';
-      const isImpresion = this.$store.state.login.currentDepartament === 'Impresión';
+      const isCorte = this.$store.getters['login/currentDepartamentTipo'] === 'corte';
+      const isImpresion = this.$store.getters['login/currentDepartamentTipo'] === 'impresion';
       const hasStrictInsumos = this.dataInsumosFiltradoEstricto && this.dataInsumosFiltradoEstricto.length > 0;
 
       if (
@@ -1442,7 +1455,7 @@ export default {
       ) {
         let msg = "";
 
-        if (this.$store.state.login.currentDepartament === "Impresión") {
+        if (isImpresion) {
           // Verificar si hay impresoras e insumos configurados
           if (!this.puedeUsarModalImpresion) {
             ok = false;
@@ -1671,7 +1684,7 @@ export default {
               });
           } else {
             // Validación normal o desperdicio > 0
-            if (this.$store.state.login.currentDepartament === "Impresión") {
+            if (isImpresion) {
               this.postImp();
             }
             this.prepareBatchTerminar();
@@ -1778,17 +1791,18 @@ export default {
       // this.overlay = true;
       // Buscar cantidad actual del insumo
       let cantidadInsumo;
-      if (this.$store.state.login.currentDepartament === "Impresión") {
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
+      if (tipo === "impresion") {
         cantidadInsumo = this.insumosimp.filter(
           (item) => item._id == idProducto
         );
-      } else if (this.$store.state.login.currentDepartament === "Estampado") {
+      } else if (tipo === "estampado") {
         console.log("enviemos datos de estampado");
         cantidadInsumo = this.insumosest.filter(
           (item) => item._id == idProducto
         );
       } // (else if...) Continuar con los otros departamentos aqui.
-      else if (this.$store.state.login.currentDepartament === "Corte") {
+      else if (tipo === "corte") {
         cantidadInsumo = this.insumoscor.filter(
           (item) => item._id == idProducto
         );

@@ -317,10 +317,10 @@ export default {
       return result;
     },
     isCorte() {
-      return this.$store.state.login.currentDepartament === 'Corte';
+      return this.$store.getters['login/currentDepartamentTipo'] === 'corte';
     },
     isImpresion() {
-      return this.$store.state.login.currentDepartament === 'Impresión';
+      return this.$store.getters['login/currentDepartamentTipo'] === 'impresion';
     },
     ordenesQueRequierenInsumos() {
       return this.ordenes.filter(o => this.debeMostrarOrden(o.id_orden));
@@ -409,15 +409,22 @@ export default {
     }
   },
   methods: {
+    getDeptTipoById(id) {
+      if (!id) return 'general';
+      const dept = this.$store.state.login.departamentos.find(el => parseInt(el._id) === parseInt(id));
+      if (dept && dept.tipo) return dept.tipo;
+      return 'general';
+    },
     calcularEstimado(idOrden) {
       const depId = this.$store.state.login.currentDepartamentId;
-      const depName = this.$store.state.login.currentDepartament;
 
       const insumosFiltrados = this.dataInsumos.filter((el) => {
         if (el.id_orden != idOrden) return false;
-        if (el.id_departamento == depId) return true;
-        const materialDepts = ["Estampado", "Corte"];
-        return materialDepts.includes(depName) && materialDepts.includes(el.departamento);
+        if (parseInt(el.id_departamento) === parseInt(depId)) return true;
+        const currentTipo = this.$store.getters['login/currentDepartamentTipo'];
+        const elTipo = this.getDeptTipoById(el.id_departamento);
+        const materialTipos = ["estampado", "corte"];
+        return materialTipos.includes(currentTipo) && materialTipos.includes(elTipo);
       });
 
       if (insumosFiltrados.length === 0) return null;
@@ -459,19 +466,19 @@ export default {
       if (ordenBase && ordenBase.usa_desperdicio) return true;
 
       // Si no hay estimados, dependemos de la configuración manual (legacy support)
-      const dep = this.$store.state.login.currentDepartament;
+      const tipo = this.$store.getters['login/currentDepartamentTipo'];
       const dataSys = this.$store.state.login.datos_personalizacion || {};
 
       const configMap = {
-        'Estampado': dataSys.sys_mostrar_rollo_en_empleado_estampado,
-        'Corte': dataSys.sys_mostrar_rollo_en_empleado_corte,
-        'Impresión': dataSys.sys_mostrar_rollo_en_empleado_estampado, // Reutiliza config de Estampado
-        'Costura': dataSys.sys_mostrar_insumo_en_empleado_costura,
-        'Limpieza': dataSys.sys_mostrar_insumo_en_empleado_limpieza,
-        'Revisión': dataSys.sys_mostrar_insumo_en_empleado_revision
+        'estampado': dataSys.sys_mostrar_rollo_en_empleado_estampado,
+        'corte': dataSys.sys_mostrar_rollo_en_empleado_corte,
+        'impresion': dataSys.sys_mostrar_rollo_en_empleado_estampado, // Reutiliza config de Estampado
+        'costura': dataSys.sys_mostrar_insumo_en_empleado_costura,
+        'limpieza': dataSys.sys_mostrar_insumo_en_empleado_limpieza,
+        'revision': dataSys.sys_mostrar_insumo_en_empleado_revision
       };
 
-      return !!configMap[dep];
+      return !!configMap[tipo];
     },
     validarStockItem(idOrden, index) {
       const c = this.consumosPorOrden[idOrden][index];
@@ -559,12 +566,13 @@ export default {
     },
     getEstimadoNumericoOrden(idOrden) {
       const depId = this.$store.state.login.currentDepartamentId;
-      const depName = this.$store.state.login.currentDepartament;
       const insumosFiltrados = this.dataInsumos.filter((el) => {
         if (el.id_orden != idOrden) return false;
-        if (el.id_departamento == depId) return true;
-        const materialDepts = ['Estampado', 'Corte', 'Impresión'];
-        return materialDepts.includes(depName) && materialDepts.includes(el.departamento);
+        if (parseInt(el.id_departamento) === parseInt(depId)) return true;
+        const currentTipo = this.$store.getters['login/currentDepartamentTipo'];
+        const elTipo = this.getDeptTipoById(el.id_departamento);
+        const materialTipos = ['estampado', 'corte', 'impresion'];
+        return materialTipos.includes(currentTipo) && materialTipos.includes(elTipo);
       });
       if (insumosFiltrados.length === 0) return 0;
       const productosUnicos = new Map();

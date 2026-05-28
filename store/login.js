@@ -327,8 +327,29 @@ export const getters = {
                 modulo: el.modulo,
                 orden_proceso: el.orden_proceso,
                 orden_proceso_min: el.orden_proceso_min,
+                tipo: el.tipo || 'general',
             }
         }).sort((a, b) => a.orden_proceso - b.orden_proceso)
+    },
+
+    currentDepartamentTipo(state) {
+        if (!state.currentDepartamentId) return 'general';
+        
+        // Primero buscar en el array de departamentos si ya tiene los detalles de tipo
+        const dept = state.departamentos.find(el => el._id === state.currentDepartamentId);
+        if (dept && dept.tipo) {
+            return dept.tipo;
+        }
+
+        // Si no está ahí, buscar en el empleado asignado
+        if (state.empleado && state.empleado.departamentos) {
+            const empDept = state.empleado.departamentos.find(el => el.id === state.currentDepartamentId);
+            if (empDept && empDept.tipo) {
+                return empDept.tipo;
+            }
+        }
+        
+        return 'general';
     },
 
     getDepartamentosOrdenProceso(state) {

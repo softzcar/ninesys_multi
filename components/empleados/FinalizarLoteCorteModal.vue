@@ -112,7 +112,10 @@ export default {
       }))
     },
     insumosOptions() {
-      const insumosCorte = this.insumos.filter((i) => ['Telas', 'Estampado', 'Corte'].includes(i.departamento))
+      const insumosCorte = this.insumos.filter((i) => {
+        const elTipo = this.getDeptTipoById(i.id_departamento);
+        return ['estampado', 'corte'].includes(elTipo) || i.departamento === 'Telas';
+      })
       if (!insumosCorte || insumosCorte.length === 0) return []
       const options = insumosCorte.map((insumo) => {
         return {
@@ -137,6 +140,12 @@ export default {
     },
   },
   methods: {
+    getDeptTipoById(id) {
+      if (!id) return 'general';
+      const dept = this.$store.state.login.departamentos.find(el => parseInt(el._id) === parseInt(id));
+      if (dept && dept.tipo) return dept.tipo;
+      return 'general';
+    },
     addInsumo() {
       this.consumos.push({
         id_insumo: null,
