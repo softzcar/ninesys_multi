@@ -115,7 +115,8 @@
                 <b-table stacked :items="reposicionesPendientesVisibles" :fields="filedsLista">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
-                      <b-col cols="auto">
+                      <b-col cols="auto" class="d-flex align-items-center" style="gap: 0.5rem;">
+                        <b-badge variant="secondary" style="font-size: 0.9em; font-weight: 600;">#{{ row.item.id_reposicion }}</b-badge>
                         <linkSearch :id="row.item.orden" />
                       </b-col>
 
@@ -172,7 +173,8 @@
                 <b-table stacked :items="reposicionesEnCursoVisibles" :fields="filedsLista">
                   <template #cell(orden)="row">
                     <b-row class="align-items-center flex-wrap flex-lg-nowrap" style="gap: 0.5rem">
-                      <b-col cols="auto">
+                      <b-col cols="auto" class="d-flex align-items-center" style="gap: 0.5rem;">
+                        <b-badge variant="secondary" style="font-size: 0.9em; font-weight: 600;">#{{ row.item.id_reposicion }}</b-badge>
                         <linkSearch :id="row.item.orden" />
                       </b-col>
 
