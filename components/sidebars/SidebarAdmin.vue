@@ -190,6 +190,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/impresoras/reporte-tintas">
+              Reporte de Tintas
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/tintas-actual">
               Tintas Actuales
             </router-link>
