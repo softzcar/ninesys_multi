@@ -104,7 +104,8 @@
                                                 @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>
                                         <span class="floatme">
-                                            <inventario-InsumoClonar @reload="getInsumos" :data="data.item"
+                                            <inventario-InsumoClonarTinta v-if="data.item.tipo_insumo === 'tinta'" @reload="getInsumos" :data="data.item" />
+                                            <inventario-InsumoClonar v-else @reload="getInsumos" :data="data.item"
                                                 :catalogoProductosData="catalogoInsumosProductos"
                                                 @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>

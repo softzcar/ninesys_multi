@@ -141,7 +141,6 @@ export default {
             tipoInsumoOptions: [
                 { value: "general", text: "General" },
                 { value: "tela", text: "Tela (Metros -> Kg)" },
-                { value: "tinta", text: "Tinta" },
                 { value: "papel", text: "Papel" },
                 { value: "repuesto", text: "Repuesto" },
                 { value: "bisutería", text: "Bisutería" },

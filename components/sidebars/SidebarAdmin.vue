@@ -175,11 +175,6 @@
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/inventario/nueva-tinta">
-              Nueva Tinta
-            </router-link>
-          </li>
-          <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/catalogo-tintas">
               Catálogo de Tintas
             </router-link>
