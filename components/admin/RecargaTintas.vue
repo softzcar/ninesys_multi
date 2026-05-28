@@ -278,18 +278,22 @@ export default {
       if (this.supplyFilterText && this.supplyFilterText.trim()) {
         const query = this.supplyFilterText.toLowerCase().trim();
         filtered = this.supplies.filter(s => {
-          const matchesId = s.id_insumo && String(s.id_insumo).includes(query);
-          const matchesSku = s.sku && s.sku.toLowerCase().includes(query);
-          const matchesInsumo = s.insumo && s.insumo.toLowerCase().includes(query);
-          const matchesColor = s.color && s.color.toLowerCase() === query;
-          return matchesId || matchesSku || matchesInsumo || matchesColor;
+          const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
+          const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
+          const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
+          const colorStr = s.color ? String(s.color).toLowerCase() : "";
+          
+          return idStr.includes(query) || 
+                 skuStr.includes(query) || 
+                 insumoStr.includes(query) || 
+                 colorStr === query;
         });
       }
 
       let options = filtered.map((supply) => {
         return {
           value: supply.id_insumo,
-          text: `ID: ${supply.id_insumo} - SKU: ${supply.sku} - Color: ${supply.color} - ${supply.insumo}`,
+          text: `ID: ${supply.id_insumo} - SKU: ${supply.sku || 'N/A'} - Color: ${supply.color || 'N/A'} - ${supply.insumo || ''}`,
         };
       });
       
@@ -358,10 +362,13 @@ export default {
       if (newVal && newVal.trim()) {
         const query = newVal.toLowerCase().trim();
         const filtered = this.supplies.filter(s => {
-          const matchesId = s.id_insumo && String(s.id_insumo).includes(query);
-          const matchesSku = s.sku && s.sku.toLowerCase().includes(query);
-          const matchesInsumo = s.insumo && s.insumo.toLowerCase().includes(query);
-          return matchesId || matchesSku || matchesInsumo;
+          const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
+          const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
+          const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
+          
+          return idStr.includes(query) || 
+                 skuStr.includes(query) || 
+                 insumoStr.includes(query);
         });
         if (filtered.length === 1) {
           this.selectedSupplyId = filtered[0].id_insumo;
