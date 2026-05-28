@@ -218,6 +218,7 @@ export default {
             departamentOptions: this.$config.DEPARTAMENT_OPTIONS,
             size: "md",
             title: "Nueva Tinta",
+            modal: "modal-nueva-tinta",
             overlay: false,
         }
     },

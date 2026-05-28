@@ -29,22 +29,29 @@
                                     :items="dataTable.data"
                                 >
                                     <template #cell(_id)="data">
-                                        <span class="floatme">
-                                            <admin-CatalogoInsumosProductosEditar
-                                                :item="data.item"
-                                                :products="products"
-                                                :departamentos="departamentos"
-                                                @reload="getCatalogoInsumosProductos"
-                                            />
-                                        </span>
-                                        <span class="floatme">
-                                            <b-button
-                                                variant="danger"
-                                                v-on:click="deleteCatalogoInsumoProducto(data.item.nombre, data.item._id)"
-                                            >
-                                                <b-icon icon="trash"></b-icon>
-                                            </b-button>
-                                        </span>
+                                        <template v-if="data.item.nombre.toLowerCase() !== 'tinta'">
+                                            <span class="floatme">
+                                                <admin-CatalogoInsumosProductosEditar
+                                                    :item="data.item"
+                                                    :products="products"
+                                                    :departamentos="departamentos"
+                                                    @reload="getCatalogoInsumosProductos"
+                                                />
+                                            </span>
+                                            <span class="floatme">
+                                                <b-button
+                                                    variant="danger"
+                                                    v-on:click="deleteCatalogoInsumoProducto(data.item.nombre, data.item._id)"
+                                                >
+                                                    <b-icon icon="trash"></b-icon>
+                                                </b-button>
+                                            </span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="badge badge-secondary p-2">
+                                                <b-icon icon="lock-fill" class="mr-1"></b-icon> Bloqueado
+                                            </span>
+                                        </template>
                                     </template>
                                 </b-table>
                             </b-col>

@@ -25,6 +25,12 @@
                                     :catalogoProductosData="catalogoInsumosProductos"
                                     :inventoryItems="dataTableDyn"
                                     @reloadCatalogo="fetchCatalogoInsumosProductos" class="mr-2" />
+                                <b-button variant="success" v-b-modal.modal-nueva-tinta class="mr-2" title="Nueva Tinta">
+                                    <b-icon icon="plus-circle-fill" class="mr-1"></b-icon> Nueva Tinta
+                                </b-button>
+                                <b-modal id="modal-nueva-tinta" title="Nueva Tinta" hide-footer size="lg">
+                                    <inventario-InsumoNuevoTinta @reload="getInsumos" />
+                                </b-modal>
                                 <inventario-ResumenSkuModal :items="dataTable.items" class="mr-2" />
                                 <b-button variant="info" @click="imprimirReporte" title="Imprimir Reporte">
                                     <b-icon icon="printer-fill" class="mr-1"></b-icon> Imprimir Reporte
@@ -92,7 +98,8 @@
 
                                     <template #cell(_id)="data">
                                         <span class="floatme">
-                                            <inventario-InsumoEditar @reload="getInsumos" :data="data.item"
+                                            <inventario-InsumoEditarTinta v-if="data.item.tipo_insumo === 'tinta'" @reload="getInsumos" :data="data.item" />
+                                            <inventario-InsumoEditar v-else @reload="getInsumos" :data="data.item"
                                                 :catalogoProductosData="catalogoInsumosProductos"
                                                 @reloadCatalogo="fetchCatalogoInsumosProductos" />
                                         </span>
