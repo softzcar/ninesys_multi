@@ -218,6 +218,15 @@
                         {{ moneyFormatter(row.item.costo) }}
                       </span>
                     </template>
+
+                    <!-- Columna: Consumo -->
+                    <template #cell(consumo)="row">
+                      <inventario-ConsumoMaterialModal
+                        :idInsumo="row.item.id_insumo"
+                        :nombreInsumo="row.item.insumo"
+                        @reload="fetchData"
+                      />
+                    </template>
                   </b-table>
                 </div>
 
@@ -262,7 +271,8 @@ export default {
         { key: "color", label: "Color de la Tinta", sortable: true, thClass: "bg-light text-dark text-center", tdClass: "align-middle text-center" },
         { key: "tipo_tinta", label: "Tipo de Tinta", sortable: true, thClass: "bg-light text-dark", tdClass: "align-middle" },
         { key: "cantidad", label: "Cantidad Restante", sortable: true, thClass: "bg-light text-dark", tdClass: "align-middle" },
-        { key: "costo", label: "Costo Botella", sortable: true, thClass: "bg-light text-dark", tdClass: "align-middle text-right", class: "text-right" }
+        { key: "costo", label: "Costo Botella", sortable: true, thClass: "bg-light text-dark", tdClass: "align-middle text-right", class: "text-right" },
+        { key: "consumo", label: "Consumo", thClass: "bg-light text-dark text-center", tdClass: "align-middle text-center" }
       ]
     };
   },
