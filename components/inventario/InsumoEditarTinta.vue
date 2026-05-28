@@ -88,12 +88,6 @@
                                     </b-form-select>
                                 </b-form-group>
 
-                                <b-form-group id="input-group-product-catalog" label="Producto del Catálogo:"
-                                    label-for="input-product-catalog">
-                                    <b-form-select id="input-product-catalog" v-model="selectedProduct"
-                                        :options="catalogoProductosOptions" required></b-form-select>
-                                </b-form-group>
-
                                 <div class="mt-4 pt-3 border-top text-right">
                                     <b-button type="submit" variant="primary">Guardar Cambios</b-button>
                                 </div>
@@ -191,6 +185,10 @@ export default {
             try {
                 const response = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
                 this.catalogoProductos = response.data.data;
+                const tintaProduct = this.catalogoProductos.find(p => p.nombre.toLowerCase() === 'tinta');
+                if (tintaProduct) {
+                    this.selectedProduct = tintaProduct._id;
+                }
             } catch (error) {
                 console.error("Error al obtener el catálogo de productos:", error);
             }

@@ -98,19 +98,6 @@
                                 ></b-form-input>
                             </b-form-group>
 
-                            <b-form-group
-                                id="input-group-product-catalog"
-                                label="Producto del Catálogo:"
-                                label-for="input-product-catalog"
-                            >
-                                <b-form-select
-                                    id="input-product-catalog"
-                                    v-model="selectedProduct"
-                                    :options="catalogoProductosOptions"
-                                    required
-                                ></b-form-select>
-                            </b-form-group>
-
                             <!-- <b-form-group
                                 id="input-group-2"
                                 label="Tipo de unidad:"
@@ -260,13 +247,18 @@ export default {
                 color: "",
             }
             this.selectedColor = ''
-            this.selectedProduct = null
+            const tintaProduct = this.catalogoProductos.find(p => p.nombre.toLowerCase() === 'tinta');
+            this.selectedProduct = tintaProduct ? tintaProduct._id : null
             this.selectedTintaType = null
         },
         async fetchCatalogoProductos() {
             try {
                 const response = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
                 this.catalogoProductos = response.data.data;
+                const tintaProduct = this.catalogoProductos.find(p => p.nombre.toLowerCase() === 'tinta');
+                if (tintaProduct) {
+                    this.selectedProduct = tintaProduct._id;
+                }
             } catch (error) {
                 console.error("Error al obtener el catálogo de productos:", error);
             }
