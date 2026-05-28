@@ -28,6 +28,14 @@
                     label="Seleccionar Insumo (Tinta):"
                     label-for="supplySelect"
                   >
+                    <!-- Buscador reactivo por ID / SKU / Nombre -->
+                    <b-form-input
+                      v-model="supplyFilterText"
+                      placeholder="🔍 Buscar por ID, SKU o Nombre..."
+                      size="sm"
+                      class="mb-2 bg-white"
+                      autocomplete="off"
+                    />
                     <b-form-select
                       id="supplySelect"
                       v-model="selectedSupplyId"
@@ -219,6 +227,7 @@ export default {
       impresoras: [], // Aquí se cargarán las impresoras desde la API
       supplies: [], // Aquí se cargarán los insumos (tintas) desde la API
       loading: true, // Nuevo: para el b-overlay
+      supplyFilterText: "", // Buscador reactivo para el select
       selectedPrinterId: "",
       selectedSupplyId: "",
       selectedColor: "",
@@ -264,13 +273,30 @@ export default {
       if (!this.supplies || this.supplies.length === 0) {
         return [{ value: null, text: "No hay insumos disponibles" }];
       }
-      let options = this.supplies.map((supply) => {
+      
+      let filtered = this.supplies;
+      if (this.supplyFilterText && this.supplyFilterText.trim()) {
+        const query = this.supplyFilterText.toLowerCase().trim();
+        filtered = this.supplies.filter(s => {
+          const matchesId = s.id_insumo && String(s.id_insumo).includes(query);
+          const matchesSku = s.sku && s.sku.toLowerCase().includes(query);
+          const matchesInsumo = s.insumo && s.insumo.toLowerCase().includes(query);
+          const matchesColor = s.color && s.color.toLowerCase() === query;
+          return matchesId || matchesSku || matchesInsumo || matchesColor;
+        });
+      }
+
+      let options = filtered.map((supply) => {
         return {
           value: supply.id_insumo,
-          text: `ID: ${supply.id_insumo} - Color: ${supply.color} - ${supply.insumo}`,
+          text: `ID: ${supply.id_insumo} - SKU: ${supply.sku} - Color: ${supply.color} - ${supply.insumo}`,
         };
       });
-      options.unshift({ value: null, text: "Seleccione un insumo" });
+      
+      options.unshift({ 
+        value: null, 
+        text: filtered.length > 0 ? "Seleccione un insumo" : "No se encontraron coincidencias" 
+      });
       return options;
     },
     filteredColorOptions() {
@@ -325,6 +351,21 @@ export default {
         this.selectedColor = this.selectedSupply.color;
       } else {
         this.selectedColor = "";
+      }
+    },
+    supplyFilterText(newVal) {
+      // Auto-seleccionar si el filtro reduce el resultado a exactamente 1 coincidencia
+      if (newVal && newVal.trim()) {
+        const query = newVal.toLowerCase().trim();
+        const filtered = this.supplies.filter(s => {
+          const matchesId = s.id_insumo && String(s.id_insumo).includes(query);
+          const matchesSku = s.sku && s.sku.toLowerCase().includes(query);
+          const matchesInsumo = s.insumo && s.insumo.toLowerCase().includes(query);
+          return matchesId || matchesSku || matchesInsumo;
+        });
+        if (filtered.length === 1) {
+          this.selectedSupplyId = filtered[0].id_insumo;
+        }
       }
     }
   },
