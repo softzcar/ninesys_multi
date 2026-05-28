@@ -376,9 +376,9 @@
                     <div>
                       <produccionsse-progress-bar :pasos="pasos" :asignacion="asignacion"
                         :emp_asignados="empleadosAsignados" :empleados="empleados" :por_asignar="por_asignar"
-                        :depart="pActivo(el.orden)" :item="el" :orden_productos="filterOrdenProductos(el.orden)"
-                        :reposicion_ordenes_productos="reposicion_ordenes_productos
-                          " :lote_detalles="filterLoteDetalles(el.orden)" :lotes_fisicos="lotes_fisicos" :key="el.orden"
+                        :depart="pActivosMap[el.orden] || []" :item="el" :orden_productos="ordenProductosMap[el.orden] || []"
+                        :reposicion_ordenes_productos="reposicion_ordenes_productos"
+                        :lote_detalles="loteDetallesMap[el.orden] || []" :lotes_fisicos="lotes_fisicos" :key="el.orden"
                         @reload="initTiemposDeProduccion" />
                     </div>
                   </b-list-group-item>
@@ -396,7 +396,7 @@
 
                   <b-list-group-item data-label="Vinculada">
                     <div class="floatme">
-                      <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculadas(el.acciones)" :key="el.orden"
+                      <ordenes-vinculadas-v2 :ordenes_vinculadas="vinculadasMap[el.orden] || []" :key="el.orden"
                         :id_orden="el.orden" />
                     </div>
                   </b-list-group-item>
@@ -411,7 +411,7 @@
                     <div>
                       <produccion-control-de-produccion-detalles-editor :idorden="el.orden" :item="el"
                         :detalles="el.detalles" :detalle_empleado="el.detalle_empleado" :key="el.orden"
-                        :productos="productsFilter(el.orden)" />
+                        :productos="productosMap[el.orden] || []" />
                       <produccionsse-ModalNotasProduccion :id_orden="el.orden" />
                     </div>
                   </b-list-group-item>
@@ -654,6 +654,12 @@ export default {
       isProyeccionLoading: false, // Nuevo: para rastrear el endpoint pesado de proyecciones
       visibleOrders: 10,        // Nuevo: para carga incremental en bloques de 10
       physicalOrdersMap: {},     // Nuevo: índice para búsqueda instantánea de productos físicos
+      ordenProductosMap: {},
+      loteDetallesMap: {},
+      pActivosMap: {},
+      vinculadasMap: {},
+      productosMap: {},
+      currentChecksum: "",       // Nuevo: almacena el checksum actual para polling ligero
       hasNewData: false,
       toastShown: false,
       isCheckingForUpdates: false,
@@ -733,22 +739,10 @@ export default {
       this.isCheckingForUpdates = true;
 
       this.$axios
-        .get(`${this.$config.API}/sse/produccion`)
+        .get(`${this.$config.API}/sse/produccion/check-version`)
         .then((res) => {
-          const newItems = res.data.items;
-          const newReposiciones = res.data.reposiciones_solicitadas;
-          const newReposicionesEnCurso = res.data.reposiciones_en_curso || [];
-
-          const currentItemsStr = JSON.stringify(this.items.map(i => i.orden));
-          const newItemsStr = JSON.stringify(newItems.map(i => i.orden));
-
-          const currentReposicionesStr = JSON.stringify(this.reposiciones_solicitadas.map(r => r.id_reposicion));
-          const newReposicionesStr = JSON.stringify(newReposiciones.map(r => r.id_reposicion));
-
-          const currentReposicionesEnCursoStr = JSON.stringify(this.reposiciones_en_curso.map(r => r.id_reposicion));
-          const newReposicionesEnCursoStr = JSON.stringify(newReposicionesEnCurso.map(r => r.id_reposicion));
-
-          if (currentItemsStr !== newItemsStr || currentReposicionesStr !== newReposicionesStr || currentReposicionesEnCursoStr !== newReposicionesEnCursoStr) {
+          const newChecksum = res.data.checksum;
+          if (this.currentChecksum && newChecksum && this.currentChecksum !== newChecksum) {
             if (!this.toastShown) {
               this.$bvToast.toast("Hay nuevas órdenes o reposiciones.", {
                 id: 'new-data-toast',
@@ -1173,6 +1167,61 @@ export default {
             });
           }
           this.physicalOrdersMap = map;
+
+          // Pre-indexar arrays en mapas O(1)
+          const opMap = {};
+          if (this.orden_productos) {
+            this.orden_productos.forEach(p => {
+              if (!opMap[p.id_orden]) opMap[p.id_orden] = [];
+              opMap[p.id_orden].push(p);
+            });
+          }
+          this.ordenProductosMap = opMap;
+
+          const ldMap = {};
+          if (this.lote_detalles) {
+            this.lote_detalles.forEach(ld => {
+              if (!ldMap[ld.id_orden]) ldMap[ld.id_orden] = [];
+              ldMap[ld.id_orden].push(ld);
+            });
+          }
+          this.loteDetallesMap = ldMap;
+
+          const paMap = {};
+          if (this.pactivos) {
+            this.pactivos.forEach(pa => {
+              if (!paMap[pa.id_orden]) paMap[pa.id_orden] = [];
+              paMap[pa.id_orden].push(pa.departamento);
+            });
+          }
+          this.pActivosMap = paMap;
+
+          const vMap = {};
+          if (this.vinculadas) {
+            this.vinculadas.forEach(v => {
+              if (!vMap[v.id_father]) vMap[v.id_father] = [];
+              if (!vMap[v.id_child]) vMap[v.id_child] = [];
+              vMap[v.id_father].push({ id_child: v.id_child });
+              vMap[v.id_child].push({ id_child: v.id_father });
+            });
+          }
+          this.vinculadasMap = vMap;
+
+          const pMap = {};
+          if (this.products) {
+            this.products.forEach(p => {
+              if (!pMap[p.id_orden]) pMap[p.id_orden] = [];
+              pMap[p.id_orden].push(p);
+            });
+          }
+          this.productosMap = pMap;
+
+          // Cargar el checksum inicial
+          this.$axios.get(`${this.$config.API}/sse/produccion/check-version`)
+            .then(verRes => {
+              this.currentChecksum = verRes.data.checksum;
+            })
+            .catch(() => {});
         })
         .catch((err) => {
           this.$bvToast.toast("No se pudieron cargar los datos de producción.", {

@@ -268,9 +268,6 @@ export default {
     },
 
     ordenReactiva() {
-      // Set isLoading to false at the start to ensure it's always updated
-      this.isLoading = false;
-      
       if (!this.ordenesProyectadas2 || !this.ordenesProyectadas2.length) {
         return null;
       }
@@ -495,6 +492,17 @@ export default {
       if (m > 0) res += `${m}m `;
       res += `${s}s`;
       return res;
+    }
+  },
+
+  watch: {
+    ordenesProyectadas2: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && newVal.length > 0) {
+          this.isLoading = false;
+        }
+      }
     }
   },
 
