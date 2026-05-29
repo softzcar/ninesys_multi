@@ -50,16 +50,35 @@
 
             <!-- Sección de Gráficos de Producción y Consumo -->
             <b-row class="mb-5" v-if="!loading && chartData">
-              <b-col lg="4" md="6" class="mb-4">
-                <charts-ColumnChart 
-                  v-if="chartData.materiales && chartData.materiales.length > 0"
+              <!-- Fila 1: Telas e Insumos (Ocupa 100% de la pantalla para permitir muchas barras) -->
+              <b-col lg="12" class="mb-4">
+                <!-- Modo columnas verticales: para Top 5 y Top 10 (≤ 10 ítems) -->
+                <charts-ColumnChart
+                  v-if="usarColumnChart && chartData.materiales && chartData.materiales.length > 0"
                   :series-data="chartData.materiales.map(i => i.value)"
                   :categories="chartData.materiales.map(i => i.label)"
                   :units="chartData.materiales.map(i => i.unidad)"
-                  :title="filtroStock === 'enStock' ? 'Telas e Insumos Disponibles (Stock)' : 'Telas e Insumos Más Usados (' + rangoFechasLabel + ')'"
+                  :title="tituloGraficoMateriales"
                 />
+                <!-- Modo barras horizontales: para Top 20 y Todos (> 10 ítems) -->
+                <charts-BarChart
+                  v-else-if="!usarColumnChart && chartData.materiales && chartData.materiales.length > 0"
+                  :series-data="chartData.materiales.map(i => i.value)"
+                  :categories="chartData.materiales.map(i => i.label)"
+                  :units="chartData.materiales.map(i => i.unidad)"
+                  :title="tituloGraficoMateriales"
+                  :horizontal="true"
+                  :distributed="true"
+                  series-name="Cantidad"
+                />
+                <!-- Mensaje si no hay datos -->
+                <b-alert v-else-if="chartData.materiales && chartData.materiales.length === 0" show variant="info" class="m-3">
+                  No hay datos de materiales para mostrar con los filtros seleccionados.
+                </b-alert>
               </b-col>
-              <b-col lg="4" md="6" class="mb-4">
+
+              <!-- Fila 2: Distribución de Tintas y Papel (Cada uno ocupa el 50% de la pantalla - col-lg-6) -->
+              <b-col lg="6" md="12" class="mb-4">
                 <charts-PieChart 
                   v-if="chartData.tintas"
                   :values="chartData.tintas.values"
@@ -68,7 +87,7 @@
                   :title="filtroStock === 'enStock' ? 'Distribución de Tintas en Stock' : 'Distribución de Tintas Consumidas (' + rangoFechasLabel + ')'"
                 />
               </b-col>
-              <b-col lg="4" md="12" class="mb-4">
+              <b-col lg="6" md="12" class="mb-4">
                 <charts-LineChart 
                   v-if="chartData.papel && chartData.papel.length > 0"
                   :series-data="chartData.papel.map(i => i.value)"
@@ -79,10 +98,10 @@
               </b-col>
             </b-row>
 
-            <!-- Filtros por Departamento -->
+            <!-- Filtros por Departamento, Disponibilidad y Límite -->
             <b-row class="mb-4">
-              <b-col md="6">
-                <label class="d-block">Filtrar por Departamento:</label>
+              <b-col lg="5" md="12" class="mb-3 mb-lg-0">
+                <label class="d-block font-weight-bold">Filtrar por Departamento:</label>
                 <b-form-radio-group
                   v-model="departamentoSeleccionado"
                   :options="opcionesDepartamentos"
@@ -93,8 +112,8 @@
                   @change="loadReport"
                 ></b-form-radio-group>
               </b-col>
-              <b-col md="6">
-                <label class="d-block">Disponibilidad:</label>
+              <b-col lg="4" md="6" class="mb-3 mb-lg-0">
+                <label class="d-block font-weight-bold">Disponibilidad:</label>
                 <b-form-radio-group
                   v-model="filtroStock"
                   :options="opcionesStock"
@@ -102,6 +121,18 @@
                   button-variant="outline-primary"
                   size="md"
                   name="radio-btn-stock"
+                  @change="loadReport"
+                ></b-form-radio-group>
+              </b-col>
+              <b-col lg="3" md="6" class="mb-3 mb-lg-0">
+                <label class="d-block font-weight-bold">Límite de Insumos:</label>
+                <b-form-radio-group
+                  v-model="limiteGrafico"
+                  :options="opcionesLimite"
+                  buttons
+                  button-variant="outline-primary"
+                  size="md"
+                  name="radio-btn-limite"
                   @change="loadReport"
                 ></b-form-radio-group>
               </b-col>
@@ -201,6 +232,13 @@ export default {
         { text: "Material en Stock", value: "enStock" },
         { text: "Material Consumido", value: "terminados" }
       ],
+      limiteGrafico: 5,
+      opcionesLimite: [
+        { text: "Top 5", value: 5 },
+        { text: "Top 10", value: 10 },
+        { text: "Top 20", value: 20 },
+        { text: "Todos", value: 0 }
+      ],
       chartData: null
     };
   },
@@ -211,6 +249,23 @@ export default {
         return `${this.fechaDesde} → ${this.fechaHasta}`;
       }
       return '30d';
+    },
+    /**
+     * Decide si usar ColumnChart (vertical) o BarChart (horizontal).
+     * - Top 5 (limiteGrafico=5) y Top 10 (limiteGrafico=10): columnas verticales, caben bien.
+     * - Top 20 (limiteGrafico=20) y Todos (limiteGrafico=0): barras horizontales, etiquetas siempre legibles.
+     */
+    usarColumnChart() {
+      return this.limiteGrafico > 0 && this.limiteGrafico <= 10;
+    },
+    tituloGraficoMateriales() {
+      const base = this.filtroStock === 'enStock'
+        ? 'Telas e Insumos Disponibles (Stock)'
+        : `Telas e Insumos Más Usados (${this.rangoFechasLabel})`;
+      const cantidad = this.chartData && this.chartData.materiales
+        ? ` — ${this.chartData.materiales.length} registros`
+        : '';
+      return base + cantidad;
     },
     datosParaElReporte() {
       return {
@@ -226,7 +281,8 @@ export default {
         departamento: this.departamentoSeleccionado,
         filtroStock: this.filtroStock,
         fechaDesde: this.fechaDesde,
-        fechaHasta: this.fechaHasta
+        fechaHasta: this.fechaHasta,
+        limiteGrafico: this.limiteGrafico
       });
       this.loading = true;
       try {
@@ -235,7 +291,8 @@ export default {
             departamento: this.departamentoSeleccionado,
             filtroStock: this.filtroStock,
             fechaDesde: this.fechaDesde || null,
-            fechaHasta: this.fechaHasta || null
+            fechaHasta: this.fechaHasta || null,
+            limiteGrafico: this.limiteGrafico
           }
         });
         if (res.data.success) {
@@ -249,7 +306,63 @@ export default {
             }
             return field;
           });
-          this.chartData = res.data.chartData || null;
+          // Calcular chartData.materiales localmente en el frontend para evitar las limitaciones
+          // y el límite de 5 harcodeado del servidor de API remoto de producción (api.nineteengreen.com)
+          let materialsList = [];
+          if (this.items && this.items.length > 0) {
+            const grouped = {};
+            this.items.forEach(item => {
+              const label = item.insumo;
+              const key = `${item.sku}_${label}_${item.unidad}`;
+              let value = 0;
+              if (this.filtroStock === 'terminados') {
+                const cant = parseFloat(item.cantidad || 0);
+                const cantIni = parseFloat(item.cantidad_inicial) || cant || 0;
+                const diff = cantIni - cant;
+                if (item.tipo_insumo === 'tela') {
+                  const rend = parseFloat(item.rendimiento) || 1;
+                  value = diff * rend;
+                } else {
+                  value = diff;
+                }
+              } else {
+                value = parseFloat(item.cantidad || 0);
+              }
+              
+              if (value > 0) {
+                if (!grouped[key]) {
+                  grouped[key] = {
+                    label: label,
+                    value: 0,
+                    unidad: item.tipo_insumo === 'tela' ? 'Mts' : item.unidad
+                  };
+                }
+                grouped[key].value += value;
+              }
+            });
+            
+            materialsList = Object.values(grouped).map(g => {
+              g.value = parseFloat(g.value.toFixed(2));
+              return g;
+            });
+            materialsList.sort((a, b) => b.value - a.value);
+            if (this.limiteGrafico > 0) {
+              materialsList = materialsList.slice(0, this.limiteGrafico);
+            }
+          }
+
+          if (res.data.chartData) {
+            this.chartData = {
+              ...res.data.chartData,
+              materiales: materialsList
+            };
+          } else {
+            this.chartData = {
+              materiales: materialsList,
+              tintas: null,
+              papel: []
+            };
+          }
           
           // Actualizar opciones de departamentos dinámicamente
           if (res.data.availableDepartments) {
