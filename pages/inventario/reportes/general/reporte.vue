@@ -121,7 +121,7 @@
                   button-variant="outline-primary"
                   size="md"
                   name="radio-btn-stock"
-                  @change="loadReport"
+                  @change="onFiltroStockChange"
                 ></b-form-radio-group>
               </b-col>
               <b-col lg="3" md="6" class="mb-3 mb-lg-0">
@@ -135,6 +135,24 @@
                   name="radio-btn-limite"
                   @change="loadReport"
                 ></b-form-radio-group>
+              </b-col>
+              <!-- Filtro de Tipo de Tinta: solo visible en modo 'enStock' con más de un tipo -->
+              <b-col
+                v-if="filtroStock === 'enStock' && opcionesTipoTinta.length > 1"
+                lg="auto"
+                md="6"
+                class="mb-3 mb-lg-0"
+              >
+                <label class="d-block font-weight-bold">Tipo de Tinta:</label>
+                <b-form-radio-group
+                  v-model="tipoTintaSeleccionada"
+                  :options="opcionesTipoTinta"
+                  buttons
+                  button-variant="outline-info"
+                  size="md"
+                  name="radio-btn-tipo-tinta"
+                  @change="loadReport"
+                />
               </b-col>
             </b-row>
 
@@ -239,6 +257,9 @@ export default {
         { text: "Top 20", value: 20 },
         { text: "Todos", value: 0 }
       ],
+      // Filtro de tipo de tinta (poblado dinámicamente desde la API)
+      tipoTintaSeleccionada: 'Todas',
+      opcionesTipoTinta: [{ text: 'Todas', value: 'Todas' }],
       chartData: null
     };
   },
@@ -292,7 +313,8 @@ export default {
             filtroStock: this.filtroStock,
             fechaDesde: this.fechaDesde || null,
             fechaHasta: this.fechaHasta || null,
-            limiteGrafico: this.limiteGrafico
+            limiteGrafico: this.limiteGrafico,
+            tipoTinta: this.tipoTintaSeleccionada
           }
         });
         if (res.data.success) {
@@ -372,6 +394,16 @@ export default {
             ];
             this.opcionesDepartamentos = dynamicOptions;
           }
+
+          // Actualizar opciones de tipo de tinta dinámicamente
+          if (res.data.availableTintaTypes && res.data.availableTintaTypes.length > 0) {
+            this.opcionesTipoTinta = [
+              { text: 'Todas', value: 'Todas' },
+              ...res.data.availableTintaTypes.map(t => ({ text: t.nombre, value: t._id }))
+            ];
+          } else {
+            this.opcionesTipoTinta = [{ text: 'Todas', value: 'Todas' }];
+          }
         } else {
           this.$fire({
             title: "Error",
@@ -406,6 +438,11 @@ export default {
     resetFechas() {
       this.fechaDesde = null;
       this.fechaHasta = null;
+      this.loadReport();
+    },
+    onFiltroStockChange() {
+      // Al cambiar disponibilidad, resetear el filtro de tipo de tinta para evitar estado inconsistente
+      this.tipoTintaSeleccionada = 'Todas';
       this.loadReport();
     },
     imprimirReporte() {
