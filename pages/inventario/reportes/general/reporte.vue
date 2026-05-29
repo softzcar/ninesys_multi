@@ -12,195 +12,281 @@
           dataUser.departamento === 'Producción'
         "
       >
-        <b-overlay :show="loading" spinner-small>
-          <b-container fluid>
-            <b-row>
-              <b-col>
-                <h1 class="mb-4">{{ titulo }}</h1>
-              </b-col>
-            </b-row>
+        <b-container fluid>
+          <b-row>
+            <b-col>
+              <h1 class="mb-3">{{ titulo }}</h1>
+            </b-col>
+          </b-row>
 
-            <!-- Filtro de Fechas para Gráficos -->
-            <b-row class="mb-3 align-items-end">
-              <b-col md="auto">
-                <label class="d-block font-weight-bold">Rango de fechas (gráficos):</label>
-              </b-col>
-              <b-col md="auto">
-                <label class="small text-muted">Desde:</label>
-                <b-form-input
-                  v-model="fechaDesde"
-                  type="date"
-                  size="sm"
-                  @change="loadReport"
-                ></b-form-input>
-              </b-col>
-              <b-col md="auto">
-                <label class="small text-muted">Hasta:</label>
-                <b-form-input
-                  v-model="fechaHasta"
-                  type="date"
-                  size="sm"
-                  @change="loadReport"
-                ></b-form-input>
-              </b-col>
-              <b-col md="auto">
-                <b-button size="sm" variant="outline-secondary" @click="resetFechas">Últimos 30 días</b-button>
-              </b-col>
-            </b-row>
+          <!-- ════════════════════════════════════════════════════
+               BARRA DE CONTROL SUPERIOR — Siempre visible,
+               sin ningún overlay que la tape durante la carga.
+               ════════════════════════════════════════════════════ -->
+          <div class="report-control-bar mb-4">
+            <b-row class="align-items-end flex-wrap" no-gutters>
 
-            <!-- Sección de Gráficos de Producción y Consumo -->
-            <b-row class="mb-5" v-if="!loading && chartData">
-              <!-- Fila 1: Telas e Insumos (Ocupa 100% de la pantalla para permitir muchas barras) -->
-              <b-col lg="12" class="mb-4">
-                <!-- Modo columnas verticales: para Top 5 y Top 10 (≤ 10 ítems) -->
-                <charts-ColumnChart
-                  v-if="usarColumnChart && chartData.materiales && chartData.materiales.length > 0"
-                  :series-data="chartData.materiales.map(i => i.value)"
-                  :categories="chartData.materiales.map(i => i.label)"
-                  :units="chartData.materiales.map(i => i.unidad)"
-                  :title="tituloGraficoMateriales"
-                />
-                <!-- Modo barras horizontales: para Top 20 y Todos (> 10 ítems) -->
-                <charts-BarChart
-                  v-else-if="!usarColumnChart && chartData.materiales && chartData.materiales.length > 0"
-                  :series-data="chartData.materiales.map(i => i.value)"
-                  :categories="chartData.materiales.map(i => i.label)"
-                  :units="chartData.materiales.map(i => i.unidad)"
-                  :title="tituloGraficoMateriales"
-                  :horizontal="true"
-                  :distributed="true"
-                  series-name="Cantidad"
-                />
-                <!-- Mensaje si no hay datos -->
-                <b-alert v-else-if="chartData.materiales && chartData.materiales.length === 0" show variant="info" class="m-3">
-                  No hay datos de materiales para mostrar con los filtros seleccionados.
-                </b-alert>
-              </b-col>
-
-              <!-- Fila 2: Distribución de Tintas y Papel (Cada uno ocupa el 50% de la pantalla - col-lg-6) -->
-              <b-col lg="6" md="12" class="mb-4">
-                <charts-PieChart 
-                  v-if="chartData.tintas"
-                  :values="chartData.tintas.values"
-                  :labels="chartData.tintas.labels"
-                  :colors="chartData.tintas.colors"
-                  :title="filtroStock === 'enStock' ? 'Distribución de Tintas en Stock' : 'Distribución de Tintas Consumidas (' + rangoFechasLabel + ')'"
-                />
-              </b-col>
-              <b-col lg="6" md="12" class="mb-4">
-                <charts-LineChart 
-                  v-if="chartData.papel && chartData.papel.length > 0"
-                  :series-data="chartData.papel.map(i => i.value)"
-                  :categories="chartData.papel.map(i => i.label)"
-                  :title="filtroStock === 'enStock' ? 'Stock de Papel Disponible' : 'Consumo de Papel Semanal (' + rangoFechasLabel + ')'"
-                  unit="m"
-                />
-              </b-col>
-            </b-row>
-
-            <!-- Filtros por Departamento, Disponibilidad y Límite -->
-            <b-row class="mb-4">
-              <b-col lg="5" md="12" class="mb-3 mb-lg-0">
-                <label class="d-block font-weight-bold">Filtrar por Departamento:</label>
-                <b-form-radio-group
-                  v-model="departamentoSeleccionado"
-                  :options="opcionesDepartamentos"
-                  buttons
-                  button-variant="outline-primary"
-                  size="md"
-                  name="radio-btn-dept"
-                  @change="loadReport"
-                ></b-form-radio-group>
-              </b-col>
-              <b-col lg="4" md="6" class="mb-3 mb-lg-0">
-                <label class="d-block font-weight-bold">Disponibilidad:</label>
+              <!-- Ver: Stock / Consumido -->
+              <b-col cols="auto" class="mr-3 mb-2">
+                <div class="rcb-label">Ver</div>
                 <b-form-radio-group
                   v-model="filtroStock"
                   :options="opcionesStock"
                   buttons
                   button-variant="outline-primary"
-                  size="md"
+                  size="sm"
                   name="radio-btn-stock"
                   @change="onFiltroStockChange"
-                ></b-form-radio-group>
+                />
               </b-col>
-              <b-col lg="3" md="6" class="mb-3 mb-lg-0">
-                <label class="d-block font-weight-bold">Límite de Insumos:</label>
+
+              <div class="rcb-divider mr-3 mb-2 d-none d-md-block" />
+
+              <!-- Departamento -->
+              <b-col cols="auto" class="mr-3 mb-2">
+                <div class="rcb-label">Departamento</div>
                 <b-form-radio-group
-                  v-model="limiteGrafico"
-                  :options="opcionesLimite"
+                  v-model="departamentoSeleccionado"
+                  :options="opcionesDepartamentos"
                   buttons
-                  button-variant="outline-primary"
-                  size="md"
-                  name="radio-btn-limite"
-                  @change="loadReport"
-                ></b-form-radio-group>
-              </b-col>
-              <!-- Filtro de Tipo de Tinta: solo visible en modo 'enStock' con más de un tipo -->
-              <b-col
-                v-if="filtroStock === 'enStock' && opcionesTipoTinta.length > 1"
-                lg="auto"
-                md="6"
-                class="mb-3 mb-lg-0"
-              >
-                <label class="d-block font-weight-bold">Tipo de Tinta:</label>
-                <b-form-radio-group
-                  v-model="tipoTintaSeleccionada"
-                  :options="opcionesTipoTinta"
-                  buttons
-                  button-variant="outline-info"
-                  size="md"
-                  name="radio-btn-tipo-tinta"
+                  button-variant="outline-secondary"
+                  size="sm"
+                  name="radio-btn-dept"
                   @change="loadReport"
                 />
               </b-col>
-            </b-row>
 
-            <b-row class="mb-3">
-              <b-col class="d-flex align-items-center">
-                <b-button variant="info" @click="imprimirReporte" :disabled="items.length === 0" class="mr-2">IMPRIMIR REPORTE</b-button>
-                <b-button variant="secondary" @click="loadReport">REFRESCAR</b-button>
+              <div class="rcb-divider mr-3 mb-2 d-none d-md-block" />
+
+              <!-- Rango de fechas -->
+              <b-col cols="auto" class="mr-2 mb-2">
+                <div class="rcb-label">Desde</div>
+                <b-form-input
+                  v-model="fechaDesde"
+                  type="date"
+                  size="sm"
+                  style="width:138px"
+                  @change="loadReport"
+                />
               </b-col>
-            </b-row>
+              <b-col cols="auto" class="mr-2 mb-2">
+                <div class="rcb-label">Hasta</div>
+                <b-form-input
+                  v-model="fechaHasta"
+                  type="date"
+                  size="sm"
+                  style="width:138px"
+                  @change="loadReport"
+                />
+              </b-col>
+              <b-col cols="auto" class="mr-3 mb-2">
+                <div class="rcb-label">&nbsp;</div>
+                <b-button size="sm" variant="outline-secondary" @click="resetFechas">
+                  Últimos 30d
+                </b-button>
+              </b-col>
 
-            <b-row v-if="items.length > 0">
-              <b-col>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h3 class="text-info m-0">{{ items.length }} Ítems encontrados</h3>
-                  <b-form-input
-                    v-model="filter"
-                    placeholder="Buscar en resultados..."
-                    size="sm"
-                    class="w-25"
-                  ></b-form-input>
-                </div>
-                
-                <b-table
-                  responsive
-                  small
-                  striped
-                  hover
-                  :items="items"
-                  :fields="fields"
-                  :filter="filter"
-                  v-model="itemsFiltrados"
+              <!-- Acciones al extremo derecho -->
+              <b-col class="text-right mb-2">
+                <div class="rcb-label">&nbsp;</div>
+                <b-button
+                  variant="info"
+                  size="sm"
+                  class="mr-2"
+                  :disabled="items.length === 0"
+                  @click="imprimirReporte"
                 >
-                  <template #cell(cantidad)="data">
-                    {{ displayCantidad(data.item) }}
-                  </template>
-                  <template #cell(costo)="data">
-                    ${{ data.value }}
-                  </template>
-                </b-table>
+                  Imprimir
+                </b-button>
+                <b-button variant="outline-secondary" size="sm" @click="loadReport">
+                  Refrescar
+                </b-button>
               </b-col>
             </b-row>
-            <b-row v-else-if="!loading">
-              <b-col>
-                <b-alert show variant="info">No se encontraron registros para el departamento seleccionado.</b-alert>
+          </div>
+
+          <!-- ════════════════════════════════════════════════════
+               SECCIÓN DE GRÁFICOS
+               Usa CSS opacity en lugar de v-if para que el layout
+               nunca colapse durante la carga — sin saltos visuales.
+               ════════════════════════════════════════════════════ -->
+          <div :class="['rpt-charts', { 'rpt-charts--loading': loading }]">
+
+            <!-- ── Gráfico 1: Telas e Insumos (ancho completo) ── -->
+            <b-row class="mb-4" v-if="chartData">
+              <b-col cols="12">
+                <div class="chart-card">
+
+                  <!-- Header con título + filtro de límite integrado -->
+                  <div class="chart-card__header">
+                    <span class="chart-card__title">
+                      {{ filtroStock === 'enStock'
+                          ? 'Telas e Insumos Disponibles (Stock)'
+                          : 'Telas e Insumos Más Usados' }}
+                      <span v-if="chartData.materiales" class="chart-card__badge">
+                        {{ chartData.materiales.length }} registros
+                      </span>
+                    </span>
+                    <div class="chart-card__filter">
+                      <span class="chart-card__filter-label">Mostrar:</span>
+                      <div class="cc-pills">
+                        <button
+                          v-for="opt in opcionesLimite"
+                          :key="opt.value"
+                          :class="['cc-pill', { 'cc-pill--active': limiteGrafico === opt.value }]"
+                          @click="onLimiteChange(opt.value)"
+                        >{{ opt.text }}</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Cuerpo del gráfico -->
+                  <div class="chart-card__body">
+                    <!-- Columnas verticales: ≤ 10 ítems -->
+                    <charts-ColumnChart
+                      v-if="usarColumnChart && chartData.materiales && chartData.materiales.length > 0"
+                      :series-data="chartData.materiales.map(i => i.value)"
+                      :categories="chartData.materiales.map(i => i.label)"
+                      :units="chartData.materiales.map(i => i.unidad)"
+                      title=""
+                    />
+                    <!-- Barras horizontales: > 10 ítems -->
+                    <charts-BarChart
+                      v-else-if="!usarColumnChart && chartData.materiales && chartData.materiales.length > 0"
+                      :series-data="chartData.materiales.map(i => i.value)"
+                      :categories="chartData.materiales.map(i => i.label)"
+                      :units="chartData.materiales.map(i => i.unidad)"
+                      title=""
+                      :horizontal="true"
+                      :distributed="true"
+                      series-name="Cantidad"
+                    />
+                    <b-alert
+                      v-else-if="chartData.materiales && chartData.materiales.length === 0"
+                      show variant="info" class="m-3"
+                    >
+                      No hay datos para mostrar con los filtros seleccionados.
+                    </b-alert>
+                  </div>
+                </div>
               </b-col>
             </b-row>
-          </b-container>
-        </b-overlay>
+
+            <!-- ── Fila 2: Tintas (50%) + Papel (50%) ── -->
+            <b-row class="mb-4" v-if="chartData">
+
+              <!-- Gráfico de Tintas + filtro de tipo integrado -->
+              <b-col lg="6" md="12" class="mb-4 mb-lg-0">
+                <div class="chart-card">
+                  <div class="chart-card__header">
+                    <span class="chart-card__title">
+                      {{ filtroStock === 'enStock'
+                          ? 'Distribución de Tintas en Stock'
+                          : 'Distribución de Tintas Consumidas' }}
+                    </span>
+                    <!-- Filtro de tipo solo en enStock con >1 tipo -->
+                    <div
+                      v-if="filtroStock === 'enStock' && opcionesTipoTinta.length > 1"
+                      class="chart-card__filter"
+                    >
+                      <span class="chart-card__filter-label">Tipo:</span>
+                      <div class="cc-pills">
+                        <button
+                          v-for="opt in opcionesTipoTinta"
+                          :key="opt.value"
+                          :class="['cc-pill cc-pill--info', { 'cc-pill--active': tipoTintaSeleccionada === opt.value }]"
+                          @click="onTipoTintaChange(opt.value)"
+                        >{{ opt.text }}</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="chart-card__body">
+                    <charts-PieChart
+                      v-if="chartData.tintas && chartData.tintas.values && chartData.tintas.values.some(v => v > 0)"
+                      :values="chartData.tintas.values"
+                      :labels="chartData.tintas.labels"
+                      :colors="chartData.tintas.colors"
+                      title=""
+                    />
+                    <b-alert v-else show variant="light" class="m-3 text-center text-muted">
+                      Sin datos de tintas para los filtros seleccionados.
+                    </b-alert>
+                  </div>
+                </div>
+              </b-col>
+
+              <!-- Gráfico de Papel -->
+              <b-col lg="6" md="12" class="mb-4 mb-lg-0">
+                <div class="chart-card">
+                  <div class="chart-card__header">
+                    <span class="chart-card__title">
+                      {{ filtroStock === 'enStock' ? 'Stock de Papel Disponible' : 'Consumo de Papel Semanal' }}
+                      <span v-if="rangoFechasLabel !== '30d'" class="chart-card__badge">{{ rangoFechasLabel }}</span>
+                    </span>
+                  </div>
+                  <div class="chart-card__body">
+                    <charts-LineChart
+                      v-if="chartData.papel && chartData.papel.length > 0"
+                      :series-data="chartData.papel.map(i => i.value)"
+                      :categories="chartData.papel.map(i => i.label)"
+                      title=""
+                      unit="m"
+                    />
+                    <b-alert v-else show variant="light" class="m-3 text-center text-muted">
+                      Sin datos de papel para los filtros seleccionados.
+                    </b-alert>
+                  </div>
+                </div>
+              </b-col>
+            </b-row>
+
+            <!-- Spinner solo en la primera carga (cuando no hay chartData todavía) -->
+            <b-row v-if="loading && !chartData" class="justify-content-center py-5">
+              <b-col cols="auto" class="text-center">
+                <b-spinner variant="primary" style="width:2.5rem;height:2.5rem" />
+                <div class="mt-2 text-muted small">Cargando gráficos...</div>
+              </b-col>
+            </b-row>
+          </div>
+
+          <!-- ════ TABLA DE DATOS ════ -->
+          <b-row v-if="items.length > 0">
+            <b-col>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="text-info m-0">{{ items.length }} Ítems encontrados</h3>
+                <b-form-input
+                  v-model="filter"
+                  placeholder="Buscar en resultados..."
+                  size="sm"
+                  class="w-25"
+                />
+              </div>
+              <b-table
+                responsive
+                small
+                striped
+                hover
+                :items="items"
+                :fields="fields"
+                :filter="filter"
+                v-model="itemsFiltrados"
+              >
+                <template #cell(cantidad)="data">
+                  {{ displayCantidad(data.item) }}
+                </template>
+                <template #cell(costo)="data">
+                  ${{ data.value }}
+                </template>
+              </b-table>
+            </b-col>
+          </b-row>
+          <b-row v-else-if="!loading">
+            <b-col>
+              <b-alert show variant="info">No se encontraron registros para el departamento seleccionado.</b-alert>
+            </b-col>
+          </b-row>
+
+        </b-container>
       </div>
       <div v-else>
         <accessDenied />
@@ -252,12 +338,12 @@ export default {
       ],
       limiteGrafico: 5,
       opcionesLimite: [
-        { text: "Top 5", value: 5 },
+        { text: "Top 5",  value: 5 },
         { text: "Top 10", value: 10 },
         { text: "Top 20", value: 20 },
-        { text: "Todos", value: 0 }
+        { text: "Todos",  value: 0 }
       ],
-      // Filtro de tipo de tinta (poblado dinámicamente desde la API)
+      // Filtro de tipo de tinta — poblado dinámicamente desde la API
       tipoTintaSeleccionada: 'Todas',
       opcionesTipoTinta: [{ text: 'Todas', value: 'Todas' }],
       chartData: null
@@ -272,21 +358,11 @@ export default {
       return '30d';
     },
     /**
-     * Decide si usar ColumnChart (vertical) o BarChart (horizontal).
-     * - Top 5 (limiteGrafico=5) y Top 10 (limiteGrafico=10): columnas verticales, caben bien.
-     * - Top 20 (limiteGrafico=20) y Todos (limiteGrafico=0): barras horizontales, etiquetas siempre legibles.
+     * ≤ 10 ítems → ColumnChart vertical (etiquetas caben bien)
+     * > 10 ítems → BarChart horizontal (etiquetas en eje Y, siempre legibles)
      */
     usarColumnChart() {
       return this.limiteGrafico > 0 && this.limiteGrafico <= 10;
-    },
-    tituloGraficoMateriales() {
-      const base = this.filtroStock === 'enStock'
-        ? 'Telas e Insumos Disponibles (Stock)'
-        : `Telas e Insumos Más Usados (${this.rangoFechasLabel})`;
-      const cantidad = this.chartData && this.chartData.materiales
-        ? ` — ${this.chartData.materiales.length} registros`
-        : '';
-      return base + cantidad;
     },
     datosParaElReporte() {
       return {
@@ -298,13 +374,6 @@ export default {
   },
   methods: {
     async loadReport() {
-      console.log("loadReport calling API with params:", {
-        departamento: this.departamentoSeleccionado,
-        filtroStock: this.filtroStock,
-        fechaDesde: this.fechaDesde,
-        fechaHasta: this.fechaHasta,
-        limiteGrafico: this.limiteGrafico
-      });
       this.loading = true;
       try {
         const res = await this.$axios.get(`${this.$config.API}/inventario/reportes/general`, {
@@ -328,8 +397,8 @@ export default {
             }
             return field;
           });
-          // Calcular chartData.materiales localmente en el frontend para evitar las limitaciones
-          // y el límite de 5 harcodeado del servidor de API remoto de producción (api.nineteengreen.com)
+
+          // Calcular materiales localmente para respetar el límite y la agrupación
           let materialsList = [];
           if (this.items && this.items.length > 0) {
             const grouped = {};
@@ -350,7 +419,7 @@ export default {
               } else {
                 value = parseFloat(item.cantidad || 0);
               }
-              
+
               if (value > 0) {
                 if (!grouped[key]) {
                   grouped[key] = {
@@ -362,7 +431,7 @@ export default {
                 grouped[key].value += value;
               }
             });
-            
+
             materialsList = Object.values(grouped).map(g => {
               g.value = parseFloat(g.value.toFixed(2));
               return g;
@@ -374,28 +443,20 @@ export default {
           }
 
           if (res.data.chartData) {
-            this.chartData = {
-              ...res.data.chartData,
-              materiales: materialsList
-            };
+            this.chartData = { ...res.data.chartData, materiales: materialsList };
           } else {
-            this.chartData = {
-              materiales: materialsList,
-              tintas: null,
-              papel: []
-            };
+            this.chartData = { materiales: materialsList, tintas: null, papel: [] };
           }
-          
-          // Actualizar opciones de departamentos dinámicamente
+
+          // Departamentos disponibles dinámicamente
           if (res.data.availableDepartments) {
-            const dynamicOptions = [
+            this.opcionesDepartamentos = [
               { text: "Todas", value: "Todas" },
               ...res.data.availableDepartments.map(dep => ({ text: dep, value: dep }))
             ];
-            this.opcionesDepartamentos = dynamicOptions;
           }
 
-          // Actualizar opciones de tipo de tinta dinámicamente
+          // Tipos de tinta disponibles dinámicamente
           if (res.data.availableTintaTypes && res.data.availableTintaTypes.length > 0) {
             this.opcionesTipoTinta = [
               { text: 'Todas', value: 'Todas' },
@@ -422,6 +483,25 @@ export default {
         this.loading = false;
       }
     },
+
+    /** Cambia el límite del gráfico de materiales y recarga */
+    onLimiteChange(valor) {
+      this.limiteGrafico = valor;
+      this.loadReport();
+    },
+
+    /** Cambia el tipo de tinta en el gráfico de tintas y recarga */
+    onTipoTintaChange(valor) {
+      this.tipoTintaSeleccionada = valor;
+      this.loadReport();
+    },
+
+    /** Al cambiar entre Stock/Consumido: resetea el filtro de tipo tinta */
+    onFiltroStockChange() {
+      this.tipoTintaSeleccionada = 'Todas';
+      this.loadReport();
+    },
+
     displayCantidad(item) {
       const cant = parseFloat(item.cantidad || 0);
       const cantIni = parseFloat(item.cantidad_inicial) || cant || 0;
@@ -431,26 +511,21 @@ export default {
       }
       return cant.toFixed(2);
     },
+
     async fetchChartsData() {
-      // Método conservado por compatibilidad pero ya no se usa
-      // Los datos de charts se obtienen desde loadReport() directamente
+      // Conservado por compatibilidad — no se usa directamente
     },
+
     resetFechas() {
       this.fechaDesde = null;
       this.fechaHasta = null;
       this.loadReport();
     },
-    onFiltroStockChange() {
-      // Al cambiar disponibilidad, resetear el filtro de tipo de tinta para evitar estado inconsistente
-      this.tipoTintaSeleccionada = 'Todas';
-      this.loadReport();
-    },
+
     imprimirReporte() {
       if (!this.$refs.reporteParaImprimir) return;
-      
       const printContent = this.$refs.reporteParaImprimir.$el.innerHTML;
       const reportTitle = `Reporte de Inventario - ${this.departamentoSeleccionado}`;
-
       const customStyles = `
         <style>
           @page { size: landscape; margin: 10mm; }
@@ -464,7 +539,6 @@ export default {
           .report-info p { margin: 2px 0; }
         </style>
       `;
-
       PrintService.imprimir(reportTitle, customStyles + printContent);
     }
   },
@@ -473,3 +547,122 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* ═══ BARRA DE CONTROL SUPERIOR ════════════════════════════════ */
+.report-control-bar {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+.rcb-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.rcb-divider {
+  width: 1px;
+  height: 32px;
+  background: #dee2e6;
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+
+/* ═══ TRANSICIÓN DE CARGA ════════════════════════════════════════
+   Los gráficos se atenúan levemente durante la carga —
+   el layout NUNCA desaparece, evitando los saltos visuales.
+   ═══════════════════════════════════════════════════════════════ */
+.rpt-charts {
+  transition: opacity 0.25s ease;
+}
+.rpt-charts--loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ═══ CHART CARD ════════════════════════════════════════════════ */
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  height: 100%;
+}
+.chart-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+.chart-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-card__badge {
+  display: inline-block;
+  background: #e9ecef;
+  color: #6c757d;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.chart-card__filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-card__filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c757d;
+  white-space: nowrap;
+}
+.chart-card__body {
+  padding: 8px 0;
+}
+
+/* ═══ PILLS DE FILTRO (alternativa a radio buttons) ════════════ */
+.cc-pills {
+  display: flex;
+  gap: 4px;
+}
+.cc-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid #ced4da;
+  background: transparent;
+  color: #495057;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.cc-pill:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+.cc-pill--active {
+  background: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+.cc-pill--info.cc-pill--active {
+  background: #17a2b8;
+  border-color: #17a2b8;
+  color: #fff;
+}
+</style>
