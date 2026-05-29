@@ -58,6 +58,25 @@
           </b-col>
         </b-row>
 
+        <!-- Resumen y Gráficos -->
+        <b-row class="mb-4">
+          <b-col cols="12">
+            <ReporteCostosKpis :totals="reportTotals" />
+          </b-col>
+
+          <b-col md="6" lg="5" class="mt-3">
+            <ReporteCostosGraficoCostos :totals="reportTotals" :selectedExpenses="selectedExpenses" />
+          </b-col>
+
+          <b-col md="6" lg="7" class="mt-3">
+            <ReporteCostosGraficoBarras :reportData="filteredReportData" />
+          </b-col>
+
+          <b-col cols="12" class="mt-4">
+            <ReporteCostosGraficoEficiencia :reportData="filteredReportData" />
+          </b-col>
+        </b-row>
+
         <!-- Tabla de Resultados -->
         <b-row>
           <b-col>
@@ -298,6 +317,10 @@ import ReporteCostosProduccionInsumosEficiencia from "./ReporteCostosProduccionI
 import ReporteCostosProduccionRemanentes from "./ReporteCostosProduccionRemanentes.vue";
 import ReporteCostosProduccionMantenimiento from "./ReporteCostosProduccionMantenimiento.vue";
 import ReporteCostosProduccionGastos from "./ReporteCostosProduccionGastos.vue";
+import ReporteCostosKpis from "./ReporteCostosKpis.vue";
+import ReporteCostosGraficoCostos from "./ReporteCostosGraficoCostos.vue";
+import ReporteCostosGraficoBarras from "./ReporteCostosGraficoBarras.vue";
+import ReporteCostosGraficoEficiencia from "./ReporteCostosGraficoEficiencia.vue";
 
 import mixintime from "~/mixins/mixin-time.js";
 import { mapState } from "vuex";
@@ -313,6 +336,11 @@ export default {
     ReporteCostosProduccionRemanentes,
     ReporteCostosProduccionMantenimiento,
     ReporteCostosProduccionGastos,
+    // NEW
+    ReporteCostosKpis,
+    ReporteCostosGraficoCostos,
+    ReporteCostosGraficoBarras,
+    ReporteCostosGraficoEficiencia,
   },
   data() {
     return {
@@ -676,6 +704,7 @@ export default {
 
         this.reportData = processedData;
         this.updateUnifiedColumns(this.reportData);
+        this.filteredReportData = [...this.reportData];
       } catch (error) {
         console.error("Error al obtener el reporte:", error);
         this.$bvToast.toast("No se pudo cargar el reporte.", {
