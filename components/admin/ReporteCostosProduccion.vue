@@ -71,10 +71,6 @@
           <b-col md="6" lg="7" class="mt-3">
             <ReporteCostosGraficoBarras :reportData="filteredReportData" />
           </b-col>
-
-          <b-col cols="12" class="mt-4">
-            <ReporteCostosGraficoEficiencia :reportData="filteredReportData" />
-          </b-col>
         </b-row>
 
         <!-- Tabla de Resultados -->
@@ -174,13 +170,7 @@
                 />
               </template>
 
-              <template #cell(eficiencia_insumos)="data">
-                <reporte-costos-produccion-insumos-eficiencia
-                  :id_orden="data.item.id_orden"
-                  :valor="data.item.eficiencia_insumos"
-                  :insumos_detalles="getInsumosDetalles()"
-                />
-              </template>
+
               <template #cell(tiempo_de_produccion)="data">
                 {{ data.item.tiempo_de_produccion.toFixed(2) }} hrs
               </template>
@@ -235,9 +225,7 @@
               <template #foot(material_consumido)>
                 <strong>{{ reportTotals.material_consumido.toFixed(2) }} m</strong>
               </template>
-              <template #foot(eficiencia_insumos)>
-                <strong>{{ reportTotals.eficiencia_insumos.toFixed(2) }}%</strong>
-              </template>
+
               <template #foot(reposiciones)>
                 <strong>{{ reportTotals.reposiciones }}</strong>
               </template>
@@ -320,7 +308,7 @@ import ReporteCostosProduccionGastos from "./ReporteCostosProduccionGastos.vue";
 import ReporteCostosKpis from "./ReporteCostosKpis.vue";
 import ReporteCostosGraficoCostos from "./ReporteCostosGraficoCostos.vue";
 import ReporteCostosGraficoBarras from "./ReporteCostosGraficoBarras.vue";
-import ReporteCostosGraficoEficiencia from "./ReporteCostosGraficoEficiencia.vue";
+
 
 import mixintime from "~/mixins/mixin-time.js";
 import { mapState } from "vuex";
@@ -340,7 +328,7 @@ export default {
     ReporteCostosKpis,
     ReporteCostosGraficoCostos,
     ReporteCostosGraficoBarras,
-    ReporteCostosGraficoEficiencia,
+
   },
   data() {
     return {
@@ -352,8 +340,7 @@ export default {
       filteredReportData: [],
       costosOperativos: {},
       tintasResumen: [],
-      insumosResumen: [],
-      insumosDetalles: [],
+
       tableFilter: "",
       filters: {
         inicio: null,
@@ -399,7 +386,6 @@ export default {
       }
       
       fields.push(
-        { key: "eficiencia_insumos", label: "Eficiencia Insumos (%)", sortable: true },
         { key: "reposiciones", label: "Reposiciones", sortable: true },
         { key: "tiempo_de_produccion", label: "T. Producción", sortable: true },
         { key: "pago_total", label: "Venta", sortable: true },
@@ -490,12 +476,6 @@ export default {
         
         totals.reposiciones += Number(item.reposiciones || 0);
         totals.tiempo_de_produccion += Number(item.tiempo_de_produccion || 0);
-
-        const effVal = parseFloat(item.eficiencia_insumos);
-        if (!isNaN(effVal) && effVal > 0) {
-          totals.eficiencia_insumos += effVal;
-          totals.eficiencia_count++;
-        }
       });
 
       totals.costo_insumos_total = this.roundToTwoDecimals(totals.costo_insumos_total);
@@ -504,9 +484,6 @@ export default {
       totals.costo_total = this.roundToTwoDecimals(totals.costo_total);
       totals.ganancia = this.roundToTwoDecimals(totals.ganancia);
 
-      if (totals.eficiencia_count > 0) {
-        totals.eficiencia_insumos = this.roundToTwoDecimals(totals.eficiencia_insumos / totals.eficiencia_count);
-      }
       return totals;
     },
   },
@@ -530,9 +507,7 @@ export default {
       return Math.round((Number(value) || 0) * 100) / 100;
     },
 
-    getInsumosDetalles() {
-      return this.insumosDetalles || [];
-    },
+
 
     getHorarioLaboral() {
       const horarioRaw = this.$store.state.login.dataEmpresa.horario_laboral;
@@ -545,7 +520,6 @@ export default {
     onFiltered(filteredItems) {
       this.filteredReportData = filteredItems;
       this.combineReportDataWithTintas(filteredItems);
-      this.combineReportDataWithInsumos(filteredItems);
       this.updateUnifiedColumns(filteredItems);
     },
 
@@ -613,26 +587,7 @@ export default {
       }
     },
 
-    combineReportDataWithInsumos(dataToProcess = null) {
-      const data = dataToProcess || this.reportData;
-      const insumosMap = {};
-      this.insumosResumen.forEach(insumo => {
-        insumosMap[insumo.id_orden] = insumo;
-      });
 
-      data.forEach(item => {
-        const insumoData = insumosMap[item.id_orden];
-        if (insumoData) {
-          item.eficiencia_insumos = insumoData.eficiencia || 0;
-        } else {
-          item.eficiencia_insumos = 0;
-        }
-      });
-
-      if (!dataToProcess) {
-        this.filteredReportData = [...this.reportData];
-      }
-    },
 
     setDefaultDates() {
       const today = new Date();
@@ -665,14 +620,10 @@ export default {
         this.horaEmpleadosTiempos = data.tareas_data || [];
         this.salariosEmpleados = data.salarios_data || [];
         this.tintasResumen = data.tintas_resumen || [];
-        this.insumosResumen = data.insumos_resumen || [];
-        this.insumosDetalles = data.insumos_detalles || [];
         this.costosOperativos = data.costos_operativos || {};
 
         const tintasMap = {};
         this.tintasResumen.forEach(t => tintasMap[t.id_orden] = t);
-        const insumosMap = {};
-        this.insumosResumen.forEach(i => insumosMap[i.id_orden] = i);
 
         const horarioRaw = this.$store.state.login.dataEmpresa.horario_laboral;
         const horarioLaboral = typeof horarioRaw === 'string' ? JSON.parse(horarioRaw || '{}') : (horarioRaw || {});
@@ -689,7 +640,6 @@ export default {
 
           const tinta_consumo = tintasMap[id]?.total_tinta_consumo_ml || 0;
           const tinta_costo = tintasMap[id]?.total_tinta_costo || 0;
-          const eficiencia = insumosMap[id]?.eficiencia || 0;
           const insumos_costo = Number(item.costos_de_insumos || 0);
 
           return {
@@ -697,7 +647,6 @@ export default {
             salario_invertido,
             total_tinta_consumo_ml: tinta_consumo,
             total_tinta_costo: tinta_costo,
-            eficiencia_insumos: eficiencia,
             costos_de_insumos: insumos_costo
           };
         });
