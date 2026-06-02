@@ -190,21 +190,22 @@
                         </template>
 
                         <template #cell(total_orden)="data">
-                          {{ formatNumber(data.item.total_orden) }}
+                          {{ data.item.esDuplicado ? '-' : formatNumber(data.item.total_orden) }}
                         </template>
 
                         <template #cell(total_descuento_valor)="data">
-                          {{ formatNumber(data.item.total_descuento_valor) }}
+                          {{ data.item.esDuplicado ? '-' : formatNumber(data.item.total_descuento_valor) }}
                         </template>
 
                         <template #cell(total_neto)="data">
-                          <b>{{ formatNumber(data.item.total_neto) }}</b>
+                          <b>{{ data.item.esDuplicado ? '-' : formatNumber(data.item.total_neto) }}</b>
                         </template>
 
                         <template #cell(saldo_pendiente)="data">
-                          <span :class="parseFloat(data.item.saldo_pendiente) > 0 ? 'text-danger font-weight-bold' : 'text-success'">
+                          <span v-if="!data.item.esDuplicado" :class="parseFloat(data.item.saldo_pendiente) > 0 ? 'text-danger font-weight-bold' : 'text-success'">
                             {{ formatNumber(data.item.saldo_pendiente) }}
                           </span>
+                          <span v-else>-</span>
                         </template>
 
                         <!-- FOOTER TOTALS -->
@@ -359,61 +360,65 @@ export default {
     ...mapState("login", ["dataUser", "access"]),
     pagosFiltrados() {
       const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
-      if (this.selectedCategory === 'Todas' || !this.selectedCategory) {
-        return pagosSeguro.map(pago => {
+      const ordenesProcesadas = new Set();
+
+      return pagosSeguro
+        .filter(pago => {
+          if (this.selectedCategory === 'Todas' || !this.selectedCategory) {
+            return true;
+          }
+          return pago.product_categories && Array.isArray(pago.product_categories) && pago.product_categories.some(cat => cat && cat.category_name === this.selectedCategory);
+        })
+        .map(pago => {
           const montoLocal = parseFloat(pago.monto) || 0;
           const tasaVal = parseFloat(pago.tasa) || 1;
-          const montoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoLocal / tasaVal) : montoLocal;
-          const totalDescuento = (parseFloat(pago.total_descuento) || 0) + (parseFloat(pago.total_nota_credito) || 0);
+          
+          let ratio = 1;
+          let montoAjustadoLocal = montoLocal;
+          let montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoLocal / tasaVal) : montoLocal;
+
+          if (this.selectedCategory && this.selectedCategory !== 'Todas') {
+            const categoryData = pago.product_categories.find(cat => cat && cat.category_name === this.selectedCategory);
+            if (categoryData && categoryData.category_total && pago.total_orden) {
+              const totalCategoria = parseFloat(categoryData.category_total) || 0;
+              const totalOrden = parseFloat(pago.total_orden) || 1;
+              ratio = totalCategoria / totalOrden;
+              montoAjustadoLocal = ratio * montoLocal;
+              montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaVal) : montoAjustadoLocal;
+            }
+          }
+
+          const ordenId = pago.orden;
+          const yaProcesada = ordenesProcesadas.has(ordenId);
+          ordenesProcesadas.add(ordenId);
+
+          const totalDescuentoBase = (parseFloat(pago.total_descuento) || 0) + (parseFloat(pago.total_nota_credito) || 0);
+          const totalOrdenBase = parseFloat(pago.total_orden) || 0;
           const totalAbonoBase = parseFloat(pago.total_abonos_base) || 0;
-          const totalOrden = parseFloat(pago.total_orden) || 0;
-          const totalNeto = totalOrden - totalDescuento;
-          const saldoPendiente = totalNeto - totalAbonoBase;
+
+          // Scaled versions (proportional to category if filtered)
+          const totalOrdenScaled = ratio * totalOrdenBase;
+          const totalDescuentoScaled = ratio * totalDescuentoBase;
+          const totalNetoScaled = totalOrdenScaled - totalDescuentoScaled;
+          const saldoPendienteScaled = totalNetoScaled - (ratio * totalAbonoBase);
+
+          // Zero out duplicate values for displaying/summing order-level fields
+          const total_orden = yaProcesada ? 0 : totalOrdenScaled;
+          const total_descuento_valor = yaProcesada ? 0 : totalDescuentoScaled;
+          const total_neto = yaProcesada ? 0 : totalNetoScaled;
+          const saldo_pendiente = yaProcesada ? 0 : (saldoPendienteScaled > 0.01 ? saldoPendienteScaled : 0);
 
           return {
             ...pago,
-            montoAjustadoLocal: montoLocal,
-            montoAjustadoUsd: montoUsd,
-            total_descuento_valor: totalDescuento,
-            total_neto: totalNeto,
-            saldo_pendiente: saldoPendiente > 0.01 ? saldoPendiente : 0
+            montoAjustadoLocal,
+            montoAjustadoUsd,
+            total_orden,
+            total_descuento_valor,
+            total_neto,
+            saldo_pendiente: saldo_pendiente,
+            esDuplicado: yaProcesada
           };
         });
-      }
-      return pagosSeguro.filter(pago => 
-        pago.product_categories && Array.isArray(pago.product_categories) && pago.product_categories.some(cat => cat && cat.category_name === this.selectedCategory)
-      ).map(pago => {
-        let montoAjustadoLocal = 0;
-        let montoAjustadoUsd = 0;
-        const montoBase = parseFloat(pago.monto) || 0;
-        const tasaBase = parseFloat(pago.tasa) || 1;
-        
-        const categoryData = pago.product_categories.find(cat => cat && cat.category_name === this.selectedCategory);
-        if (categoryData && categoryData.category_total && pago.total_orden) {
-             const totalCategoria = parseFloat(categoryData.category_total) || 0;
-             const totalOrden = parseFloat(pago.total_orden) || 1;
-             
-             montoAjustadoLocal = (totalCategoria / totalOrden) * montoBase;
-             montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaBase) : montoAjustadoLocal;
-        } else {
-             montoAjustadoLocal = montoBase;
-             montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaBase) : montoAjustadoLocal;
-        }
-        const totalDescuento = (parseFloat(pago.total_descuento) || 0) + (parseFloat(pago.total_nota_credito) || 0);
-        const totalAbonoBase = parseFloat(pago.total_abonos_base) || 0;
-        const totalOrden = parseFloat(pago.total_orden) || 0;
-        const totalNeto = totalOrden - totalDescuento;
-        const saldoPendiente = totalNeto - totalAbonoBase;
-
-        return {
-          ...pago,
-          montoAjustadoLocal,
-          montoAjustadoUsd,
-          total_descuento_valor: totalDescuento,
-          total_neto: totalNeto,
-          saldo_pendiente: saldoPendiente > 0.01 ? saldoPendiente : 0
-        };
-      });
     },
     totales() {
       const totales = {
@@ -430,26 +435,21 @@ export default {
       };
 
       const pagosSeguro = Array.isArray(this.pagosFiltrados) ? this.pagosFiltrados : [];
-      const ordenesProcesadas = new Set();
 
       pagosSeguro.forEach((item) => {
-        const { orden, metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_neto, saldo_pendiente } = item;
+        const { metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_neto, saldo_pendiente } = item;
         const montoUsd = parseFloat(montoAjustadoUsd) || 0;
 
         totales.totalGeneral += montoUsd;
         
-        // Sumamos pagos siempre (son individuales)
         totales.sumas.monto += parseFloat(montoAjustadoLocal) || 0;
         totales.sumas.usd += montoUsd;
 
-        // Sumamos métricas de orden SOLO una vez por orden ID
-        if (!ordenesProcesadas.has(orden)) {
-          totales.sumas.total_orden += parseFloat(total_orden) || 0;
-          totales.sumas.descuentos += parseFloat(total_descuento_valor) || 0;
-          totales.sumas.neto += parseFloat(total_neto) || 0;
-          totales.sumas.saldo += parseFloat(saldo_pendiente) || 0;
-          ordenesProcesadas.add(orden);
-        }
+        // Sumamos métricas de orden directly (duplicates are already 0 in pagosFiltrados)
+        totales.sumas.total_orden += parseFloat(total_orden) || 0;
+        totales.sumas.descuentos += parseFloat(total_descuento_valor) || 0;
+        totales.sumas.neto += parseFloat(total_neto) || 0;
+        totales.sumas.saldo += parseFloat(saldo_pendiente) || 0;
 
         if (!totales.porMetodoPago[metodo_pago]) {
           totales.porMetodoPago[metodo_pago] = 0;
