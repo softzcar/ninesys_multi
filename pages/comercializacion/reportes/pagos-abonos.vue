@@ -122,16 +122,6 @@
                       :show="overlay"
                       spinner-small
                     >
-                      <b-pagination
-                        v-model="currentPage"
-                        :total-rows="totalRows"
-                        :per-page="perPage"
-                      ></b-pagination>
-
-                      <p class="mt-3">
-                        Página actual: {{ currentPage }}
-                      </p>
-
                       <h4
                         v-for="pago in totales.porMetodoPago"
                         :key="pago.metodoPago"
@@ -159,8 +149,6 @@
                         <b-table
                           sort-icon-left
                           foot-clone
-                          :per-page="perPage"
-                          :current-page="currentPage"
                           ref="table"
                           responsive
                           small
