@@ -122,29 +122,96 @@
                       :show="overlay"
                       spinner-small
                     >
-                      <h4
-                        v-for="pago in totales.porMetodoPago"
-                        :key="pago.metodoPago"
-                        class="text-right"
-                      >
-                        {{ pago.metodoPago }}: {{ pago.total }}
-                      </h4>
+                      <!-- RESUMEN FINANCIERO EMBELLECIDO -->
+                      <b-row class="mb-4">
+                        <!-- Columna de KPIs -->
+                        <b-col lg="8" md="12">
+                          <b-row>
+                            <!-- Total Bruto -->
+                            <b-col sm="4" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #f8fafc; border-color: #cbd5e1 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <b-icon icon="calculator" class="text-muted mb-2" font-scale="1.5"></b-icon>
+                                <div class="text-muted text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Bruto</div>
+                                <div class="h4 font-weight-bold text-dark mt-1 mb-0">
+                                  {{ formatNumber(totales.sumas.total_orden) }} $
+                                </div>
+                              </div>
+                            </b-col>
 
-                      <h3 class="text-right mt-2">
-                        Total Bruto: {{ formatNumber(totales.sumas.total_orden) }}
-                      </h3>
+                            <!-- Total Descuentos -->
+                            <b-col sm="4" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #fffbeb; border-color: #fde68a !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <b-icon icon="percent" class="text-warning mb-2" font-scale="1.5"></b-icon>
+                                <div class="text-warning text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Descuentos</div>
+                                <div class="h4 font-weight-bold text-warning mt-1 mb-0">
+                                  {{ formatNumber(totales.sumas.descuentos) }} $
+                                </div>
+                              </div>
+                            </b-col>
 
-                      <h3 class="text-right">
-                        Total Descuentos: {{ formatNumber(totales.sumas.descuentos) }}
-                      </h3>
+                            <!-- Total Neto -->
+                            <b-col sm="4" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <b-icon icon="cash" class="text-success mb-2" font-scale="1.5"></b-icon>
+                                <div class="text-success text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Neto</div>
+                                <div class="h4 font-weight-bold text-success mt-1 mb-0">
+                                  {{ formatNumber(totales.sumas.neto) }} $
+                                </div>
+                              </div>
+                            </b-col>
+                          </b-row>
 
-                      <h3 class="text-right">
-                        Total Neto: {{ formatNumber(totales.sumas.neto) }}
-                      </h3>
+                          <b-row>
+                            <!-- Total Pagado / Abonos -->
+                            <b-col sm="6" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #eff6ff; border-color: #bfdbfe !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                <b-icon icon="check2-circle" class="text-primary mb-2" font-scale="1.8"></b-icon>
+                                <div class="text-primary text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">Total Pagado / Abonos</div>
+                                <div class="h2 font-weight-bold text-primary mt-1 mb-0">
+                                  {{ formatNumber(totales.totalGeneral) }} $
+                                </div>
+                              </div>
+                            </b-col>
 
-                      <h3 class="text-right mt-2 mb-4">
-                        TOTAL PAGOS: {{ formatNumber(totales.totalGeneral) }}
-                      </h3>
+                            <!-- Saldo Pendiente Total -->
+                            <b-col sm="6" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #fef2f2; border-color: #fecaca !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                <b-icon icon="exclamation-circle" class="text-danger mb-2" font-scale="1.8"></b-icon>
+                                <div class="text-danger text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">Saldo Pendiente Total</div>
+                                <div class="h2 font-weight-bold text-danger mt-1 mb-0">
+                                  {{ formatNumber(totales.sumas.saldo) }} $
+                                </div>
+                              </div>
+                            </b-col>
+                          </b-row>
+                        </b-col>
+
+                        <!-- Desglose por Método de Pago -->
+                        <b-col lg="4" md="12" class="mb-3">
+                          <div class="h-100 p-3 rounded border" style="background-color: #ffffff; border-color: #cbd5e1 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                            <div class="d-flex align-items-center mb-3">
+                              <b-icon icon="wallet2" class="text-muted mr-2" font-scale="1.2"></b-icon>
+                              <span class="text-uppercase font-weight-bold text-secondary" style="font-size: 0.85rem; letter-spacing: 0.05em;">Métodos de Pago</span>
+                            </div>
+                            <div v-if="totales.porMetodoPago && totales.porMetodoPago.length">
+                              <div 
+                                v-for="pago in totales.porMetodoPago" 
+                                :key="pago.metodoPago"
+                                class="d-flex justify-content-between align-items-center mb-2 pb-2"
+                                style="border-bottom: 1px dashed #e2e8f0;"
+                              >
+                                <span class="text-dark font-weight-bold" style="font-size: 0.9rem;">{{ pago.metodoPago }}</span>
+                                <span class="px-2 py-1 rounded font-weight-bold" style="font-size: 0.9rem; background-color: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;">
+                                  {{ formatNumber(pago.total) }} $
+                                </span>
+                              </div>
+                            </div>
+                            <div v-else class="text-muted text-center py-4 small">
+                              No hay pagos registrados.
+                            </div>
+                          </div>
+                        </b-col>
+                      </b-row>
 
                         <b-table
                           sort-icon-left
