@@ -85,6 +85,13 @@
               />
             </div>
 
+            <div v-else-if="activeSection === 'timezone'">
+              <config-timezone-form 
+                :initial-data="timezoneData" 
+                @saved="loadInitialData"
+              />
+            </div>
+
             <div v-else-if="activeSection === 'gastos'">
               <config-gastos-form 
                 :initial-data="gastosData" 
@@ -122,6 +129,7 @@ import ConfiguracionWizard from '~/components/empresa/configuracionWizard.vue'
 import ConfigAdminForm from '~/components/empresa/ConfigAdminForm.vue'
 import ConfigEmpresaForm from '~/components/empresa/ConfigEmpresaForm.vue'
 import ConfigPersonalizacionForm from '~/components/empresa/ConfigPersonalizacionForm.vue'
+import ConfigTimezoneForm from '~/components/empresa/ConfigTimezoneForm.vue'
 import ConfigHorarioForm from '~/components/empresa/ConfigHorarioForm.vue'
 import ConfigGastosForm from '~/components/empresa/ConfigGastosForm.vue'
 import ConfigMonedasForm from '~/components/empresa/ConfigMonedasForm.vue'
@@ -135,6 +143,7 @@ export default {
     ConfigAdminForm,
     ConfigEmpresaForm,
     ConfigPersonalizacionForm,
+    ConfigTimezoneForm,
     ConfigHorarioForm,
     ConfigGastosForm,
     ConfigMonedasForm,
@@ -167,11 +176,15 @@ export default {
       horarioData: {},
       monedasData: [],
       gastosData: [],
+      timezoneData: {
+        timezone: ""
+      },
       menuItems: [
         { id: 'admin', title: 'Datos del Administrador', icon: 'ti ti-user', description: 'Nombre, teléfono y cambio de contraseña.' },
         { id: 'empresa', title: 'Datos de la Empresa', icon: 'ti ti-home', description: 'Información legal, dirección y contacto.' },
         { id: 'monedas', title: 'Monedas', icon: 'ti ti-money', description: 'Configure las monedas activas en el sistema.' },
         { id: 'horario', title: 'Horario Laboral', icon: 'ti ti-alarm-clock', description: 'Defina los días y horas de operación.' },
+        { id: 'timezone', title: 'Zona Horaria', icon: 'ti ti-world', description: 'Configure la zona horaria de la empresa.' },
         { id: 'personalizacion', title: 'Personalización', icon: 'ti ti-palette', description: 'Opciones visuales y comportamiento del sistema.' },
         { id: 'gastos', title: 'Gastos Fijos', icon: 'ti ti-receipt', description: 'Registre sus costos operativos mensuales.' },
         { id: 'resumen', title: 'Resumen', icon: 'ti ti-check-box', description: 'Vista general de toda su configuración.' },
@@ -473,6 +486,7 @@ export default {
         if (companyData.tipos_de_monedas) this.monedasData = companyData.tipos_de_monedas;
         if (companyData.horario_laboral) this.horarioData = companyData.horario_laboral;
         if (companyData.gastos_fijos) this.gastosData = companyData.gastos_fijos;
+        this.timezoneData = { timezone: companyData.timezone || 'America/Caracas' };
       }
 
       if (personalizacionData) {

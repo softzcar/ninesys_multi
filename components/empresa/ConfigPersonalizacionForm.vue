@@ -61,15 +61,6 @@ export default {
   },
   methods: {
     formatSwitchLabel(key) {
-      const labelMap = {
-        'sys_mostrar_detalle_terminar_indicidual': 'Muestra el formulario de ingresar detalle de la terminación del item individual en el módulo de empleados al momento de terminar una tarea individual',
-        'sys_comision_de_costura': 'Define si a costura se le calcula comisión por el porcentaje en la tabla empleados o el porcentaje en la tabla productos'
-      };
-
-      if (labelMap[key]) {
-        return labelMap[key];
-      }
-
       let text = key.replace(/_/g, " ").replace("sys ", "");
       return text.charAt(0).toUpperCase() + text.slice(1);
     },

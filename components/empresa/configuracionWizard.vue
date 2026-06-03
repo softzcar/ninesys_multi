@@ -85,11 +85,19 @@
          </tab-content>
 
         <tab-content :title="getStepTitle('Personalización')" icon="ti ti-palette" :before-change="validatePersonalizacionStep">
-           <config-personalizacion-form
-            ref="personalizacionForm"
-            :initial-data="personalizacionData"
-            :show-save-button="false"
-           />
+          <div>
+            <config-personalizacion-form
+              ref="personalizacionForm"
+              :initial-data="personalizacionData"
+              :show-save-button="false"
+            />
+            <hr class="my-4" />
+            <config-timezone-form
+              ref="timezoneForm"
+              :initial-data="timezoneData"
+              :show-save-button="false"
+            />
+          </div>
          </tab-content>
 
         <tab-content :title="getStepTitle('Gastos Fijos')" icon="ti ti-receipt" :before-change="validateGastosStep">
@@ -150,9 +158,13 @@
             </b-row>
 
              <b-row>
-              <b-col>
+              <b-col md="6">
                 <h5 class="mt-2 mb-3">🎨 Personalización</h5>
                  <p>Opciones de visualización guardadas.</p>
+              </b-col>
+              <b-col md="6">
+                <h5 class="mt-2 mb-3">🌐 Zona Horaria</h5>
+                <p><strong>Configurada:</strong> {{ timezoneData.timezone || 'No definida (Caracas)' }}</p>
               </b-col>
             </b-row>
 
@@ -187,7 +199,11 @@ import HorarioLaboralEditor from "./HorarioLaboralEditor.vue";
 import GastosManager from "./GastosManager.vue";
 import ConfigAdminForm from "./ConfigAdminForm.vue";
 import ConfigEmpresaForm from "./ConfigEmpresaForm.vue";
+import ConfigMonedasForm from "./ConfigMonedasForm.vue";
+import ConfigHorarioForm from "./ConfigHorarioForm.vue";
+import ConfigGastosForm from "./ConfigGastosForm.vue";
 import ConfigPersonalizacionForm from "./ConfigPersonalizacionForm.vue";
+import ConfigTimezoneForm from "./ConfigTimezoneForm.vue";
 import phoneValidation from "~/mixins/phoneValidation.js";
 
 
@@ -201,7 +217,11 @@ export default {
     GastosManager,
     ConfigAdminForm,
     ConfigEmpresaForm,
+    ConfigMonedasForm,
+    ConfigHorarioForm,
+    ConfigGastosForm,
     ConfigPersonalizacionForm,
+    ConfigTimezoneForm
   },
   mixins: [phoneValidation],
 
@@ -236,14 +256,9 @@ export default {
         phoneNumber: "",
         email: "",
       },
-      personalizacionData: {
-        sys_mostrar_detalle_terminar_indicidual: false,
-        sys_mostrar_rollo_en_empleado_corte: false,
-        sys_mostrar_rollo_en_empleado_estampado: false,
-        sys_mostrar_insumo_en_empleado_costura: false,
-        sys_mostrar_insumo_en_empleado_limpieza: false,
-        sys_mostrar_insumo_en_empleado_revision: false,
-        sys_comision_de_costura: false,
+      personalizacionData: {},
+      timezoneData: {
+        timezone: ""
       },
       countryCodes: [
         { value: 'AF', text: '+93 (Afganistán)' },
@@ -505,28 +520,6 @@ export default {
         label: this.formatSwitchLabel(key)
       }));
     },
-    startIndex() {
-      if (!this.configuracionFaltante || this.configuracionFaltante.length === 0) {
-        return 0; // Empezar en el primer paso si no hay errores
-      }
-      const errorMap = {
-        "Teléfono del usuario": 1,
-        "Número de registro legal de la empresa": 2,
-        "Teléfono de la empresa": 2,
-        "Horario laboral": 4,
-      };
-      const stepIndexes = this.configuracionFaltante
-        .map(error => {
-            const foundKey = Object.keys(errorMap).find(key => error.trim().startsWith(key));
-            return foundKey ? errorMap[foundKey] : -1;
-        })
-        .filter(index => index !== -1);
-
-      if (stepIndexes.length > 0) {
-        return Math.min(...stepIndexes);
-      }
-      return 0;
-    },
     catagoriesSelect() {
       return this.$store.state.comerce.dataCategories.map((el) => ({
         value: el.id,
@@ -637,15 +630,6 @@ export default {
     },
 
     formatSwitchLabel(key) {
-      const labelMap = {
-        'sys_mostrar_detalle_terminar_indicidual': 'Muestra el formulario de ingresar detalle de la terminación del item individual en el módulo de empleados al momento de terminar una tarea individual',
-        'sys_comision_de_costura': 'Define si a costura se le calcula comisión por el porcentaje en la tabla empleados o el porcentaje en la tabla productos'
-      };
-
-      if (labelMap[key]) {
-        return labelMap[key];
-      }
-
       let text = key.replace(/_/g, " ").replace("sys ", "");
       return text.charAt(0).toUpperCase() + text.slice(1);
     },
@@ -736,7 +720,10 @@ export default {
     },
 
     async validatePersonalizacionStep() {
-      return await this.$refs.personalizacionForm.save();
+      const personalizacionSaved = await this.$refs.personalizacionForm.save();
+      if (!personalizacionSaved) return false;
+      const timezoneSaved = await this.$refs.timezoneForm.save();
+      return timezoneSaved;
     },
 
     async validateGastosStep() {
@@ -790,6 +777,7 @@ export default {
         this.empresaData.direccion = companyData.direccion || '';
         this.empresaData.email = companyData.email || '';
         this.empresaData.pais = companyData.pais || null;
+        this.timezoneData = { timezone: companyData.timezone || 'America/Caracas' };
         if (companyData.telefono) {
           this.parseAndSetPhoneNumber('empresa', companyData.telefono);
         }
@@ -806,13 +794,22 @@ export default {
         }
       }
 
-      // Cargar datos de personalización
+      // Cargar datos de personalización (se excluyen campos legacy de rollos/insumos/multiplicador)
       if (personalizacionData) {
-        const merged = {
-          sys_mostrar_detalle_terminar_indicidual: false,
-          ...personalizacionData
-        };
-        this.$set(this, 'personalizacionData', merged);
+        const LEGACY_FIELDS = [
+          'sys_mostrar_rollo_en_empleado_corte',
+          'sys_mostrar_rollo_en_empleado_estampado',
+          'sys_mostrar_insumo_en_empleado_costura',
+          'sys_mostrar_insumo_en_empleado_limpieza',
+          'sys_mostrar_insumo_en_empleado_revision',
+          'sys_mostrar_detalle_terminar_indicidual',
+          'sys_comision_de_costura',
+          'multiplicador_precio',
+        ];
+        const filtered = Object.fromEntries(
+          Object.entries(personalizacionData).filter(([k]) => !LEGACY_FIELDS.includes(k))
+        );
+        this.$set(this, 'personalizacionData', filtered);
         this.$forceUpdate();
       }
 

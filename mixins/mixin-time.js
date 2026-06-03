@@ -131,6 +131,25 @@ export default {
     },
 
     methods: {
+        obtenerAhoraEnTimezone(timezone) {
+            const tz = timezone || 'America/Caracas';
+            try {
+                const formatter = new Intl.DateTimeFormat('sv-SE', {
+                    timeZone: tz,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                const formattedStr = formatter.format(new Date()).replace(' ', 'T');
+                return new Date(formattedStr);
+            } catch (e) {
+                console.error("Error al formatear 'ahora' con timezone:", tz, e);
+                return new Date();
+            }
+        },
         calcularTiempoDeTrabajo() {
             try {
                 const resultados = this.calcularTiempoTrabajoOrdenes(this.ordenes, this.pausas, this.horarioLaboral);
@@ -146,13 +165,14 @@ export default {
         },
         calcularTiempoTrabajoOrdenes(ordenes, pausas, horarioLaboral) {
             const resultadosPorOrden = {};
-            const ahora = new Date();
+            const timezone = this.$store?.state?.login?.dataEmpresa?.timezone || 'America/Caracas';
+            const ahora = this.obtenerAhoraEnTimezone(timezone);
             const porcentajesEficienciaGlobal = [];
 
             ordenes.forEach(item => {
                 if (item.fecha_inicio) { // Procesar items con fecha de inicio
-                    const fechaInicio = new Date(item.fecha_inicio);
-                    const fechaFin = item.fecha_terminado ? new Date(item.fecha_terminado) : ahora;
+                    const fechaInicio = new Date(item.fecha_inicio.replace(' ', 'T'));
+                    const fechaFin = item.fecha_terminado ? new Date(item.fecha_terminado.replace(' ', 'T')) : ahora;
                     const tarea = { fecha_inicio: fechaInicio, fecha_fin: fechaFin };
                     const tiempoTrabajoEfectivoMs = this.calcularTiempoTrabajoIndividual(tarea, pausas, horarioLaboral);
                     const tiempoTrabajoEfectivoSegundos = Math.round(tiempoTrabajoEfectivoMs / 1000);
@@ -408,8 +428,8 @@ export default {
          * @returns {number} Horas laboradas reales en formato decimal (ej: 8.5 para 8 horas y 30 minutos)
          */
         calcularHorasLaboradasReales(fechaInicioStr, fechaTerminadoStr, horarioLaboral) {
-            const fechaInicio = new Date(fechaInicioStr);
-            const fechaTerminado = new Date(fechaTerminadoStr);
+            const fechaInicio = new Date(fechaInicioStr.replace(' ', 'T'));
+            const fechaTerminado = new Date(fechaTerminadoStr.replace(' ', 'T'));
 
             if (fechaInicio >= fechaTerminado) {
                 return 0; // Si la fecha de inicio es posterior o igual a la de terminado, no hay tiempo laborado

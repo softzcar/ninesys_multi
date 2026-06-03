@@ -503,6 +503,14 @@ export default {
           this.isLoading = false;
         }
       }
+    },
+    isParentLoading: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal === false) {
+          this.isLoading = false;
+        }
+      }
     }
   },
 

@@ -208,9 +208,11 @@ export default {
                     try { horarioLaboral = JSON.parse(horarioLaboral); } catch (e) { horarioLaboral = null; }
                 }
 
+                const timezone = this.$store.state.login.dataEmpresa?.timezone || 'America/Caracas';
+                const ahoraEmpresa = this.obtenerAhoraEnTimezone(timezone);
                 const pausasProcesadas = pausas.map(p => ({
-                    fecha_inicio: new Date(p.pausa_inicio),
-                    fecha_fin: p.pausa_fin ? new Date(p.pausa_fin) : new Date(),
+                    fecha_inicio: new Date(p.pausa_inicio.replace(' ', 'T')),
+                    fecha_fin: p.pausa_fin ? new Date(p.pausa_fin.replace(' ', 'T')) : ahoraEmpresa,
                 }));
 
                 let totalRealTerminadas = 0;

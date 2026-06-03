@@ -59,32 +59,6 @@ export default {
       ],
     };
   },
-  methods: {
-    addCurrency() {
-      if (this.newCurrency.moneda && this.newCurrency.mondeda_nombre) {
-        this.currencies.push({
-          ...this.newCurrency,
-          activo: true,
-        });
-        // Limpiar el formulario
-        this.newCurrency.moneda = "";
-        this.newCurrency.mondeda_nombre = "";
-        this.emitUpdate();
-      }
-    },
-    deleteCurrency(index) {
-      // Doble chequeo para no borrar el item fijo
-      if (this.currencies[index] && !this.currencies[index].isFixed) {
-        this.currencies.splice(index, 1);
-        this.emitUpdate();
-      }
-    },
-    emitUpdate() {
-      // Emitir la lista de monedas sin la propiedad interna 'isFixed'
-      const currenciesToEmit = this.currencies.map(({ isFixed, ...rest }) => rest);
-      this.$emit("change", currenciesToEmit);
-    },
-  },
   watch: {
     'newCurrency.mondeda_nombre'(newValue) {
       if (newValue) {

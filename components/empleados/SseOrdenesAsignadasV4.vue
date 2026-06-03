@@ -1872,10 +1872,13 @@ export default {
           let totalRealTerminadas = 0;
           let totalRealEnCurso = 0;
 
+          const timezone = this.$store.state.login.dataEmpresa?.timezone || 'America/Caracas';
+          const ahoraEmpresa = this.obtenerAhoraEnTimezone(timezone);
+
           // Preparar pausas en el formato que espera el mixin (fecha_inicio, fecha_fin como Dates)
           const pausasProcesadas = (this.pausas || []).map(p => ({
-            fecha_inicio: new Date(p.pausa_inicio),
-            fecha_fin: p.pausa_fin ? new Date(p.pausa_fin) : new Date()
+            fecha_inicio: new Date(p.pausa_inicio.replace(' ', 'T')),
+            fecha_fin: p.pausa_fin ? new Date(p.pausa_fin.replace(' ', 'T')) : ahoraEmpresa
           }));
 
           if (horarioLaboral && detalles.length > 0) {
@@ -1885,8 +1888,8 @@ export default {
               const fEndStr = task.fecha_terminado ? task.fecha_terminado.replace(' ', 'T') : null;
 
               const tareaObj = {
-                fecha_inicio: fStartStr ? new Date(fStartStr) : new Date(),
-                fecha_fin: fEndStr ? new Date(fEndStr) : new Date()
+                fecha_inicio: fStartStr ? new Date(fStartStr) : ahoraEmpresa,
+                fecha_fin: fEndStr ? new Date(fEndStr) : ahoraEmpresa
               };
 
               // No calcular nada si la tarea no ha iniciado realmente en la BD
