@@ -1,5 +1,5 @@
 <template>
-  <b-overlay :show="overlay2" spinner-small>
+  <b-overlay :show="overlay" spinner-small>
     <b-row>
       <b-col cols="9">
         <admin-pagos-empleados-terminar @reload="reloadMe" :totalCancelado="totalCancelado"
@@ -105,7 +105,6 @@ export default {
         fechaConsultaFin: "",
       },
       overlay: true,
-      overlay2: false,
       pagos: [],
       pagosVendedores: [],
       pagosEmpleados: [],
@@ -539,7 +538,7 @@ export default {
     },
 
     reloadPagos() {
-      if (this.form.fecha_inicio === "") {
+      if (this.form.fechaConsultaInicio === "") {
         this.getPagos().then(() => {
           this.$nextTick(() => {
             this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
@@ -549,54 +548,38 @@ export default {
     },
 
     async getPagosVendedores() {
-      // this.overlay = true
-      await this.$axios
-        .get(`${this.$config.API}/pagos/semana/vendedores`)
-        .then((res) => {
-          console.log(
-            "Respuesta de pagos de vendedores",
-            res.data.data.vendedores
-          );
-
-          this.dataVendedores = res.data.data.vendedores;
-          this.pagos = res.data;
-          this.pagosVendedores = res.data.data.vendedores;
-          // this.overlay = false
-        });
+      const params = {};
+      if (this.form.fechaConsultaInicio && this.form.fechaConsultaFin) {
+        params.fecha_inicio = this.form.fechaConsultaInicio;
+        params.fecha_fin = this.form.fechaConsultaFin;
+      }
+      const res = await this.$axios.get(`${this.$config.API}/pagos/semana/vendedores`, { params });
+      return res.data.data.vendedores || [];
     },
     async getPagosEmpleados() {
-      // this.overlay = true
-      await this.$axios
-        .get(`${this.$config.API}/pagos/semana/empleados`)
-        .then((res) => {
-          console.log(
-            "Respuesta de pagos de empleados",
-            res.data.data.empleados
-          );
-          this.pagos = res.data;
-          this.dataEmpleados = res.data.data.empleados;
-          this.pagosEmpleados = res.data.data.empleados;
-          // this.overlay = false
-        });
+      const params = {};
+      if (this.form.fechaConsultaInicio && this.form.fechaConsultaFin) {
+        params.fecha_inicio = this.form.fechaConsultaInicio;
+        params.fecha_fin = this.form.fechaConsultaFin;
+      }
+      const res = await this.$axios.get(`${this.$config.API}/pagos/semana/empleados`, { params });
+      return res.data.data.empleados || [];
     },
     async getPagosDisenadores() {
-      // this.overlay = true
-      await this.$axios
-        .get(`${this.$config.API}/pagos/semana/disenadores`)
-        .then((res) => {
-          this.pagos = res.data;
-          this.pagosDiseno = (res.data.data.diseno || []).map(item => {
-            return {
-              ...item,
-              nombre: item.nombre || item.nombre_disenador || null,
-              departamento: 'Diseño'
-            }
-          });
-          // TODO Reprogramar pagos adicionales pendiente de hacer
-          /* this.pagosTrabajosAdicionales =
-                        res.data.data.trabajos_adicionales */
-          // this.overlay = false
-        });
+      const params = {};
+      if (this.form.fechaConsultaInicio && this.form.fechaConsultaFin) {
+        params.fecha_inicio = this.form.fechaConsultaInicio;
+        params.fecha_fin = this.form.fechaConsultaFin;
+      }
+      const res = await this.$axios.get(`${this.$config.API}/pagos/semana/disenadores`, { params });
+      const disenadores = (res.data.data.diseno || []).map(item => {
+        return {
+          ...item,
+          nombre: item.nombre || item.nombre_disenador || null,
+          departamento: 'Diseño'
+        }
+      });
+      return disenadores;
     },
 
     // ESTAMOS USANDO AL FUNCION getPagos() EN LUGAR DE getFilteredData() PARA TRAER LOS PAGOS INDIVIDUALMENTE
@@ -628,45 +611,25 @@ export default {
     },
 
     filterProd(id_woo, campo) {
-      // campo puede ser: cod, attributes ó categories
-      /* let myProd = this.products
-        .filter((el) => el.cod === parseInt(id_woo))
-        .map((el) => {
-          return {
-            cod: el.cod,
-            attributes: el.attributes,
-            categories: el.categories,
-          }
-        })
-        if (myProd.length === 0) {
-        myProd.push({
-          cod: 0,
-          attributes: [],
-          categories: [],
-        })
-        }
-        console.log('filterProd', myProd) */
       let myProd = this.products.filter((el) => el.cod === parseInt(id_woo));
-
-      return myProd[0][campo];
+      return myProd[0] ? myProd[0][campo] : null;
     },
 
     async getEmpleados() {
-      await this.$axios
-        .get(`${this.$config.API}/empleados`)
-        .then((res) => {
-          this.empleados = res.data.items || [];
-          console.log("Empleados cargados:", this.empleados);
-        })
-        .catch((error) => {
-          console.error("Error al cargar empleados:", error);
-        });
+      const res = await this.$axios.get(`${this.$config.API}/empleados`);
+      return res.data.items || [];
     },
 
     async getPagos() {
+      this.overlay = true;
       try {
-        // Ejecutar las funciones asíncronas en paralelo, incluyendo getEmpleados
-        await Promise.all([
+        const [
+          vendedores,
+          empleados,
+          disenadores,
+          products,
+          empleadosList
+        ] = await Promise.all([
           this.getPagosVendedores(),
           this.getPagosEmpleados(),
           this.getPagosDisenadores(),
@@ -674,15 +637,26 @@ export default {
           this.getEmpleados(),
         ]);
 
-        // Si necesitas ejecutar algo después de que getPagos termine
-        // alert('HOLA'); // Esto se ejecutará después de que todo esté listo
+        // Asignación atómica del estado para evitar saltos visuales y renderizado progresivo
+        this.products = products;
+        this.empleados = empleadosList;
+        this.dataVendedores = vendedores;
+        this.pagosVendedores = vendedores;
+        this.dataEmpleados = empleados;
+        this.pagosEmpleados = empleados;
+        this.pagosDiseno = disenadores;
+        this.pagos = [];
+
+        console.log("Planilla cargada con éxito de forma atómica");
       } catch (error) {
         console.error("Error en getPagos:", error);
         this.$fire({
           title: "Pagos",
-          html: `<p>Error al cargar datos</p><p>${error}</p>`,
+          html: `<p>Error al cargar datos</p><p>${error.message || error}</p>`,
           type: "error",
         });
+      } finally {
+        this.overlay = false;
       }
     },
 
@@ -691,24 +665,17 @@ export default {
         this.overlay = true;
       }
       this.pagos = [];
-      this.getAttributes().then(() => {
-        this.getPagos().then(() => {
-          this.$nextTick(() => {
-            this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
-          });
-          this.overlay = false;
+      this.getPagos().then(() => {
+        this.$nextTick(() => {
+          this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
         });
+        this.overlay = false;
       });
     },
 
     async getAttributes() {
-      // this.overlay = true
-      await this.$axios
-        .get(`${this.$config.API}/atributos/comisiones`)
-        .then((res) => {
-          this.products = res.data.data;
-          // this.overlay = false
-        });
+      const res = await this.$axios.get(`${this.$config.API}/atributos/comisiones`);
+      return res.data.data || [];
     },
 
     filterEmpleado(id_empleado) {
