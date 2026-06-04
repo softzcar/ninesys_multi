@@ -231,9 +231,13 @@ export default {
     };
   },
   computed: {
-    ...mapState("login", ["access", "dataUser", "currentDepartamentId"]),
+    ...mapState("login", ["access", "dataUser", "currentDepartamentId", "currentDepartament"]),
     isAdmin() {
-      return this.currentDepartamentId === 7;
+      return (
+        Number(this.dataUser?.acceso) === 1 ||
+        this.currentDepartament === "Administración" ||
+        this.currentDepartamentId === 7
+      );
     },
     vendedoresOptions() {
       const options = [{ value: 0, text: 'Todos los vendedores' }];
