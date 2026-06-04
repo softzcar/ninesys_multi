@@ -345,6 +345,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/reporte-costos-productos">
+              Desviación de Costos
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/produccion/reporte-reposiciones">
               Reporte reposiciones
             </router-link>
