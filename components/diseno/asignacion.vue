@@ -240,6 +240,14 @@ export default {
       let options = [];
       if (Array.isArray(this.$store.state.disenos.empleados)) {
         options = this.$store.state.disenos.empleados
+          .filter(emp => {
+            const depStr = emp.departamento ? String(emp.departamento).toLowerCase() : '';
+            let isDiseño = depStr.includes('diseño') || depStr.includes('diseñador');
+            if (Array.isArray(emp.departamentos)) {
+               isDiseño = isDiseño || emp.departamentos.some(d => d.nombre && d.nombre.toLowerCase().includes('diseño'));
+            }
+            return isDiseño;
+          })
           .map((el) => {
             return {
               value: el._id || el.id_usuario,
@@ -301,11 +309,14 @@ export default {
     loadAll() {
       this.$store.dispatch("disenos/getDisenos").then(() => {
         let tmpOptions = this.$store.state.disenos.empleados
-          /* .filter(
-            (el) =>
-              el.departamento === "Diseño" ||
-              el.departamento === "Jefe de diseño"
-          ) */
+          .filter(emp => {
+            const depStr = emp.departamento ? String(emp.departamento).toLowerCase() : '';
+            let isDiseño = depStr.includes('diseño') || depStr.includes('diseñador');
+            if (Array.isArray(emp.departamentos)) {
+               isDiseño = isDiseño || emp.departamentos.some(d => d.nombre && d.nombre.toLowerCase().includes('diseño'));
+            }
+            return isDiseño;
+          })
           .map((el) => {
             return {
               value: el._id || el.id_usuario,

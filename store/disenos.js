@@ -28,10 +28,12 @@ export const mutations = {
 
 export const actions = {
     async getDisenos({ commit }) {
-        await this.$axios.get(`${this.$config.API}/disenos`).then((res) => {
-            commit("setDisenos", res.data.disenos)
-            commit("setEmpleados", res.data.empleados)
-        })
+        const [resDisenos, resEmpleados] = await Promise.all([
+            this.$axios.get(`${this.$config.API}/disenos`),
+            this.$axios.get(`${this.$config.API}/empleados`)
+        ])
+        commit("setDisenos", resDisenos.data.disenos)
+        commit("setEmpleados", resEmpleados.data.items)
     },
     async getDisenosAsignados({ commit }) {
         await this.$axios

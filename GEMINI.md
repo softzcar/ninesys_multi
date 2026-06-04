@@ -1,7 +1,7 @@
 # GEMINI.md - Instrucciones para el modelo
 
 ## Instrucciones Base
-- Siempre conversaremos en español.
+- Siempre conversaremos en español y redactaremos todos los planes de implementación, bitácoras (logs) y cualquier otro documento técnico en español.
 - Revisa la estructura de directorios y los archivos necesarios para tener el contexto más completo posible del proyecto.
 - Siempre prefiere implementar código de la manera menos invasiva posible.
 - Evita hacer cambios o mejoras que no se te soliciten, pero siempre puedes sugerirlas.
