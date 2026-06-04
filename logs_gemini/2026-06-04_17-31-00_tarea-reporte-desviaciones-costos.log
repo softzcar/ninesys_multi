@@ -1,0 +1,28 @@
+- **Solicitud del Usuario:** Crear un nuevo reporte analítico de desviaciones de costos estándar (Ficha Técnica) vs reales de taller por productos y categorías en Nuxt.js, optimizar las consultas del backend para evitar timeouts mediante `UNION ALL`, implementar filtros predictivos de coincidencia exacta con `vue-typeahead-bootstrap`, solucionar problemas de maquetación del input group y agregar tres gráficos de ApexCharts reactivos para interpretar el reporte (outliers capped).
+- **Fecha y Hora:** 2026-06-04 17:31:00
+- **Proyecto(s):** Frontend y Backend
+- **Archivos Involucrados:**
+    - [ninesys-api/app/routes/products_reports.php](file:///home/developer/Escritorio/niesys/ninesys-api/app/routes/products_reports.php)
+    - [ninesys-api/app/routes.php](file:///home/developer/Escritorio/niesys/ninesys-api/app/routes.php)
+    - [app_multi/pages/reporte-costos-productos.vue](file:///home/developer/Escritorio/niesys/app_multi/pages/reporte-costos-productos.vue)
+    - [app_multi/components/menus/menuAdmin.vue](file:///home/developer/Escritorio/niesys/app_multi/components/menus/menuAdmin.vue)
+    - [app_multi/components/sidebars/SidebarAdmin.vue](file:///home/developer/Escritorio/niesys/app_multi/components/sidebars/SidebarAdmin.vue)
+    - [app_multi/components/admin/ReporteCostosProductos.vue](file:///home/developer/Escritorio/niesys/app_multi/components/admin/ReporteCostosProductos.vue)
+    - [app_multi/components/admin/ReporteCostosProductosDetalleModal.vue](file:///home/developer/Escritorio/niesys/app_multi/components/admin/ReporteCostosProductosDetalleModal.vue)
+- **Commits Relacionados:**
+    - Backend: 1437da4, 2d443e7
+    - Frontend: 706614e
+- **Acción Realizada:**
+    - Creación de rutas de backend para reportes analíticos con queries SQL optimizadas por `UNION ALL` para eliminar el timeout en base de datos.
+    - Implementación de la vista completa de desviaciones de costos con KPI Cards, tabla de comparación, desglose por tallas en modal y filtros de fecha.
+    - Integración de `<vue-typeahead-bootstrap>` para autocompletar e implementar coincidencia exacta en búsquedas.
+    - Solución al error de maquetación de input-group mediante el uso del slot `prepend` nativo de typeahead.
+    - Implementación de tres gráficos interactivos de ApexCharts en la parte superior del dashboard que se actualizan de forma totalmente reactiva a través del computed `filteredData`.
+    - Solución al problema de legibilidad por outliers en el gráfico de desviaciones acotando el eje X a `[-100%, 100%]` y mostrando los valores reales (ej: `+959.2%`) en labels y tooltip formatters.
+- **Inconvenientes y Desafíos:**
+    - MySQL presentaba timeouts por un JOIN indexable ineficiente; se solucionó separando las consultas con `UNION ALL`.
+    - La escala del gráfico de desviaciones se deformaba por outliers masivos de +959%; se solucionó acotando el eje y personalizando los formateadores visuales.
+- **Decisión Final y Justificación:** Capping de escala en el gráfico de desviaciones para mantener la usabilidad sin perder la precisión numérica en los tooltips.
+- **Herramienta(s) Utilizada(s):** `write_to_file`, `replace_file_content`, `multi_replace_file_content`
+- **Resultado:** Éxito
+- **Verificación:** Pruebas y validación en caliente a través de Nuxt y la API. El gráfico de desviación porcentual ahora es plenamente legible para todos los productos gracias al control de outliers.
