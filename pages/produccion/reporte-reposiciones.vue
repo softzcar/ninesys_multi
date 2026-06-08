@@ -6,24 +6,16 @@
 
         <div v-else>
             <menus-MenuLoader />
-            <div v-if="
-                accessModule.accessData.id_modulo === 5 ||
-                accessModule.accessData.id_modulo === 1
-            ">
-                <b-container fluid v-if="
-                    accessModule.accessData.id_modulo === 5 ||
-                    accessModule.accessData.id_modulo === 1
-                ">
-                    <b-row>
-                        <b-col>
-                            <h1 class="mb-4">{{ titulo }}</h1>
-                            <admin-reposicionesReporte />
-                        </b-col>
-                    </b-row>
-                </b-container>
-            </div>
-
-            <div v-else>
+            <b-container fluid v-if="hasAccess">
+                <b-row>
+                    <b-col>
+                        <h1 class="mb-4">{{ titulo }}</h1>
+                        <admin-reposicionesReporte />
+                    </b-col>
+                </b-row>
+            </b-container>
+            
+            <div v-else-if="hasAccess === false">
                 <accessDenied />
             </div>
         </div>
@@ -44,6 +36,14 @@ export default {
     },
     computed: {
         ...mapState("login", ["dataUser", "access"]),
-    },
+        hasAccess() {
+            // Si accessModule o accessData no están listos, retornar null (cargando/resolviendo)
+            const idModulo = this.accessModule?.accessData?.id_modulo;
+            if (idModulo === null || idModulo === undefined) {
+                return null;
+            }
+            return idModulo === 5 || idModulo === 1;
+        }
+    }
 };
 </script>

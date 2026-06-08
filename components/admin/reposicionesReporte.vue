@@ -2,23 +2,30 @@
   <div>
     <b-overlay :show="overlay" spinner-small>
       <b-container>
-        <b-row>
-          <b-col xs="12" sm="12" md="6" lg="4" xl="4" offset-md="6" offset-lg="8" offset-xl="8">
-            <b-form>
-              <!-- <b-form-group id="input-group-1" label="Fecha inicio:" label-for="fecha-1">
-                                <b-form-datepicker id="fecha-1" v-model="form.fechaConsultaInicio"
-                                    class="mb-2"></b-form-datepicker>
-                            </b-form-group>
+        <b-row class="mb-4 p-3 bg-light border rounded align-items-end">
+          <b-col xs="12" sm="6" md="3">
+            <b-form-group label="Fecha inicio:" label-for="fecha-1" class="mb-0">
+              <b-form-datepicker id="fecha-1" locale="es" @input="buscarReposiciones" v-model="form.fechaConsultaInicio" class="mb-0"></b-form-datepicker>
+            </b-form-group>
+          </b-col>
 
-                            <b-form-group id="input-group-2" label="Fecha fin:" label-for="fecha-2">
-                                <b-form-datepicker v-model="form.fechaConsultaFin" class="mb-2"></b-form-datepicker>
-                            </b-form-group> -->
-              <b-form-select class="mb-4" @change="buscarReposiciones" :disabled="overlay" v-model="estatusOrden"
+          <b-col xs="12" sm="6" md="3">
+            <b-form-group label="Fecha fin:" label-for="fecha-2" class="mb-0">
+              <b-form-datepicker id="fecha-2" locale="es" @input="buscarReposiciones" v-model="form.fechaConsultaFin" class="mb-0"></b-form-datepicker>
+            </b-form-group>
+          </b-col>
+
+          <b-col xs="12" sm="6" md="4">
+            <b-form-group label="Estatus Orden:" label-for="estatus-select" class="mb-0">
+              <b-form-select id="estatus-select" @change="buscarReposiciones" :disabled="overlay" v-model="estatusOrden"
                 :options="optStatus" :value="estatusOrden"></b-form-select>
-              <!-- <b-button @click="buscarReposiciones" :disabled="overlay" class="mb-4 mt-2" type="submit"
-                                variant="primary">Buscar Reposiciones
-                            </b-button> -->
-            </b-form>
+            </b-form-group>
+          </b-col>
+
+          <b-col xs="12" sm="6" md="2">
+            <b-button @click="buscarReposiciones(true)" :disabled="overlay" variant="primary" class="w-100">
+              <b-icon icon="search"></b-icon> Buscar
+            </b-button>
           </b-col>
         </b-row>
 
@@ -88,6 +95,12 @@ export default {
 
   data() {
     return {
+      isReady: false,
+      lastFetched: {
+        fechaInicio: null,
+        fechaFin: null,
+        estatus: null,
+      },
       dataReporte: [],
       optStatus: [
         { value: "activa", text: "Activas, en espera, pausadas y terminadas" },
@@ -179,7 +192,8 @@ export default {
         });
     },
 
-    buscarReposiciones() {
+    buscarReposiciones(force = false) {
+      if (!this.isReady) return;
       this.overlay = true;
       const fechaConsultaInicio = this.form.fechaConsultaInicio;
       const fechaConsultaFin = this.form.fechaConsultaFin;
@@ -190,6 +204,7 @@ export default {
           html: `<p>Por favor seleccione ambas fechas</p>`,
           type: "warning",
         });
+        this.overlay = false;
         return;
       }
 
@@ -199,41 +214,59 @@ export default {
           html: `<p>La fecha de inicio debe ser anterior o igual a la fecha de fin</p>`,
           type: "warning",
         });
+        this.overlay = false;
         return;
       }
-      this.getReposiciones();
+      this.getReposiciones(force === true);
     },
 
-    async getReposiciones(estatus = null, fechaInicio = null, fechaFin = null) {
+    async getReposiciones(force = false) {
+      const start = this.form.fechaConsultaInicio;
+      const end = this.form.fechaConsultaFin;
+      const status = this.estatusOrden;
+
+      if (
+        !force &&
+        this.lastFetched.fechaInicio === start &&
+        this.lastFetched.fechaFin === end &&
+        this.lastFetched.estatus === status
+      ) {
+        console.log("[DEBUG-COMPONENT] Evitando petición duplicada con idénticos filtros");
+        this.overlay = false;
+        return;
+      }
+
+      // Guardar valores anteriores para restaurar en caso de fallo
+      const prevFetched = { ...this.lastFetched };
+
+      // Establecer inmediatamente para evitar condiciones de carrera (llamadas en vuelo)
+      this.lastFetched.fechaInicio = start;
+      this.lastFetched.fechaFin = end;
+      this.lastFetched.estatus = status;
+
       this.overlay = true;
 
-      let URLRep = "";
+      const queryParams = new URLSearchParams({
+        fecha_inicio: start,
+        fecha_fin: end
+      }).toString();
 
-      if (estatus === null) {
-        // Solcitamos las  reposiciones de las oredenes activas
-        URLRep = `${this.$config.API}/reposiciones-reporte/${this.estatusOrden}`;
-      } else if (
-        estatus !== null &&
-        fechaInicio === null &&
-        fechaFin === null
-      ) {
-        // Solicitamos las reposiciones con el estatus indicado
-        URLRep = `${this.$config.API}/reposiciones-reporte/${estatus}`;
-      }
+      const URLRep = `${this.$config.API}/reposiciones-reporte/${status}?${queryParams}`;
 
       await this.$axios
         .get(URLRep)
         .then((res) => {
           this.dataReporte = res.data;
-          /* this.fields_resumen = res.data.fields_resumen
-                    this.fields_detallado = res.data.fields_detallado
-                    this.itemsResumen = res.data.resumen
-                    this.itemsDetallado = res.data.detallado */
         })
         .catch((err) => {
+          // Restaurar valores en caso de error para permitir reintento
+          this.lastFetched.fechaInicio = prevFetched.fechaInicio;
+          this.lastFetched.fechaFin = prevFetched.fechaFin;
+          this.lastFetched.estatus = prevFetched.estatus;
+
           this.$fire({
             title: "Error",
-            html: `<P>No se cargaron los datos correctamente</p><p>${err}</p>`,
+            html: `<p>No se cargaron los datos correctamente</p><p>${err}</p>`,
             type: "warning",
           });
         })
@@ -248,8 +281,11 @@ export default {
     this.form.fechaConsultaFin = this.hoy;
   },
 
-  mounted() {
-    this.getReposiciones();
+  async mounted() {
+    await this.getReposiciones();
+    this.$nextTick(() => {
+      this.isReady = true;
+    });
   },
 };
 </script>
