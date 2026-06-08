@@ -357,7 +357,7 @@ export default {
   methods: {
     fetchBoardData() {
       this.loading = true;
-      axios.get(`${this.$config.API}/crm/oportunidades`)
+      this.$axios.get(`${this.$config.API}/crm/oportunidades`)
         .then(res => {
           // Limpiar columnas
           this.columns.nuevo_lead = [];
@@ -380,7 +380,7 @@ export default {
         .finally(() => { this.loading = false; });
 
       // Cargar métricas adicionales para el dashboard de arriba
-      axios.get(`${this.$config.API}/crm/reports/dashboard`)
+      this.$axios.get(`${this.$config.API}/crm/reports/dashboard`)
         .then(res => {
           this.dashboardStats = res.data;
           this.campaignsList = res.data.campanas_efectividad || [];
@@ -389,14 +389,14 @@ export default {
     },
     fetchAuxiliaryData() {
       // Cargar lista de clientes
-      axios.get(`${this.$config.API}/customers`)
+      this.$axios.get(`${this.$config.API}/customers`)
         .then(res => {
           this.customersList = res.data.data || [];
         })
         .catch(err => console.error("Error cargando clientes:", err));
 
       // Cargar lista de empleados para la asignación
-      axios.get(`${this.$config.API}/empleados`)
+      this.$axios.get(`${this.$config.API}/empleados`)
         .then(res => {
           this.employeesList = res.data || [];
         })
@@ -437,7 +437,7 @@ export default {
       }
 
       this.loading = true;
-      axios.post(`${this.$config.API}/crm/oportunidades/nueva`, this.newOp)
+      this.$axios.post(`${this.$config.API}/crm/oportunidades/nueva`, this.newOp)
         .then(() => {
           this.fetchBoardData();
           this.$fire({
@@ -495,7 +495,7 @@ export default {
         motivo_perdida: motivoPerdida,
       };
 
-      axios.put(`${this.$config.API}/crm/oportunidades/estado`, payload)
+      this.$axios.put(`${this.$config.API}/crm/oportunidades/estado`, payload)
         .then(() => {
           this.fetchBoardData();
         })

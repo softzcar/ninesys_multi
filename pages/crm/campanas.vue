@@ -192,7 +192,7 @@ export default {
   methods: {
     fetchInitialData() {
       // 1. Cargar catálogo de productos
-      axios.get(`${this.$config.API}/wp/products`)
+      this.$axios.get(`${this.$config.API}/wp/products`)
         .then(res => {
           this.productsList = res.data.data || [];
         })
@@ -205,7 +205,7 @@ export default {
       this.calculateSegmentSize(null);
     },
     fetchCampaignsHistory() {
-      axios.get(`${this.$config.API}/crm/reports/dashboard`)
+      this.$axios.get(`${this.$config.API}/crm/reports/dashboard`)
         .then(res => {
           this.campaignsHistory = res.data.campanas_efectividad || [];
         })
@@ -214,7 +214,7 @@ export default {
     calculateSegmentSize(productId) {
       this.loadingSegment = true;
       if (productId) {
-        axios.get(`${this.$config.API}/crm/clientes-por-producto/${productId}`)
+        this.$axios.get(`${this.$config.API}/crm/clientes-por-producto/${productId}`)
           .then(res => {
             this.segmentSize = res.data.length;
           })
@@ -225,7 +225,7 @@ export default {
           .finally(() => { this.loadingSegment = false; });
       } else {
         // Cargar total de clientes que tienen teléfono
-        axios.get(`${this.$config.API}/customers`)
+        this.$axios.get(`${this.$config.API}/customers`)
           .then(res => {
             const list = res.data.data || [];
             this.segmentSize = list.filter(c => c.phone && c.phone.trim() !== "").length;
@@ -267,7 +267,7 @@ export default {
           filtro_productos: this.campaign.selectedProduct ? [this.campaign.selectedProduct] : []
         };
 
-        axios.post(`${this.$config.API}/crm/campanas/enviar`, payload)
+        this.$axios.post(`${this.$config.API}/crm/campanas/enviar`, payload)
           .then(res => {
             this.$fire({
               title: "Campaña Finalizada 🎉",

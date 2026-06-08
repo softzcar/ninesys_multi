@@ -308,7 +308,7 @@ export default {
     // Si cambia el producto seleccionado, cargar la lista de IDs de clientes desde el backend
     selectedProduct(newVal) {
       if (newVal) {
-        axios.get(`${this.$config.API}/crm/clientes-por-producto/${newVal}`)
+        this.$axios.get(`${this.$config.API}/crm/clientes-por-producto/${newVal}`)
           .then(res => {
             this.clientsWhoBoughtProduct = res.data;
           })
@@ -376,7 +376,7 @@ export default {
               this.overlay = true;
               const data = new URLSearchParams();
               data.set("customer_id", id_emp);
-              axios
+              this.$axios
                 .post(`${this.$config.API}/customers/eliminar`, data)
                 .then((res) => {
                   this.getCustomers().then(() => (this.overlay = false));
@@ -412,7 +412,7 @@ export default {
 
     fetchProductsList() {
       // Cargar lista de productos del catálogo local
-      axios.get(`${this.$config.API}/wp/products`)
+      this.$axios.get(`${this.$config.API}/wp/products`)
         .then(res => {
           this.productsList = res.data.data || [];
         })

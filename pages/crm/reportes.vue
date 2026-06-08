@@ -281,7 +281,7 @@ export default {
   methods: {
     fetchStats() {
       this.loading = true;
-      axios.get(`${this.$config.API}/crm/reports/dashboard`)
+      this.$axios.get(`${this.$config.API}/crm/reports/dashboard`)
         .then(res => {
           this.stats = res.data;
         })

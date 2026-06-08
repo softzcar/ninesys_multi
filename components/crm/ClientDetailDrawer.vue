@@ -294,7 +294,7 @@ export default {
       
       // 1. Cargar Historial de Órdenes
       this.loadingHistory = true;
-      axios.get(`${this.$config.API}/customers/orders-local/${id}`)
+      this.$axios.get(`${this.$config.API}/customers/orders-local/${id}`)
         .then(res => {
           this.orders = res.data;
         })
@@ -303,7 +303,7 @@ export default {
 
       // 2. Cargar Bitácora de Notas
       this.loadingNotes = true;
-      axios.get(`${this.$config.API}/crm/notas/${id}`)
+      this.$axios.get(`${this.$config.API}/crm/notas/${id}`)
         .then(res => {
           this.notes = res.data;
         })
@@ -312,7 +312,7 @@ export default {
 
       // 3. Cargar Soporte
       this.loadingSupport = true;
-      axios.get(`${this.$config.API}/crm/soporte/${id}`)
+      this.$axios.get(`${this.$config.API}/crm/soporte/${id}`)
         .then(res => {
           this.tickets = res.data;
         })
@@ -321,7 +321,7 @@ export default {
 
       // 4. Cargar Cotizaciones
       this.loadingBudgets = true;
-      axios.get(`${this.$config.API}/customers/presupuestos-local/${id}`)
+      this.$axios.get(`${this.$config.API}/customers/presupuestos-local/${id}`)
         .then(res => {
           this.budgets = res.data;
         })
@@ -339,7 +339,7 @@ export default {
         nota: this.newNote,
       };
 
-      axios.post(`${this.$config.API}/crm/notas/nueva`, payload)
+      this.$axios.post(`${this.$config.API}/crm/notas/nueva`, payload)
         .then(() => {
           this.newNote = "";
           this.fetchClientCRMData();
@@ -371,7 +371,7 @@ export default {
         estado: "abierto",
       };
 
-      axios.post(`${this.$config.API}/crm/soporte/nueva`, payload)
+      this.$axios.post(`${this.$config.API}/crm/soporte/nueva`, payload)
         .then(() => {
           this.newTicket.titulo = "";
           this.newTicket.descripcion = "";
@@ -413,7 +413,7 @@ export default {
             estado: 'resuelto'
           };
           // We can write PUT /crm/soporte/estado in crm.php later, or call it directly. Let's write the axios call first.
-          axios.put(`${this.$config.API}/crm/soporte/estado`, payload)
+          this.$axios.put(`${this.$config.API}/crm/soporte/estado`, payload)
             .then(() => {
               this.fetchClientCRMData();
               this.$fire({
