@@ -318,6 +318,9 @@ export const getters = {
     },
 
     getDepartamentosEmpleadoSelect(state) {
+        if (!state.empleado || !Array.isArray(state.empleado.departamentos)) {
+            return []
+        }
         return state.empleado.departamentos.map((el) => {
             // console.log('getDepartamentosEmpleadoSelect', el);
 
