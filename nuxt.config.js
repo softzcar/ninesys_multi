@@ -201,6 +201,9 @@ rif: 'J-00000000-0', */
 
   loading: false,
 
+  pageTransition: false,
+  layoutTransition: false,
+
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
     // analyze: true,

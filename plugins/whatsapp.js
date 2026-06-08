@@ -13,26 +13,85 @@ export default function ({ $axios, store, $config }, inject) {
     }
   })
 
+  // Caché de peticiones GET en vuelo y recientes (TTL 2 segundos) para wsApi
+  const requestCache = new Map()
+  const originalRequest = wsApi.request
+
+  wsApi.request = function (config) {
+    const method = (config.method || 'get').toLowerCase()
+    if (method === 'get') {
+      const url = config.url || ''
+      let paramsStr = ''
+      try {
+        paramsStr = config.params ? JSON.stringify(config.params) : ''
+      } catch (e) {
+        paramsStr = String(config.params)
+      }
+      const key = `${url}?${paramsStr}`
+
+      const now = Date.now()
+      const cached = requestCache.get(key)
+
+      // Reutilizar si no ha expirado
+      if (cached && (now - cached.timestamp < 2000)) {
+        console.log(`🔄 [WS-API-CACHE] Reutilizando respuesta/promesa para: ${url}`)
+        return cached.promise
+      }
+
+      const promise = originalRequest.call(this, config)
+        .then(response => {
+          return response
+        })
+        .catch(error => {
+          // Si falló, remover de caché inmediatamente para permitir reintentos
+          requestCache.delete(key)
+          return Promise.reject(error)
+        })
+
+      requestCache.set(key, {
+        promise,
+        timestamp: now
+      })
+
+      return promise
+    }
+
+    return originalRequest.call(this, config)
+  }
+
+  let activeLoginPromise = null
+
   // Función para obtener token JWT del servicio msg_ninesys
   const getJWTToken = async () => {
+    if (activeLoginPromise) {
+      console.log('[WS-API] Reutilizando promesa de login JWT en curso...')
+      return activeLoginPromise
+    }
+
     const username = $config.jwtUsername || 'admin'
     const password = $config.jwtPassword || 'Ninesys@2024'
 
-    try {
-      console.log('[WS-API] Solicitando nuevo token JWT...')
-      const response = await wsApi.post('/login', {
-        username,
-        password
-      })
+    activeLoginPromise = (async () => {
+      try {
+        console.log('[WS-API] Solicitando nuevo token JWT...')
+        const response = await wsApi.post('/login', {
+          username,
+          password
+        })
 
-      if (response.data.token) {
-        _wsToken = response.data.token
-        return _wsToken
+        if (response.data.token) {
+          _wsToken = response.data.token
+          return _wsToken
+        }
+      } catch (error) {
+        console.error('[WS-API] Error obteniendo token JWT:', error.message)
+        throw error
+      } finally {
+        activeLoginPromise = null
       }
-    } catch (error) {
-      console.error('[WS-API] Error obteniendo token JWT:', error.message)
-      throw error
-    }
+    })()
+
+    return activeLoginPromise
   }
 
   // Interceptor de Peticion para $wsApi

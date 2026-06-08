@@ -1,37 +1,96 @@
 // plugins/axios.js
 export default function ({ $axios, store }) {
+  // Caché de peticiones GET en vuelo y recientes (TTL 2 segundos)
+  const requestCache = new Map()
+  const originalRequest = $axios.request
+
+  $axios.request = function (config) {
+    const method = (config.method || 'get').toLowerCase()
+    if (method === 'get') {
+      const url = config.url || ''
+      let paramsStr = ''
+      try {
+        paramsStr = config.params ? JSON.stringify(config.params) : ''
+      } catch (e) {
+        paramsStr = String(config.params)
+      }
+      const key = `${url}?${paramsStr}`
+
+      const now = Date.now()
+      const cached = requestCache.get(key)
+
+      // Reutilizar si no ha expirado
+      if (cached && (now - cached.timestamp < 2000)) {
+        console.log(`🔄 [AXIOS-CACHE] Reutilizando respuesta/promesa para: ${url}`)
+        return cached.promise
+      }
+
+      const promise = originalRequest.call(this, config)
+        .then(response => {
+          return response
+        })
+        .catch(error => {
+          // Si falló, remover de caché inmediatamente para permitir reintentos
+          requestCache.delete(key)
+          return Promise.reject(error)
+        })
+
+      requestCache.set(key, {
+        promise,
+        timestamp: now
+      })
+
+      return promise
+    }
+
+    return originalRequest.call(this, config)
+  }
+
   // Función auxiliar para verificar si una URL pertenece al servicio WhatsApp
   const isWhatsAppService = (url) => {
     return url && url.includes(store.$config?.WS_API)
   }
 
+  let activeLoginPromise = null
+
   // Función para obtener token JWT
   const getJWTToken = async () => {
+    if (activeLoginPromise) {
+      console.log('[AXIOS-LOGIN] Reutilizando promesa de login JWT en curso...')
+      return activeLoginPromise
+    }
+
     const username = process.env.JWT_USERNAME || 'admin'
     const password = process.env.JWT_PASSWORD || 'Ninesys@2024'
 
-    try {
-      const response = await $axios.post(`${store.$config?.WS_API}/login`, {
-        username,
-        password
-      })
+    activeLoginPromise = (async () => {
+      try {
+        const response = await $axios.post(`${store.$config?.WS_API}/login`, {
+          username,
+          password
+        })
 
-      if (response.data.token) {
-        store.commit('login/setToken', response.data.token)
-        if (response.data.refreshToken) {
-          store.commit('login/setRefreshToken', response.data.refreshToken)
+        if (response.data.token) {
+          store.commit('login/setToken', response.data.token)
+          if (response.data.refreshToken) {
+            store.commit('login/setRefreshToken', response.data.refreshToken)
+          }
+          return response.data.token
         }
-        return response.data.token
+      } catch (error) {
+        console.error('Error obteniendo token JWT:', error)
+        // Para errores de JWT, solo limpiar los tokens, no hacer logout completo
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          store.commit('login/setToken', null)
+          store.commit('login/setRefreshToken', null)
+        }
+        throw error
+      } finally {
+        activeLoginPromise = null
       }
-    } catch (error) {
-      console.error('Error obteniendo token JWT:', error)
-      // Para errores de JWT, solo limpiar los tokens, no hacer logout completo
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        store.commit('login/setToken', null)
-        store.commit('login/setRefreshToken', null)
-      }
-      throw error
-    }
+    })()
+
+    return activeLoginPromise
   }
     if (!$axios) {
         throw new Error("Instance of $axios is undefined")

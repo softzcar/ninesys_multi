@@ -128,61 +128,76 @@ export async function obtenerIndicadoresVenezuela() {
     }
 }
 
+let activePromise = null;
+
 /**
  * Obtiene tasas con sistema de fallback (localStorage)
  * @returns {Promise<Object>} Tasas obtenidas o desde caché
  */
 export async function obtenerTasasConFallback() {
-    // Intento 1: APIs externas
-    const tasas = await obtenerIndicadoresVenezuela();
+    if (activePromise) {
+        console.log('🔄 Reusing active promise for obtenerTasasConFallback');
+        return activePromise;
+    }
 
-    if (tasas.success) {
-        // Guardar tasas exitosas en localStorage
+    activePromise = (async () => {
         try {
-            localStorage.setItem('ultimas_tasas_exitosas', JSON.stringify({
-                ...tasas,
-                savedAt: Date.now()
-            }));
-        } catch (e) {
-            console.warn('No se pudo guardar en localStorage:', e);
-        }
-        return { ...tasas, fallback: false };
-    }
+            // Intento 1: APIs externas
+            const tasas = await obtenerIndicadoresVenezuela();
 
-    // Intento 2: Última tasa guardada en localStorage
-    try {
-        const ultimas = localStorage.getItem('ultimas_tasas_exitosas');
-        if (ultimas) {
-            const parsed = JSON.parse(ultimas);
-
-            // Verificar que no sean muy antiguas (< 24 horas)
-            const horasTranscurridas = (Date.now() - parsed.savedAt) / (1000 * 60 * 60);
-
-            if (horasTranscurridas < 24) {
-                console.warn('Usando tasas desde caché (localStorage). Antigüedad:',
-                    horasTranscurridas.toFixed(1), 'horas');
-                return {
-                    success: true,
-                    timestamp: parsed.timestamp,
-                    tasas: parsed.tasas,
-                    metadata: {
-                        ...parsed.metadata,
-                        cache_age_hours: horasTranscurridas.toFixed(1)
-                    },
-                    fallback: true
-                };
+            if (tasas.success) {
+                // Guardar tasas exitosas en localStorage
+                try {
+                    localStorage.setItem('ultimas_tasas_exitosas', JSON.stringify({
+                        ...tasas,
+                        savedAt: Date.now()
+                    }));
+                } catch (e) {
+                    console.warn('No se pudo guardar en localStorage:', e);
+                }
+                return { ...tasas, fallback: false };
             }
-        }
-    } catch (e) {
-        console.error('Error leyendo localStorage:', e);
-    }
 
-    // Intento 3: Fallo completo
-    return {
-        success: false,
-        require_manual: true,
-        error: 'No se pudieron obtener tasas de las APIs ni del caché'
-    };
+            // Intento 2: Última tasa guardada en localStorage
+            try {
+                const ultimas = localStorage.getItem('ultimas_tasas_exitosas');
+                if (ultimas) {
+                    const parsed = JSON.parse(ultimas);
+
+                    // Verificar que no sean muy antiguas (< 24 horas)
+                    const horasTranscurridas = (Date.now() - parsed.savedAt) / (1000 * 60 * 60);
+
+                    if (horasTranscurridas < 24) {
+                        console.warn('Usando tasas desde caché (localStorage). Antigüedad:',
+                            horasTranscurridas.toFixed(1), 'horas');
+                        return {
+                            success: true,
+                            timestamp: parsed.timestamp,
+                            tasas: parsed.tasas,
+                            metadata: {
+                                ...parsed.metadata,
+                                cache_age_hours: horasTranscurridas.toFixed(1)
+                            },
+                            fallback: true
+                        };
+                    }
+                }
+            } catch (e) {
+                console.error('Error leyendo localStorage:', e);
+            }
+
+            // Intento 3: Fallo completo
+            return {
+                success: false,
+                require_manual: true,
+                error: 'No se pudieron obtener tasas de las APIs ni del caché'
+            };
+        } finally {
+            activePromise = null;
+        }
+    })();
+
+    return activePromise;
 }
 
 /**
