@@ -1,70 +1,7 @@
 <template>
   <div>
-    <!-- <div class="p-6 text-center">
-            <div class="flex justify-center space-x-4 mb-6">
-                <button @click="showComponent('menus/menuAdmin')"
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg">Open
-                    Admin</button>
-                <button @click="showComponent('menus/menuEmpleado')"
-                    class="px-4 py-2 bg-green-500 text-white rounded-lg">Open Empleados</button>
-            </div>
-
-        </div> -->
-
     <b-container style="padding: 0px" class="mb-4" fluid>
-      <b-row>
-        <b-col>
-          <!-- Los menús ahora se cargan desde el AppSidebar en el layout -->
-        </b-col>
-
-        <!-- <b-col v-if="dataUser.departamento === 'Comercialización'">
-                    <menus-menuComercializacion />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Diseño'">
-                    <menus-menuDisenador />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Producción'">
-                    <menus-menuProduccion />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Empleado'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Corte'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Impresión'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Estampado'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Costura'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Limpieza'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Revisión'">
-                    <menus-menuEmpleado />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Revisión'">
-                    <menus-menu-revision />
-                </b-col>
-
-                <b-col v-if="dataUser.departamento === 'Administración'">
-                    <menus-menu-admin />
-                </b-col> -->
-      </b-row>
+      <!-- Los menús ahora se cargan desde el AppSidebar en el layout -->
 
       <!-- Alerta de Entorno -->
       <b-alert
@@ -161,10 +98,6 @@ export default {
 
       // Verificamos que todas las monedas activas tengan una tasa > 0
       return activeMonedas.every((moneda) => this.tasas[moneda.moneda] > 0);
-    },
-    asyncComponent() {
-      if (!this.currentComponent) return null;
-      return () => import(`@/components/${this.currentComponent}.vue`);
     },
     ...mapState("login", [
       "access",
@@ -297,7 +230,7 @@ export default {
     const isAdmin = this.$store.state.login.dataUser.departamento === 'Administración';
 
     if (isAdmin || !this.tasasEstanConfiguradas) {
-      setTimeout(() => {
+      this.tasasTimeout = setTimeout(() => {
         console.log('🔄 Iniciando carga de tasas de referencia en segundo plano (deferred)...');
         this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: false }).then((resultado) => {
           if (!resultado.success) {
@@ -325,6 +258,11 @@ export default {
           console.error('❌ Error crítico al cargar tasas:', error);
         });
       }, 3000); // Diferir 3 segundos para liberar el hilo principal durante el render
+    }
+  },
+  beforeDestroy() {
+    if (this.tasasTimeout) {
+      clearTimeout(this.tasasTimeout);
     }
   },
 };
