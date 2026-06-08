@@ -161,7 +161,44 @@
                       ></b-form-datepicker>
                     </b-col>
                   </b-row>
-                  
+
+                  <!-- FILTRO DE CATEGORÍAS -->
+                  <b-row align-v="center" class="mt-3" v-if="items.length > 0">
+                    <b-col md="12">
+                      <div class="d-flex align-items-center flex-wrap gap-2">
+                        <label class="small font-weight-bold text-muted text-uppercase mb-0 mr-2">
+                          <b-icon icon="tag" class="mr-1"></b-icon> Filtrar por Categoría:
+                        </label>
+                        <b-form-select
+                          v-model="selectedCategory"
+                          size="sm"
+                          class="category-select"
+                          style="max-width: 320px;"
+                        >
+                          <b-form-select-option :value="null">— Todas las categorías —</b-form-select-option>
+                          <b-form-select-option
+                            v-for="cat in categories"
+                            :key="cat.id_category"
+                            :value="cat.id_category"
+                          >{{ cat.category_name }}</b-form-select-option>
+                        </b-form-select>
+                        <b-button
+                          v-if="selectedCategory !== null"
+                          variant="outline-secondary"
+                          size="sm"
+                          class="ml-2"
+                          @click="selectedCategory = null"
+                          title="Limpiar filtro"
+                        >
+                          <b-icon icon="x-circle" class="mr-1"></b-icon> Limpiar
+                        </b-button>
+                        <span v-if="selectedCategory !== null" class="ml-2 small text-muted">
+                          {{ filteredItems.length }} orden(es) encontrada(s)
+                        </span>
+                      </div>
+                    </b-col>
+                  </b-row>
+
                   <b-alert
                     v-if="dateError"
                     show
@@ -187,7 +224,7 @@
                 <b-table
                   hover
                   responsive
-                  :items="items"
+                  :items="filteredItems"
                   :fields="fields"
                   :busy="loading"
                   class="reports-table"
@@ -355,10 +392,11 @@ export default {
       loading: false,
       loadingEfficiency: false,
       items: [],
+      categories: [],
+      selectedCategory: null,
       topProducts: [],
       allProducts: [],
-      employeeEfficiencyData: [],
-      totalManufactured: 0,
+      rawEmployeeTareas: [],
       allProductsFields: [
         { key: "name", label: "Producto", sortable: true },
         { key: "value", label: "Cantidad (Uds.)", sortable: true, class: "text-right font-weight-bold" },
@@ -376,14 +414,80 @@ export default {
   },
   computed: {
     ...mapState('login', ['access', 'dataUser']),
+
+    // Filtra las órdenes según la categoría seleccionada
+    filteredItems() {
+      if (!this.selectedCategory) return this.items;
+      const catId = String(this.selectedCategory);
+      return this.items.filter(order => {
+        if (!order._category_ids) return false;
+        const ids = String(order._category_ids).split(',').map(s => s.trim());
+        return ids.includes(catId);
+      });
+    },
+
+    employeeEfficiencyData() {
+      if (!this.rawEmployeeTareas || this.rawEmployeeTareas.length === 0) return [];
+
+      const orderIds = new Set(this.filteredItems.map(o => String(o._id)));
+      const filteredTareas = this.rawEmployeeTareas.filter(t => orderIds.has(String(t.id_orden)));
+
+      const horarioLaboral = this.$store.state.login.dataEmpresa?.horario_laboral || [];
+      let agrupacion_empleados = {};
+
+      filteredTareas.forEach(row => {
+        const nom = row.empleado_nombre;
+        if (!agrupacion_empleados[nom]) {
+          agrupacion_empleados[nom] = { proyectado: 0, real: 0 };
+        }
+
+        agrupacion_empleados[nom].proyectado += parseFloat(row.projected_seconds || 0);
+
+        let rawFin = row.fecha_terminado;
+        if (!rawFin) {
+          const dObj = new Date();
+          rawFin = new Date(dObj.getTime() - (dObj.getTimezoneOffset() * 60000))
+            .toISOString().replace('T', ' ').substring(0, 19);
+        }
+
+        let strIni = row.fecha_inicio.replace(' ', 'T');
+        let strFin = rawFin.replace(' ', 'T');
+
+        const tareaParseada = {
+          fecha_inicio: new Date(strIni),
+          fecha_fin: new Date(strFin)
+        };
+
+        const tiempoEfectivoMs = this.calcularTiempoTrabajoIndividual(tareaParseada, [], horarioLaboral);
+        agrupacion_empleados[nom].real += (tiempoEfectivoMs / 1000); 
+      });
+
+      let finalData = [];
+      for (const [empleado, vals] of Object.entries(agrupacion_empleados)) {
+        let eff = 100;
+        if (vals.real > 0) {
+          eff = (vals.proyectado / vals.real) * 100;
+        } else if (vals.proyectado > 0 && vals.real === 0) {
+           eff = 100;
+        }
+        finalData.push({
+           name: empleado,
+           efficiency: parseFloat(eff).toFixed(1)
+        });
+      }
+
+      finalData.sort((a,b) => a.name.localeCompare(b.name));
+      return finalData;
+    },
+
     avgTimeEfficiency() {
-      const valid = this.items.filter(i => i.eficiencia_tiempo !== null && i.eficiencia_tiempo !== 'N/A' && !isNaN(i.eficiencia_tiempo));
+      const valid = this.filteredItems.filter(i => i.eficiencia_tiempo !== null && i.eficiencia_tiempo !== 'N/A' && !isNaN(i.eficiencia_tiempo));
       if (!valid.length) return 0;
       const sum = valid.reduce((acc, curr) => acc + parseFloat(curr.eficiencia_tiempo), 0);
       return (sum / valid.length).toFixed(1);
     },
     avgMaterialEfficiency() {
-      const valid = this.items.filter(i => i.eficiencia_material !== null && i.eficiencia_material !== 'N/A' && !isNaN(i.eficiencia_material));
+      const valid = this.filteredItems.filter(i => i.eficiencia_material !== null && i.eficiencia_material !== 'N/A' && !isNaN(i.eficiencia_material));
       if (!valid.length) return 0;
       const sum = valid.reduce((acc, curr) => acc + parseFloat(curr.eficiencia_material), 0);
       return (sum / valid.length).toFixed(1);
@@ -408,7 +512,7 @@ export default {
       const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
       const data = dias.map(d => ({ dia: d, total_ordenes: 0 }));
       
-      this.items.forEach(item => {
+      this.filteredItems.forEach(item => {
         const d = new Date(item.moment);
         const dayIdx = (d.getDay() + 6) % 7; // Ajustar a Lunes=0
         if (data[dayIdx]) {
@@ -420,7 +524,7 @@ export default {
 
     chartTimeEfficiencyData() {
       let alta = 0, media = 0, baja = 0;
-      this.items.forEach(item => {
+      this.filteredItems.forEach(item => {
         const val = parseFloat(item.eficiencia_tiempo);
         if (isNaN(val)) return;
         if (val >= 90) alta++;
@@ -436,7 +540,7 @@ export default {
 
     chartMaterialEfficiencyData() {
       let alta = 0, media = 0, baja = 0;
-      this.items.forEach(item => {
+      this.filteredItems.forEach(item => {
         const val = parseFloat(item.eficiencia_material);
         if (isNaN(val)) return;
         if (val >= 90) alta++;
@@ -448,6 +552,10 @@ export default {
         labels: ['Alta (>=90%)', 'Media (70-89%)', 'Baja (<70%)'],
         colors: ['#28a745', '#007bff', '#dc3545']
       };
+    },
+
+    totalManufactured() {
+      return this.filteredItems.reduce((acc, curr) => acc + (parseFloat(curr.total_unidades) || 0), 0);
     }
   },
   mounted() {
@@ -494,9 +602,12 @@ export default {
 
         if (res.data.items) {
           this.items = res.data.items;
+          this.categories = res.data.categories || [];
+          this.selectedCategory = null; // Resetear filtro al recargar datos
           this.topProducts = res.data.topProducts || [];
           this.allProducts = res.data.allProducts || [];
           console.log("Resumen de productos cargado:", this.allProducts.length, "items");
+          console.log("Categorías disponibles:", this.categories.length, "categorías");
           this.calculateManufacturedTotal();
         }
         
@@ -515,7 +626,7 @@ export default {
     },
 
     calculateManufacturedTotal() {
-      this.totalManufactured = this.items.reduce((acc, curr) => acc + (parseFloat(curr.total_unidades) || 0), 0);
+      // totalManufactured es ahora un computed reactivo basado en filteredItems
     },
 
     async fetchEmployeeEfficiency() {
@@ -527,62 +638,14 @@ export default {
         });
 
         if (res.data && res.data.tareas) {
-          const tareas_crudo = res.data.tareas;
-          const horarioLaboral = this.$store.state.login.dataEmpresa.horario_laboral;
-          let agrupacion_empleados = {};
-
-          tareas_crudo.forEach(row => {
-            const nom = row.empleado_nombre;
-            if (!agrupacion_empleados[nom]) {
-              agrupacion_empleados[nom] = { proyectado: 0, real: 0 };
-            }
-
-            agrupacion_empleados[nom].proyectado += parseFloat(row.projected_seconds);
-
-            let rawFin = row.fecha_terminado;
-            // Si la tarea sigue en curso, usamos la fecha contemporánea (como lo hace el panel)
-            if (!rawFin) {
-              const dObj = new Date();
-              rawFin = new Date(dObj.getTime() - (dObj.getTimezoneOffset() * 60000))
-                .toISOString().replace('T', ' ').substring(0, 19);
-            }
-
-            // Normalización para navegadores estrictos
-            let strIni = row.fecha_inicio.replace(' ', 'T');
-            let strFin = rawFin.replace(' ', 'T');
-
-            const tareaParseada = {
-              fecha_inicio: new Date(strIni),
-              fecha_fin: new Date(strFin)
-            };
-
-            const tiempoEfectivoMs = this.calcularTiempoTrabajoIndividual(tareaParseada, [], horarioLaboral);
-            agrupacion_empleados[nom].real += (tiempoEfectivoMs / 1000); 
-          });
-
-          // Compilar el Array para el Chart
-          let finalData = [];
-          for (const [empleado, vals] of Object.entries(agrupacion_empleados)) {
-            let eff = 100;
-            if (vals.real > 0) {
-              eff = (vals.proyectado / vals.real) * 100;
-            } else if (vals.proyectado > 0 && vals.real === 0) {
-               // Si tienen proyectado pero no gastaron tiempo (!?) raro en mixin
-               eff = 100;
-            }
-            finalData.push({
-               name: empleado,
-               efficiency: parseFloat(eff).toFixed(1)
-            });
-          }
-
-          // Ordenarlos alfabéticamente
-          finalData.sort((a,b) => a.name.localeCompare(b.name));
-          this.employeeEfficiencyData = finalData;
+          this.rawEmployeeTareas = res.data.tareas;
+        } else {
+          this.rawEmployeeTareas = [];
         }
 
       } catch (err) {
         console.error("Error cargando eficiencia empleados:", err);
+        this.rawEmployeeTareas = [];
       } finally {
         this.loadingEfficiency = false;
       }
@@ -684,5 +747,17 @@ export default {
   font-size: 0.75rem;
   font-weight: 700;
   color: #666;
+}
+
+.category-select {
+  border-radius: 6px;
+  border-color: #ced4da;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.category-select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
 }
 </style>
