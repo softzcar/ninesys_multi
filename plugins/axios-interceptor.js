@@ -1,10 +1,12 @@
-// plugins/axios.js
-export default function ({ $axios, store }) {
-  // Caché de peticiones GET en vuelo y recientes (TTL 2 segundos)
-  const requestCache = new Map()
-  const originalRequest = $axios.request
+import axios from 'axios'
 
-  $axios.request = function (config) {
+// Caché de peticiones GET en vuelo y recientes (TTL 2 segundos)
+const requestCache = new Map()
+
+if (!axios.Axios.prototype.request.__wrappedForCache) {
+  const originalRequest = axios.Axios.prototype.request
+
+  axios.Axios.prototype.request = function (config) {
     const method = (config.method || 'get').toLowerCase()
     if (method === 'get') {
       const url = config.url || ''
@@ -18,6 +20,8 @@ export default function ({ $axios, store }) {
 
       const now = Date.now()
       const cached = requestCache.get(key)
+
+      console.log(`🔍 [AXIOS-CACHE] Solicitud: ${key} | Cacheado: ${!!cached} | Edad: ${cached ? (now - cached.timestamp) + 'ms' : 'N/A'}`)
 
       // Reutilizar si no ha expirado
       if (cached && (now - cached.timestamp < 2000)) {
@@ -45,6 +49,11 @@ export default function ({ $axios, store }) {
 
     return originalRequest.call(this, config)
   }
+
+  axios.Axios.prototype.request.__wrappedForCache = true
+}
+
+export default function ({ $axios, store }) {
 
   // Función auxiliar para verificar si una URL pertenece al servicio WhatsApp
   const isWhatsAppService = (url) => {
