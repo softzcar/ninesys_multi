@@ -21,31 +21,49 @@
                             dataUser.departamento === 'Comercialización'
                         "
           >
-            <b-row>
-              <b-col
-                offset-lg="8"
-                offset-xl="8"
-              >
-                <b-input-group
-                  class="mb-4"
-                  size="sm"
-                >
+            <!-- Fila de Filtros Avanzados -->
+            <b-row class="mb-4">
+              <!-- Filtro de Texto -->
+              <b-col md="4" class="mb-2">
+                <b-input-group size="sm">
                   <b-form-input
                     id="filter-input"
                     v-model="filter"
                     type="search"
-                    placeholder="Filtrar Resultados"
+                    placeholder="Filtrar por texto (Nombre, Cédula...)"
                   ></b-form-input>
-
                   <b-input-group-append>
-                    <b-button
-                      :disabled="!filter"
-                      @click="filter = ''"
-                    >
+                    <b-button :disabled="!filter" @click="filter = ''">
                       Limpiar
                     </b-button>
                   </b-input-group-append>
                 </b-input-group>
+              </b-col>
+
+              <!-- Filtro de Ciudad -->
+              <b-col md="4" class="mb-2">
+                <b-form-select
+                  v-model="selectedCity"
+                  size="sm"
+                  :options="cityOptions"
+                >
+                  <template #first>
+                    <b-form-select-option :value="null">Todas las Ciudades</b-form-select-option>
+                  </template>
+                </b-form-select>
+              </b-col>
+
+              <!-- Filtro de Producto Comprado -->
+              <b-col md="4" class="mb-2">
+                <b-form-select
+                  v-model="selectedProduct"
+                  size="sm"
+                  :options="productOptions"
+                >
+                  <template #first>
+                    <b-form-select-option :value="null">Filtrar por Producto comprado</b-form-select-option>
+                  </template>
+                </b-form-select>
               </b-col>
             </b-row>
 
@@ -64,23 +82,35 @@
                 ></b-pagination>
 
                 <p class="mt-3">
-                  Página actual: {{ currentPage }}
+                  Página actual: {{ currentPage }} | Resultados filtrados: {{ totalRows }}
                 </p>
                 <b-table
                   :per-page="perPage"
                   :current-page="currentPage"
                   @filtered="onFiltered"
-                  :filter="filter"
                   ref="table"
                   small
                   striped
                   hover
-                  :items="dataTable"
+                  :items="filteredDataTable"
                   :fields="fields"
                   :filter-included-fields="includedFields"
                 >
                   <template #cell(id)="data">
-                    <span class="floatme">
+                    <!-- Botón para ver Ficha CRM -->
+                    <span class="floatme mr-1">
+                      <b-button
+                        variant="info"
+                        size="sm"
+                        v-b-tooltip.hover
+                        title="Ver Ficha / CRM"
+                        @click="openClientDetail(data.item)"
+                      >
+                        <b-icon icon="person-lines-fill"></b-icon>
+                      </b-button>
+                    </span>
+
+                    <span class="floatme mr-1">
                       <customers-CustomerEditar
                         @reload="getCustomers"
                         :item="data.item"
@@ -89,21 +119,22 @@
                     </span>
                     <span
                       v-if="
-                                                dataUser.departamento ===
-                                                'Administración'
-                                            "
+                                                 dataUser.departamento ===
+                                                 'Administración'
+                                             "
                       class="floatme"
                     >
                       <b-button
                         variant="danger"
+                        size="sm"
                         v-on:click="
-                                                    deleteCustomer(
-                                                        data.item.id,
-                                                        data.item.first_name,
-                                                        data.item.last_name,
-                                                        data.item.email
-                                                    )
-                                                "
+                                                     deleteCustomer(
+                                                         data.item.id,
+                                                         data.item.first_name,
+                                                         data.item.last_name,
+                                                         data.item.email
+                                                     )
+                                                 "
                       ><b-icon icon="trash"></b-icon>
                       </b-button>
                     </span>
@@ -122,10 +153,9 @@
                     {{ checkEmail(data.item.email) }}
                   </template>
 
-                  <!-- <template #cell(address)="data">
-                    {{ data.item }}
-                    {{ data.item       }}
-                  </template> -->
+                  <template #cell(address)="data">
+                    {{ data.item.address || 'N/A' }}
+                  </template>
                 </b-table>
               </b-col>
             </b-row>
@@ -133,13 +163,19 @@
         </b-overlay>
       </div>
     </div>
+
+    <!-- Cajón de Detalle CRM -->
+    <crm-ClientDetailDrawer
+      :client="selectedClient"
+      :show="showDetail"
+      @close="showDetail = false"
+    />
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
 import axios from "axios";
-import { log } from "console";
 
 export default {
   data() {
@@ -153,10 +189,21 @@ export default {
       overlay: true,
       dataTable: [],
       tmpDelete: null,
+
+      // Filtros CRM Avanzados
+      selectedCity: null,
+      selectedProduct: null,
+      productsList: [],
+      clientsWhoBoughtProduct: [],
+
+      // Control del Cajón de Detalle CRM
+      selectedClient: null,
+      showDetail: false,
+
       fields: [
         {
           key: "id",
-          label: "",
+          label: "Acciones",
           tdClass: "pl-4",
         },
         {
@@ -190,21 +237,99 @@ export default {
   },
 
   computed: {
-    totalRows() {
-      return parseInt(this.ordenesLength) + 1;
+    ...mapState("login", ["dataUser", "access"]),
+
+    // Lista filtrada reactivamente por texto, ciudad e historial de productos
+    filteredDataTable() {
+      return this.dataTable.filter(client => {
+        // 1. Filtro de texto libre (Nombre, Cedula, Email, Telefono, Direccion)
+        if (this.filter) {
+          const search = this.filter.toLowerCase();
+          const matchesText = [
+            client.first_name,
+            client.last_name,
+            client.cedula,
+            client.email,
+            client.phone,
+            client.address
+          ].some(val => val && val.toString().toLowerCase().includes(search));
+          
+          if (!matchesText) return false;
+        }
+
+        // 2. Filtro por Ciudad
+        if (this.selectedCity) {
+          const city = client.billing_city || '';
+          if (city.toLowerCase().trim() !== this.selectedCity.toLowerCase().trim()) {
+            return false;
+          }
+        }
+
+        // 3. Filtro por Producto comprado
+        if (this.selectedProduct) {
+          const clientId = client.id || client._id;
+          if (!this.clientsWhoBoughtProduct.includes(parseInt(clientId))) {
+            return false;
+          }
+        }
+
+        return true;
+      });
     },
 
-    ...mapState("login", ["dataUser", "access"]),
-    myTable() {
-      return this.items;
+    totalRows() {
+      return this.filteredDataTable.length;
     },
+
+    // Opciones para el select de ciudades
+    cityOptions() {
+      const cities = this.dataTable
+        .map(c => c.billing_city || '')
+        .filter(city => city.trim() !== '')
+        .map(city => city.trim());
+      
+      const uniqueCities = [...new Set(cities)].sort();
+      return uniqueCities.map(city => ({
+        value: city,
+        text: city
+      }));
+    },
+
+    // Opciones para el select de productos
+    productOptions() {
+      return this.productsList.map(prod => ({
+        value: prod.cod || prod._id,
+        text: `${prod.name} (SKU: ${prod.sku || 'N/A'})`
+      }));
+    },
+  },
+
+  watch: {
+    // Si cambia el producto seleccionado, cargar la lista de IDs de clientes desde el backend
+    selectedProduct(newVal) {
+      if (newVal) {
+        axios.get(`${this.$config.API}/crm/clientes-por-producto/${newVal}`)
+          .then(res => {
+            this.clientsWhoBoughtProduct = res.data;
+          })
+          .catch(err => {
+            console.error("Error al obtener clientes por producto:", err);
+            this.clientsWhoBoughtProduct = [];
+          });
+      } else {
+        this.clientsWhoBoughtProduct = [];
+      }
+    }
   },
 
   methods: {
     onFiltered(filteredItems) {
-      // Trigger pagination to update the number of buttons/pages due to filtering
-      this.totalRows = filteredItems.length;
       this.currentPage = 1;
+    },
+
+    openClientDetail(client) {
+      this.selectedClient = client;
+      this.showDetail = true;
     },
 
     checkCedula(cedula) {
@@ -224,19 +349,8 @@ export default {
         return email;
       }
     },
-    checkRoles(roles) {
-      let myRoles = [];
-      for (const key in roles) {
-        if (roles.hasOwnProperty(key)) {
-          myRoles.push(key);
-        }
-      }
-      return myRoles[0];
-    },
 
     async verificarPedidosEnWC(customer_email, customer_id) {
-      // console.log(`Eliminemos a ${customer_email}`)
-      // var respCount
       const respCount = await this.$axios
         .get(
           `${this.$config.API}/customers/orders-count/${customer_email}/${customer_id}`
@@ -247,13 +361,12 @@ export default {
         .catch((err) => {
           this.tmpDelete = null;
         });
-      console.log("respCount resp", respCount);
       return respCount;
     },
 
     deleteCustomer(id_emp, nombre, apellido, email) {
       this.$confirm(
-        `¿Desea Elimiar el cliente ${nombre} ${apellido} ?`,
+        `¿Desea Eliminar el cliente ${nombre} ${apellido} ?`,
         "Eliminar Cliente",
         "warning"
       )
@@ -270,8 +383,8 @@ export default {
                 });
             } else {
               this.$fire({
-                title: "EL Cliente no se puede elminar",
-                html: `<p>El cliente posee ${this.tmpDelete.ordenes_ns} ordenes en curso y ${this.tmpDelete.ordenes_wc} en Woocommerce</p>`,
+                title: "El Cliente no se puede eliminar",
+                html: `<p>El cliente posee ${this.tmpDelete.ordenes_ns} órdenes activas en el sistema.</p>`,
                 type: "warning",
               });
             }
@@ -280,32 +393,32 @@ export default {
         .catch((err) => {
           console.log("CATCH!!!", err);
           return false;
-        })
-        .finally(() => {
-          console.log("finalli aqui");
         });
-    },
-
-    reloadData() {
-      this.overlay = true;
-      this.overlay = false;
     },
 
     async getCustomers() {
       await this.$axios.get(`${this.$config.API}/customers`).then((resp) => {
         this.dataTable = resp.data.data.map((el) => {
           if (el.email === "none") {
-            // Si el email es 'none', reemplazarlo con una cadena vacía
             return { ...el, email: "" };
           } else {
-            // De lo contrario, mantener el objeto tal como está
             return el;
           }
         });
         this.ordenesLength = this.dataTable.length;
-
         this.overlay = false;
       });
+    },
+
+    fetchProductsList() {
+      // Cargar lista de productos del catálogo local
+      axios.get(`${this.$config.API}/wp/products`)
+        .then(res => {
+          this.productsList = res.data.data || [];
+        })
+        .catch(err => {
+          console.error("Error cargando catálogo de productos:", err);
+        });
     },
   },
 
@@ -313,6 +426,7 @@ export default {
     this.getCustomers().then(() => {
       this.overlay = false;
     });
+    this.fetchProductsList();
   },
 };
 </script>
