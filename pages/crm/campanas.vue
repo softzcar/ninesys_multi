@@ -57,7 +57,7 @@
                       <b-form-textarea
                         id="camp-msg"
                         v-model="campaign.mensaje_plantilla"
-                        placeholder="Escribe el mensaje aquí... Ej: ¡Hola {{first_name}}! Tenemos una promoción especial para ti..."
+                        :placeholder="'Escribe el mensaje aquí... Ej: ¡Hola {{first_name}}! Tenemos una promoción especial para ti...'"
                         rows="6"
                         required
                         size="sm"
