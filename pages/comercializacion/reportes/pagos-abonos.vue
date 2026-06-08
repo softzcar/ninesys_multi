@@ -674,6 +674,9 @@ export default {
     },
   },
 
+  created() {
+  },
+
   beforeMount() {
     this.fechaConsultaInicio = this.nowDate();
     this.fechaConsultaFin = this.nowDate();
@@ -683,5 +686,8 @@ export default {
     // this.getOrdenes()
     this.getPagos();
   },
+
+  destroyed() {
+  }
 };
 </script>
