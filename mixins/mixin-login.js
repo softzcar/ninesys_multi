@@ -2,10 +2,13 @@ export default {
     computed: {
         accessModule() {            
             const currDep = this.$store.state.login.currentDepartamentId
-            if (!this.$store.state.login.empleado) {
+            const empleado = this.$store.state.login.empleado
+            const deps = empleado?.departamentos
+
+            if (!empleado || !Array.isArray(deps)) {
                 return { access: null, currDep: null, accessData: {} };
             }
-            const deps = this.$store.state.login.empleado.departamentos
+
             let response = {
                 access: null,
                 currDep: null,

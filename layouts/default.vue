@@ -1,15 +1,15 @@
 <template>
   <div class="app-wrapper">
     <!-- Sidebar - solo visible si está logueado y no está en páginas de auth -->
-    <AppSidebar v-if="showSidebar" @toggle="onSidebarToggle" @close-mobile="sidebarVisible = false" :class="{ 'show': sidebarVisible }" />
+    <AppSidebar v-show="showSidebar" @toggle="onSidebarToggle" @close-mobile="sidebarVisible = false" :class="{ 'show': sidebarVisible }" />
 
     <!-- Overlay para móvil -->
-    <div v-if="showSidebar && sidebarVisible" class="sidebar-overlay d-lg-none" @click="sidebarVisible = false" />
+    <div v-show="showSidebar && sidebarVisible" class="sidebar-overlay d-lg-none" @click="sidebarVisible = false" />
 
     <!-- Contenido Principal -->
     <div class="main-wrapper" :class="{ 'with-sidebar': showSidebar, 'sidebar-collapsed': sidebarCollapsed }">
       <!-- Header móvil con toggle -->
-      <div v-if="showSidebar" class="mobile-header d-lg-none">
+      <div v-show="showSidebar" class="mobile-header d-lg-none">
         <button class="btn btn-link sidebar-toggle-btn" @click="sidebarVisible = !sidebarVisible">
           <b-icon icon="list" scale="1.5" />
         </button>
