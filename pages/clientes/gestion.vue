@@ -155,6 +155,7 @@
     <crm-ClientDetailDrawer
       :client="selectedClient"
       :show="showDetail"
+      :filter-product="selectedProduct"
       @close="showDetail = false"
     />
   </div>

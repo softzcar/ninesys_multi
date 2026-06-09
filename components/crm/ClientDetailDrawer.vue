@@ -56,11 +56,11 @@
         <!-- Tab 1: Historial de Compras -->
         <b-tab title="Historial" active>
           <b-overlay :show="loadingHistory" spinner-small>
-            <div v-if="orders.length === 0" class="text-center py-4 text-muted">
-              Este cliente no posee historial de compras en el sistema.
+            <div v-if="filteredOrders.length === 0" class="text-center py-4 text-muted">
+              {{ orders.length === 0 ? 'Este cliente no posee historial de compras en el sistema.' : 'No hay compras registradas con el producto seleccionado.' }}
             </div>
             <div v-else>
-              <b-card v-for="order in orders" :key="order._id" no-body class="mb-2 shadow-sm overflow-hidden">
+              <b-card v-for="order in filteredOrders" :key="order._id" no-body class="mb-2 shadow-sm overflow-hidden">
                 <div 
                   v-b-toggle="'collapse-order-' + order._id" 
                   class="p-3 d-flex justify-content-between align-items-center"
@@ -211,11 +211,11 @@
         <!-- Tab 4: Presupuestos / Cotizaciones -->
         <b-tab title="Cotizaciones">
           <b-overlay :show="loadingBudgets" spinner-small>
-            <div v-if="budgets.length === 0" class="text-center py-4 text-muted">
-              No hay cotizaciones registradas para este cliente.
+            <div v-if="filteredBudgets.length === 0" class="text-center py-4 text-muted">
+              {{ budgets.length === 0 ? 'No hay cotizaciones registradas para este cliente.' : 'No hay cotizaciones con el producto seleccionado.' }}
             </div>
             <div v-else>
-              <b-card v-for="budget in budgets" :key="budget._id" no-body class="mb-2 shadow-sm overflow-hidden">
+              <b-card v-for="budget in filteredBudgets" :key="budget._id" no-body class="mb-2 shadow-sm overflow-hidden">
                 <div 
                   v-b-toggle="'collapse-budget-' + budget._id" 
                   class="p-3 d-flex justify-content-between align-items-center"
@@ -276,6 +276,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    filterProduct: {
+      type: [Number, String],
+      default: null,
+    },
   },
   data() {
     return {
@@ -299,6 +303,24 @@ export default {
   },
   computed: {
     ...mapState("login", ["dataUser"]),
+    filteredOrders() {
+      if (!this.filterProduct) {
+        return this.orders;
+      }
+      const pId = parseInt(this.filterProduct);
+      return this.orders.filter(order => {
+        return order.productos && order.productos.some(prod => parseInt(prod.id_woo) === pId);
+      });
+    },
+    filteredBudgets() {
+      if (!this.filterProduct) {
+        return this.budgets;
+      }
+      const pId = parseInt(this.filterProduct);
+      return this.budgets.filter(budget => {
+        return budget.productos && budget.productos.some(prod => parseInt(prod.id_woo) === pId);
+      });
+    },
   },
   watch: {
     show(newVal) {
