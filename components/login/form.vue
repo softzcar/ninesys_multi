@@ -174,6 +174,16 @@ export default {
                         this.$store.commit("login/setModulos", res.data.modulos);
                         this.$store.commit("login/setAccess", res.data.data.access);
 
+                        // Resetear el componente/departamento activo para que MenuLoader
+                        // asigne el menú correcto según el nuevo empleado autenticado.
+                        // Sin esto, un valor stale de localStorage del usuario anterior
+                        // provocaría que se muestre el menú incorrecto (ej. menuAdmin a un empleado).
+                        this.$store.commit("login/setCurrentComponent", null);
+                        this.$store.commit("login/scurrentDepartament", "");
+                        this.$store.commit("login/scurrentDepartamentId", null);
+                        this.$store.commit("login/setCurrentOrdenProceso", null);
+                        this.$store.commit("login/setCurrentMinOrdenProcesoId", null);
+
                         // El token JWT se obtendrá automáticamente cuando sea necesario
                         // gracias al interceptor de axios configurado específicamente para WhatsApp
 

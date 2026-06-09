@@ -152,6 +152,19 @@ export default {
     },
     sidebarMenuComponent() {
       if (!this.currentComponent) return null;
+
+      // Validación defensiva: verificar que el currentComponent pertenezca
+      // a uno de los módulos del empleado autenticado. Esto evita que un valor
+      // stale de localStorage muestre el menú de otro usuario (ej. menuAdmin a un empleado).
+      const deptos = this.$store.state.login?.empleado?.departamentos;
+      if (Array.isArray(deptos) && deptos.length > 0) {
+        const modulosPermitidos = deptos.map(d => d.modulo).filter(Boolean);
+        if (modulosPermitidos.length > 0 && !modulosPermitidos.includes(this.currentComponent)) {
+          console.warn(`[AppSidebar] currentComponent "${this.currentComponent}" no pertenece al empleado actual. Ignorando.`);
+          return null;
+        }
+      }
+
       return sidebarComponentMap[this.currentComponent] || null;
     },
     waUnreadCount() {
