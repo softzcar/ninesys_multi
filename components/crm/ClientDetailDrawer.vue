@@ -60,30 +60,45 @@
               Este cliente no posee historial de compras en el sistema.
             </div>
             <div v-else>
-              <b-card v-for="order in orders" :key="order._id" class="mb-2 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                  <strong>Orden #{{ order._id }}</strong>
-                  <b-badge :variant="getStatusVariant(order.status)">
-                    {{ order.status }}
-                  </b-badge>
-                </div>
-                <div class="small mt-2 text-muted">
-                  Fecha: {{ formatDate(order.moment || order.fecha_creacion) }}
-                </div>
-                
-                <!-- Lista de Productos en la orden -->
-                <div class="mt-2 pl-2 border-left border-info">
-                  <div v-for="(prod, index) in order.productos" :key="index" class="small">
-                    {{ prod.cantidad }}x <strong>{{ prod.name }}</strong> 
-                    <span v-if="prod.talla">({{ prod.talla }})</span> - 
-                    ${{ prod.precio_unitario }} c/u
+              <b-card v-for="order in orders" :key="order._id" no-body class="mb-2 shadow-sm overflow-hidden">
+                <div 
+                  v-b-toggle="'collapse-order-' + order._id" 
+                  class="p-3 d-flex justify-content-between align-items-center"
+                  style="cursor: pointer; user-select: none;"
+                >
+                  <div class="d-flex align-items-center">
+                    <strong class="text-dark">Orden #{{ order._id }}</strong>
+                    <b-badge :variant="getStatusVariant(order.status)" class="ml-2">
+                      {{ order.status }}
+                    </b-badge>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <span class="mr-3 small text-secondary">
+                      Total: <strong class="text-dark">${{ order.pago_total }}</strong>
+                      <span class="mx-1">|</span>
+                      Abonado: <strong class="text-dark">${{ order.pago_abono }}</strong>
+                    </span>
+                    <b-icon class="when-opened text-muted" icon="chevron-up" />
+                    <b-icon class="when-closed text-muted" icon="chevron-down" />
                   </div>
                 </div>
-
-                <div class="d-flex justify-content-between mt-2 pt-2 border-top small">
-                  <span>Total: <strong>${{ order.pago_total }}</strong></span>
-                  <span>Abonado: <strong>${{ order.pago_abono }}</strong></span>
-                </div>
+                
+                <b-collapse :id="'collapse-order-' + order._id">
+                  <div class="p-3 border-top bg-light">
+                    <div class="small text-muted mb-2">
+                      Fecha: {{ formatDate(order.moment || order.fecha_creacion) }}
+                    </div>
+                    
+                    <!-- Lista de Productos en la orden -->
+                    <div class="pl-2 border-left border-info">
+                      <div v-for="(prod, index) in order.productos" :key="index" class="small text-dark mb-1">
+                        {{ prod.cantidad }}x <strong>{{ prod.name }}</strong> 
+                        <span v-if="prod.talla">({{ prod.talla }})</span> - 
+                        ${{ prod.precio_unitario }} c/u
+                      </div>
+                    </div>
+                  </div>
+                </b-collapse>
               </b-card>
             </div>
           </b-overlay>
@@ -200,30 +215,43 @@
               No hay cotizaciones registradas para este cliente.
             </div>
             <div v-else>
-              <b-card v-for="budget in budgets" :key="budget._id" class="mb-2 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                  <strong>Cotización #{{ budget._id }}</strong>
-                  <b-badge :variant="getStatusVariant(budget.status)">
-                    {{ budget.status || 'pendiente' }}
-                  </b-badge>
-                </div>
-                <div class="small mt-1 text-muted">
-                  Fecha: {{ formatDate(budget.moment || budget.fecha_creacion) }}
-                </div>
-                
-                <!-- Productos -->
-                <div class="mt-2 pl-2 border-left border-secondary">
-                  <div v-for="(prod, index) in budget.productos" :key="index" class="small">
-                    {{ prod.cantidad }}x <strong>{{ prod.name }}</strong> 
-                    <span v-if="prod.talla">({{ prod.talla }})</span> - 
-                    ${{ prod.precio_unitario }} c/u
+              <b-card v-for="budget in budgets" :key="budget._id" no-body class="mb-2 shadow-sm overflow-hidden">
+                <div 
+                  v-b-toggle="'collapse-budget-' + budget._id" 
+                  class="p-3 d-flex justify-content-between align-items-center"
+                  style="cursor: pointer; user-select: none;"
+                >
+                  <div class="d-flex align-items-center">
+                    <strong class="text-dark">Cotización #{{ budget._id }}</strong>
+                    <b-badge :variant="getStatusVariant(budget.status)" class="ml-2">
+                      {{ budget.status || 'pendiente' }}
+                    </b-badge>
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <span class="mr-3 small text-secondary">
+                      Total Proyectado: <strong class="text-dark">${{ budget.pago_total }}</strong>
+                    </span>
+                    <b-icon class="when-opened text-muted" icon="chevron-up" />
+                    <b-icon class="when-closed text-muted" icon="chevron-down" />
                   </div>
                 </div>
 
-                <div class="d-flex justify-content-between mt-2 pt-2 border-top small">
-                  <span>Total Proyectado:</span>
-                  <strong>${{ budget.pago_total }}</strong>
-                </div>
+                <b-collapse :id="'collapse-budget-' + budget._id">
+                  <div class="p-3 border-top bg-light">
+                    <div class="small text-muted mb-2">
+                      Fecha: {{ formatDate(budget.moment || budget.fecha_creacion) }}
+                    </div>
+                    
+                    <!-- Productos -->
+                    <div class="pl-2 border-left border-secondary">
+                      <div v-for="(prod, index) in budget.productos" :key="index" class="small text-dark mb-1">
+                        {{ prod.cantidad }}x <strong>{{ prod.name }}</strong> 
+                        <span v-if="prod.talla">({{ prod.talla }})</span> - 
+                        ${{ prod.precio_unitario }} c/u
+                      </div>
+                    </div>
+                  </div>
+                </b-collapse>
               </b-card>
             </div>
           </b-overlay>
@@ -487,5 +515,9 @@ export default {
 }
 .note-item {
   border-left-width: 4px !important;
+}
+.collapsed .when-opened,
+:not(.collapsed) .when-closed {
+  display: none;
 }
 </style>
