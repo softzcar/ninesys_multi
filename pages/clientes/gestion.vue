@@ -90,7 +90,6 @@
                   @filtered="onFiltered"
                   ref="table"
                   small
-                  striped
                   hover
                   :items="filteredDataTable"
                   :fields="fields"
@@ -145,16 +144,8 @@
                     {{ data.item.last_name }}
                   </template>
 
-                  <template #cell(cedula)="data">
-                    {{ checkCedula(data.item.cedula) }}
-                  </template>
-
                   <template #cell(email)="data">
                     {{ checkEmail(data.item.email) }}
-                  </template>
-
-                  <template #cell(address)="data">
-                    {{ data.item.address || 'N/A' }}
                   </template>
                 </b-table>
               </b-col>
@@ -202,19 +193,9 @@ export default {
 
       fields: [
         {
-          key: "id",
-          label: "Acciones",
-          tdClass: "pl-4",
-        },
-        {
           key: "first_name",
           label: "Cliente",
           tdClass: "pl-4",
-          sortable: true,
-        },
-        {
-          key: "cedula",
-          label: "Cédula / RIF",
           sortable: true,
         },
         {
@@ -228,9 +209,10 @@ export default {
           sortable: true,
         },
         {
-          key: "address",
-          label: "Dirección",
-          sortable: true,
+          key: "id",
+          label: "Acciones",
+          tdClass: "pr-4 text-right",
+          thClass: "text-right pr-4"
         },
       ],
     };
