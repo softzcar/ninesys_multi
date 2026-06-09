@@ -143,10 +143,6 @@
                     {{ data.item.first_name }}
                     {{ data.item.last_name }}
                   </template>
-
-                  <template #cell(email)="data">
-                    {{ checkEmail(data.item.email) }}
-                  </template>
                 </b-table>
               </b-col>
             </b-row>
@@ -199,11 +195,6 @@ export default {
           sortable: true,
         },
         {
-          key: "email",
-          label: "Email",
-          sortable: true,
-        },
-        {
           key: "phone",
           label: "Teléfono",
           sortable: true,
@@ -211,8 +202,7 @@ export default {
         {
           key: "id",
           label: "Acciones",
-          tdClass: "pr-4 text-right",
-          thClass: "text-right pr-4"
+          tdClass: "pl-4",
         },
       ],
     };
