@@ -6,15 +6,23 @@ const requestCache = new Map()
 if (!axios.Axios.prototype.request.__wrappedForCache) {
   const originalRequest = axios.Axios.prototype.request
 
-  axios.Axios.prototype.request = function (config) {
-    const method = (config.method || 'get').toLowerCase()
+  axios.Axios.prototype.request = function (configOrUrl, config) {
+    let normalizedConfig
+    if (typeof configOrUrl === 'string') {
+      normalizedConfig = config || {}
+      normalizedConfig.url = configOrUrl
+    } else {
+      normalizedConfig = configOrUrl || {}
+    }
+
+    const method = (normalizedConfig.method || 'get').toLowerCase()
     if (method === 'get') {
-      const url = config.url || ''
+      const url = normalizedConfig.url || ''
       let paramsStr = ''
       try {
-        paramsStr = config.params ? JSON.stringify(config.params) : ''
+        paramsStr = normalizedConfig.params ? JSON.stringify(normalizedConfig.params) : ''
       } catch (e) {
-        paramsStr = String(config.params)
+        paramsStr = String(normalizedConfig.params)
       }
       const key = `${url}?${paramsStr}`
 
@@ -29,7 +37,7 @@ if (!axios.Axios.prototype.request.__wrappedForCache) {
         return cached.promise
       }
 
-      const promise = originalRequest.call(this, config)
+      const promise = originalRequest.call(this, normalizedConfig)
         .then(response => {
           return response
         })
@@ -47,7 +55,7 @@ if (!axios.Axios.prototype.request.__wrappedForCache) {
       return promise
     }
 
-    return originalRequest.call(this, config)
+    return originalRequest.call(this, normalizedConfig)
   }
 
   axios.Axios.prototype.request.__wrappedForCache = true
