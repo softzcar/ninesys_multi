@@ -1655,14 +1655,12 @@ export default {
         data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
         data.set("id_impresora", impresora.id_impresora);
 
-        // Enviar cada canal dinámico con su código en minúscula como clave
+        // Enviar cada canal dinámico en el formato colores[id_color]=cantidad que espera el backend
         const canales = this.getCanalesForIndex(index);
         canales.forEach(canal => {
-          data.set(canal.codigo.toLowerCase(), impresora.canales[canal.codigo] || 0);
+          const cantidad = impresora.canales[canal.codigo] || 0;
+          data.set(`colores[${canal.id_color}]`, cantidad);
         });
-
-        // Mantener retrocompatibilidad: si hay canal W, enviarlo como 'w'
-        // (ya incluido en el loop anterior si el codigo es 'W')
 
         return this.$axios.post(`${this.$config.API}/empleados/tintas`, data);
       });
