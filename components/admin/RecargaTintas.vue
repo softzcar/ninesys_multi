@@ -515,10 +515,9 @@ export default {
           await this.fetchInkLevels(this.selectedPrinterId);
         }
         
-        // Reset form
-        this.selectedPrinterId = null;
-        this.selectedSupplyId = null;
-        this.selectedColor = "";
+        // Solo limpiar el insumo y los campos de cantidad
+        // Mantenemos la impresora seleccionada para facilitar recargas consecutivas
+        this.clearSupplySelection();
         this.milliliters = null;
         this.prevLevel = null;
 
