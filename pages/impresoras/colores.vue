@@ -138,7 +138,7 @@
             <b-form-group label="Muestra de Color Visual (Hex):" label-for="add-color-hex" description="Seleccione o escriba la muestra de color hexadecimal para la interfaz.">
               <b-row align-v="center">
                 <b-col cols="3">
-                  <b-form-input id="add-color-hex-picker" type="color" v-model="form.color_hex" class="h-auto p-1" />
+                  <input id="add-color-hex-picker" type="color" v-model="form.color_hex" style="width: 100%; height: 38px; border: 1px solid #ced4da; border-radius: 0.25rem; padding: 2px; cursor: pointer; background: none;" />
                 </b-col>
                 <b-col cols="9">
                   <b-form-input id="add-color-hex" v-model="form.color_hex" placeholder="#FFFFFF" required />
@@ -156,6 +156,23 @@
         <!-- EDIT MODAL -->
         <b-modal id="modal-edit-color" title="Editar Canal de Color" centered hide-footer header-bg-variant="warning" header-text-variant="white">
           <b-form @submit.prevent="updateColor">
+            <b-form-group label="Canales Predeterminados (Pickers Rápidos):" class="mb-3">
+              <div class="d-flex flex-wrap align-items-center" style="gap: 5px;">
+                <b-button 
+                    v-for="preset in coloresPredeterminados" 
+                    :key="preset.codigo" 
+                    size="sm" 
+                    variant="light" 
+                    class="py-1 px-2 d-flex align-items-center border" 
+                    style="font-size: 0.75rem; border-radius: 15px; cursor: pointer; height: 24px; margin-bottom: 2px;"
+                    @click.prevent="cargarPresetColorEdit(preset)"
+                >
+                    <span class="d-inline-block rounded-circle mr-1" :style="{ backgroundColor: preset.color_hex, width: '10px', height: '10px', border: '1px solid rgba(0,0,0,0.2)' }"></span>
+                    {{ preset.nombre }}
+                </b-button>
+              </div>
+            </b-form-group>
+
             <b-form-group label="Código del Color:" label-for="edit-codigo">
               <b-form-input id="edit-codigo" v-model="editForm.codigo" required />
             </b-form-group>
@@ -167,7 +184,7 @@
             <b-form-group label="Muestra de Color Visual (Hex):" label-for="edit-color-hex">
               <b-row align-v="center">
                 <b-col cols="3">
-                  <b-form-input id="edit-color-hex-picker" type="color" v-model="editForm.color_hex" class="h-auto p-1" />
+                  <input id="edit-color-hex-picker" type="color" v-model="editForm.color_hex" style="width: 100%; height: 38px; border: 1px solid #ced4da; border-radius: 0.25rem; padding: 2px; cursor: pointer; background: none;" />
                 </b-col>
                 <b-col cols="9">
                   <b-form-input id="edit-color-hex" v-model="editForm.color_hex" required />
@@ -299,6 +316,11 @@ export default {
       this.form.codigo = preset.codigo;
       this.form.nombre = preset.nombre;
       this.form.color_hex = preset.color_hex;
+    },
+    cargarPresetColorEdit(preset) {
+      this.editForm.codigo = preset.codigo;
+      this.editForm.nombre = preset.nombre;
+      this.editForm.color_hex = preset.color_hex;
     },
     async saveNewColor() {
       if (!this.form.codigo.trim() || !this.form.nombre.trim()) return;

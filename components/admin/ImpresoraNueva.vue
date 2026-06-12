@@ -116,7 +116,7 @@
                                         <b-col md="3">
                                             <b-form-group label="Muestra" label-size="sm" class="mb-2">
                                                 <div class="d-flex align-items-center">
-                                                    <b-form-input type="color" v-model="nuevoColorForm.color_hex" class="p-1 h-auto mr-1" style="width: 38px;" />
+                                                    <input type="color" v-model="nuevoColorForm.color_hex" class="mr-1" style="width: 45px; height: 31px; border: 1px solid #ced4da; border-radius: 0.2rem; padding: 2px; cursor: pointer; background: none;" />
                                                     <b-form-input v-model="nuevoColorForm.color_hex" placeholder="#HEX" size="sm" style="font-size: 11px; flex-grow: 1;" />
                                                 </div>
                                             </b-form-group>
