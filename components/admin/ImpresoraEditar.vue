@@ -87,6 +87,21 @@
                                 <!-- Formulario inline para nuevo color -->
                                 <div v-if="showNuevoColor" class="p-3 border rounded mb-3 bg-light shadow-sm">
                                     <h6 class="font-weight-bold mb-2 text-info">Crear Nuevo Canal de Color</h6>
+                                    <div class="mb-3 d-flex flex-wrap align-items-center" style="gap: 5px;">
+                                        <small class="text-muted mr-2 font-weight-bold">Predeterminados:</small>
+                                        <b-button 
+                                            v-for="preset in coloresPredeterminados" 
+                                            :key="preset.codigo" 
+                                            size="sm" 
+                                            variant="light" 
+                                            class="py-1 px-2 d-flex align-items-center border" 
+                                            style="font-size: 0.75rem; border-radius: 15px; cursor: pointer; height: 24px; margin-bottom: 2px;"
+                                            @click.prevent="cargarPresetColor(preset)"
+                                        >
+                                            <span class="d-inline-block rounded-circle mr-1" :style="{ backgroundColor: preset.color_hex, width: '10px', height: '10px', border: '1px solid rgba(0,0,0,0.2)' }"></span>
+                                            {{ preset.nombre }}
+                                        </b-button>
+                                    </div>
                                     <b-row>
                                         <b-col md="4">
                                             <b-form-group label="Código" label-size="sm" class="mb-2">
@@ -189,7 +204,21 @@ export default {
                 nombre: '',
                 color_hex: '#E5E7EB'
             },
-            savingColor: false
+            savingColor: false,
+            coloresPredeterminados: [
+                { codigo: 'C', nombre: 'Cyan', color_hex: '#00FFFF' },
+                { codigo: 'M', nombre: 'Magenta', color_hex: '#FF00FF' },
+                { codigo: 'Y', nombre: 'Yellow', color_hex: '#FFFF00' },
+                { codigo: 'K', nombre: 'Black', color_hex: '#000000' },
+                { codigo: 'W', nombre: 'White', color_hex: '#FFFFFF' },
+                { codigo: 'BRNZ', nombre: 'Barniz', color_hex: '#E0F7FA' },
+                { codigo: 'LC', nombre: 'Light Cyan', color_hex: '#80FFFF' },
+                { codigo: 'LM', nombre: 'Light Magenta', color_hex: '#FF80FF' },
+                { codigo: 'OR', nombre: 'Orange', color_hex: '#FFA500' },
+                { codigo: 'GR', nombre: 'Green', color_hex: '#008000' },
+                { codigo: 'RD', nombre: 'Red', color_hex: '#FF0000' },
+                { codigo: 'BL', nombre: 'Blue', color_hex: '#0000FF' }
+            ]
         }
     },
     watch: {
@@ -379,6 +408,11 @@ export default {
                 nombre: '',
                 color_hex: '#E5E7EB'
             };
+        },
+        cargarPresetColor(preset) {
+            this.nuevoColorForm.codigo = preset.codigo;
+            this.nuevoColorForm.nombre = preset.nombre;
+            this.nuevoColorForm.color_hex = preset.color_hex;
         }
     }
 }

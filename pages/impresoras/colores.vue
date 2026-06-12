@@ -110,6 +110,23 @@
         <!-- ADD MODAL -->
         <b-modal id="modal-add-color" title="Nuevo Canal de Color" centered hide-footer header-bg-variant="info" header-text-variant="white">
           <b-form @submit.prevent="saveNewColor">
+            <b-form-group label="Canales Predeterminados (Pickers Rápidos):" class="mb-3">
+              <div class="d-flex flex-wrap align-items-center" style="gap: 5px;">
+                <b-button 
+                    v-for="preset in coloresPredeterminados" 
+                    :key="preset.codigo" 
+                    size="sm" 
+                    variant="light" 
+                    class="py-1 px-2 d-flex align-items-center border" 
+                    style="font-size: 0.75rem; border-radius: 15px; cursor: pointer; height: 24px; margin-bottom: 2px;"
+                    @click.prevent="cargarPresetColor(preset)"
+                >
+                    <span class="d-inline-block rounded-circle mr-1" :style="{ backgroundColor: preset.color_hex, width: '10px', height: '10px', border: '1px solid rgba(0,0,0,0.2)' }"></span>
+                    {{ preset.nombre }}
+                </b-button>
+              </div>
+            </b-form-group>
+
             <b-form-group label="Código del Color:" label-for="add-codigo" description="Ej: C, M, Y, K, W, V (Barniz), FL (Fluorescente)">
               <b-form-input id="add-codigo" v-model="form.codigo" placeholder="Código corto..." required />
             </b-form-group>
@@ -196,6 +213,20 @@ export default {
         nombre: "",
         color_hex: ""
       },
+      coloresPredeterminados: [
+        { codigo: 'C', nombre: 'Cyan', color_hex: '#00FFFF' },
+        { codigo: 'M', nombre: 'Magenta', color_hex: '#FF00FF' },
+        { codigo: 'Y', nombre: 'Yellow', color_hex: '#FFFF00' },
+        { codigo: 'K', nombre: 'Black', color_hex: '#000000' },
+        { codigo: 'W', nombre: 'White', color_hex: '#FFFFFF' },
+        { codigo: 'BRNZ', nombre: 'Barniz', color_hex: '#E0F7FA' },
+        { codigo: 'LC', nombre: 'Light Cyan', color_hex: '#80FFFF' },
+        { codigo: 'LM', nombre: 'Light Magenta', color_hex: '#FF80FF' },
+        { codigo: 'OR', nombre: 'Orange', color_hex: '#FFA500' },
+        { codigo: 'GR', nombre: 'Green', color_hex: '#008000' },
+        { codigo: 'RD', nombre: 'Red', color_hex: '#FF0000' },
+        { codigo: 'BL', nombre: 'Blue', color_hex: '#0000FF' }
+      ],
       fields: [
         {
           key: "_id",
@@ -263,6 +294,11 @@ export default {
         color_hex: "#808080"
       };
       this.$bvModal.show("modal-add-color");
+    },
+    cargarPresetColor(preset) {
+      this.form.codigo = preset.codigo;
+      this.form.nombre = preset.nombre;
+      this.form.color_hex = preset.color_hex;
     },
     async saveNewColor() {
       if (!this.form.codigo.trim() || !this.form.nombre.trim()) return;
