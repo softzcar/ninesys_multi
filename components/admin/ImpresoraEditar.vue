@@ -308,9 +308,9 @@ export default {
             if (!this.nuevaTecnologiaNombre.trim()) return;
             this.savingTecnologia = true;
             try {
-                const response = await this.$axios.post(`${this.$config.API}/catalogo-tintas`, {
-                    nombre: this.nuevaTecnologiaNombre.trim()
-                });
+                const params = new URLSearchParams();
+                params.set('nombre', this.nuevaTecnologiaNombre.trim());
+                const response = await this.$axios.post(`${this.$config.API}/catalogo-tintas`, params);
                 const nuevaTech = response.data.data;
                 if (nuevaTech && nuevaTech._id) {
                     await this.cargarCatalogos();
@@ -342,11 +342,11 @@ export default {
             if (!this.nuevoColorForm.codigo.trim() || !this.nuevoColorForm.nombre.trim()) return;
             this.savingColor = true;
             try {
-                const response = await this.$axios.post(`${this.$config.API}/catalogo-colores-tintas`, {
-                    codigo: this.nuevoColorForm.codigo.trim(),
-                    nombre: this.nuevoColorForm.nombre.trim(),
-                    color_hex: this.nuevoColorForm.color_hex
-                });
+                const params = new URLSearchParams();
+                params.set('codigo', this.nuevoColorForm.codigo.trim().toUpperCase());
+                params.set('nombre', this.nuevoColorForm.nombre.trim());
+                params.set('color_hex', this.nuevoColorForm.color_hex);
+                const response = await this.$axios.post(`${this.$config.API}/catalogo-colores-tintas`, params);
                 const nuevoColor = response.data.data;
                 if (nuevoColor && nuevoColor._id) {
                     await this.cargarCatalogos();
