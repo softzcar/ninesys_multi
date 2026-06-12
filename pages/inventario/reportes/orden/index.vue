@@ -125,36 +125,7 @@ export default {
                 fechaConsultaInicio: '',
                 fechaConsultaFin: '',
             },
-            fieldsTinta: [
-                {
-                    key: 'id_orden',
-                    label: 'Orden',
-                },
-                {
-                    key: 'cyan',
-                    label: 'Cyan',
-                },
-                {
-                    key: 'magenta',
-                    label: 'Magenta',
-                },
-                {
-                    key: 'yellow',
-                    label: 'Yellow',
-                },
-                {
-                    key: 'black',
-                    label: 'Black',
-                },
-                {
-                    key: 'white',
-                    label: 'White',
-                },
-                {
-                    key: 'total_tinta_consumo_ml',
-                    label: 'Total Tinta',
-                },
-            ],
+
             fieldsInsumos: [
                 {
                     key: 'id_orden',
@@ -219,9 +190,46 @@ export default {
             }
         },
 
+        coloresDetalles() {
+            return this.dataTable && this.dataTable.colores_detalles && this.dataTable.colores_detalles.length
+                ? this.dataTable.colores_detalles
+                : [
+                    { codigo: "C", nombre: "Cyan", key: "cyan" },
+                    { codigo: "M", nombre: "Magenta", key: "magenta" },
+                    { codigo: "Y", nombre: "Yellow", key: "yellow" },
+                    { codigo: "K", nombre: "Black", key: "black" },
+                    { codigo: "W", nombre: "White", key: "white" }
+                ];
+        },
+
+        fieldsTinta() {
+            const base = [
+                {
+                    key: 'id_orden',
+                    label: 'Orden',
+                }
+            ];
+            this.coloresDetalles.forEach(col => {
+                base.push({
+                    key: col.key,
+                    label: col.nombre,
+                    formatter: (value) => value ? (Number(value) % 1 === 0 ? Number(value).toFixed(0) : Number(value).toFixed(2)) : '0'
+                });
+            });
+            base.push({
+                key: 'total_tinta_consumo_ml',
+                label: 'Total Tinta',
+            });
+            return base;
+        },
+
         totales() {
-            const tinta = this.dataTable.tintas.reduce((sum, item) => sum + (Number(item.total_tinta_consumo_ml) || 0), 0)
-            const insumos = this.dataTable.insumos_consumidos.reduce((sum, item) => sum + (Number(item.total_insumo) || 0), 0)
+            const tinta = this.dataTable && this.dataTable.tintas && Array.isArray(this.dataTable.tintas)
+                ? this.dataTable.tintas.reduce((sum, item) => sum + (Number(item.total_tinta_consumo_ml) || 0), 0)
+                : 0;
+            const insumos = this.dataTable && this.dataTable.insumos_consumidos && Array.isArray(this.dataTable.insumos_consumidos)
+                ? this.dataTable.insumos_consumidos.reduce((sum, item) => sum + (Number(item.total_insumo) || 0), 0)
+                : 0;
             return {
                 tinta: tinta.toFixed(2),
                 insumo: insumos.toFixed(2)
