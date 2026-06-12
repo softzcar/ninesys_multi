@@ -75,27 +75,19 @@
                 <b-card v-for="(tinta, tIndex) in tintasPorOrden[orden.id_orden]" :key="'tinta-' + tIndex"
                   bg-variant="light" class="mb-2" body-class="py-2 px-3">
                   <b-row align-v="center">
-                    <b-col md="5">
+                    <b-col md="4">
                       <b-form-group label="Impresora" label-size="sm" class="mb-0">
                         <b-form-select v-model="tinta.id_impresora" size="sm"
-                          :options="getImpresorasOptionsForOrden(orden.id_orden, tIndex)">
+                          :options="getImpresorasOptionsForOrden(orden.id_orden, tIndex)"
+                          @change="onPrinterChange(orden.id_orden, tIndex)">
                         </b-form-select>
                       </b-form-group>
                     </b-col>
-                    <b-col v-for="color in ['c', 'm', 'y', 'k']" :key="color" class="px-1">
-                      <b-form-group :label="color.toUpperCase()" label-size="sm" class="mb-0">
-                        <b-form-input v-model.number="tinta[color]" type="number" step="0.1" size="sm" :style="{
-                          backgroundColor: colorMap[color],
-                          color: 'black',
-                          fontWeight: 'bold'
-                        }" :disabled="!tinta.id_impresora"></b-form-input>
-                      </b-form-group>
-                    </b-col>
-                    <b-col v-if="showWhiteInkField(orden.id_orden, tIndex)" class="px-1">
-                      <b-form-group label="W" label-size="sm" class="mb-0">
-                        <b-form-input v-model.number="tinta.w" type="number" step="0.1" size="sm" :style="{
-                          backgroundColor: colorMap.w,
-                          color: 'black',
+                    <b-col v-for="colorObj in getPrinterChannels(orden.id_orden, tIndex)" :key="colorObj.id_color" class="px-1">
+                      <b-form-group :label="colorObj.codigo" label-size="sm" class="mb-0">
+                        <b-form-input v-model.number="tinta.colores[colorObj.id_color]" type="number" step="0.1" size="sm" :style="{
+                          backgroundColor: colorObj.color_hex || '#cccccc',
+                          color: getContrastColor(colorObj.color_hex),
                           fontWeight: 'bold'
                         }" :disabled="!tinta.id_impresora"></b-form-input>
                       </b-form-group>
@@ -297,7 +289,7 @@ export default {
             }
             if (!newTintas[o.id_orden]) {
               this.$set(newTintas, o.id_orden, [
-                { id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
+                { id_impresora: null, colores: {} }
               ]);
             }
           });
@@ -361,7 +353,10 @@ export default {
         const tintasOk = this.ordenesDeduplicadas.every(o => {
           const tintas = this.tintasPorOrden[o.id_orden];
           if (!tintas || tintas.length === 0) return false;
-          return tintas.every(t => t.id_impresora && (t.c > 0 || t.m > 0 || t.y > 0 || t.k > 0 || t.w > 0));
+          return tintas.every(t => {
+            if (!t.id_impresora) return false;
+            return Object.values(t.colores || {}).some(val => parseFloat(val) > 0);
+          });
         });
         if (!tintasOk) return false;
       }
@@ -598,7 +593,7 @@ export default {
     // --- MÉTODOS DE TINTAS (IMPRESIÓN) ---
     addImpresora(idOrden) {
       if (!this.tintasPorOrden[idOrden]) return;
-      this.tintasPorOrden[idOrden].push({ id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 });
+      this.tintasPorOrden[idOrden].push({ id_impresora: null, colores: {} });
     },
     removeImpresora(idOrden, index) {
       if (this.tintasPorOrden[idOrden] && this.tintasPorOrden[idOrden].length > 1) {
@@ -620,12 +615,37 @@ export default {
       }));
       return [{ value: null, text: 'Seleccione una impresora' }, ...options];
     },
-    showWhiteInkField(idOrden, index) {
-      if (!this.impresoras || this.impresoras.length === 0) return false;
+    getPrinterChannels(idOrden, index) {
       const selectedId = this.tintasPorOrden[idOrden]?.[index]?.id_impresora;
-      if (!selectedId) return false;
+      if (!selectedId) return [];
       const printer = this.impresoras.find(imp => imp._id === selectedId);
-      return printer && printer.tipo_tecnologia === 'CMYKW';
+      return printer ? (printer.canales_colores || []) : [];
+    },
+    getContrastColor(hex) {
+      if (!hex) return '#000000';
+      const cleanHex = hex.replace('#', '');
+      const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+      const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+      const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      return (yiq >= 128) ? '#000000' : '#FFFFFF';
+    },
+    onPrinterChange(idOrden, index) {
+      const selectedId = this.tintasPorOrden[idOrden][index].id_impresora;
+      if (selectedId) {
+        const printer = this.impresoras.find(imp => imp._id === selectedId);
+        if (printer && printer.canales_colores) {
+          const newColores = {};
+          printer.canales_colores.forEach(c => {
+            newColores[c.id_color] = this.tintasPorOrden[idOrden][index].colores[c.id_color] || 0;
+          });
+          this.$set(this.tintasPorOrden[idOrden][index], 'colores', newColores);
+        } else {
+          this.$set(this.tintasPorOrden[idOrden][index], 'colores', {});
+        }
+      } else {
+        this.$set(this.tintasPorOrden[idOrden][index], 'colores', {});
+      }
     },
     puedeAnadirImpresoraOrden(idOrden) {
       const tintas = this.tintasPorOrden[idOrden];
@@ -649,7 +669,7 @@ export default {
           }
         ]);
         this.$set(this.tintasPorOrden, o.id_orden, [
-          { id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
+          { id_impresora: null, colores: {} }
         ]);
       });
       this.overlay = false;
@@ -711,14 +731,17 @@ export default {
           const tintas = this.tintasPorOrden[idOrden];
           tintas.forEach(t => {
             if (t.id_impresora) {
+              const coloresMap = {};
+              Object.entries(t.colores || {}).forEach(([id_color, val]) => {
+                const numVal = parseFloat(val);
+                if (numVal > 0) {
+                  coloresMap[id_color] = numVal;
+                }
+              });
               tintasParaEnviar.push({
                 id_orden: parseInt(idOrden),
                 id_impresora: t.id_impresora,
-                c: t.c || 0,
-                m: t.m || 0,
-                y: t.y || 0,
-                k: t.k || 0,
-                w: t.w || 0,
+                colores: coloresMap,
               });
             }
           });
