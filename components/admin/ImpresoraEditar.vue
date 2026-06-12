@@ -142,12 +142,15 @@ export default {
                     this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`)
                 ]);
                 
+                const techList = respTech.data.data || respTech.data || [];
+                const colorsList = respColors.data.data || respColors.data || [];
+
                 this.tecnologiasOptions = [
                     { value: null, text: 'Seleccione una opción' },
-                    ...respTech.data.map(t => ({ value: t._id, text: t.nombre }))
+                    ...techList.map(t => ({ value: t._id, text: t.nombre }))
                 ];
                 
-                this.coloresOptions = respColors.data;
+                this.coloresOptions = colorsList;
             } catch (error) {
                 console.error("Error al cargar los catálogos en ImpresoraEditar:", error);
             }

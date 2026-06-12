@@ -240,7 +240,7 @@ export default {
       this.overlay = true;
       try {
         const response = await this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`);
-        this.catalogoColores = response.data || [];
+        this.catalogoColores = response.data.data || response.data || [];
         this.filteredItemsCount = this.catalogoColores.length;
       } catch (error) {
         console.error("Error al obtener catálogo de colores:", error);

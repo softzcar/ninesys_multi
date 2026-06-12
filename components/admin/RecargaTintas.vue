@@ -479,7 +479,9 @@ export default {
       await Promise.all([
         this.getImpresoras(),
         this.fetchSupplies(),
-        this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`).then(r => this.coloresOptions = r.data)
+        this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`).then(r => {
+          this.coloresOptions = r.data.data || r.data || [];
+        })
       ]);
       this.loading = false;
     },
