@@ -75,7 +75,6 @@
             :items="reporte.tintas"
             :fields="fieldsTinta"
             responsive
-            foot-clone
           >
             <template #cell(total_tinta_consumo_ml)="data">
               {{ (Number(data.item.total_tinta_consumo_ml) || 0).toFixed(2) }} ml
@@ -84,27 +83,16 @@
               $ {{ (Number(data.item.total_tinta_costo) || 0).toFixed(2) }}
             </template>
 
-            <!-- Footer para Tintas -->
-            <template #foot(cyan)>
-              <strong>Totales:</strong>
-            </template>
-            <template #foot(magenta)>
-              <span>&nbsp;</span>
-            </template>
-            <template #foot(yellow)>
-              <span>&nbsp;</span>
-            </template>
-            <template #foot(black)>
-              <span>&nbsp;</span>
-            </template>
-            <template #foot(white)>
-              <span>&nbsp;</span>
-            </template>
-            <template #foot(total_tinta_consumo_ml)>
-              <strong>{{ totalTintaML.toFixed(2) }} ml</strong>
-            </template>
-            <template #foot(total_tinta_costo)>
-              <strong class="text-primary">$ {{ totalTintaCosto.toFixed(2) }}</strong>
+
+            <!-- Custom dynamic footer matching exactly the number of columns -->
+            <template #custom-foot>
+              <tr class="font-weight-bold" v-if="reporte.tintas.length">
+                <td>Totales:</td>
+                <!-- Celdas vacías para el resto de columnas de colores -->
+                <td v-for="i in (coloresDetalles.length - 1)" :key="i">&nbsp;</td>
+                <td>{{ totalTintaML.toFixed(2) }} ml</td>
+                <td class="text-primary">$ {{ totalTintaCosto.toFixed(2) }}</td>
+              </tr>
             </template>
           </b-table>
 
@@ -192,17 +180,9 @@ export default {
       reporte: {
         tintas: [],
         insumos_consumidos: [],
+        colores_detalles: [],
       },
       isLoading: false,
-      fieldsTinta: [
-        { key: "cyan", label: "Cyan" },
-        { key: "magenta", label: "Magenta" },
-        { key: "yellow", label: "Yellow" },
-        { key: "black", label: "Black" },
-        { key: "white", label: "White" },
-        { key: "total_tinta_consumo_ml", label: "Total Tinta" }, // Changed key
-        { key: "total_tinta_costo", label: "Total Costo" }, // New field
-      ],
       fieldsInsumos: [
         { key: "sku", label: "SKU" },
         { key: "nombre_insumo", label: "Insumo" },
@@ -216,6 +196,32 @@ export default {
   computed: {
     modalId() {
       return `modal-insumos-${this.id_orden}`;
+    },
+
+    coloresDetalles() {
+      return this.reporte.colores_detalles && this.reporte.colores_detalles.length
+        ? this.reporte.colores_detalles
+        : [
+            { codigo: "C", nombre: "Cyan", key: "cyan" },
+            { codigo: "M", nombre: "Magenta", key: "magenta" },
+            { codigo: "Y", nombre: "Yellow", key: "yellow" },
+            { codigo: "K", nombre: "Black", key: "black" },
+            { codigo: "W", nombre: "White", key: "white" }
+          ];
+    },
+
+    fieldsTinta() {
+      const base = [];
+      this.coloresDetalles.forEach(col => {
+        base.push({
+          key: col.key,
+          label: col.nombre,
+          formatter: (value) => `${(Number(value) || 0).toFixed(2)} ml`
+        });
+      });
+      base.push({ key: "total_tinta_consumo_ml", label: "Total Tinta" });
+      base.push({ key: "total_tinta_costo", label: "Total Costo" });
+      return base;
     },
 
     totalTintaML() {

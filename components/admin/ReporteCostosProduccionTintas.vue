@@ -17,21 +17,8 @@
             :fields="fields"
             responsive
           >
-            <template #cell(cyan)="data">
-              {{ data.item.cyan ? data.item.cyan.toFixed(2) : '0.00' }} ml
-            </template>
-            <template #cell(magenta)="data">
-              {{ data.item.magenta ? data.item.magenta.toFixed(2) : '0.00' }} ml
-            </template>
-            <template #cell(yellow)="data">
-              {{ data.item.yellow ? data.item.yellow.toFixed(2) : '0.00' }} ml
-            </template>
-            <template #cell(black)="data">
-              {{ data.item.black ? data.item.black.toFixed(2) : '0.00' }} ml
-            </template>
-            <template #cell(white)="data">
-              {{ data.item.white ? data.item.white.toFixed(2) : '0.00' }} ml
-            </template>
+
+
             <template #cell(total_tinta_consumo_ml)="data">
               <strong>{{ data.item.total_tinta_consumo_ml ? data.item.total_tinta_consumo_ml.toFixed(2) : '0.00' }} ml</strong>
             </template>
@@ -63,22 +50,38 @@ export default {
     return {
       reporte: {
         tintas: [],
+        colores_detalles: [],
       },
       isLoading: false,
-      fields: [
-        { key: "cyan", label: "Cyan" },
-        { key: "magenta", label: "Magenta" },
-        { key: "yellow", label: "Yellow" },
-        { key: "black", label: "Black" },
-        { key: "white", label: "White" },
-        { key: "total_tinta_consumo_ml", label: "Total Consumo" },
-        { key: "total_tinta_costo", label: "Total Costo" },
-      ],
     };
   },
   computed: {
     modalId() {
       return `modal-tintas-${this.id_orden}`;
+    },
+    coloresDetalles() {
+      return this.reporte.colores_detalles && this.reporte.colores_detalles.length
+        ? this.reporte.colores_detalles
+        : [
+            { codigo: "C", nombre: "Cyan", key: "cyan" },
+            { codigo: "M", nombre: "Magenta", key: "magenta" },
+            { codigo: "Y", nombre: "Yellow", key: "yellow" },
+            { codigo: "K", nombre: "Black", key: "black" },
+            { codigo: "W", nombre: "White", key: "white" }
+          ];
+    },
+    fields() {
+      const base = [];
+      this.coloresDetalles.forEach(col => {
+        base.push({
+          key: col.key,
+          label: col.nombre,
+          formatter: (value) => `${(Number(value) || 0).toFixed(2)} ml`
+        });
+      });
+      base.push({ key: "total_tinta_consumo_ml", label: "Total Consumo" });
+      base.push({ key: "total_tinta_costo", label: "Total Costo" });
+      return base;
     },
   },
   methods: {
