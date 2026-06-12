@@ -34,7 +34,10 @@
 
                             <div class="form-group mt-3">
                                 <label>Color de la Tinta:</label>
-                                <div class="d-flex flex-wrap">
+                                <div v-if="colorOptions.length === 0" class="text-muted small py-2">
+                                    <b-spinner small></b-spinner> Cargando colores...
+                                </div>
+                                <div v-else class="d-flex flex-wrap" style="gap: 0.5rem;">
                                     <div class="form-check form-check-inline" v-for="colorOption in colorOptions" :key="colorOption.value">
                                         <input
                                             class="form-check-input"
@@ -45,9 +48,17 @@
                                             required
                                         />
                                         <label
-                                            class="form-check-label ink-badge"
-                                            :class="'ink-' + colorOption.value.toLowerCase()"
+                                            class="form-check-label"
                                             :for="'color-' + colorOption.value"
+                                            :style="{
+                                                backgroundColor: colorOption.hex || '#cccccc',
+                                                color: colorOption.textColor || '#000000',
+                                                padding: '2px 10px',
+                                                borderRadius: '12px',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                border: selectedColor === colorOption.value ? '2px solid #333' : '2px solid transparent',
+                                            }"
                                         >
                                             {{ colorOption.name }}
                                         </label>
@@ -190,13 +201,7 @@ export default {
             selectedProduct: null,
             selectedTintaType: null,
             selectedColor: '',
-            colorOptions: [
-                { name: 'Cyan', value: 'C' },
-                { name: 'Magenta', value: 'M' },
-                { name: 'Yellow', value: 'Y' },
-                { name: 'Black', value: 'K' },
-                { name: 'White', value: 'W' },
-            ],
+            colorOptions: [], // Se carga dinámicamente desde /catalogo-colores-tintas
             unidadesOptions: [
                 { value: "Mts", text: "Metros" },
                 { value: "Kg", text: "Kilos" },
@@ -269,6 +274,28 @@ export default {
                 this.catalogoTintas = response.data.data;
             } catch (error) {
                 console.error("Error al obtener el catálogo de tintas:", error);
+            }
+        },
+        async fetchColoresTintas() {
+            try {
+                const response = await this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`);
+                const colores = response.data.data || [];
+                this.colorOptions = colores.map(c => {
+                    // Calcular color de texto (blanco/negro) según luminosidad del fondo
+                    const hex = (c.color_hex || '#cccccc').replace('#', '');
+                    const r = parseInt(hex.substring(0, 2), 16) || 0;
+                    const g = parseInt(hex.substring(2, 4), 16) || 0;
+                    const b = parseInt(hex.substring(4, 6), 16) || 0;
+                    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                    return {
+                        name: c.nombre,
+                        value: c.codigo,
+                        hex: c.color_hex || '#cccccc',
+                        textColor: lum > 0.5 ? '#000000' : '#ffffff',
+                    };
+                });
+            } catch (error) {
+                console.error("Error al obtener los colores de tinta:", error);
             }
         },
         async guardarInsumo() {
@@ -399,6 +426,7 @@ export default {
     created() {
         this.fetchCatalogoProductos();
         this.fetchCatalogoTintas();
+        this.fetchColoresTintas();
     },
 }
 </script>
