@@ -27,12 +27,13 @@
                   <b-form-group
                     label="Insumo (Tinta):"
                     label-for="supplyAutocomplete"
+                    :description="selectedPrinterId ? 'Solo se muestran tintas del tipo y color compatibles con la impresora seleccionada.' : 'Seleccione una impresora para filtrar las tintas.'"
                   >
                     <!-- Chip de selección activa -->
                     <div v-if="selectedSupply" class="supply-chip mb-2">
                       <span
-                        class="ink-badge mr-2"
-                        :class="'ink-' + (selectedSupply.color ? selectedSupply.color.toLowerCase() : 'k')"
+                        class="ink-badge mr-2 d-flex align-items-center justify-content-center"
+                        :style="{ backgroundColor: getColorHex(selectedSupply.id_color_tinta), color: getContrastColor(getColorHex(selectedSupply.id_color_tinta)), border: '1px solid rgba(0,0,0,0.15)', width: '32px', height: '32px', borderRadius: '50%', fontWeight: 'bold' }"
                       >
                         {{ selectedSupply.color || '?' }}
                       </span>
@@ -64,6 +65,7 @@
                           class="supply-search-input"
                           placeholder="Escribe ID, SKU o Nombre para buscar tinta..."
                           autocomplete="off"
+                          :disabled="!selectedPrinterId"
                           @focus="showDropdown = true"
                           @blur="onInputBlur"
                           @keydown.down.prevent="moveHighlight(1)"
@@ -91,21 +93,21 @@
                             @mousedown.prevent="selectSupply(item)"
                           >
                             <span
-                              class="ink-badge flex-shrink-0"
-                              :class="'ink-' + (item.color ? item.color.toLowerCase() : 'k')"
+                              class="ink-badge flex-shrink-0 d-flex align-items-center justify-content-center mr-2"
+                              :style="{ backgroundColor: getColorHex(item.id_color_tinta), color: getContrastColor(getColorHex(item.id_color_tinta)), border: '1px solid rgba(0,0,0,0.15)', width: '32px', height: '32px', borderRadius: '50%', fontWeight: 'bold' }"
                             >
                               {{ item.color || '?' }}
                             </span>
                             <div class="supply-dropdown-info">
                               <span class="supply-dropdown-name">{{ item.insumo }}</span>
                               <span class="supply-dropdown-meta">
-                                ID: {{ item.id_insumo }} · SKU: {{ item.sku || 'N/A' }} · Stock: {{ item.cantidad }} ml
+                                ID: {{ item.id_insumo }} · SKU: {{ item.sku || 'N/A' }} · Stock: {{ item.cantidad }} ml · Tipo: {{ item.tipo_tinta }}
                               </span>
                             </div>
                           </div>
                         </template>
                         <div v-else class="supply-dropdown-empty">
-                          Sin resultados para "{{ supplyFilterText }}"
+                          Sin resultados compatibles para "{{ supplyFilterText }}"
                         </div>
                       </div>
                     </div>
@@ -126,24 +128,24 @@
                         <tr>
                           <th>Color</th>
                           <th>Nivel Actual (ml)</th>
-                          <th>Consumo Estimado (ml)</th>
+                          <th>Consumo Histórico (ml)</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="color in ['C', 'M', 'Y', 'K', 'W']" :key="color" v-if="isColorSupported(color)">
+                        <tr v-for="colorObj in selectedPrinterCanales" :key="colorObj.id_color">
                           <td>
                             <div
-                              class="ink-badge mx-auto"
-                              :class="'ink-' + color.toLowerCase()"
+                              class="ink-badge mx-auto d-flex align-items-center justify-content-center font-weight-bold"
+                              :style="{ backgroundColor: colorObj.color_hex, color: getContrastColor(colorObj.color_hex), border: '1px solid rgba(0,0,0,0.15)', minWidth: '40px', borderRadius: '4px', padding: '2px 8px' }"
                             >
-                              {{ color }}
+                              {{ colorObj.codigo }} - {{ colorObj.nombre }}
                             </div>
                           </td>
                           <td class="align-middle font-weight-bold text-info">
-                            {{ getInkLevelValue(color, 'tinta_restante_ultima_recarga_ml') }}
+                            {{ getInkLevelValue(colorObj.codigo, 'tinta_restante_total_ml') }}
                           </td>
                           <td class="align-middle text-muted">
-                            {{ getInkLevelValue(color, 'consumo_desde_ultima_recarga_ml') }}
+                            {{ getInkLevelValue(colorObj.codigo, 'consumo_total_historico_ml') }}
                           </td>
                         </tr>
                       </tbody>
@@ -159,12 +161,10 @@
                     <label>Color Detectado:</label>
                     <div class="d-flex align-items-center">
                       <div
-                        v-if="selectedSupplyColor"
-                        class="ink-badge font-weight-bold"
-                        :class="'ink-' + selectedSupplyColor.value.toLowerCase()"
-                        style="min-width: 100px; padding: 0.5rem 1rem;"
+                        class="ink-badge font-weight-bold d-flex align-items-center justify-content-center text-center"
+                        :style="{ backgroundColor: selectedSupplyColor.color_hex, color: getContrastColor(selectedSupplyColor.color_hex), border: '1px solid rgba(0,0,0,0.15)', minWidth: '120px', padding: '0.5rem 1rem', borderRadius: '4px' }"
                       >
-                        {{ selectedSupplyColor.name }}
+                        {{ selectedSupplyColor.nombre }} ({{ selectedSupplyColor.codigo }})
                       </div>
                       <small class="ml-3 text-muted" v-if="selectedSupply">
                         Stock disponible: <strong>{{ selectedSupply.cantidad }} ml</strong>
@@ -242,21 +242,6 @@
             </li>
             <li v-if="!tintasDisponibles">
               No hay tintas en el inventario.
-              <router-link
-                to="/inventario/nueva-tinta"
-                custom
-                v-slot="{ navigate }"
-              >
-                <span
-                  @click="navigate"
-                  @keypress.enter="navigate"
-                  role="link"
-                  class="alert-link"
-                  style="cursor: pointer;"
-                >
-                  Crear Tintas
-                </span>
-              </router-link>
             </li>
           </ul>
         </b-alert>
@@ -296,24 +281,18 @@ export default {
     return {
       impresoras: [], // Aquí se cargarán las impresoras desde la API
       supplies: [], // Aquí se cargarán los insumos (tintas) desde la API
-      loading: true, // Nuevo: para el b-overlay
+      coloresOptions: [], // Catálogo maestro de colores dinámicos
+      loading: true, // para el b-overlay
       supplyFilterText: "", // Buscador reactivo para el autocomplete
       showDropdown: false,
       highlightIndex: -1,
       selectedPrinterId: "",
       selectedSupplyId: "",
       selectedColor: "",
-      selectedPrinterTechnology: null, // Nuevo: para almacenar el tipo de tecnología de la impresora
+      selectedPrinterTechnologyId: null, // ID de la tecnología
       milliliters: null,
       prevLevel: null,
-      inkLevels: [], // Niveles de tinta de la impresora seleccionada
-      colorOptions: [
-        { name: "Cyan", value: "C" },
-        { name: "Magenta", value: "M" },
-        { name: "Yellow", value: "Y" },
-        { name: "Black", value: "K" },
-        { name: "White", value: "W" },
-      ],
+      inkLevels: [] // Niveles de tinta de la impresora seleccionada
     };
   },
   computed: {
@@ -333,18 +312,35 @@ export default {
       let options = this.impresoras.map((imp) => {
         return {
           value: imp._id,
-          text: `${imp.codigo_interno} - ${imp.marca} ${imp.modelo}`,
-          tipo_tecnologia: imp.tipo_tecnologia, // Añadir tipo_tecnologia aquí
+          text: `${imp.codigo_interno} - ${imp.marca} ${imp.modelo} (${imp.tecnologia_nombre || imp.tipo_tecnologia})`,
         };
       });
       options.unshift({ value: null, text: "Seleccione una impresora" });
       return options;
     },
+    selectedPrinterCanales() {
+      if (!this.selectedPrinterId) return [];
+      const printer = this.impresoras.find(imp => imp._id === this.selectedPrinterId);
+      return printer ? (printer.canales_colores || []) : [];
+    },
     filteredSupplies() {
       if (!this.supplies || this.supplies.length === 0) return [];
+      
+      let available = this.supplies;
+      if (this.selectedPrinterId) {
+        const printer = this.impresoras.find(p => p._id === this.selectedPrinterId);
+        if (printer) {
+          const supportedColorIds = (printer.canales_colores || []).map(c => c.id_color);
+          available = available.filter(s => {
+            return s.id_catalogo_tintas === printer.id_catalogo_tintas &&
+                   supportedColorIds.includes(s.id_color_tinta);
+          });
+        }
+      }
+
       const query = this.supplyFilterText.toLowerCase().trim();
       if (!query) return [];
-      return this.supplies.filter(s => {
+      return available.filter(s => {
         const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
         const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
         const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
@@ -354,21 +350,7 @@ export default {
                skuStr.includes(query) || 
                insumoStr.includes(query) || 
                colorStr === query;
-      }).slice(0, 10); // Límite de 10 resultados para que no sea inmenso
-    },
-    filteredColorOptions() {
-      // Si no hay impresora seleccionada o la tecnología es CMYK, deshabilitar 'White'
-      if (!this.selectedPrinterId || this.selectedPrinterTechnology === 'CMYK') {
-        return this.colorOptions.map(option => ({
-          ...option,
-          disabled: option.value === 'W' || !this.selectedPrinterId // Deshabilitar 'W' o todos si no hay impresora seleccionada
-        }));
-      } else if (this.selectedPrinterTechnology === 'CMYKW') {
-        // Si la tecnología es CMYKW, habilitar todos los colores
-        return this.colorOptions.map(option => ({ ...option, disabled: false }));
-      }
-      // Por defecto, si no hay tecnología definida o no se cumple ninguna condición, deshabilitar todos
-      return this.colorOptions.map(option => ({ ...option, disabled: true }));
+      }).slice(0, 10);
     },
     selectedSupply() {
       if (!this.selectedSupplyId) return null;
@@ -376,7 +358,7 @@ export default {
     },
     selectedSupplyColor() {
       if (!this.selectedSupply) return null;
-      return this.colorOptions.find(c => c.value === this.selectedSupply.color);
+      return this.coloresOptions.find(c => c._id === this.selectedSupply.id_color_tinta);
     },
     isQuantityValid() {
       if (!this.milliliters) return null;
@@ -395,13 +377,13 @@ export default {
     selectedPrinterId(newVal) {
       if (newVal) {
         const selectedPrinter = this.impresoras.find(imp => imp._id === newVal);
-        this.selectedPrinterTechnology = selectedPrinter ? selectedPrinter.tipo_tecnologia : null;
+        this.selectedPrinterTechnologyId = selectedPrinter ? selectedPrinter.id_catalogo_tintas : null;
         this.fetchInkLevels(newVal);
       } else {
-        this.selectedPrinterTechnology = null;
+        this.selectedPrinterTechnologyId = null;
         this.inkLevels = [];
       }
-      this.selectedColor = ""; // Limpiar la selección de color al cambiar la impresora
+      this.clearSupplySelection();
     },
     selectedSupplyId(newVal) {
       if (newVal && this.selectedSupply) {
@@ -416,6 +398,19 @@ export default {
     }
   },
   methods: {
+    getColorHex(colorId) {
+      const col = this.coloresOptions.find(c => c._id === colorId);
+      return col ? col.color_hex : '#808080';
+    },
+    getContrastColor(hex) {
+      if (!hex) return '#000000';
+      const cleanHex = hex.replace('#', '');
+      const r = parseInt(cleanHex.substring(0, 2), 16);
+      const g = parseInt(cleanHex.substring(2, 4), 16);
+      const b = parseInt(cleanHex.substring(4, 6), 16);
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      return (yiq >= 128) ? '#000000' : '#FFFFFF';
+    },
     selectSupply(item) {
       this.selectedSupplyId = item.id_insumo;
       this.supplyFilterText = "";
@@ -432,7 +427,6 @@ export default {
       });
     },
     onInputBlur() {
-      // Usar setTimeout para permitir que el evento mousedown del item se ejecute antes de cerrar
       setTimeout(() => {
         this.showDropdown = false;
       }, 200);
@@ -475,18 +469,18 @@ export default {
         console.error('Error al obtener niveles de tinta', error);
       }
     },
-    isColorSupported(color) {
-      if (color === 'W') return this.selectedPrinterTechnology === 'CMYKW';
-      return true;
-    },
-    getInkLevelValue(color, key) {
-      const level = this.inkLevels.find(l => l.color === color);
+    getInkLevelValue(colorCode, key) {
+      const level = this.inkLevels.find(l => l.color === colorCode);
       if (!level) return "0.00";
-      return parseFloat(level[key]).toFixed(2);
+      return parseFloat(level[key] || 0).toFixed(2);
     },
     async loadInitialData() {
       this.loading = true;
-      await Promise.all([this.getImpresoras(), this.fetchSupplies()]);
+      await Promise.all([
+        this.getImpresoras(),
+        this.fetchSupplies(),
+        this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`).then(r => this.coloresOptions = r.data)
+      ]);
       this.loading = false;
     },
     submitForm() {
@@ -498,10 +492,11 @@ export default {
         const data = new URLSearchParams();
         data.set("id_impresora", this.selectedPrinterId);
         data.set("id_insumo", this.selectedSupplyId);
+        data.set("id_color_tinta", this.selectedSupply.id_color_tinta);
         data.set("color", this.selectedColor);
         data.set("mililitros", this.milliliters);
         data.set("nivel_tanque_previo", this.prevLevel);
-        data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
+        data.set("id_empleado", this.$store.state.login.dataUser.id_usuario || this.$store.state.login.dataUser.id_empleado);
 
         const response = await this.$axios.post(`${this.$config.API}/inventario-tintas`, data);
         
@@ -513,7 +508,10 @@ export default {
           type: "success",
         });
         
-        this.fetchSupplies();
+        await this.fetchSupplies();
+        if (this.selectedPrinterId) {
+          await this.fetchInkLevels(this.selectedPrinterId);
+        }
         
         // Reset form
         this.selectedPrinterId = null;
@@ -539,17 +537,6 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos específicos para este componente */
-.form-check-label {
-  min-width: 60px; /* Asegura un ancho mínimo para los labels de color */
-  text-align: center;
-  border: 1px solid transparent; /* Borde por defecto para todos los colores */
-}
-/* Estilo específico para el color blanco para que sea visible */
-.form-check-label[for="color-W"] {
-  border: 1px solid #ccc;
-}
-
 /* ===== Autocomplete de Insumos ===== */
 .supply-autocomplete {
   position: relative;

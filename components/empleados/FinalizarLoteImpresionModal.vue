@@ -68,27 +68,29 @@
             <b-col md="12">
               <b-form-group label="Impresora Utilizada">
                 <b-form-select v-model="impresora.id_impresora"
-                  :options="getImpresorasOptionsForIndex(index)"></b-form-select>
+                  :options="getImpresorasOptionsForIndex(index)"
+                  @change="onPrinterChange(index)"></b-form-select>
               </b-form-group>
             </b-col>
           </b-row>
-          <b-row>
-            <b-col v-for="color in ['c', 'm', 'y', 'k']" :key="color">
-              <b-form-group :label="color.toUpperCase()">
-                <b-form-input v-model.number="impresora[color]" type="number" step="0.1" :style="{
-                  backgroundColor: colorMap[color],
-                  color: color === 'k' || color === 'm' ? 'white' : 'black',
-                  fontWeight: 'bold'
-                }" :disabled="!impresora.id_impresora"></b-form-input>
-              </b-form-group>
-            </b-col>
-            <b-col v-if="showWhiteInkFieldForIndex(index)">
-              <b-form-group label="W">
-                <b-form-input v-model.number="impresora.w" type="number" step="0.1" :style="{
-                  backgroundColor: colorMap.w,
-                  color: 'black',
-                  fontWeight: 'bold'
-                }" :disabled="!impresora.id_impresora"></b-form-input>
+          
+          <!-- Canales de tinta dinámicos -->
+          <b-row v-if="impresora.id_impresora">
+            <b-col v-for="colorObj in getPrinterChannels(index)" :key="colorObj.id_color" md="2" sm="4" class="mb-3">
+              <b-form-group :label="`${colorObj.nombre} (ml)`">
+                <b-form-input 
+                  v-model.number="impresora.colores[colorObj.id_color]" 
+                  type="number" 
+                  step="0.1" 
+                  min="0"
+                  :style="{
+                    backgroundColor: colorObj.color_hex,
+                    color: getContrastColor(colorObj.color_hex),
+                    fontWeight: 'bold',
+                    border: '1px solid rgba(0,0,0,0.15)'
+                  }"
+                  placeholder="0.0"
+                ></b-form-input>
               </b-form-group>
             </b-col>
           </b-row>
@@ -160,8 +162,7 @@
         <b-row class="mt-4">
           <b-col>
             <b-button variant="success" @click="confirmarFinalizacion" :disabled="!formValid" block size="lg">
-              <b-icon icon="check-all"></b-icon> Confirmar y Finalizar Lote de
-              Impresión
+              <b-icon icon="check-all"></b-icon> Confirmar y Finalizar Lote de Impresión
             </b-button>
           </b-col>
         </b-row>
@@ -214,15 +215,8 @@ export default {
       ],
       // Array para múltiples impresoras
       impresorasSeleccionadas: [
-        { id: 1, id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
+        { id: 1, id_impresora: null, colores: {} }
       ],
-      colorMap: {
-        c: '#E0FBFF',
-        m: '#FFF0F5',
-        y: '#FFFDE7',
-        k: '#F5F5F5',
-        w: '#FFFFFF',
-      },
       materialesLote: [], // Datos de materiales estimados del lote
     }
   },
@@ -234,7 +228,6 @@ export default {
       }))
     },
     insumosOptions() {
-      // Ajuste: Papeles están en la categoría 'Telas'
       const insumosPapel = this.insumos.filter(
         (i) => i.departamento === 'Telas'
       )
@@ -242,8 +235,7 @@ export default {
       const options = insumosPapel.map((insumo) => {
         return {
           value: insumo._id,
-          text: `${insumo.insumo} (Rollo: ${insumo.rollo || 'N/A'
-            }) - Stock: ${insumo.cantidad} ${insumo.unidad}`,
+          text: `${insumo.insumo} (Rollo: ${insumo.rollo || 'N/A'}) - Stock: ${insumo.cantidad} ${insumo.unidad}`,
         }
       })
       return [
@@ -265,14 +257,12 @@ export default {
       ]
     },
 
-    // Devuelve true si la última impresora tiene una seleccionada
     puedeAnadirImpresora() {
       if (!this.impresorasSeleccionadas || this.impresorasSeleccionadas.length === 0) return false
       const ultimaImpresora = this.impresorasSeleccionadas[this.impresorasSeleccionadas.length - 1]
       return ultimaImpresora.id_impresora !== null
     },
 
-    // Devuelve true si ya se seleccionaron todas las impresoras disponibles
     todasImpresorasSeleccionadas() {
       if (!this.impresoras || this.impresoras.length === 0) return true
       return this.impresorasSeleccionadas.length >= this.impresoras.length
@@ -283,13 +273,13 @@ export default {
         (p) => p.id_insumo && p.cantidad_total > 0
       )
       const tintaValida = this.impresorasSeleccionadas.every(imp => {
-        return imp.id_impresora &&
-          (imp.c > 0 || imp.m > 0 || imp.y > 0 || imp.k > 0 || imp.w > 0)
+        if (!imp.id_impresora) return false;
+        // Validar que al menos un canal tenga un consumo mayor a 0
+        return Object.values(imp.colores || {}).some(val => parseFloat(val) > 0);
       })
       return papelValido && tintaValida
     },
 
-    // Agrupa materiales estimados por catálogo
     materialesEstimadosAgrupados() {
       if (!this.materialesLote || this.materialesLote.length === 0) {
         return []
@@ -322,7 +312,6 @@ export default {
       }))
     },
 
-    // Total de material estimado (suma de todos los catálogos)
     totalMaterialEstimado() {
       if (this.materialesEstimadosAgrupados.length === 0) {
         return 0
@@ -332,7 +321,6 @@ export default {
       }, 0).toFixed(2)
     },
 
-    // Total de material utilizado (suma de consumoPapel)
     materialUtilizadoTotal() {
       if (!this.consumoPapel || this.consumoPapel.length === 0) {
         return '0.00'
@@ -344,7 +332,6 @@ export default {
       return total.toFixed(2)
     },
 
-    // Eficiencia: (Estimado / Utilizado) * 100
     eficienciaLote() {
       const estimado = parseFloat(this.totalMaterialEstimado)
       const utilizado = parseFloat(this.materialUtilizadoTotal)
@@ -357,6 +344,15 @@ export default {
     },
   },
   methods: {
+    getContrastColor(hex) {
+      if (!hex) return '#000000';
+      const cleanHex = hex.replace('#', '');
+      const r = parseInt(cleanHex.substring(0, 2), 16);
+      const g = parseInt(cleanHex.substring(2, 4), 16);
+      const b = parseInt(cleanHex.substring(4, 6), 16);
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      return (yiq >= 128) ? '#000000' : '#FFFFFF';
+    },
     addPapel() {
       this.consumoPapel.push({
         id_insumo: null,
@@ -372,33 +368,24 @@ export default {
     },
 
     async cargarMaterialesLote() {
-      console.log('🔍 cargarMaterialesLote - Iniciando...')
-      console.log('ordenes prop:', this.ordenes)
-
       if (!this.ordenes || this.ordenes.length === 0) {
-        console.log('⚠️ No hay órdenes, saliendo...')
         this.materialesLote = []
         return
       }
 
       try {
         const idsOrdenes = this.ordenes.map(o => o.id_orden)
-        console.log('📋 IDs de órdenes:', idsOrdenes)
-
         const response = await this.$axios.post(
           `${this.$config.API}/ordenes/materiales-lote`,
           { id_ordenes: idsOrdenes }
         )
-        console.log('✅ Respuesta del servidor:', response.data)
         this.materialesLote = response.data || []
-        console.log('📦 materialesLote actualizado:', this.materialesLote)
       } catch (error) {
-        console.error('❌ Error al cargar materiales del lote:', error)
+        console.error('Error al cargar materiales del lote:', error)
         this.materialesLote = []
       }
     },
 
-    // --- MÉTODOS PARA MÚLTIPLES IMPRESORAS ---
     addImpresora() {
       if (!this.puedeAnadirImpresora) {
         this.$fire({
@@ -422,11 +409,7 @@ export default {
       this.impresorasSeleccionadas.push({
         id: newId,
         id_impresora: null,
-        c: 0,
-        m: 0,
-        y: 0,
-        k: 0,
-        w: 0,
+        colores: {}
       })
     },
 
@@ -456,14 +439,30 @@ export default {
       return options
     },
 
-    showWhiteInkFieldForIndex(index) {
-      if (!this.impresoras || this.impresoras.length === 0) return false
-      const selectedId = this.impresorasSeleccionadas[index]?.id_impresora
-      if (!selectedId) return false
-      const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId)
-      return selectedPrinter && selectedPrinter.tipo_tecnologia === 'CMYKW'
+    getPrinterChannels(index) {
+      const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
+      if (!selectedId) return [];
+      const printer = this.impresoras.find(imp => imp._id === selectedId);
+      return printer ? (printer.canales_colores || []) : [];
     },
-    // --- FIN MÉTODOS PARA MÚLTIPLES IMPRESORAS ---
+
+    onPrinterChange(index) {
+      const selectedId = this.impresorasSeleccionadas[index].id_impresora;
+      if (selectedId) {
+        const printer = this.impresoras.find(imp => imp._id === selectedId);
+        if (printer && printer.canales_colores) {
+          const newColores = {};
+          printer.canales_colores.forEach(c => {
+            newColores[c.id_color] = this.impresorasSeleccionadas[index].colores[c.id_color] || 0;
+          });
+          this.$set(this.impresorasSeleccionadas[index], 'colores', newColores);
+        } else {
+          this.$set(this.impresorasSeleccionadas[index], 'colores', {});
+        }
+      } else {
+        this.$set(this.impresorasSeleccionadas[index], 'colores', {});
+      }
+    },
 
     resetModal() {
       this.overlay = false
@@ -476,7 +475,7 @@ export default {
         },
       ]
       this.impresorasSeleccionadas = [
-        { id: 1, id_impresora: null, c: 0, m: 0, y: 0, k: 0, w: 0 }
+        { id: 1, id_impresora: null, colores: {} }
       ]
     },
     resetAndClose() {
@@ -504,20 +503,25 @@ export default {
       }))
 
       // Mapear impresoras a formato para backend
-      const consumosTintas = this.impresorasSeleccionadas.map(imp => ({
-        id_impresora: imp.id_impresora,
-        c: imp.c,
-        m: imp.m,
-        y: imp.y,
-        k: imp.k,
-        w: imp.w,
-      }))
+      const consumosTintas = this.impresorasSeleccionadas.map(imp => {
+        const coloresMap = {};
+        Object.entries(imp.colores || {}).forEach(([id_color, val]) => {
+          const numVal = parseFloat(val);
+          if (numVal > 0) {
+            coloresMap[id_color] = numVal;
+          }
+        });
+        return {
+          id_impresora: imp.id_impresora,
+          colores: coloresMap
+        };
+      });
 
       const payload = {
         id_empleado: this.$store.state.login.dataUser.id_empleado,
         id_departamento: this.$store.state.login.currentDepartamentId,
         consumo_papel: consumosPapelParaEnviar,
-        consumo_tintas: consumosTintas, // Array de impresoras
+        consumo_tintas: consumosTintas,
       }
 
       try {
@@ -552,20 +556,16 @@ export default {
     },
   },
   mounted() {
-    console.log('🚀 Modal mounted, show:', this.show)
     if (this.show) {
       this.cargarMaterialesLote()
     }
   },
   watch: {
     show(newVal) {
-      console.log('👀 Watcher show triggered:', newVal)
       if (newVal) {
-        console.log('✨ Modal abierto, cargando materiales...')
         this.cargarMaterialesLote()
       }
     }
   },
 }
 </script>
-```
