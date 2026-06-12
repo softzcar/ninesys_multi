@@ -289,7 +289,8 @@ export default {
                     const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
                     return {
                         name: c.nombre,
-                        value: c.codigo,
+                        value: c._id,        // ID numérico para enviar al backend
+                        codigo: c.codigo,    // Código para display
                         hex: c.color_hex || '#cccccc',
                         textColor: lum > 0.5 ? '#000000' : '#ffffff',
                     };
@@ -357,7 +358,7 @@ export default {
             data.set("departamento", 'Impresión')
             data.set("tipo_insumo", "tinta")
             data.set("es_tinta", 1)
-            data.set("color", this.selectedColor)
+            data.set("id_color_tinta", this.selectedColor)  // ID numérico del color
 
             await this.$axios
                 .post(`${this.$config.API}/insumos/nuevo`, data)
