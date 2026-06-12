@@ -68,59 +68,23 @@
                   required></b-form-select>
               </b-form-group>
 
-              <!-- Tintas en layout horizontal -->
-              <b-row>
-                <b-col>
-                  <b-form-group label="C">
-                    <b-form-input :id="'input-cyan-' + index" v-model="impresora.colorCyan" type="number" step="0.1"
-                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
-                        backgroundColor: colorMap.c,
-                        color: 'black',
-                        fontWeight: 'bold'
-                      }"></b-form-input>
-                  </b-form-group>
-                </b-col>
-                <b-col>
-                  <b-form-group label="M">
-                    <b-form-input :id="'input-magenta-' + index" v-model="impresora.colorMagenta" type="number"
-                      step="0.1" min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
-                        backgroundColor: colorMap.m,
-                        color: 'white',
-                        fontWeight: 'bold'
-                      }"></b-form-input>
-                  </b-form-group>
-                </b-col>
-                <b-col>
-                  <b-form-group label="Y">
-                    <b-form-input :id="'input-yellow-' + index" v-model="impresora.colorYellow" type="number" step="0.1"
-                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
-                        backgroundColor: colorMap.y,
-                        color: 'black',
-                        fontWeight: 'bold'
-                      }"></b-form-input>
-                  </b-form-group>
-                </b-col>
-                <b-col>
-                  <b-form-group label="K">
-                    <b-form-input :id="'input-black-' + index" v-model="impresora.colorBlack" type="number" step="0.1"
-                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
-                        backgroundColor: colorMap.k,
-                        color: 'white',
-                        fontWeight: 'bold'
-                      }"></b-form-input>
-                  </b-form-group>
-                </b-col>
-                <b-col v-if="showWhiteInkFieldForIndex(index)">
-                  <b-form-group label="W">
-                    <b-form-input :id="'input-white-' + index" v-model="impresora.colorWhite" type="number" step="0.1"
-                      min="0" :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null" :style="{
-                        backgroundColor: colorMap.w,
-                        color: 'black',
-                        fontWeight: 'bold'
-                      }"></b-form-input>
+              <!-- Tintas dinámicas según canales_colores de la impresora -->
+              <b-row v-if="getCanalesForIndex(index).length > 0">
+                <b-col v-for="canal in getCanalesForIndex(index)" :key="canal.codigo">
+                  <b-form-group :label="canal.codigo">
+                    <b-form-input
+                      :id="'input-canal-' + index + '-' + canal.codigo"
+                      v-model="impresora.canales[canal.codigo]"
+                      type="number" step="0.1" min="0"
+                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                      :style="{ backgroundColor: canal.color_hex || '#cccccc', color: getContrastColor(canal.color_hex), fontWeight: 'bold' }"
+                    ></b-form-input>
                   </b-form-group>
                 </b-col>
               </b-row>
+              <b-alert v-else-if="impresora.id_impresora !== null" show variant="warning" class="mt-2">
+                Esta impresora no tiene canales de color configurados.
+              </b-alert>
             </b-card>
 
             <!-- Botón para añadir impresora -->
@@ -406,9 +370,9 @@ export default {
       formCor: {
         input: 0,
       },
-      // Array para múltiples impresoras
+      // Array para múltiples impresoras (canales dinámicos)
       impresorasSeleccionadas: [
-        { id: 1, id_impresora: null, colorCyan: '', colorMagenta: '', colorYellow: '', colorBlack: '', colorWhite: '' }
+        { id: 1, id_impresora: null, canales: {} }
       ],
       campos: [
         { key: "input", label: "" },
@@ -1150,11 +1114,7 @@ export default {
       this.impresorasSeleccionadas.push({
         id: newId,
         id_impresora: null,
-        colorCyan: '',
-        colorMagenta: '',
-        colorYellow: '',
-        colorBlack: '',
-        colorWhite: '',
+        canales: {},
       });
     },
 
@@ -1187,13 +1147,29 @@ export default {
       return options;
     },
 
-    // Determina si mostrar el campo de tinta blanca para una impresora específica
-    showWhiteInkFieldForIndex(index) {
-      if (!this.impresoras || this.impresoras.length === 0) return false;
+    // Devuelve los canales de color de la impresora seleccionada para un índice dado
+    getCanalesForIndex(index) {
+      if (!this.impresoras || this.impresoras.length === 0) return [];
       const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
-      if (!selectedId) return false;
+      if (!selectedId) return [];
       const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
-      return selectedPrinter && selectedPrinter.tipo_tecnologia === 'CMYKW';
+      return (selectedPrinter && selectedPrinter.canales_colores) ? selectedPrinter.canales_colores : [];
+    },
+
+    // Calcula el color de texto (blanco/negro) según el fondo para legibilidad
+    getContrastColor(hex) {
+      if (!hex) return '#000000';
+      const h = hex.replace('#', '');
+      const r = parseInt(h.substring(0, 2), 16) || 0;
+      const g = parseInt(h.substring(2, 4), 16) || 0;
+      const b = parseInt(h.substring(4, 6), 16) || 0;
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? '#000000' : '#ffffff';
+    },
+
+    // Determina si mostrar el campo de tinta blanca (legacy, mantenido por compatibilidad)
+    showWhiteInkFieldForIndex(index) {
+      return false; // Ya no se usa: los canales son dinámicos
     },
     // --- FIN MÉTODOS PARA MÚLTIPLES IMPRESORAS ---
 
@@ -1408,9 +1384,9 @@ export default {
 
     clearForms() {
       this.form = [];
-      // Reset array de impresoras a estado inicial
+      // Reset array de impresoras a estado inicial (canales dinámicos)
       this.impresorasSeleccionadas = [
-        { id: 1, id_impresora: null, colorCyan: '', colorMagenta: '', colorYellow: '', colorBlack: '', colorWhite: '' }
+        { id: 1, id_impresora: null, canales: {} }
       ];
 
       this.formEst = {
@@ -1470,7 +1446,7 @@ export default {
                 "<p>No hay insumos de impresión disponibles en el inventario. Contacte al administrador.</p>";
             }
           } else {
-            // Validar cada impresora en el array
+            // Validar cada impresora en el array con canales dinámicos
             for (let i = 0; i < this.impresorasSeleccionadas.length; i++) {
               const impresora = this.impresorasSeleccionadas[i];
               const numImp = i + 1;
@@ -1478,48 +1454,21 @@ export default {
               if (impresora.id_impresora === null) {
                 ok = false;
                 msg = msg + `<p>Impresora ${numImp}: Seleccione una impresora</p>`;
+                continue;
               }
 
-              if (
-                parseFloat(impresora.colorCyan) <= 0 ||
-                impresora.colorCyan.toString().trim() === ""
-              ) {
+              const canales = this.getCanalesForIndex(i);
+              if (canales.length === 0) {
                 ok = false;
-                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Cyan</p>`;
+                msg = msg + `<p>Impresora ${numImp}: Esta impresora no tiene canales de color configurados.</p>`;
+                continue;
               }
 
-              if (
-                parseFloat(impresora.colorMagenta) <= 0 ||
-                impresora.colorMagenta.toString().trim() === ""
-              ) {
-                ok = false;
-                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Magenta</p>`;
-              }
-
-              if (
-                parseFloat(impresora.colorYellow) <= 0 ||
-                impresora.colorYellow.toString().trim() === ""
-              ) {
-                ok = false;
-                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Yellow</p>`;
-              }
-
-              if (
-                impresora.colorBlack.toString().trim() === "" ||
-                parseFloat(impresora.colorBlack) <= 0
-              ) {
-                ok = false;
-                msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta Black</p>`;
-              }
-
-              // Verificar tinta blanca si la impresora la soporta
-              if (this.showWhiteInkFieldForIndex(i)) {
-                if (
-                  impresora.colorWhite.toString().trim() === "" ||
-                  parseFloat(impresora.colorWhite) <= 0
-                ) {
+              for (const canal of canales) {
+                const val = (impresora.canales[canal.codigo] || '').toString().trim();
+                if (val === '' || parseFloat(val) <= 0) {
                   ok = false;
-                  msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta White</p>`;
+                  msg = msg + `<p>Impresora ${numImp}: Ingrese la cantidad de tinta ${canal.nombre} (${canal.codigo})</p>`;
                 }
               }
             }
@@ -1699,17 +1648,21 @@ export default {
     },
 
     async postImp() {
-      // Iterar sobre todas las impresoras seleccionadas
+      // Iterar sobre todas las impresoras seleccionadas con canales dinámicos
       const promises = this.impresorasSeleccionadas.map(async (impresora, index) => {
         const data = new URLSearchParams();
         data.set("id_orden", this.idorden);
         data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-        data.set("c", impresora.colorCyan);
-        data.set("m", impresora.colorMagenta);
-        data.set("y", impresora.colorYellow);
-        data.set("k", impresora.colorBlack);
         data.set("id_impresora", impresora.id_impresora);
-        data.set("w", this.showWhiteInkFieldForIndex(index) ? impresora.colorWhite : null);
+
+        // Enviar cada canal dinámico con su código en minúscula como clave
+        const canales = this.getCanalesForIndex(index);
+        canales.forEach(canal => {
+          data.set(canal.codigo.toLowerCase(), impresora.canales[canal.codigo] || 0);
+        });
+
+        // Mantener retrocompatibilidad: si hay canal W, enviarlo como 'w'
+        // (ya incluido en el loop anterior si el codigo es 'W')
 
         return this.$axios.post(`${this.$config.API}/empleados/tintas`, data);
       });
