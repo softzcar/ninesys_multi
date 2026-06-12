@@ -2083,15 +2083,29 @@ export default {
   },
 
   watch: {
-    'formImp.id_impresora'(newVal, oldVal) {
-      // Limpiar los inputs de tintas cuando se cambia la impresora seleccionada
-      if (newVal !== oldVal) {
-        this.formImp.colorCyan = "";
-        this.formImp.colorMagenta = "";
-        this.formImp.colorYellow = "";
-        this.formImp.colorBlack = "";
-        this.formImp.colorWhite = "";
-      }
+    // Observar cambios en el id_impresora de cada item del array
+    // Cuando el usuario elige una impresora, inicializamos 'canales' con $set
+    // para que Vue 2 pueda rastrear la reactividad de cada clave
+    impresorasSeleccionadas: {
+      handler(newVal) {
+        newVal.forEach((impresora, index) => {
+          if (!impresora.id_impresora) return;
+          const printer = (this.impresoras || []).find(p => p._id === impresora.id_impresora);
+          if (!printer || !printer.canales_colores) return;
+          // Solo reinicializar si los canales no coinciden con los de la impresora
+          const currentKeys = Object.keys(impresora.canales || {});
+          const expectedKeys = printer.canales_colores.map(c => c.codigo);
+          const needsInit = expectedKeys.some(k => !currentKeys.includes(k));
+          if (needsInit) {
+            const newCanales = {};
+            printer.canales_colores.forEach(canal => {
+              newCanales[canal.codigo] = impresora.canales[canal.codigo] || '';
+            });
+            this.$set(this.impresorasSeleccionadas[index], 'canales', newCanales);
+          }
+        });
+      },
+      deep: true,
     },
 
     dataInsumosComputed: {
