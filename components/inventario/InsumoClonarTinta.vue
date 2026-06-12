@@ -24,7 +24,10 @@
 
                                 <div class="form-group mt-3">
                                     <label>Color de la Tinta:</label>
-                                    <div class="d-flex flex-wrap">
+                                    <div v-if="colorOptions.length === 0" class="text-muted small py-2">
+                                        <b-spinner small></b-spinner> Cargando colores...
+                                    </div>
+                                    <div v-else class="d-flex flex-wrap" style="gap: 0.5rem;">
                                         <div class="form-check form-check-inline" v-for="colorOption in colorOptions" :key="colorOption.value">
                                             <input
                                                 class="form-check-input"
@@ -35,9 +38,17 @@
                                                 required
                                             />
                                             <label
-                                                class="form-check-label ink-badge"
-                                                :class="'ink-' + colorOption.value.toLowerCase()"
+                                                class="form-check-label"
                                                 :for="'clone-color-' + colorOption.value"
+                                                :style="{
+                                                    backgroundColor: colorOption.hex || '#cccccc',
+                                                    color: colorOption.textColor || '#000000',
+                                                    padding: '2px 10px',
+                                                    borderRadius: '12px',
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    border: selectedColor === colorOption.value ? '2px solid #333' : '2px solid transparent',
+                                                }"
                                             >
                                                 {{ colorOption.name }}
                                             </label>
@@ -127,14 +138,8 @@ export default {
             catalogoTintas: [],
             selectedProduct: null,
             selectedTintaType: null,
-            selectedColor: "",
-            colorOptions: [
-                { name: 'Cyan', value: 'C' },
-                { name: 'Magenta', value: 'M' },
-                { name: 'Yellow', value: 'Y' },
-                { name: 'Black', value: 'K' },
-                { name: 'White', value: 'W' },
-            ],
+            selectedColor: "",    // almacena el _id del color
+            colorOptions: [], // Se carga dinámicamente desde /catalogo-colores-tintas
             size: "md",
             title: "Clonar Tinta",
             overlay: false,
@@ -156,7 +161,8 @@ export default {
                         departamento: "Impresión",
                     };
                     this.selectedProduct = newData.id_catalogo_producto || newData.id_catalogo || null;
-                    this.selectedColor = newData.color || "";
+                    // Preseleccionar por id_color_tinta (ID numérico)
+                    this.selectedColor = newData.id_color_tinta ? parseInt(newData.id_color_tinta) : "";
                     this.selectedTintaType = newData.id_catalogo_tintas || null;
                 }
             },
@@ -211,6 +217,31 @@ export default {
                 console.error("Error al obtener el catálogo de tintas:", error);
             }
         },
+        async fetchColoresTintas() {
+            try {
+                const response = await this.$axios.get(`${this.$config.API}/catalogo-colores-tintas`);
+                const colores = response.data.data || [];
+                this.colorOptions = colores.map(c => {
+                    const hex = (c.color_hex || '#cccccc').replace('#', '');
+                    const r = parseInt(hex.substring(0, 2), 16) || 0;
+                    const g = parseInt(hex.substring(2, 4), 16) || 0;
+                    const b = parseInt(hex.substring(4, 6), 16) || 0;
+                    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                    return {
+                        name: c.nombre,
+                        value: c._id,
+                        hex: c.color_hex || '#cccccc',
+                        textColor: lum > 0.5 ? '#000000' : '#ffffff',
+                    };
+                });
+                // Reasignar por si el watch ya corrió antes del fetch
+                if (this.data && this.data.id_color_tinta) {
+                    this.selectedColor = parseInt(this.data.id_color_tinta);
+                }
+            } catch (error) {
+                console.error("Error al obtener los colores de tinta:", error);
+            }
+        },
         resetForm() {
             this.form = {
                 insumo: this.data ? this.data.insumo + " (Clon)" : "",
@@ -221,7 +252,7 @@ export default {
                 costo: "",
                 departamento: "Impresión",
             }
-            this.selectedColor = this.data ? this.data.color : ""
+            this.selectedColor = this.data ? (this.data.id_color_tinta ? parseInt(this.data.id_color_tinta) : "") : ""
             this.selectedProduct = this.data ? (this.data.id_catalogo_producto || this.data.id_catalogo || null) : null
             this.selectedTintaType = this.data ? this.data.id_catalogo_tintas : null
         },
@@ -284,7 +315,7 @@ export default {
             data.set("departamento", 'Impresión')
             data.set("tipo_insumo", "tinta")
             data.set("es_tinta", 1)
-            data.set("color", this.selectedColor)
+            data.set("id_color_tinta", this.selectedColor)  // ID numérico del color
 
             try {
                 const response = await this.$axios.post(`${this.$config.API}/insumos/nuevo`, data);
@@ -331,6 +362,7 @@ export default {
     mounted() {
         this.fetchCatalogoProductos();
         this.fetchCatalogoTintas();
+        this.fetchColoresTintas();
     },
 }
 </script>
