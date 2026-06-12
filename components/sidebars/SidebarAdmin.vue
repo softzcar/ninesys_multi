@@ -180,6 +180,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/impresoras/colores">
+              Catálogo de Colores
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/servicios">
               Servicio Técnico
             </router-link>

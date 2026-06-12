@@ -35,8 +35,26 @@
                     </b-row>
                     <b-row>
                         <b-col md="6">
-                            <b-form-group label="Tecnología de Tinta Física" description="Tipo de insumo/tinta que utiliza la máquina.">
-                                <b-form-select v-model="form.id_catalogo_tintas" :options="tecnologiasOptions" required></b-form-select>
+                            <b-form-group description="Tipo de insumo/tinta que utiliza la máquina.">
+                                <template #label>
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <span>Tecnología de Tinta Física</span>
+                                        <b-button v-if="!showNuevaTecnologia" variant="link" class="p-0 text-info ml-auto" style="font-size: 0.85rem;" @click.prevent="showNuevaTecnologia = true">
+                                            <b-icon icon="plus-circle" class="mr-1" />Nueva
+                                        </b-button>
+                                    </div>
+                                </template>
+                                <div v-if="showNuevaTecnologia" class="d-flex align-items-center gap-2">
+                                    <b-form-input v-model="nuevaTecnologiaNombre" placeholder="Nombre (ej. UV, Sublimación)" size="sm" class="flex-grow-1" />
+                                    <b-button variant="success" size="sm" class="ml-2 font-weight-bold" @click.prevent="guardarNuevaTecnologia" :disabled="!nuevaTecnologiaNombre.trim() || savingTecnologia">
+                                        <b-spinner v-if="savingTecnologia" small></b-spinner>
+                                        <span v-else>Guardar</span>
+                                    </b-button>
+                                    <b-button variant="secondary" size="sm" class="ml-1" @click.prevent="cancelarNuevaTecnologia" :disabled="savingTecnologia">
+                                        Cancelar
+                                    </b-button>
+                                </div>
+                                <b-form-select v-else v-model="form.id_catalogo_tintas" :options="tecnologiasOptions" required></b-form-select>
                             </b-form-group>
                         </b-col>
                         <b-col md="6">
@@ -56,7 +74,50 @@
                     <!-- Canales de color dinámicos -->
                     <b-row class="mt-3 mb-4">
                         <b-col>
-                            <b-form-group label="Canales de Tinta / Colores Soportados" description="Seleccione todos los canales de color activos en esta impresora.">
+                            <b-form-group description="Seleccione todos los canales de color activos en esta impresora.">
+                                <template #label>
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <span>Canales de Tinta / Colores Soportados</span>
+                                        <b-button v-if="!showNuevoColor" variant="link" class="p-0 text-info ml-auto" style="font-size: 0.85rem;" @click.prevent="showNuevoColor = true">
+                                            <b-icon icon="plus-circle" class="mr-1" />Nuevo Canal
+                                        </b-button>
+                                    </div>
+                                </template>
+
+                                <!-- Formulario inline para nuevo color -->
+                                <div v-if="showNuevoColor" class="p-3 border rounded mb-3 bg-light shadow-sm">
+                                    <h6 class="font-weight-bold mb-2 text-info">Crear Nuevo Canal de Color</h6>
+                                    <b-row>
+                                        <b-col md="4">
+                                            <b-form-group label="Código" label-size="sm" class="mb-2">
+                                                <b-form-input v-model="nuevoColorForm.codigo" placeholder="Ej: V, FL, O" size="sm" required />
+                                            </b-form-group>
+                                        </b-col>
+                                        <b-col md="5">
+                                            <b-form-group label="Nombre" label-size="sm" class="mb-2">
+                                                <b-form-input v-model="nuevoColorForm.nombre" placeholder="Ej: Barniz, Fluo Orange" size="sm" required />
+                                            </b-form-group>
+                                        </b-col>
+                                        <b-col md="3">
+                                            <b-form-group label="Muestra" label-size="sm" class="mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <b-form-input type="color" v-model="nuevoColorForm.color_hex" class="p-1 h-auto mr-1" style="width: 38px;" />
+                                                    <b-form-input v-model="nuevoColorForm.color_hex" placeholder="#HEX" size="sm" style="font-size: 11px; flex-grow: 1;" />
+                                                </div>
+                                            </b-form-group>
+                                        </b-col>
+                                    </b-row>
+                                    <div class="text-right mt-2">
+                                        <b-button variant="secondary" size="sm" class="mr-1" @click.prevent="cancelarNuevoColor" :disabled="savingColor">
+                                            Cancelar
+                                        </b-button>
+                                        <b-button variant="success" size="sm" class="font-weight-bold" @click.prevent="guardarNuevoColor" :disabled="!nuevoColorForm.codigo.trim() || !nuevoColorForm.nombre.trim() || savingColor">
+                                            <b-spinner v-if="savingColor" small class="mr-1"></b-spinner>
+                                            <span>Guardar e Incluir</span>
+                                        </b-button>
+                                    </div>
+                                </div>
+
                                 <div class="d-flex flex-wrap gap-2">
                                     <div v-for="color in coloresOptions" :key="color._id" class="mr-2 mb-2">
                                         <b-form-checkbox
@@ -118,7 +179,17 @@ export default {
             tecnologiasOptions: [
                 { value: null, text: 'Seleccione una opción' }
             ],
-            coloresOptions: []
+            coloresOptions: [],
+            showNuevaTecnologia: false,
+            nuevaTecnologiaNombre: '',
+            savingTecnologia: false,
+            showNuevoColor: false,
+            nuevoColorForm: {
+                codigo: '',
+                nombre: '',
+                color_hex: '#E5E7EB'
+            },
+            savingColor: false
         }
     },
     watch: {
@@ -232,6 +303,82 @@ export default {
             } finally {
                 this.overlay = false;
             }
+        },
+        async guardarNuevaTecnologia() {
+            if (!this.nuevaTecnologiaNombre.trim()) return;
+            this.savingTecnologia = true;
+            try {
+                const response = await this.$axios.post(`${this.$config.API}/catalogo-tintas`, {
+                    nombre: this.nuevaTecnologiaNombre.trim()
+                });
+                const nuevaTech = response.data.data;
+                if (nuevaTech && nuevaTech._id) {
+                    await this.cargarCatalogos();
+                    this.form.id_catalogo_tintas = nuevaTech._id;
+                    this.$fire({
+                        title: "Tecnología Creada",
+                        html: `<p>Se ha agregado la tecnología <strong>${nuevaTech.nombre}</strong> correctamente.</p>`,
+                        type: "success",
+                        timer: 2000
+                    });
+                }
+                this.cancelarNuevaTecnologia();
+            } catch (error) {
+                console.error("Error al crear nueva tecnología de tinta:", error);
+                this.$fire({
+                    title: "Error",
+                    html: "<p>No se pudo crear la tecnología de tinta.</p>",
+                    type: "error"
+                });
+            } finally {
+                this.savingTecnologia = false;
+            }
+        },
+        cancelarNuevaTecnologia() {
+            this.showNuevaTecnologia = false;
+            this.nuevaTecnologiaNombre = '';
+        },
+        async guardarNuevoColor() {
+            if (!this.nuevoColorForm.codigo.trim() || !this.nuevoColorForm.nombre.trim()) return;
+            this.savingColor = true;
+            try {
+                const response = await this.$axios.post(`${this.$config.API}/catalogo-colores-tintas`, {
+                    codigo: this.nuevoColorForm.codigo.trim(),
+                    nombre: this.nuevoColorForm.nombre.trim(),
+                    color_hex: this.nuevoColorForm.color_hex
+                });
+                const nuevoColor = response.data.data;
+                if (nuevoColor && nuevoColor._id) {
+                    await this.cargarCatalogos();
+                    if (!this.form.canales.includes(nuevoColor._id)) {
+                        this.form.canales.push(nuevoColor._id);
+                    }
+                    this.$fire({
+                        title: "Color Creado",
+                        html: `<p>Se ha agregado el canal <strong>${nuevoColor.nombre} (${nuevoColor.codigo})</strong> correctamente.</p>`,
+                        type: "success",
+                        timer: 2000
+                    });
+                }
+                this.cancelarNuevoColor();
+            } catch (error) {
+                console.error("Error al crear nuevo color de tinta:", error);
+                this.$fire({
+                    title: "Error",
+                    html: "<p>No se pudo crear el canal de color.</p>",
+                    type: "error"
+                });
+            } finally {
+                this.savingColor = false;
+            }
+        },
+        cancelarNuevoColor() {
+            this.showNuevoColor = false;
+            this.nuevoColorForm = {
+                codigo: '',
+                nombre: '',
+                color_hex: '#E5E7EB'
+            };
         }
     }
 }
