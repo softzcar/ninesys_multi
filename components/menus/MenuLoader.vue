@@ -119,7 +119,7 @@ export default {
           icon: "exclamation-triangle-fill",
           label: "⚠️ ENTORNO LOCAL - DESARROLLO",
         };
-      } else if (host.includes("nineteengreen.com")) {
+      } else if (host.includes("nineteengreen.com") && !host.includes("nineteencustom.com")) {
         return {
           show: true,
           variant: "info",
