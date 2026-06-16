@@ -283,8 +283,21 @@
               debounce="300"></b-form-input>
           </b-form-group>
         </b-col>
-        <b-col md="3" class="d-flex align-items-end flex-column">
-          <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="mb-2 w-100">
+        <b-col md="3" class="d-flex align-items-end flex-column" style="gap: 6px;">
+          <!-- Toggle: solo órdenes POR ASIGNAR -->
+          <b-button
+            id="filter-por-asignar"
+            :variant="filterPorAsignar ? 'warning' : 'outline-warning'"
+            size="sm"
+            class="w-100"
+            @click="filterPorAsignar = !filterPorAsignar"
+            style="font-weight: 600;"
+          >
+            <b-icon :icon="filterPorAsignar ? 'person-x-fill' : 'person-x'" class="mr-1"></b-icon>
+            POR ASIGNAR
+            <b-badge v-if="filterPorAsignar" variant="dark" pill class="ml-1" style="font-size:0.75em;">activo</b-badge>
+          </b-button>
+          <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="w-100">
             <b-icon icon="x-circle"></b-icon> Limpiar Filtros
           </b-button>
           <b-alert v-if="isUserFiltering" show variant="warning" class="m-0 p-2 w-100 text-center">
@@ -677,6 +690,7 @@ export default {
       filterOrden: '',
       filterCliente: '',
       filterEstatus: '',
+      filterPorAsignar: false,
 
       overlay: true,
       items: [],
@@ -1127,6 +1141,7 @@ export default {
       this.filterOrden = "";
       this.filterCliente = "";
       this.filterEstatus = "";
+      this.filterPorAsignar = false;
     },
 
     toggleSection(key) {
@@ -1249,7 +1264,8 @@ export default {
       return (
         (this.filterOrden && this.filterOrden.trim().length > 0) ||
         (this.filterCliente && this.filterCliente.trim().length > 0) ||
-        (this.filterEstatus && this.filterEstatus.trim().length > 0)
+        (this.filterEstatus && this.filterEstatus.trim().length > 0) ||
+        this.filterPorAsignar
       );
     },
 
@@ -1309,6 +1325,14 @@ export default {
           filtered = filtered.filter(item =>
             (item.estatus && item.estatus.toLowerCase().includes(fEstatus))
           );
+        }
+
+        // Filtro POR ASIGNAR: muestra solo órdenes sin proyección de tiempo (semáforo = "POR ASIGNAR")
+        if (this.filterPorAsignar) {
+          const ordenesConProyeccion = new Set(
+            this.ordenesProyectadas2.map(o => o._id || o.id_orden)
+          );
+          filtered = filtered.filter(item => !ordenesConProyeccion.has(item.orden));
         }
 
         return filtered;
