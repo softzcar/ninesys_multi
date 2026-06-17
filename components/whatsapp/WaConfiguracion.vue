@@ -298,6 +298,57 @@
         </div>
       </b-card>
 
+      <!-- Asignación por Vendedor (Clientes Recurrentes) -->
+      <b-card class="mb-4 border-0 shadow-sm" header="Auto-asignación de Clientes Recurrentes por Vendedor">
+        <p class="text-muted small">
+          Controla qué vendedores están habilitados para recibir chats automáticamente cuando un cliente recurrente (que ya les compró antes) escribe.
+        </p>
+
+        <!-- Spinner o Mensaje de Carga -->
+        <div v-if="loadingVendors" class="text-center py-3">
+          <b-spinner variant="info" small />
+          <span class="ml-2 text-muted small">Cargando vendedores...</span>
+        </div>
+
+        <b-table
+          v-else-if="vendors.length"
+          :items="vendors"
+          :fields="vendorFields"
+          small
+          striped
+          hover
+          responsive
+        >
+          <template #cell(nombre)="row">
+            <strong>{{ row.item.nombre }}</strong>
+            <small class="d-block text-muted">{{ row.item.email }}</small>
+          </template>
+          <template #cell(departamentos)="row">
+            <div class="small">
+              <span v-for="d in row.item.departamentos" :key="d.id" class="badge badge-light mr-1">
+                {{ d.nombre }}
+              </span>
+            </div>
+          </template>
+          <template #cell(allowAutoAssign)="row">
+            <b-form-checkbox
+              v-model="row.item.allowAutoAssign"
+              switch
+              :disabled="savingVendorId === row.item._id"
+              @change="toggleVendorAutoAssign(row.item)"
+            >
+              <b-spinner v-if="savingVendorId === row.item._id" small variant="info" class="mr-1" />
+              <span class="small" :class="row.item.allowAutoAssign ? 'text-success' : 'text-secondary'">
+                {{ row.item.allowAutoAssign ? 'Habilitado' : 'Deshabilitado' }}
+              </span>
+            </b-form-checkbox>
+          </template>
+        </b-table>
+        <div v-else class="text-center text-muted py-3 small">
+          <em>No hay vendedores elegibles configurados en los departamentos de Ventas/Administración.</em>
+        </div>
+      </b-card>
+
       <!-- Papelera de conversaciones -->
       <b-card class="mb-4 border-0 shadow-sm">
         <template #header>
@@ -478,6 +529,15 @@ export default {
         { key: "deletedAt", label: "Eliminado" },
         { key: "actions", label: "Acciones", class: "text-right" },
       ],
+      // Vendedores
+      vendors: [],
+      loadingVendors: false,
+      savingVendorId: null,
+      vendorFields: [
+        { key: "nombre", label: "Vendedor" },
+        { key: "departamentos", label: "Departamentos" },
+        { key: "allowAutoAssign", label: "Auto-asignación", class: "text-right" },
+      ],
     };
   },
   computed: {
@@ -555,6 +615,7 @@ export default {
     this.selectedUsageMonth = `${now.getFullYear()}-${m}`;
     this.fetchSttConfig();
     this.fetchSttUsage();
+    this.fetchVendors();
   },
   methods: {
     async fetchSettings() {
@@ -723,6 +784,70 @@ export default {
         });
       } finally {
         this.loadingStt = false;
+      }
+    },
+
+    // ---------- Vendedores ----------
+    async fetchVendors() {
+      this.loadingVendors = true;
+      try {
+        const [empRes, stateRes] = await Promise.all([
+          this.$axios.get(`${this.$config.API}/empleados`),
+          this.$wsApi.get(`/vendor-state/${this.idEmpresa}`).catch(() => ({ data: [] })),
+        ]);
+
+        const raw = Array.isArray(empRes.data) ? empRes.data : Array.isArray(empRes.data?.items) ? empRes.data.items : [];
+        const ALLOWED_DEPTS = new Set([5, 6]);
+        const filtered = raw.filter((emp) => {
+          const deps = Array.isArray(emp?.departamentos) ? emp.departamentos : [];
+          return deps.some((d) => ALLOWED_DEPTS.has(Number(d?.id)));
+        });
+
+        const statesMap = new Map((stateRes.data || []).map((s) => [Number(s.user_id), s]));
+
+        this.vendors = filtered.map((emp) => {
+          const state = statesMap.get(Number(emp._id));
+          return {
+            ...emp,
+            allowAutoAssign: state ? !!state.allow_auto_assign : true,
+            isAvailable: state ? !!state.is_available : true,
+            maxActive: state ? Number(state.max_active) : 0,
+          };
+        });
+        this.vendors.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
+      } catch (e) {
+        console.error("[WaConfiguracion] fetchVendors error:", e);
+        this.$bvToast.toast("Error al cargar la lista de vendedores.", {
+          title: "Vendedores",
+          variant: "danger",
+        });
+      } finally {
+        this.loadingVendors = false;
+      }
+    },
+
+    async toggleVendorAutoAssign(vendor) {
+      this.savingVendorId = vendor._id;
+      try {
+        const payload = {
+          isAvailable: vendor.isAvailable,
+          maxActive: vendor.maxActive,
+          allowAutoAssign: vendor.allowAutoAssign,
+        };
+        await this.$wsApi.post(`/vendor-state/${this.idEmpresa}/${vendor._id}`, payload);
+        this.$bvToast.toast(`Auto-asignación de ${vendor.nombre} actualizada.`, {
+          title: "Vendedores",
+          variant: "success",
+        });
+      } catch (e) {
+        // Revertir el toggle
+        vendor.allowAutoAssign = !vendor.allowAutoAssign;
+        this.$bvToast.toast(e.response?.data?.message || e.message, {
+          title: "Error",
+          variant: "danger",
+        });
+      } finally {
+        this.savingVendorId = null;
       }
     },
 
