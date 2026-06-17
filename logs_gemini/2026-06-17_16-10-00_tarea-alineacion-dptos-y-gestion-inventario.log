@@ -1,0 +1,28 @@
+- Solicitud del Usuario:
+  - Corregir la bandeja de entrada de WhatsApp para que liste los vendedores correspondientes a los departamentos reales (Administration y Ventas, IDs 5 y 6).
+  - Permitir filtrar y gestionar insumos agotados (con stock 0) en la tabla de gestión de inventario.
+  - Corregir el reporte de inventario general para que los insumos de tipo tela multipliquen su valor por el rendimiento y reflejen unidades reales de metraje.
+
+- Archivos Involucrados:
+  - components/whatsapp/WaInbox.vue (Cambio en constante ALLOWED_DEPTS)
+  - pages/inventario/gestion/index.vue (Inclusión de filtro selectedStockStatus)
+  - pages/inventario/reportes/general/reporte.vue (Cálculo de tela usando rendimiento)
+
+- Acción Realizada:
+  - Se modificaron los departamentos permitidos de [7, 8] a [5, 6] en la bandeja de entrada de WhatsApp.
+  - Se incorporó un b-form-select en la UI de inventario para seleccionar entre insumos con stock, agotados y todos, permitiendo auditar insumos finalizados.
+  - Se ajustó el cálculo de unidades en el reporte general de inventario para telas, multiplicando la cantidad bruta de rollos por el rendimiento para reportar metros/yardas totales.
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command`, `write_to_file`.
+
+- Resultado: Éxito ✅
+
+- Verificación:
+  - Carga correcta de vendedores en WaInbox.vue verificada en consola. ✅
+  - Filtrado interactivo de insumos agotados (Stock 0) validado en la UI de gestión. ✅
+  - Reporte de inventario general para telas reflejando metraje real y no rollos. ✅
+
+- Observaciones de Gemini:
+  - Estas modificaciones corrigen fallas de usabilidad críticas tanto en el CRM de WhatsApp como en el panel administrativo de inventario y reportes de producción.
+
+- Respuesta de Gemini: Log de alineación de departamentos de WhatsApp y gestión de inventario generado con éxito.

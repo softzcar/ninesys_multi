@@ -1,0 +1,9 @@
+Fecha: 2026-06-17
+Tarea: Corrección de asimetría y fuga de dominio en CDN, y dinamización de APIs en plugins.
+Cambios Frontend:
+- Se corrigió la variable CDN en nuxt.config.js para que en desarrollo/local apunte por defecto a cdn.nineteengreen.com (staging) en lugar de cdn.nineteencustom.com (producción).
+- Se dinamizó la URL base en plugins/currency-rates.js (usada para /bcv-rates) para que se lea desde $config.API o window.$nuxt.$config.API en tiempo de ejecución, eliminando la URL de desarrollo hardcodeada.
+- Se dinamizó la URL base en plugins/nuxt-quill-plugin.js (usada para la subida de imágenes en Quill) para que lea la ruta activa desde window.$nuxt.$config.API, evitando el endpoint de desarrollo hardcodeado.
+Cambios Infraestructura (Hub):
+- Se actualizó ninesys-hub/bin/deploy.sh en la configuración de set_env_test para que CDN_URL apunte correctamente a cdn.nineteengreen.com (desarrollo) en lugar de cdn.nineteencustom.com (producción).
+- Se agregó la definición y exportación explícita de GALLERY_CDN_URL en set_env_prod (cdn.nineteencustom.com) y set_env_test (cdn.nineteengreen.com) para evitar que producción cargue la galería de catálogo desde desarrollo.
