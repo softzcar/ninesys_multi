@@ -34,11 +34,12 @@ const options = {
                     input.onchange = async () => {
                         const file = input.files[0];
                         if (file) {
+                            const activeApiUrl = (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$config.API) || API_URL;
                             const formData = new FormData();
                             formData.append('image', file);
 
                             try {
-                                const response = await axios.post(`${API_URL}/upload-order-detail-image`, formData, {
+                                const response = await axios.post(`${activeApiUrl}/upload-order-detail-image`, formData, {
                                     headers: {
                                         'Content-Type': 'multipart/form-data'
                                     }
@@ -46,7 +47,7 @@ const options = {
 
                                 if (response.data && response.data.url) {
                                     const range = this.quill.getSelection();
-                                    const fullUrl = `${API_URL}${response.data.url}`;
+                                    const fullUrl = `${activeApiUrl}${response.data.url}`;
                                     this.quill.insertEmbed(range.index, 'image', fullUrl);
                                     this.quill.setSelection(range.index + 1);
                                 }

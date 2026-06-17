@@ -25,6 +25,8 @@ async function fetchWithTimeout(url, options = {}, timeout = 8000) {
     }
 }
 
+let apiBaseUrl = 'https://api.nineteengreen.com';
+
 /**
  * Obtiene las tasas de cambio desde APIs externas
  * @returns {Promise<Object>} Objeto con las tasas actualizadas
@@ -32,10 +34,10 @@ async function fetchWithTimeout(url, options = {}, timeout = 8000) {
 export async function obtenerIndicadoresVenezuela() {
     try {
         // 1. Llamadas paralelas a las APIs con timeout
-        const apiBaseUrl = 'https://api.nineteengreen.com';
+        const currentApiUrl = apiBaseUrl || (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$config.API) || 'https://api.nineteengreen.com';
 
         const [resBcv, resVzla, resGlobal] = await Promise.allSettled([
-            fetchWithTimeout(`${apiBaseUrl}/bcv-rates`, {}, 5000), // BCV es prioritario, le damos 5s
+            fetchWithTimeout(`${currentApiUrl}/bcv-rates`, {}, 5000), // BCV es prioritario, le damos 5s
             fetchWithTimeout('https://ve.dolarapi.com/v1/dolares', {}, 5000),
             fetchWithTimeout('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json', {}, 5000)
         ]);
@@ -231,7 +233,10 @@ export function validarTasa(moneda, valor) {
 /**
  * Plugin de Nuxt que inyecta las funciones en el contexto
  */
-export default ({ app }, inject) => {
+export default ({ app, $config }, inject) => {
+    if ($config && $config.API) {
+        apiBaseUrl = $config.API;
+    }
     // Inyectar las funciones en el contexto de Nuxt
     inject('currencyRates', {
         obtenerIndicadoresVenezuela,
