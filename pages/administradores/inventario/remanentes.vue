@@ -148,7 +148,7 @@ export default {
       remanentes: [],
       cargando: false,
       filtros: {
-        tipo: 'activos',
+        tipo: 'todos',
         busqueda: '',
         fecha_desde: null,
         fecha_hasta: null
