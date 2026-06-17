@@ -905,10 +905,10 @@ export default {
         // El endpoint devuelve { items, fields }. Mantener fallback por si
         // en algún tenant responde un array plano.
         const raw = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
-        // Solo Administración (dpto 7) y Comercialización (dpto 8) pueden
+        // Solo Administración (dpto 5) y Comercialización (dpto 6) pueden
         // recibir asignaciones de chats. Un empleado puede tener varios
         // departamentos, basta con que incluya uno de los dos.
-        const ALLOWED_DEPTS = new Set([7, 8]);
+        const ALLOWED_DEPTS = new Set([5, 6]);
         const filtered = raw.filter((emp) => {
           const deps = Array.isArray(emp?.departamentos) ? emp.departamentos : [];
           return deps.some((d) => ALLOWED_DEPTS.has(Number(d?.id)));
@@ -917,7 +917,7 @@ export default {
         this.vendors = filtered;
         console.log(
           '[WaInbox] fetchVendors OK — total recibidos:', raw.length,
-          '| elegibles (dptos 7/8):', filtered.length
+          '| elegibles (dptos 5/6):', filtered.length
         );
       } catch (e) {
         console.error(

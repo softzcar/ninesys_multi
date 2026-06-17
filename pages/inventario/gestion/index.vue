@@ -52,7 +52,7 @@
 
                         <!-- FILA 3: BÚSQUEDA Y FILTROS TÉCNICOS -->
                         <b-row class="mb-3">
-                            <b-col md="8">
+                            <b-col md="6">
                                 <b-input-group size="md">
                                     <b-form-input id="filter-input" v-model="filter" type="search"
                                         placeholder="Buscar por Nombre, SKU o ID..."></b-form-input>
@@ -63,10 +63,19 @@
                                     </b-input-group-append>
                                 </b-input-group>
                             </b-col>
-                            <b-col md="4">
+                            <b-col md="3">
                                 <b-input-group size="md">
                                     <b-input-group-prepend is-text>
-                                        <span class="small font-weight-bold">Stock:</span>
+                                        <span class="small font-weight-bold">Estado:</span>
+                                    </b-input-group-prepend>
+                                    <b-form-select v-model="selectedStockStatus" :options="stockStatusOptions"
+                                        size="md"></b-form-select>
+                                </b-input-group>
+                            </b-col>
+                            <b-col md="3">
+                                <b-input-group size="md">
+                                    <b-input-group-prepend is-text>
+                                        <span class="small font-weight-bold">Stock Max:</span>
                                     </b-input-group-prepend>
                                     <b-form-select v-model="selectedQuantity" :options="quantityOptions"
                                         size="md"></b-form-select>
@@ -218,6 +227,12 @@ export default {
                 { value: 3, text: '3' },
                 { value: 5, text: '5' },
                 { value: 10, text: '10' }
+            ],
+            selectedStockStatus: 'con_stock',
+            stockStatusOptions: [
+                { value: 'con_stock', text: 'Solo con Stock' },
+                { value: 'agotados', text: 'Agotados (Stock 0)' },
+                { value: 'todos', text: 'Todos' }
             ],
             fields: [
                 {
@@ -535,6 +550,17 @@ export default {
                 )
             }
 
+            // Aplicar filtro de estado de stock (Con stock / Agotados / Todos)
+            if (this.selectedStockStatus === 'con_stock') {
+                this.dataTableDyn = this.dataTableDyn.filter(
+                    (item) => parseFloat(item.cantidad) > 0
+                )
+            } else if (this.selectedStockStatus === 'agotados') {
+                this.dataTableDyn = this.dataTableDyn.filter(
+                    (item) => parseFloat(item.cantidad) <= 0
+                )
+            }
+
             // Aplicar filtro de cantidad si está seleccionado un valor
             if (this.selectedQuantity !== null) {
                 this.dataTableDyn = this.dataTableDyn.filter(
@@ -591,6 +617,9 @@ export default {
 
     watch: {
         selectedQuantity(newVal) {
+            this.showResultRadio()
+        },
+        selectedStockStatus(newVal) {
             this.showResultRadio()
         },
     },

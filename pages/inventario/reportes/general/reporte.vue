@@ -417,7 +417,13 @@ export default {
                   value = diff;
                 }
               } else {
-                value = parseFloat(item.cantidad || 0);
+                const cant = parseFloat(item.cantidad || 0);
+                if (item.tipo_insumo === 'tela') {
+                  const rend = parseFloat(item.rendimiento) || 1;
+                  value = cant * rend;
+                } else {
+                  value = cant;
+                }
               }
 
               if (value > 0) {
