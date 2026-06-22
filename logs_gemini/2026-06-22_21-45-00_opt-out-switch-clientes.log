@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** Incluir un switch (interruptor) en el formulario de creación y edición de clientes para habilitar o deshabilitar la recepción de mensajes automáticos.
+- **Fecha y Hora:** 2026-06-22 21:45:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - app_multi/components/customers/CustomerNuevo.vue
+    - app_multi/components/customers/CustomerEditar.vue
+- **Commits Relacionados:**
+    - 47c1d13 feat: switch de recibir_notificaciones en creación/edición de cliente
+- **Acción Realizada:**
+    1. **CustomerNuevo.vue**:
+        - Se agregó el switch `b-form-checkbox` con estilo `switch` al formulario del modal de creación.
+        - Se inicializa y limpia en `data()` y `resetForm()` con el valor `true` (activo por defecto).
+        - Se incluye la propiedad en el payload `URLSearchParams` codificado como `"1"` o `"0"` para el POST a `/customers/nuevo`.
+    2. **CustomerEditar.vue**:
+        - Se integró el switch del mismo estilo en el formulario del modal de edición.
+        - Se inicializa en `data()` como `true`.
+        - En el hook `mounted()`, se carga reactivamente el valor actual del cliente (`this.item.recibir_notificaciones`), evaluando si es numéricamente igual a 1.
+        - Se pasa la preferencia a `URLSearchParams` para el POST a `/customers/edit1`.
+- **Herramienta(s) Utilizada(s):** multi_replace_file_content, run_command, write_to_file.
+- **Resultado:** Interfaz visual adaptada. Los asesores comerciales ahora pueden cambiar explícitamente el estado de notificaciones automáticas de los clientes desde la página `/clientes/gestion`.
+- **Verificación:** Compilación exitosa en local y sincronización de estáticos (`npm run generate` + `rsync`) hacia el servidor de desarrollo (`vps-contabo-dev`) finalizada de manera correcta.
