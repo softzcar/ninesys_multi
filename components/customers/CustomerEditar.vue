@@ -40,6 +40,13 @@
                                         <b-form-input id="input-address" v-model="form.address" placeholder="Apellidos"
                                             required></b-form-input>
                                     </b-form-group>
+
+                                    <b-form-group id="input-group-7" label="Mensajes Automáticos:" label-for="input-recibir-notificaciones">
+                                        <b-form-checkbox id="input-recibir-notificaciones" v-model="form.recibir_notificaciones" switch>
+                                            {{ form.recibir_notificaciones ? 'Recibir Mensajes Automáticos' : 'NO Recibir Mensajes Automáticos' }}
+                                        </b-form-checkbox>
+                                    </b-form-group>
+
                                     <b-button type="submit" variant="primary">Guardar</b-button>
                                     <b-button @click="resetForm" variant="danger">Limpiar</b-button>
                                 </b-form>
@@ -66,6 +73,7 @@ export default {
                 phone: "",
                 email: "",
                 address: "",
+                recibir_notificaciones: true,
             },
             size: "md",
             title: "Editar Cliente",
@@ -91,6 +99,7 @@ export default {
             data.set("phone", this.form.phone)
             data.set("email", this.form.email)
             data.set("address", this.form.address)
+            data.set("recibir_notificaciones", this.form.recibir_notificaciones ? "1" : "0")
 
             await this.$axios
                 .post(`${this.$config.API}/customers/edit1`, data)
@@ -141,6 +150,7 @@ export default {
                 phone: "",
                 email: "",
                 address: "",
+                recibir_notificaciones: true,
             }
             this.overlay = false
         },
@@ -153,6 +163,7 @@ export default {
             phone: this.item.phone,
             email: this.item.email,
             address: this.item.address,
+            recibir_notificaciones: this.item.recibir_notificaciones !== undefined ? (Number(this.item.recibir_notificaciones) === 1) : true,
         }
     },
 
