@@ -22,9 +22,9 @@
                         "
           >
             <!-- Fila de Filtros Avanzados -->
-            <b-row class="mb-4">
+            <b-row class="mb-4 align-items-center">
               <!-- Filtro de Texto -->
-              <b-col md="4" class="mb-2">
+              <b-col md="3" class="mb-2">
                 <b-input-group size="sm">
                   <b-form-input
                     id="filter-input"
@@ -40,12 +40,41 @@
                 </b-input-group>
               </b-col>
 
-              <!-- Filtro de Ciudad -->
-              <b-col md="4" class="mb-2">
+              <!-- Filtro de País -->
+              <b-col md="2" class="mb-2">
                 <b-form-select
-                  v-model="selectedCity"
+                  v-model="selectedPais"
                   size="sm"
-                  :options="cityOptions"
+                  :options="paisOptions"
+                  :disabled="loadingPaises"
+                >
+                  <template #first>
+                    <b-form-select-option :value="null">Todos los Países</b-form-select-option>
+                  </template>
+                </b-form-select>
+              </b-col>
+
+              <!-- Filtro de Estado -->
+              <b-col md="2" class="mb-2">
+                <b-form-select
+                  v-model="selectedEstado"
+                  size="sm"
+                  :options="estadoOptions"
+                  :disabled="!selectedPais || loadingEstados"
+                >
+                  <template #first>
+                    <b-form-select-option :value="null">Todos los Estados</b-form-select-option>
+                  </template>
+                </b-form-select>
+              </b-col>
+
+              <!-- Filtro de Ciudad -->
+              <b-col md="2" class="mb-2">
+                <b-form-select
+                  v-model="selectedCiudad"
+                  size="sm"
+                  :options="ciudadOptions"
+                  :disabled="!selectedEstado || loadingCiudades"
                 >
                   <template #first>
                     <b-form-select-option :value="null">Todas las Ciudades</b-form-select-option>
@@ -54,7 +83,7 @@
               </b-col>
 
               <!-- Filtro de Producto Comprado -->
-              <b-col md="4" class="mb-2">
+              <b-col md="3" class="mb-2">
                 <b-form-select
                   v-model="selectedProduct"
                   size="sm"
@@ -179,7 +208,15 @@ export default {
       tmpDelete: null,
 
       // Filtros CRM Avanzados
-      selectedCity: null,
+      selectedPais: 189,
+      selectedEstado: null,
+      selectedCiudad: null,
+      paisesList: [],
+      estadosList: [],
+      ciudadesList: [],
+      loadingPaises: false,
+      loadingEstados: false,
+      loadingCiudades: false,
       selectedProduct: null,
       productsList: [],
       clientsWhoBoughtProduct: [],
@@ -230,10 +267,19 @@ export default {
           if (!matchesText) return false;
         }
 
-        // 2. Filtro por Ciudad
-        if (this.selectedCity) {
-          const city = client.billing_city || '';
-          if (city.toLowerCase().trim() !== this.selectedCity.toLowerCase().trim()) {
+        // 2. Filtro por País, Estado y Ciudad
+        if (this.selectedPais) {
+          if (Number(client.id_catalogo_pais) !== Number(this.selectedPais)) {
+            return false;
+          }
+        }
+        if (this.selectedEstado) {
+          if (Number(client.id_catalogo_estado) !== Number(this.selectedEstado)) {
+            return false;
+          }
+        }
+        if (this.selectedCiudad) {
+          if (Number(client.id_catalogo_ciudad) !== Number(this.selectedCiudad)) {
             return false;
           }
         }
@@ -254,18 +300,14 @@ export default {
       return this.filteredDataTable.length;
     },
 
-    // Opciones para el select de ciudades
-    cityOptions() {
-      const cities = this.dataTable
-        .map(c => c.billing_city || '')
-        .filter(city => city.trim() !== '')
-        .map(city => city.trim());
-      
-      const uniqueCities = [...new Set(cities)].sort();
-      return uniqueCities.map(city => ({
-        value: city,
-        text: city
-      }));
+    paisOptions() {
+      return this.paisesList.map(p => ({ value: p._id, text: p.nombre }));
+    },
+    estadoOptions() {
+      return this.estadosList.map(e => ({ value: e._id, text: e.nombre }));
+    },
+    ciudadOptions() {
+      return this.ciudadesList.map(c => ({ value: c._id, text: c.nombre }));
     },
 
     // Opciones para el select de productos
@@ -291,6 +333,22 @@ export default {
           });
       } else {
         this.clientsWhoBoughtProduct = [];
+      }
+    },
+    selectedPais(nuevoId) {
+      this.selectedEstado = null;
+      this.selectedCiudad = null;
+      this.estadosList = [];
+      this.ciudadesList = [];
+      if (nuevoId) {
+        this.fetchEstados(nuevoId);
+      }
+    },
+    selectedEstado(nuevoId) {
+      this.selectedCiudad = null;
+      this.ciudadesList = [];
+      if (nuevoId) {
+        this.fetchCiudades(nuevoId);
       }
     }
   },
@@ -393,13 +451,53 @@ export default {
           console.error("Error cargando catálogo de productos:", err);
         });
     },
+
+    async fetchPaises() {
+      this.loadingPaises = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/catalogo-paises`);
+        this.paisesList = res.data.data || [];
+      } catch (err) {
+        console.error("Error cargando países:", err);
+      } finally {
+        this.loadingPaises = false;
+      }
+    },
+
+    async fetchEstados(idPais) {
+      this.loadingEstados = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/catalogo-estados/${idPais}`);
+        this.estadosList = res.data.data || [];
+      } catch (err) {
+        console.error("Error cargando estados:", err);
+      } finally {
+        this.loadingEstados = false;
+      }
+    },
+
+    async fetchCiudades(idEstado) {
+      this.loadingCiudades = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/catalogo-ciudades/${idEstado}`);
+        this.ciudadesList = res.data.data || [];
+      } catch (err) {
+        console.error("Error cargando ciudades:", err);
+      } finally {
+        this.loadingCiudades = false;
+      }
+    },
   },
 
-  mounted() {
+  async mounted() {
     this.getCustomers().then(() => {
       this.overlay = false;
     });
     this.fetchProductsList();
+    await this.fetchPaises();
+    if (this.selectedPais) {
+      await this.fetchEstados(this.selectedPais);
+    }
   },
 };
 </script>
