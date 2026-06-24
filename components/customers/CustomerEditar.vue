@@ -4,7 +4,7 @@
             <b-icon icon="pencil"></b-icon>
         </b-button>
 
-        <b-modal :size="size" :title="title" :id="modal" cancel-disabled ok-disabled footerClass="d-none">
+        <b-modal :size="size" :title="title" :id="modal" cancel-disabled ok-disabled footerClass="d-none" lazy>
             <b-container>
                 <b-row>
                     <b-col>
@@ -41,6 +41,8 @@
                                             required></b-form-input>
                                     </b-form-group>
 
+                                    <SelectorGeografico v-model="form.geografia" />
+
                                     <b-form-group id="input-group-7" label="Mensajes Automáticos:" label-for="input-recibir-notificaciones">
                                         <b-form-checkbox id="input-recibir-notificaciones" v-model="form.recibir_notificaciones" switch>
                                             {{ form.recibir_notificaciones ? 'Recibir Mensajes Automáticos' : 'NO Recibir Mensajes Automáticos' }}
@@ -61,8 +63,10 @@
 
 <script>
 import axios from "axios"
+import SelectorGeografico from "~/components/customers/SelectorGeografico.vue"
 
 export default {
+    components: { SelectorGeografico },
     data() {
         return {
             form: {
@@ -74,6 +78,7 @@ export default {
                 email: "",
                 address: "",
                 recibir_notificaciones: true,
+                geografia: { idPais: null, idEstado: null, idCiudad: null },
             },
             size: "md",
             title: "Editar Cliente",
@@ -90,6 +95,15 @@ export default {
 
     methods: {
         async guardarCustomer() {
+            if (!this.form.geografia.idPais || !this.form.geografia.idEstado || !this.form.geografia.idCiudad) {
+                this.$fire({
+                    title: "Datos requeridos",
+                    html: "<p>Debe seleccionar el País, Estado y Ciudad del cliente.</p>",
+                    type: "warning",
+                })
+                return
+            }
+
             this.overlay = true
             const data = new URLSearchParams()
             data.set("id", this.item.id)
@@ -100,6 +114,9 @@ export default {
             data.set("email", this.form.email)
             data.set("address", this.form.address)
             data.set("recibir_notificaciones", this.form.recibir_notificaciones ? "1" : "0")
+            if (this.form.geografia.idPais) data.set("id_catalogo_pais", this.form.geografia.idPais)
+            if (this.form.geografia.idEstado) data.set("id_catalogo_estado", this.form.geografia.idEstado)
+            if (this.form.geografia.idCiudad) data.set("id_catalogo_ciudad", this.form.geografia.idCiudad)
 
             await this.$axios
                 .post(`${this.$config.API}/customers/edit1`, data)
@@ -151,6 +168,7 @@ export default {
                 email: "",
                 address: "",
                 recibir_notificaciones: true,
+                geografia: { idPais: null, idEstado: null, idCiudad: null },
             }
             this.overlay = false
         },
@@ -164,6 +182,11 @@ export default {
             email: this.item.email,
             address: this.item.address,
             recibir_notificaciones: this.item.recibir_notificaciones !== undefined ? (Number(this.item.recibir_notificaciones) === 1) : true,
+            geografia: {
+                idPais: this.item.id_catalogo_pais ? Number(this.item.id_catalogo_pais) : null,
+                idEstado: this.item.id_catalogo_estado ? Number(this.item.id_catalogo_estado) : null,
+                idCiudad: this.item.id_catalogo_ciudad ? Number(this.item.id_catalogo_ciudad) : null,
+            },
         }
     },
 

@@ -4,7 +4,7 @@
             <b-icon icon="person-plus"></b-icon> {{ title }}
         </b-button>
 
-        <b-modal :size="size" :title="title" :id="modal" hide-footer>
+        <b-modal :size="size" :title="title" :id="modal" hide-footer lazy>
             <b-overlay :show="overlay" spinner-small>
                 <b-container>
                     <b-row>
@@ -88,6 +88,8 @@
                                     ></b-form-input>
                                 </b-form-group>
 
+                                <SelectorGeografico v-model="form.geografia" />
+
                                 <b-form-group
                                     id="input-group-7"
                                     label="Mensajes Automáticos:"
@@ -119,7 +121,9 @@
 
 <script>
 import axios from "axios"
+import SelectorGeografico from "~/components/customers/SelectorGeografico.vue"
 export default {
+    components: { SelectorGeografico },
     data() {
         return {
             form: {
@@ -130,6 +134,7 @@ export default {
                 email: "",
                 address: "",
                 recibir_notificaciones: true,
+                geografia: { idPais: null, idEstado: null, idCiudad: null },
             },
             unidadesOptions: [
                 { value: "Mts", text: "Metros" },
@@ -160,10 +165,20 @@ export default {
                 email: "",
                 address: "",
                 recibir_notificaciones: true,
+                geografia: { idPais: null, idEstado: null, idCiudad: null },
             }
             this.overlay = false
         },
         async guardarCustomer() {
+            if (!this.form.geografia.idPais || !this.form.geografia.idEstado || !this.form.geografia.idCiudad) {
+                this.$fire({
+                    title: "Datos requeridos",
+                    html: "<p>Debe seleccionar el País, Estado y Ciudad del cliente.</p>",
+                    type: "warning",
+                })
+                return
+            }
+
             this.overlay = true
             const data = new URLSearchParams()
             data.set("first_name", this.form.first_name)
@@ -173,6 +188,9 @@ export default {
             data.set("email", this.form.email)
             data.set("address", this.form.address)
             data.set("recibir_notificaciones", this.form.recibir_notificaciones ? "1" : "0")
+            if (this.form.geografia.idPais) data.set("id_catalogo_pais", this.form.geografia.idPais)
+            if (this.form.geografia.idEstado) data.set("id_catalogo_estado", this.form.geografia.idEstado)
+            if (this.form.geografia.idCiudad) data.set("id_catalogo_ciudad", this.form.geografia.idCiudad)
 
             await this.$axios
                 .post(`${this.$config.API}/customers/nuevo`, data)

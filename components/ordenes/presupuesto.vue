@@ -274,6 +274,8 @@
                                       <b-form-input id="input-address" v-model="form.direccion" type="text"
                                         class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese la dirección"></b-form-input>
                                     </b-form-group>
+
+                                    <SelectorGeografico v-model="form.geografia" class="mt-3" />
                                   </b-form>
                                   <p info-form>
                                     <span required>*</span>
@@ -542,6 +544,7 @@ import AtributosNuevo from "~/components/admin/AtributosNuevo.vue";
 import PrintService from '@/utils/PrintService';
 import PresupuestoPreview from "~/components/ordenes/presupuesto-preview.vue";
 import ProductSelectorModal from "~/components/ordenes/ProductSelectorModal.vue";
+import SelectorGeografico from "~/components/customers/SelectorGeografico.vue";
 
 export default {
   components: {
@@ -549,7 +552,8 @@ export default {
     CargarOrdenesNoAsignadas,
     AtributosNuevo,
     ProductSelectorModal,
-    'ordenes-presupuesto-preview': PresupuestoPreview
+    'ordenes-presupuesto-preview': PresupuestoPreview,
+    SelectorGeografico
   },
   data() {
     return {
@@ -604,6 +608,7 @@ export default {
         telefono: "",
         email: "",
         direccion: "",
+        geografia: { idPais: null, idEstado: null, idCiudad: null },
         fechaEntrega: new Date().toISOString().split('T')[0],
         productos: [], // Datos para la tabla de productos
         obs: "",
@@ -646,6 +651,7 @@ export default {
         telefono: "",
         email: "",
         direccion: "",
+        geografia: { idPais: null, idEstado: null, idCiudad: null },
         fechaEntrega: new Date().toISOString().split('T')[0],
         productos: [], // Datos para la tabla de productos
         metodoDePago: [],
@@ -1165,6 +1171,11 @@ export default {
           ? ""
           : customerData.billing_email;
         this.form.direccion = customerData.billing_address_1;
+        this.form.geografia = {
+          idPais: customerData.id_catalogo_pais ? Number(customerData.id_catalogo_pais) : null,
+          idEstado: customerData.id_catalogo_estado ? Number(customerData.id_catalogo_estado) : null,
+          idCiudad: customerData.id_catalogo_ciudad ? Number(customerData.id_catalogo_ciudad) : null,
+        };
 
         // FIX: Poblar `query2` para que el `watcher` no borre los datos del formulario.
         // Esto también actualiza la UI para mostrar el cliente cargado en el buscador.
@@ -1932,6 +1943,11 @@ export default {
         msg = msg + phoneExist.msg;
       }
 
+      if (!this.form.guardarStock && (!this.form.geografia.idPais || !this.form.geografia.idEstado || !this.form.geografia.idCiudad)) {
+        ok = false;
+        msg = msg + "<p>El País, Estado y Ciudad son campos obligatorios</p>";
+      }
+
       if (!ok) {
         this.$fire({
           type: "info",
@@ -2174,6 +2190,11 @@ export default {
           this.form.apellido = customer.last_name;
           this.form.telefono = this.formatPhoneNumber(customer.phone);
           this.form.direccion = customer.address;
+          this.form.geografia = {
+            idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
+            idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
+            idCiudad: customer.id_catalogo_ciudad ? Number(customer.id_catalogo_ciudad) : null,
+          };
 
           /**los email que empiezan con 'none_'
            * son asignados por el sistema
@@ -2229,6 +2250,11 @@ export default {
             this.form.apellido = customer.last_name;
             this.form.telefono = this.formatPhoneNumber(customer.phone);
             this.form.direccion = customer.address;
+            this.form.geografia = {
+              idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
+              idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
+              idCiudad: customer.id_catalogo_ciudad ? Number(customer.id_catalogo_ciudad) : null,
+            };
 
             /**los email que empiezan con 'none_'
              * son asignados por el sistema
@@ -2332,8 +2358,13 @@ export default {
         url = `${this.$config.API}/customers/${id}/${nombre}/${apellido}/${cedula}/${telefono}/${email}/${direccion}`;
       }
 
+      const data = new URLSearchParams();
+      if (this.form.geografia.idPais) data.set("id_catalogo_pais", this.form.geografia.idPais);
+      if (this.form.geografia.idEstado) data.set("id_catalogo_estado", this.form.geografia.idEstado);
+      if (this.form.geografia.idCiudad) data.set("id_catalogo_ciudad", this.form.geografia.idCiudad);
+
       let ok = false;
-      await this.$axios(url, { method: method })
+      await this.$axios({ url: url, method: method, data: data })
         .then((res) => {
           console.log("respuesta de actualizar - crear cliente", res);
           // this.form.id = res.id
@@ -2451,6 +2482,7 @@ export default {
         telefono: "",
         email: "",
         direccion: "",
+        geografia: { idPais: null, idEstado: null, idCiudad: null },
         fechaEntrega: new Date().toISOString().split('T')[0],
         productos: [],
         metodoDePago: [],
@@ -2755,6 +2787,7 @@ export default {
       this.form.telefono = "";
       this.form.email = "";
       this.form.direccion = "";
+      this.form.geografia = { idPais: null, idEstado: null, idCiudad: null };
     },
 
     async getProducts() {
