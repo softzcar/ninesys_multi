@@ -21,84 +21,129 @@
                             dataUser.departamento === 'Comercialización'
                         "
           >
+            <!-- Fila de Título de la Página -->
+            <b-row class="mt-2 mb-3">
+              <b-col>
+                <h2 class="font-weight-bold">{{ titulo }}</h2>
+              </b-col>
+            </b-row>
+
             <!-- Fila de Filtros Avanzados -->
-            <b-row class="mb-4 align-items-center">
+            <b-row class="mb-4 align-items-end">
               <!-- Filtro de Texto -->
               <b-col md="3" class="mb-2">
+                <label for="filter-input" class="small text-muted font-weight-bold mb-1">Buscar Cliente</label>
                 <b-input-group size="sm">
                   <b-form-input
                     id="filter-input"
                     v-model="filter"
                     type="search"
-                    placeholder="Filtrar por texto (Nombre, Cédula...)"
+                    placeholder="Nombre, Cédula, Correo..."
                   ></b-form-input>
-                  <b-input-group-append>
-                    <b-button :disabled="!filter" @click="filter = ''">
-                      Limpiar
+                  <b-input-group-append v-if="filter">
+                    <b-button variant="outline-secondary" @click="filter = ''" title="Limpiar búsqueda">
+                      <b-icon icon="x"></b-icon>
                     </b-button>
                   </b-input-group-append>
                 </b-input-group>
               </b-col>
 
               <!-- Filtro de País -->
-              <b-col md="2" class="mb-2">
+              <b-col md="1" class="mb-2">
+                <label for="filter-pais" class="small text-muted font-weight-bold mb-1">País</label>
                 <b-form-select
+                  id="filter-pais"
                   v-model="selectedPais"
                   size="sm"
                   :options="paisOptions"
                   :disabled="loadingPaises"
                 >
-                  <template #first>
-                    <b-form-select-option :value="null">Todos los Países</b-form-select-option>
-                  </template>
                 </b-form-select>
               </b-col>
 
               <!-- Filtro de Estado -->
               <b-col md="2" class="mb-2">
-                <b-form-select
-                  v-model="selectedEstado"
-                  size="sm"
-                  :options="estadoOptions"
-                  :disabled="!selectedPais || loadingEstados"
-                >
-                  <template #first>
-                    <b-form-select-option :value="null">Todos los Estados</b-form-select-option>
-                  </template>
-                </b-form-select>
+                <label for="filter-estado" class="small text-muted font-weight-bold mb-1">Estado</label>
+                <b-input-group size="sm">
+                  <b-form-select
+                    id="filter-estado"
+                    v-model="selectedEstado"
+                    :options="estadoOptions"
+                    :disabled="!selectedPais || loadingEstados"
+                  >
+                    <template #first>
+                      <b-form-select-option :value="null">Todos los Estados</b-form-select-option>
+                    </template>
+                  </b-form-select>
+                  <b-input-group-append v-if="selectedEstado !== null">
+                    <b-button variant="outline-secondary" @click="selectedEstado = null" title="Limpiar estado">
+                      <b-icon icon="x"></b-icon>
+                    </b-button>
+                  </b-input-group-append>
+                </b-input-group>
               </b-col>
 
               <!-- Filtro de Ciudad -->
               <b-col md="2" class="mb-2">
-                <b-form-select
-                  v-model="selectedCiudad"
-                  size="sm"
-                  :options="ciudadOptions"
-                  :disabled="!selectedEstado || loadingCiudades"
-                >
-                  <template #first>
-                    <b-form-select-option :value="null">Todas las Ciudades</b-form-select-option>
-                  </template>
-                </b-form-select>
+                <label for="filter-ciudad" class="small text-muted font-weight-bold mb-1">Ciudad</label>
+                <b-input-group size="sm">
+                  <b-form-select
+                    id="filter-ciudad"
+                    v-model="selectedCiudad"
+                    :options="ciudadOptions"
+                    :disabled="!selectedEstado || loadingCiudades"
+                  >
+                    <template #first>
+                      <b-form-select-option :value="null">Todas las Ciudades</b-form-select-option>
+                    </template>
+                  </b-form-select>
+                  <b-input-group-append v-if="selectedCiudad !== null">
+                    <b-button variant="outline-secondary" @click="selectedCiudad = null" title="Limpiar ciudad">
+                      <b-icon icon="x"></b-icon>
+                    </b-button>
+                  </b-input-group-append>
+                </b-input-group>
               </b-col>
 
               <!-- Filtro de Producto Comprado -->
-              <b-col md="3" class="mb-2">
-                <b-form-select
-                  v-model="selectedProduct"
+              <b-col md="2" class="mb-2">
+                <label for="filter-producto" class="small text-muted font-weight-bold mb-1">Producto Comprado</label>
+                <b-input-group size="sm">
+                  <b-form-select
+                    id="filter-producto"
+                    v-model="selectedProduct"
+                    :options="productOptions"
+                  >
+                    <template #first>
+                      <b-form-select-option :value="null">Todos los Productos</b-form-select-option>
+                    </template>
+                  </b-form-select>
+                  <b-input-group-append v-if="selectedProduct !== null">
+                    <b-button variant="outline-secondary" @click="selectedProduct = null" title="Limpiar producto">
+                      <b-icon icon="x"></b-icon>
+                    </b-button>
+                  </b-input-group-append>
+                </b-input-group>
+              </b-col>
+
+              <!-- Botón Limpiar Filtros -->
+              <b-col md="2" class="mb-2">
+                <label class="small text-muted font-weight-bold mb-1 d-block">&nbsp;</label>
+                <b-button
+                  variant="primary"
                   size="sm"
-                  :options="productOptions"
+                  block
+                  @click="resetFilters"
                 >
-                  <template #first>
-                    <b-form-select-option :value="null">Filtrar por Producto comprado</b-form-select-option>
-                  </template>
-                </b-form-select>
+                  <b-icon icon="arrow-counterclockwise" class="mr-1"></b-icon>
+                  Limpiar Filtros
+                </b-button>
               </b-col>
             </b-row>
 
-            <b-row>
+            <!-- Fila de Acciones de Clientes -->
+            <b-row class="mb-4">
               <b-col>
-                <h2 class="mb-4">{{ titulo }}</h2>
                 <customers-CustomerNuevo @reload="getCustomers" />
               </b-col>
             </b-row>
@@ -301,13 +346,21 @@ export default {
     },
 
     paisOptions() {
-      return this.paisesList.map(p => ({ value: p._id, text: p.nombre }));
+      return this.paisesList
+        .filter(p => Number(p._id) === 189)
+        .map(p => ({ value: p._id, text: p.nombre }));
     },
     estadoOptions() {
-      return this.estadosList.map(e => ({ value: e._id, text: e.nombre }));
+      const estadosConClientes = [...new Set(this.dataTable.map(c => Number(c.id_catalogo_estado)).filter(Boolean))];
+      return this.estadosList
+        .filter(e => estadosConClientes.includes(Number(e._id)))
+        .map(e => ({ value: e._id, text: e.nombre }));
     },
     ciudadOptions() {
-      return this.ciudadesList.map(c => ({ value: c._id, text: c.nombre }));
+      const ciudadesConClientes = [...new Set(this.dataTable.map(c => Number(c.id_catalogo_ciudad)).filter(Boolean))];
+      return this.ciudadesList
+        .filter(c => ciudadesConClientes.includes(Number(c._id)))
+        .map(c => ({ value: c._id, text: c.nombre }));
     },
 
     // Opciones para el select de productos
@@ -354,6 +407,15 @@ export default {
   },
 
   methods: {
+    resetFilters() {
+      this.filter = '';
+      this.selectedPais = 189;
+      this.selectedEstado = null;
+      this.selectedCiudad = null;
+      this.selectedProduct = null;
+      this.currentPage = 1;
+    },
+
     onFiltered(filteredItems) {
       this.currentPage = 1;
     },

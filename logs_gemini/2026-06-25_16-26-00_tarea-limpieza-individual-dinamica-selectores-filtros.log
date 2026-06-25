@@ -1,0 +1,13 @@
+Tarea: Incorporación de botones de limpieza rápida individual en los selectores del panel de filtros.
+Fecha: 2026-06-25 16:26:00
+
+Detalle:
+- Se optimizó la usabilidad de los filtros en `app_multi/pages/clientes/gestion.vue` agregando botones dinámicos para restablecer campos de forma independiente:
+  1. Integración con b-input-group: Se envolvieron el buscador de texto y los selectores de Estado, Ciudad y Producto Comprado en componentes `b-input-group size="sm"`.
+  2. Botón Append Dinámico: Se añadió un componente `b-input-group-append` condicionado por directivas `v-if` a cada control:
+     - Buscador de texto: Muestra botón "x" si `filter` no está vacío. Al hacer clic, limpia el input (`filter = ''`).
+     - Selector de Estado: Muestra botón "x" si `selectedEstado !== null`. Al hacer clic, restablece a `null`.
+     - Selector de Ciudad: Muestra botón "x" si `selectedCiudad !== null`. Al hacer clic, restablece a `null`.
+     - Selector de Producto: Muestra botón "x" si `selectedProduct !== null`. Al hacer clic, restablece a `null`.
+  3. Comportamiento Inteligente: El botón "x" solo aparece cuando el filtro respectivo está activo. De lo contrario, los selectores e inputs conservan su visualización limpia y estándar, optimizando el espacio en pantalla.
+  4. Atributos descriptivos: Se asignaron titles de tooltip nativos a cada botón de limpieza (`Limpiar búsqueda`, `Limpiar estado`, etc.) para una mejor accesibilidad.

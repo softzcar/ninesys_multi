@@ -1,0 +1,18 @@
+Tarea: Mejora de interfaz y usabilidad de filtros en la página de Gestión de Clientes.
+Fecha: 2026-06-25 16:22:00
+
+Detalle:
+- Se rediseñó y maquetó de forma profesional la sección de filtros avanzados en la página `app_multi/pages/clientes/gestion.vue` para mejorar la legibilidad y ofrecer una experiencia de usuario premium:
+  1. Etiquetas (Labels): Se agregaron elementos `<label>` estilizados (`small text-muted font-weight-bold mb-1`) encima de cada control de filtro (Buscar Cliente, País, Estado, Ciudad, Producto Comprado) para identificar claramente los campos de filtrado.
+  2. Alineación Vertical: Se cambió la alineación de la fila de filtros a `align-items-end` para garantizar que la base de todos los inputs, selects y el botón de acción queden perfectamente alineados en el plano horizontal.
+  3. Cuadrícula Simétrica: Se redistribuyeron los anchos de columnas responsivas (`md`) en una estructura simétrica de 12 columnas:
+     - Buscar Cliente (Input de búsqueda de texto libre): `md="3"`
+     - País (Selector estático fijo en Venezuela): `md="1"` (se redujo de 2 a 1 columna dada su naturaleza de opción única y estática).
+     - Estado (Selector de estado con clientes): `md="2"`
+     - Ciudad (Selector de ciudad con clientes): `md="2"`
+     - Producto Comprado (Selector de producto): `md="2"`
+     - Botón Limpiar Filtros: `md="2"`
+  4. Botón Global de Limpieza de Filtros: Se implementó un botón unificado "Limpiar Filtros" con el icono `arrow-counterclockwise` y el estilo `variant="outline-secondary"` para permitir restablecer todos los filtros (búsqueda de texto, país a Venezuela, estado, ciudad y producto a valores `null`) de un solo clic.
+  5. Limpieza de Controles: Se eliminó el botón individual "Limpiar" y la estructura `b-input-group` en el input de texto de búsqueda, simplificando la interfaz al delegar la acción de limpiar a la funcionalidad global.
+- Lógica en Vue.js:
+  - Se agregó el método `resetFilters()` en la sección de métodos para reestablecer reactivamente todos los estados de los selectores a sus valores iniciales predeterminados (incluyendo fijar a Venezuela de nuevo) y forzar la recarga del listado a la primera página de resultados.

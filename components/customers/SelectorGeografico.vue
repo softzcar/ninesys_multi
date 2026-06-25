@@ -53,7 +53,7 @@ export default {
       paises: [],
       estados: [],
       ciudades: [],
-      idPaisLocal: this.value.idPais || null,
+      idPaisLocal: this.value.idPais || 189,
       idEstadoLocal: this.value.idEstado || null,
       idCiudadLocal: this.value.idCiudad || null,
       loadingPaises: false,
@@ -64,10 +64,9 @@ export default {
 
   computed: {
     paisOptions() {
-      return [
-        { value: null, text: "Seleccione un país" },
-        ...this.paises.map((p) => ({ value: p._id, text: p.nombre })),
-      ]
+      return this.paises
+        .filter((p) => Number(p._id) === 189)
+        .map((p) => ({ value: p._id, text: p.nombre }))
     },
     estadoOptions() {
       return [
@@ -96,7 +95,7 @@ export default {
       ) {
         return
       }
-      this.idPaisLocal = nuevo.idPais || null
+      this.idPaisLocal = nuevo.idPais || 189
       this.idEstadoLocal = nuevo.idEstado || null
       this.idCiudadLocal = nuevo.idCiudad || null
     },

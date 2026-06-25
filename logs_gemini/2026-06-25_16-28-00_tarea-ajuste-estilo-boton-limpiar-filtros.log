@@ -1,0 +1,6 @@
+Tarea: Ajuste de estilo y color en el botón global de limpieza de filtros.
+Fecha: 2026-06-25 16:28:00
+
+Detalle:
+- Se modificó la propiedad `variant` del botón global "Limpiar Filtros" en `app_multi/pages/clientes/gestion.vue` cambiándolo de `outline-secondary` a `primary`.
+- Con este ajuste, el botón adquiere mayor relevancia visual en la barra de control de filtros, siguiendo las preferencias estéticas indicadas por el usuario.

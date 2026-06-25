@@ -1,0 +1,10 @@
+Tarea: Optimización de filtros geográficos de país, estado y ciudad en la interfaz de gestión de clientes.
+Fecha: 2026-06-25 13:40:00
+
+Detalle:
+- Se modificó la página de administración de clientes `app_multi/pages/clientes/gestion.vue` para optimizar la usabilidad de los filtros geográficos:
+  1. Selector de País: Se eliminó la opción por defecto "Todos los Países" (`null`) del template HTML. Adicionalmente, se filtró la propiedad computada `paisOptions` para que muestre de forma exclusiva a Venezuela (ID: 189). Dado que `selectedPais` se inicializa en 189 en la data, el selector queda bloqueado y fijado en Venezuela de manera predeterminada.
+  2. Selector de Estado: Se actualizó el computed property `estadoOptions`. Ahora cruza la lista completa de estados (`this.estadosList`) con un conjunto único (`Set`) de los estados que tienen asignado al menos un cliente en `this.dataTable`. Como resultado, solo se muestran y son seleccionables los estados donde existen clientes reales.
+  3. Selector de Ciudad: Se actualizó el computed property `ciudadOptions`. De forma análoga a los estados, cuando el usuario selecciona un estado, la lista de ciudades del catálogo (`this.ciudadesList`) se filtra para mostrar únicamente las ciudades donde reside al menos un cliente registrado en la tabla.
+- Con esta implementación 100% reactiva en el cliente, se evita que el usuario aplique filtros geográficos vacíos (estados o ciudades sin clientes asociados).
+- La compilación del frontend se realizó en caliente (hot reload) por el dev server de Nuxt, respetando la regla crítica de no compilar el bundle de producción (`nuxt build`).

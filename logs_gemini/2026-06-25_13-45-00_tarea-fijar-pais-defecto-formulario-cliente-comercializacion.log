@@ -1,0 +1,11 @@
+Tarea: Fijar a Venezuela por defecto y como única opción en el selector geográfico del formulario de clientes (módulos de órdenes y presupuestos).
+Fecha: 2026-06-25 13:45:00
+
+Detalle:
+- Se modificó el componente reutilizable de frontend `app_multi/components/customers/SelectorGeografico.vue`, el cual es utilizado en la pestaña de datos del cliente en los wizards de creación de órdenes y presupuestos:
+  1. En `data()`, se ajustó la inicialización del país local (`idPaisLocal`) para que asigne por defecto `189` (Venezuela) si el valor entrante del componente padre es nulo: `idPaisLocal: this.value.idPais || 189`.
+  2. En el watch de `value`, se aplicó el mismo comportamiento de fallback hacia `189` para mantener la sincronía del componente si se limpian los datos desde fuera.
+  3. En la propiedad computada `paisOptions()`, se removió la opción placeholder "Seleccione un país" y se filtraron los países provenientes del catálogo para dejar de forma exclusiva a Venezuela:
+     `return this.paises.filter((p) => Number(p._id) === 189).map((p) => ({ value: p._id, text: p.nombre }))`
+- Dado que el componente se reutiliza en las interfaces de `/comercializacion/ordenes` y `/comercializacion/presupuesto`, la restricción se aplica de forma centralizada y transparente en todos los wizards del módulo comercial.
+- La recarga se probó en caliente por el dev server local de Nuxt sin errores.

@@ -1,0 +1,8 @@
+Tarea: Reubicación del título principal de la página de gestión de clientes.
+Fecha: 2026-06-25 16:55:00
+
+Detalle:
+- Se modificó la estructura HTML en `app_multi/pages/clientes/gestion.vue` para mejorar el flujo de lectura de la página:
+  1. Título Superior: Se reubicó el título `h2` (`Gestión de Clientes`) a la parte superior del contenedor, colocándolo antes de la sección de filtros con márgenes limpios y adecuados (`class="mt-2 mb-3"`).
+  2. Botón Nuevo Cliente: El botón de "+ Nuevo Cliente" (cargado por `<customers-CustomerNuevo />`) se colocó en su propio bloque `b-row` debajo de la barra de filtros (`class="mb-4"`).
+- Esta maquetación distribuye de forma jerárquica y correcta los elementos principales (Título -> Filtros -> Acciones -> Datos/Tabla).
