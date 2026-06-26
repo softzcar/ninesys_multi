@@ -109,30 +109,37 @@
         <b-collapse :visible="!collapsedSections.lotes">
           <div class="section-content mt-2">
             <div v-for="lote in lotesActivos" :key="lote.id" class="lote-card mb-3 p-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="lote-title">Lote #{{ lote.id }}</span>
-                <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{ lote.estado }}</b-badge>
+              <!-- Fila principal: título + estado + botón de acción -->
+              <div class="card-main-row mb-2">
+                <div class="card-info-col">
+                  <div class="info-top-row">
+                    <span class="lote-title">Lote #{{ lote.id }}</span>
+                    <b-badge
+                      :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'"
+                      class="ml-2"
+                    >{{ lote.estado }}</b-badge>
+                  </div>
+                </div>
+                <!-- Botón acción: ▶ Iniciar (pendiente) | ✓ Finalizar (en_curso) -->
+                <div
+                  class="card-right-action flex-shrink-0"
+                  :class="lote.estado === 'en_curso' ? 'right-normal-process' : 'right-normal-pending'"
+                  @click="lote.estado === 'pendiente' ? iniciarLote(lote.id) : finalizarLotePorDepartamento(lote.id)"
+                >
+                  <b-icon :icon="lote.estado === 'en_curso' ? 'check-lg' : 'play-fill'"></b-icon>
+                </div>
               </div>
-              <div class="lote-orders-list mb-3">
+              <!-- Lista de órdenes del lote -->
+              <div class="lote-orders-list">
                 <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex align-items-center">
-                  <!-- Badge tipo ORD con linkSearch (misma maquetación que tarjetas modernas) -->
                   <div class="card-badge-col flex-shrink-0 mr-3">
                     <div class="badge-type-box type-ord">
                       <span class="type-text">ORD</span>
                       <linkSearch :id="orden.id_orden" class="type-id-link" />
                     </div>
                   </div>
-                  <!-- Nombre del cliente -->
                   <span class="lote-cliente-nombre flex-grow-1">{{ orden.cliente_nombre }}</span>
                 </div>
-              </div>
-              <div class="d-flex justify-content-end">
-                <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" size="sm" class="mr-2">
-                  Iniciar Lote
-                </b-button>
-                <b-button v-if="lote.estado === 'en_curso'" @click="finalizarLotePorDepartamento(lote.id)" variant="success" size="sm">
-                  Finalizar Lote
-                </b-button>
               </div>
             </div>
           </div>
