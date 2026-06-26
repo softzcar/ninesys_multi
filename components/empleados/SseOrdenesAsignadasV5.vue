@@ -94,57 +94,7 @@
         </b-row>
       </div>
 
-      <!-- Lotes en Proceso (Vista Tradicional Adaptada) -->
-      <!-- Lotes en Proceso (Sección Colapsable) -->
-      <div v-if="lotesActivos.length > 0" class="section-container mb-4">
-        <div class="section-header active-lotes-header" @click="collapsedSections.lotes = !collapsedSections.lotes">
-          <div class="d-flex align-items-center">
-            <b-icon :icon="collapsedSections.lotes ? 'chevron-right' : 'chevron-down'" class="mr-2"></b-icon>
-            <h5 class="mb-0 font-weight-bold text-uppercase">
-              <b-icon icon="collection-play" class="mr-1"></b-icon> Lotes en Proceso
-            </h5>
-            <b-badge variant="dark" class="ml-2">{{ lotesActivos.length }}</b-badge>
-          </div>
-        </div>
-        <b-collapse :visible="!collapsedSections.lotes">
-          <div class="section-content mt-2">
-            <div v-for="lote in lotesActivos" :key="lote.id" class="lote-card mb-3 p-3">
-              <!-- Fila principal: título + estado + botón de acción -->
-              <div class="card-main-row mb-2">
-                <div class="card-info-col">
-                  <div class="info-top-row">
-                    <span class="lote-title">Lote #{{ lote.id }}</span>
-                    <b-badge
-                      :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'"
-                      class="ml-2"
-                    >{{ lote.estado }}</b-badge>
-                  </div>
-                </div>
-                <!-- Botón acción: ▶ Iniciar (pendiente) | ✓ Finalizar (en_curso) -->
-                <div
-                  class="card-right-action flex-shrink-0"
-                  :class="lote.estado === 'en_curso' ? 'right-normal-process' : 'right-normal-pending'"
-                  @click="lote.estado === 'pendiente' ? iniciarLote(lote.id) : finalizarLotePorDepartamento(lote.id)"
-                >
-                  <b-icon :icon="lote.estado === 'en_curso' ? 'check-lg' : 'play-fill'"></b-icon>
-                </div>
-              </div>
-              <!-- Lista de órdenes del lote -->
-              <div class="lote-orders-list">
-                <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex align-items-center">
-                  <div class="card-badge-col flex-shrink-0 mr-3">
-                    <div class="badge-type-box type-ord">
-                      <span class="type-text">ORD</span>
-                      <linkSearch :id="orden.id_orden" class="type-id-link" />
-                    </div>
-                  </div>
-                  <span class="lote-cliente-nombre flex-grow-1">{{ orden.cliente_nombre }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </b-collapse>
-      </div>
+
         
         <!-- PESTAÑA: ÓRDENES -->
         <div v-show="activeTab === 'ordenes'">
@@ -220,6 +170,57 @@
                     </div>
                   </div>
 
+                </div>
+              </div>
+            </b-collapse>
+          </div>
+
+          <!-- Lotes en Proceso (Sección Colapsable) -->
+          <div v-if="lotesActivos.length > 0" class="section-container mb-4">
+            <div class="section-header active-lotes-header" @click="collapsedSections.lotes = !collapsedSections.lotes">
+              <div class="d-flex align-items-center">
+                <b-icon :icon="collapsedSections.lotes ? 'chevron-right' : 'chevron-down'" class="mr-2"></b-icon>
+                <h5 class="mb-0 font-weight-bold text-uppercase">
+                  <b-icon icon="collection-play" class="mr-1"></b-icon> Lotes en Proceso
+                </h5>
+                <b-badge variant="dark" class="ml-2">{{ lotesActivos.length }}</b-badge>
+              </div>
+            </div>
+            <b-collapse :visible="!collapsedSections.lotes">
+              <div class="section-content mt-2">
+                <div v-for="lote in lotesActivos" :key="lote.id" class="lote-card mb-3 p-3">
+                  <!-- Fila principal: título + estado + botón de acción -->
+                  <div class="card-main-row mb-2">
+                    <div class="card-info-col">
+                      <div class="info-top-row">
+                        <span class="lote-title">Lote #{{ lote.id }}</span>
+                        <b-badge
+                          :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'"
+                          class="ml-2"
+                        >{{ lote.estado }}</b-badge>
+                      </div>
+                    </div>
+                    <!-- Botón acción: ▶ Iniciar (pendiente) | ✓ Finalizar (en_curso) -->
+                    <div
+                      class="card-right-action flex-shrink-0"
+                      :class="lote.estado === 'en_curso' ? 'right-normal-process' : 'right-normal-pending'"
+                      @click="lote.estado === 'pendiente' ? iniciarLote(lote.id) : finalizarLotePorDepartamento(lote.id)"
+                    >
+                      <b-icon :icon="lote.estado === 'en_curso' ? 'check-lg' : 'play-fill'"></b-icon>
+                    </div>
+                  </div>
+                  <!-- Lista de órdenes del lote -->
+                  <div class="lote-orders-list">
+                    <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex align-items-center">
+                      <div class="card-badge-col flex-shrink-0 mr-3">
+                        <div class="badge-type-box type-ord">
+                          <span class="type-text">ORD</span>
+                          <linkSearch :id="orden.id_orden" class="type-id-link" />
+                        </div>
+                      </div>
+                      <span class="lote-cliente-nombre flex-grow-1">{{ orden.cliente_nombre }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </b-collapse>
