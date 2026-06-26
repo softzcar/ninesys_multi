@@ -137,9 +137,6 @@
                         </div>
                         <div class="info-bottom-row mt-2">
                           <span class="status-pill status-urgent">Urgente</span>
-                          <div class="card-progress-bar-container ml-auto" v-if="isTaskInProcess(item)">
-                            <empleados-ProgressBarEmpleados :idOrden="item.orden || item.id_orden" />
-                          </div>
                         </div>
                       </div>
                       <div class="card-right-action" :class="getRightPanelClass(item)" @click="handleRightPanelClick(item)">
@@ -265,9 +262,6 @@
                           <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
                             {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
                           </span>
-                          <div class="card-progress-bar-container ml-auto">
-                            <empleados-ProgressBarEmpleados :idOrden="item.orden || item.id_orden" />
-                          </div>
                         </div>
                       </div>
                       <div class="card-right-action right-normal-process" @click="handleRightPanelClick(item)">
@@ -409,9 +403,6 @@
                         </div>
                         <div class="info-bottom-row mt-2">
                           <span class="status-pill status-urgent">Urgente</span>
-                          <div class="card-progress-bar-container ml-auto" v-if="isTaskInProcess(item)">
-                            <empleados-ProgressBarEmpleados :idOrden="item.orden || item.id_orden" />
-                          </div>
                         </div>
                       </div>
                       <div class="card-right-action" :class="getRightPanelClass(item)" @click="handleRightPanelClick(item)">
@@ -485,9 +476,6 @@
                           <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
                             {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
                           </span>
-                          <div class="card-progress-bar-container ml-auto">
-                            <empleados-ProgressBarEmpleados :idOrden="item.orden || item.id_orden" />
-                          </div>
                         </div>
                       </div>
                       <div class="card-right-action right-normal-process" @click="handleRightPanelClick(item)">
