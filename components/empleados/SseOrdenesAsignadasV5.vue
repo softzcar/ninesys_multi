@@ -2450,18 +2450,21 @@ export default {
   html.mobile-internal-scroll .app-wrapper, 
   html.mobile-internal-scroll .main-wrapper {
     height: 100vh !important;
+    height: 100svh !important;
     height: -webkit-fill-available !important;
     overflow: hidden !important;
   }
 
   html.mobile-internal-scroll .main-content {
     height: calc(100vh - 56px) !important;
+    height: calc(100svh - 56px) !important;
     overflow: hidden !important;
     padding-top: 56px !important;
   }
 
   .mobile-internal-scroll .dashboard-v2-container {
     height: calc(100vh - 56px) !important;
+    height: calc(100svh - 56px) !important;
     overflow: hidden !important;
     position: relative;
     padding: 0 !important;
@@ -2483,12 +2486,11 @@ export default {
   }
 
   .mobile-internal-scroll .dashboard-content-area {
-    height: calc(100vh - 125px) !important; /* Altura total menos menú (56px) y header fijo (69px) */
+    height: calc(100vh - 125px) !important;
+    height: calc(100svh - 125px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    padding: 15px;
-    /* Margin-top para que el contenido empiece DEBAJO del fixed-top-header (69px) */
-    /* El contenedor ya tiene top: 69px gracias al posicionamiento del padre */
+    padding: 15px 15px 80px 15px !important; /* Padding inferior de 80px para evitar recortes al scrollear */
     margin-top: 69px !important;
   }
 }
