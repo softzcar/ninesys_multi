@@ -114,9 +114,16 @@
                 <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{ lote.estado }}</b-badge>
               </div>
               <div class="lote-orders-list mb-3">
-                <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex justify-content-between align-items-center">
-                  <span>Orden #{{ orden.id_orden }} - {{ orden.cliente_nombre }}</span>
-                  <linkSearch :id="orden.id_orden" size="sm" />
+                <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex align-items-center">
+                  <!-- Badge tipo ORD con linkSearch (misma maquetación que tarjetas modernas) -->
+                  <div class="card-badge-col flex-shrink-0 mr-3">
+                    <div class="badge-type-box type-ord">
+                      <span class="type-text">ORD</span>
+                      <linkSearch :id="orden.id_orden" class="type-id-link" />
+                    </div>
+                  </div>
+                  <!-- Nombre del cliente -->
+                  <span class="lote-cliente-nombre flex-grow-1">{{ orden.cliente_nombre }}</span>
                 </div>
               </div>
               <div class="d-flex justify-content-end">
@@ -2024,9 +2031,16 @@ export default {
   font-size: 1rem;
 }
 .lote-order-item {
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px dashed #edf2f7;
+}
+.lote-order-item:last-child {
+  border-bottom: none;
+}
+.lote-cliente-nombre {
   font-size: 0.85rem;
+  color: #4a5568;
+  font-weight: 500;
 }
 
 /* Tarjetas de Tareas Modernas */
