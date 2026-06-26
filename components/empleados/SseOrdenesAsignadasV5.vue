@@ -25,13 +25,9 @@
     <!-- Contenido Principal -->
     <div class="dashboard-content-area">
       <!-- Buscador de órdenes general en base de datos (solo visible en móviles dentro de la zona scrolleable) -->
-      <div class="d-lg-none mobile-search-whatsapp-wrapper mb-3 p-3 bg-white rounded shadow-sm">
-        <div class="d-flex align-items-center justify-content-between w-100">
-          <div class="flex-grow-1 mr-2 flex-grow-1-search">
-            <buscar-BarraDeBusqueda />
-          </div>
-          <admin-WsSendMsgCustomInterno class="flex-shrink-0" />
-        </div>
+      <!-- El botón WhatsApp NO se muestra aquí: ya está en el header fijo superior -->
+      <div class="d-lg-none mobile-search-wrapper mb-3 p-3 bg-white rounded shadow-sm">
+        <buscar-BarraDeBusqueda />
       </div>
 
       <!-- Título de Depto (En el flujo normal de scroll) -->
@@ -2493,5 +2489,18 @@ export default {
 .batch-action-btn {
   padding: 10px 25px !important;
   box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3) !important;
+}
+
+/* Buscador de órdenes en zona scrolleable (solo móvil) */
+.mobile-search-wrapper {
+  width: 100%;
+}
+
+/* Sobrescribir el ancho fijo del input-search dentro del componente buscar-BarraDeBusqueda */
+.mobile-search-wrapper /deep/ .search-container,
+.mobile-search-wrapper /deep/ .form-search,
+.mobile-search-wrapper /deep/ .input-search {
+  width: 100% !important;
+  float: none !important;
 }
 </style>
