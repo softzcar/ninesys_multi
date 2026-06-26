@@ -3,7 +3,7 @@
     
     <!-- MODO BOTON + MODAL (USO CLÁSICO) -->
     <template v-if="!embedded">
-      <b-button size="sm" variant="info" @click="openModal" v-b-tooltip.hover title="Ver mi asignación de piezas"
+      <b-button v-if="!hideButton" size="sm" variant="info" @click="openModal" v-b-tooltip.hover title="Ver mi asignación de piezas"
         class="ml-1 custom-asignacion-btn">
         <b-icon icon="list-check"></b-icon>
       </b-button>
@@ -39,6 +39,10 @@ export default {
       required: true
     },
     embedded: {
+      type: Boolean,
+      default: false
+    },
+    hideButton: {
       type: Boolean,
       default: false
     }

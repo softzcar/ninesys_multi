@@ -125,7 +125,7 @@
                       </div>
                       <div class="card-info-col">
                         <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirDetalleMaterial(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Material Estimado">
+                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
                             <b-icon icon="box-seam" class="mr-1"></b-icon>
                             <strong>{{ item.unidades }}</strong> pzas
                           </span>
@@ -153,7 +153,7 @@
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="item.esreposicion ? 1 : 0" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-InsumosEstimadosVista :ref="'insumos-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
                       </div>
                       <div class="btn-reposicion-wrapper" v-if="isTaskInProcess(item)">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -250,7 +250,7 @@
                       </div>
                       <div class="card-info-col">
                         <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirDetalleMaterial(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Material Estimado">
+                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
                             <b-icon icon="box-seam" class="mr-1"></b-icon>
                             <strong>{{ item.unidades }}</strong> pzas
                           </span>
@@ -281,7 +281,7 @@
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="0" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-InsumosEstimadosVista :ref="'insumos-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
                       </div>
                       <div class="btn-reposicion-wrapper">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -327,7 +327,7 @@
                       </div>
                       <div class="card-info-col">
                         <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirDetalleMaterial(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Material Estimado">
+                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
                             <b-icon icon="box-seam" class="mr-1"></b-icon>
                             <strong>{{ item.unidades }}</strong> pzas
                           </span>
@@ -349,7 +349,7 @@
                     <!-- Acciones secundarias -->
                     <div class="card-actions-bar mt-3">
                       <div class="btn-lote-wrapper">
-                        <empleados-InsumosEstimadosVista :ref="'insumos-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
                       </div>
                       <div class="btn-diseno-wrapper">
                         <diseno-view-image :id="item.orden || item.id_orden" />
@@ -397,7 +397,7 @@
                       </div>
                       <div class="card-info-col">
                         <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirDetalleMaterial(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Material Estimado">
+                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
                             <b-icon icon="box-seam" class="mr-1"></b-icon>
                             <strong>{{ item.unidades }}</strong> pzas
                           </span>
@@ -425,7 +425,7 @@
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="item.esreposicion ? 1 : 0" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-InsumosEstimadosVista :ref="'insumos-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
                       </div>
                       <div class="btn-reposicion-wrapper" v-if="isTaskInProcess(item)">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -471,7 +471,7 @@
                       </div>
                       <div class="card-info-col">
                         <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirDetalleMaterial(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Material Estimado">
+                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
                             <b-icon icon="box-seam" class="mr-1"></b-icon>
                             <strong>{{ item.unidades }}</strong> pzas
                           </span>
@@ -501,7 +501,7 @@
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="1" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-InsumosEstimadosVista :ref="'insumos-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
                       </div>
                       <div class="btn-reposicion-wrapper">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -547,7 +547,7 @@
                       </div>
                       <div class="card-info-col">
                         <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirDetalleMaterial(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Material Estimado">
+                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
                             <b-icon icon="box-seam" class="mr-1"></b-icon>
                             <strong>{{ item.unidades }}</strong> pzas
                           </span>
@@ -569,7 +569,7 @@
                     <!-- Acciones secundarias -->
                     <div class="card-actions-bar mt-3">
                       <div class="btn-lote-wrapper">
-                        <empleados-InsumosEstimadosVista :ref="'insumos-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :departamentoId="$store.state.login.currentDepartamentId" :dataInsumos="dataInsumos" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
                       </div>
                       <div class="btn-diseno-wrapper">
                         <diseno-view-image :id="item.orden || item.id_orden" />
@@ -1074,8 +1074,8 @@ export default {
   },
 
   methods: {
-    abrirDetalleMaterial(idorden) {
-      const refName = `insumos-${idorden}`;
+    abrirAsignacionPiezas(idorden) {
+      const refName = `asignacion-${idorden}`;
       const targets = this.$refs[refName];
       if (targets) {
         if (Array.isArray(targets)) {
