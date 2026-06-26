@@ -836,10 +836,10 @@ export default {
         if (!existing) {
           acc.push({
             ...item,
-            unidades: parseInt(item.unidades) || 0
+            unidades: Math.round(parseFloat(item.unidades)) || 0
           });
         } else {
-          existing.unidades += parseInt(item.unidades) || 0;
+          existing.unidades += Math.round(parseFloat(item.unidades)) || 0;
         }
         return acc;
       }, []).sort((a, b) => {
@@ -877,10 +877,10 @@ export default {
         if (!existing) {
           acc.push({
             ...item,
-            unidades: parseInt(item.unidades) || 0
+            unidades: Math.round(parseFloat(item.unidades)) || 0
           });
         } else {
-          existing.unidades += parseInt(item.unidades) || 0;
+          existing.unidades += Math.round(parseFloat(item.unidades)) || 0;
         }
         return acc;
       }, []).sort((a, b) => {
