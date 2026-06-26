@@ -1,6 +1,6 @@
 <template>
     <div class="d-inline-block">
-        <b-button size="sm" variant="dark" @click="openModal" v-b-tooltip.hover title="Ver Material Estimado"
+        <b-button v-if="!hideButton" size="sm" variant="dark" @click="openModal" v-b-tooltip.hover title="Ver Material Estimado"
             class="ml-1 custom-box-btn">
             <b-icon icon="box-seam"></b-icon>
         </b-button>
@@ -57,6 +57,10 @@ export default {
         dataInsumos: {
             type: Array,
             default: () => []
+        },
+        hideButton: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {
