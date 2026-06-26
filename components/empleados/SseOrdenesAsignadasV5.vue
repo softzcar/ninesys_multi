@@ -95,33 +95,41 @@
       </div>
 
       <!-- Lotes en Proceso (Vista Tradicional Adaptada) -->
-      <div v-if="lotesActivos.length > 0" class="mb-4">
-        <div class="section-header active-lotes-header">
-          <h5 class="mb-0 font-weight-bold text-uppercase"><b-icon icon="collection-play" class="mr-2"></b-icon> Lotes en Proceso</h5>
-          <b-badge variant="dark" class="ml-2">{{ lotesActivos.length }}</b-badge>
-        </div>
-        <div class="mt-2">
-          <div v-for="lote in lotesActivos" :key="lote.id" class="lote-card mb-3 p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="lote-title">Lote #{{ lote.id }}</span>
-              <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{ lote.estado }}</b-badge>
-            </div>
-            <div class="lote-orders-list mb-3">
-              <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex justify-content-between align-items-center">
-                <span>Orden #{{ orden.id_orden }} - {{ orden.cliente_nombre }}</span>
-                <linkSearch :id="orden.id_orden" size="sm" />
-              </div>
-            </div>
-            <div class="d-flex justify-content-end">
-              <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" size="sm" class="mr-2">
-                Iniciar Lote
-              </b-button>
-              <b-button v-if="lote.estado === 'en_curso'" @click="finalizarLotePorDepartamento(lote.id)" variant="success" size="sm">
-                Finalizar Lote
-              </b-button>
-            </div>
+      <!-- Lotes en Proceso (Sección Colapsable) -->
+      <div v-if="lotesActivos.length > 0" class="section-container mb-4">
+        <div class="section-header active-lotes-header" @click="collapsedSections.lotes = !collapsedSections.lotes">
+          <div class="d-flex align-items-center">
+            <b-icon :icon="collapsedSections.lotes ? 'chevron-right' : 'chevron-down'" class="mr-2"></b-icon>
+            <h5 class="mb-0 font-weight-bold text-uppercase">
+              <b-icon icon="collection-play" class="mr-1"></b-icon> Lotes en Proceso
+            </h5>
+            <b-badge variant="dark" class="ml-2">{{ lotesActivos.length }}</b-badge>
           </div>
         </div>
+        <b-collapse :visible="!collapsedSections.lotes">
+          <div class="section-content mt-2">
+            <div v-for="lote in lotesActivos" :key="lote.id" class="lote-card mb-3 p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="lote-title">Lote #{{ lote.id }}</span>
+                <b-badge :variant="lote.estado === 'en_curso' ? 'success' : 'secondary'">{{ lote.estado }}</b-badge>
+              </div>
+              <div class="lote-orders-list mb-3">
+                <div v-for="orden in lote.ordenes" :key="orden.id_orden" class="lote-order-item d-flex justify-content-between align-items-center">
+                  <span>Orden #{{ orden.id_orden }} - {{ orden.cliente_nombre }}</span>
+                  <linkSearch :id="orden.id_orden" size="sm" />
+                </div>
+              </div>
+              <div class="d-flex justify-content-end">
+                <b-button v-if="lote.estado === 'pendiente'" @click="iniciarLote(lote.id)" variant="success" size="sm" class="mr-2">
+                  Iniciar Lote
+                </b-button>
+                <b-button v-if="lote.estado === 'en_curso'" @click="finalizarLotePorDepartamento(lote.id)" variant="success" size="sm">
+                  Finalizar Lote
+                </b-button>
+              </div>
+            </div>
+          </div>
+        </b-collapse>
       </div>
         
         <!-- PESTAÑA: ÓRDENES -->
@@ -617,6 +625,7 @@ export default {
       // Pestañas e interfaz
       activeTab: 'ordenes',
       collapsedSections: {
+        lotes: false,
         urgente: false,
         enProceso: false,
         pendientes: false
