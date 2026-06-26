@@ -13,7 +13,7 @@
         <button class="btn btn-link sidebar-toggle-btn" @click="sidebarVisible = !sidebarVisible">
           <b-icon icon="list" scale="1.5" />
         </button>
-        <span class="mobile-brand">{{ empresaNombre }}</span>
+        <span class="mobile-brand">{{ displayDepartament }}</span>
       </div>
 
       <!-- Contenido de Nuxt -->
@@ -48,9 +48,22 @@ export default {
     };
   },
   computed: {
-    ...mapState("login", ["access", "currentDepartament"]),
+    ...mapState("login", ["access", "currentDepartament", "dataUser"]),
     empresaNombre() {
       return this.$store.state.login.dataEmpresa?.nombre || "NineSys";
+    },
+    displayDepartament() {
+      if (this.currentDepartament) {
+        return this.currentDepartament;
+      }
+      const departamentos = this.$store.getters["login/getDepartamentosEmpleadoSelect"];
+      if (departamentos && departamentos.length > 0) {
+        return departamentos[0].text;
+      }
+      if (this.dataUser && this.dataUser.departamento) {
+        return this.dataUser.departamento;
+      }
+      return this.empresaNombre;
     },
     isLoggedIn() {
       return !!this.access;
@@ -70,6 +83,26 @@ export default {
     onSidebarToggle(collapsed) {
       this.sidebarCollapsed = collapsed;
     },
+  },
+  mounted() {
+    // Desregistrar Service Workers activos para asegurar la actualización inmediata del frontend en dispositivos de pruebas
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const registration of registrations) {
+          registration.unregister().then(() => {
+            console.log('Service Worker desregistrado con éxito.');
+          });
+        }
+      });
+      // Limpiar el Cache Storage del navegador
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (const name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+    }
   },
   watch: {
     '$route'() {
@@ -112,12 +145,19 @@ $primary-color: #17a2b8;
 
 .main-content {
   padding: 0;
+
+  @media (max-width: 991.98px) {
+    padding-top: 56px !important; /* Compensar la barra superior móvil fija */
+  }
 }
 
 // Header móvil
 .mobile-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
   z-index: 1030;
   background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
   padding: 0.75rem 1rem;
