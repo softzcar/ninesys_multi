@@ -225,7 +225,7 @@
             </b-collapse>
           </div>
 
-          <!-- Sección EN PROCESO -->
+          <!-- Sección EN PROCESO: incluye órdenes normales + urgentes ya iniciadas -->
           <div class="section-container mb-3">
             <div class="section-header" @click="collapsedSections.enProceso = !collapsedSections.enProceso">
               <div class="d-flex align-items-center">
@@ -239,7 +239,7 @@
                 <b-alert v-if="ordersInProcess.length === 0" show variant="info" class="text-center py-3">No tienes tareas en curso</b-alert>
                 <div v-for="item in ordersInProcess" :key="'ord-' + item.id_orden" class="task-card-item" :id="`task-card-ord-${item.id_orden}`">
                   
-                  <div class="modern-task-card">
+                  <div :class="['modern-task-card', parseInt(item.prioridad) > 0 ? 'urgent-card' : '']">
                     <div class="card-main-row">
                       <div class="card-badge-col">
                         <div class="badge-type-box type-ord">
@@ -260,7 +260,10 @@
                           </span>
                         </div>
                         <div class="info-bottom-row mt-2">
-                          <span class="status-pill status-process">En proceso</span>
+                          <!-- Pill dinámico: Urgente si prioridad > 0, si no En proceso -->
+                          <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
+                            {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
+                          </span>
                           <div class="card-progress-bar-container ml-auto">
                             <empleados-ProgressBarEmpleados :idOrden="item.orden || item.id_orden" />
                           </div>
@@ -457,7 +460,7 @@
                 <b-alert v-if="revisionsInProcess.length === 0" show variant="info" class="text-center py-3">No tienes revisiones en curso</b-alert>
                 <div v-for="item in revisionsInProcess" :key="'rep-' + item.id_reposicion" class="task-card-item" :id="`task-card-rep-${item.id_reposicion}`">
                   
-                  <div class="modern-task-card">
+                  <div :class="['modern-task-card', parseInt(item.prioridad) > 0 ? 'urgent-card' : '']">
                     <div class="card-main-row">
                       <div class="card-badge-col">
                         <div class="badge-type-box type-rev">
@@ -478,7 +481,9 @@
                           </span>
                         </div>
                         <div class="info-bottom-row mt-2">
-                          <span class="status-pill status-process">En proceso</span>
+                          <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
+                            {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
+                          </span>
                           <div class="card-progress-bar-container ml-auto">
                             <empleados-ProgressBarEmpleados :idOrden="item.orden || item.id_orden" />
                           </div>
@@ -1022,11 +1027,12 @@ export default {
     },
 
     urgentItems() {
-      // Filtrar y combinar tanto órdenes como revisiones que son urgentes (prioridad > 0)
-      const uOrders = this.dataTableEnCurso.concat(this.dataTablePendiente).filter(o => parseInt(o.prioridad) > 0);
-      const uRepos = this.reposicionesEnCurso.concat(this.reposicionesPendientes).filter(r => parseInt(r.prioridad) > 0);
+      // Solo urgentes que AÚN NO han sido iniciadas (estado pendiente)
+      // Una vez iniciadas, aparecen en EN PROCESO marcadas visualmente como urgentes
+      const uOrders = this.dataTablePendiente.filter(o => parseInt(o.prioridad) > 0 && !this.isTaskInProcess(o));
+      const uRepos = this.reposicionesPendientes.filter(r => parseInt(r.prioridad) > 0 && !this.isTaskInProcess(r));
       const combined = [...uOrders, ...uRepos];
-      
+
       // Deduplicar
       return combined.reduce((acc, item) => {
         const key = item.esreposicion ? `rep-${item.id_reposicion}` : `ord-${item.id_orden}`;
@@ -1037,9 +1043,10 @@ export default {
       }, []);
     },
 
-    // Listas filtradas sin urgentes para secciones normales
+    // Listas filtradas: EN PROCESO incluye TODAS las órdenes en curso (urgentes o no)
+    // Las urgentes en curso se muestran visualmente marcadas dentro de EN PROCESO
     ordersInProcess() {
-      return this.dataTableEnCursoFiltradas.filter(item => !parseInt(item.prioridad));
+      return this.dataTableEnCursoFiltradas;
     },
 
     ordersPending() {
@@ -1047,7 +1054,7 @@ export default {
     },
 
     revisionsInProcess() {
-      return this.reposicionesEnCursoFiltradas.filter(item => !parseInt(item.prioridad));
+      return this.reposicionesEnCursoFiltradas;
     },
 
     revisionsPending() {
