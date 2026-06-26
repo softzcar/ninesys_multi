@@ -1,6 +1,6 @@
 <template>
   <div style="display: inline-flex; gap: 0.5rem; align-items: center;">
-    <span style="display: inline-block;">
+    <span style="display: none;">
       <b-button @click="$bvModal.show(modal)" variant="success" :disabled="ButtonDisabled"
         data-testid="btn-terminar-todo">{{ btnText }}</b-button>
     </span>
