@@ -581,7 +581,7 @@
     </div>
 
     <!-- Barra inferior flotante para Iniciar en Lote -->
-    <div class="bottom-batch-bar shadow-lg" v-if="ordenesSeleccionadas.length > 0">
+    <div class="bottom-batch-bar shadow-lg" v-if="ordenesSeleccionadas.length > 1">
       <div class="d-flex justify-content-between align-items-center w-100 px-4 py-2">
         <span class="batch-count-label">Seleccionadas: <b-badge variant="info" style="font-size: 1.05rem;">{{ ordenesSeleccionadas.length }}</b-badge></span>
         <b-button @click="crearLote" variant="success" pill class="batch-action-btn font-weight-bold">
