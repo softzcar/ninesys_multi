@@ -1,0 +1,43 @@
+==============================================================================
+BITÁCORA DE TAREA - SISTEMA NINESYS (FRONTEND)
+==============================================================================
+Fecha: 2026-06-29 18:10:00
+Tarea: Visualización de metros para insumos con unidad en metros en inventario.
+Autor: Antigravity IDE Agent
+
+------------------------------------------------------------------------------
+DESCRIPCIÓN DE LOS CAMBIOS:
+------------------------------------------------------------------------------
+En la página de gestión de inventario (/inventario/gestion), los insumos de tela calculan
+sus metros multiplicando cantidad por rendimiento. Sin embargo, los insumos como papel 
+(que se guardan directamente en metros y tienen unidad de medida "Mts" o "metros")
+no mostraban nada en la columna "Metros" (aparecía "-"). 
+
+Para corregir esta confusión visual, se implementaron los siguientes cambios:
+
+1. Modificación en app_multi/pages/inventario/gestion/index.vue:
+   - Se ajustó el método getInsumos() para que si la unidad del insumo es 'mts' o 'metros',
+     asigne a la columna/propiedad 'metros' el mismo valor que 'cantidad' formateado a 
+     2 decimales.
+   - En la sección del reporte de impresión (HTML oculto), se eliminó la validación estricta
+     de tipo 'tela' (v-if="item.tipo_insumo === 'tela'") reemplazándola con la renderización
+     directa de 'item.metros', dado que ahora ya tiene asignado un valor o '-' según 
+     el mapeo de getInsumos.
+
+2. Modificación en app_multi/components/inventario/ResumenSkuModal.vue:
+   - Se modificó la propiedad computada resumenData().
+   - Se agregó una bandera `mostrarMetros` inicializada en `false` en el acumulador.
+   - Si el insumo es tipo 'tela' o su unidad es 'mts' o 'metros', se activa la bandera
+     `mostrarMetros`.
+   - Se adaptó el cálculo acumulador de metros (metrosCalculados) para que si es unidad metros
+     sume la cantidad directamente, y si es tela sume la cantidad multiplicada por el rendimiento.
+   - En el template de la tabla consolidada, se reemplazó la validación de `item.tipo_insumo === 'tela'`
+     por `item.mostrarMetros` en la columna de metros totales.
+
+------------------------------------------------------------------------------
+VERIFICACIÓN Y PRUEBAS:
+------------------------------------------------------------------------------
+- Se validó la integridad sintáctica de ambos componentes modificados.
+- Los cambios operan dinámicamente y se integran con el comportamiento reactivo 
+  de las tablas del frontend en Nuxt sin necesidad de compilación de producción.
+==============================================================================

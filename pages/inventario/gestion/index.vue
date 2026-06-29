@@ -179,8 +179,7 @@
                             <td style="border-bottom: 1px solid #ccc; padding: 6px;">{{ item.departamento }}</td>
                             <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">{{ item.rendimiento }}</td>
                             <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">
-                                <span v-if="item.tipo_insumo === 'tela'">{{ item.metros }}</span>
-                                <span v-else>-</span>
+                                <span>{{ item.metros }}</span>
                             </td>
                             <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: center;">{{ item.unidad }}</td>
                             <td style="border-bottom: 1px solid #ccc; padding: 6px; text-align: right;">{{ item.cantidad }}</td>
@@ -384,12 +383,20 @@ export default {
                     // Procesar metros para telas antes de guardar
                     if (resp.data && resp.data.items) {
                         resp.data.items = resp.data.items.map(item => {
-                            if ((item.tipo_insumo || '').toLowerCase() === 'tela') {
+                            const tipoLimpio = (item.tipo_insumo || '').toLowerCase().trim();
+                            const unidadLimpia = (item.unidad || '').toLowerCase().trim();
+                            if (tipoLimpio === 'tela') {
                                 const cant = parseFloat(item.cantidad || 0);
                                 const rend = parseFloat(item.rendimiento || 0);
                                 return {
                                     ...item,
                                     metros: (cant * rend).toFixed(2)
+                                };
+                            } else if (unidadLimpia === 'mts' || unidadLimpia === 'metros') {
+                                const cant = parseFloat(item.cantidad || 0);
+                                return {
+                                    ...item,
+                                    metros: cant.toFixed(2)
                                 };
                             }
                             return { ...item, metros: '-' };

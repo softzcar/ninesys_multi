@@ -45,7 +45,7 @@
           </template>
 
           <template #cell(metrosTotal)="data">
-            <div v-if="data.item.tipo_insumo === 'tela'" class="text-info font-weight-bold">
+            <div v-if="data.item.mostrarMetros" class="text-info font-weight-bold">
               {{ data.value }} <small>Mts</small>
             </div>
             <div v-else class="text-muted small">
@@ -98,23 +98,33 @@ export default {
             sku: sku,
             insumo: item.insumo || 'Sin nombre',
             unidad: item.unidad || '-',
-            tipo_insumo: 'general',
+            tipo_insumo: item.tipo_insumo || 'general',
             cantidadTotal: 0,
             metrosTotal: 0,
             rendimientoTotal: 0,
-            conteo: 0
+            conteo: 0,
+            mostrarMetros: false
           }
         }
         
-        // Determinar si este SKU es de tipo tela basándose estrictamente en tipo_insumo
         const tipoLimpio = (item.tipo_insumo || '').toLowerCase().trim();
-        if (tipoLimpio === 'tela') {
-          acc[sku].tipo_insumo = 'tela';
+        const unidadLimpia = (item.unidad || '').toLowerCase().trim();
+        if (tipoLimpio === 'tela' || unidadLimpia === 'mts' || unidadLimpia === 'metros') {
+          acc[sku].mostrarMetros = true;
+          if (tipoLimpio === 'tela') {
+            acc[sku].tipo_insumo = 'tela';
+          }
         }
 
         const cantidad = parseFloat(item.cantidad || 0);
         const rendimiento = parseFloat(item.rendimiento || 0);
-        const metrosCalculados = cantidad * rendimiento;
+        
+        let metrosCalculados = 0;
+        if (tipoLimpio === 'tela') {
+          metrosCalculados = cantidad * rendimiento;
+        } else if (unidadLimpia === 'mts' || unidadLimpia === 'metros') {
+          metrosCalculados = cantidad;
+        }
 
         acc[sku].cantidadTotal += cantidad;
         acc[sku].metrosTotal += metrosCalculados;
