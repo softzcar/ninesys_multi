@@ -64,9 +64,11 @@
 <script>
 import axios from "axios"
 import SelectorGeografico from "~/components/customers/SelectorGeografico.vue"
+import phoneValidation from "~/mixins/phoneValidation.js"
 
 export default {
     components: { SelectorGeografico },
+    mixins: [phoneValidation],
     data() {
         return {
             form: {
@@ -104,13 +106,24 @@ export default {
                 return
             }
 
+            // Validar teléfono
+            const phoneCheck = this.validateAndFormatPhone(this.form.phone);
+            if (!phoneCheck.isValid) {
+                this.$fire({
+                    title: "Teléfono Inválido",
+                    text: phoneCheck.error,
+                    type: "warning"
+                });
+                return;
+            }
+
             this.overlay = true
             const data = new URLSearchParams()
             data.set("id", this.item.id)
             data.set("first_name", this.form.first_name)
             data.set("last_name", this.form.last_name)
             data.set("cedula", this.form.cedula)
-            data.set("phone", this.form.phone)
+            data.set("phone", phoneCheck.formatted)
             data.set("email", this.form.email)
             data.set("address", this.form.address)
             data.set("recibir_notificaciones", this.form.recibir_notificaciones ? "1" : "0")
@@ -128,10 +141,15 @@ export default {
                     this.$bvModal.hide(this.modal)
                 })
                 .catch((err) => {
-                    //   alert(`'error al guardar los datos' ${err}`)
+                    this.overlay = false
+                    let errorHtml = `<p>No se guardó el registro</p><p>Verifique que ha escrito un email válido</p>`;
+                    if (err.response?.data?.error === 'phone_duplicate') {
+                        const cust = err.response.data.customer;
+                        errorHtml = `<p>El número de teléfono ya está registrado al cliente <strong>${cust.first_name} ${cust.last_name}</strong> (ID: ${cust.id}).</p>`;
+                    }
                     this.$fire({
-                        title: "Error",
-                        html: `<p>No se guardó el registro</p><p>Verifique que el ha escrito un email válido</p>`,
+                        title: err.response?.data?.error === 'phone_duplicate' ? "Teléfono Duplicado" : "Error",
+                        html: errorHtml,
                         type: "warning",
                     })
                 })

@@ -1,0 +1,25 @@
+# BITÁCORA DE TAREA: Unificación de Clientes y Blindaje de Validación Telefónica
+
+- **Fecha y Hora:** 2026-06-29 16:25:00
+- **Proyecto:** Frontend (app_multi)
+- **ID Conversación:** db395b0f-65c5-4bbe-9395-b63050c33c47
+- **Autor:** Antigravity (AI Coding Assistant)
+
+---
+
+## 1. Resumen de la Tarea
+Se integraron controles de validación en el frontend para evitar el registro o edición de números de teléfono duplicados. El sistema ahora captura el error HTTP 400 y el código `phone_duplicate` de la API para alertar al usuario y bloquear los pasos del Wizard en la creación de órdenes y presupuestos.
+
+## 2. Acciones Realizadas
+1. **Gestión de Clientes (`CustomerNuevo.vue` y `CustomerEditar.vue`):**
+   - Se integró el mixin `phoneValidation` para formatear los números de teléfono antes del envío.
+   - Se configuró la captura de errores en el bloque `.catch()` de Axios. Si la API retorna un error del tipo `phone_duplicate`, se muestra una alerta SweetAlert con `this.$fire` informando que el teléfono ya existe y mostrando el nombre de la persona a la que pertenece ese registro.
+   - Se corrigió el ocultamiento de la capa `overlay` en los bloques de error para evitar que la interfaz se quede cargando permanentemente.
+2. **Wizard de Órdenes y Presupuestos (`nueva.vue` y `presupuesto.vue`):**
+   - Se modificaron las funciones `step1()`, `validateStep1()` y `updateCustomer()` para que sean asíncronas (`async/await`) en lugar de disparar promesas sueltas.
+   - En `updateCustomer()`, si la llamada a la API resulta en una colisión de teléfono duplicado (`phone_duplicate`), se despliega una alerta SweetAlert (`this.$fire`) detallando el nombre del cliente que posee ese teléfono y se retorna `false`.
+   - En `step1()`, si `updateCustomer()` retorna `false` debido a un error de duplicado o servidor, la función retorna `false`.
+   - En `validateStep1()`, al recibir `false` de `step1()`, el Wizard bloquea el avance al paso 2 (productos) y mantiene las pestañas deshabilitadas hasta que se resuelva la duplicidad.
+
+## 3. Estado de la Tarea
+- **Cambios Frontend Local (Hot Reload):** Completado ✅

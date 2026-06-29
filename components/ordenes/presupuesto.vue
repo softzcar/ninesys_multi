@@ -1816,8 +1816,9 @@ export default {
       }
     },
 
-    validateStep1() {
-      if (this.step1()) {
+    async validateStep1() {
+      const step1Ok = await this.step1();
+      if (step1Ok) {
         this.disable1 = true;
         this.disable2 = false;
         this.loadDataCustomers();
@@ -1908,7 +1909,7 @@ export default {
       }
     },
 
-    step1() {
+    async step1() {
       let ok = true;
       let msg = "";
       let phoneExist = this.phoneExist(this.form.email);
@@ -1933,8 +1934,6 @@ export default {
         msg = msg + "<p>El apellido es un campo obligatorio</p>";
       }
 
-
-
       if (!this.validarEmail(this.form.email) && this.form.email.trim() != "") {
         ok = false;
         msg = "El email que introdujo no es válido: " + this.form.email;
@@ -1958,18 +1957,12 @@ export default {
         if (!this.form.cedula.trim()) this.form.cedula = "";
         if (!this.form.nombre.trim()) this.form.nombre = "";
 
-        // ok = FontFaceSetLoadEvent
-        ok = false;
+        return false;
       } else {
         // update customer
-        this.updateCustomer()
-          .then(() => {
-            ok = false;
-          })
-          .then(() => (ok = true));
+        const success = await this.updateCustomer();
+        return success;
       }
-      console.log("ok paso 1", ok);
-      return ok;
     },
 
     step2() {
@@ -2324,10 +2317,9 @@ export default {
         dotIndex < atIndex + 2 ||
         dotIndex + 2 >= email.length
       ) {
-        return false; // No cumple con las ubicaciones de "@" y "."
+        return false;
       }
-
-      return true; // Cumple con todas las validaciones
+      return true;
     },
 
     async updateCustomer() {
@@ -2364,55 +2356,51 @@ export default {
       if (this.form.geografia.idCiudad) data.set("id_catalogo_ciudad", this.form.geografia.idCiudad);
 
       let ok = false;
-      await this.$axios({ url: url, method: method, data: data })
-        .then((res) => {
-          console.log("respuesta de actualizar - crear cliente", res);
-          // this.form.id = res.id
-          // this.form.id = 99
-          ok = true;
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Error",
-            type: "error",
-            html: "<p>No se pudo conectar con el servidor, revise su conexiona inernet, los datos del cliente no han sido guardados</p>",
-          });
-          // alert(`El Cliente no se ha podido crear ${err}`)
-          console.log(err);
-        })
-        .finally(() => {
-          this.$axios
-            .get(`${this.$config.API}/customers`)
-            .then((responseClientes) => {
-              // Soporte para responseClientes.data.data o directo responseClientes.data
-              const data = responseClientes.data.data || (Array.isArray(responseClientes.data) ? responseClientes.data : []);
+      try {
+        const res = await this.$axios({ url: url, method: method, data: data });
+        console.log("respuesta de actualizar - crear cliente", res);
+        ok = true;
+        
+        // Cargar Clientes
+        const responseClientes = await this.$axios.get(`${this.$config.API}/customers`);
+        const responseData = responseClientes.data.data || (Array.isArray(responseClientes.data) ? responseClientes.data : []);
+        this.$store.commit(
+          "comerce/setDataCustomers",
+          responseData
+        );
 
-              // Cargar Clientes
-              this.$store.commit(
-                "comerce/setDataCustomers",
-                data
-              );
-
-              let customersSelect = data.map((client) => {
-                return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
-              });
-
-              this.$store.commit(
-                "comerce/setDataCustomersSelect",
-                customersSelect
-              );
-
-              if (!this.form.id) {
-                const currCustomer = responseClientes.data.data.find(
-                  (el) => el.cedula === this.form.cedula
-                );
-                this.form.id = currCustomer.id;
-              }
-            });
-          this.loading.show = false;
-          console.log(`Terminada al carga de Cliente`);
-          return true;
+        let customersSelect = responseData.map((client) => {
+          return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
         });
+
+        this.$store.commit(
+          "comerce/setDataCustomersSelect",
+          customersSelect
+        );
+
+        if (!this.form.id) {
+          const currCustomer = responseData.find(
+            (el) => el.cedula === this.form.cedula
+          );
+          this.form.id = currCustomer.id;
+        }
+      } catch (err) {
+        console.log("Error al crear/actualizar cliente", err);
+        let errorHtml = "<p>No se pudo conectar con el servidor, revise su conexiona inernet, los datos del cliente no han sido guardados</p>";
+        if (err.response?.data?.error === 'phone_duplicate') {
+          const cust = err.response.data.customer;
+          errorHtml = `<p>El número de teléfono ya está registrado al cliente <strong>${cust.first_name} ${cust.last_name}</strong> (ID: ${cust.id}).</p>`;
+        }
+        this.$fire({
+          title: err.response?.data?.error === 'phone_duplicate' ? "Teléfono Duplicado" : "Error",
+          type: "warning",
+          html: errorHtml,
+        });
+        ok = false;
+      } finally {
+        this.loading.show = false;
+        console.log(`Terminada al carga de Cliente`);
+      }
       return ok;
     },
 
