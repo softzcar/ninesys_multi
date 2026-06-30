@@ -287,16 +287,42 @@
           <!-- Toggle: solo órdenes POR ASIGNAR -->
           <b-button
             id="filter-por-asignar"
-            :variant="filterPorAsignar ? 'warning' : 'outline-warning'"
+            variant="warning"
             size="sm"
             class="w-100"
             @click="filterPorAsignar = !filterPorAsignar"
-            style="font-weight: 600;"
+            :style="{
+              fontWeight: '700',
+              opacity: filterPorAsignar ? '1' : '0.6',
+              boxShadow: filterPorAsignar ? '0 0 0 2px rgba(243, 156, 18, 0.5)' : 'none',
+              transition: 'all 0.2s ease-in-out'
+            }"
           >
             <b-icon :icon="filterPorAsignar ? 'person-x-fill' : 'person-x'" class="mr-1"></b-icon>
             POR ASIGNAR
             <b-badge v-if="filterPorAsignar" variant="dark" pill class="ml-1" style="font-size:0.75em;">activo</b-badge>
           </b-button>
+
+          <!-- Toggle: solo órdenes URGENTES -->
+          <b-button
+            id="filter-urgentes"
+            variant="danger"
+            size="sm"
+            class="w-100"
+            @click="filterUrgentes = !filterUrgentes"
+            :style="{
+              fontWeight: '700',
+              opacity: filterUrgentes ? '1' : '0.6',
+              boxShadow: filterUrgentes ? '0 0 0 2px rgba(231, 76, 60, 0.5)' : 'none',
+              transition: 'all 0.2s ease-in-out',
+              color: 'white'
+            }"
+          >
+            <b-icon :icon="filterUrgentes ? 'exclamation-circle-fill' : 'exclamation-circle'" class="mr-1"></b-icon>
+            URGENTES
+            <b-badge v-if="filterUrgentes" variant="dark" pill class="ml-1" style="font-size:0.75em;">activo</b-badge>
+          </b-button>
+
           <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="w-100">
             <b-icon icon="x-circle"></b-icon> Limpiar Filtros
           </b-button>
@@ -691,6 +717,7 @@ export default {
       filterCliente: '',
       filterEstatus: '',
       filterPorAsignar: false,
+      filterUrgentes: false,
 
       overlay: true,
       items: [],
@@ -1142,6 +1169,7 @@ export default {
       this.filterCliente = "";
       this.filterEstatus = "";
       this.filterPorAsignar = false;
+      this.filterUrgentes = false;
     },
 
     toggleSection(key) {
@@ -1265,7 +1293,8 @@ export default {
         (this.filterOrden && this.filterOrden.trim().length > 0) ||
         (this.filterCliente && this.filterCliente.trim().length > 0) ||
         (this.filterEstatus && this.filterEstatus.trim().length > 0) ||
-        this.filterPorAsignar
+        this.filterPorAsignar ||
+        this.filterUrgentes
       );
     },
 
@@ -1333,6 +1362,11 @@ export default {
             this.ordenesProyectadas2.map(o => o._id || o.id_orden)
           );
           filtered = filtered.filter(item => !ordenesConProyeccion.has(item.orden));
+        }
+
+        // Filtro URGENTES: muestra solo órdenes con prioridad === 1
+        if (this.filterUrgentes) {
+          filtered = filtered.filter(item => parseInt(item.prioridad) === 1);
         }
 
         return filtered;

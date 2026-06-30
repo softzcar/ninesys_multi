@@ -50,7 +50,10 @@
 
                     <b-row v-if="showTasks">
                         <b-col>
-                            <empleados-SseOrdenesAsignadasV5 :updatedata="updateData" :emp="dataUser.id_empleado" />
+                            <h3 class="mb-4 text-center">
+                                {{ titulo }}
+                            </h3>
+                            <empleados-SseOrdenesAsignadasV4 :updatedata="updateData" :emp="dataUser.id_empleado" />
                         </b-col>
                     </b-row>
                 </b-container>

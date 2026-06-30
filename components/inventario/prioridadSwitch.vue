@@ -15,25 +15,20 @@ export default {
     data() {
         return {
             overlay: false,
-            variant: "",
-            verify: null,
-            prioridad: this.item.prioridad,
+            variant: "secondary",
+            prioridad: "0",
         }
     },
 
     watch: {
-        verify(val) {
-            if (val) {
-                this.variant = "danger"
-                this.prioridad = "1"
-            } else {
-                this.variant = "secondary"
-                this.prioridad = "0"
-            }
-            /* this.updatePrioridad().then(() => {
-        console.log('actualizados los datos a prioridad', this.prioridad)
-      }) */
-        },
+        'item.prioridad': {
+            handler(newVal) {
+                const isUrgent = parseInt(newVal) === 1;
+                this.prioridad = isUrgent ? "1" : "0";
+                this.variant = isUrgent ? "danger" : "secondary";
+            },
+            immediate: true
+        }
     },
 
     methods: {
@@ -69,15 +64,7 @@ export default {
         },
     },
 
-    mounted() {
-        if (this.item.prioridad === "0") {
-            this.variant = "secondary"
-            this.verify = false
-        } else {
-            this.variant = "danger"
-            this.verify = true
-        }
-    },
+
 
     props: ["item"],
 }

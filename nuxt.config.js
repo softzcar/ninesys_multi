@@ -178,10 +178,19 @@ rif: 'J-00000000-0', */
     timeout: 30000,
   },
 
-  // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
-    // Deshabilitar PWA para evitar problemas de cache
-    workbox: false,
+    // Habilitar PWA con Workbox configurado para evitar problemas de caché
+    workbox: {
+      clientsClaim: true,
+      skipWaiting: true,
+      handler: 'NetworkFirst',
+      runtimeCaching: [
+        {
+          urlPattern: '/*',
+          handler: 'NetworkFirst'
+        }
+      ]
+    },
     // Usa tu imagen para generar todos los íconos necesarios
     icon: {
       source: 'static/favicon.png',

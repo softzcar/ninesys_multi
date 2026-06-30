@@ -5,7 +5,9 @@
         </div>
 
         <div v-else>
-            <menus-MenuLoader />
+            <div class="d-none d-lg-block">
+                <menus-MenuLoader />
+            </div>
             <empleados-DashboardEmpleado :showCharts="false" />
         </div>
     </div>

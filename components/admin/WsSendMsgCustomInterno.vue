@@ -5,9 +5,11 @@
         variant="success"
         @click="$bvModal.show(modal)"
         :disabled="disableBtnOnIdDep"
+        pill
+        v-b-tooltip.hover
+        title="WhatsApp a Empleados"
       >
-        <b-icon icon="whatsapp" class="mr-2"></b-icon>
-        WhatsApp a Empleados
+        <b-icon icon="whatsapp"></b-icon>
       </b-button>
 
       <b-modal
