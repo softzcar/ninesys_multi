@@ -127,12 +127,14 @@ export default {
       ordenesSemana: [],
       ordenesTerminadas: [],
       ordenesPendientes: [],
-      departamento: this.$store.state.login.dataUser.departamento,
       datosEmpleado: null, // salario_tipo, salario_monto, salario_periodo, comision, comision_tipo
     };
   },
 
   computed: {
+    departamento() {
+      return this.$store.state.login.currentDepartament;
+    },
     horasTrabajadas() {
       let totalSegundos = 0;
 
@@ -675,7 +677,7 @@ export default {
     mounted() {
       let tipo = "";
 
-      if (this.$store.state.login.currentDepartament === "Diseño") {
+      if (this.departamento === "Diseño") {
         tipo = "disenador";
       } else {
         tipo = "empleado";
