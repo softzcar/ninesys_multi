@@ -1278,7 +1278,31 @@ export default {
         })
         .finally(() => {
           this.isLoading = false;
+          this.setupInfiniteScroll();
         });
+    },
+
+    setupInfiniteScroll() {
+      if (this.scrollObserver) {
+        this.scrollObserver.disconnect();
+        this.scrollObserver = null;
+      }
+
+      this.$nextTick(() => {
+        const sentinel = document.getElementById('infinite-scroll-sentinel');
+        if (sentinel) {
+          const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !this.isLoading) {
+              if (this.itemsMostrados.length < this.itemsFiltrados.length) {
+                console.log('📥 Cargando bloque de 10 órdenes adicionales...');
+                this.visibleOrders += 10;
+              }
+            }
+          }, { threshold: 0.1 });
+          observer.observe(sentinel);
+          this.scrollObserver = observer;
+        }
+      });
     },
   },
 
@@ -1435,22 +1459,8 @@ export default {
       }
     }, 60000);
 
-    // 🆕 INTERSECTION OBSERVER PARA CARGA INCREMENTAL
-    this.$nextTick(() => {
-      const sentinel = document.getElementById('infinite-scroll-sentinel');
-      if (sentinel) {
-        const observer = new IntersectionObserver((entries) => {
-          if (entries[0].isIntersecting && !this.isLoading) {
-            if (this.itemsMostrados.length < this.itemsFiltrados.length) {
-              console.log('📥 Cargando bloque de 10 órdenes adicionales...');
-              this.visibleOrders += 10;
-            }
-          }
-        }, { threshold: 0.1 });
-        observer.observe(sentinel);
-        this.scrollObserver = observer;
-      }
-    });
+    // Inicializar scroll infinito
+    this.setupInfiniteScroll();
   },
 
   beforeDestroy() {
@@ -1461,10 +1471,24 @@ export default {
   },
 
   watch: {
-    // 🆕 RESETEAR PAGINACIÓN AL FILTRAR
-    filterOrden() { this.visibleOrders = 10; },
-    filterCliente() { this.visibleOrders = 10; },
-    filterEstatus() { this.visibleOrders = 10; },
+    // 🆕 RESETEAR PAGINACIÓN AL FILTRAR Y RE-ASOCIAR OBSERVER
+    filterOrden() {
+      this.visibleOrders = 10;
+      this.setupInfiniteScroll();
+    },
+    filterCliente() {
+      this.visibleOrders = 10;
+      this.setupInfiniteScroll();
+    },
+    filterEstatus() {
+      this.visibleOrders = 10;
+      this.setupInfiniteScroll();
+    },
+    isOrdenesCursoVisible(val) {
+      if (val) {
+        this.setupInfiniteScroll();
+      }
+    },
 
     "assignRepForm.emp": function (newEmpId) {
       this.assignRepForm.id_departamento = null;

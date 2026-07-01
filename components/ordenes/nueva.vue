@@ -1652,6 +1652,18 @@ export default {
           });
         }
 
+        // Buscar y mapear datos geográficos actualizados del cliente
+        if (loadedForm.id) {
+          const customer = this.myCustomers.find(el => el.id == loadedForm.id);
+          if (customer) {
+            loadedForm.geografia = {
+              idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
+              idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
+              idCiudad: customer.id_catalogo_ciudad ? Number(customer.id_catalogo_ciudad) : null,
+            };
+          }
+        }
+
         this.form = loadedForm;
       }
       
@@ -1735,6 +1747,12 @@ export default {
             this.form.telefono = this.formatPhoneNumber(customer.phone);
             this.form.email = customer.email;
             this.form.direccion = customer.address;
+            this.form.geografia = {
+              idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
+              idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
+              idCiudad: customer.id_catalogo_ciudad ? Number(customer.id_catalogo_ciudad) : null,
+            };
+            this.query2 = `${customer.id} | ${customer.first_name} ${customer.last_name} - ${this.form.telefono}`;
           } else {
             // Fallback si no se encuentra en el store
             this.form.nombre = data.cliente_nombre;
