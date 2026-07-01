@@ -215,19 +215,74 @@ export default {
                     this.overlay = false
                     this.$bvModal.hide(this.modal)
                 })
-                .catch((err) => {
+                .catch(async (err) => {
                     this.overlay = false
+                    const errData = err.response?.data;
+
+                    // Cliente ELIMINADO (soft delete) con este teléfono → ofrecer reactivarlo
+                    if (errData?.error === 'phone_deleted') {
+                        const cust = errData.customer;
+                        const confirm = await this.$fire({
+                            title: "Cliente eliminado",
+                            html: `<p>Existe un cliente eliminado con este teléfono: <strong>${cust.first_name} ${cust.last_name}</strong> (ID: ${cust.id}).</p><p>¿Desea reactivarlo con estos datos?</p>`,
+                            type: "question",
+                            showCancelButton: true,
+                            confirmButtonText: "Sí, reactivar",
+                            cancelButtonText: "Cancelar",
+                        });
+                        if (confirm && (confirm.isConfirmed || confirm.value)) {
+                            await this.reactivarCustomer(cust.id, phoneCheck.formatted);
+                        }
+                        return;
+                    }
+
                     let errorHtml = `<p>No se guardó el registro</p><p>Verifique que ha escrito un email válido</p>`;
-                    if (err.response?.data?.error === 'phone_duplicate') {
-                        const cust = err.response.data.customer;
+                    if (errData?.error === 'phone_duplicate') {
+                        const cust = errData.customer;
                         errorHtml = `<p>El número de teléfono ya está registrado al cliente <strong>${cust.first_name} ${cust.last_name}</strong> (ID: ${cust.id}).</p>`;
                     }
                     this.$fire({
-                        title: err.response?.data?.error === 'phone_duplicate' ? "Teléfono Duplicado" : "Error",
+                        title: errData?.error === 'phone_duplicate' ? "Teléfono Duplicado" : "Error",
                         html: errorHtml,
                         type: "warning",
                     })
                 })
+        },
+
+        // Reactiva un cliente que estaba con soft delete (tras confirmar en 'phone_deleted').
+        async reactivarCustomer(id, formattedPhone) {
+            this.overlay = true
+            const data = new URLSearchParams()
+            data.set("id", id)
+            data.set("first_name", this.form.first_name)
+            data.set("last_name", this.form.last_name)
+            data.set("cedula", this.form.cedula)
+            data.set("phone", formattedPhone)
+            data.set("email", this.form.email)
+            data.set("address", this.form.address)
+            data.set("recibir_notificaciones", this.form.recibir_notificaciones ? "1" : "0")
+            if (this.form.geografia.idPais) data.set("id_catalogo_pais", this.form.geografia.idPais)
+            if (this.form.geografia.idEstado) data.set("id_catalogo_estado", this.form.geografia.idEstado)
+            if (this.form.geografia.idCiudad) data.set("id_catalogo_ciudad", this.form.geografia.idCiudad)
+
+            try {
+                await this.$axios.post(`${this.$config.API}/customers/reactivar`, data)
+                this.overlay = false
+                this.$emit("reload")
+                this.$bvModal.hide(this.modal)
+                this.$fire({
+                    title: "Cliente reactivado",
+                    html: "<p>El cliente fue reactivado y sus datos actualizados.</p>",
+                    type: "success",
+                })
+            } catch (e) {
+                this.overlay = false
+                this.$fire({
+                    title: "Error",
+                    html: "<p>No se pudo reactivar el cliente.</p>",
+                    type: "warning",
+                })
+            }
         },
 
         /* async guardarCustomer() {
