@@ -226,10 +226,13 @@ export default {
     // para obtener la tasa BCV más reciente como referencia (metadata), 
     // sin sobrescribir lo que ya está en el state si viene de la BD.
     
-    // Solo Administración dispara la carga automática o si faltan tasas críticas
+    // Se refresca la tasa BCV de referencia para TODOS los usuarios (Administración y
+    // vendedores de Comercialización), para que el POS y el wizard muestren la tasa
+    // oficial actualizada al ingresar. (Antes solo lo disparaba Administración, por eso
+    // a los vendedores no se les refrescaba.)
     const isAdmin = this.$store.state.login.dataUser.departamento === 'Administración';
 
-    if (isAdmin || !this.tasasEstanConfiguradas) {
+    {
       this.tasasTimeout = setTimeout(() => {
         console.log('🔄 Iniciando carga de tasas de referencia en segundo plano (deferred)...');
         this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: false }).then((resultado) => {

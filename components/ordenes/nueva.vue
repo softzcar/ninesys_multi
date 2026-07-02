@@ -1230,6 +1230,9 @@ export default {
     tabIndex(val) {
       if (val === 3) {
         this.nextText = "Finalizar";
+        // Al entrar a 'Pago y asignación' (paso de cobro), refrescar la tasa BCV oficial
+        // para que el cálculo del pago use la tasa actual.
+        this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: true });
       } else {
         this.nextText = "Siguiente";
       }
