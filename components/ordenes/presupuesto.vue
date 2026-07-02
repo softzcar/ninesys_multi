@@ -239,6 +239,14 @@
 
 
                                     <b-form-group>
+                                      <label for="input-telefono">Teléfono <span required>*</span></label>
+                                      <b-form-input id="input-telefono" v-model="form.telefono" type="tel"
+                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese teléfono (Ej: 0414...) — autocompleta si el cliente existe"
+                                        @input="form.telefono = cleanPhoneInput($event)"
+                                        @blur="onPhoneBlur"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-form-group>
                                       <label for="input-nombre">Nombre <span required>*</span></label>
                                       <b-form-input id="input-nombre" ref="nombre" v-model="form.nombre" type="text"
                                         class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el nombre"></b-form-input>
@@ -248,13 +256,6 @@
                                       <label for="input-apellido">Apellido <span required>*</span></label>
                                       <b-form-input id="input-apellido" v-model="form.apellido" type="text"
                                         class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese el apellido"></b-form-input>
-                                    </b-form-group>
-
-                                    <b-form-group>
-                                      <label for="input-telefono">Teléfono <span required>*</span></label>
-                                      <b-form-input id="input-telefono" v-model="form.telefono" type="tel"
-                                        class="mb-2 mr-sm-2 mb-sm-0" placeholder="Ingrese teléfono (Ej: 0414...)"
-                                        @input="form.telefono = cleanPhoneInput($event)"></b-form-input>
                                     </b-form-group>
 
                                     <b-form-group>
@@ -973,6 +974,55 @@ export default {
   },
 
   methods: {
+    // Al salir del teléfono: formatea (libphonenumber) y, si ya existe un cliente
+    // con ese número (por últimos 10 dígitos), autocompleta el formulario (incluida
+    // la geografía) y setea form.id para reutilizar ese cliente al guardar.
+    async onPhoneBlur() {
+      const result = this.validateAndFormatPhone(this.form.telefono);
+      if (result.isValid) {
+        this.form.telefono = result.formatted;
+      } else if (this.form.telefono && this.form.telefono.trim() !== '') {
+        this.$fire({
+          title: "Teléfono Inválido",
+          text: "Por favor ingrese un número de teléfono válido.",
+          type: "warning",
+          timer: 3000
+        });
+        return;
+      } else {
+        return;
+      }
+
+      try {
+        const res = await this.$axios.get(
+          `${this.$config.API}/customers/por-telefono/${this.form.telefono}`
+        );
+        const c = res.data && res.data.data;
+        if (c) {
+          this.form.id = c._id;
+          this.form.nombre = c.first_name && c.first_name !== 'none' ? c.first_name : '';
+          this.form.apellido = c.last_name && c.last_name !== 'none' ? c.last_name : '';
+          this.form.cedula = c.cedula && c.cedula !== 'none' ? c.cedula : '';
+          this.form.email = (c.email && String(c.email).indexOf('none') !== 0 && c.email !== 'none') ? c.email : '';
+          this.form.direccion = c.address && c.address !== 'none' ? c.address : '';
+          this.form.geografia = {
+            idPais: c.id_catalogo_pais ? Number(c.id_catalogo_pais) : null,
+            idEstado: c.id_catalogo_estado ? Number(c.id_catalogo_estado) : null,
+            idCiudad: c.id_catalogo_ciudad ? Number(c.id_catalogo_ciudad) : null,
+          };
+          this.query2 = `${c._id} | ${this.form.nombre} ${this.form.apellido} - ${this.form.telefono}`;
+          this.$fire({
+            title: "Cliente existente",
+            html: `<p>Se cargaron los datos de <strong>${this.form.nombre} ${this.form.apellido}</strong>.</p>`,
+            type: "info",
+            timer: 2500,
+          });
+        }
+      } catch (e) {
+        // Silencioso: si falla la búsqueda, se completa manualmente.
+      }
+    },
+
     iniciarConversionAOrden() {
       // Limpiar formulario de conversión
       this.formConversion = {
