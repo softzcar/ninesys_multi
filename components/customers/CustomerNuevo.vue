@@ -11,6 +11,20 @@
                         <b-col>
                             <b-form @submit="onSubmit" @reset="onReset">
                                 <b-form-group
+                                    id="input-group-phone"
+                                    label="Teléfono:"
+                                    label-for="input-phone"
+                                >
+                                    <b-form-input
+                                        id="input-phone"
+                                        v-model="form.phone"
+                                        placeholder="Teléfono (autocompleta si el cliente existe)"
+                                        required
+                                        @blur="onPhoneBlur"
+                                    ></b-form-input>
+                                </b-form-group>
+
+                                <b-form-group
                                     id="input-group-1"
                                     label="Nombres:"
                                     label-for="input-first_name"
@@ -45,19 +59,6 @@
                                         id="input-cedula"
                                         v-model="form.cedula"
                                         placeholder="Cédula"
-                                        required
-                                    ></b-form-input>
-                                </b-form-group>
-
-                                <b-form-group
-                                    id="input-group-4"
-                                    label="Teléfono:"
-                                    label-for="input-phone"
-                                >
-                                    <b-form-input
-                                        id="input-phone"
-                                        v-model="form.phone"
-                                        placeholder="Teléfono"
                                         required
                                     ></b-form-input>
                                 </b-form-group>
@@ -172,6 +173,42 @@ export default {
             }
             this.overlay = false
         },
+        // Al salir del teléfono: formatea (libphonenumber) y, si ya existe un cliente
+        // con ese número (por últimos 10 dígitos), autocompleta el formulario.
+        async onPhoneBlur() {
+            const result = this.validateAndFormatPhone(this.form.phone)
+            if (result.isValid) {
+                this.form.phone = result.formatted
+            } else {
+                return
+            }
+            try {
+                const res = await this.$axios.get(`${this.$config.API}/customers/por-telefono/${this.form.phone}`)
+                const c = res.data && res.data.data
+                if (c) {
+                    this.form.first_name = c.first_name && c.first_name !== 'none' ? c.first_name : ''
+                    this.form.last_name = c.last_name && c.last_name !== 'none' ? c.last_name : ''
+                    this.form.cedula = c.cedula && c.cedula !== 'none' ? c.cedula : ''
+                    this.form.email = (c.email && String(c.email).indexOf('none') !== 0 && c.email !== 'none') ? c.email : ''
+                    this.form.address = c.address && c.address !== 'none' ? c.address : ''
+                    this.form.recibir_notificaciones = Number(c.recibir_notificaciones) === 1
+                    this.form.geografia = {
+                        idPais: c.id_catalogo_pais ? Number(c.id_catalogo_pais) : null,
+                        idEstado: c.id_catalogo_estado ? Number(c.id_catalogo_estado) : null,
+                        idCiudad: c.id_catalogo_ciudad ? Number(c.id_catalogo_ciudad) : null,
+                    }
+                    this.$fire({
+                        title: "Cliente existente",
+                        html: "<p>Se cargaron los datos de un cliente ya registrado con este teléfono.</p>",
+                        type: "info",
+                        timer: 2500,
+                    })
+                }
+            } catch (e) {
+                // Silencioso: si falla la búsqueda, el usuario completa manualmente.
+            }
+        },
+
         async guardarCustomer() {
             if (!this.form.geografia.idPais || !this.form.geografia.idEstado || !this.form.geografia.idCiudad) {
                 this.$fire({
