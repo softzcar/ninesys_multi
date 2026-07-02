@@ -464,23 +464,33 @@ export default {
         "warning"
       )
         .then(() => {
-          this.verificarPedidosEnWC(email, id_emp).then(() => {
-            if (this.tmpDelete.ordenes_ns === 0) {
-              this.overlay = true;
-              const data = new URLSearchParams();
-              data.set("customer_id", id_emp);
-              this.$axios
-                .post(`${this.$config.API}/customers/eliminar`, data)
-                .then((res) => {
-                  this.getCustomers().then(() => (this.overlay = false));
-                });
-            } else {
-              this.$fire({
-                title: "El Cliente no se puede eliminar",
-                html: `<p>El cliente posee ${this.tmpDelete.ordenes_ns} órdenes activas en el sistema.</p>`,
-                type: "warning",
-              });
+          this.verificarPedidosEnWC(email, id_emp).then(async () => {
+            const nOrdenes = this.tmpDelete ? this.tmpDelete.ordenes_ns : 0;
+
+            // Borrado LÓGICO (soft delete): se puede eliminar aunque tenga órdenes.
+            // El cliente se oculta de los listados pero conserva su historial y sus
+            // órdenes. Si tiene órdenes, pedimos una confirmación adicional en lugar
+            // de bloquear el borrado.
+            if (nOrdenes > 0) {
+              try {
+                await this.$confirm(
+                  `El cliente tiene ${nOrdenes} orden(es). Se ocultará de los listados, pero su historial y sus órdenes se conservan. ¿Desea eliminarlo de todas formas?`,
+                  "Cliente con órdenes",
+                  "warning"
+                );
+              } catch (e) {
+                return; // el usuario canceló
+              }
             }
+
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("customer_id", id_emp);
+            this.$axios
+              .post(`${this.$config.API}/customers/eliminar`, data)
+              .then((res) => {
+                this.getCustomers().then(() => (this.overlay = false));
+              });
           });
         })
         .catch((err) => {
