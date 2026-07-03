@@ -320,15 +320,17 @@ export default {
     ...mapState("login", ["dataUser"]),
     filteredOrders() {
       let filtered = this.orders;
-      if (this.filterProduct) {
+      if (this.filterProduct !== null && this.filterProduct !== undefined && this.filterProduct !== "" && this.filterProduct !== "null") {
         const pId = parseInt(this.filterProduct);
-        filtered = filtered.filter(order => {
-          return order.productos && order.productos.some(prod => parseInt(prod.id_woo) === pId);
-        });
+        if (!isNaN(pId)) {
+          filtered = filtered.filter(order => {
+            return order.productos && order.productos.some(prod => parseInt(prod.id_woo) === pId);
+          });
+        }
       }
-      if (this.selectedStatus && this.selectedStatus !== "todas") {
+      if (this.selectedStatus && this.selectedStatus.toLowerCase() !== "todas") {
         filtered = filtered.filter(order => {
-          return order.status && order.status.trim() === this.selectedStatus;
+          return order.status && order.status.trim().toLowerCase() === this.selectedStatus.toLowerCase();
         });
       }
       return filtered;
@@ -354,10 +356,13 @@ export default {
       ];
     },
     filteredBudgets() {
-      if (!this.filterProduct) {
+      if (this.filterProduct === null || this.filterProduct === undefined || this.filterProduct === "" || this.filterProduct === "null") {
         return this.budgets;
       }
       const pId = parseInt(this.filterProduct);
+      if (isNaN(pId)) {
+        return this.budgets;
+      }
       return this.budgets.filter(budget => {
         return budget.productos && budget.productos.some(prod => parseInt(prod.id_woo) === pId);
       });

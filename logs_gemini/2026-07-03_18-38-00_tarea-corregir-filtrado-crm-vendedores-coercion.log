@@ -1,0 +1,16 @@
+Tarea: Corregir filtrado de órdenes y presupuestos en el cajón CRM por coerciones de null/string
+Fecha: 2026-07-03 18:38:00
+
+Descripción del problema:
+- Al abrir la ficha CRM de un cliente (como EDWDUARD SALAZAR) desde el rol de vendedor (Sarahit Mojica), no se listaban las órdenes en el historial y se mostraba "No hay compras registradas con el filtro seleccionado".
+- Sin embargo, los botones del filtro de estatus indicaban la existencia de órdenes ("entregada").
+- El problema radicaba en la propiedad computada `filteredOrders()`, donde `this.filterProduct` (inicializada como `null` en la página principal) se estaba interpretando o evaluando como verdadero (coerción a string "null" o similar por parte de BootstrapVue al interactuar con el select).
+- Esto causaba que intentara filtrar por productos usando `pId = NaN`, resultando en un filtrado vacío permanente para el historial y las cotizaciones.
+
+Solución implementada:
+- Robustecimos la lógica de `filteredOrders()` y `filteredBudgets()` en `ClientDetailDrawer.vue` para comprobar de manera estricta que `filterProduct` no sea `null`, `undefined`, string vacío `""` ni el string `"null"`.
+- Añadimos la verificación estricta de que el producto sea numérico válido usando `!isNaN(pId)`.
+- Adicionalmente, mejoramos el filtro de estatus para que haga las comparaciones en minúsculas de forma insensible a mayúsculas/minúsculas.
+
+Resultados:
+- Se restauró la visualización correcta de las órdenes del vendedor Sarahit Mojica para cada cliente, mostrando la cantidad correcta de órdenes sin interferencias de variables falsas.
