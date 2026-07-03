@@ -56,8 +56,22 @@
         <!-- Tab 1: Historial de Compras -->
         <b-tab title="Historial" active>
           <b-overlay :show="loadingHistory" spinner-small>
+            <!-- Filtro de Estatus de Orden Dinámico -->
+            <div v-if="orders.length > 0" class="mb-3 px-1">
+              <span class="small text-muted font-weight-bold d-block mb-1">Filtrar por estatus de orden:</span>
+              <b-form-radio-group
+                id="crm-filter-status"
+                v-model="selectedStatus"
+                :options="statusOptions"
+                button-variant="outline-info"
+                size="sm"
+                name="crm-radio-btn-status"
+                buttons
+              ></b-form-radio-group>
+            </div>
+
             <div v-if="filteredOrders.length === 0" class="text-center py-4 text-muted">
-              {{ orders.length === 0 ? 'Este cliente no posee historial de compras en el sistema.' : 'No hay compras registradas con el producto seleccionado.' }}
+              {{ orders.length === 0 ? 'Este cliente no posee historial de compras en el sistema.' : 'No hay compras registradas con el filtro seleccionado.' }}
             </div>
             <div v-else>
               <b-card v-for="order in filteredOrders" :key="order._id" no-body class="mb-2 shadow-sm overflow-hidden">
@@ -299,18 +313,45 @@ export default {
       loadingBudgets: false,
       savingNote: false,
       savingTicket: false,
+      selectedStatus: "todas",
     };
   },
   computed: {
     ...mapState("login", ["dataUser"]),
     filteredOrders() {
-      if (!this.filterProduct) {
-        return this.orders;
+      let filtered = this.orders;
+      if (this.filterProduct) {
+        const pId = parseInt(this.filterProduct);
+        filtered = filtered.filter(order => {
+          return order.productos && order.productos.some(prod => parseInt(prod.id_woo) === pId);
+        });
       }
-      const pId = parseInt(this.filterProduct);
-      return this.orders.filter(order => {
-        return order.productos && order.productos.some(prod => parseInt(prod.id_woo) === pId);
+      if (this.selectedStatus && this.selectedStatus !== "todas") {
+        filtered = filtered.filter(order => {
+          return order.status && order.status.trim() === this.selectedStatus;
+        });
+      }
+      return filtered;
+    },
+    statusOptions() {
+      if (!this.orders || this.orders.length === 0) {
+        return [];
+      }
+      const uniqueStatuses = new Set();
+      this.orders.forEach(order => {
+        if (order.status) {
+          uniqueStatuses.add(order.status.trim());
+        }
       });
+      const options = [...uniqueStatuses].map(status => ({
+        text: status,
+        value: status
+      }));
+      options.sort((a, b) => a.text.localeCompare(b.text));
+      return [
+        { text: "Todas", value: "todas" },
+        ...options
+      ];
     },
     filteredBudgets() {
       if (!this.filterProduct) {
@@ -328,6 +369,7 @@ export default {
     },
     client(newVal) {
       if (newVal) {
+        this.selectedStatus = "todas";
         this.fetchClientCRMData();
       }
     },
@@ -342,9 +384,17 @@ export default {
       if (!this.client) return;
       const id = this.client.id || this.client._id;
       
+      let queryParam = "";
+      if (this.dataUser && this.dataUser.departamento === 'Comercialización') {
+        const sellerId = this.dataUser.id_usuario || this.dataUser.id_empleado;
+        if (sellerId) {
+          queryParam = `?id_vendedor=${sellerId}`;
+        }
+      }
+      
       // 1. Cargar Historial de Órdenes
       this.loadingHistory = true;
-      this.$axios.get(`${this.$config.API}/customers/orders-local/${id}`)
+      this.$axios.get(`${this.$config.API}/customers/orders-local/${id}${queryParam}`)
         .then(res => {
           this.orders = res.data;
         })
@@ -371,7 +421,7 @@ export default {
 
       // 4. Cargar Cotizaciones
       this.loadingBudgets = true;
-      this.$axios.get(`${this.$config.API}/customers/presupuestos-local/${id}`)
+      this.$axios.get(`${this.$config.API}/customers/presupuestos-local/${id}${queryParam}`)
         .then(res => {
           this.budgets = res.data;
         })

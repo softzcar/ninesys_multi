@@ -500,7 +500,14 @@ export default {
     },
 
     async getCustomers() {
-      await this.$axios.get(`${this.$config.API}/customers`).then((resp) => {
+      let url = `${this.$config.API}/customers`;
+      if (this.dataUser && this.dataUser.departamento === 'Comercialización') {
+        const sellerId = this.dataUser.id_usuario || this.dataUser.id_empleado;
+        if (sellerId) {
+          url += `?id_vendedor=${sellerId}`;
+        }
+      }
+      await this.$axios.get(url).then((resp) => {
         this.dataTable = resp.data.data.map((el) => {
           if (el.email === "none") {
             return { ...el, email: "" };

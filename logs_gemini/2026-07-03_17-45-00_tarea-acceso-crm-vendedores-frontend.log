@@ -1,0 +1,17 @@
+Tarea: Acceso y filtros de CRM para vendedores (Departamento de Comercialización) - Frontend
+Fecha: 2026-07-03 17:45:00
+
+Descripción de cambios realizados en app_multi:
+1. pages/clientes/gestion.vue:
+   - Modificación de getCustomers() para que si dataUser.departamento === 'Comercialización', pase id_vendedor como parámetro de consulta (ej: /customers?id_vendedor=XX).
+2. components/crm/ClientDetailDrawer.vue:
+   - Modificación de fetchClientCRMData() para que si dataUser.departamento === 'Comercialización', envíe el id_vendedor en las consultas a `/customers/orders-local/{id}` y `/customers/presupuestos-local/{id}`.
+   - Adición del componente b-form-radio-group dinámico para filtrar por estatus de la orden.
+   - Lógica en computed (statusOptions) para calcular dinámicamente solo los estatus disponibles en las órdenes visibles.
+   - Modificación de computed (filteredOrders) para aplicar el filtro de estatus seleccionado.
+   - Reseteo del filtro selectedStatus a "todas" en el watcher del cliente cuando se pasa a una nueva ficha de cliente.
+
+Resultados:
+- Los vendedores ahora visualizan únicamente a sus clientes atendidos en /clientes/gestion.
+- Al abrir la ficha CRM, solo pueden ver las órdenes y presupuestos que ellos mismos vendieron al cliente.
+- Se implementó una interfaz intuitiva y reactiva con botones de filtrado de estatus dinámicos.
