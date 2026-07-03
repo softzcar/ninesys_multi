@@ -8,7 +8,8 @@
       <menus-MenuLoader />
       <div v-if="
                     dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Comercialización'
+                    dataUser.departamento === 'Comercialización' ||
+                    dataUser.departamento === 'Comecialización'
                 ">
         <b-overlay
           :show="overlay"
@@ -18,7 +19,8 @@
             fluid
             v-if="
                             dataUser.departamento === 'Administración' ||
-                            dataUser.departamento === 'Comercialización'
+                            dataUser.departamento === 'Comercialización' ||
+                            dataUser.departamento === 'Comecialización'
                         "
           >
             <!-- Fila de Título de la Página -->
@@ -501,7 +503,7 @@ export default {
 
     async getCustomers() {
       let url = `${this.$config.API}/customers`;
-      if (this.dataUser && this.dataUser.departamento === 'Comercialización') {
+      if (this.dataUser && (this.dataUser.departamento === 'Comercialización' || this.dataUser.departamento === 'Comecialización')) {
         const sellerId = this.dataUser.id_usuario || this.dataUser.id_empleado;
         if (sellerId) {
           url += `?id_vendedor=${sellerId}`;

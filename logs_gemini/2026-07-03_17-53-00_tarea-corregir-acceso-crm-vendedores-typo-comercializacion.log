@@ -1,0 +1,14 @@
+Tarea: Corregir acceso al CRM para vendedora (typo de Comercialización en BD)
+Fecha: 2026-07-03 17:53:00
+
+Descripción del problema:
+- Al iniciar sesión con Sarahit Mojica (vendedora), la pantalla de /clientes/gestion se quedaba completamente en blanco.
+- Esto ocurría porque en la base de datos de producción/desarrollo, el departamento del usuario de Comercialización tiene un typo: "Comecialización" (falta la letra 'r').
+- Dado que en gestion.vue se validaba estrictamente `dataUser.departamento === 'Comercialización'`, la vista no se renderizaba (v-if evaluaba a falso).
+
+Solución implementada:
+- Modificamos `app_multi/pages/clientes/gestion.vue` para aceptar tanto 'Comercialización' como 'Comecialización' en los accesos de las vistas y en la llamada al backend.
+- Modificamos `app_multi/components/crm/ClientDetailDrawer.vue` en la función fetchClientCRMData() para aplicar la misma flexibilidad en el filtrado por vendedor responsable.
+
+Resultados:
+- Se restauró la visualización completa de la pantalla para los vendedores configurados con el typo en la base de datos.

@@ -385,7 +385,7 @@ export default {
       const id = this.client.id || this.client._id;
       
       let queryParam = "";
-      if (this.dataUser && this.dataUser.departamento === 'Comercialización') {
+      if (this.dataUser && (this.dataUser.departamento === 'Comercialización' || this.dataUser.departamento === 'Comecialización')) {
         const sellerId = this.dataUser.id_usuario || this.dataUser.id_empleado;
         if (sellerId) {
           queryParam = `?id_vendedor=${sellerId}`;
