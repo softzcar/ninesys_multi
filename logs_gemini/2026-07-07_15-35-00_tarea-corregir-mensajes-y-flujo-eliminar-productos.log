@@ -1,0 +1,12 @@
+Tarea: Corregir comportamiento y mensajes del botón eliminar en Gestión de Productos
+Fecha: 2026-07-07 15:35:00
+
+Descripción:
+- Se actualizó el método deleteProduct() de la vista de administración de productos (/productos/gestion) para sincronizarlo con el comportamiento del soft delete implementado en la API del backend.
+
+Cambios realizados:
+1. Vista de Productos (app_multi/pages/productos/gestion.vue):
+   - Reescribimos el método `deleteProduct(id)` usando async/await.
+   - Corregimos typos en el diálogo de confirmación: cambiamos "Elimiar" por "eliminar", e "Imsumo" por "producto".
+   - Modificamos el orden de ejecución para asegurar la consistencia visual: ahora la petición a la API del backend finaliza y se ejecuta primero `await this.getProducts()` (recargando la tabla) antes de que se muestre el aviso de éxito de SweetAlert.
+   - Se removió el antiguo control por `cantidad_prod` (que limitaba el borrado a productos sin órdenes), permitiendo el soft delete en todos los casos de forma consistente y exitosa.

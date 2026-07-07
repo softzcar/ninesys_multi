@@ -242,53 +242,37 @@ export default {
     },
 
     /* ANTERIOR DE INSUMOS DESDEAQUÍ */
-    deleteProduct(id) {
-      this.$confirm(
-        `¿Desea Elimiar el insumo ${id} ?`,
-        "Eliminar Imsumo",
-        "warning"
-      )
-        .then(() => {
-          this.overlay = true;
-          // const data = new URLSearchParams()
-          // data.set('id', id)
+    async deleteProduct(id) {
+      try {
+        await this.$confirm(
+          `¿Desea eliminar el producto con código ${id}?`,
+          "Eliminar Producto",
+          "warning"
+        );
 
-          this.$axios
-            .delete(`${this.$config.API}/products/${id}`)
-            .then((res) => {
-              let msgDat;
-              if (parseInt(res.data.cantidad_prod) === 0) {
-                msgDat = {
-                  icon: "success",
-                  msg: "El producto ha sido eliminado",
-                };
-                this.getProducts();
-              } else {
-                msgDat = {
-                  icon: "warning",
-                  msg: "El producto tiene ordenes asociadas a él y no se puede eliminar",
-                };
-              }
+        this.overlay = true;
 
-              this.$fire({
-                title: "Eliminar Producto",
-                html: `<p>${msgDat.msg}</p>`,
-                type: msgDat.icon,
-              });
-            })
-            .catch((err) => {
-              this.$fire({
-                title: "Eliminar Producto",
-                html: `<p>Ocurrió un error al eliminar el productos</p><p>${err}</p>`,
-                type: msgDat.icon,
-              });
-            })
-            .finally(() => (this.overlay = false));
-        })
-        .catch((err) => {
-          console.log("CATCH!!!", err);
-          return false;
+        await this.$axios.delete(`${this.$config.API}/products/${id}`);
+
+        // Verificar la eliminación recargando primero los productos en la tabla
+        await this.getProducts();
+
+        this.$fire({
+          title: "Eliminar Producto",
+          html: "<p>El producto ha sido eliminado exitosamente del catálogo.</p>",
+          type: "success",
         });
+      } catch (err) {
+        if (err !== false) {
+          this.$fire({
+            title: "Eliminar Producto",
+            html: `<p>Ocurrió un error al eliminar el producto.</p><p>${err.message || err}</p>`,
+            type: "error",
+          });
+        }
+      } finally {
+        this.overlay = false;
+      }
     },
 
     reloadData() {
