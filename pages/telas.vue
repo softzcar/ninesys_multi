@@ -94,27 +94,40 @@ export default {
             })
         },
 
-        deleteTela(tela, idTela) {
-            this.$confirm(
-                `¿Desea Elimiar la tela ${tela} ?`,
-                "Eliminar Tela",
-                "warning"
-            )
-                .then(() => {
-                    this.overlay = true
-                    const data = new URLSearchParams()
-                    data.set("id", idTela)
+        async deleteTela(tela, idTela) {
+            try {
+                await this.$confirm(
+                    `¿Desea eliminar la tela ${tela}?`,
+                    "Eliminar Tela",
+                    "warning"
+                );
 
-                    axios
-                        .post(`${this.$config.API}/telas/eliminar`, data)
-                        .then((res) => {
-                            this.getTelas().then(() => (this.overlay = false))
-                        })
-                })
-                .catch((err) => {
-                    console.log("CATCH!!!", err)
-                    return false
-                })
+                this.overlay = true;
+
+                const data = new URLSearchParams();
+                data.set("id", idTela);
+
+                await this.$axios.post(`${this.$config.API}/telas/eliminar`, data);
+
+                // Recargar primero los datos en la tabla
+                await this.getTelas();
+
+                this.$fire({
+                    title: "Eliminar Tela",
+                    html: "<p>La tela ha sido eliminada exitosamente del catálogo.</p>",
+                    type: "success",
+                });
+            } catch (err) {
+                if (err !== false) {
+                    this.$fire({
+                        title: "Eliminar Tela",
+                        html: `<p>Ocurrió un error al eliminar la tela.</p><p>${err.message || err}</p>`,
+                        type: "error",
+                    });
+                }
+            } finally {
+                this.overlay = false;
+            }
         },
     },
     mounted() {

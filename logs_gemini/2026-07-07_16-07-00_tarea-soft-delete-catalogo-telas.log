@@ -1,0 +1,21 @@
+Tarea: Implementación de Soft Delete en Catálogo de Telas
+Fecha: 2026-07-07 16:07:00
+
+Descripción:
+- Se implementó el borrado lógico (soft delete) en la tabla `catalogo_telas` para asegurar la trazabilidad de las telas seleccionadas en las órdenes históricas del sistema, ocultando los registros del catálogo activo.
+
+Cambios realizados:
+1. Base de Datos:
+   - Modificamos la estructura de la tabla `catalogo_telas` en la plantilla SQL global (public/model/create_new_company_api_emp_N.sql) agregando la columna `eliminado` tinyint(1) DEFAULT 0.
+   - Sincronizamos la base de datos de desarrollo `api_emp_194` en la VPS aplicando la alteración estructural.
+
+2. Backend (`ninesys-api`):
+   - Modificamos `app/routes/catalogs.php` en la obtención y en la inserción/edición de telas para filtrar por `eliminado = 0`.
+   - Modificamos `app/routes/catalogs.php` en el endpoint de eliminación `POST /telas/eliminar` para cambiar la eliminación física por `UPDATE catalogo_telas SET eliminado = 1 WHERE _id = ?`.
+   - Modificamos `app/routes/manufacturing.php` en los listados generales y de filtrados para añadir `WHERE eliminado = 0`.
+   - Modificamos `app/routes/orders.php` en los endpoints de consulta de autocompletado y catálogos de telas para añadir `WHERE eliminado = 0`.
+
+3. Frontend (`app_multi`):
+   - Modificamos la vista de administración de telas (/telas.vue) reescribiendo el método `deleteTela(tela, idTela)` usando async/await.
+   - Corregimos typos en el diálogo de confirmación ("Elimiar" por "eliminar").
+   - Aseguramos que la tabla principal se actualice (`await this.getTelas()`) antes de que SweetAlert dispare el cuadro de diálogo de éxito.
