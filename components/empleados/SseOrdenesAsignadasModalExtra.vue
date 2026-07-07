@@ -118,34 +118,20 @@
           <div v-if="showSelect" class="mb-4">
             <h5><strong>📊 Resumen de Material</strong></h5>
 
-            <!-- INFO TELA VENDEDOR -->
-            <div v-if="item.tela_vendedor" class="mb-3">
-              <b-alert show variant="light" border-variant="primary" class="mb-0 py-2">
-                <div class="d-flex align-items-center">
-                  <b-icon icon="info-circle-fill" variant="primary" class="mr-2"></b-icon>
-                  <div>
-                    <span class="small font-weight-bold text-uppercase d-block text-primary">Tela Seleccionada por
-                      Vendedor:</span>
-                    <span class="font-weight-bold text-dark">{{ item.tela_vendedor }}</span>
-                  </div>
-                </div>
-              </b-alert>
-            </div>
-
-            <b-card bg-variant="light" class="mb-3">
+             <b-card bg-variant="light" class="mb-3">
               <!-- Material Estimado (desglosado por catálogo si hay múltiples insumos) -->
               <div v-if="materialEstimadoPorCatalogo.length === 1">
                 <p class="mb-2">
                   <strong>Material Estimado (Sistema):</strong>
                   {{ materialEstimadoPorCatalogo[0].total }} {{ materialEstimadoPorCatalogo[0].unidad }}
-                  de {{ materialEstimadoPorCatalogo[0].catalogo }}
+                  ({{ materialEstimadoPorCatalogo[0].catalogo }})
                 </p>
               </div>
               <div v-else-if="materialEstimadoPorCatalogo.length > 1">
                 <p class="mb-2"><strong>Material Estimado (Sistema):</strong></p>
                 <ul class="mb-2">
                   <li v-for="(item, index) in materialEstimadoPorCatalogo" :key="index">
-                    <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
+                    {{ item.total }} {{ item.unidad }} ({{ item.catalogo }})
                   </li>
                 </ul>
               </div>

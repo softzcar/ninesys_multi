@@ -4,7 +4,7 @@
       <b-icon icon="skip-backward-fill"></b-icon>
     </b-button>
     <b-button :disabled="disableBtns.eye" variant="warning" @click="$bvModal.show(modal2)">
-      <b-icon icon="eye"></b-icon>
+      <b-icon icon="exclamation-circle"></b-icon>
     </b-button>
 
     <b-modal :size="size" :title="title" :id="modal2" hide-footer>

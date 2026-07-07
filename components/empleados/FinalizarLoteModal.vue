@@ -7,24 +7,12 @@
             <b-card bg-variant="light" class="mb-3 text-center">
               <h5 class="card-title">Resumen de Consumo Previo</h5>
               <p class="card-text mb-0">
-                <strong>Papel Utilizado (calculado):</strong>
-                <span class="h5"> {{ totalPapelUtilizado.toFixed(2) }} m²</span>
+                <strong v-if="isImpresion">Papel Utilizado (calculado):</strong>
+                <strong v-else>Tela Utilizada (calculada):</strong>
+                <span class="h5" v-if="isImpresion"> {{ totalPapelUtilizado.toFixed(2) }} m²</span>
+                <span class="h5" v-else> {{ totalPapelUtilizado.toFixed(2) }} Mt</span>
               </p>
             </b-card>
-          </b-col>
-        </b-row>
-
-        <b-row v-if="telasDelLote.length > 0" class="mb-3">
-          <b-col>
-            <b-alert show variant="light" border-variant="primary" class="text-center py-3 mb-0 shadow-sm">
-              <div class="h6 mb-2 text-uppercase font-weight-bold text-primary">
-                <b-icon icon="info-circle-fill" class="mr-1"></b-icon>
-                Material(es) del Catálogo Seleccionado(s) por Vendedor:
-              </div>
-              <div class="h4 font-weight-bold mb-0 text-dark">
-                {{ telasDelLote.join(', ') }}
-              </div>
-            </b-alert>
           </b-col>
         </b-row>
 
@@ -106,14 +94,19 @@
               <div v-if="consumosPorOrden[orden.id_orden].length > 0 && consumosPorOrden[orden.id_orden][0].active">
 
                 <!-- Resumen de Material por Orden -->
-                <div v-if="estimadosPorOrden[orden.id_orden]" class="mt-3 mb-2 px-2">
+                <div class="mt-3 mb-2 px-2">
                   <h6 class="font-weight-bold text-muted mb-2">
                     <b-icon icon="bar-chart-fill"></b-icon> Resumen de Material
                   </h6>
                   <div class="pl-2">
                     <p class="mb-1">
                       <strong>Material Estimado (Sistema):</strong>
-                      {{ estimadosPorOrden[orden.id_orden] }}
+                      <span v-if="estimadosPorOrden[orden.id_orden]">
+                        {{ estimadosPorOrden[orden.id_orden] }}
+                      </span>
+                      <span v-else class="text-muted">
+                        No hay datos de insumos disponibles
+                      </span>
                     </p>
                     <p class="mb-1">
                       <strong>Material Utilizado:</strong>

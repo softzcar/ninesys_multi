@@ -18,6 +18,17 @@
         </div>
       </b-alert>
 
+      <!-- MATERIAL ESTIMADO DE LA ASIGNACION -->
+      <b-alert v-if="materialEstimado" show variant="info" class="mb-3 py-2 border-0" style="background-color: #ebf8ff; border-left: 4px solid #3182ce !important; border-radius: 4px;">
+        <div class="d-flex align-items-center">
+          <b-icon icon="tag-fill" class="mr-2 text-primary" style="font-size: 1.2rem;"></b-icon>
+          <div>
+            <span class="small font-weight-bold text-uppercase d-block text-primary" style="font-size: 0.75rem; letter-spacing: 0.5px;">Material Estimado:</span>
+            <span class="font-weight-bold text-dark" style="font-size: 0.95rem;">{{ materialEstimado }}</span>
+          </div>
+        </div>
+      </b-alert>
+
       <b-list-group>
         <b-list-group-item v-for="(prod, index) in datos.productos" :key="index"
           class="d-flex justify-content-between align-items-center">
@@ -61,6 +72,6 @@
 <script>
 export default {
   name: "MiAsignacionContenido",
-  props: ["datos", "loading", "totalPiezas"]
+  props: ["datos", "loading", "totalPiezas", "materialEstimado"]
 };
 </script>

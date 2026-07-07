@@ -1,6 +1,9 @@
 <template>
   <div>
-    <b-button :disabled="disableMe" @click="$bvModal.show(modal)" variant="primary">{{ btnText }}</b-button>
+    <b-button :disabled="disableMe" @click="$bvModal.show(modal)" variant="primary">
+      <b-icon :icon="btnText === 'REANUDAR' ? 'play-fill' : 'pause-fill'" class="mr-1"></b-icon>
+      {{ btnText }}
+    </b-button>
 
     <b-modal :id="modal" title="Rendimiento" hide-footer size="md">
       <b-row v-if="lengthPausa">

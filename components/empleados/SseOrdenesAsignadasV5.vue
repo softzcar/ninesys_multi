@@ -124,33 +124,41 @@
                         </div>
                       </div>
                       <div class="card-info-col">
-                        <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
-                            <b-icon icon="box-seam" class="mr-1"></b-icon>
-                            <strong>{{ item.unidades }}</strong> pzas
+                        <div class="info-top-row" v-if="calcularMaterialOrden(item.orden || item.id_orden)">
+                          <span class="info-item material-badge-inline">
+                            <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                            {{ calcularMaterialOrden(item.orden || item.id_orden) }}
                           </span>
+                        </div>
+                        <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
+                          <span class="status-pill status-urgent">Urgente</span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
                             <span class="time-text-content">
                               {{ filterTiempoEstimado(item.orden || item.id_orden) || '--' }}
                             </span>
                           </span>
                         </div>
-                        <div class="info-bottom-row mt-2">
-                          <span class="status-pill status-urgent">Urgente</span>
-                        </div>
-                      </div>
-                      <div class="card-right-action" :class="getRightPanelClass(item)" @click="handleRightPanelClick(item)">
-                        <b-icon :icon="isTaskInProcess(item) ? 'check-lg' : 'play-fill'"></b-icon>
                       </div>
                     </div>
 
                     <!-- Fila de Acciones Secundarias -->
                     <div class="card-actions-bar mt-3">
+                      <!-- Botón de Acción Principal (Iniciar/Terminar) -->
+                      <b-button
+                        :variant="isTaskInProcess(item) ? 'success' : 'primary'"
+                        class="btn-main-action mr-2"
+                        :disabled="!item.esreposicion && !isTaskInProcess(item) && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)"
+                        @click="handleRightPanelClick(item)"
+                      >
+                        <b-icon :icon="isTaskInProcess(item) ? 'check-lg' : 'play-fill'" class="mr-1"></b-icon>
+                        {{ isTaskInProcess(item) ? 'Terminar' : 'Iniciar' }}
+                      </b-button>
+
                       <div class="btn-extra-actions-wrapper" v-if="isTaskInProcess(item)">
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="item.esreposicion ? 1 : 0" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-reposicion-wrapper" v-if="isTaskInProcess(item)">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -164,6 +172,17 @@
                       <div class="btn-vinculadas-wrapper" v-if="filterVinculdas(item.orden || item.id_orden).length > 0">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(item.orden || item.id_orden)" />
                       </div>
+                      <!-- Botón de Piezas (Estilizado como los demás con ml-auto) -->
+                      <b-button
+                        variant="light"
+                        class="btn-pzas-badge ml-auto"
+                        @click="abrirAsignacionPiezas(item.orden || item.id_orden)"
+                        v-b-tooltip.hover
+                        title="Ver Asignación de Piezas"
+                      >
+                        <b-icon icon="box-seam" class="mr-1"></b-icon>
+                        <strong>{{ item.unidades }}</strong>
+                      </b-button>
                     </div>
                   </div>
 
@@ -215,7 +234,13 @@
                           <linkSearch :id="orden.id_orden" class="type-id-link" />
                         </div>
                       </div>
-                      <span class="lote-cliente-nombre flex-grow-1">{{ orden.cliente_nombre }}</span>
+                      <div class="flex-grow-1">
+                        <span class="lote-cliente-nombre d-block">{{ orden.cliente_nombre }}</span>
+                        <span class="info-item material-badge-inline mt-1" v-if="calcularMaterialOrden(orden.id_orden)">
+                          <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                          {{ calcularMaterialOrden(orden.id_orden) }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -228,7 +253,7 @@
             <div class="section-header" @click="collapsedSections.enProceso = !collapsedSections.enProceso">
               <div class="d-flex align-items-center">
                 <b-icon :icon="collapsedSections.enProceso ? 'chevron-right' : 'chevron-down'" class="mr-2"></b-icon>
-                <h5 class="mb-0 font-weight-bold text-uppercase text-primary"><b-icon icon="gear-fill" class="mr-1"></b-icon> EN PROCESO</h5>
+                <h5 class="mb-0 font-weight-bold text-uppercase text-primary"><b-icon icon="gear-fill" class="mr-1"></b-icon> ORDENES EN PROCESO</h5>
                 <b-badge variant="primary" class="ml-2">{{ ordersInProcess.length }}</b-badge>
               </div>
             </div>
@@ -246,10 +271,16 @@
                         </div>
                       </div>
                       <div class="card-info-col">
-                        <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
-                            <b-icon icon="box-seam" class="mr-1"></b-icon>
-                            <strong>{{ item.unidades }}</strong> pzas
+                        <div class="info-top-row" v-if="calcularMaterialOrden(item.orden || item.id_orden)">
+                          <span class="info-item material-badge-inline">
+                            <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                            {{ calcularMaterialOrden(item.orden || item.id_orden) }}
+                          </span>
+                        </div>
+                        <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
+                          <!-- Pill dinámico: Urgente si prioridad > 0, si no En proceso -->
+                          <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
+                            {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
                           </span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
                             <span class="time-text-content">
@@ -257,25 +288,25 @@
                             </span>
                           </span>
                         </div>
-                        <div class="info-bottom-row mt-2">
-                          <!-- Pill dinámico: Urgente si prioridad > 0, si no En proceso -->
-                          <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
-                            {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
-                          </span>
-                        </div>
-                      </div>
-                      <div class="card-right-action right-normal-process" @click="handleRightPanelClick(item)">
-                        <b-icon icon="check-lg"></b-icon>
                       </div>
                     </div>
 
                     <!-- Acciones secundarias -->
                     <div class="card-actions-bar mt-3">
+                      <!-- Botón de Acción Principal (Terminar) -->
+                      <b-button
+                        variant="success"
+                        class="btn-main-action mr-2"
+                        @click="handleRightPanelClick(item)"
+                      >
+                        <b-icon icon="check-lg" class="mr-1"></b-icon> Terminar
+                      </b-button>
+
                       <div class="btn-extra-actions-wrapper">
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="0" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-reposicion-wrapper">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -286,6 +317,17 @@
                       <div class="btn-vinculadas-wrapper" v-if="filterVinculdas(item.orden || item.id_orden).length > 0">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(item.orden || item.id_orden)" />
                       </div>
+                      <!-- Botón de Piezas (Estilizado como los demás con ml-auto) -->
+                      <b-button
+                        variant="light"
+                        class="btn-pzas-badge ml-auto"
+                        @click="abrirAsignacionPiezas(item.orden || item.id_orden)"
+                        v-b-tooltip.hover
+                        title="Ver Asignación de Piezas"
+                      >
+                        <b-icon icon="box-seam" class="mr-1"></b-icon>
+                        <strong>{{ item.unidades }}</strong>
+                      </b-button>
                     </div>
                   </div>
 
@@ -320,30 +362,37 @@
                         </div>
                       </div>
                       <div class="card-info-col">
-                        <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
-                            <b-icon icon="box-seam" class="mr-1"></b-icon>
-                            <strong>{{ item.unidades }}</strong> pzas
+                        <div class="info-top-row" v-if="calcularMaterialOrden(item.orden || item.id_orden)">
+                          <span class="info-item material-badge-inline">
+                            <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                            {{ calcularMaterialOrden(item.orden || item.id_orden) }}
                           </span>
+                        </div>
+                        <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
+                          <span class="status-pill status-pending">Pendiente</span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
                             <span class="time-text-content">
                               {{ filterTiempoEstimado(item.orden || item.id_orden) || '--' }}
                             </span>
                           </span>
                         </div>
-                        <div class="info-bottom-row mt-2">
-                          <span class="status-pill status-pending">Pendiente</span>
-                        </div>
-                      </div>
-                      <div class="card-right-action right-normal-pending" :class="{ 'disabled-action': !item.esreposicion && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min) }" @click="handleRightPanelClick(item)">
-                        <b-icon icon="play-fill"></b-icon>
                       </div>
                     </div>
 
                     <!-- Acciones secundarias -->
                     <div class="card-actions-bar mt-3">
+                      <!-- Botón de Acción Principal (Iniciar) -->
+                      <b-button
+                        variant="primary"
+                        class="btn-main-action mr-2"
+                        :disabled="!item.esreposicion && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)"
+                        @click="handleRightPanelClick(item)"
+                      >
+                        <b-icon icon="play-fill" class="mr-1"></b-icon> Iniciar
+                      </b-button>
+
                       <div class="btn-lote-wrapper">
-                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-diseno-wrapper">
                         <diseno-view-image :id="item.orden || item.id_orden" />
@@ -354,6 +403,17 @@
                       <div class="btn-vinculadas-wrapper" v-if="filterVinculdas(item.orden || item.id_orden).length > 0">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(item.orden || item.id_orden)" />
                       </div>
+                      <!-- Botón de Piezas (Estilizado como los demás con ml-auto) -->
+                      <b-button
+                        variant="light"
+                        class="btn-pzas-badge ml-auto"
+                        @click="abrirAsignacionPiezas(item.orden || item.id_orden)"
+                        v-b-tooltip.hover
+                        title="Ver Asignación de Piezas"
+                      >
+                        <b-icon icon="box-seam" class="mr-1"></b-icon>
+                        <strong>{{ item.unidades }}</strong>
+                      </b-button>
                     </div>
                   </div>
 
@@ -390,33 +450,41 @@
                         </div>
                       </div>
                       <div class="card-info-col">
-                        <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
-                            <b-icon icon="box-seam" class="mr-1"></b-icon>
-                            <strong>{{ item.unidades }}</strong> pzas
+                        <div class="info-top-row" v-if="calcularMaterialOrden(item.orden || item.id_orden)">
+                          <span class="info-item material-badge-inline">
+                            <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                            {{ calcularMaterialOrden(item.orden || item.id_orden) }}
                           </span>
+                        </div>
+                        <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
+                          <span class="status-pill status-urgent">Urgente</span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
                             <span class="time-text-content">
                               {{ filterTiempoEstimado(item.orden || item.id_orden) || '--' }}
                             </span>
                           </span>
                         </div>
-                        <div class="info-bottom-row mt-2">
-                          <span class="status-pill status-urgent">Urgente</span>
-                        </div>
-                      </div>
-                      <div class="card-right-action" :class="getRightPanelClass(item)" @click="handleRightPanelClick(item)">
-                        <b-icon :icon="isTaskInProcess(item) ? 'check-lg' : 'play-fill'"></b-icon>
                       </div>
                     </div>
 
                     <!-- Fila de Acciones Secundarias -->
                     <div class="card-actions-bar mt-3">
+                      <!-- Botón de Acción Principal (Iniciar/Terminar) -->
+                      <b-button
+                        :variant="isTaskInProcess(item) ? 'success' : 'primary'"
+                        class="btn-main-action mr-2"
+                        :disabled="!item.esreposicion && !isTaskInProcess(item) && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)"
+                        @click="handleRightPanelClick(item)"
+                      >
+                        <b-icon :icon="isTaskInProcess(item) ? 'check-lg' : 'play-fill'" class="mr-1"></b-icon>
+                        {{ isTaskInProcess(item) ? 'Terminar' : 'Iniciar' }}
+                      </b-button>
+
                       <div class="btn-extra-actions-wrapper" v-if="isTaskInProcess(item)">
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="item.esreposicion ? 1 : 0" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-reposicion-wrapper" v-if="isTaskInProcess(item)">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -430,6 +498,17 @@
                       <div class="btn-vinculadas-wrapper" v-if="filterVinculdas(item.orden || item.id_orden).length > 0">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(item.orden || item.id_orden)" />
                       </div>
+                      <!-- Botón de Piezas (Estilizado como los demás con ml-auto) -->
+                      <b-button
+                        variant="light"
+                        class="btn-pzas-badge ml-auto"
+                        @click="abrirAsignacionPiezas(item.orden || item.id_orden)"
+                        v-b-tooltip.hover
+                        title="Ver Asignación de Piezas"
+                      >
+                        <b-icon icon="box-seam" class="mr-1"></b-icon>
+                        <strong>{{ item.unidades }}</strong>
+                      </b-button>
                     </div>
                   </div>
 
@@ -443,7 +522,7 @@
             <div class="section-header" @click="collapsedSections.enProceso = !collapsedSections.enProceso">
               <div class="d-flex align-items-center">
                 <b-icon :icon="collapsedSections.enProceso ? 'chevron-right' : 'chevron-down'" class="mr-2"></b-icon>
-                <h5 class="mb-0 font-weight-bold text-uppercase text-primary"><b-icon icon="gear-fill" class="mr-1"></b-icon> EN PROCESO</h5>
+                <h5 class="mb-0 font-weight-bold text-uppercase text-primary"><b-icon icon="gear-fill" class="mr-1"></b-icon> REVISIONES EN PROCESO</h5>
                 <b-badge variant="primary" class="ml-2">{{ revisionsInProcess.length }}</b-badge>
               </div>
             </div>
@@ -461,10 +540,15 @@
                         </div>
                       </div>
                       <div class="card-info-col">
-                        <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
-                            <b-icon icon="box-seam" class="mr-1"></b-icon>
-                            <strong>{{ item.unidades }}</strong> pzas
+                        <div class="info-top-row" v-if="calcularMaterialOrden(item.orden || item.id_orden)">
+                          <span class="info-item material-badge-inline">
+                            <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                            {{ calcularMaterialOrden(item.orden || item.id_orden) }}
+                          </span>
+                        </div>
+                        <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
+                          <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
+                            {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
                           </span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
                             <span class="time-text-content">
@@ -472,24 +556,25 @@
                             </span>
                           </span>
                         </div>
-                        <div class="info-bottom-row mt-2">
-                          <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
-                            {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
-                          </span>
-                        </div>
-                      </div>
-                      <div class="card-right-action right-normal-process" @click="handleRightPanelClick(item)">
-                        <b-icon icon="check-lg"></b-icon>
                       </div>
                     </div>
 
                     <!-- Acciones secundarias -->
                     <div class="card-actions-bar mt-3">
+                      <!-- Botón de Acción Principal (Terminar) -->
+                      <b-button
+                        variant="success"
+                        class="btn-main-action mr-2"
+                        @click="handleRightPanelClick(item)"
+                      >
+                        <b-icon icon="check-lg" class="mr-1"></b-icon> Terminar
+                      </b-button>
+
                       <div class="btn-extra-actions-wrapper">
                         <empleados-SseOrdenesAsignadasModalExtra :pausas="pausas" :departamento="$store.state.login.dataUser.departamento" :item="item" :items="filterOrder(item.orden || item.id_orden, 'en curso')" :esreposicion="1" :impresoras="impresoras" :insumosTodos="insumos" :insumosimp="insumosImpresion" :insumosest="insumosEstampado" :insumoscos="insumosCostura" :insumoslim="insumosLimpieza" :insumosrev="insumosRevision" :insumoscor="insumosCorte" :data-insumos="dataInsumos" tipo="todo" :idorden="item.orden || item.id_orden" :id_ordenes_productos="item.id_ordenes_productos" @reload="reloadMe()" :orden_proceso_departamento="item.orden_proceso_departamento" />
                       </div>
                       <div class="btn-lote-wrapper">
-                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-reposicion-wrapper">
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -500,6 +585,17 @@
                       <div class="btn-vinculadas-wrapper" v-if="filterVinculdas(item.orden || item.id_orden).length > 0">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(item.orden || item.id_orden)" />
                       </div>
+                      <!-- Botón de Piezas (Estilizado como los demás con ml-auto) -->
+                      <b-button
+                        variant="light"
+                        class="btn-pzas-badge ml-auto"
+                        @click="abrirAsignacionPiezas(item.orden || item.id_orden)"
+                        v-b-tooltip.hover
+                        title="Ver Asignación de Piezas"
+                      >
+                        <b-icon icon="box-seam" class="mr-1"></b-icon>
+                        <strong>{{ item.unidades }}</strong>
+                      </b-button>
                     </div>
                   </div>
 
@@ -534,30 +630,37 @@
                         </div>
                       </div>
                       <div class="card-info-col">
-                        <div class="info-top-row">
-                          <span class="info-item pzas-badge" @click="abrirAsignacionPiezas(item.orden || item.id_orden)" v-b-tooltip.hover title="Ver Asignación de Piezas">
-                            <b-icon icon="box-seam" class="mr-1"></b-icon>
-                            <strong>{{ item.unidades }}</strong> pzas
+                        <div class="info-top-row" v-if="calcularMaterialOrden(item.orden || item.id_orden)">
+                          <span class="info-item material-badge-inline">
+                            <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
+                            {{ calcularMaterialOrden(item.orden || item.id_orden) }}
                           </span>
+                        </div>
+                        <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
+                          <span class="status-pill status-pending">Pendiente</span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
                             <span class="time-text-content">
                               {{ filterTiempoEstimado(item.orden || item.id_orden) || '--' }}
                             </span>
                           </span>
                         </div>
-                        <div class="info-bottom-row mt-2">
-                          <span class="status-pill status-pending">Pendiente</span>
-                        </div>
-                      </div>
-                      <div class="card-right-action right-normal-pending" :class="{ 'disabled-action': !item.esreposicion && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min) }" @click="handleRightPanelClick(item)">
-                        <b-icon icon="play-fill"></b-icon>
                       </div>
                     </div>
 
                     <!-- Acciones secundarias -->
                     <div class="card-actions-bar mt-3">
+                      <!-- Botón de Acción Principal (Iniciar) -->
+                      <b-button
+                        variant="primary"
+                        class="btn-main-action mr-2"
+                        :disabled="!item.esreposicion && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)"
+                        @click="handleRightPanelClick(item)"
+                      >
+                        <b-icon icon="play-fill" class="mr-1"></b-icon> Iniciar
+                      </b-button>
+
                       <div class="btn-lote-wrapper">
-                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" />
+                        <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-diseno-wrapper">
                         <diseno-view-image :id="item.orden || item.id_orden" />
@@ -568,6 +671,17 @@
                       <div class="btn-vinculadas-wrapper" v-if="filterVinculdas(item.orden || item.id_orden).length > 0">
                         <ordenes-vinculadas-v2 :ordenes_vinculadas="filterVinculdas(item.orden || item.id_orden)" />
                       </div>
+                      <!-- Botón de Piezas (Estilizado como los demás con ml-auto) -->
+                      <b-button
+                        variant="light"
+                        class="btn-pzas-badge ml-auto"
+                        @click="abrirAsignacionPiezas(item.orden || item.id_orden)"
+                        v-b-tooltip.hover
+                        title="Ver Asignación de Piezas"
+                      >
+                        <b-icon icon="box-seam" class="mr-1"></b-icon>
+                        <strong>{{ item.unidades }}</strong>
+                      </b-button>
                     </div>
                   </div>
 
@@ -1062,6 +1176,58 @@ export default {
   },
 
   methods: {
+    getDeptTipoById(id) {
+      if (!id) return 'general';
+      const dept = this.$store.state.login.departamentos.find(el => parseInt(el._id) === parseInt(id));
+      if (dept && dept.tipo) return dept.tipo;
+      return 'general';
+    },
+
+    // Resumen de material estimado por orden (mismo cálculo que FinalizarLoteModal.vue,
+    // reutilizando dataInsumos ya cargado) para mostrarlo por adelantado en la tarjeta.
+    calcularMaterialOrden(idOrden) {
+      if (!Array.isArray(this.dataInsumos) || this.dataInsumos.length === 0) return '';
+      const depId = this.$store.state.login.currentDepartamentId;
+
+      const insumosFiltrados = this.dataInsumos.filter((el) => {
+        if (el.id_orden != idOrden) return false;
+        if (parseInt(el.id_departamento) === parseInt(depId)) return true;
+        const currentTipo = this.$store.getters['login/currentDepartamentTipo'];
+        const elTipo = this.getDeptTipoById(el.id_departamento);
+        const materialTipos = ["estampado", "corte"];
+        return materialTipos.includes(currentTipo) && materialTipos.includes(elTipo);
+      });
+
+      if (insumosFiltrados.length === 0) return '';
+
+      const productosUnicos = new Map();
+      insumosFiltrados.forEach((item) => {
+        const key = `${item.id_ordenes_productos}_${item.catalogo}`;
+        if (!productosUnicos.has(key)) {
+          productosUnicos.set(key, {
+            catalogo: item.catalogo || 'Sin catálogo',
+            cantidad: parseFloat(item.cantidad_estimada_de_consumo) || 0,
+            unidades: parseFloat(item.unidades) || 0,
+            unidad: (item.tipo_insumo === 'tela' && item.unidad_de_medida === 'Kg') ? 'Mt' : (item.unidad_de_medida || 'Metros')
+          });
+        }
+      });
+
+      const catalogoMap = new Map();
+      productosUnicos.forEach((p) => {
+        const total = p.cantidad * p.unidades;
+        if (catalogoMap.has(p.catalogo)) {
+          catalogoMap.get(p.catalogo).total += total;
+        } else {
+          catalogoMap.set(p.catalogo, { total, unidad: p.unidad, nombre_catalogo: p.catalogo });
+        }
+      });
+
+      return Array.from(catalogoMap.values())
+        .map(i => `${i.total.toFixed(2)} ${i.unidad} (${i.nombre_catalogo})`)
+        .join(', ');
+    },
+
     abrirAsignacionPiezas(idorden) {
       const refName = `asignacion-${idorden}`;
       const targets = this.$refs[refName];
@@ -1108,23 +1274,6 @@ export default {
     getTaskStatusPillLabel(item) {
       if (parseInt(item.prioridad) > 0) return 'Urgente';
       return this.isTaskInProcess(item) ? 'En proceso' : 'Pendiente';
-    },
-
-    getTaskStatusPillClass(item) {
-      if (parseInt(item.prioridad) > 0) return 'status-urgent';
-      return this.isTaskInProcess(item) ? 'status-process' : 'status-pending';
-    },
-
-    getRightPanelClass(item) {
-      const isUrgent = parseInt(item.prioridad) > 0;
-      if (this.isTaskInProcess(item)) {
-        return isUrgent ? 'right-urgent-process' : 'right-normal-process';
-      }
-      // Pendiente: Si está bloqueada por el departamento previo
-      if (!item.esreposicion && this.verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)) {
-        return 'disabled-action';
-      }
-      return isUrgent ? 'right-urgent-pending' : 'right-normal-pending';
     },
 
     handleRightPanelClick(item) {
@@ -1527,8 +1676,12 @@ export default {
 
     async loadDataInsumos() {
       try {
+        const ordenesEnLotes = (this.lotesActivos || []).flatMap(lote => (lote.ordenes || []).map(o => o.id_orden || o.orden).filter(Boolean));
         const allOrdenes = [...(this.ordenes || []), ...(this.reposiciones || []), ...(this.vinculadas || [])];
-        const ordenesIds = [...new Set(allOrdenes.map(o => o.id_orden || o.orden).filter(Boolean))];
+        const ordenesIds = [...new Set([
+          ...allOrdenes.map(o => o.id_orden || o.orden).filter(Boolean),
+          ...ordenesEnLotes
+        ])];
 
         if (ordenesIds.length === 0) {
           this.dataInsumos = [];
@@ -2177,21 +2330,6 @@ export default {
   color: #4a5568;
 }
 
-.pzas-badge {
-  background-color: #f7fafc;
-  border-radius: 6px;
-  padding: 2px 6px;
-  border: 1px solid #edf2f7;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pzas-badge:hover {
-  background-color: #edf2f7;
-  border-color: #cbd5e0;
-  transform: translateY(-1px);
-}
-
 .time-badge {
   background-color: #f7fafc;
   border-radius: 6px;
@@ -2497,6 +2635,11 @@ export default {
 
 /* Adaptación móvil - solo íconos */
 @media (max-width: 576px) {
+  .card-actions-bar {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 4px !important;
+  }
   .card-right-action {
     width: 40px !important;
     height: 40px !important;
@@ -2562,5 +2705,81 @@ export default {
 .mobile-search-wrapper /deep/ .input-search {
   width: 100% !important;
   float: none !important;
+}
+
+.card-actions-bar .btn-main-action.btn-primary {
+  background-color: #007bff !important;
+  color: #ffffff !important;
+  border-color: #007bff !important;
+}
+.card-actions-bar .btn-main-action.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3 !important;
+  border-color: #004085 !important;
+}
+.card-actions-bar .btn-main-action.btn-success {
+  background-color: #28a745 !important;
+  color: #ffffff !important;
+  border-color: #28a745 !important;
+}
+.card-actions-bar .btn-main-action.btn-success:hover:not(:disabled) {
+  background-color: #218838 !important;
+  border-color: #1e7e34 !important;
+}
+.material-badge-inline {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: normal;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+/* Botón de Piezas maquetado como los secundarios */
+.card-actions-bar .btn-pzas-badge {
+  background-color: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  color: #495057 !important;
+  border-radius: 8px !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 10px !important;
+  gap: 4px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+}
+.card-actions-bar .btn-pzas-badge:hover {
+  background-color: #edf2f7 !important;
+  border-color: #cbd5e0 !important;
+}
+.card-actions-bar .btn-pzas-badge strong {
+  font-weight: 700 !important;
+}
+
+@media (max-width: 576px) {
+  .card-actions-bar .btn-pzas-badge {
+    width: auto !important;
+    height: 36px !important;
+    padding: 0 10px !important;
+    border-radius: 18px !important;
+    font-size: 0.85rem !important;
+  }
+  .card-actions-bar .btn-pzas-badge svg,
+  .card-actions-bar .btn-pzas-badge .b-icon {
+    position: static !important;
+    transform: none !important;
+    font-size: 1rem !important;
+    margin-right: 4px !important;
+  }
 }
 </style>

@@ -11,14 +11,14 @@
       <b-modal :id="modalId" :title="'Mi Asignación - Orden #' + idorden" hide-footer size="md" centered
         @show="cargarDatos">
         <!-- Renderizar Contenido -->
-        <AsignacionContenido :datos="datos" :loading="loading" :totalPiezas="totalPiezas" />
+        <AsignacionContenido :datos="datos" :loading="loading" :totalPiezas="totalPiezas" :materialEstimado="materialEstimado" />
       </b-modal>
     </template>
 
     <!-- MODO EMBEDDED (INYECTANDO DENTRO DE OTRO MODAL COMO LINKSEARCH) -->
     <template v-else>
         <!-- Renderizar Contenido Directamente -->
-        <AsignacionContenido :datos="datos" :loading="loading" :totalPiezas="totalPiezas" />
+        <AsignacionContenido :datos="datos" :loading="loading" :totalPiezas="totalPiezas" :materialEstimado="materialEstimado" />
     </template>
   </div>
 </template>
@@ -45,6 +45,10 @@ export default {
     hideButton: {
       type: Boolean,
       default: false
+    },
+    materialEstimado: {
+      type: String,
+      default: ''
     }
   },
   data() {

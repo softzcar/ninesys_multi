@@ -4,7 +4,7 @@
       variant="primary"
       @click="$bvModal.show(modalView)"
     >
-      <b-icon icon="file-image"></b-icon>
+      <b-icon icon="image"></b-icon>
     </b-button>
 
     <b-modal

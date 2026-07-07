@@ -3,7 +3,7 @@
     <div>
       <!-- <b-button v-b-modal.modalPopover>Ver detalles</b-button> -->
       <b-button variant="primary" @click="$bvModal.show(modal)">
-        <b-icon icon="eye"></b-icon>
+        <b-icon icon="card-text"></b-icon>
       </b-button>
 
       <b-modal :id="modal" :title="title" size="lg" ok-only>
