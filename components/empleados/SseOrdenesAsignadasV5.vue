@@ -110,7 +110,7 @@
             <b-collapse :visible="!collapsedSections.urgente">
               <div class="section-content mt-2">
                 <div v-for="item in urgentItems" :key="item.esreposicion ? 'rep-' + item.id_reposicion : 'ord-' + item.id_orden" class="task-card-item" :id="`task-card-${item.esreposicion ? 'rep-' + item.id_reposicion : 'ord-' + item.id_orden}`">
-                  
+
                   <!-- Card Component Reutilizado con estructura responsiva -->
                   <div class="modern-task-card urgent-card">
                     <div class="card-main-row">
@@ -128,6 +128,11 @@
                           <span class="info-item material-badge-inline">
                             <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
                             {{ calcularMaterialOrden(item.orden || item.id_orden) }}
+                          </span>
+                        </div>
+                        <div class="info-detalle-row" v-if="item.esreposicion && item.detalle_reposicion">
+                          <span class="detalle-reposicion-text">
+                            <b-icon icon="chat-square-text-fill" class="mr-1"></b-icon>{{ item.detalle_reposicion }}
                           </span>
                         </div>
                         <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
@@ -456,6 +461,11 @@
                             {{ calcularMaterialOrden(item.orden || item.id_orden) }}
                           </span>
                         </div>
+                        <div class="info-detalle-row" v-if="item.esreposicion && item.detalle_reposicion">
+                          <span class="detalle-reposicion-text">
+                            <b-icon icon="chat-square-text-fill" class="mr-1"></b-icon>{{ item.detalle_reposicion }}
+                          </span>
+                        </div>
                         <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
                           <span class="status-pill status-urgent">Urgente</span>
                           <span class="info-item time-badge" :class="filterFechaEstimada(item.orden || item.id_orden).variant">
@@ -546,6 +556,11 @@
                             {{ calcularMaterialOrden(item.orden || item.id_orden) }}
                           </span>
                         </div>
+                        <div class="info-detalle-row" v-if="item.detalle_reposicion">
+                          <span class="detalle-reposicion-text">
+                            <b-icon icon="chat-square-text-fill" class="mr-1"></b-icon>{{ item.detalle_reposicion }}
+                          </span>
+                        </div>
                         <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
                           <span :class="['status-pill', parseInt(item.prioridad) > 0 ? 'status-urgent' : 'status-process']">
                             {{ parseInt(item.prioridad) > 0 ? 'Urgente' : 'En proceso' }}
@@ -634,6 +649,11 @@
                           <span class="info-item material-badge-inline">
                             <b-icon icon="tag-fill" class="mr-1 text-primary"></b-icon>
                             {{ calcularMaterialOrden(item.orden || item.id_orden) }}
+                          </span>
+                        </div>
+                        <div class="info-detalle-row" v-if="item.detalle_reposicion">
+                          <span class="detalle-reposicion-text">
+                            <b-icon icon="chat-square-text-fill" class="mr-1"></b-icon>{{ item.detalle_reposicion }}
                           </span>
                         </div>
                         <div class="info-bottom-row mt-2 d-flex align-items-center flex-wrap" style="gap: 8px;">
@@ -2739,6 +2759,28 @@ export default {
   gap: 4px;
   max-width: 100%;
   word-break: break-word;
+}
+
+/* Detalle de la reposición escrito por el jefe de producción */
+.info-detalle-row {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.detalle-reposicion-text {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  background-color: #fffaf0;
+  color: #7b341e;
+  border: 1px solid #feebc8;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 /* Botón de Piezas maquetado como los secundarios */
