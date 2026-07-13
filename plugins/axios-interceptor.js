@@ -61,11 +61,43 @@ if (!axios.Axios.prototype.request.__wrappedForCache) {
   axios.Axios.prototype.request.__wrappedForCache = true
 }
 
-export default function ({ $axios, store }) {
+export default function ({ $axios, store, app }) {
 
   // Función auxiliar para verificar si una URL pertenece al servicio WhatsApp
   const isWhatsAppService = (url) => {
     return url && url.includes(store.$config?.WS_API)
+  }
+
+  // Red de seguridad global: si un componente no maneja su propio error (no hace
+  // .catch()/$fire), esto garantiza que el usuario SIEMPRE vea algo cuando una
+  // petición falla, en vez de que la UI quede silenciosamente desactualizada o
+  // vacía sin explicación. No reemplaza el manejo específico por componente
+  // (donde ya exista, este toast aparece además, no en su lugar); es un piso
+  // mínimo para los casos que hoy no muestran nada.
+  const showGlobalErrorToast = (error) => {
+    try {
+      const description = error?.response?.data?.error?.description
+      const status = error?.response?.status
+      const message = description && description !== 'An internal error has occurred while processing your request.'
+        ? description
+        : 'Ocurrió un error al comunicarse con el servidor. Por favor intente nuevamente.'
+
+      // $bvToast solo existe en la instancia raíz de Vue ya montada (window.$nuxt),
+      // no en el objeto "app" de contexto del plugin (que se recibe antes del montaje).
+      const bvToast = (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$bvToast) || (app && app.$bvToast)
+      if (bvToast) {
+        bvToast.toast(message, {
+          title: status ? `Error (${status})` : 'Error',
+          variant: 'danger',
+          autoHideDelay: 6000,
+          appendToast: true,
+          solid: true,
+        })
+      }
+    } catch (toastError) {
+      // Nunca dejar que el propio manejo de errores rompa la app
+      console.error('Error mostrando el toast global de error:', toastError)
+    }
   }
 
   let activeLoginPromise = null
@@ -197,6 +229,13 @@ export default function ({ $axios, store }) {
                 store.commit('login/setToken', null)
                 store.commit('login/setRefreshToken', null)
             }
+        } else if (!error.config?.suppressGlobalErrorToast) {
+            // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza
+            // que cualquier error de la API se vea, aunque el componente que hizo
+            // la petición no tenga su propio manejo. Un componente puede pasar
+            // `suppressGlobalErrorToast: true` en la config de su llamada si ya
+            // muestra su propio mensaje y no quiere el toast genérico además.
+            showGlobalErrorToast(error)
         }
         // Para otros endpoints, no hacer logout por errores 401/403
         return Promise.reject(error)
