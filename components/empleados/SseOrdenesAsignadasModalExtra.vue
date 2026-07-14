@@ -1315,22 +1315,6 @@ export default {
             }
         }, */
 
-    async rendimiento(valor, idOrden) {
-      const data = new URLSearchParams();
-      data.set("id_orden", idOrden);
-      data.set("valor", valor);
-      data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-      data.set("departamento", this.$store.state.login.currentDepartament);
-
-      await this.$axios
-        .post(`${this.$config.API}/insumos/rendimiento`, data)
-        .then((res) => {
-          console.log("Rendimienot enviado");
-          // this.resetForm()
-          // this.$bvModal.hide(this.modal)
-        });
-    },
-
     async cargarConsumosPrevios() {
       const isCorte = this.$store.getters['login/currentDepartamentTipo'] === 'corte';
       if (!isCorte || !this.idorden) return;
@@ -1794,23 +1778,6 @@ export default {
         );
 
       return response; // Return for response checking
-    },
-
-    async postReposicion() {
-      const data = new URLSearchParams();
-      data.set("id_orden", idOrden);
-      data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-      data.set("terminar", 1);
-      data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-      data.set("departamento", this.$store.state.login.currentDepartament);
-
-      await this.$axios
-        .post(`${this.$config.API}/insumos/rendimiento`, data)
-        .then((res) => {
-          console.log("Rendimienot enviado");
-          // this.resetForm()
-          // this.$bvModal.hide(this.modal)
-        });
     },
 
     async registrarEstado(tipo, id_orden, unidades) {
