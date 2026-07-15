@@ -699,7 +699,7 @@ export default {
       data.set("montoBolivaresTransferencia", montoBolivaresTransferencia);
 
       data.set("abono", this.form.abono);
-      data.set("tipoAbono", "Abono a orden");
+      data.set("tipoAbono", "Abono a Orden");
 
       data.set("detalleZelle", this.form.detalleZelle);
       data.set("detallePanama", this.form.detallePanama);
@@ -825,7 +825,7 @@ export default {
       data.set("montoBolivaresTransferencia", montoBolivaresTransferencia);
 
       data.set("abono", this.form.abono);
-      data.set("tipoAbono", "Abono a orden");
+      data.set("tipoAbono", "Abono a Orden");
 
       console.log("data:", data);
 
