@@ -107,6 +107,36 @@
                     ></b-form-radio-group>
                   </b-col>
                 </b-row>
+
+                <b-row class="mb-3" v-if="reporteGenerado">
+                  <b-col class="mb-2">
+                    <h5 class="mt-2 mb-2 pb-2">Filtrar por Moneda</h5>
+                    <b-form-radio-group
+                      id="moneda-filter"
+                      v-model="selectedMoneda"
+                      :options="optionsMonedas"
+                      name="moneda-filter-radios"
+                      buttons
+                      button-variant="outline-primary"
+                      size="sm"
+                    ></b-form-radio-group>
+                  </b-col>
+                </b-row>
+
+                <b-row class="mb-3" v-if="reporteGenerado">
+                  <b-col class="mb-2">
+                    <h5 class="mt-2 mb-2 pb-2">Filtrar por Método de Pago</h5>
+                    <b-form-radio-group
+                      id="metodo-pago-filter"
+                      v-model="selectedMetodoPago"
+                      :options="optionsMetodoPago"
+                      name="metodo-pago-filter-radios"
+                      buttons
+                      button-variant="outline-primary"
+                      size="sm"
+                    ></b-form-radio-group>
+                  </b-col>
+                </b-row>
               </b-form>
 
               <div v-if="!reporteGenerado" class="py-5 text-center">
@@ -252,6 +282,10 @@
                           {{ data.item.esDuplicado ? '-' : formatNumber(data.item.total_descuento_valor) }}
                         </template>
 
+                        <template #cell(total_nota_credito_valor)="data">
+                          {{ data.item.esDuplicado ? '-' : formatNumber(data.item.total_nota_credito_valor) }}
+                        </template>
+
                         <template #cell(total_neto)="data">
                           <b>{{ data.item.esDuplicado ? '-' : formatNumber(data.item.total_neto) }}</b>
                         </template>
@@ -275,6 +309,9 @@
                         </template>
                         <template #foot(total_descuento_valor)>
                           <div class="text-right">{{ formatNumber(totales.sumas.descuentos) }}</div>
+                        </template>
+                        <template #foot(total_nota_credito_valor)>
+                          <div class="text-right">{{ formatNumber(totales.sumas.notaCredito) }}</div>
                         </template>
                         <template #foot(total_neto)>
                           <div class="text-right"><b>{{ formatNumber(totales.sumas.neto) }}</b></div>
@@ -324,6 +361,10 @@ export default {
       selectedVendedor: null,
       selectedCategory: 'Todas',
       optionsCategories: [],
+      selectedMoneda: 'Todas',
+      optionsMonedas: [],
+      selectedMetodoPago: 'Todos',
+      optionsMetodoPago: [],
       campos: [
         {
           key: "orden",
@@ -393,6 +434,13 @@ export default {
           thClass: "text-right",
         },
         {
+          key: "total_nota_credito_valor",
+          label: "Nota de Crédito",
+          sortable: true,
+          tdClass: "text-right",
+          thClass: "text-right",
+        },
+        {
           key: "total_neto",
           label: "Monto Neto",
           sortable: true,
@@ -424,10 +472,12 @@ export default {
           }
           return pago.product_categories && Array.isArray(pago.product_categories) && pago.product_categories.some(cat => cat && cat.category_name === this.selectedCategory);
         })
+        .filter(pago => this.selectedMoneda === 'Todas' || pago.moneda === this.selectedMoneda)
+        .filter(pago => this.selectedMetodoPago === 'Todos' || pago.metodo_pago === this.selectedMetodoPago)
         .map(pago => {
           const montoLocal = parseFloat(pago.monto) || 0;
           const tasaVal = parseFloat(pago.tasa) || 1;
-          
+
           let ratio = 1;
           let montoAjustadoLocal = montoLocal;
           let montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoLocal / tasaVal) : montoLocal;
@@ -447,19 +497,26 @@ export default {
           const yaProcesada = ordenesProcesadas.has(ordenId);
           ordenesProcesadas.add(ordenId);
 
-          const totalDescuentoBase = (parseFloat(pago.total_descuento) || 0) + (parseFloat(pago.total_nota_credito) || 0);
+          // NOTA: total_nota_credito se maneja aparte de total_descuento y se SUMA
+          // (no se resta) al saldo pendiente. Es la misma convención ya usada en
+          // ordenes/abono.vue y en linkSearch (buscar/resultado.vue): una nota de
+          // crédito incrementa lo que el cliente aún debe, no lo reduce.
+          const totalDescuentoBase = parseFloat(pago.total_descuento) || 0;
+          const totalNotaCreditoBase = parseFloat(pago.total_nota_credito) || 0;
           const totalOrdenBase = parseFloat(pago.total_orden) || 0;
           const totalAbonoBase = parseFloat(pago.total_abonos_base) || 0;
 
           // Scaled versions (proportional to category if filtered)
           const totalOrdenScaled = ratio * totalOrdenBase;
           const totalDescuentoScaled = ratio * totalDescuentoBase;
+          const totalNotaCreditoScaled = ratio * totalNotaCreditoBase;
           const totalNetoScaled = totalOrdenScaled - totalDescuentoScaled;
-          const saldoPendienteScaled = totalNetoScaled - (ratio * totalAbonoBase);
+          const saldoPendienteScaled = totalNetoScaled - (ratio * totalAbonoBase) + totalNotaCreditoScaled;
 
           // Zero out duplicate values for displaying/summing order-level fields
           const total_orden = yaProcesada ? 0 : totalOrdenScaled;
           const total_descuento_valor = yaProcesada ? 0 : totalDescuentoScaled;
+          const total_nota_credito_valor = yaProcesada ? 0 : totalNotaCreditoScaled;
           const total_neto = yaProcesada ? 0 : totalNetoScaled;
           const saldo_pendiente = yaProcesada ? 0 : (saldoPendienteScaled > 0.01 ? saldoPendienteScaled : 0);
 
@@ -469,6 +526,7 @@ export default {
             montoAjustadoUsd,
             total_orden,
             total_descuento_valor,
+            total_nota_credito_valor,
             total_neto,
             saldo_pendiente: saldo_pendiente,
             esDuplicado: yaProcesada
@@ -484,6 +542,7 @@ export default {
           usd: 0,
           total_orden: 0,
           descuentos: 0,
+          notaCredito: 0,
           neto: 0,
           saldo: 0
         }
@@ -492,17 +551,18 @@ export default {
       const pagosSeguro = Array.isArray(this.pagosFiltrados) ? this.pagosFiltrados : [];
 
       pagosSeguro.forEach((item) => {
-        const { metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_neto, saldo_pendiente } = item;
+        const { metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_nota_credito_valor, total_neto, saldo_pendiente } = item;
         const montoUsd = parseFloat(montoAjustadoUsd) || 0;
 
         totales.totalGeneral += montoUsd;
-        
+
         totales.sumas.monto += parseFloat(montoAjustadoLocal) || 0;
         totales.sumas.usd += montoUsd;
 
         // Sumamos métricas de orden directly (duplicates are already 0 in pagosFiltrados)
         totales.sumas.total_orden += parseFloat(total_orden) || 0;
         totales.sumas.descuentos += parseFloat(total_descuento_valor) || 0;
+        totales.sumas.notaCredito += parseFloat(total_nota_credito_valor) || 0;
         totales.sumas.neto += parseFloat(total_neto) || 0;
         totales.sumas.saldo += parseFloat(saldo_pendiente) || 0;
 
@@ -565,6 +625,40 @@ export default {
       console.log("Final Options:", this.optionsCategories);
     },
 
+    generateMonedaOptions() {
+      const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
+      const unicos = new Map();
+      pagosSeguro.forEach((p) => {
+        if (p.moneda) {
+          const key = p.moneda.trim();
+          if (!unicos.has(key)) unicos.set(key, key);
+        }
+      });
+
+      const opciones = [...unicos.values()]
+        .sort((a, b) => a.localeCompare(b))
+        .map((moneda) => ({ text: moneda, value: moneda }));
+
+      this.optionsMonedas = [{ text: "Todas", value: "Todas" }, ...opciones];
+    },
+
+    generateMetodoPagoOptions() {
+      const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
+      const unicos = new Map();
+      pagosSeguro.forEach((p) => {
+        if (p.metodo_pago) {
+          const key = p.metodo_pago.trim();
+          if (!unicos.has(key)) unicos.set(key, key);
+        }
+      });
+
+      const opciones = [...unicos.values()]
+        .sort((a, b) => a.localeCompare(b))
+        .map((metodo) => ({ text: metodo, value: metodo }));
+
+      this.optionsMetodoPago = [{ text: "Todos", value: "Todos" }, ...opciones];
+    },
+
     onFiltered(filteredItems) {
       this.totalRows = filteredItems.length;
       this.currentPage = 1;
@@ -586,6 +680,8 @@ export default {
 
           this.totalRows = 0;
           this.generateCategoryOptions();
+          this.generateMonedaOptions();
+          this.generateMetodoPagoOptions();
           this.overlay = false;
         });
     },
@@ -637,6 +733,10 @@ export default {
 
           this.totalRows = this.pagos.length;
           this.generateCategoryOptions();
+          this.generateMonedaOptions();
+          this.generateMetodoPagoOptions();
+          this.selectedMoneda = 'Todas';
+          this.selectedMetodoPago = 'Todos';
           this.reporteGenerado = true;
           this.overlay = false;
         })
