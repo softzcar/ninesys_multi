@@ -45,112 +45,13 @@
                   <b-col>
                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
                     <b-list-group class="mb-4">
-                      <b-list-group-item>DOLARES: {{ formatMonto(caja[0] ? caja[0].monto : 0) }}</b-list-group-item>
-                      <b-list-group-item>PESOS: {{ formatMonto(caja[1] ? caja[1].monto : 0) }}</b-list-group-item>
-                      <b-list-group-item>BOLIVARES: {{ formatMonto(caja[2] ? caja[2].monto : 0) }}</b-list-group-item>
+                      <b-list-group-item>DOLARES: {{ formatNumber(caja[0] ? caja[0].monto : 0) }}</b-list-group-item>
+                      <b-list-group-item>PESOS: {{ formatNumber(caja[1] ? caja[1].monto : 0) }}</b-list-group-item>
+                      <b-list-group-item>BOLIVARES: {{ formatNumber(caja[2] ? caja[2].monto : 0) }}</b-list-group-item>
                     </b-list-group>
                   </b-col>
                 </b-row>
 
-                <!-- REPORTE DE RETIROS (Reubicado arriba del botón RETIRAR) -->
-                <b-row class="mt-2">
-                  <b-col>
-                    <hr />
-                    <h4 class="mb-4">Reporte de retiros</h4>
-
-                    <!-- SELECTOR DE RANGO DE FECHAS DINÁMICO -->
-                    <b-row class="mb-4 justify-content-center">
-                      <b-col md="12" lg="10">
-                        <b-card class="shadow-sm border-light">
-                          <b-row align-v="center">
-                            <b-col md="5">
-                              <label class="small font-weight-bold text-muted text-uppercase">Fecha Inicio</label>
-                              <b-form-datepicker
-                                v-model="fechaInicio"
-                                @input="getRetiros"
-                                :max="today"
-                                locale="es-VE"
-                                size="sm"
-                                placeholder="Inicio"
-                                class="border-light"
-                              ></b-form-datepicker>
-                            </b-col>
-                            <b-col md="2" class="text-center pt-3">
-                              <b-icon icon="arrow-right" variant="primary" font-scale="1.5"></b-icon>
-                            </b-col>
-                            <b-col md="5">
-                              <label class="small font-weight-bold text-muted text-uppercase">Fecha Fin</label>
-                              <b-form-datepicker
-                                v-model="fechaFin"
-                                @input="getRetiros"
-                                :max="today"
-                                locale="es-VE"
-                                size="sm"
-                                placeholder="Fin"
-                                class="border-light"
-                              ></b-form-datepicker>
-                            </b-col>
-                          </b-row>
-                          
-                          <b-alert
-                            v-if="dateError"
-                            show
-                            variant="danger"
-                            class="mt-3 mb-0 small py-2 px-3 border-0 shadow-sm"
-                          >
-                            <b-icon icon="exclamation-triangle-fill" class="mr-2"></b-icon>
-                            {{ dateError }}
-                          </b-alert>
-                        </b-card>
-                      </b-col>
-                    </b-row>
-                    
-                      <b-table
-                        striped
-                        hover
-                        responsive
-                        :items="report"
-                        :fields="fields"
-                        show-empty
-                        empty-text="No hay retiros registrados para este rango de fechas."
-                      >
-                        <template #cell(monto)="data">
-                          {{ formatMonto(data.item.monto) }}
-                        </template>
-
-                        <template #cell(moneda)="data">
-                          <b-badge variant="light">{{ data.item.moneda }}</b-badge>
-                          <small class="text-muted d-block">{{ data.item.metodo_pago }}</small>
-                        </template>
-
-                        <template #cell(detalle_retiro)="data">
-                          {{ data.item.detalle_retiro }}
-                          <br>
-                          <small class="text-muted">{{ data.item.empleado }} - {{ data.item.moment }}</small>
-                        </template>
-                      </b-table>
-                  </b-col>
-                </b-row>
-
-                <b-row class="mt-4">
-                  <b-col>
-                    <h2 class="mb-4">
-                      TOTAL RETIRO: {{ formatMonto(totalRetiro) }}
-                      <b-button
-                        size="lg"
-                        class="ml-4"
-                        variant="success"
-                        @click="enviarRetiro"
-                      >RETIRAR</b-button>
-                    </h2>
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-col>
-                    <h4>Detalle del retiro</h4>
-                    <b-form-textarea v-model="form.detalle"></b-form-textarea>
-                  </b-col>
-                </b-row>
                 <b-row>
                   <b-col
                     xl="3"
@@ -162,7 +63,7 @@
                     <b-row>
                       <b-col>
                         <hr />
-                        <h4 class="mb-4">Dólares {{ formatMonto(totalDolares) }}</h4>
+                        <h4 class="mb-4">Dólares {{ formatNumber(totalDolares) }}</h4>
                       </b-col>
                     </b-row>
 
@@ -189,7 +90,7 @@
                     <b-row>
                       <b-col>
                         <hr />
-                        <h4 class="mb-4">Pesos {{ formatMonto(totalPesos) }}</h4>
+                        <h4 class="mb-4">Pesos {{ formatNumber(totalPesos) }}</h4>
                       </b-col>
                     </b-row>
 
@@ -216,7 +117,7 @@
                     <b-row>
                       <b-col>
                         <hr />
-                        <h4 class="mb-4">Bolívares {{ formatMonto(totalBolivares) }}</h4>
+                        <h4 class="mb-4">Bolívares {{ formatNumber(totalBolivares) }}</h4>
                       </b-col>
                     </b-row>
                     <b-row align-h="start">
@@ -246,6 +147,28 @@
                     md="9"
                     sm="12"
                   >
+                  </b-col>
+                </b-row>
+
+                <b-row class="mt-4">
+                  <b-col>
+                    <h4>Detalle del retiro</h4>
+                    <b-form-textarea v-model="form.detalle"></b-form-textarea>
+                  </b-col>
+                </b-row>
+
+                <b-row class="mt-4">
+                  <b-col>
+                    <hr />
+                    <h2 class="mb-4">
+                      TOTAL RETIRO: {{ formatNumber(totalRetiro) }}
+                      <b-button
+                        size="lg"
+                        class="ml-4"
+                        variant="success"
+                        @click="enviarRetiro"
+                      >RETIRAR</b-button>
+                    </h2>
                   </b-col>
                 </b-row>
               </div>
@@ -293,11 +216,6 @@ export default {
     return {
       titulo: "Retiros",
       loading: true,
-      datosReporte: [],
-      fechaInicio: "",
-      fechaFin: "",
-      today: new Date().toISOString().substring(0, 10),
-      dateError: null,
       caja: [],
       form: {
         detalle: "",
@@ -312,22 +230,6 @@ export default {
         montoBolivaresTransferencia: 0,
         abono: 0, // Pago total o parcial
       },
-      report: [],
-      sumatoriaDescuento: 0,
-      sumatoriaTotal: 0,
-      sumatoriaAbono: 0,
-      fields: [
-        { key: "monto", label: "Monto" },
-        { key: "moneda", label: `Moneda` },
-        { key: "detalle_retiro", label: "Detalle" },
-      ],
-      /* fields: [
-        { key: '_id', label: 'ID' },
-        { key: 'pago_descuento', label: 'Descuento' },
-        { key: 'pago_total', label: 'Total' },
-        { key: 'pago_abono', label: 'Abono' },
-        { key: 'moment', label: 'Fecha' }
-      ]*/
     };
   },
   computed: {
@@ -514,15 +416,15 @@ export default {
 
       if (solicitadoDolares > saldoDolares) {
         ok = false;
-        msg += `<p>Saldo insuficiente en Dólares. Disponible: ${this.formatMonto(saldoDolares)}</p>`;
+        msg += `<p>Saldo insuficiente en Dólares. Disponible: ${this.formatNumber(saldoDolares)}</p>`;
       }
       if (solicitadoPesos > saldoPesos) {
         ok = false;
-        msg += `<p>Saldo insuficiente en Pesos. Disponible: ${this.formatMonto(saldoPesos)}</p>`;
+        msg += `<p>Saldo insuficiente en Pesos. Disponible: ${this.formatNumber(saldoPesos)}</p>`;
       }
       if (solicitadoBolivares > saldoBolivares) {
         ok = false;
-        msg += `<p>Saldo insuficiente en Bolívares. Disponible: ${this.formatMonto(saldoBolivares)}</p>`;
+        msg += `<p>Saldo insuficiente en Bolívares. Disponible: ${this.formatNumber(saldoBolivares)}</p>`;
       }
 
       // Si no hay saldo, mostramos el error y no seguimos validando otras cosas (UX)
@@ -551,9 +453,9 @@ export default {
         let resumen = `<div class="text-left">
           <p><strong>Detalle:</strong> ${this.form.detalle}</p>
           <ul>`;
-        if (solicitadoDolares > 0) resumen += `<li>Dólares: ${this.formatMonto(solicitadoDolares)}</li>`;
-        if (solicitadoPesos > 0) resumen += `<li>Pesos: ${this.formatMonto(solicitadoPesos)}</li>`;
-        if (solicitadoBolivares > 0) resumen += `<li>Bolívares: ${this.formatMonto(solicitadoBolivares)}</li>`;
+        if (solicitadoDolares > 0) resumen += `<li>Dólares: ${this.formatNumber(solicitadoDolares)}</li>`;
+        if (solicitadoPesos > 0) resumen += `<li>Pesos: ${this.formatNumber(solicitadoPesos)}</li>`;
+        if (solicitadoBolivares > 0) resumen += `<li>Bolívares: ${this.formatNumber(solicitadoBolivares)}</li>`;
         resumen += `</ul><p class="text-center mt-3"><strong>¿Confirmar este retiro?</strong></p></div>`;
 
         this.$fire({
@@ -617,7 +519,7 @@ export default {
               });
             } finally {
               // SIEMPRE refrescar la información tras intentar un retiro
-              await this.getRetiros();
+              await this.getCaja();
               this.loading = false;
             }
           }
@@ -692,106 +594,24 @@ export default {
       return newVal;
     },
 
-    async getRetiros() {
-      if (!this.fechaInicio || !this.fechaFin) return;
-
-      if (this.fechaInicio > this.fechaFin) {
-        this.dateError = "La fecha de inicio no puede ser posterior a la fecha fin.";
-        return;
-      }
-
-      this.dateError = null;
+    async getCaja() {
+      const todayStr = new Date().toISOString().substring(0, 10);
       this.loading = true;
       await this.$axios
         .get(
-          `${this.$config.API}/retiros/${this.fechaInicio}/${this.fechaFin}/${this.$store.state.login.dataUser.id_empleado}`
+          `${this.$config.API}/retiros/${todayStr}/${todayStr}/${this.$store.state.login.dataUser.id_empleado}`
         )
         .then((res) => {
-          this.report = res.data.data.retiros;
-          this.datosReporte = res.data.data.retiros;
           this.caja = res.data.data.caja;
-          console.log("caja", this.caja);
         })
         .finally(() => {
           this.loading = false;
         });
     },
-
-    updateMontoRetiro2() {
-      let newVal;
-      let montoBolivares;
-      let montoDolares;
-      let montoPesos;
-
-      // LIMPIAR VALORES ERRONEOS
-      if (this.form.montoBolivaresEfectivo === "")
-        this.form.montoBolivaresEfectivo = 0;
-      if (this.form.montoBolivaresPagomovil === "")
-        this.form.montoBolivaresPagomovil = 0;
-      if (this.form.montoBolivaresPunto === "")
-        this.form.montoBolivaresPunto = 0;
-      if (this.form.montoBolivaresTransferencia === "")
-        this.form.montoBolivaresTransferencia = 0;
-      if (this.form.montoDolaresEfectivo === "")
-        this.form.montoDolaresEfectivo = 0;
-      if (this.form.montoDolaresPanama === "") this.form.montoDolaresPanama = 0;
-      if (this.form.montoDolaresZelle === "") this.form.montoDolaresZelle = 0;
-      if (this.form.montoPesosEfectivo === "") this.form.montoPesosEfectivo = 0;
-      if (this.form.montoPesosTransferencia === "")
-        this.form.montoPesosTransferencia = 0;
-
-      // RESET MONTO ABONO
-      this.form.abono = 0;
-
-      // CALCULO DOLARES
-      montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo) +
-        parseFloat(this.form.montoDolaresPanama) +
-        parseFloat(this.form.montoDolaresZelle);
-
-      // CALCULO EN PESOS
-      montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.peso);
-
-      // CALCULO EN BOLIVARES
-      montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.dolar);
-
-      // SUMATOORIA DE TODAS LAS MONEDAS
-      console.log("dolares", montoDolares);
-      console.log("pesos", montoPesos);
-      console.log("bolivares", montoBolivares);
-      newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
-      this.form.abono = newVal;
-      console.log("this.form.abono = ", newVal);
-      return newVal;
-    },
-
-
-  },
-
-  filters: {
-    formatDate(value) {
-      // Formatea la fecha en el formato dd-mm-yyyy
-      const date = new Date(value);
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    },
   },
 
   mounted() {
-    const todayStr = new Date().toISOString().substring(0, 10);
-    this.fechaInicio = todayStr;
-    this.fechaFin = todayStr;
-    this.getRetiros();
+    this.getCaja();
   },
 
   mixins: [mixin, mixinLogin],

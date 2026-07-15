@@ -55,6 +55,11 @@
             </router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" to="/comercializacion/retiros/reporte">
+              Reporte de Retiros
+            </router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/abonos">
               Otros Abonos
             </router-link>
@@ -67,6 +72,11 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/reporte-de-caja">
               Reporte de Caja
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/comercializacion/reporte-de-caja-transacciones">
+              Transacciones de Caja
             </router-link>
           </li>
         </ul>
