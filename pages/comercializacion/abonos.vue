@@ -68,27 +68,6 @@
               </b-col>
             </b-row>
             <b-row>
-              <b-col>
-                <h2 class="mb-4">
-                  MONTO DEL ABONO {{ form.abono }}
-                  <b-button
-                    size="lg"
-                    class="ml-4"
-                    variant="success"
-                    @click="enviarAbono"
-                  >ABONAR</b-button>
-                </h2>
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col>
-                <h4>Detalle del abono</h4>
-                <b-form-textarea v-model="form.detalle"></b-form-textarea>
-              </b-col>
-            </b-row>
-
-            <b-row>
               <b-col
                 xl="3"
                 lg="3"
@@ -436,10 +415,11 @@
               </div>
             </b-modal>
 
+            <b-row>
             <b-col
-              xl="3"
-              lg="3"
-              md="3"
+              xl="4"
+              lg="4"
+              md="4"
               sm="12"
             >
               <b-row>
@@ -509,9 +489,9 @@
               </b-row>
             </b-col>
             <b-col
-              xl="3"
-              lg="3"
-              md="3"
+              xl="4"
+              lg="4"
+              md="4"
               sm="12"
             >
               <b-row>
@@ -565,9 +545,9 @@
               </b-row>
             </b-col>
             <b-col
-              xl="3"
-              lg="3"
-              md="3"
+              xl="4"
+              lg="4"
+              md="4"
               sm="12"
             >
               <b-row>
@@ -665,6 +645,29 @@
                 </b-col>
               </b-row>
             </b-col>
+            </b-row>
+
+            <b-row class="mt-4">
+              <b-col>
+                <h4>Detalle del abono</h4>
+                <b-form-textarea v-model="form.detalle"></b-form-textarea>
+              </b-col>
+            </b-row>
+
+            <b-row class="mt-4">
+              <b-col>
+                <hr />
+                <h2 class="mb-4">
+                  MONTO DEL ABONO {{ form.abono }}
+                  <b-button
+                    size="lg"
+                    class="ml-4"
+                    variant="success"
+                    @click="enviarAbono"
+                  >ABONAR</b-button>
+                </h2>
+              </b-col>
+            </b-row>
           </b-overlay>
         </b-container>
 
@@ -1163,7 +1166,7 @@ export default {
         );
         data.set("abono", abonoModalTotal);
         data.set("detalle", this.abonoOrderForm.detalle);
-        data.set("tipoAbono", "Abono a orden"); // Identificador para el backend
+        data.set("tipoAbono", "Abono Orden"); // Identificador para el backend
 
         try {
           // Usamos el mismo endpoint que el formulario principal
