@@ -23,7 +23,7 @@
               <b-button variant="primary" @click="imprimir">Imprimir</b-button>
             </span>
             <span class="floatme">
-              <diseno-viewImage :id="orderId" />
+              <diseno-viewImage :id="orderId" :aprobada="true" />
             </span>
             <span v-if="
               dataUser.departamento === 'Comecialización' ||
@@ -255,6 +255,10 @@
                 DESCUENTOS:
                 {{ currencySymbol }} {{ convertAndFormat(resOrden.orden[0].pago_descuento) }}
               </h2>
+              <h2 v-if="parseFloat(resOrden.orden[0].pago_nota_credito) > 0">
+                NOTA DE CRÉDITO:
+                {{ currencySymbol }} {{ convertAndFormat(resOrden.orden[0].pago_nota_credito) }}
+              </h2>
               <h2>
                 RESTA:
                 {{ currencySymbol }}
@@ -262,7 +266,8 @@
                   convertAndFormat(
                     montoTotalOrden(resOrden.productos) -
                     resOrden.orden[0].pago_descuento -
-                    resOrden.orden[0].pago_abono
+                    resOrden.orden[0].pago_abono +
+                    (parseFloat(resOrden.orden[0].pago_nota_credito) || 0)
                   )
                 }}
               </h2>
