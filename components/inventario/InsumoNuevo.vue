@@ -57,14 +57,12 @@
 
                                 <b-form-group v-if="costoInputMode === 'metro' && form.tipo_insumo === 'tela'"
                                     label="Precio por Metro:" label-for="input-costo-metro">
-                                    <b-form-input id="input-costo-metro" v-model="costoMetro" placeholder="0.00"
-                                        type="number" min="0" step="0.01"></b-form-input>
+                                    <campo-decimal id="input-costo-metro" v-model="costoMetro"></campo-decimal>
                                 </b-form-group>
 
                                 <b-form-group id="input-group-3-rend" label="Rendimiento (Mts/Kg):"
                                     label-for="input-rendimiento">
-                                    <b-form-input id="input-rendimiento" v-model="form.rendimiento" placeholder="0.00"
-                                        type="number" min="0" step="0.10"></b-form-input>
+                                    <campo-decimal id="input-rendimiento" v-model="form.rendimiento"></campo-decimal>
                                 </b-form-group>
 
                                 <b-form-group id="input-group-3-cant" label="Cantidad (Kg, Mts, Ml, etc):"
@@ -76,9 +74,8 @@
                                 <b-form-group id="input-group-4-costo"
                                     :label="costoInputMode === 'metro' && form.tipo_insumo === 'tela' ? 'Costo Total (Calculado):' : 'Costo Total del Lote/Rollo:'"
                                     label-for="input-costo">
-                                    <b-form-input id="input-costo" v-model="form.costo"
-                                        :readonly="costoInputMode === 'metro' && form.tipo_insumo === 'tela'"
-                                        placeholder="0.00" type="number" min="0" step="0.10"></b-form-input>
+                                    <campo-decimal id="input-costo" v-model="form.costo"
+                                        :readonly="costoInputMode === 'metro' && form.tipo_insumo === 'tela'"></campo-decimal>
                                 </b-form-group>
 
                                 <!-- SECCIÓN 3: Clasificación -->

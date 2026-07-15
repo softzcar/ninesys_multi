@@ -82,20 +82,17 @@
             <hr />
 
             <b-form-group label="EFECTIVO">
-              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoDolaresEfectivo"
-                placeholder="0.00"></b-form-input>
+              <campo-decimal v-model="formConversion.montoDolaresEfectivo"></campo-decimal>
             </b-form-group>
 
             <b-form-group label="ZELLE">
-              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoDolaresZelle"
-                placeholder="0.00"></b-form-input>
+              <campo-decimal v-model="formConversion.montoDolaresZelle"></campo-decimal>
               <b-form-input v-model="formConversion.montoDolaresZelleDetalle" placeholder="Detalle de Zelle (opcional)"
                 class="mt-2"></b-form-input>
             </b-form-group>
 
             <b-form-group label="BANESCO PANAMÁ">
-              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoDolaresPanama"
-                placeholder="0.00"></b-form-input>
+              <campo-decimal v-model="formConversion.montoDolaresPanama"></campo-decimal>
               <b-form-input v-model="formConversion.montoDolaresPanamaDetalle" placeholder="Detalle (opcional)"
                 class="mt-2"></b-form-input>
             </b-form-group>
@@ -107,13 +104,11 @@
             <hr />
 
             <b-form-group label="EFECTIVO">
-              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoPesosEfectivo"
-                placeholder="0.00"></b-form-input>
+              <campo-decimal v-model="formConversion.montoPesosEfectivo"></campo-decimal>
             </b-form-group>
 
             <b-form-group label="PAGO MÓVIL">
-              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.montoPesosPago"
-                placeholder="0.00"></b-form-input>
+              <campo-decimal v-model="formConversion.montoPesosPago"></campo-decimal>
               <b-form-input v-model="formConversion.montoPesosPagoDetalle" placeholder="Detalle (opcional)"
                 class="mt-2"></b-form-input>
             </b-form-group>
@@ -125,8 +120,7 @@
             <hr />
 
             <b-form-group label="DESCUENTO ($)">
-              <b-form-input type="number" step="0.01" min="0" v-model="formConversion.descuento"
-                placeholder="0.00"></b-form-input>
+              <campo-decimal v-model="formConversion.descuento"></campo-decimal>
             </b-form-group>
 
             <div class="mt-4 p-3 bg-light rounded">

@@ -92,6 +92,10 @@ export default {
       if (!this.items || this.items.length === 0) return []
 
       const groups = this.items.reduce((acc, item) => {
+        const cantidad = parseFloat(item.cantidad || 0);
+        // Omitir ítems que no tienen stock (cantidad <= 0)
+        if (cantidad <= 0) return acc;
+
         const sku = item.sku || 'N/A'
         if (!acc[sku]) {
           acc[sku] = {
@@ -116,7 +120,6 @@ export default {
           }
         }
 
-        const cantidad = parseFloat(item.cantidad || 0);
         const rendimiento = parseFloat(item.rendimiento || 0);
         
         let metrosCalculados = 0;
