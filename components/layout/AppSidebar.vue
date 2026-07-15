@@ -377,7 +377,25 @@ export default {
     goOut() {
       this.$confirm("¿Desea Salir del sistema?", "Salir", "question")
         .then(() => {
-          this.$router.push("/logout");
+          // Desregistrar Service Workers de forma agresiva al salir
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              for (const registration of registrations) {
+                registration.unregister();
+              }
+            });
+          }
+          // Limpiar caché de la aplicación
+          if ('caches' in window) {
+            caches.keys().then(names => {
+              for (const name of names) {
+                caches.delete(name);
+              }
+            });
+          }
+
+          this.$store.commit('login/logout');
+          window.location.href = '/';
         })
         .catch(() => { });
     },
