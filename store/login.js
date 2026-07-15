@@ -110,11 +110,24 @@ export const mutations = {
     },
     logout(state) {
         state.access = false
-        state.dataUser = []
         state.token = null
         state.refreshToken = null
+        state.dataUser = []
+        state.dataEmpresa = []
+        state.datos_personalizacion = {}
+        state.departamentos = []
+        state.modulos = []
+        state.empleado = [0, 23]
+        state.idEmpresa = 0
+        state.currentDepartament = ""
+        state.currentDepartamentId = null
+        state.currentComponent = null
+        state.currentOrdenProceso = null
+        state.currentMinOrdenProcesoId = null
+
         localStorage.removeItem('jwt_token')
         localStorage.removeItem('refresh_token')
+        localStorage.removeItem('ninesys_vuex_v1')
     },
     setToken(state, token) {
         state.token = token
