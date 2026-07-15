@@ -169,7 +169,7 @@
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-diseno-wrapper" v-if="!isTaskInProcess(item)">
-                        <diseno-view-image :id="item.orden || item.id_orden" />
+                        <diseno-view-image :id="item.orden || item.id_orden" :aprobada="true" />
                       </div>
                       <div class="btn-dano-wrapper">
                         <produccion-control-de-produccion-detalles-editor :esreposicion="item.esreposicion ? 'true' : 'false'" :idorden="item.orden || item.id_orden" :detalles-externos="item.detalle_reposicion" :detalles="item.observaciones" :detalle_empleado="item.detalle_empleado" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -400,7 +400,7 @@
                         <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-diseno-wrapper">
-                        <diseno-view-image :id="item.orden || item.id_orden" />
+                        <diseno-view-image :id="item.orden || item.id_orden" :aprobada="true" />
                       </div>
                       <div class="btn-dano-wrapper">
                         <produccion-control-de-produccion-detalles-editor :esreposicion="'false'" :idorden="item.orden || item.id_orden" :detalles-externos="item.detalle_reposicion" :detalles="item.observaciones" :detalle_empleado="item.detalle_empleado" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -500,7 +500,7 @@
                         <empleados-reposicion @reload_this="reloadMe" :id_orden="item.orden || item.id_orden" :itemRep="item" :productos="productsFilter(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-diseno-wrapper" v-if="!isTaskInProcess(item)">
-                        <diseno-view-image :id="item.orden || item.id_orden" />
+                        <diseno-view-image :id="item.orden || item.id_orden" :aprobada="true" />
                       </div>
                       <div class="btn-dano-wrapper">
                         <produccion-control-de-produccion-detalles-editor :esreposicion="item.esreposicion ? 'true' : 'false'" :idorden="item.orden || item.id_orden" :detalles-externos="item.detalle_reposicion" :detalles="item.observaciones" :detalle_empleado="item.detalle_empleado" :productos="productsFilter(item.orden || item.id_orden)" />
@@ -683,7 +683,7 @@
                         <empleados-MiAsignacionVista :ref="'asignacion-' + (item.orden || item.id_orden)" :hideButton="true" :idorden="item.orden || item.id_orden" :idempleado="emp" :material-estimado="calcularMaterialOrden(item.orden || item.id_orden)" />
                       </div>
                       <div class="btn-diseno-wrapper">
-                        <diseno-view-image :id="item.orden || item.id_orden" />
+                        <diseno-view-image :id="item.orden || item.id_orden" :aprobada="true" />
                       </div>
                       <div class="btn-dano-wrapper">
                         <produccion-control-de-produccion-detalles-editor :esreposicion="'true'" :idorden="item.orden || item.id_orden" :detalles-externos="item.detalle_reposicion" :detalles="item.observaciones" :detalle_empleado="item.detalle_empleado" :productos="productsFilter(item.orden || item.id_orden)" />

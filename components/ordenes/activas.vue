@@ -154,6 +154,7 @@
                       :index="data.index"
                       class="floatme mb-2"
                       :id="data.item.orden"
+                      :aprobada="true"
                     />
                   </div>
                   <div class="btn-acciones">

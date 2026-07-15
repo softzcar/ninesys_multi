@@ -53,7 +53,7 @@
             <ordenes-editar :key="data.item.orden + '-editar'" :data="data.item" />
           </span>
           <span class="floatme">
-            <diseno-view-image :key="data.item.acciones + '-image'" :id="data.item.acciones" />
+            <diseno-view-image :key="data.item.acciones + '-image'" :id="data.item.acciones" :aprobada="true" />
           </span>
 
           <span class="floatme">

@@ -69,7 +69,7 @@
         <template #cell(imagen)="data">
           <div class="d-flex">
             <div class="floatme mr-2">
-              <diseno-viewImage :id="data.item.id" />
+              <diseno-viewImage :id="data.item.id" :aprobada="true" />
             </div>
             <div class="floatme">
               <disenosse-uploadDisenoAprobado

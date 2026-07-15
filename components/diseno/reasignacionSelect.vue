@@ -124,6 +124,6 @@ export default {
         }
     },
 
-    props: ["item", "options", "hashtags", "idempleado", "closemodal"],
+    props: ["item", "options", "hashtags", "idempleado", "closemodal", "idorden"],
 }
 </script>

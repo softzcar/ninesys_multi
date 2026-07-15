@@ -11,7 +11,7 @@
           <b-col>
             <!-- Contenedor flex para botones -->
             <div class="d-flex flex-wrap gap-2 mb-3" style="gap: 0.5rem;">
-              <diseno-viewImage :id="idorden" />
+              <diseno-viewImage :id="idorden" :aprobada="true" />
               <b-button v-b-toggle.collapse-1 variant="primary">Ver original</b-button>
               <b-button v-b-toggle.collapse-2 variant="primary">Productos</b-button>
             </div>

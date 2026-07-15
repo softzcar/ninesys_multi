@@ -89,7 +89,7 @@
                             <div class="acciones-container">
                                 <div class="botones-superior">
                                     <div class="btn-acciones">
-                                        <diseno-view-image class="floatme mb-2" :id="data.item.orden" />
+                                        <diseno-view-image class="floatme mb-2" :id="data.item.orden" :aprobada="true" />
                                     </div>
                                     <div class="btn-acciones">
                                         <ordenes-editar :data="data.item" :key="data.item.orden" @updated="reloadMe" />

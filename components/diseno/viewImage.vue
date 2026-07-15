@@ -144,9 +144,10 @@ export default {
     async getImages() {
       this.overlay = true;
       // Primero obtenemos la RUTA de la imagen desde nuestro endpoint original
+      const aprobadaParam = this.aprobada ? "&aprobada=true" : "";
       this.$axios
         .get(
-          `${this.$config.CDN}/?id_orden=${this.id}&id_empresa=${this.$store.state.login.dataEmpresa.id}`
+          `${this.$config.CDN}/?id_orden=${this.id}&id_empresa=${this.$store.state.login.dataEmpresa.id}${aprobadaParam}`
         )
         .then((res) => {
           // Si no hay una URL válida, dejamos el campo vacío
@@ -168,7 +169,13 @@ export default {
     },
   },
 
-  props: ["id"],
+  props: {
+    id: {},
+    aprobada: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
   mounted() {
     this.title = `Imagen de la orden ${this.id}`;

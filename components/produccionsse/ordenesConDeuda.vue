@@ -64,6 +64,7 @@
                 <diseno-view-image
                   class="floatme mb-2"
                   :id="data.item.orden"
+                  :aprobada="true"
                 />
               </div>
               <div style="float: left; margin-right: 6px">

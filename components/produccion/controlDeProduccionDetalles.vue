@@ -7,7 +7,7 @@
       </b-button>
 
       <b-modal :id="modal" title="Detalles de la orden" size="lg" ok-only>
-        <diseno-viewImage :id="idorden" />
+        <diseno-viewImage :id="idorden" :aprobada="true" />
         <div v-html="detalles"></div>
       </b-modal>
     </div>

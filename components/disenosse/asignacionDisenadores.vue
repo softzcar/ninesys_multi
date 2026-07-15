@@ -143,6 +143,8 @@ export default {
                         title: "Diseñador",
                         html: `<p>La asiganción fué eliminada</p>`,
                         type: "success",
+                    }).then(() => {
+                        this.closeModal()
                     })
                 })
                 .catch((err) => {
