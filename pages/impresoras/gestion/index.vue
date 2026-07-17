@@ -28,12 +28,17 @@
                                 <b-alert class="mt-4" variant="info" :show="dataTable.items.length === 0 && !overlay">
                                     No se encontraron impresoras registradas en el sistema.
                                 </b-alert>
-                                <b-table v-if="dataTable.items.length > 0" responsive :fields="dataTable.fields" :items="dataTable.items">
+                                <b-table v-if="dataTable.items.length > 0" responsive :fields="dataTable.fields" :items="dataTable.items"
+                                    :tbody-tr-class="rowClass">
+                                    <template #cell(estado)="data">
+                                        <b-badge v-if="data.value === 'eliminada'" variant="secondary">Eliminada</b-badge>
+                                        <span v-else>{{ data.value }}</span>
+                                    </template>
                                     <template #cell(acciones)="data">
                                         <span class="floatme">
                                             <admin-ImpresoraEditar :key="data.item._id" :item="data.item" @reload="getImpresoras" />
                                         </span>
-                                        <span class="floatme">
+                                        <span class="floatme" v-if="data.item.estado !== 'eliminada'">
                                             <b-button variant="danger" @click="deleteImpresora(data.item._id)">
                                                 <b-icon icon="trash"></b-icon>
                                             </b-button>
@@ -82,9 +87,12 @@ export default {
         ...mapState("login", ["dataUser", "access"]),
     },
     methods: {
+        rowClass(item) {
+            return item && item.estado === 'eliminada' ? 'text-muted' : '';
+        },
         async getImpresoras() {
             this.overlay = true;
-            await this.$axios.get(`${this.$config.API}/impresoras`)
+            await this.$axios.get(`${this.$config.API}/impresoras`, { params: { incluirEliminadas: 1 } })
                 .then(response => {
                     this.dataTable.items = response.data;
                 })
@@ -102,7 +110,7 @@ export default {
         },
         deleteImpresora(id) {
             this.$confirm(
-                `¿Desea eliminar la impresora?`,
+                `¿Desea eliminar la impresora? Se marcará como eliminada y dejará de aparecer en los selectores activos, pero su historial de consumo y recargas de tinta se conserva.`,
                 "Eliminar Impresora",
                 "question"
             )

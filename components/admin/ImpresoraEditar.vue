@@ -189,7 +189,8 @@ export default {
             estados: [
                 { value: 'activa', text: 'Activa' },
                 { value: 'inactiva', text: 'Inactiva' },
-                { value: 'mantenimiento', text: 'Mantenimiento' }
+                { value: 'mantenimiento', text: 'Mantenimiento' },
+                { value: 'eliminada', text: 'Eliminada' }
             ],
             tecnologiasOptions: [
                 { value: null, text: 'Seleccione una opción' }
