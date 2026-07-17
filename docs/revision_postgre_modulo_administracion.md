@@ -121,9 +121,9 @@
 
 ## Inventario
 
-- [ ] 🔥Inventario
+- [x] Inventario
 - [ ] Gestión de Remanentes
-- [ ] Catálogo de insumos
+- [ ] 🔥Catálogo de insumos
 - [ ] Reprote de inventario
 - [ ] Reporte de movimientos
 
