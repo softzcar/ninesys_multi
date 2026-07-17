@@ -122,7 +122,16 @@ export default {
   },
   data() {
     return {
+      // "show" y "printerName" deben declararse aquí desde el inicio (no
+      // solo "data"): Vue 2 no detecta la ADICIÓN de propiedades nuevas a un
+      // objeto reactivo después de creado (caveat conocido de su sistema de
+      // reactividad basado en Object.defineProperty). showHistory() las
+      // agregaba recién al primer click, por lo que quedaban fuera del
+      // seguimiento reactivo -- el modal solo llegaba a abrir la primera vez
+      // por una coincidencia de re-render ajena, y nunca más después.
       historyModal: {
+        show: false,
+        printerName: '',
         data: []
       },
     };
