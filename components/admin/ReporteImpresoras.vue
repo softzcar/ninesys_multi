@@ -40,7 +40,7 @@
                   </template>
                   <template #cell(desperdicio_ajuste)="data">
                     <span v-if="data.value !== null && !isNaN(parseFloat(data.value))" :class="data.value > 1 ? 'text-danger font-weight-bold' : (data.value < -1 ? 'text-success' : 'text-muted')">
-                      {{ formatNumber(data.value) }} ml
+                      {{ formatNumber(data.value) }}
                     </span>
                     <span v-else class="text-muted italic">Abierto</span>
                   </template>
@@ -83,7 +83,7 @@ export default {
         { key: "nivel_tanque_previo", label: "Restante Previo (ml)", sortable: true },
         { key: "restante_post_recarga", label: "Total en Tanque (ml)", sortable: true },
         { key: "consumido_en_ciclo", label: "Consumido Ciclo (ml)", sortable: true },
-        { key: "desperdicio_ajuste", label: "Ajuste / Desperdicio", sortable: true },
+        { key: "desperdicio_ajuste", label: "Ajuste / Desperdicio (ml)", sortable: true },
         { key: "fecha_recarga", label: "Fecha Recarga", sortable: true },
       ],
     };
