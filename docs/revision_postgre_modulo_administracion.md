@@ -138,13 +138,13 @@
 - [x] Servicio Técnico
 - [x] Reporte de impresoras
 - [x] Reporte de Tintas
-- [ ] 🔥Tintas Actuales
+- [x] Tintas Actuales
 
 
 
 ## Empleados
 
-- [ ] Gestión de empleados
+- [ ] 🔥Gestión de empleados
 - [ ] Gestión de departamentos
 - [ ] Activación de empelados
 
