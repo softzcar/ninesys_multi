@@ -39,7 +39,7 @@
                     {{ formatNumber(data.value) }}
                   </template>
                   <template #cell(desperdicio_ajuste)="data">
-                    <span v-if="data.value !== null && !isNaN(parseFloat(data.value))" :class="data.value > 1 ? 'text-danger font-weight-bold' : (data.value < -1 ? 'text-success' : 'text-muted')">
+                    <span v-if="data.value !== null && !isNaN(parseFloat(data.value))" :class="Math.abs(data.value) > 1 ? 'text-danger font-weight-bold' : 'text-muted'">
                       {{ formatNumber(data.value) }}
                     </span>
                     <span v-else class="text-muted italic">Abierto</span>

@@ -38,7 +38,7 @@
                 {{ formatNumber(ink.tinta_restante_ultima_recarga_ml) }} ml
               </td>
               <td class="align-middle">
-                <span :class="ink.desperdicio_ciclo_pasado_ml > 0 ? 'text-danger font-weight-bold' : 'text-muted small'">
+                <span :class="Math.abs(ink.desperdicio_ciclo_pasado_ml) > 1 ? 'text-danger font-weight-bold' : 'text-muted small'">
                   {{ formatNumber(ink.desperdicio_ciclo_pasado_ml) }} ml
                 </span>
               </td>
@@ -73,7 +73,7 @@
               <td class="align-middle">{{ formatNumber(ink.total_recargado_historico_ml) }} ml</td>
               <td class="align-middle">{{ formatNumber(ink.consumo_total_historico_ml) }} ml</td>
               <td class="align-middle">
-                <span :class="ink.desperdicio_ciclo_pasado_ml > 0 ? 'text-danger font-weight-bold' : 'text-muted small'">
+                <span :class="Math.abs(ink.desperdicio_ciclo_pasado_ml) > 1 ? 'text-danger font-weight-bold' : 'text-muted small'">
                   {{ formatNumber(ink.desperdicio_ciclo_pasado_ml) }} ml
                 </span>
               </td>
