@@ -132,9 +132,9 @@
 ## Impresoras
 
 - [x] Gestión de impresoras
-- [ ] 🔥Recarga de tintas
-- [ ] Catálogo de tintas
-- [ ] Catálogo de Colores
+- [x] Recarga de tintas
+- [x] Catálogo de tintas
+- [ ] 🔥Catálogo de Colores
 - [ ] Servicio Técnico
 - [ ] Reporte de impresoras
 - [ ] Reporte de Tintas
