@@ -946,7 +946,9 @@ export default {
       }
 
       // 3. Departamentos con desperdicio habilitado en el producto
-      const deptsDesperdicio = ['Estampado', 'Corte de papel'];
+      // ("Corte de papel" ya no hace falta aquí: cualquier tipo='corte'
+      // retorna en el bloque 1 de arriba antes de llegar a este punto).
+      const deptsDesperdicio = ['Estampado'];
       if (deptsDesperdicio.includes(dep) || tipo === 'estampado') {
         const tieneDesperdicio =
           (this.dataInsumosFiltrado && this.dataInsumosFiltrado.some(el => el.usa_desperdicio == 1)) ||

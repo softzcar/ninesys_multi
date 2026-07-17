@@ -32,7 +32,6 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
 import EmpleadosReporteSemanalDeBorradores from "~/components/empleados/reporteSemanalDeBorradores.vue";
 
 export default {
@@ -41,9 +40,8 @@ export default {
     EmpleadosReporteSemanalDeBorradores,
   },
   computed: {
-    ...mapState("login", ["dataUser"]),
     isCorte() {
-      return this.dataUser?.departamento === "Corte";
+      return this.$store.getters['login/currentDepartamentTipo'] === 'corte';
     },
   },
 };

@@ -156,7 +156,7 @@ export default {
       let fields;
 
       if (this.esreposicion == "true") {
-        if (this.$store.state.login.dataUser.departamento === "Corte") {
+        if (this.$store.getters['login/currentDepartamentTipo'] === 'corte') {
           fields = [
             {
               key: "terminado",
@@ -220,7 +220,7 @@ export default {
           ];
         }
       } else {
-        if (this.$store.state.login.dataUser.departamento === "Corte") {
+        if (this.$store.getters['login/currentDepartamentTipo'] === 'corte') {
           fields = [
             {
               key: "terminado",

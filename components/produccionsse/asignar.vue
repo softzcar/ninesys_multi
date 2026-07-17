@@ -50,8 +50,8 @@
                               }}
                             </h3>
 
-                            <!-- TABLA DE AJUSTE DE CORTE (SOLO CORTE) -->
-                            <div v-if="dep.departamento === 'Corte'" class="mb-4">
+                            <!-- TABLA DE AJUSTE DE CORTE (cualquier departamento con tipo='corte') -->
+                            <div v-if="dep.tipo === 'corte'" class="mb-4">
                                 <b-alert show variant="info" class="p-2 mb-2">
                                     <small><b-icon icon="info-circle"></b-icon> Verifique las cantidades cortadas antes de asignar. Puede ajustar y crear excedentes aquí.</small>
                                 </b-alert>
@@ -1202,10 +1202,20 @@ export default {
       'Limpieza': 'sys_mostrar_insumo_en_empleado_limpieza',
       'Revisión': 'sys_mostrar_insumo_en_empleado_revision'
     };
+    // tipo->nombre para reconocer departamentos con comportamiento
+    // Corte/Estampado/Costura sin importar cómo se llamen (ej. "Corte Dos").
+    // Limpieza/Revisión no tienen tipo propio en el dropdown, se mantienen
+    // por nombre literal.
+    const tipoToNombre = {
+      corte: 'Corte',
+      estampado: 'Estampado',
+      costura: 'Costura',
+    };
 
     // Inicializar switches dinámicamente basados en los IDs de departamentos
     tabsDeps.forEach((dep) => {
-      const configField = departamentoConfigMap[dep.departamento];
+      const nombreEfectivo = tipoToNombre[dep.tipo] || dep.departamento;
+      const configField = departamentoConfigMap[nombreEfectivo];
       if (configField) {
         this.$set(
           this.switches,
