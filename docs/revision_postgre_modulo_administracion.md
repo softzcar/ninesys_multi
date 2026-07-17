@@ -145,8 +145,8 @@
 ## Empleados
 
 - [ ] 🔥Gestión de empleados
-- [ ] Gestión de departamentos
-- [ ] Activación de empelados
+- [ ] Gestión de departamentos **(reordenar/crear/editar/eliminar funcional; fix aplicado backend+frontend para reconocer tipo='corte' en vez de solo el nombre "Corte" — verificado funcionando en Control de Producción con el departamento de prueba "Corte Dos", pero el módulo de Empleados aún NO lo reconoce, hay bugs pendientes ahí — se revisan cuando se audite esa sección)**
+- [x] Activación de empelados
 
 
 
