@@ -342,7 +342,8 @@ export default {
         this.getCatalogoColores();
       } catch (error) {
         console.error("Error al crear color:", error);
-        this.$bvToast.toast("Ocurrió un error al intentar guardar el color en el servidor.", {
+        const message = error?.response?.data?.message || "Ocurrió un error al intentar guardar el color en el servidor.";
+        this.$bvToast.toast(message, {
           title: "Error",
           variant: "danger",
           solid: true
@@ -382,7 +383,8 @@ export default {
         this.getCatalogoColores();
       } catch (error) {
         console.error("Error al actualizar color:", error);
-        this.$bvToast.toast("No se pudo actualizar el canal de color.", {
+        const message = error?.response?.data?.message || "No se pudo actualizar el canal de color.";
+        this.$bvToast.toast(message, {
           title: "Error al Procesar",
           variant: "danger",
           solid: true
