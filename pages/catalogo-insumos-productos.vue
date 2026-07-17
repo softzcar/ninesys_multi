@@ -15,8 +15,6 @@
                             <b-col>
                                 <h2 class="mb-4">{{ titulo }}</h2>
                                 <admin-CatalogoInsumosProductosNuevo
-                                    :products="products"
-                                    :departamentos="departamentos"
                                     @reload="getCatalogoInsumosProductos"
                                 />
                             </b-col>
@@ -33,8 +31,6 @@
                                             <span class="floatme">
                                                 <admin-CatalogoInsumosProductosEditar
                                                     :item="data.item"
-                                                    :products="products"
-                                                    :departamentos="departamentos"
                                                     @reload="getCatalogoInsumosProductos"
                                                 />
                                             </span>
@@ -74,20 +70,10 @@ export default {
             titulo: "Catálogo de Insumos de Productos",
             overlay: true,
             dataTable: [],
-            products: [],
-            departamentos: [],
             fields: [
                 {
                     key: "nombre",
                     label: "Nombre",
-                },
-                {
-                    key: "product_name",
-                    label: "Producto",
-                },
-                {
-                    key: "departamento_name",
-                    label: "Departamento",
                 },
                 {
                     key: "_id",
@@ -103,27 +89,8 @@ export default {
         async getCatalogoInsumosProductos() {
             this.overlay = true;
             try {
-                const [
-                    catalogoRes,
-                    productsRes,
-                    depsRes,
-                ] = await Promise.all([
-                    this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`),
-                    this.$axios.get(`${this.$config.API}/products`),
-                    this.$axios.get(`${this.$config.API}/departamentos`),
-                ]);
-
+                const catalogoRes = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
                 this.dataTable = catalogoRes.data;
-                this.products = productsRes.data;
-                this.departamentos = depsRes.data;
-
-                // Enriquecer los datos con nombres
-                this.dataTable.data = this.dataTable.data.map(item => ({
-                    ...item,
-                    product_name: this.products.find(p => p.cod === item.id_product)?.name || 'N/A',
-                    departamento_name: this.departamentos.find(d => d._id === item.id_departamento)?.departamento || 'N/A',
-                }));
-
                 this.overlay = false;
             } catch (error) {
                 this.overlay = false;
@@ -153,7 +120,8 @@ export default {
                         .catch(err => {
                             this.overlay = false;
                             console.error(`Error al eliminar el insumo del catálogo: ${err}`);
-                            this.$bvToast.toast('Error al eliminar el insumo del catálogo', {
+                            const message = err?.response?.data?.message || 'Error al eliminar el insumo del catálogo';
+                            this.$bvToast.toast(message, {
                                 title: 'Error',
                                 variant: 'danger',
                                 solid: true
