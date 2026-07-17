@@ -131,8 +131,8 @@
 
 ## Impresoras
 
-- [ ] 🔥Gestión de impresoras
-- [ ] Recarga de tintas
+- [x] Gestión de impresoras
+- [ ] 🔥Recarga de tintas
 - [ ] Catálogo de tintas
 - [ ] Catálogo de Colores
 - [ ] Servicio Técnico
