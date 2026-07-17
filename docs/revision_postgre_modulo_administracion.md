@@ -93,13 +93,35 @@
 
 
 
-- [ ] 🔥## Control de Producción
+- [x] ## Control de Producción
+
+
+
+## Control de producción
+
+### Reposiciones por aprobar
+
+- [ ] Verificar (pendiente: requiere acciones desde el módulo de Empleados, aún no revisado)
+
+### Reposiciones en curso
+
+- [ ] Asignar (pendiente: requiere acciones desde el módulo de Empleados, aún no revisado)
+- [ ] Eliminar (pendiente: requiere acciones desde el módulo de Empleados, aún no revisado)
+
+### Ordenes en curso
+
+- [x] **Progreso: ** Botón Uregente
+- [x] **Progreso: ** Asignación de personal
+  - [x] 
+- [x] **Progreso: ** Reposisicon
+
+
 
 
 
 ## Inventario
 
-- [ ] Inventario
+- [ ] 🔥Inventario
 - [ ] Gestión de Remanentes
 - [ ] Catálogo de insumos
 - [ ] Reprote de inventario

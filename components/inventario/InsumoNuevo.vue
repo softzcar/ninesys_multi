@@ -62,7 +62,8 @@
 
                                 <b-form-group id="input-group-3-rend" label="Rendimiento (Mts/Kg):"
                                     label-for="input-rendimiento">
-                                    <campo-decimal id="input-rendimiento" v-model="form.rendimiento"></campo-decimal>
+                                    <b-form-input id="input-rendimiento" v-model="form.rendimiento"
+                                        placeholder="0.00" type="number" min="0" step="0.10"></b-form-input>
                                 </b-form-group>
 
                                 <b-form-group id="input-group-3-cant" label="Cantidad (Kg, Mts, Ml, etc):"
