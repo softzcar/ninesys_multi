@@ -129,6 +129,7 @@
                           <th>Color</th>
                           <th>Nivel Actual (ml)</th>
                           <th>Consumo Histórico (ml)</th>
+                          <th>Desperdicio (Ciclo Ant.)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -142,10 +143,13 @@
                             </div>
                           </td>
                           <td class="align-middle font-weight-bold text-info">
-                            {{ getInkLevelValue(colorObj.codigo, 'tinta_restante_total_ml') }}
+                            {{ getInkLevelValue(colorObj.codigo, 'tinta_restante_ultima_recarga_ml') }}
                           </td>
                           <td class="align-middle text-muted">
                             {{ getInkLevelValue(colorObj.codigo, 'consumo_total_historico_ml') }}
+                          </td>
+                          <td class="align-middle" :class="getInkLevelRaw(colorObj.codigo, 'desperdicio_ciclo_pasado_ml') > 0 ? 'text-danger font-weight-bold' : 'text-muted small'">
+                            {{ getInkLevelValue(colorObj.codigo, 'desperdicio_ciclo_pasado_ml') }}
                           </td>
                         </tr>
                       </tbody>
@@ -473,6 +477,11 @@ export default {
       const level = this.inkLevels.find(l => l.color === colorCode);
       if (!level) return "0.00";
       return parseFloat(level[key] || 0).toFixed(2);
+    },
+    getInkLevelRaw(colorCode, key) {
+      const level = this.inkLevels.find(l => l.color === colorCode);
+      if (!level) return 0;
+      return parseFloat(level[key] || 0);
     },
     async loadInitialData() {
       this.loading = true;
