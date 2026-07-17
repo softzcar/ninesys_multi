@@ -122,16 +122,16 @@
 ## Inventario
 
 - [x] Inventario
-- [ ] Gestión de Remanentes
+- [x] Gestión de Remanentes
 - [x] Catálogo de insumos
-- [ ] 🔥Reprote de inventario
-- [ ] Reporte de movimientos
+- [x] Reporte de inventario **(funcional; pendiente validar con el equipo de operaciones si el criterio de fecha por defecto en "Material en Stock" — últimos 30 días de ingreso — es el esperado para el negocio)**
+- [x] Reporte de movimientos
 
 
 
 ## Impresoras
 
-- [ ] Gestión de impresoras
+- [ ] 🔥Gestión de impresoras
 - [ ] Recarga de tintas
 - [ ] Catálogo de tintas
 - [ ] Catálogo de Colores
