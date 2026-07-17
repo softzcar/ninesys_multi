@@ -136,9 +136,9 @@
 - [x] Catálogo de tintas
 - [x] Catálogo de Colores
 - [x] Servicio Técnico
-- [ ] 🔥Reporte de impresoras
-- [ ] Reporte de Tintas
-- [ ] Tintas Actuales
+- [x] Reporte de impresoras
+- [x] Reporte de Tintas
+- [ ] 🔥Tintas Actuales
 
 
 
