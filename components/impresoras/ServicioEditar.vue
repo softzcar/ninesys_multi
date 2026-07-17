@@ -66,6 +66,18 @@ export default {
       form: null
     };
   },
+  watch: {
+    // Antes solo se inicializaba en @show del modal: si "servicio" (prop)
+    // llegaba a actualizarse un instante después de que el padre llamara a
+    // $bvModal.show() (setTimeout/nextTick de por medio), @show corría con
+    // el valor viejo (null la primera vez) y el formulario quedaba vacío
+    // hasta cerrar y reabrir. Con este watch, el formulario se reconstruye
+    // en cuanto la prop realmente cambia, sin depender del timing del modal.
+    servicio: {
+      immediate: true,
+      handler: 'initForm'
+    }
+  },
   methods: {
     initForm() {
       if (this.servicio) {

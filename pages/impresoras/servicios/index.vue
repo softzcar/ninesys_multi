@@ -42,12 +42,12 @@
         </template>
 
         <template #cell(fecha_servicio)="data">
-          {{ formatDate(data.value) }}
+          {{ formatFecha(data.value) }}
         </template>
 
         <template #cell(proxima_fecha)="data">
           <span v-if="data.value" class="text-info">
-            {{ formatDate(data.value) }}
+            {{ formatFecha(data.value) }}
           </span>
           <span v-else class="text-muted text-sm">N/A</span>
         </template>
@@ -131,6 +131,14 @@ export default {
     this.getServicios();
   },
   methods: {
+    // fecha_servicio/proxima_fecha vienen del backend como "YYYY-MM-DD HH:mm:ss".
+    // formatDate() (del mixin) espera una fecha simple "YYYY-MM-DD" -- le pasa
+    // el datetime completo sin recortar producía "17 00:00:00/07/2026" en vez
+    // de "17/07/2026", porque separa por "-" sin descartar antes la hora.
+    formatFecha(value) {
+      if (!value) return '';
+      return this.formatDate(value.split(' ')[0]);
+    },
     async getServicios() {
       try {
         const res = await this.$axios.get(`${this.$config.API}/servicios-maquinas`, {
