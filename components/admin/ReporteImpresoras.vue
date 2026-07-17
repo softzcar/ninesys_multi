@@ -24,10 +24,19 @@
                       {{ data.value }}
                     </div>
                   </template>
+                  <template #cell(cantidad)="data">
+                    {{ formatNumber(data.value) }}
+                  </template>
+                  <template #cell(nivel_tanque_previo)="data">
+                    {{ formatNumber(data.value) }}
+                  </template>
                   <template #cell(restante_post_recarga)="data">
                     <span class="font-weight-bold text-info">
                       {{ formatNumber(data.value) }}
                     </span>
+                  </template>
+                  <template #cell(consumido_en_ciclo)="data">
+                    {{ formatNumber(data.value) }}
                   </template>
                   <template #cell(desperdicio_ajuste)="data">
                     <span v-if="data.value !== null && !isNaN(parseFloat(data.value))" :class="data.value > 1 ? 'text-danger font-weight-bold' : (data.value < -1 ? 'text-success' : 'text-muted')">
@@ -70,10 +79,10 @@ export default {
       tintaRecargasFields: [
         { key: "id_insumo", label: "ID Insumo", sortable: true },
         { key: "color", label: "Color", class: "text-center", sortable: true },
-        { key: "cantidad", label: "Cantidad Insumo (ml)", formatter: "formatNumber", sortable: true },
-        { key: "nivel_tanque_previo", label: "Restante Previo (ml)", formatter: "formatNumber", sortable: true },
-        { key: "restante_post_recarga", label: "Total en Tanque (ml)", formatter: "formatNumber", sortable: true },
-        { key: "consumido_en_ciclo", label: "Consumido Ciclo (ml)", formatter: "formatNumber", sortable: true },
+        { key: "cantidad", label: "Cantidad Insumo (ml)", sortable: true },
+        { key: "nivel_tanque_previo", label: "Restante Previo (ml)", sortable: true },
+        { key: "restante_post_recarga", label: "Total en Tanque (ml)", sortable: true },
+        { key: "consumido_en_ciclo", label: "Consumido Ciclo (ml)", sortable: true },
         { key: "desperdicio_ajuste", label: "Ajuste / Desperdicio", sortable: true },
         { key: "fecha_recarga", label: "Fecha Recarga", sortable: true },
       ],
