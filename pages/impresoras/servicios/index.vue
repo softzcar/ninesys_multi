@@ -83,7 +83,7 @@
       </b-table>
     </b-card>
 
-    <servicio-nuevo @reload="getServicios" />
+    <servicio-nuevo @reload="onServicioCreado" />
     <servicio-editar :servicio="selectedServicio" @reload="getServicios" />
   </div>
 </template>
@@ -144,6 +144,16 @@ export default {
           type: "error"
         });
       }
+    },
+    onServicioCreado() {
+      // Un servicio nuevo siempre nace con estado 'completado'; si el filtro
+      // de Estado estaba en otra cosa (ej. 'pendiente'), la tabla sí se
+      // recargaba pero el registro recién creado quedaba oculto por el
+      // filtro, dando la impresión de que no se había refrescado. Se limpian
+      // los filtros para garantizar que el nuevo registro sea visible.
+      this.filter.search = '';
+      this.filter.estado = '';
+      this.getServicios();
     },
     editServicio(item) {
       this.selectedServicio = JSON.parse(JSON.stringify(item));
