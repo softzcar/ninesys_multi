@@ -522,9 +522,28 @@ export default {
       // Conservado por compatibilidad — no se usa directamente
     },
 
+    /**
+     * Calcula el rango "últimos 30 días" en formato YYYY-MM-DD, en la zona
+     * horaria local del navegador (evita el corrimiento de un día que
+     * produce toISOString() por convertir a UTC).
+     */
+    calcularRango30Dias() {
+      const toYMD = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+      const hasta = new Date();
+      const desde = new Date();
+      desde.setDate(desde.getDate() - 30);
+      return { desde: toYMD(desde), hasta: toYMD(hasta) };
+    },
+
     resetFechas() {
-      this.fechaDesde = null;
-      this.fechaHasta = null;
+      const { desde, hasta } = this.calcularRango30Dias();
+      this.fechaDesde = desde;
+      this.fechaHasta = hasta;
       this.loadReport();
     },
 
@@ -549,6 +568,9 @@ export default {
     }
   },
   mounted() {
+    const { desde, hasta } = this.calcularRango30Dias();
+    this.fechaDesde = desde;
+    this.fechaHasta = hasta;
     this.loadReport();
   }
 };
