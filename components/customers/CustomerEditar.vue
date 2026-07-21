@@ -35,8 +35,7 @@
                                     </b-form-group>
 
                                     <b-form-group id="input-group-6" label="Dirección:" label-for="input-address">
-                                        <b-form-input id="input-address" v-model="form.address" placeholder="Dirección"
-                                            required></b-form-input>
+                                        <b-form-input id="input-address" v-model="form.address" placeholder="Dirección"></b-form-input>
                                     </b-form-group>
 
                                     <SelectorGeografico v-model="form.geografia" />
@@ -99,15 +98,6 @@ export default {
                 this.$fire({
                     title: "Datos requeridos",
                     html: "<p>Debe indicar el nombre y el apellido del cliente.</p>",
-                    type: "warning",
-                })
-                return
-            }
-
-            if (!this.form.address || !this.form.address.trim()) {
-                this.$fire({
-                    title: "Datos requeridos",
-                    html: "<p>Debe indicar la dirección del cliente.</p>",
                     type: "warning",
                 })
                 return

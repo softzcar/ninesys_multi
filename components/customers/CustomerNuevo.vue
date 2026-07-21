@@ -83,7 +83,6 @@
                                         id="input-address"
                                         v-model="form.address"
                                         placeholder="Dirección"
-                                        required
                                     ></b-form-input>
                                 </b-form-group>
 
@@ -212,15 +211,6 @@ export default {
                 this.$fire({
                     title: "Datos requeridos",
                     html: "<p>Debe indicar el nombre y el apellido del cliente.</p>",
-                    type: "warning",
-                })
-                return
-            }
-
-            if (!this.form.address || !this.form.address.trim()) {
-                this.$fire({
-                    title: "Datos requeridos",
-                    html: "<p>Debe indicar la dirección del cliente.</p>",
                     type: "warning",
                 })
                 return
