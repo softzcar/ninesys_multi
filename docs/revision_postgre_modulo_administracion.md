@@ -144,8 +144,8 @@
 
 ## Empleados
 
-- [ ] 🔥Gestión de empleados
-- [ ] Gestión de departamentos **(reordenar/crear/editar/eliminar funcional; fix aplicado backend+frontend para reconocer tipo='corte' en vez de solo el nombre "Corte" — verificado funcionando en Control de Producción con el departamento de prueba "Corte Dos", pero el módulo de Empleados aún NO lo reconoce, hay bugs pendientes ahí — se revisan cuando se audite esa sección)**
+- [x] Gestión de empleados **(crear/editar/desactivar revisados y corregidos: validación de formulario que se saltaba pestañas ocultas, email/teléfono duplicado por últimos 10 dígitos, normalización de teléfono E.164, botón "Eliminar" corregido para desactivar en vez de dejar el empleado activo, filtros por nombre y departamento agregados)**
+- [x] Gestión de departamentos **(reordenar/crear/editar/eliminar funcional; fix aplicado backend+frontend para reconocer tipo='corte' en vez de solo el nombre "Corte" — verificado funcionando en Control de Producción con el departamento de prueba "Corte Dos"; al eliminar y volver a crear un departamento con el mismo nombre ahora se ofrece reactivar el original en vez de duplicarlo. Pendiente aparte, no bloqueante: el módulo/dashboard de Empleados aún NO reconoce departamentos tipo='corte' que no se llamen literalmente "Corte" — se revisa cuando se audite esa sección)**
 - [x] Activación de empelados
 
 
