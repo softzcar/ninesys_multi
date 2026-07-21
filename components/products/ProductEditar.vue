@@ -100,7 +100,7 @@
                       v-for="(item, index) in form.prices"
                       :key="index"
                     >
-                      {{ item.price }} - {{ item.description }}
+                      {{ Number(item.price || 0).toFixed(2) }} - {{ item.description }}
                     </b-list-group-item>
                   </b-list-group>
                   <b-form-group
