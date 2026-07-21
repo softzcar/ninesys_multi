@@ -76,7 +76,7 @@ export default {
             this.form.name = "";
             this.form.precio = 0; // Reset price
         },
-        async guardarAtributo() {
+        async guardarAtributo(reactivarId = null) {
             if (this.form.name.trim().length === 0) {
                 this.$fire({
                     title: "Dato Requerido",
@@ -96,21 +96,41 @@ export default {
                 const data = new URLSearchParams()
                 data.set("nombre", this.form.name) // Usando 'nombre' como lo espera la API
                 data.set("precio", parseFloat(this.form.precio)) // Send price
+                if (reactivarId) {
+                    data.set("reactivar_id", reactivarId)
+                }
 
-                await this.$axios
-                    .post(`${this.$config.API}/products-attributes`, data)
-                    .then((res) => {
-                        this.resetForm()
-                        this.$bvModal.hide(this.modal)
-                        this.$emit("reload")
-                    })
-                    .catch(err => {
+                try {
+                    await this.$axios.post(`${this.$config.API}/products-attributes`, data)
+                    this.resetForm()
+                    this.$bvModal.hide(this.modal)
+                    this.$emit("reload")
+                } catch (err) {
+                    // Ya existe un atributo eliminado con este mismo nombre: ofrecer
+                    // reactivarlo en vez de crear un duplicado.
+                    const errData = err.response && err.response.data;
+                    if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
                         this.overlay = false;
-                        console.error("Error guardando el atributo:", err);
-                        this.$bvToast.toast("No se pudo guardar el atributo", {
-                          variant: "danger",
-                        });
-                    })
+                        try {
+                            await this.$confirm(
+                                `Ya existe un atributo eliminado llamado "${errData.name}". ¿Desea reactivarlo con el precio indicado?`,
+                                "Atributo ya existe",
+                                "question"
+                            );
+                            await this.guardarAtributo(errData.id);
+                        } catch (e) {
+                            // El usuario canceló la reactivación
+                        }
+                        return;
+                    }
+
+                    console.error("Error guardando el atributo:", err);
+                    this.$bvToast.toast((errData && errData.error) || "No se pudo guardar el atributo", {
+                      variant: "danger",
+                    });
+                } finally {
+                    this.overlay = false;
+                }
             }
         },
         onSubmit(event) {
