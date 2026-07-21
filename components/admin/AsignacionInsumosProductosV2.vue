@@ -18,7 +18,8 @@
         <b-col md="6">
           <b-form-group label="Filtrar por departamento:">
             <b-form-radio-group v-model="selectedDepartment" :options="departmentOptions"
-              button-variant="outline-primary" name="radio-btn-outline" buttons></b-form-radio-group>
+              button-variant="outline-primary" name="radio-btn-outline" class="filtro-departamento-buttons"
+              buttons></b-form-radio-group>
           </b-form-group>
         </b-col>
       </b-row>
@@ -219,5 +220,10 @@ export default {
 </script>
 
 <style scoped>
-/* Agrega aquí cualquier estilo específico que necesites para el nuevo componente */
+.filtro-departamento-buttons {
+  flex-wrap: wrap;
+}
+.filtro-departamento-buttons >>> .btn {
+  margin-bottom: 4px;
+}
 </style>
