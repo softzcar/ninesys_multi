@@ -173,10 +173,6 @@ export default {
           tdClass: "pl-4",
         },
         {
-          key: "regular_price",
-          label: "Precio",
-        },
-        {
           key: "stock_quantity",
           label: "cantidad",
         },
