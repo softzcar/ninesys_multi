@@ -160,7 +160,7 @@ export default {
             this.asiganr_numero_de_paso = 0;
             this.tipo = "general";
         },
-        async crearDepartamento() {
+        async crearDepartamento(reactivarId = null) {
             let ok = true;
             let msg = "";
             let icon = "success";
@@ -183,51 +183,78 @@ export default {
                     html: msg,
                     type: icon,
                 });
-            } else {
-                this.overlay = true;
-                const data = new URLSearchParams();
-                data.set("departamento", this.newDep);
-                data.set("asignar_paso", this.asiganr_numero_de_paso);
-                data.set("modulo", this.modulo);
-                data.set("enviar_mensaje", this.enviarMensaje);
-                data.set("tipo", this.tipo);
+                return;
+            }
 
-                await this.$axios
-                    .post(
-                        // `${this.$config.API}/departamentos/orden-paso`, data)
-                        `${this.$config.API}/departamentos/nuevo`,
-                        data
-                    )
-                    .then((res) => {
-                        // PRONBAR checkResponse
-                        const checkMe = this.checkResponse(res);
-                        console.log("checkResponse", checkMe);
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("departamento", this.newDep.trim());
+            data.set("asignar_paso", this.asiganr_numero_de_paso);
+            data.set("modulo", this.modulo);
+            data.set("enviar_mensaje", this.enviarMensaje);
+            data.set("tipo", this.tipo);
+            if (reactivarId) {
+                data.set("reactivar_id", reactivarId);
+            }
 
-                        if (checkMe) {
-                            this.$store.commit(
-                                "login/setDepartamentos",
-                                res.data
-                            );
-                            this.$emit("reload", "true");
-                            this.$fire({
-                                title: "Nuevo Departamento",
-                                html: "<p>El nuevo departamento se creó correctamente</p>",
-                                type: "success",
-                            });
-                            this.$bvModal.hide(this.modal);
-                        }
-                    })
-                    .catch((err) => {
+            await this.$axios
+                .post(`${this.$config.API}/departamentos/nuevo`, data)
+                .then((res) => {
+                    const checkMe = this.checkResponse(res);
+
+                    if (checkMe) {
+                        this.$store.commit(
+                            "login/setDepartamentos",
+                            res.data
+                        );
+                        this.$emit("reload", "true");
                         this.$fire({
                             title: "Nuevo Departamento",
-                            html: `<p>Ocurrió un error al conectarse a internet</p> <p>${err}</p> `,
-                            type: "error",
+                            html: reactivarId
+                                ? "<p>El departamento se reactivó correctamente</p>"
+                                : "<p>El nuevo departamento se creó correctamente</p>",
+                            type: "success",
                         });
-                    })
-                    .finally(() => {
+                        this.$bvModal.hide(this.modal);
+                    }
+                })
+                .catch(async (err) => {
+                    // Ya existe un departamento eliminado con ese mismo nombre
+                    // (sin importar mayúsculas/espacios): ofrecer reactivarlo
+                    // en vez de crear un duplicado.
+                    if (
+                        err.response &&
+                        err.response.status === 409 &&
+                        err.response.data.eliminado_existente
+                    ) {
                         this.overlay = false;
+                        const { id_departamento, departamento } = err.response.data;
+                        try {
+                            await this.$confirm(
+                                `Ya existe un departamento eliminado llamado "${departamento}". ¿Desea reactivarlo con la configuración indicada?`,
+                                "Departamento ya existe",
+                                "question"
+                            );
+                            await this.crearDepartamento(id_departamento);
+                        } catch (e) {
+                            // El usuario canceló la reactivación
+                        }
+                        return;
+                    }
+
+                    this.$fire({
+                        title: "Nuevo Departamento",
+                        html: `<p>${
+                            err.response && err.response.data && err.response.data.error
+                                ? err.response.data.error
+                                : "Ocurrió un error al conectarse a internet"
+                        }</p>`,
+                        type: "error",
                     });
-            }
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
         },
     },
 
