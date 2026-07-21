@@ -590,12 +590,15 @@ export default {
                 password: item.password || "",
                 nombre: item.nombre || "",
                 email: item.email || "",
-                telefono: item.telefono || "",
+                // GET /empleados usa JSON_NUMERIC_CHECK: un teléfono compuesto
+                // solo de dígitos llega como Number, no String. libphonenumber-js
+                // exige un string y lanza TypeError si no se castea aquí.
+                telefono: item.telefono != null ? String(item.telefono) : "",
                 acceso: item.acceso,
                 departamentos: myDeps,
 
                 // Datos de Nómina y Compensación
-                id_legal: item.dni || "",
+                id_legal: item.dni != null ? String(item.dni) : "",
                 fecha_ingreso: item.fecha_ingreso || "",
                 id_seguridad_social: item.id_seguridad_social || "",
                 salario_tipo: item.salario_tipo || null,

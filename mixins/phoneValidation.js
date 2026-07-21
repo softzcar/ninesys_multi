@@ -13,6 +13,11 @@ export default {
                 return { isValid: false, formatted: null, error: 'El teléfono es obligatorio.' }
             }
 
+            // Algunos endpoints devuelven el teléfono como Number (ej. JSON_NUMERIC_CHECK
+            // en PHP convierte strings puramente numéricos a número en el JSON).
+            // libphonenumber-js exige un string y lanza TypeError si no se castea aquí.
+            phoneNumber = String(phoneNumber)
+
             // Limpiar caracteres no permitidos (dejar solo números y +)
             // Aunque libphonenumber maneja esto, es bueno limpiar basura obvia antes
             // Pero libphonenumber es bastante inteligente. Vamos a confiar en él principalmente,
