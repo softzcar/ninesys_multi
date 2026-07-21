@@ -29,7 +29,11 @@
             </b-row>
 
             <b-row>
-              <b-col class="mb-4 mt-4">
+              <b-col
+                cols="12"
+                lg="7"
+                class="mb-4 mt-4"
+              >
                 <h5 class="mb-2">Filtrar por departamento:</h5>
                 <b-form-radio-group
                   id="btn-radios-departamento"
@@ -38,12 +42,13 @@
                   button-variant="outline-primary"
                   size="lg"
                   name="radio-btn-departamento"
+                  class="filtro-departamento-buttons"
                   buttons
                 ></b-form-radio-group>
               </b-col>
               <b-col
-                offset-lg="8"
-                offset-xl="8"
+                cols="12"
+                lg="5"
               >
                 <b-input-group
                   class="mb-4"
@@ -259,3 +264,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.filtro-departamento-buttons {
+  flex-wrap: wrap;
+}
+.filtro-departamento-buttons >>> .btn {
+  margin-bottom: 4px;
+}
+</style>
