@@ -20,7 +20,8 @@
                                         <b-form-input id="input-email" v-model="form.email" placeholder="Ingrese el email" type="email" required></b-form-input>
                                     </b-form-group>
                                     <b-form-group label="Teléfono:" label-for="input-telefono">
-                                        <b-form-input id="input-telefono" v-model="form.telefono" placeholder="Ingrese el teléfono" type="tel" maxlength="20" required></b-form-input>
+                                        <b-form-input id="input-telefono" v-model="form.telefono" placeholder="Ingrese el teléfono (Ej: 0414...)" type="tel" maxlength="20" required
+                                            @input="form.telefono = cleanPhoneInput($event)" @blur="onPhoneBlur"></b-form-input>
                                     </b-form-group>
                                 </b-col>
                                 <b-col md="6">
@@ -157,7 +158,9 @@
 
 <script>
 import axios from "axios"
+import phoneValidation from "~/mixins/phoneValidation.js"
 export default {
+    mixins: [phoneValidation],
     data() {
         return {
             form: {
@@ -300,6 +303,23 @@ export default {
                 this.overlay = false
                 return
             }
+
+            // 1.1 Validar y normalizar el teléfono (mismo formato E.164 sin '+'
+            // usado en el wizard de clientes en /comercializacion/ordenes).
+            // El servicio de WhatsApp requiere el prefijo de país (58) en vez
+            // del '0' inicial venezolano.
+            const phoneCheck = this.validateAndFormatPhone(this.form.telefono)
+            if (!phoneCheck.isValid) {
+                this.$fire({
+                    title: "Teléfono Inválido",
+                    html: `<p>Debe ingresar un número de teléfono válido en la pestaña "Datos Básicos".</p>`,
+                    type: "warning",
+                })
+                this.$refs.tabs.currentTab = 0
+                this.overlay = false
+                return
+            }
+            this.form.telefono = phoneCheck.formatted
 
             // --- VALIDACIONES DE NÓMINA ---
 
@@ -533,6 +553,20 @@ export default {
         onSubmit(event) {
             event.preventDefault()
             this.guardarEmpleado()
+        },
+        onPhoneBlur() {
+            if (!this.form.telefono) return
+            const result = this.validateAndFormatPhone(this.form.telefono)
+            if (result.isValid) {
+                this.form.telefono = result.formatted
+            } else {
+                this.$fire({
+                    title: "Teléfono Inválido",
+                    text: "Por favor ingrese un número de teléfono válido.",
+                    type: "warning",
+                    timer: 3000
+                })
+            }
         },
         onReset(event) {
             event.preventDefault()
