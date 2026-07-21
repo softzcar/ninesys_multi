@@ -157,7 +157,7 @@ export default {
 
     deleteEmpleado(id_emp, nombre_emp) {
       this.$confirm(
-        `¿Desea desactivar al empleado <b>${nombre_emp || id_emp}</b>? No se eliminará su registro, solo dejará de aparecer como activo y podrá reactivarse luego desde "Activación de Empleados".`,
+        `¿Desea desactivar al empleado "${nombre_emp || id_emp}"? No se eliminará su registro, solo dejará de aparecer como activo y podrá reactivarse luego desde "Activación de Empleados".`,
         "Desactivar Empleado",
         "question"
       )
