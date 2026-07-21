@@ -7,7 +7,7 @@
         <b-modal :size="size" :title="modalTitle" :id="modal" hide-footer>
             <b-overlay :show="overlay" spinner-small>
 
-                <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
+                <b-form novalidate @submit.stop.prevent="onSubmit" @reset="onReset">
                     <b-tabs content-class="mt-3" ref="tabs">
 
                         <b-tab title="1. Datos Básicos" active>
@@ -289,17 +289,15 @@ export default {
             this.overlay = false
         },
         async guardarEmpleado() {
-            console.log('[DEBUG] guardarEmpleado: Iniciando validaciones y guardado')
             this.overlay = true
 
             // --- VALIDACIONES DE DATOS BÁSICOS ---
 
             // 1. Validar campos básicos (pestaña 1)
-            if (!this.form.nombre || !this.form.email || !this.form.telefono || !this.form.password || this.form.acceso === null) {
-                console.log('[DEBUG] guardarEmpleado: Validación fallida - campos básicos incompletos')
+            if (!this.form.nombre || !this.form.email || !this.form.telefono || !this.form.password || this.form.acceso === null || !this.form.departamentos || this.form.departamentos.length === 0) {
                 this.$fire({
                     title: "Campos Requeridos",
-                    html: `<p>Debe completar todos los campos obligatorios en la pestaña "Datos Básicos".</p>`,
+                    html: `<p>Debe completar todos los campos obligatorios en la pestaña "Datos Básicos": nombre, email, teléfono, contraseña, tipo de acceso y al menos un departamento.</p>`,
                     type: "warning",
                 })
                 // Cambiar a la pestaña de datos básicos
@@ -382,7 +380,7 @@ export default {
 
             // 5. Validaciones según tipo de compensación (existentes)
             if (this.form.salario_tipo === 'Salario' || this.form.salario_tipo === 'Salario más Comisión') {
-                if (!this.form.salario || this.form.salario <= 0) {
+                if (isNaN(parseFloat(this.form.salario)) || parseFloat(this.form.salario) <= 0) {
                     this.$fire({
                         title: "Campo requerido",
                         html: `<p>Debe ingresar un salario válido (mayor a 0) en la pestaña "Detalles de Nómina".</p>`,
@@ -417,10 +415,10 @@ export default {
                     this.overlay = false
                     return
                 }
-                if (this.form.comsionTipo === 'fija' && (!this.form.comision || this.form.comision < 0)) {
+                if (this.form.comsionTipo === 'fija' && (isNaN(parseFloat(this.form.comision)) || parseFloat(this.form.comision) <= 0)) {
                     this.$fire({
                         title: "Campo requerido",
-                        html: `<p>Debe ingresar una comisión fija válida en la pestaña "Detalles de Nómina".</p>`,
+                        html: `<p>Debe ingresar una comisión fija válida (mayor a 0) en la pestaña "Detalles de Nómina".</p>`,
                         type: "warning"
                     })
                     // Cambiar a la pestaña de detalles de nómina
@@ -428,7 +426,7 @@ export default {
                     this.overlay = false
                     return
                 }
-                if (this.form.comsionTipo === 'porcentaje' && (!this.form.comisionPorcentaje || this.form.comisionPorcentaje <= 0 || this.form.comisionPorcentaje > 100)) {
+                if (this.form.comsionTipo === 'porcentaje' && (isNaN(parseFloat(this.form.comisionPorcentaje)) || parseFloat(this.form.comisionPorcentaje) <= 0 || parseFloat(this.form.comisionPorcentaje) > 100)) {
                     this.$fire({
                         title: "Campo requerido",
                         html: `<p>Debe ingresar un porcentaje de comisión válido (entre 1 y 100) en la pestaña "Detalles de Nómina".</p>`,
@@ -490,42 +488,31 @@ export default {
 
             // --- LLAMADA A LA API ---
 
-            console.log('[DEBUG] guardarEmpleado: Enviando petición a API con data:', Object.fromEntries(data))
             try {
-                const res = await this.$axios.post(`${this.$config.API}/empleados/editar`, data)
-                console.log('[DEBUG] guardarEmpleado: API respondió exitosamente', res.data)
+                await this.$axios.post(`${this.$config.API}/empleados/editar`, data)
                 this.$fire({
                     title: "¡Éxito!",
                     html: `<p>Empleado <b>${this.form.nombre}</b> actualizado correctamente.</p>`,
                     type: "success",
                 })
-                console.log('[DEBUG] guardarEmpleado: Emitiendo evento reload')
                 this.$emit("reload", "true")
-                console.log('[DEBUG] guardarEmpleado: Evento reload emitido exitosamente')
-                console.log('[DEBUG] guardarEmpleado: Cerrando modal')
                 this.$bvModal.hide(this.modal)
             } catch (error) {
-                console.log('[DEBUG] guardarEmpleado: Error en API', error)
                 this.$fire({
                     title: "Error de Actualización",
                     html: `<p>Ocurrió un error al actualizar: ${error.response ? error.response.data.message : error.message}</p>`,
                     type: "error",
                 })
             } finally {
-                console.log('[DEBUG] guardarEmpleado: Finalizando overlay')
                 this.overlay = false
             }
         },
         onSubmit(event) {
             event.preventDefault()
-            console.log('[DEBUG] onSubmit: Evento submit disparado, iniciando guardado')
-            console.log('[DEBUG] onSubmit: Form data:', this.form)
-            // alert(JSON.stringify(this.form))
             this.guardarEmpleado().then(() => {
-                console.log('[DEBUG] onSubmit: guardarEmpleado completado, emitiendo reload adicional')
                 this.$emit("reload")
             }).catch(error => {
-                console.log('[DEBUG] onSubmit: Error en guardarEmpleado:', error)
+                console.error('[EmpleadoEditar] Error al guardar:', error)
             })
         },
         onReset(event) {
