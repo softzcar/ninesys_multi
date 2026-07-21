@@ -27,12 +27,55 @@
                 />
               </b-col>
             </b-row>
+
+            <b-row>
+              <b-col class="mb-4 mt-4">
+                <h5 class="mb-2">Filtrar por departamento:</h5>
+                <b-form-radio-group
+                  id="btn-radios-departamento"
+                  v-model="selectedDepartamento"
+                  :options="departamentoOptions"
+                  button-variant="outline-primary"
+                  size="lg"
+                  name="radio-btn-departamento"
+                  buttons
+                ></b-form-radio-group>
+              </b-col>
+              <b-col
+                offset-lg="8"
+                offset-xl="8"
+              >
+                <b-input-group
+                  class="mb-4"
+                  size="sm"
+                >
+                  <b-form-input
+                    id="filter-input"
+                    v-model="filter"
+                    type="search"
+                    placeholder="Filtrar por nombre"
+                  ></b-form-input>
+
+                  <b-input-group-append>
+                    <b-button
+                      :disabled="!filter"
+                      @click="filter = ''"
+                    >
+                      Limpiar
+                    </b-button>
+                  </b-input-group-append>
+                </b-input-group>
+              </b-col>
+            </b-row>
+
             <b-row>
               <b-col>
                 <b-table
                   responsive
                   :fields="dataTable.fields"
-                  :items="dataTable.items"
+                  :items="filteredItems"
+                  :filter="filter"
+                  :filter-included-fields="includedFields"
                   primary-key="_id"
                 >
                   <template #cell(departamentos)="data">
@@ -95,10 +138,31 @@ export default {
       dataTable: [],
       departamentos: [],
       isFetching: false,
+      filter: null,
+      includedFields: ["nombre"],
+      selectedDepartamento: null,
     };
   },
   computed: {
     ...mapState("login", ["dataUser", "access"]),
+    departamentoOptions() {
+      return [
+        { value: null, text: "Todos" },
+        ...this.departamentos.map((dep) => ({
+          value: dep._id,
+          text: dep.departamento,
+        })),
+      ];
+    },
+    filteredItems() {
+      const items = this.dataTable.items || [];
+      if (!this.selectedDepartamento) return items;
+      return items.filter(
+        (item) =>
+          Array.isArray(item.departamentos) &&
+          item.departamentos.some((dep) => dep.id === this.selectedDepartamento)
+      );
+    },
   },
   methods: {
     async loadData() {
