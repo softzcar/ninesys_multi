@@ -46,11 +46,7 @@
 </template>
 
 <script>
-import mixin from "~/mixins/mixins.js";
-
 export default {
-  mixins: [mixin],
-
   data() {
     return {
       title: "Editar Categoría",
@@ -95,23 +91,19 @@ export default {
         await this.$axios
           .put(`${this.$config.API}/categories/${this.item.id}`, data)
           .then((res) => {
-            const checkMe = this.checkResponse(res);
-            console.log("checkResponse", checkMe);
-
-            if (checkMe) {
-              this.$emit("reload", "true");
-              this.$fire({
-                title: "Editar Categoría",
-                html: "<p>La categoría se actualizó correctamente</p>",
-                type: "success",
-              });
-              this.$bvModal.hide(this.modal);
-            }
-          })
-          .catch((err) => {
+            this.$emit("reload", "true");
             this.$fire({
               title: "Editar Categoría",
-              html: `<p>Ocurrió un error al conectarse a internet</p> <p>${err}</p> `,
+              html: "<p>La categoría se actualizó correctamente</p>",
+              type: "success",
+            });
+            this.$bvModal.hide(this.modal);
+          })
+          .catch((err) => {
+            const errData = err.response && err.response.data;
+            this.$fire({
+              title: "Editar Categoría",
+              html: `<p>${(errData && errData.message) || err.message || err}</p>`,
               type: "error",
             });
           })
