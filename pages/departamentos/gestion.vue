@@ -13,34 +13,6 @@
         >
           <b-container fluid>
             <b-row>
-              <b-col
-                offset-lg="8"
-                offset-xl="8"
-              >
-                <b-input-group
-                  class="mb-4"
-                  size="sm"
-                >
-                  <b-form-input
-                    id="filter-input"
-                    v-model="filter"
-                    type="search"
-                    placeholder="Filtrar Resultados"
-                  ></b-form-input>
-
-                  <b-input-group-append>
-                    <b-button
-                      :disabled="!filter"
-                      @click="filter = ''"
-                    >
-                      Limpiar
-                    </b-button>
-                  </b-input-group-append>
-                </b-input-group>
-              </b-col>
-            </b-row>
-
-            <b-row>
               <b-col>
                 <h2 class="mb-4">{{ titulo }}</h2>
                 <!-- <inventario-InsumoNuevo @reload="getProducts" /> -->
@@ -196,30 +168,11 @@ export default {
     return {
       departamentosOrd: [],
       inputDisabled: false,
-      perPage: 20,
-      currentPage: 1,
-      filter: null,
-      includedFields: ["departamento", "orden_proceso"],
       titulo: "Gestión de Departamentos",
       overlay: false,
       dataTable: [],
       tmpOptionSelect: null,
       tmpOrden: null,
-      fields: [
-        /* {
-                    key: "_id",
-                    label: "ID Departamento",
-                    tdClass: "pl-4",
-                }, */
-        {
-          key: "orden_proceso",
-          label: "Orden proceso",
-        },
-        {
-          key: "departamento",
-          label: "Departamento",
-        },
-      ],
       loading: {
         show: false,
         text: "",
