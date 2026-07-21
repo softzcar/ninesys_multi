@@ -154,6 +154,24 @@ export default {
       this.$bvModal.show(this.modalId);
     },
 
+    // Alimenta el typeahead "Importar desde otro producto:" -- este store solo
+    // se poblaba desde el wizard de Nueva Orden/Presupuesto o desde Comisiones
+    // de Productos, nunca desde este flujo, así que quedaba vacío aquí.
+    async loadProductsForTypeahead() {
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/products`);
+        const productsSelect = res.data.map((product) => {
+          const id = product.cod || product._id;
+          const name = product.product || product.name;
+          const sku = product.sku || "";
+          return `${id} | ${name} - ${sku}`;
+        });
+        this.$store.commit("comerce/setDataProductosSelect", productsSelect);
+      } catch (error) {
+        console.error("Error cargando productos para el typeahead de importación:", error);
+      }
+    },
+
     relodMe() {
       this.$emit("reload");
     },
@@ -239,6 +257,7 @@ export default {
         // LIMPIAR BUSCADOR AL ABRIR
         this.queryImport = "";
         this.productToImport = null;
+        this.loadProductsForTypeahead();
       }
     });
   },
