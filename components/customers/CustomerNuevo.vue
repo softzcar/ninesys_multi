@@ -9,7 +9,7 @@
                 <b-container>
                     <b-row>
                         <b-col>
-                            <b-form @submit="onSubmit" @reset="onReset">
+                            <b-form novalidate @submit="onSubmit" @reset="onReset">
                                 <b-form-group
                                     id="input-group-phone"
                                     label="Teléfono:"
@@ -59,7 +59,6 @@
                                         id="input-cedula"
                                         v-model="form.cedula"
                                         placeholder="Cédula"
-                                        required
                                     ></b-form-input>
                                 </b-form-group>
 
@@ -72,7 +71,6 @@
                                         id="input-email"
                                         v-model="form.email"
                                         placeholder="Email"
-                                        required
                                     ></b-form-input>
                                 </b-form-group>
 
@@ -84,7 +82,7 @@
                                     <b-form-input
                                         id="input-address"
                                         v-model="form.address"
-                                        placeholder="Apellidos"
+                                        placeholder="Dirección"
                                         required
                                     ></b-form-input>
                                 </b-form-group>
@@ -210,6 +208,24 @@ export default {
         },
 
         async guardarCustomer() {
+            if (!this.form.first_name || !this.form.first_name.trim() || !this.form.last_name || !this.form.last_name.trim()) {
+                this.$fire({
+                    title: "Datos requeridos",
+                    html: "<p>Debe indicar el nombre y el apellido del cliente.</p>",
+                    type: "warning",
+                })
+                return
+            }
+
+            if (!this.form.address || !this.form.address.trim()) {
+                this.$fire({
+                    title: "Datos requeridos",
+                    html: "<p>Debe indicar la dirección del cliente.</p>",
+                    type: "warning",
+                })
+                return
+            }
+
             if (!this.form.geografia.idPais || !this.form.geografia.idEstado || !this.form.geografia.idCiudad) {
                 this.$fire({
                     title: "Datos requeridos",
