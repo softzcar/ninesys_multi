@@ -8,7 +8,7 @@
     v-on="listeners"
     :value="displayValue"
     :placeholder="effectivePlaceholder"
-    @input="onInput"
+    @input.native="onInput"
     @paste="onPaste"
     @focus="snapCursorToEnd"
     @click="snapCursorToEnd"
