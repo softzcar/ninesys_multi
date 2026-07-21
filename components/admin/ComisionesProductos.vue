@@ -8,10 +8,10 @@
                     </b-col>
                 </b-row>
 
-                <!-- Filtro de busqueda -->
+                <!-- Filtros -->
                 <b-row>
-                    <b-col offset-lg="8" offset-xl="8">
-                        <b-input-group class="mb-4" size="sm">
+                    <b-col cols="12" lg="5" class="mb-4">
+                        <b-input-group size="sm">
                             <b-form-input id="filter-input" v-model="filter" type="search"
                                 placeholder="Filtrar Resultados"></b-form-input>
 
@@ -22,21 +22,18 @@
                             </b-input-group-append>
                         </b-input-group>
                     </b-col>
-                </b-row>
-
-
-                <b-row>
-                    <b-col>
-                        <b-form-select id="select-departamento" :disabled="inputDisabled" v-model="departamento"
-                            :options="departamentosSelect" :value="departamento"></b-form-select>
+                    <b-col cols="12" lg="7" class="mb-4">
+                        <h5 class="mb-2">Filtrar por tipo de producto:</h5>
+                        <b-form-radio-group id="btn-radios-type" v-model="selectedType" :options="optionsType"
+                            button-variant="outline-primary" size="lg" name="radio-btn-type"
+                            class="filtro-departamento-buttons" buttons></b-form-radio-group>
                     </b-col>
                 </b-row>
 
-                <b-row class="mt-3 mb-3">
-                    <b-col>
-                        <h5>Filtrar por tipo de producto:</h5>
-                        <b-form-radio-group id="btn-radios-type" v-model="selectedType" :options="optionsType"
-                            button-variant="outline-primary" size="lg" name="radio-btn-type" buttons></b-form-radio-group>
+                <b-row>
+                    <b-col cols="12" lg="5">
+                        <b-form-select id="select-departamento" :disabled="inputDisabled" v-model="departamento"
+                            :options="departamentosSelect" :value="departamento"></b-form-select>
                     </b-col>
                 </b-row>
 
@@ -343,4 +340,11 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.filtro-departamento-buttons {
+    flex-wrap: wrap;
+}
+.filtro-departamento-buttons ::v-deep .btn {
+    margin-bottom: 4px;
+}
+</style>
