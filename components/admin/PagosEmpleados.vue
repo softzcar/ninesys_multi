@@ -97,7 +97,6 @@ export default {
       dataEmpleados: null,
       dataVendedores: null,
       empleados: [], // Lista completa de empleados con datos de salario
-      totalCancelado: { totalGeneral: '0.00', totalVendedores: '0.00', totalEmpleados: '0.00', totalDiseno: '0.00' },
       datosUltimoPago: null, // Almacenar datos completos del último pago para el recibo
       departamentoFiltro: "",
       form: {
@@ -171,6 +170,20 @@ export default {
   },
 
   computed: {
+    // Antes era un data() sincronizado a mano en 4 puntos distintos
+    // (mounted, onSubmit, reloadPagos, reloadMe) llamando a
+    // this.totalCancelado = this.totalPagos(...). Cualquier cambio a
+    // pagosResumenUnificado que no pasara por esos 4 puntos (ej. tocar el
+    // datepicker de fecha fin sin darle a "Buscar pagos", que si afecta el
+    // cálculo de salario dentro de pagosResumenUnificado) dejaba este total
+    // desactualizado -- mostrando en pantalla (y en el modal de "Confirmar
+    // Procesamiento de Pagos") un monto distinto al que realmente se envía
+    // a procesar, que sí usa pagosResumenUnificado en vivo. Al ser computed,
+    // ya no puede desincronizarse.
+    totalCancelado() {
+      return this.totalPagos(this.pagosResumenUnificado);
+    },
+
     pagosResumenUnificado() {
       const todosLosPagos = [
         ...this.pagosEmpleados.map(p => ({ ...p, origen: 'Empleado' })),
@@ -530,20 +543,12 @@ export default {
         });
         return;
       }
-      this.getPagos().then(() => {
-        this.$nextTick(() => {
-          this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
-        });
-      });
+      this.getPagos();
     },
 
     reloadPagos() {
       if (this.form.fechaConsultaInicio === "") {
-        this.getPagos().then(() => {
-          this.$nextTick(() => {
-            this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
-          });
-        });
+        this.getPagos();
       }
     },
 
@@ -666,9 +671,6 @@ export default {
       }
       this.pagos = [];
       this.getPagos().then(() => {
-        this.$nextTick(() => {
-          this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
-        });
         this.overlay = false;
       });
     },
@@ -848,13 +850,6 @@ export default {
 
   mounted() {
     this.getPagos().then(() => {
-      // console.log('VAMOS A EJECUTAR totalPagos');
-
-      // this.totalCancelado = this.totalPagos(this.pagosEmpleados, this.pagosVendedores)
-      // console.log('RESULTADO totalPagos', this.totalCancelado);
-      this.$nextTick(() => {
-        this.totalCancelado = this.totalPagos(this.pagosResumenUnificado);
-      });
       this.overlay = false;
     });
   },
