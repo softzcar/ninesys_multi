@@ -156,11 +156,11 @@
 
 ## Productos
 
-- [ ] Gestión de Productos
-- [ ] Insumos de Productos
-- [ ] Comisiones de Productos
-- [ ] Atributos de productos
-- [ ] Categorías 
+- [x] Gestión de Productos **(precios con 2 decimales en modal de edición; soft-delete y reactivación por nombre/SKU al crear -- manual y por Carga Masiva; typeahead "Importar desde otro producto" en Asignación de Insumos poblado correctamente y tabla de insumos reflejando datos reales tras importar; columna "Precio" obsoleta eliminada de la tabla; tabla de Gestión recargando sola tras Carga Masiva)**
+- [x] Insumos de Productos **(radios de filtro por departamento se salían de la interfaz -- corregido con flex-wrap, mismo fix que en Gestión de Empleados)**
+- [x] Comisiones de Productos **(filtros re-maquetados: buscador de texto y radios de tipo de producto lado a lado, mismo orden y flex-wrap que en las páginas anteriores)**
+- [x] Atributos de productos **(no tenía soft-delete -- implementado con el mismo patrón trim+minúsculas y reactivación por 409 ya usado en Productos/Departamentos; edición se dejó como UPDATE directo, igual que el resto del proyecto)**
+- [x] Categorías **(ya tenía soft-delete parcial -- GET y DELETE ya usaban eliminado; faltaba validar duplicados y reactivar al crear, implementado igual que Atributos de Productos; de paso se corrigió una inyección SQL en el DELETE y una inconsistencia en el PUT que bloqueaba renombrar hacia el nombre de una categoría ya eliminada)**
 
 
 
