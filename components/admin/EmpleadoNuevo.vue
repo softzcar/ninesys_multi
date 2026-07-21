@@ -521,7 +521,7 @@ export default {
                 .catch(error => {
                     this.$fire({
                         title: "Error de Registro",
-                        html: `<p>Ocurrió un error al guardar: ${error.response ? error.response.data.message : error.message}</p>`,
+                        html: `<p>Ocurrió un error al guardar: ${error.response ? (error.response.data.error || error.response.data.message) : error.message}</p>`,
                         type: "error",
                     })
                 })
