@@ -64,7 +64,7 @@
                 />
               </b-col>
               <b-col md="6">
-                <products-BulkLoad />
+                <products-BulkLoad @upload-success="getResponseNewProduct" />
               </b-col>
             </b-row>
             <b-row>
