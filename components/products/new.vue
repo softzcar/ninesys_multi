@@ -30,8 +30,16 @@
 
             <b-form-group label-for="input-price">
               <admin-AsignacionDePreciosNuevo class="floatme" @reload="updatePrices($event)" />
-
             </b-form-group>
+
+            <div v-if="form.prices.length > 0" class="mt-3 mb-3">
+              <h5>Precios</h5>
+              <b-list-group>
+                <b-list-group-item v-for="(item, index) in form.prices" :key="index">
+                  {{ Number(item.price || 0).toFixed(2) }} - {{ item.description }}
+                </b-list-group-item>
+              </b-list-group>
+            </div>
 
             <b-form-group>
               <b-form-checkbox v-model="form.producto_fisico" :value="1" :unchecked-value="0"
@@ -63,16 +71,6 @@
 
             <b-button type="submit" variant="success">Guardar</b-button>
           </b-form>
-
-          <div v-if="form.prices.length > 0" class="mt-3">
-            <h5>Precios</h5>
-            <b-list-group>
-              <b-list-group-item v-for="(item, index) in form.prices" :key="index">
-                {{ item.price }} - {{ item.description }}
-              </b-list-group-item>
-            </b-list-group>
-          </div>
-
         </div>
 
         <!-- Step 2: Insumos Assignment -->
