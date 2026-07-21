@@ -59,7 +59,8 @@
                       <span class="floatme">
                         <b-button
                           variant="danger"
-                          v-on:click="deleteEmpleado(data.item._id)"
+                          title="Desactivar empleado"
+                          v-on:click="deleteEmpleado(data.item._id, data.item.nombre)"
                         >
                           <b-icon icon="trash"></b-icon>
                         </b-button>
@@ -102,26 +103,22 @@ export default {
   methods: {
     async loadData() {
       if (this.isFetching) {
-        console.log('[DEBUG] loadData: Ya hay una carga en curso, ignorando duplicado');
         return;
       }
 
-      console.log('[DEBUG] loadData: Iniciando carga de datos habitual');
       this.overlay = true;
       this.isFetching = true;
 
       try {
         await Promise.all([this.getDepartamentos(), this.getEmpleados()]);
-        console.log('[DEBUG] loadData: Carga completada');
       } catch (error) {
-        console.error('[DEBUG] loadData: Error durante la carga', error);
+        console.error('[Gestión de Empleados] Error durante la carga', error);
       } finally {
         this.overlay = false;
         this.isFetching = false;
       }
     },
     async handleReload(data) {
-      console.log('[DEBUG] handleReload: Recargando datos')
       await this.loadData()
     },
     async getDepartamentos() {
@@ -139,10 +136,9 @@ export default {
     },
 
     async getEmpleados() {
-      console.log('[DEBUG] getEmpleados: Solicitando lista de empleados')
       try {
         const resp = await this.$axios.get(`${this.$config.API}/empleados`)
-        
+
         // --- HABILITACIÓN DE ORDENAMIENTO (SOLO NOMBRE Y USUARIO) ---
         if (resp.data && resp.data.fields) {
           resp.data.fields = resp.data.fields.map(field => {
@@ -152,18 +148,17 @@ export default {
             return field;
           });
         }
-        
+
         this.dataTable = resp.data;
-        console.log('[DEBUG] getEmpleados: Datos cargados exitosamente')
       } catch (error) {
-        console.log('[DEBUG] getEmpleados: Error al obtener empleados', error)
+        console.error('[Gestión de Empleados] Error al obtener empleados', error)
       }
     },
 
-    deleteEmpleado(id_emp) {
+    deleteEmpleado(id_emp, nombre_emp) {
       this.$confirm(
-        `¿Desea Elimiar el empleado ${id_emp} ?`,
-        "Eliminar Empleado",
+        `¿Desea desactivar al empleado <b>${nombre_emp || id_emp}</b>? No se eliminará su registro, solo dejará de aparecer como activo y podrá reactivarse luego desde "Activación de Empleados".`,
+        "Desactivar Empleado",
         "question"
       )
       .then(() => {
@@ -174,18 +169,17 @@ export default {
         this.$axios
           .post(`${this.$config.API}/empleados/eliminar`, data)
           .then((res) => {
-            let msgDat = { icon: parseInt(res.data.eliinado) ? "success" : "warning" };
             this.loadData();
             this.$fire({
-              title: "Eliminar Empleado",
+              title: "Empleado Desactivado",
               html: `<p>${res.data.message}</p>`,
-              type: msgDat.icon,
+              type: "success",
             });
           })
           .catch((err) => {
             this.$fire({
-              title: "Eliminar Empleado",
-              html: `<p>Ocurrió un error al eliminar el empleado</p><p>${err}</p>`,
+              title: "Desactivar Empleado",
+              html: `<p>Ocurrió un error al desactivar el empleado</p><p>${err}</p>`,
               type: "danger",
             });
           })
@@ -197,7 +191,6 @@ export default {
     },
   },
   mounted() {
-    console.log('[DEBUG] mounted: Página montada');
     this.loadData();
   },
 };
