@@ -150,7 +150,7 @@
 
 
 
-- [ ] ## Gestión de Clientes
+- [x] ## Gestión de Clientes **(placeholders y validaciones de crear/editar corregidos: teléfono normalizado y sin duplicados, nombre/apellido obligatorios, email/cédula opcionales, país/estado/ciudad obligatorios; eliminación verificada como soft-delete correcto, con confirmación extra si el cliente tiene órdenes y reactivación al recrear por teléfono)**
 
 
 
