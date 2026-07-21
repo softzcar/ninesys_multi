@@ -31,24 +31,8 @@
             <b-row>
               <b-col
                 cols="12"
-                lg="7"
-                class="mb-4 mt-4"
-              >
-                <h5 class="mb-2">Filtrar por departamento:</h5>
-                <b-form-radio-group
-                  id="btn-radios-departamento"
-                  v-model="selectedDepartamento"
-                  :options="departamentoOptions"
-                  button-variant="outline-primary"
-                  size="lg"
-                  name="radio-btn-departamento"
-                  class="filtro-departamento-buttons"
-                  buttons
-                ></b-form-radio-group>
-              </b-col>
-              <b-col
-                cols="12"
                 lg="5"
+                class="mb-4 mt-4"
               >
                 <b-input-group
                   class="mb-4"
@@ -70,6 +54,23 @@
                     </b-button>
                   </b-input-group-append>
                 </b-input-group>
+              </b-col>
+              <b-col
+                cols="12"
+                lg="7"
+                class="mb-4 mt-4"
+              >
+                <h5 class="mb-2">Filtrar por departamento:</h5>
+                <b-form-radio-group
+                  id="btn-radios-departamento"
+                  v-model="selectedDepartamento"
+                  :options="departamentoOptions"
+                  button-variant="outline-primary"
+                  size="lg"
+                  name="radio-btn-departamento"
+                  class="filtro-departamento-buttons"
+                  buttons
+                ></b-form-radio-group>
               </b-col>
             </b-row>
 
