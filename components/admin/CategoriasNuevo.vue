@@ -61,7 +61,7 @@ export default {
         resetForm() {
             this.form.name = "";
         },
-        async guardarCategoria() {
+        async guardarCategoria(reactivarId = null) {
             if (this.form.name.trim().length === 0) {
                 this.$fire({
                     title: "Dato Requerido",
@@ -73,25 +73,46 @@ export default {
 
                 const data = new URLSearchParams()
                 data.set("name", this.form.name)
+                if (reactivarId) {
+                    data.set("reactivar_id", reactivarId)
+                }
 
-                await this.$axios
-                    .post(`${this.$config.API}/categories`, data)
-                    .then((res) => {
-                        this.resetForm()
-                        this.$bvModal.hide(this.modal)
-                    })
-                    .catch(err => {
+                try {
+                    await this.$axios.post(`${this.$config.API}/categories`, data)
+                    this.resetForm()
+                    this.$bvModal.hide(this.modal)
+                    this.$emit("reload")
+                } catch (err) {
+                    // Ya existe una categoría eliminada con este mismo nombre: ofrecer
+                    // reactivarla en vez de crear una duplicada.
+                    const errData = err.response && err.response.data;
+                    if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
                         this.overlay = false;
-                        console.error("Error guardando la categoría:", err);
-                        this.$bvToast.toast("No se pudo guardar la categoría", {
-                          variant: "danger",
-                        });
-                    })
+                        try {
+                            await this.$confirm(
+                                `Ya existe una categoría eliminada llamada "${errData.name}". ¿Desea reactivarla?`,
+                                "Categoría ya existe",
+                                "question"
+                            );
+                            await this.guardarCategoria(errData.id);
+                        } catch (e) {
+                            // El usuario canceló la reactivación
+                        }
+                        return;
+                    }
+
+                    console.error("Error guardando la categoría:", err);
+                    this.$bvToast.toast((errData && errData.error) || "No se pudo guardar la categoría", {
+                      variant: "danger",
+                    });
+                } finally {
+                    this.overlay = false;
+                }
             }
         },
         onSubmit(event) {
             event.preventDefault()
-            this.guardarCategoria().then(() => this.$emit("reload"))
+            this.guardarCategoria()
         }
     },
 }
