@@ -193,7 +193,7 @@ export default {
       }
     },
 
-    async postProduct() {
+    async postProduct(reactivarId = null) {
       this.overlay = true;
       const data = new URLSearchParams();
       data.set("product", this.form.product);
@@ -204,6 +204,9 @@ export default {
       data.set("producto_fisico", this.form.producto_fisico);
       data.set("es_diseno", this.form.es_diseno);
       data.set("stock_quantity", this.form.stock_quantity);
+      if (reactivarId) {
+        data.set("reactivar_id", reactivarId);
+      }
 
       try {
         const res = await this.$axios.post(
@@ -227,9 +230,27 @@ export default {
         this.assigningInsumos = true;
         // --- End of new logic ---
       } catch (err) {
+        // Ya existe un producto eliminado con este mismo nombre o SKU: ofrecer
+        // reactivarlo en vez de crear un duplicado.
+        const errData = err.response && err.response.data;
+        if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
+          this.overlay = false;
+          try {
+            await this.$confirm(
+              `Ya existe un producto eliminado llamado "${errData.product}". ¿Desea reactivarlo con la configuración indicada?`,
+              "Producto ya existe",
+              "question"
+            );
+            await this.postProduct(errData.id_product);
+          } catch (e) {
+            // El usuario canceló la reactivación
+          }
+          return;
+        }
+
         this.$fire({
           title: "Error creando el producto",
-          html: `<p>${err.message || err}</p>`,
+          html: `<p>${(errData && errData.error) || err.message || err}</p>`,
           type: "warning",
         });
       } finally {
