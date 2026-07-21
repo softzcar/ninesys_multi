@@ -98,8 +98,8 @@
             <p><strong>SKU:</strong> {{ newlyCreatedProduct.sku }}</p>
           </div>
           <admin-AsignacionDeInsumosAProductos ref="insumosAssignment" :item="newlyCreatedProduct"
-            :departamentos="departamentos" :selectinsumos="selectInsumos" :insumosasignados="[]" :tiemposprod="[]"
-            @reload="handleInsumosUpdate" style="display: none;" />
+            :departamentos="departamentos" :selectinsumos="selectInsumos" :insumosasignados="insumosAsignados"
+            :tiemposprod="tiemposProd" @reload="handleInsumosUpdate" style="display: none;" />
           <b-button variant="primary" @click="finish" class="mt-3">Finalizar</b-button>
         </div>
 
@@ -134,6 +134,8 @@ export default {
       newlyCreatedProduct: null,
       departamentos: [],
       selectInsumos: [],
+      insumosAsignados: [],
+      tiemposProd: [],
     };
   },
 
@@ -225,6 +227,7 @@ export default {
         this.newlyCreatedProduct.cod = this.newlyCreatedProduct._id;
 
         await this.fetchEssentialData();
+        await this.fetchInsumosAsignados();
         this.assigningInsumos = true;
         // --- End of new logic ---
       } catch (err) {
@@ -287,9 +290,27 @@ export default {
       return options;
     },
 
-    handleInsumosUpdate() {
-      // Optional: could be used to show a success message
-      console.log("Insumos actualizados");
+    // Trae los insumos y tiempos YA guardados para este producto. Antes se le
+    // pasaba [] fijo a AsignacionDeInsumosAProductos, así que la tabla nunca
+    // reflejaba lo que realmente había en la base de datos (ni antes ni
+    // después de importar de otro producto).
+    async fetchInsumosAsignados() {
+      if (!this.newlyCreatedProduct || !this.newlyCreatedProduct.cod) return;
+      try {
+        const [insumosRes, tiemposRes] = await Promise.all([
+          this.$axios.get(`${this.$config.API}/insumos-productos-asignados`),
+          this.$axios.get(`${this.$config.API}/tiempos-de-produccion`),
+        ]);
+        const productId = this.newlyCreatedProduct.cod;
+        this.insumosAsignados = insumosRes.data.filter((i) => i.id_product == productId);
+        this.tiemposProd = tiemposRes.data.filter((t) => t.id_product == productId);
+      } catch (error) {
+        console.error("Error cargando insumos/tiempos ya asignados:", error);
+      }
+    },
+
+    async handleInsumosUpdate() {
+      await this.fetchInsumosAsignados();
     },
 
     finish() {
@@ -314,6 +335,8 @@ export default {
       this.newlyCreatedProduct = null;
       this.departamentos = [];
       this.selectInsumos = [];
+      this.insumosAsignados = [];
+      this.tiemposProd = [];
       this.show = false;
       this.$nextTick(() => {
         this.show = true;
