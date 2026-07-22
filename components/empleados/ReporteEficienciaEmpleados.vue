@@ -7,13 +7,17 @@
         </b-col>
       </b-row>
 
-      <b-row class="mb-4">
-        <b-col>
-          <b-form-group label="Seleccionar Empleado">
+      <b-row class="mb-4 justify-content-center">
+        <b-col cols="12" md="6" lg="4">
+          <b-form-group
+            label="Seleccionar Empleado"
+            label-class="small font-weight-bold text-muted text-uppercase mb-1"
+          >
             <b-form-select
               v-model="selectedEmployeeId"
               :options="empleadosSelect"
               @change="onEmployeeSelected"
+              class="empleado-select"
             ></b-form-select>
           </b-form-group>
         </b-col>
@@ -553,3 +557,17 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.empleado-select {
+  border-radius: 8px;
+  border-color: #ced4da;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.empleado-select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+</style>
