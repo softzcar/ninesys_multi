@@ -29,7 +29,11 @@
             <b-list-group-item>
               <h3>RELACIÓN DE PAGOS</h3>
             </b-list-group-item>
-            <b-list-group-item variant="info">
+            <b-list-group-item
+              variant="info"
+              class="horas-trabajadas-item"
+              @click="abrirModalHoras"
+            >
               <h3>{{ horasTrabajadas }} HORAS</h3>
             </b-list-group-item>
             <b-list-group-item variant="success"
@@ -138,6 +142,11 @@
       :modal-id="'eficiencia-insumos-detalle-modal'"
       @modal-closed="selectedInsumo = null"
     />
+
+    <HorasTrabajadasDetalleModal
+      :tareas="ordenesSemana"
+      :modal-id="'horas-trabajadas-detalle-modal'"
+    />
   </div>
 </template>
 
@@ -147,11 +156,13 @@ import mixin2 from '~/mixins/mixin-proyeccion-entrega.js'
 import procesamientoOrdenesMixin from '~/mixins/procesamientoOrdenes.js'
 import EficienciaDetalleModal from '~/components/EficienciaDetalleModal.vue'
 import EficienciaInsumosDetalleModal from '~/components/EficienciaInsumosDetalleModal.vue'
+import HorasTrabajadasDetalleModal from '~/components/empleados/HorasTrabajadasDetalleModal.vue'
 
 export default {
   components: {
     EficienciaDetalleModal,
     EficienciaInsumosDetalleModal,
+    HorasTrabajadasDetalleModal,
   },
   mixins: [mixin, mixin2, procesamientoOrdenesMixin],
 
@@ -344,6 +355,10 @@ export default {
   },
 
   methods: {
+    abrirModalHoras() {
+      this.$bvModal.show('horas-trabajadas-detalle-modal')
+    },
+
     abrirModal(orden) {
       this.selectedOrden = orden
       this.$bvModal.show('eficiencia-detalle-modal')
@@ -579,5 +594,9 @@ export default {
 .empleado-select:focus {
   border-color: #80bdff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+
+.horas-trabajadas-item {
+  cursor: pointer;
 }
 </style>
