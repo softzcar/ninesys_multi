@@ -112,12 +112,12 @@
                 </template>
                 <template #cell(eficiencia)="data">
                   <a href="#" @click.prevent="abrirModal(data.item)">
-                    {{ calcularEficiencia(data.item) }}%
+                    {{ calcularEficiencia(data.item) }}{{ calcularEficiencia(data.item) !== 'N/A' ? '%' : '' }}
                   </a>
                 </template>
                 <template #cell(eficiencia_insumos)="data">
                   <a href="#" @click.prevent="abrirModalInsumos(data.item)">
-                    {{ calcularEficienciaInsumos(data.item.id_orden) }}%
+                    {{ calcularEficienciaInsumos(data.item.id_orden) }}{{ calcularEficienciaInsumos(data.item.id_orden) !== 'N/A' ? '%' : '' }}
                   </a>
                 </template>
               </b-table-lite>
@@ -360,12 +360,16 @@ export default {
     },
 
     calcularEficiencia(orden) {
+      // Sin tiempo real registrado no hay con qué comparar el estimado --
+      // antes esto mostraba "0%" (parece una eficiencia real pésima) en vez
+      // de indicar que sencillamente no hay dato. Mismo criterio ya usado en
+      // Reporte General de Eficiencia (eficiencia_tiempo/material = N/A).
       if (
         !orden.tiempo_estimado_de_produccion ||
         !orden.tiempo_empleado ||
         orden.tiempo_empleado === 0
       ) {
-        return 0
+        return 'N/A'
       }
       // tiempo_estimado_de_produccion y tiempo_empleado vienen ambos en
       // SEGUNDOS desde el backend (SUM(products_tiempos_de_produccion.tiempo
@@ -379,15 +383,18 @@ export default {
     },
 
     calcularEficienciaInsumos(idOrden) {
+      // Mismo criterio: sin consumo real registrado, mostrar N/A en vez de
+      // "0%" -- un 0% se lee como "no se aprovechó nada del insumo", cuando
+      // en realidad es que no hay ningún movimiento de inventario asociado.
       const insumosFiltrados = this.eficienciInsumos.filter(insumo => insumo.id_orden === idOrden);
       if (!Array.isArray(insumosFiltrados) || insumosFiltrados.length === 0) {
-        return 0
+        return 'N/A'
       }
       const totalEstimado = insumosFiltrados.reduce((acc, insumo) => acc + insumo.consumo_estimado_total, 0)
       const totalReal = insumosFiltrados.reduce((acc, insumo) => acc + insumo.consumo_real_total, 0)
 
       if (totalReal === 0) {
-        return 0
+        return 'N/A'
       }
 
       const eficiencia = (totalEstimado / totalReal) * 100
