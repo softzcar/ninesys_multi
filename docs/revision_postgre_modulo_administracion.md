@@ -173,7 +173,7 @@
 
 ## Reportes
 
-- [ ] Reporte general
+- [x] Reporte general **(renombrado de "semanal" a "Reporte General de Eficiencia" -- URL, endpoint y links del sidebar; corregido fallback 100% falso en Eficiencia Tiempo/Material cuando no hay datos reales -- ahora N/A; corregido 500 en el modal de eficiencia de insumos por columna eliminada en limpieza anterior; corregido cálculo de "Real" en eficiencia de insumos que aplicaba rendimiento sin condición, inflando el consumo real hasta 11x en algunas órdenes; verificado con datos reales que el progressbar de eficiencia de tiempo calcula correctamente -- los desfases observados son de configuración de datos, no de código)**
 - [ ] Rendimiento
 - [ ] Eficiencia Empleados
 - [ ] Insumos por orden

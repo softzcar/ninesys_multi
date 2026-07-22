@@ -330,11 +330,6 @@
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/inventario/rendimiento">
-              Rendimiento
-            </router-link>
-          </li>
-          <li class="nav-item">
             <router-link class="nav-link" to="/reporte-eficiencia-empleados">
               Eficiencia de Empleados
             </router-link>
