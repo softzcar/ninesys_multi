@@ -367,11 +367,14 @@ export default {
       ) {
         return 0
       }
-      const tiempoEmpleadoEnMinutos = orden.tiempo_empleado / 60
-      if (tiempoEmpleadoEnMinutos === 0) return 0 // Evitar división por cero
-
+      // tiempo_estimado_de_produccion y tiempo_empleado vienen ambos en
+      // SEGUNDOS desde el backend (SUM(products_tiempos_de_produccion.tiempo
+      // * cantidad) y EXTRACT(EPOCH...) respectivamente). Antes se dividía
+      // solo tiempo_empleado entre 60 asumiendo por error que el estimado
+      // estaba en minutos, inflando la eficiencia mostrada por un factor de
+      // 60 (ej. orden 5708: daba 70515% en vez de 1175%).
       const eficiencia =
-        (orden.tiempo_estimado_de_produccion / tiempoEmpleadoEnMinutos) * 100
+        (orden.tiempo_estimado_de_produccion / orden.tiempo_empleado) * 100
       return eficiencia.toFixed(2)
     },
 

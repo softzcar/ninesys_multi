@@ -6,7 +6,7 @@
       <p><strong>Fecha de Inicio:</strong> {{ formatTimestamp(orden.fecha_inicio) }}</p>
       <p><strong>Fecha de Fin:</strong> {{ formatTimestamp(orden.fecha_terminado) }}</p>
       <p><strong>Tiempo Empleado:</strong> {{ formatDuration(orden.tiempo_empleado) }}</p>
-      <p><strong>Tiempo Estimado:</strong> {{ orden.tiempo_estimado_de_produccion }} minutos</p>
+      <p><strong>Tiempo Estimado:</strong> {{ formatDuration(orden.tiempo_estimado_de_produccion) }}</p>
       <p><strong>Diferencia Tiempo (Rendimiento):</strong> {{ formatSecondsToHours(orden.rendimiento) }}</p>
     </div>
     <div v-else>
