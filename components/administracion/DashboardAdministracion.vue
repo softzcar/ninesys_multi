@@ -175,7 +175,7 @@ export default {
 
         console.log('[DashboardAdministracion] consultando top products rango local:', fechaInicio, 'a', fechaFin);
 
-        const res = await this.$axios.get(`${this.$config.API}/reportes/semanal-detallado`, {
+        const res = await this.$axios.get(`${this.$config.API}/reportes/general-eficiencia-detallado`, {
           params: { inicio: fechaInicio, fin: fechaFin }
         });
         return res.data.topProducts || [];

@@ -325,7 +325,7 @@
       <b-collapse id="sidebar-reportes" class="sub-menu">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <router-link class="nav-link" to="/reportes/semanal">
+            <router-link class="nav-link" to="/reportes/general-eficiencia">
               Reporte General
             </router-link>
           </li>

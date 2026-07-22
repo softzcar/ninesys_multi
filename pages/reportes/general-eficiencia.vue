@@ -593,7 +593,7 @@ export default {
       this.totalManufactured = 0;
 
       try {
-        const res = await this.$axios.get(`${this.$config.API}/reportes/semanal-detallado`, {
+        const res = await this.$axios.get(`${this.$config.API}/reportes/general-eficiencia-detallado`, {
           params: {
             inicio: this.fechaInicio,
             fin: this.fechaFin

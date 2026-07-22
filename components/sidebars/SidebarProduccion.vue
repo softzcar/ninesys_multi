@@ -10,8 +10,8 @@
       <b-collapse id="sidebar-reportes-prod" class="sub-menu">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <router-link class="nav-link" to="/reportes/semanal">
-              Reporte Semanal
+            <router-link class="nav-link" to="/reportes/general-eficiencia">
+              Reporte General de Eficiencia
             </router-link>
           </li>
         </ul>
