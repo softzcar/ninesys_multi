@@ -335,11 +335,6 @@
             </router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/inventario/reportes/orden">
-              Insumos por Orden
-            </router-link>
-          </li>
-          <li class="nav-item">
             <router-link class="nav-link" to="/inventario/reportes/producto">
               Productos
             </router-link>
