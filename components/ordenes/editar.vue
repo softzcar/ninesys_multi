@@ -392,6 +392,20 @@ export default {
             ]
         }
 
+        // Ocultar del desplegable los destinos que el backend va a rechazar de
+        // todas formas (mismas reglas que POST /orden/actualizar-estado), para
+        // que el usuario no llegue a intentar un cambio inválido. Si igual lo
+        // intenta por alguna otra vía, el backend sigue siendo quien realmente
+        // lo bloquea y explica el motivo (ver errorMessage en saveData()).
+        const estadoActual = this.data.estatus
+        const estadosPreProduccion = ['En espera', 'activa', 'pausada']
+        if (estadoActual === 'terminada' || estadoActual === 'entregada') {
+            this.options = this.options.filter(o => !estadosPreProduccion.includes(o.value))
+        }
+        if (estadoActual === 'entregada') {
+            this.options = this.options.filter(o => o.value !== 'cancelada')
+        }
+
         console.log('DEBUG: Opciones cargadas:', this.options)
     },
 

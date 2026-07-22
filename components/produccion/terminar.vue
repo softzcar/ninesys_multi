@@ -72,7 +72,8 @@ export default {
                 })
                 .catch((err) => {
                     this.variant = "danger"
-                    this.msg = `Algo salió mal en la terminación de la orden ${err}`
+                    const backendMsg = err.response && err.response.data && err.response.data.message
+                    this.msg = backendMsg || `Algo salió mal en la terminación de la orden: ${err.message || err}`
                     console.log(err)
                 })
                 .finally(() => {
