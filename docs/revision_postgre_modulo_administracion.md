@@ -176,9 +176,9 @@
 - [x] Reporte general **(renombrado de "semanal" a "Reporte General de Eficiencia" -- URL, endpoint y links del sidebar; corregido fallback 100% falso en Eficiencia Tiempo/Material cuando no hay datos reales -- ahora N/A; corregido 500 en el modal de eficiencia de insumos por columna eliminada en limpieza anterior; corregido cálculo de "Real" en eficiencia de insumos que aplicaba rendimiento sin condición, inflando el consumo real hasta 11x en algunas órdenes; verificado con datos reales que el progressbar de eficiencia de tiempo calcula correctamente -- los desfases observados son de configuración de datos, no de código)**
 - [ ] Rendimiento
 - [x] Eficiencia Empleados **(selector de empleado rediseñado -- ocupaba todo el ancho en desktop; corregida inflación 60x en Eficiencia Tiempo por mezclar segundos con minutos; corregida etiqueta "minutos" incorrecta en modal de detalle; corregido consumo_real_total inflado en Eficiencia Insumos por rendimiento aplicado sin verificar unidad del insumo; corregido "0%" engañoso -- ahora N/A cuando no hay datos reales; corregido JOIN roto en Eficiencia Insumos por id_catalogo_insumos_prodcutos NULL en 69% del historial de inventario_movimientos, usando inventario.id_catalogo como respaldo; restaurado cálculo de HORAS TRABAJADAS -- código muerto tras un `return` hacía que siempre mostrara 0.00, afectaba también producción MySQL; agregado modal de detalle de horas con estado de pago por tarea (pagado/pendiente); corregido PENDIENTE $ que ignoraba procentaje_comision de reparto entre empleados en el mismo lote, riesgo de duplicación de comisión -- sin impacto en datos actuales pero confirmado en 130 asignaciones históricas)**
-- [ ] Insumos por orden
-- [ ] Insumos
-- [ ] Productos
+- ~~Insumos por orden~~ **(página eliminada del sidebar y del código el 22/07 -- ya no aplica)**
+- ~~Insumos~~ **(link eliminado del sidebar el 22/07 -- ya no aplica)**
+- [x] Productos **(SELECT de producto reemplazado por TypeHead buscable por nombre/código; columnas valor_inicial/valor_final unificadas en una sola "Material Consumido" = ABS(diferencia); agregado filtro client-side por número de orden; habilitado ordenamiento por columna -- orden, producto, id insumo, insumo, empleado, fecha -- ya estaba previsto en el backend pero nunca activado; eliminado un campo "Fecha" duplicado por error de copiar/pegar; corregida inyección SQL real en el route param id_producto, que se concatenaba crudo sin sanitizar)**
 - [ ] Reporte de Costos
 - [ ] Desviación de Costos
 - [ ] Reporte de Reposiciones
