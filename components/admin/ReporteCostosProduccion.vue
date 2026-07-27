@@ -30,7 +30,7 @@
             </b-form-group>
           </b-col>
           <b-col md="2">
-            <b-form-group label="Buscar por Orden:">
+            <b-form-group label="Filtrar por Orden:">
               <b-form-input
                 v-model="tableFilter"
                 placeholder="N° Orden"
