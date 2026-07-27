@@ -462,6 +462,8 @@ export default {
         gasto_remanente: 0,
         gasto_mantenimiento: 0,
         material_consumido: 0,
+        consumo_estimado_insumos: 0,
+        consumo_real_insumos: 0,
         eficiencia_insumos: 0,
         eficiencia_count: 0,
         reposiciones: 0,
@@ -492,6 +494,9 @@ export default {
         
         totals.reposiciones += Number(item.reposiciones || 0);
         totals.tiempo_de_produccion += Number(item.tiempo_de_produccion || 0);
+
+        totals.consumo_estimado_insumos += Number(item.consumo_estimado_insumos || 0);
+        totals.consumo_real_insumos += Number(item.consumo_real_insumos || 0);
       });
 
       totals.costo_insumos_total = this.roundToTwoDecimals(totals.costo_insumos_total);
@@ -499,6 +504,15 @@ export default {
       totals.pago_total = this.roundToTwoDecimals(totals.pago_total);
       totals.costo_total = this.roundToTwoDecimals(totals.costo_total);
       totals.ganancia = this.roundToTwoDecimals(totals.ganancia);
+
+      // Eficiencia = estimado/real*100, mismo criterio ya usado en el Reporte
+      // de Eficiencia de Empleados: >100% = se consumió menos material del
+      // estimado (bien), <100% = se consumió más (mal). Sin datos reales de
+      // consumo (totalReal=0) se deja en 0 -- el KPI ya lo interpreta como
+      // "sin datos" (v-if="totals.eficiencia_insumos > 0" oculta la barra).
+      totals.eficiencia_insumos = totals.consumo_real_insumos > 0
+        ? this.roundToTwoDecimals((totals.consumo_estimado_insumos / totals.consumo_real_insumos) * 100)
+        : 0;
 
       return totals;
     },
