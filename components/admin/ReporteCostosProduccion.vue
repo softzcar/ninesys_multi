@@ -543,12 +543,20 @@ export default {
         const insumos = Number(item.costos_de_insumos || 0);
         const tintas = Number(item.total_tinta_costo || 0);
         
-        const costo_mano_de_obra_actual = Number(item.costo_mano_de_obra_total || 0);
+        // costo_mano_de_obra (API) = pagos por comisión del período + prorrateo de
+        // salario de empleados que NO tienen ninguna tarea rastreada en el rango.
+        // No incluye el costo de empleados asalariados (salario_tipo='Salario')
+        // que SÍ trabajaron tareas rastreadas -- el backend fuerza su monto_pago
+        // a 0 (no cobran comisión), y al tener tareas quedan fuera del prorrateo
+        // de "no trackeados". salario_invertido (ya calculado más arriba en
+        // getReport(), vía calcularCostoSalariosOrden) cubre exactamente ese
+        // hueco: horas realmente laboradas dentro del horario de la empresa x
+        // costo por hora del empleado, por orden. Se suman ambos para no perder
+        // ese costo real (verificado: empleado "Abraham", $60/semana, 230
+        // órdenes trabajadas con monto_pago=$0.00 en el 100% de sus pagos).
         const costo_mano_de_obra_api = Number(item.costo_mano_de_obra || 0);
-        
-        const costo_mano_de_obra_total = costo_mano_de_obra_actual > 0 
-            ? costo_mano_de_obra_actual 
-            : costo_mano_de_obra_api;
+        const salario_invertido = Number(item.salario_invertido || 0);
+        const costo_mano_de_obra_total = costo_mano_de_obra_api + salario_invertido;
 
         item.pago_total = pago;
         item.costo_insumos_total = this.roundToTwoDecimals(insumos + tintas);
