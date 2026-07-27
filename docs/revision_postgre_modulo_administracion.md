@@ -70,7 +70,7 @@
   - [x] Guardar un presupuesto
 - [x] Relación de Pagos
 - [x] Ordenes en Curso
-- [x] Todas las Ordenes
+- [x] Todas las Ordenes **(PENDIENTE IMPORTANTE, no bloqueante: optimizar el tiempo de carga de la página `/produccion/ordenes-todas` -- reportado lento por el usuario, causa raíz aún sin investigar)**
 
 
 
