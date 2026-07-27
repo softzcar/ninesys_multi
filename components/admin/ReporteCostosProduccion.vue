@@ -82,7 +82,7 @@
               :items="reportData"
               :fields="dynamicFields"
               :filter="tableFilter"
-              :filter-included-fields="['id_orden']"
+              :filter-included-fields="filterIncludedFields"
               @filtered="onFiltered"
               primary-key="id_orden"
               responsive
@@ -342,6 +342,15 @@ export default {
       tintasResumen: [],
 
       tableFilter: "",
+      // Referencia estable: si se pasara como array literal inline en el
+      // template ([ 'id_orden' ]), Vue crea una referencia NUEVA en cada
+      // re-render del padre -- <b-table> la ve como prop "cambiada" y
+      // vuelve a filtrar, emitiendo @filtered, que reasigna
+      // filteredReportData, que fuerza otro re-render del padre, que
+      // vuelve a crear el array... bucle de reactividad sin fin (era la
+      // causa real de que "Buscar por Orden" colgara la app, incluso ya
+      // sin ninguna mutación de items dentro de onFiltered).
+      filterIncludedFields: ['id_orden'],
       filters: {
         inicio: null,
         fin: null,
