@@ -517,10 +517,19 @@ export default {
       return parsed;
     },
 
+    // Los campos calculados por ítem (gasto_fijo, costo_mano_de_obra_total,
+    // total_tinta_costo, costo_total, ganancia...) ya se computan una sola
+    // vez sobre this.reportData completo (ver getReport() y el watcher de
+    // selectedExpenses) -- no dependen de qué subconjunto esté filtrado.
+    // Antes, este handler volvía a mutar los mismos objetos reactivos de
+    // reportData en cada evento @filtered; como <b-table> vuelve a filtrar
+    // cuando sus items cambian, cada mutación disparaba un nuevo @filtered,
+    // que volvía a mutar, en un bucle de reactividad sin fin (verificado:
+    // 843 disparos en 2 segundos al escribir un solo valor en "Buscar por
+    // Orden", coincide con el reporte del usuario de que la app se
+    // "colgaba" al usar ese filtro).
     onFiltered(filteredItems) {
       this.filteredReportData = filteredItems;
-      this.combineReportDataWithTintas(filteredItems);
-      this.updateUnifiedColumns(filteredItems);
     },
 
     updateUnifiedColumns(dataToProcess = null) {
@@ -571,31 +580,6 @@ export default {
         this.filteredReportData = [...this.reportData];
       }
     },
-
-    combineReportDataWithTintas(dataToProcess = null) {
-      const data = dataToProcess || this.reportData;
-      const tintasMap = {};
-      this.tintasResumen.forEach(tinta => {
-        tintasMap[tinta.id_orden] = tinta;
-      });
-
-      data.forEach(item => {
-        const tintaData = tintasMap[item.id_orden];
-        if (tintaData) {
-          item.total_tinta_consumo_ml = tintaData.total_tinta_consumo_ml || 0;
-          item.total_tinta_costo = tintaData.total_tinta_costo || 0;
-        } else {
-          item.total_tinta_consumo_ml = 0;
-          item.total_tinta_costo = 0;
-        }
-      });
-
-      if (!dataToProcess) {
-        this.filteredReportData = [...this.reportData];
-      }
-    },
-
-
 
     setDefaultDates() {
       const today = new Date();
