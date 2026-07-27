@@ -24,15 +24,24 @@
               </b-col>
             </b-row>
             <b-row>
-              <b-col>
-                <p>
-                  <b-form-select
-                    class="mb-4 pb-4"
-                    v-model="selected_prod"
-                    :options="products"
-                    @change="loadTable"
-                  ></b-form-select>
-                </p>
+              <b-col md="6">
+                <label class="font-weight-bold text-secondary text-uppercase small">Buscar producto</label>
+                <vue-typeahead-bootstrap
+                  v-model="queryProducto"
+                  :data="productsTypeaheadData"
+                  @hit="onProductSelected"
+                  placeholder="Escriba el nombre o código del producto..."
+                  class="mb-4"
+                ></vue-typeahead-bootstrap>
+              </b-col>
+              <b-col md="6">
+                <label class="font-weight-bold text-secondary text-uppercase small">Filtrar por número de orden</label>
+                <b-form-input
+                  v-model="filtroOrden"
+                  type="search"
+                  placeholder="Ej: 6301"
+                  class="mb-4"
+                ></b-form-input>
               </b-col>
             </b-row>
             <b-row>
@@ -44,18 +53,10 @@
                   <b-table
                     responsive
                     :fields="dataTable.fields"
-                    :items="dataTable.items"
+                    :items="itemsFiltrados"
                   >
                     <template #cell(id_orden)="data">
                       <linkSearch :id="data.item.id_orden" />
-                    </template>
-
-                    <template #cell(id_producto)="data">
-                      {{
-                                                filterProduct(
-                                                    data.item.id_producto
-                                                )
-                                            }}
                     </template>
                   </b-table>
 
@@ -77,6 +78,8 @@ export default {
   data() {
     return {
       selected_prod: "",
+      queryProducto: "",
+      filtroOrden: "",
       overlay: true,
       dataTable: [],
       products: [],
@@ -88,6 +91,16 @@ export default {
     myTable() {
       return this.dataTable.items;
     },
+    productsTypeaheadData() {
+      return this.products.map((prod) => prod.text);
+    },
+    itemsFiltrados() {
+      const items = (this.dataTable && this.dataTable.items) || [];
+      if (!this.filtroOrden.trim()) return items;
+      return items.filter((item) =>
+        String(item.id_orden).includes(this.filtroOrden.trim())
+      );
+    },
   },
 
   methods: {
@@ -97,6 +110,15 @@ export default {
         .map((prod) => {
           return `"${prod.text}"`;
         })[0];
+    },
+
+    onProductSelected(hit) {
+      const found = this.products.find((prod) => prod.text === hit);
+      if (found) {
+        this.selected_prod = found.value;
+        this.queryProducto = hit;
+        this.loadTable();
+      }
     },
 
     async loadTable() {
@@ -131,15 +153,6 @@ export default {
           .filter((item) => item);
         this.overlay = false;
       });
-    },
-
-    filterProduct(id_product) {
-      let product = this.products
-        .filter((prod) => prod.id == id_product)
-        .map((item) => {
-          return item.name;
-        });
-      return product[0];
     },
   },
 
