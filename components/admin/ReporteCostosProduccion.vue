@@ -590,13 +590,28 @@ export default {
       }
     },
 
+    // Formatea una fecha a YYYY-MM-DD usando sus componentes LOCALES.
+    // No usar .toISOString() para esto: convierte a UTC, y en zonas horarias
+    // con offset negativo (ej. America/Caracas, UTC-4) cualquier hora local
+    // entre ~20:00 y 23:59 cruza al día siguiente en UTC -- desplazando la
+    // fecha calculada un día hacia adelante. Verificado: a las 23:30 hora
+    // local, el rango por defecto (lunes de esta semana -> hoy) se calculaba
+    // como "mañana -> mañana" en vez de "lunes real -> hoy real".
+    formatFechaLocal(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    },
+
     setDefaultDates() {
       const today = new Date();
       const dayOfWeek = today.getDay();
       const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      const monday = new Date(today.setDate(diff));
-      this.filters.inicio = monday.toISOString().split("T")[0];
-      this.filters.fin = new Date().toISOString().split("T")[0];
+      const monday = new Date(today);
+      monday.setDate(diff);
+      this.filters.inicio = this.formatFechaLocal(monday);
+      this.filters.fin = this.formatFechaLocal(new Date());
     },
 
     async getReport() {
