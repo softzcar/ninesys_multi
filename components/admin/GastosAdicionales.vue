@@ -70,7 +70,7 @@
         </b-col>
         <b-col md="5">
           <b-form-group label="Moneda:" label-for="moneda-adicional">
-            <b-form-select id="moneda-adicional" v-model="gastoModel.moneda" :options="['USD', 'VES', 'COP', 'bolivar']"></b-form-select>
+            <b-form-select id="moneda-adicional" v-model="gastoModel.moneda" :options="['USD', 'VES', 'COP']"></b-form-select>
           </b-form-group>
         </b-col>
       </b-row>

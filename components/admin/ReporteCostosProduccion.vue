@@ -408,12 +408,19 @@ export default {
     totalGastosPorTipoUSD() {
       const totals = { fijo: 0, variable: 0, adicional: 0 };
       const gastos = this.costosOperativos.gastos_por_tipo || {};
-      
+
       ['fijo', 'variable', 'adicional'].forEach(tipo => {
         if (gastos[tipo]) {
           gastos[tipo].forEach(g => {
+            // tasas.bolivar/peso_colombiano representan "unidades de esa
+            // moneda por 1 USD" (ej. bolivar=650 -> Bs 650 = $1), misma
+            // convención usada en abono.vue/abonos.vue/cierre-de-caja.vue
+            // (allí multiplican USD x tasa para ir HACIA la moneda local).
+            // Aquí vamos en la dirección contraria (moneda local -> USD),
+            // así que hay que DIVIDIR, no multiplicar. Con tasa=1 (USD)
+            // el resultado no cambia de todas formas.
             const tasa = parseFloat(this.tasas[this.getTasaKey(g.moneda)]) || 1;
-            totals[tipo] += g.total * tasa;
+            totals[tipo] += g.total / tasa;
           });
         }
       });
