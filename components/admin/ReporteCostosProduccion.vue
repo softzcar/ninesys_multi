@@ -269,7 +269,7 @@
                   Total Productos Fabricados:
                   <b-badge variant="secondary" pill>{{ costosOperativos.total_productos_periodo }}</b-badge>
                 </b-list-group-item>
-                <b-list-group-item v-for="(val, tipo) in totalGastosPorTipoUSD" :key="tipo" class="d-flex justify-content-between align-items-center">
+                <b-list-group-item v-for="(val, tipo) in totalGastosPorTipoUSD" v-if="selectedExpenses.includes(tipo)" :key="tipo" class="d-flex justify-content-between align-items-center">
                   Total Gastos {{ tipo.charAt(0).toUpperCase() + tipo.slice(1) }}s:
                   <b-badge variant="info" pill>$ {{ val.toFixed(2) }}</b-badge>
                 </b-list-group-item>
@@ -409,8 +409,11 @@ export default {
       const totals = { fijo: 0, variable: 0, adicional: 0 };
       const gastos = this.costosOperativos.gastos_por_tipo || {};
 
+      // Solo se suman los tipos con su switch activo en "Incluir Gastos" --
+      // el "Resumen de Costos Operativos" debe mostrar exactamente lo que
+      // la Utilidad Neta resta, no el total absoluto del período.
       ['fijo', 'variable', 'adicional'].forEach(tipo => {
-        if (gastos[tipo]) {
+        if (this.selectedExpenses.includes(tipo) && gastos[tipo]) {
           gastos[tipo].forEach(g => {
             // tasas.bolivar/peso_colombiano representan "unidades de esa
             // moneda por 1 USD" (ej. bolivar=650 -> Bs 650 = $1), misma
@@ -428,10 +431,12 @@ export default {
     },
 
     totalRemanentesUSD() {
+      if (!this.selectedExpenses.includes('remanente')) return 0;
       return parseFloat(this.costosOperativos.total_remanentes_periodo) || 0;
     },
 
     totalMantenimientoUSD() {
+      if (!this.selectedExpenses.includes('mantenimiento')) return 0;
       return parseFloat(this.costosOperativos.total_mantenimiento_periodo) || 0;
     },
 
