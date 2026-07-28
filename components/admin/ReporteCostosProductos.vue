@@ -779,6 +779,13 @@ export default {
   },
   watch: {
     viewMode() {
+      // "Buscar" filtra por campos distintos según la vista (nombre/SKU/categoría de
+      // producto vs. solo nombre de categoría) -- si quedara un texto de búsqueda de
+      // la vista anterior, la tabla y las KPI cards de la nueva vista podían quedar
+      // vacías sin ninguna indicación de por qué (ej. buscar "Franela Sublimada" en
+      // Productos y cambiar a Categorías, donde ningún nombre de categoría calza).
+      this.tableFilter = "";
+      this.selectedFilterProduct = null;
       this.fetchData();
     },
     tableFilter(newVal) {
