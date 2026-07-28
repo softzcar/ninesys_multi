@@ -31,7 +31,17 @@
 
         <b-row>
           <b-col>
-            <b-table striped :fields="fields" :items="dataReporte" class="mb-4">
+            <p class="text-muted mb-2">{{ dataReporte.length }} reposiciones encontradas</p>
+            <b-table
+              striped
+              :fields="fields"
+              :items="dataReporte"
+              :per-page="perPage"
+              :current-page="currentPage"
+              show-empty
+              empty-text="No hay reposiciones para los filtros seleccionados."
+              class="mb-3"
+            >
               <template #cell(id_orden)="data">
                 <linkSearch :id="data.item.id_orden" />
               </template>
@@ -56,6 +66,13 @@
                 </b-button>
               </template>
             </b-table>
+            <b-pagination
+              v-if="dataReporte.length > perPage"
+              v-model="currentPage"
+              :total-rows="dataReporte.length"
+              :per-page="perPage"
+              class="mb-4"
+            ></b-pagination>
           </b-col>
         </b-row>
       </b-container>
@@ -225,6 +242,8 @@ export default {
         fechaConsultaFin: "",
       },
       overlay: true,
+      perPage: 25,
+      currentPage: 1,
       fields_resumen: null,
       fields_detallado: null,
       itemsResumen: null,
@@ -376,6 +395,7 @@ export default {
         .get(URLRep)
         .then((res) => {
           this.dataReporte = res.data;
+          this.currentPage = 1;
         })
         .catch((err) => {
           // Restaurar valores en caso de error para permitir reintento
