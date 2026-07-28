@@ -429,6 +429,16 @@ const CACHE_DURATION = 5000; // 5 seconds
 export default {
   name: "ReporteCostosProductos",
   data() {
+    // No usar .toISOString(): convierte a UTC, y en zonas con offset negativo
+    // (ej. America/Caracas, UTC-4) cualquier hora local entre ~20:00 y 23:59
+    // cruza al día siguiente en UTC, desplazando la fecha un día hacia adelante
+    // (mismo bug ya corregido en ReporteCostosProduccion.vue).
+    const toFechaLocal = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -438,8 +448,8 @@ export default {
       viewMode: "productos",
       tableFilter: "",
       filters: {
-        inicio: thirtyDaysAgo.toISOString().split("T")[0],
-        fin: today.toISOString().split("T")[0],
+        inicio: toFechaLocal(thirtyDaysAgo),
+        fin: toFechaLocal(today),
       },
       productsData: [],
       categoriesData: [],
