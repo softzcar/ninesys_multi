@@ -147,16 +147,6 @@ export default {
     };
   },
 
-  computed: {
-    hoy() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = (today.getMonth() + 1).toString().padStart(2, "0");
-      const day = today.getDate().toString().padStart(2, "0");
-
-      return `${year}-${month}-${day}`;
-    },
-  },
 
   methods: {
     filterDataEmpleado(id_empleado) {
@@ -198,17 +188,21 @@ export default {
       const fechaConsultaInicio = this.form.fechaConsultaInicio;
       const fechaConsultaFin = this.form.fechaConsultaFin;
 
-      if (!fechaConsultaInicio || !fechaConsultaFin) {
+      // La fecha es un filtro OPCIONAL, no un requisito: una reposición "activa"
+      // puede llevar abierta mucho tiempo y no debería desaparecer del reporte
+      // solo por no caer dentro de un rango de fechas. Solo se valida si el
+      // usuario llenó una fecha sin la otra (combinación ambigua).
+      if ((fechaConsultaInicio && !fechaConsultaFin) || (!fechaConsultaInicio && fechaConsultaFin)) {
         this.$fire({
-          title: "Datos requeridos",
-          html: `<p>Por favor seleccione ambas fechas</p>`,
+          title: "Datos incompletos",
+          html: `<p>Si va a filtrar por fecha, seleccione ambas (inicio y fin)</p>`,
           type: "warning",
         });
         this.overlay = false;
         return;
       }
 
-      if (new Date(fechaConsultaInicio) > new Date(fechaConsultaFin)) {
+      if (fechaConsultaInicio && fechaConsultaFin && new Date(fechaConsultaInicio) > new Date(fechaConsultaFin)) {
         this.$fire({
           title: "Datos requeridos",
           html: `<p>La fecha de inicio debe ser anterior o igual a la fecha de fin</p>`,
@@ -277,8 +271,13 @@ export default {
   },
 
   beforeMount() {
-    this.form.fechaConsultaInicio = this.hoy;
-    this.form.fechaConsultaFin = this.hoy;
+    // Sin fechas por defecto: la vista inicial (estatusOrden="activa") debe
+    // mostrar TODAS las reposiciones activas sin importar cuánto tiempo llevan
+    // abiertas -- limitar por fecha aquí escondería reposiciones viejas que
+    // siguen pendientes (antes esto dejaba el reporte vacío la mayoría del
+    // tiempo, al filtrar por defecto solo el día de hoy).
+    this.form.fechaConsultaInicio = "";
+    this.form.fechaConsultaFin = "";
   },
 
   async mounted() {
