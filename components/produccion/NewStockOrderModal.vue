@@ -267,7 +267,9 @@ export default {
             item.producto = product.name;
             item.product_name = product.name;
             item.existencia = product.stock_quantity;
-            item.precio = product.price;
+            // product.price es un campo legacy que ya no se mantiene -- el precio real
+            // vive en product.prices (products_prices), se toma el primero como default.
+            item.precio = product.prices && product.prices.length ? Number(product.prices[0].price) : 0;
             item.id_woo = product._id;
             item.atributos_seleccionados = []; // Reset attributes on product change
         }

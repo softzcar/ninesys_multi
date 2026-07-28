@@ -2978,8 +2978,11 @@ export default {
             // Si producto_fisico es 0, no es físico (es un diseño), por lo tanto diseno = true.
             diseno: product.producto_fisico === 0,
             // precio: product.regular_price || 0,
-            precio: product.price,
-            original_selected_price: product.price, // Inicializar original_selected_price
+            // product.price es un campo legacy que ya no se mantiene -- el precio real
+            // vive en product.prices (products_prices), se toma el primero como default
+            // inicial hasta que el usuario elija uno del desplegable de precios.
+            precio: product.prices && product.prices.length ? Number(product.prices[0].price) : 0,
+            original_selected_price: product.prices && product.prices.length ? Number(product.prices[0].price) : 0, // Inicializar original_selected_price
             // precioWoo: product.regular_price,
           };
         })
