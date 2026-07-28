@@ -444,7 +444,7 @@
 
                   <b-list-group-item data-label="Estatus">
                     <div>
-                      {{ el.estatus }}
+                      <badge-estatus-orden :estatus="el.estatus" />
                     </div>
                   </b-list-group-item>
 

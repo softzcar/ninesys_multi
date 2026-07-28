@@ -85,6 +85,9 @@
                         <template #cell(orden)="data">
                             <linkSearch :id="data.item.orden" :key="data.item.orden" />
                         </template>
+                        <template #cell(estatus)="data">
+                            <badge-estatus-orden :estatus="data.value" />
+                        </template>
                         <template #cell(acc)="data">
                             <div class="acciones-container">
                                 <div class="botones-superior">
