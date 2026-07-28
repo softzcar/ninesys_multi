@@ -134,6 +134,10 @@
               <linkSearch :id="data.item.orden" :key="data.item.orden" />
             </template>
 
+            <template #cell(estatus)="data">
+              <badge-estatus-orden :estatus="data.value" />
+            </template>
+
             <template #cell(fecha_inicio)="data">
               {{ formatDate(data.item.fecha_inicio) }}
             </template>
