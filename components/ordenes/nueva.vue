@@ -1473,7 +1473,22 @@ export default {
           }, 0);
 
           const finalPrice = parseFloat(apiProd.precio) || 0;
-          const original_selected_price = finalPrice - xl - attributesPrice;
+
+          // Restaurar el estado del multiplicador de empresa persistido con el
+          // producto. Si se aplicó, "deshacerlo" usando el MISMO porcentaje que
+          // se guardó en ese momento (no el valor actual de la configuración,
+          // que pudo haber cambiado desde entonces) antes de calcular el precio
+          // base -- de lo contrario original_selected_price queda inflado y,
+          // si el usuario reaplica el multiplicador, el precio se dobla.
+          const multiplicadorPorcentaje =
+            apiProd.multiplicador_porcentaje !== null && apiProd.multiplicador_porcentaje !== undefined
+              ? parseFloat(apiProd.multiplicador_porcentaje)
+              : null;
+          const multiplicadorAplicado = multiplicadorPorcentaje !== null && multiplicadorPorcentaje > 0;
+          const totalSinMultiplicador = multiplicadorAplicado
+            ? finalPrice / (1 + multiplicadorPorcentaje / 100)
+            : finalPrice;
+          const original_selected_price = totalSinMultiplicador - xl - attributesPrice;
 
           return {
             _id: apiProd._id,
@@ -1494,7 +1509,9 @@ export default {
             diseno: apiProd.producto_fisico === 0,
             precio: finalPrice,
             original_selected_price:
-              original_selected_price > 0 ? original_selected_price : finalPrice,
+              original_selected_price > 0 ? original_selected_price : totalSinMultiplicador,
+            multiplicador_aplicado: multiplicadorAplicado,
+            multiplicador_porcentaje: multiplicadorPorcentaje,
           };
         });
       }
@@ -2121,11 +2138,15 @@ export default {
 
       let finalPrice = basePrice + tallaPrice + attributesPrice;
 
-      // Apply multiplier if active
+      // Apply multiplier if active. Usa el porcentaje FIJADO en el producto
+      // (multiplicador_porcentaje, persistido en BD) en vez de releer el valor
+      // actual de la configuración de empresa -- así el precio no cambia solo
+      // porque el admin ajustó el multiplicador global después de aplicarlo
+      // a este producto.
       if (product.multiplicador_aplicado) {
-        const multiplicadorEmpresa = this.$store.state.login.datos_personalizacion?.multiplicador_precio || 0;
-        if (multiplicadorEmpresa > 0) {
-          finalPrice = finalPrice * (1 + parseFloat(multiplicadorEmpresa) / 100);
+        const multiplicadorAplicado = parseFloat(product.multiplicador_porcentaje) || 0;
+        if (multiplicadorAplicado > 0) {
+          finalPrice = finalPrice * (1 + multiplicadorAplicado / 100);
         }
       }
 
@@ -3360,6 +3381,8 @@ export default {
             // inicial hasta que el usuario elija uno del desplegable de precios.
             precio: product.prices && product.prices.length ? Number(product.prices[0].price) : 0,
             original_selected_price: product.prices && product.prices.length ? Number(product.prices[0].price) : 0, // Inicializar original_selected_price
+            multiplicador_aplicado: false,
+            multiplicador_porcentaje: null,
             // precioWoo: product.regular_price,
           };
         })
@@ -3405,6 +3428,7 @@ export default {
         categoria: item.categoria,
         diseno: item.diseno,
         multiplicador_aplicado: item.multiplicador_aplicado || false, // Copiar estado del multiplicador
+        multiplicador_porcentaje: item.multiplicador_porcentaje ?? null,
         // precioWoo: item.precioWoo,
         xl: item.xl,
       };
@@ -3478,6 +3502,7 @@ export default {
         try {
           // Actualizar estado
           this.form.productos[index].multiplicador_aplicado = false
+          this.form.productos[index].multiplicador_porcentaje = null
 
           // Recalcular usando la función centralizada
           this.recalculateProductPrice(index)
@@ -3531,8 +3556,11 @@ export default {
       }
 
       try {
-        // Actualizar estado
+        // Actualizar estado -- se fija el porcentaje ACTUAL de la empresa en
+        // el producto (no solo un booleano), para que quede persistido junto
+        // con la orden y se pueda reconstruir correctamente al recargarla.
         this.form.productos[index].multiplicador_aplicado = true
+        this.form.productos[index].multiplicador_porcentaje = parseFloat(multiplicadorEmpresa)
 
         // Recalcular usando la función centralizada
         this.recalculateProductPrice(index)
