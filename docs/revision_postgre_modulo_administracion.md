@@ -188,7 +188,7 @@
 
 ## Varios
 
-- [ ] Tallas
+- [x] Tallas **(API/CRUD auditados: listar/crear/editar correctos. Eliminar hacía un DELETE físico real sin ninguna bandera de borrado lógico -- `sizes._id` tiene FKs reales desde 3 tablas, incluyendo un `ON DELETE CASCADE` que borraba permanentemente los datos de eficiencia teórica de esa talla para todos los productos, y 2 `ON DELETE SET NULL` que rompían el agrupamiento por talla ya usado en Desviación de Costos; con datos reales, cada una de las 19 tallas activas tiene entre 23 y 4550 líneas dependientes. Implementado soft-delete real (columna `eliminado`, mismo patrón que Categorías/Departamentos): preserva el `_id` por lo que ninguna FK problemática se dispara nunca. Agregado `GET /sizes/{id}/uso` y advertencia en el frontend mostrando el uso real antes de eliminar, sugiriendo Editar en vez de Eliminar. Crear una talla ya existente (activa o eliminada) ahora se detecta -- eliminada ofrece reactivar recuperando también su Porcentaje de Variación original, en vez de perderlo. Aclarado además que "Porcentaje de Variación" se usa en la Asignación Masiva de Insumos por Talla (Ficha Técnica), no en creación de órdenes como se asumía inicialmente)**
 - [ ] Telas
 - [ ] Multiplicador de Precios
 
