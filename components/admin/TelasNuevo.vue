@@ -45,11 +45,6 @@ export default {
             form: {
                 tela: "",
             },
-            accessOptions: [
-                { value: 0, text: "Empleado" },
-                { value: 1, text: "Administrador" },
-            ],
-            departamentOptions: this.$config.DEPARTAMENT_OPTIONS,
             size: "md",
             title: "Nueva Tela",
             overlay: false,
@@ -65,19 +60,9 @@ export default {
 
     methods: {
         resetForm() {
-            this.overlay = true
-            this.form = {
-                username: "",
-                password: "",
-                nombre: "",
-                email: "",
-                acceso: null,
-                comision: 0,
-                departamento: "",
-            }
-            this.overlay = false
+            this.form.tela = ""
         },
-        async guardarTela() {
+        async guardarTela(reactivarId = null) {
             if (this.form.tela.trim().length === 0) {
                 this.$fire({
                     title: "Dato Requerido",
@@ -89,31 +74,49 @@ export default {
 
                 const data = new URLSearchParams()
                 data.set("tela", this.form.tela)
+                if (reactivarId) {
+                    data.set("reactivar_id", reactivarId)
+                }
 
-                await this.$axios
-                    .post(`${this.$config.API}/telas`, data)
-                    .then((res) => {
-                        this.resetForm()
-                        this.$bvModal.hide(this.modal)
-                    })
+                try {
+                    await this.$axios.post(`${this.$config.API}/telas`, data)
+                    this.resetForm()
+                    this.$bvModal.hide(this.modal)
+                } catch (err) {
+                    // Ya existe una tela eliminada con este mismo nombre: ofrecer
+                    // reactivarla en vez de crear una duplicada.
+                    const errData = err.response && err.response.data;
+                    if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
+                        this.overlay = false;
+                        try {
+                            await this.$confirm(
+                                `Ya existe una tela eliminada llamada "${errData.tela}". ¿Desea reactivarla?`,
+                                "Tela ya existe",
+                                "question"
+                            );
+                            await this.guardarTela(errData.id);
+                        } catch (e) {
+                            // El usuario canceló la reactivación
+                        }
+                        return;
+                    }
+
+                    console.error("Error guardando la tela:", err);
+                    this.$bvToast.toast((errData && errData.error) || "No se pudo guardar la tela", {
+                        variant: "danger",
+                    });
+                } finally {
+                    this.overlay = false;
+                }
             }
         },
         onSubmit(event) {
             event.preventDefault()
-            // alert(JSON.stringify(this.form))
             this.guardarTela().then(() => this.$emit("reload"))
         },
         onReset(event) {
             event.preventDefault()
-            // Reset our form values
-            this.form.username = ""
-            this.form.password = ""
-            this.form.name = ""
-            // Trick to reset/clear native browser form validation state
-            this.show = false
-            this.$nextTick(() => {
-                this.show = true
-            })
+            this.resetForm()
         },
     },
 }

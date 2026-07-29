@@ -68,10 +68,12 @@ export default {
 
         async guardarTela() {
             this.overlay = true
+            const data = new URLSearchParams()
+            data.set("id", this.item._id)
+            data.set("tela", this.form.tela)
+
             await this.$axios
-                .post(
-                    `${this.$config.API}/telas/${this.item._id}/${this.form.tela}`
-                )
+                .post(`${this.$config.API}/telas/editar`, data)
                 .then((res) => {
                     // this.resetForm()
                     this.$emit("reload", "true")

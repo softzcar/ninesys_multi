@@ -95,11 +95,24 @@ export default {
         },
 
         async deleteTela(tela, idTela) {
+            this.overlay = true;
+            let uso = null;
+            try {
+                const resp = await this.$axios.get(`${this.$config.API}/telas/${idTela}/uso`);
+                uso = resp.data;
+            } catch (err) {
+                console.error("Error consultando el uso de la tela:", err);
+            } finally {
+                this.overlay = false;
+            }
+
+            const mensaje = this.mensajeConfirmacionEliminar(tela, uso);
+
             try {
                 await this.$confirm(
-                    `¿Desea eliminar la tela ${tela}?`,
+                    mensaje,
                     "Eliminar Tela",
-                    "warning"
+                    uso && uso.total > 0 ? "warning" : "question"
                 );
 
                 this.overlay = true;
@@ -128,6 +141,21 @@ export default {
             } finally {
                 this.overlay = false;
             }
+        },
+
+        mensajeConfirmacionEliminar(tela, uso) {
+            if (!uso || uso.total === 0) {
+                return `¿Desea eliminar la tela "${tela}"? No tiene ninguna orden ni presupuesto asociado.`;
+            }
+
+            const detalles = [];
+            if (uso.ordenes_productos > 0) detalles.push(`${uso.ordenes_productos} línea(s) de producto en órdenes`);
+            if (uso.presupuestos_productos > 0) detalles.push(`${uso.presupuestos_productos} línea(s) en presupuestos`);
+
+            return `⚠️ La tela "${tela}" está en uso: ${detalles.join(", ")}.\n\n`
+                + `Si la elimina, dejará de estar disponible para nuevas asignaciones, pero el historial existente se mantendrá intacto.\n\n`
+                + `Si solo quiere corregir el nombre, es mejor usar "Editar" en vez de eliminar.\n\n`
+                + `¿Desea continuar con la eliminación?`;
         },
     },
     mounted() {
