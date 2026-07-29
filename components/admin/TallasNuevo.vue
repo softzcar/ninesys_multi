@@ -57,7 +57,7 @@ export default {
             this.form.name = "";
             this.form.variation_percentage = 0;
         },
-        async guardarTalla() {
+        async guardarTalla(reactivarId = null) {
             if (this.form.name.trim().length === 0) {
                 this.$fire({
                     title: "Dato Requerido",
@@ -70,21 +70,40 @@ export default {
                 const data = new URLSearchParams()
                 data.set("name", this.form.name)
                 data.set("variation_percentage", this.form.variation_percentage)
+                if (reactivarId) {
+                    data.set("reactivar_id", reactivarId)
+                }
 
-                await this.$axios
-                    .post(`${this.$config.API}/sizes`, data)
-                    .then((res) => {
-                        this.resetForm()
-                        this.$bvModal.hide(this.modal)
+                try {
+                    await this.$axios.post(`${this.$config.API}/sizes`, data)
+                    this.resetForm()
+                    this.$bvModal.hide(this.modal)
+                } catch (err) {
+                    // Ya existe una talla eliminada con este mismo nombre: ofrecer
+                    // reactivarla en vez de crear una duplicada.
+                    const errData = err.response && err.response.data;
+                    if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
                         this.overlay = false;
-                    })
-                    .catch(err => {
-                        this.overlay = false;
-                        console.error("Error guardando la talla:", err);
-                        this.$bvToast.toast("No se pudo guardar la talla", {
-                            variant: "danger",
-                        });
-                    })
+                        try {
+                            await this.$confirm(
+                                `Ya existe una talla eliminada llamada "${errData.name}". ¿Desea reactivarla con los valores ingresados?`,
+                                "Talla ya existe",
+                                "question"
+                            );
+                            await this.guardarTalla(errData.id);
+                        } catch (e) {
+                            // El usuario canceló la reactivación
+                        }
+                        return;
+                    }
+
+                    console.error("Error guardando la talla:", err);
+                    this.$bvToast.toast((errData && errData.error) || "No se pudo guardar la talla", {
+                        variant: "danger",
+                    });
+                } finally {
+                    this.overlay = false;
+                }
             }
         },
         onSubmit(event) {

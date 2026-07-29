@@ -95,12 +95,21 @@ export default {
             });
         },
 
-        deleteTalla(name, idTalla) {
-            this.$confirm(
-                `¿Desea Elimiar la talla ${name} ?`,
-                "Eliminar Talla",
-                "warning"
-            )
+        async deleteTalla(name, idTalla) {
+            this.overlay = true;
+            let uso = null;
+            try {
+                const resp = await this.$axios.get(`${this.$config.API}/sizes/${idTalla}/uso`);
+                uso = resp.data;
+            } catch (err) {
+                console.error("Error consultando el uso de la talla:", err);
+            } finally {
+                this.overlay = false;
+            }
+
+            const mensaje = this.mensajeConfirmacionEliminar(name, uso);
+
+            this.$confirm(mensaje, "Eliminar Talla", uso && uso.total > 0 ? "warning" : "question")
                 .then(() => {
                     this.overlay = true
                     const data = new URLSearchParams()
@@ -125,6 +134,23 @@ export default {
                     console.log("CATCH!!!", err)
                     return false
                 })
+        },
+
+        mensajeConfirmacionEliminar(name, uso) {
+            if (!uso || uso.total === 0) {
+                return `¿Desea eliminar la talla "${name}"? No tiene ningún producto, orden ni presupuesto asociado.`;
+            }
+
+            const detalles = [];
+            if (uso.ordenes_productos > 0) detalles.push(`${uso.ordenes_productos} línea(s) de producto en órdenes`);
+            if (uso.presupuestos_productos > 0) detalles.push(`${uso.presupuestos_productos} línea(s) en presupuestos`);
+            if (uso.eficiencia_teorica > 0) detalles.push(`${uso.eficiencia_teorica} registro(s) de eficiencia teórica`);
+            if (uso.insumos_asignados > 0) detalles.push(`${uso.insumos_asignados} asignación(es) de insumos en la Ficha Técnica`);
+
+            return `⚠️ La talla "${name}" está en uso: ${detalles.join(", ")}.\n\n`
+                + `Si la elimina, dejará de estar disponible para nuevas asignaciones, pero el historial existente se mantendrá intacto.\n\n`
+                + `Si solo quiere corregir el nombre o el porcentaje de variación, es mejor usar "Editar" en vez de eliminar.\n\n`
+                + `¿Desea continuar con la eliminación?`;
         },
     },
     mounted() {
