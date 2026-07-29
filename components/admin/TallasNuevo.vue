@@ -84,9 +84,14 @@ export default {
                     const errData = err.response && err.response.data;
                     if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
                         this.overlay = false;
+                        // Recuperar el porcentaje de variación que tenía la talla antes
+                        // de eliminarse, en vez de pisarlo con el valor del formulario
+                        // (que suele quedar en 0 por defecto si el usuario no lo tocó).
+                        const variacionPrevia = parseFloat(errData.variation_percentage || 0);
+                        this.form.variation_percentage = variacionPrevia;
                         try {
                             await this.$confirm(
-                                `Ya existe una talla eliminada llamada "${errData.name}". ¿Desea reactivarla con los valores ingresados?`,
+                                `Ya existe una talla eliminada llamada "${errData.name}" (con un ${variacionPrevia}% de variación guardado). ¿Desea reactivarla conservando ese porcentaje?`,
                                 "Talla ya existe",
                                 "question"
                             );
