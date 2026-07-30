@@ -70,7 +70,6 @@
         <tab-content :title="getStepTitle('Monedas')" icon="ti ti-money" :before-change="validateMonedasStep">
           <config-monedas-form
             ref="monedasForm"
-            :initial-data="monedasData"
             :show-save-button="false"
           />
         </tab-content>

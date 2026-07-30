@@ -1,13 +1,11 @@
 <template>
-  <b-form @submit.prevent="save">
-    <b-overlay :show="overlay">
-      <monedas-manager :initial-currencies="data" @change="updateData" />
-      
-      <div class="text-right mt-4" v-if="showSaveButton">
-        <b-button type="submit" variant="primary">Guardar Cambios</b-button>
-      </div>
-    </b-overlay>
-  </b-form>
+  <div>
+    <monedas-manager @loaded="onLoaded" />
+
+    <div class="text-right mt-4" v-if="showSaveButton">
+      <b-button type="button" variant="primary" @click="save">Confirmar</b-button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -19,10 +17,6 @@ export default {
     MonedasManager
   },
   props: {
-    initialData: {
-      type: Array,
-      required: true
-    },
     showSaveButton: {
       type: Boolean,
       default: true
@@ -30,59 +24,28 @@ export default {
   },
   data() {
     return {
-      overlay: false,
-      data: [...this.initialData]
+      monedasActuales: []
     };
   },
   methods: {
-    updateData(newData) {
-      this.data = newData;
+    onLoaded(monedas) {
+      this.monedasActuales = monedas || [];
     },
+    // MonedasManager persiste cada alta/baja directamente contra la API (Fase 5
+    // del rediseño de monedas) -- este método ya no guarda nada, solo valida
+    // que la empresa tenga al menos una moneda configurada antes de avanzar.
     async save() {
-      if (!this.data || this.data.length === 0) {
+      if (!this.monedasActuales || this.monedasActuales.length === 0) {
         this.$fire({
           title: "Datos Incompletos",
-          html: "Debe seleccionar al menos una moneda.",
+          html: "Debe tener al menos una moneda configurada.",
           type: "warning",
         });
         return false;
       }
 
-      this.overlay = true;
-      try {
-        const employeeId = this.$store.state.login.dataUser.id_empleado;
-        await this.$axios.post(`${this.$config.API}/configuracion/monedas`, {
-          id_empleado: employeeId,
-          monedas: this.data
-        });
-
-        this.$emit('saved', this.data);
-        if (this.showSaveButton) {
-            this.$fire({
-                title: "Éxito",
-                text: "Monedas actualizadas correctamente.",
-                type: "success",
-            });
-        }
-        return true;
-      } catch (err) {
-        this.$fire({
-          title: "Error al Guardar",
-          html: `No se pudieron guardar las monedas. <p>${err.response?.data?.message || err.message}</p>`,
-          type: "error",
-        });
-        return false;
-      } finally {
-        this.overlay = false;
-      }
-    }
-  },
-  watch: {
-    initialData: {
-      handler(newVal) {
-        this.data = [...newVal];
-      },
-      deep: true
+      this.$emit('saved', this.monedasActuales);
+      return true;
     }
   }
 };

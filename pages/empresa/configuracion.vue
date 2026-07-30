@@ -64,8 +64,7 @@
             </div>
 
             <div v-else-if="activeSection === 'monedas'">
-              <config-monedas-form 
-                :initial-data="monedasData" 
+              <config-monedas-form
                 @saved="loadInitialData"
               />
             </div>

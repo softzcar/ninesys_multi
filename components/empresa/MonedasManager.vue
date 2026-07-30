@@ -1,130 +1,190 @@
 <template>
   <div>
-    <h5>Monedas Activas</h5>
-    <b-table :items="currencies" :fields="fields" striped responsive small>
-      <template #cell(actions)="row">
-        <b-button
-          size="sm"
-          variant="danger"
-          @click="deleteCurrency(row.index)"
-          :disabled="row.item.isFixed"
-        >
-          <b-icon icon="trash"></b-icon>
-        </b-button>
-      </template>
-    </b-table>
+    <h5>Monedas de la Empresa</h5>
+    <p class="text-muted small">
+      Estas son las monedas reales configuradas para tu empresa. La moneda base no puede eliminarse.
+    </p>
 
-    <hr />
+    <b-overlay :show="overlay" spinner-small>
+      <b-table :items="monedas" :fields="fields" striped responsive small>
+        <template #cell(codigo)="data">
+          <strong>{{ data.item.codigo }}</strong>
+        </template>
+        <template #cell(es_base)="data">
+          <b-badge v-if="data.item.es_base" variant="primary">Base</b-badge>
+        </template>
+        <template #cell(activo)="data">
+          <b-badge :variant="data.item.activo ? 'success' : 'secondary'">
+            {{ data.item.activo ? "Activa" : "Inactiva" }}
+          </b-badge>
+        </template>
+        <template #cell(acciones)="data">
+          <b-button
+            size="sm"
+            variant="danger"
+            @click="eliminarMoneda(data.item)"
+            :disabled="data.item.es_base"
+          >
+            <b-icon icon="trash"></b-icon>
+          </b-button>
+        </template>
+      </b-table>
 
-    <h5>Añadir Nueva Moneda</h5>
-    <b-form @submit.prevent="addCurrency">
-      <b-row>
-        <b-col md="10">
-          <b-form-group label="Nombre Completo (ej: Peso Colombiano):" label-for="new-moneda-nombre">
-            <b-form-input
-              id="new-moneda-nombre"
-              v-model="newCurrency.mondeda_nombre"
-              required
-            ></b-form-input>
-          </b-form-group>
-        </b-col>
-        <b-col md="2" class="d-flex align-items-end">
-          <b-button type="submit" variant="primary">Añadir</b-button>
-        </b-col>
-      </b-row>
-    </b-form>
+      <hr />
+
+      <h5>Añadir Moneda</h5>
+      <b-form @submit.prevent="addCurrency">
+        <b-row>
+          <b-col md="8">
+            <b-form-group
+              label="Moneda:"
+              label-for="new-moneda"
+              description="Solo se listan las monedas soportadas para el país de la empresa"
+            >
+              <b-form-select
+                id="new-moneda"
+                v-model="idMonedaSoportadaSeleccionada"
+                :options="opcionesMonedas"
+              ></b-form-select>
+            </b-form-group>
+          </b-col>
+          <b-col md="4" class="d-flex align-items-end">
+            <b-button type="submit" variant="primary" :disabled="!idMonedaSoportadaSeleccionada" class="mb-3">
+              Añadir
+            </b-button>
+          </b-col>
+        </b-row>
+      </b-form>
+    </b-overlay>
   </div>
 </template>
 
 <script>
 export default {
   name: "MonedasManager",
-  props: {
-    initialCurrencies: {
-      type: Array,
-      default: () => []
-    }
-  },
   data() {
     return {
-      currencies: [],
-      newCurrency: {
-        moneda: "",
-        mondeda_nombre: "",
-      },
+      monedas: [],
+      monedasSoportadas: [],
+      idMonedaSoportadaSeleccionada: null,
+      overlay: false,
       fields: [
-        { key: "mondeda_nombre", label: "Nombre" },
-        { key: "moneda", label: "Identificador" },
-        { key: "actions", label: "Acciones" },
+        { key: "codigo", label: "Código" },
+        { key: "nombre", label: "Nombre" },
+        { key: "es_base", label: "" },
+        { key: "activo", label: "Estado" },
+        { key: "acciones", label: "Acciones" },
       ],
     };
   },
-  watch: {
-    'newCurrency.mondeda_nombre'(newValue) {
-      if (newValue) {
-        this.newCurrency.moneda = this.generateSlug(newValue);
-      } else {
-        this.newCurrency.moneda = '';
-      }
-    }
+  computed: {
+    opcionesMonedas() {
+      const opciones = this.monedasSoportadas.map((m) => ({
+        value: m.id_moneda_soportada,
+        text: `${m.nombre} (${m.codigo})`,
+      }));
+      return [{ value: null, text: "Seleccione una moneda" }, ...opciones];
+    },
   },
   methods: {
-    generateSlug(text) {
-      return text
-        .toString()
-        .normalize('NFD') // Normalizar a forma descompuesta (para separar acentos de letras)
-        .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '_') // Reemplazar espacios con guiones bajos
-        .replace(/[^\w-]+/g, '') // Eliminar caracteres no alfanuméricos (excepto _)
-        .replace(/--+/g, '-'); // Reemplazar múltiples guiones bajos con uno solo
+    async cargarMonedas() {
+      this.overlay = true;
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/monedas`);
+        this.monedas = data?.data || [];
+      } catch (err) {
+        console.error("Error al cargar monedas de la empresa:", err);
+      } finally {
+        this.overlay = false;
+      }
+      this.$emit("loaded", this.monedas);
     },
-    addCurrency() {
-      if (this.newCurrency.moneda && this.newCurrency.mondeda_nombre) {
-        this.currencies.push({
-          ...this.newCurrency,
-          activo: true,
+    async cargarMonedasSoportadas() {
+      const idPais = this.$store.state.login.dataEmpresa?.id_pais;
+      if (!idPais) {
+        this.monedasSoportadas = [];
+        return;
+      }
+      try {
+        const { data } = await this.$axios.get(
+          `${this.$config.API}/monedas-soportadas/${idPais}`
+        );
+        this.monedasSoportadas = data?.data || [];
+      } catch (err) {
+        console.error("Error al cargar monedas soportadas:", err);
+        this.monedasSoportadas = [];
+      }
+    },
+    async addCurrency(reactivarId = null) {
+      const moneda = this.monedasSoportadas.find(
+        (m) => m.id_moneda_soportada === this.idMonedaSoportadaSeleccionada
+      );
+      if (!moneda) return;
+
+      this.overlay = true;
+      const data = new URLSearchParams();
+      data.set("id_moneda_soportada", moneda.id_moneda_soportada);
+      data.set("codigo", moneda.codigo);
+      data.set("nombre", moneda.nombre);
+      data.set("simbolo", moneda.simbolo || "");
+      if (reactivarId) {
+        data.set("reactivar_id", reactivarId);
+      }
+
+      try {
+        await this.$axios.post(`${this.$config.API}/monedas`, data);
+        this.idMonedaSoportadaSeleccionada = null;
+        await this.cargarMonedas();
+      } catch (err) {
+        const errData = err.response && err.response.data;
+        if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
+          this.overlay = false;
+          try {
+            await this.$confirm(
+              `Ya existe una moneda eliminada llamada "${errData.nombre}". ¿Desea reactivarla?`,
+              "Moneda ya existe",
+              "question"
+            );
+            await this.addCurrency(errData.id);
+          } catch (e) {
+            // Usuario canceló la reactivación
+          }
+          return;
+        }
+        console.error("Error al agregar la moneda:", err);
+        this.$bvToast.toast((errData && errData.error) || "No se pudo agregar la moneda", {
+          variant: "danger",
         });
-        // Limpiar el formulario
-        this.newCurrency.moneda = "";
-        this.newCurrency.mondeda_nombre = "";
-        this.emitUpdate();
+      } finally {
+        this.overlay = false;
       }
     },
-    deleteCurrency(index) {
-      // Doble chequeo para no borrar el item fijo
-      if (this.currencies[index] && !this.currencies[index].isFixed) {
-        this.currencies.splice(index, 1);
-        this.emitUpdate();
+    async eliminarMoneda(moneda) {
+      if (moneda.es_base) return;
+
+      try {
+        await this.$confirm(
+          `¿Desea eliminar la moneda "${moneda.nombre}"?`,
+          "Eliminar Moneda",
+          "warning"
+        );
+
+        this.overlay = true;
+        const data = new URLSearchParams();
+        data.set("id", moneda._id);
+        await this.$axios.post(`${this.$config.API}/monedas/eliminar`, data);
+        await this.cargarMonedas();
+      } catch (err) {
+        if (err !== false) {
+          console.error("Error al eliminar la moneda:", err);
+        }
+      } finally {
+        this.overlay = false;
       }
-    },
-    emitUpdate() {
-      // Emitir la lista de monedas sin la propiedad interna 'isFixed'
-      const currenciesToEmit = this.currencies.map(({ isFixed, ...rest }) => rest);
-      this.$emit("change", currenciesToEmit);
     },
   },
-  mounted() {
-    // Inicializar con datos del prop o valores por defecto
-    if (this.initialCurrencies && this.initialCurrencies.length > 0) {
-      this.currencies = this.initialCurrencies.map(currency => ({
-        ...currency,
-        isFixed: currency.moneda === 'dolar' // Marcar dólar como fijo si existe
-      }));
-    } else {
-      // Valores por defecto si no hay datos iniciales
-      this.currencies = [
-        {
-          moneda: "dolar",
-          mondeda_nombre: "Dólar",
-          activo: true,
-          isFixed: true,
-        },
-      ];
-    }
-    // Emitir el estado inicial al cargar
-    this.emitUpdate();
-  }
+  async mounted() {
+    await Promise.all([this.cargarMonedas(), this.cargarMonedasSoportadas()]);
+  },
 };
 </script>
