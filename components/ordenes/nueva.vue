@@ -282,7 +282,7 @@
                                 <b-list-group horizontal>
                                   <b-list-group-item>
                                     <h3>
-                                      TOTAL A PAGAR: $
+                                      TOTAL A PAGAR: {{ monedaBaseSimbolo }}
                                       {{ parseFloat(form.total || 0).toFixed(2) }}
                                     </h3>
                                   </b-list-group-item>
@@ -445,7 +445,7 @@
                                   <b-row>
                                     <b-col xl="3" lg="3" md="3" sm="12" class="mb-4">
                                       <h4 style="color: red">
-                                        TOTAL: $
+                                        TOTAL: {{ monedaBaseSimbolo }}
                                         {{ form.total }}
                                       </h4>
                                     </b-col>
@@ -1041,6 +1041,9 @@ export default {
 
   computed: {
     ...mapState("login", ["tasas"]),
+    monedaBaseSimbolo() {
+      return this.$store.state.login.dataEmpresa?.moneda_base?.simbolo || "$";
+    },
     myCustomers() {
       return this.$store.state.comerce.dataCustomers || [];
     },

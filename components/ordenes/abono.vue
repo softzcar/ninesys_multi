@@ -72,7 +72,7 @@
 
                   <template #cell(_id)="data">
                     <span v-if="data.item.abono > 0">
-                      {{ usdConverter(data.item.moneda, data.item.abono, data.item.tasa) }}
+                      {{ convertirAMonedaBase(data.item.moneda, data.item.abono, data.item.tasa) }}
                     </span>
                     <span v-else-if="data.item.nota_credito > 0" class="text-danger">
                       +{{ parseFloat(data.item.nota_credito || 0).toFixed(2) }}
@@ -81,7 +81,7 @@
                       -{{ parseFloat(data.item.descuento || 0).toFixed(2) }}
                     </span>
                     <span v-else>
-                      {{ usdConverter(data.item.moneda, data.item.monto, data.item.tasa) }}
+                      {{ convertirAMonedaBase(data.item.moneda, data.item.monto, data.item.tasa) }}
                     </span>
                   </template>
                 </b-table>
@@ -383,6 +383,9 @@ export default {
 
   computed: {
     ...mapState("login", ["tasas"]),
+    monedaBaseNombre() {
+      return this.$store.state.login.dataEmpresa?.moneda_base?.nombre || "Dólares";
+    },
     msgWhatsAppAbono() {
       let msg = "";
       const calculatedNum = parseFloat(this.calculated);
@@ -520,12 +523,12 @@ export default {
           });
       }
     },
-    usdConverter(moneda, monto, tasa) {
+    convertirAMonedaBase(moneda, monto, tasa) {
       const n_monto = parseFloat(monto) || 0;
       const n_tasa = parseFloat(tasa) || 1;
-      
+
       let tot;
-      if (moneda === "Bolívares" || moneda === "Pesos") {
+      if (moneda !== this.monedaBaseNombre) {
         tot = n_monto / n_tasa;
       } else {
         tot = n_monto;

@@ -307,7 +307,7 @@
                                 <b-list-group horizontal>
                                   <b-list-group-item>
                                     <h3>
-                                      TOTAL PRESUPUESTO: $
+                                      TOTAL PRESUPUESTO: {{ monedaBaseSimbolo }}
                                       {{ form.total }}
                                     </h3>
                                   </b-list-group-item>
@@ -752,6 +752,9 @@ export default {
 
   computed: {
     ...mapState("login", ["tasas"]),
+    monedaBaseSimbolo() {
+      return this.$store.state.login.dataEmpresa?.moneda_base?.simbolo || "$";
+    },
     myCustomers() {
       return this.$store.state.comerce.dataCustomers || [];
     },

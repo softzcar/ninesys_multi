@@ -461,6 +461,9 @@ export default {
 
   computed: {
     ...mapState("login", ["dataUser", "access"]),
+    monedaBaseNombre() {
+      return this.$store.state.login.dataEmpresa?.moneda_base?.nombre || "Dólares";
+    },
     pagosFiltrados() {
       const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
       const ordenesProcesadas = new Set();
@@ -751,12 +754,12 @@ export default {
         });
     },
 
-    usdConverter(moneda, monto, tasa) {
+    convertirAMonedaBase(moneda, monto, tasa) {
       // Validación de datos de entrada
       if (!isNaN(monto) && !isNaN(tasa)) {
         let tot;
 
-        if (moneda === "Bolívares" || moneda === "Pesos") {
+        if (moneda !== this.monedaBaseNombre) {
           tot = parseFloat(monto) / parseFloat(tasa);
         } else {
           tot = parseFloat(monto);
