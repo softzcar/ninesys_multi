@@ -260,6 +260,16 @@ export default {
         }).catch(error => {
           console.error('❌ Error crítico al cargar tasas:', error);
         });
+
+        // Fase 7 del rediseño de monedas: además de las tasas legadas de
+        // arriba, carga las tasas reales de la empresa (catalogo_monedas) con
+        // clave ISO (tasas.USD, tasas.VES, ...). Aditivo -- no reemplaza ni
+        // depende de la carga anterior, solo agrega claves nuevas a
+        // state.tasas para que los formularios ya migrados al catálogo real
+        // puedan leerlas.
+        this.$store.dispatch('login/cargarTasasPorCodigo').catch(error => {
+          console.error('❌ Error al cargar tasas por código (catalogo_monedas):', error);
+        });
       }, 3000); // Diferir 3 segundos para liberar el hilo principal durante el render
     }
   },

@@ -236,6 +236,29 @@ export const actions = {
             }
         }
     },
+    // Fase 7 del rediseño de monedas: carga las tasas reales de la empresa
+    // (catalogo_monedas) vía GET /tasas-cambio, y las agrega a state.tasas
+    // usando el CÓDIGO ISO como clave (ej. tasas.USD, tasas.VES), sin tocar
+    // ni reemplazar las claves legadas en español que ya usan los formularios
+    // existentes (tasas.dolar, tasas.bolivar, tasas.peso_colombiano). Ambos
+    // vocabularios conviven: los formularios se migran uno por uno al nuevo,
+    // sin necesidad de un cambio de una sola vez sobre los ~80 sitios que
+    // todavía leen las claves legadas.
+    async cargarTasasPorCodigo({ commit }) {
+        try {
+            const { data } = await this.$axios.get(`${this.$config.API}/tasas-cambio`)
+            const tasas = data?.data || []
+
+            tasas.forEach(({ codigo, tasa }) => {
+                commit('setTasa', { moneda: codigo, valor: tasa })
+            })
+
+            return { success: true, tasas }
+        } catch (error) {
+            console.error('Error en cargarTasasPorCodigo:', error)
+            return { success: false, error: error.message }
+        }
+    },
 }
 export const getters = {
     // N E W   G E T T E R S
