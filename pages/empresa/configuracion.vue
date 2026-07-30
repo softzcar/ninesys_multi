@@ -55,10 +55,9 @@
             </div>
 
             <div v-else-if="activeSection === 'empresa'">
-              <config-empresa-form 
-                :initial-data="empresaData" 
-                :country-codes="countryCodes" 
-                :country-options="countryOptions"
+              <config-empresa-form
+                :initial-data="empresaData"
+                :country-codes="countryCodes"
                 @phone-blur="handlePhoneBlur"
                 @saved="loadInitialData"
               />
@@ -101,9 +100,10 @@
             </div>
 
             <div v-else-if="activeSection === 'resumen'">
-              <config-resumen 
+              <config-resumen
                 :admin-data="adminData"
                 :empresa-data="empresaData"
+                :nombre-pais="nombrePaisEmpresa"
                 :monedas-data="monedasData"
                 :gastos-data="gastosData"
                 :horario-data="horarioData"
@@ -153,6 +153,7 @@ export default {
   data() {
     return {
       activeSection: null,
+      paisesSoportados: [],
       adminData: {
         nombre: "",
         telefono: "",
@@ -171,6 +172,7 @@ export default {
         countryCode: "VE",
         phoneNumber: "",
         email: "",
+        id_pais: null,
       },
       personalizacionData: {},
       horarioData: {},
@@ -448,16 +450,9 @@ export default {
       const item = this.menuItems.find(i => i.id === this.activeSection);
       return item ? item.title : 'Configuración';
     },
-    countryOptions() {
-      const countries = this.countryCodes.map(country => {
-        const codeMatch = country.text.match(/\+(\d+)/);
-        const code = codeMatch ? codeMatch[1] : country.value;
-        const nameMatch = country.text.match(/\(([^)]+)\)/);
-        const name = nameMatch ? nameMatch[1] : country.value;
-        return { value: code, text: name };
-      });
-      countries.sort((a, b) => a.text.localeCompare(b.text));
-      return [{ value: null, text: "Seleccione un país" }, ...countries];
+    nombrePaisEmpresa() {
+      const pais = this.paisesSoportados.find(p => p.id_pais === this.empresaData.id_pais);
+      return pais ? pais.nombre : "No seleccionado";
     },
   },
   methods: {
@@ -479,7 +474,7 @@ export default {
         this.empresaData.numero_registro_legal = companyData.numero_registro_legal || '';
         this.empresaData.direccion = companyData.direccion || '';
         this.empresaData.email = companyData.email || '';
-        this.empresaData.pais = companyData.pais || null;
+        this.empresaData.id_pais = companyData.id_pais || null;
         if (companyData.telefono) {
           this.parseAndSetPhoneNumber('empresa', companyData.telefono);
         }
@@ -529,10 +524,19 @@ export default {
       if (result.isValid) {
         this.parseAndSetPhoneNumber(type, result.formatted);
       }
+    },
+    async fetchPaisesSoportados() {
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/paises-soportados`);
+        this.paisesSoportados = data?.data || [];
+      } catch (error) {
+        console.error("Error al cargar países soportados:", error);
+      }
     }
   },
   mounted() {
     this.loadInitialData();
+    this.fetchPaisesSoportados();
   },
   head() {
     return {

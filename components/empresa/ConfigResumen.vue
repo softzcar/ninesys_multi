@@ -16,7 +16,7 @@
         <b-list-group flush>
           <b-list-group-item><strong>Nombre:</strong> {{ empresaData.nombre }}</b-list-group-item>
           <b-list-group-item><strong>Registro Legal:</strong> {{ empresaData.numero_registro_legal }}</b-list-group-item>
-          <b-list-group-item><strong>País:</strong> {{ empresaData.pais }}</b-list-group-item>
+          <b-list-group-item><strong>País:</strong> {{ nombrePais }}</b-list-group-item>
           <b-list-group-item><strong>Dirección:</strong> {{ empresaData.direccion }}</b-list-group-item>
           <b-list-group-item><strong>Teléfono:</strong> {{ empresaData.telefono }}</b-list-group-item>
           <b-list-group-item><strong>Email:</strong> {{ empresaData.email }}</b-list-group-item>
@@ -61,6 +61,7 @@ export default {
   props: {
     adminData: { type: Object, required: true },
     empresaData: { type: Object, required: true },
+    nombrePais: { type: String, default: "No seleccionado" },
     monedasData: { type: Array, required: true },
     gastosData: { type: Array, required: true },
     horarioData: { type: Object, required: true },

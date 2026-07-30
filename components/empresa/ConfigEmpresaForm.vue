@@ -27,8 +27,8 @@
           <b-form-group label="País:" label-for="empresa-pais">
             <b-form-select
               id="empresa-pais"
-              v-model="data.pais"
-              :options="countryOptions"
+              v-model="data.id_pais"
+              :options="paisOptions"
               required
             ></b-form-select>
           </b-form-group>
@@ -96,10 +96,6 @@ export default {
       type: Array,
       required: true
     },
-    countryOptions: {
-      type: Array,
-      required: true
-    },
     showSaveButton: {
       type: Boolean,
       default: true
@@ -108,8 +104,25 @@ export default {
   data() {
     return {
       overlay: false,
-      data: { ...this.initialData }
+      data: { ...this.initialData },
+      paisesSoportados: []
     };
+  },
+  computed: {
+    paisOptions() {
+      const opciones = this.paisesSoportados
+        .map((p) => ({ value: p.id_pais, text: p.nombre }))
+        .sort((a, b) => a.text.localeCompare(b.text));
+      return [{ value: null, text: "Seleccione un país" }, ...opciones];
+    }
+  },
+  async created() {
+    try {
+      const { data } = await this.$axios.get(`${this.$config.API}/paises-soportados`);
+      this.paisesSoportados = data?.data || [];
+    } catch (err) {
+      console.error("Error al cargar países soportados:", err);
+    }
   },
   methods: {
     handleBlur() {
@@ -121,7 +134,7 @@ export default {
 
       if (!data.nombre.trim()) errors.push("El nombre de la empresa es obligatorio.");
       if (!data.numero_registro_legal || !String(data.numero_registro_legal).trim()) errors.push("El número de registro legal es obligatorio.");
-      if (!data.pais) errors.push("Debe seleccionar un país.");
+      if (!data.id_pais) errors.push("Debe seleccionar un país.");
       if (!data.direccion || !data.direccion.trim()) errors.push("La dirección es obligatoria.");
 
       const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -167,7 +180,7 @@ export default {
         const payload = new URLSearchParams();
         payload.set("nombre", this.data.nombre);
         payload.set("numero_registro_legal", this.data.numero_registro_legal);
-        payload.set("pais", this.data.pais);
+        payload.set("id_pais", this.data.id_pais);
         payload.set("direccion", this.data.direccion);
         payload.set("telefono", fullPhoneNumber);
         payload.set("email", this.data.email);
@@ -182,7 +195,8 @@ export default {
         const errorsToRemove = [
           "Número de registro legal de la empresa",
           "Dirección de la empresa (en empresas)",
-          "Teléfono de la empresa"
+          "Teléfono de la empresa",
+          "País de la empresa (en empresas)"
         ];
         this.$store.commit("login/removeConfiguracionFaltante", errorsToRemove);
 

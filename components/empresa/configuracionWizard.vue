@@ -62,7 +62,6 @@
             ref="empresaForm"
             :initial-data="empresaData"
             :country-codes="countryCodes"
-            :country-options="countryOptions"
             :show-save-button="false"
             @phone-blur="handlePhoneBlur"
           />
@@ -127,7 +126,7 @@
                 <b-list-group flush>
                   <b-list-group-item><strong>Nombre:</strong> {{ empresaData.nombre }}</b-list-group-item>
                   <b-list-group-item><strong>Registro Legal:</strong> {{ empresaData.numero_registro_legal }}</b-list-group-item>
-                  <b-list-group-item><strong>País:</strong> {{ empresaData.pais }}</b-list-group-item>
+                  <b-list-group-item><strong>País:</strong> {{ nombrePaisEmpresa }}</b-list-group-item>
                   <b-list-group-item><strong>Dirección:</strong> {{ empresaData.direccion }}</b-list-group-item>
                   <b-list-group-item><strong>Teléfono:</strong> {{ empresaData.telefono }}</b-list-group-item>
                   <b-list-group-item><strong>Email:</strong> {{ empresaData.email }}</b-list-group-item>
@@ -237,6 +236,7 @@ export default {
       gastosData: [],
       horarioData: {},
       monedasData: [],
+      paisesSoportados: [],
       adminData: {
         nombre: "",
         telefono: "",
@@ -255,6 +255,7 @@ export default {
         countryCode: "VE",
         phoneNumber: "",
         email: "",
+        id_pais: null,
       },
       personalizacionData: {},
       timezoneData: {
@@ -526,16 +527,9 @@ export default {
         text: el.name,
       }));
     },
-    countryOptions() {
-      const countries = this.countryCodes.map(country => {
-        const codeMatch = country.text.match(/\+(\d+)/);
-        const code = codeMatch ? codeMatch[1] : country.value;
-        const nameMatch = country.text.match(/\(([^)]+)\)/);
-        const name = nameMatch ? nameMatch[1] : country.value;
-        return { value: code, text: name };
-      });
-      countries.sort((a, b) => a.text.localeCompare(b.text));
-      return [{ value: null, text: "Seleccione un país" }, ...countries];
+    nombrePaisEmpresa() {
+      const pais = this.paisesSoportados.find(p => p.id_pais === this.empresaData.id_pais);
+      return pais ? pais.nombre : "No seleccionado";
     },
     startIndex() {
       if (!this.configuracionFaltante || this.configuracionFaltante.length === 0) {
@@ -776,7 +770,7 @@ export default {
         this.empresaData.numero_registro_legal = companyData.numero_registro_legal || '';
         this.empresaData.direccion = companyData.direccion || '';
         this.empresaData.email = companyData.email || '';
-        this.empresaData.pais = companyData.pais || null;
+        this.empresaData.id_pais = companyData.id_pais || null;
         this.timezoneData = { timezone: companyData.timezone || 'America/Caracas' };
         if (companyData.telefono) {
           this.parseAndSetPhoneNumber('empresa', companyData.telefono);
@@ -827,7 +821,20 @@ export default {
         console.error("Error al sincronizar gastos fijos en el wizard:", error);
       }
     },
+
+    async fetchPaisesSoportados() {
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/paises-soportados`);
+        this.paisesSoportados = data?.data || [];
+      } catch (error) {
+        console.error("Error al cargar países soportados:", error);
+      }
+    },
   }, // Fin del objeto methods
+
+  created() {
+    this.fetchPaisesSoportados();
+  },
 
   watch: {
     configuracionFaltante: {
