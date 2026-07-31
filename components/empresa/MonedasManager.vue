@@ -79,6 +79,7 @@ export default {
       monedasSoportadas: [],
       idMonedaSoportadaSeleccionada: null,
       overlay: false,
+      monedasRequestId: 0, // ver cargarMonedas()
       fields: [
         { key: "codigo", label: "Código" },
         { key: "nombre", label: "Nombre" },
@@ -102,14 +103,25 @@ export default {
   },
   methods: {
     async cargarMonedas() {
+      // Guarda de secuencia: si el usuario dispara varias acciones seguidas
+      // (ej. cambiar la base 2 veces rápido, o desasignar justo después de
+      // establecer base), las respuestas del GET pueden llegar en un orden
+      // distinto al que se pidieron. Sin esto, una respuesta más vieja
+      // llegando después de una más nueva pisa la tabla con datos
+      // desactualizados hasta que el usuario recarga la página a mano.
+      const requestId = ++this.monedasRequestId;
       this.overlay = true;
       try {
         const { data } = await this.$axios.get(`${this.$config.API}/monedas`);
-        this.monedas = data?.data || [];
+        if (requestId === this.monedasRequestId) {
+          this.monedas = data?.data || [];
+        }
       } catch (err) {
         console.error("Error al cargar monedas de la empresa:", err);
       } finally {
-        this.overlay = false;
+        if (requestId === this.monedasRequestId) {
+          this.overlay = false;
+        }
       }
       this.$emit("loaded", this.monedas);
     },
