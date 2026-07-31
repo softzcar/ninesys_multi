@@ -6,6 +6,30 @@
 
 # ~~WhatsApp~~
 
+## Avance WhatsApp 29/07/2026
+
+🚀 *Reporte de Avance - Servicio de WhatsApp & PostgreSQL*
+
+📌 *Resumen de lo realizado hoy:*
+
+1️⃣ *Solución a Error 500 y Conexión PostgreSQL en `msg_ninesys`:*
+
+• Se adaptó el microservicio de WhatsApp para operar nativamente con PostgreSQL (puerto 5432) en el servidor de desarrollo.
+
+• Quedó resuelto el error al presionar el botón *[Actualizar estado]*. El endpoint responde correctamente con el código QR en base64 para vincular la sesión.
+
+2️⃣ *Corrección de Catálogo en Backend API (`ninesys-api`):*
+
+• Tras la migración a PostgreSQL, las búsquedas eran sensibles a mayúsculas (`LIKE`), omitiendo franelas que iniciaran con mayúscula.
+
+• Se aplicó la cláusula `ILIKE`. Ahora la API devuelve los *13 productos de franelas* disponibles (sublimadas, algodón, licra, oversize, cuello V, etc.) con todas sus escalas de precios.
+
+3️⃣ *Diagnóstico Pendiente en la IA:*
+
+• El backend ya devuelve las 13 franelas. Para la siguiente sesión probaremos en una conversación desde cero para descartar el sesgo de la memoria conversacional previa.
+
+✅ *Estado actual:* Cambios probados, documentados en bitácora y desplegados en el servidor de desarrollo (`vps-contabo-dev`).
+
 
 
 ## Ordenes y Lotes

@@ -88,115 +88,30 @@
 
             <b-row>
               <b-col
-                xl="4"
-                lg="4"
-                md="4"
+                xl="8"
+                lg="8"
+                md="12"
                 sm="12"
-                xs="12"
               >
-                <b-row>
-                  <b-col>
-                    <hr />
-                    <h4>
-                      Dólares Max
-                      {{ formatNumber(totDolares) }}
-                    </h4>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group
-                      id="input-group-1"
-                      label-for="input-dolares-efectivo"
-                      class="pl-2"
-                    >
-                      <b-form-input
-                        id="input-dolares-efectivo"
-                        type="number"
-                        step="0.10"
-                        min="0"
-                        :max="totDolares"
-                        @change="updateMontoAbono"
-                        v-model="form.montoDolaresEfectivo"
-                      ></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
+                <hr />
+                <ordenes-metodos-pago-dinamico ref="metodosPago" solo-efectivo @change="onPagosChange" />
               </b-col>
               <b-col
                 xl="4"
                 lg="4"
-                md="4"
+                md="12"
                 sm="12"
-                xs="12"
               >
-                <b-row>
-                  <b-col>
-                    <hr />
-                    <h4>
-                      Pesos Max
-                      {{ formatNumber(totPesos) }}
-                    </h4>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group
-                      id="input-group-4"
-                      label-for="input-dolares-efectivo"
-                      class="pl-2"
-                    >
-                      <b-form-input
-                        id="input-pesos-efectivo"
-                        type="number"
-                        step="0.10"
-                        min="0"
-                        :max="totPesos"
-                        v-model="form.montoPesosEfectivo"
-                        @change="updateMontoAbono"
-                      ></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-              </b-col>
-              <b-col
-                xl="4"
-                lg="4"
-                md="4"
-                sm="12"
-                xs="12"
-              >
-                <b-row>
-                  <b-col>
-                    <hr />
-                    <h4>
-                      Bolívares Max
-                      {{ formatNumber(totBolivares) }}
-                    </h4>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group
-                      id="input-group-6"
-                      label-for="input-bolivares-efectivo "
-                      class="pl-2"
-                    >
-                      <b-form-input
-                        id="input-bolivares-efectivo"
-                        type="number"
-                        step="0.10"
-                        min="0"
-                        :max="totBolivares"
-                        v-model="form.montoBolivaresEfectivo"
-                        @change="updateMontoAbono"
-                      ></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
+                <hr />
+                <h5>Disponible para cerrar</h5>
+                <b-list-group>
+                  <b-list-group-item v-for="m in saldoPorMoneda" :key="m.id_moneda">
+                    {{ m.nombre }}: {{ formatNumber(m.total) }}
+                  </b-list-group-item>
+                  <b-list-group-item v-if="saldoPorMoneda.length === 0" class="text-muted">
+                    No hay efectivo disponible para cerrar.
+                  </b-list-group-item>
+                </b-list-group>
               </b-col>
             </b-row>
           </b-overlay>
@@ -223,10 +138,10 @@
 
 <script>
 import { mapState } from "vuex";
-import axios from "axios";
 import mixins from "~/mixins/mixins.js";
 import mixinLogin from "~/mixins/mixin-login.js";
 import FormMonedas from "~/components/formMonedas.vue";
+import MetodosPagoDinamico from "~/components/ordenes/MetodosPagoDinamico.vue";
 
 export default {
   mixins: [mixins, mixinLogin],
@@ -234,17 +149,11 @@ export default {
     return {
       titulo: "Cierre de Caja",
       overlay: false,
-      tipoAbono: null,
-      efectivo: [],
-      totDolares: 0,
-      totPesos: 0,
-      totBolivares: 0,
-      fondo: [],
+      saldoPorMoneda: [], // Fase 8: [{id_moneda, codigo, nombre, simbolo, fondo, caja, total}]
+      pagosDinamicos: [],
+      porMonedaCierre: [], // [{id, codigo, nombre, montoLocal, montoBase}]
       form: {
         abono: 0,
-        montoDolaresEfectivo: 0,
-        montoPesosEfectivo: 0,
-        montoBolivaresEfectivo: 0,
       },
     };
   },
@@ -265,115 +174,9 @@ export default {
       return cargadas;
     },
 
-    montoEnDolares() {
-      let val = 0;
-      if (this.efectivo[0].monto === undefined) {
-        val = 99;
-      } else {
-        val = this.efectivo[0].monto;
-      }
-      return val;
-    },
-
-    totalDolares() {
-      let totalDolares = 0;
-      let dolaresEfectivo = parseFloat(this.form.montoDolaresEfectivo);
-      let dolaresZelle = parseFloat(this.form.montoDolaresZelle);
-      let dolaresPanama = parseFloat(this.form.montoDolaresPanama);
-
-      if (!dolaresEfectivo) {
-        dolaresEfectivo = 0.0;
-      }
-      if (!dolaresPanama) {
-        dolaresPanama = 0.0;
-      }
-      if (!dolaresZelle) {
-        dolaresZelle = 0.0;
-      }
-
-      totalDolares = dolaresEfectivo + dolaresPanama + dolaresZelle;
-      this.updateMontoAbono();
-      return totalDolares.toFixed(2);
-    },
-
-    totalPesos() {
-      let totalPesos = 0;
-      let pesosEfectivo = parseFloat(this.form.montoPesosEfectivo);
-      let pesosTransferencia = parseFloat(this.form.montoPesosTransferencia);
-
-      if (!pesosEfectivo) {
-        pesosEfectivo = 0.0;
-      }
-      if (!pesosTransferencia) {
-        pesosTransferencia = 0.0;
-      }
-
-      totalPesos = pesosEfectivo + pesosTransferencia;
-      return totalPesos.toFixed(2);
-    },
-
-    totalBolivares() {
-      let totalBolivares = 0;
-      let bolivaresEfectivo = parseFloat(this.form.montoBolivaresEfectivo);
-      let bolivaresPagomovil = parseFloat(this.form.montoBolivaresPagomovil);
-      let bolivaresPunto = parseFloat(this.form.montoBolivaresPunto);
-      let bolivaresTransferencia = parseFloat(
-        this.form.montoBolivaresTransferencia
-      );
-
-      if (!bolivaresEfectivo) {
-        bolivaresEfectivo = 0.0;
-      }
-
-      if (!bolivaresPagomovil) {
-        bolivaresPagomovil = 0.0;
-      }
-
-      if (!bolivaresPunto) {
-        bolivaresPunto = 0.0;
-      }
-
-      if (!bolivaresTransferencia) {
-        bolivaresTransferencia = 0.0;
-      }
-
-      totalBolivares =
-        bolivaresEfectivo +
-        bolivaresPagomovil +
-        bolivaresTransferencia +
-        bolivaresPunto;
-      return totalBolivares.toFixed(2);
-    },
-
-    totalAbono() {
-      // CALCULO DOLARES
-      const montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo) +
-        parseFloat(this.form.montoDolaresPanama) +
-        parseFloat(this.form.montoDolaresZelle);
-
-      // CALCULO EN PESOS
-      const montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.tasas.peso_colombiano);
-
-      // CALCULO EN BOLIVARES
-      const montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.tasas.bolivar);
-
-      let total = montoDolares + montoPesos + montoBolivares;
-
-      if (isNaN(total)) total = 0;
-      return total.toFixed(2);
-    },
   },
 
-  components: { FormMonedas },
+  components: { FormMonedas, MetodosPagoDinamico },
   methods: {
     fechaActual() {
       let date = new Date();
@@ -382,6 +185,12 @@ export default {
       let year = date.getFullYear();
 
       return `${year}-${month}-${day}`;
+    },
+
+    onPagosChange({ pagos, totalEnBase, porMoneda }) {
+      this.pagosDinamicos = pagos;
+      this.form.abono = totalEnBase.toFixed(2);
+      this.porMonedaCierre = porMoneda;
     },
 
     async enviarCierre() {
@@ -393,210 +202,85 @@ export default {
         msg = msg + "<p>El Total del cierre no puede ser Cero</p>";
       }
 
-      if (ok) {
-        this.$confirm(
-          `DESEA EJECUTAR EL CIERRE DE CAJA? Dólares: ${this.form.montoDolaresEfectivo}, Pesos: ${this.form.montoPesosEfectivo}, Bolívares: ${this.form.montoBolivaresEfectivo}`,
-          "CIERRE DE CAJA",
-          "question"
-        )
-          .then(() => {
-            this.overlay = true;
-            let fondoDolares;
-            let fondoPesos;
-            let fondoBolivares;
+      // Validar que no se cierre más de lo disponible, por cada moneda real.
+      this.porMonedaCierre.forEach((entrada) => {
+        const disponibleRow = this.saldoPorMoneda.find((s) => s.id_moneda === entrada.id);
+        const disponible = disponibleRow ? parseFloat(disponibleRow.total) : 0;
+        if (entrada.montoLocal > disponible) {
+          ok = false;
+          msg += `<p>El monto ingresado excede el máximo en caja ${entrada.nombre}: ${this.formatNumber(disponible)}</p>`;
+        }
+      });
 
-            if (this.efectivo[0].monto == null) {
-              fondoDolares = 0;
-            } else {
-              fondoDolares =
-                parseFloat(this.efectivo[0].monto) -
-                parseFloat(this.form.montoDolaresEfectivo);
-            }
-
-            if (this.efectivo[1].monto == null) {
-              fondoPesos = 0;
-            } else {
-              fondoPesos =
-                parseFloat(this.efectivo[1].monto) -
-                parseFloat(this.form.montoPesosEfectivo);
-            }
-
-            if (this.efectivo[1].monto == null) {
-              fondoBolivares = 0;
-            } else {
-              fondoBolivares =
-                parseFloat(this.efectivo[2].monto) -
-                parseFloat(this.form.montoBolivaresEfectivo);
-            }
-
-            // Verificamos que tengamos un valor mumérico de lo contrario asignamos 0
-            if (isNaN(fondoDolares)) fondoDolares = 0;
-            if (isNaN(fondoPesos)) fondoPesos = 0;
-            if (isNaN(fondoBolivares)) fondoBolivares = 0;
-
-            const data = new URLSearchParams();
-            data.set(
-              "id_empleado",
-              this.$store.state.login.dataUser.id_empleado
-            );
-            data.set("tasa_dolar", this.tasas.bolivar);
-            data.set("tasa_peso", this.tasas.peso_colombiano);
-            data.set("cierreDolaresEfectivo", this.form.montoDolaresEfectivo);
-            data.set("cierrePesosEfectivo", this.form.montoPesosEfectivo);
-            data.set(
-              "cierreBolivaresEfectivo",
-              this.form.montoBolivaresEfectivo
-            );
-            data.set("fondoDolares", fondoDolares);
-            data.set("fondoPesos", fondoPesos);
-            data.set("fondoBolivares", fondoBolivares);
-
-            console.log("data:", data);
-
-            this.$axios
-              .post(`${this.$config.API}/cierre-de-caja-vendedor`, data)
-              .then((res) => {
-                this.form = {
-                  detalle: "",
-                  montoDolaresEfectivo: 0,
-                  montoPesosEfectivo: 0,
-                  montoBolivaresEfectivo: 0,
-                  abono: 0, // Pago total o parcial
-                };
-                // this.overlay = false;
-                // this.getDataReport(this.fechaActual()).then(() => {
-                // })
-                this.getDataCierre().then(() => (this.overlay = false));
-              });
-          })
-          /* .then(() => {
-            this.overlay = true;
-            this.getDataCierre().then(() => (this.overlay = false));
-          }) */
-          .catch(() => {
-            return false;
-          });
-      } else {
+      if (!ok) {
         this.$fire({
-          title: "Se requieren datos",
-          type: "error",
+          title: "Error en el monto",
+          type: "warning",
           html: msg,
         });
+        return;
       }
-    },
 
-    updateMontoAbono() {
-      // VAlidar montos máximos
-      let ban = true;
-      // LIMPIAR VALORES ERRONEOS
-      if (this.form.montoBolivaresEfectivo === "")
-        this.form.montoBolivaresEfectivo = 0;
-      if (this.form.montoDolaresEfectivo === "")
-        this.form.montoDolaresEfectivo = 0;
-      if (this.form.montoPesosEfectivo === "") this.form.montoPesosEfectivo = 0;
+      const resumen = this.porMonedaCierre
+        .map((e) => `${e.nombre}: ${this.formatNumber(e.montoLocal)}`)
+        .join(", ");
 
-      if (this.form.montoDolaresEfectivo > parseFloat(this.efectivo[0].monto)) {
-        ban = false;
-        this.form.montoDolaresEfectivo = 0;
-        this.$fire({
-          title: "Error en el monto",
-          html: `<p>El monto ingresado excede el máximo en caja USD ${this.efectivo[0].monto}</p>`,
-          type: "warning",
+      this.$confirm(
+        `¿Desea ejecutar el cierre de caja? ${resumen || "Sin montos"}`,
+        "CIERRE DE CAJA",
+        "question"
+      )
+        .then(() => {
+          this.overlay = true;
+
+          // El fondo (lo que queda disponible para mañana) es automático:
+          // disponible - cerrado, por cada moneda con saldo -- mismo criterio
+          // que el cálculo legado, ahora generalizado a cualquier moneda real.
+          const fondos = this.saldoPorMoneda
+            .map((disponible) => {
+              const cerrado = this.porMonedaCierre.find((e) => e.id === disponible.id_moneda);
+              const montoCerrado = cerrado ? cerrado.montoLocal : 0;
+              const restante = parseFloat(disponible.total) - montoCerrado;
+              return { id_moneda: disponible.id_moneda, monto: restante > 0 ? restante : 0 };
+            })
+            .filter((f) => f.monto > 0);
+
+          const cierres = this.porMonedaCierre.map((e) => ({ id_moneda: e.id, monto: e.montoLocal }));
+
+          const data = new URLSearchParams();
+          data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
+          data.set("cierres", JSON.stringify(cierres));
+          data.set("fondos", JSON.stringify(fondos));
+
+          this.$axios
+            .post(`${this.$config.API}/cierre-de-caja-vendedor`, data)
+            .then(() => {
+              this.form.abono = 0;
+              this.pagosDinamicos = [];
+              this.porMonedaCierre = [];
+              this.$refs.metodosPago?.resetear();
+              this.getDataCierre().then(() => (this.overlay = false));
+            })
+            .catch((err) => {
+              this.overlay = false;
+              this.$fire({
+                title: "Error",
+                html: err.response?.data?.message || "No se pudo registrar el cierre de caja",
+                type: "error",
+              });
+            });
+        })
+        .catch(() => {
+          return false;
         });
-      }
-
-      if (this.form.montoPesosEfectivo > parseFloat(this.efectivo[1].monto)) {
-        ban = false;
-        this.form.montoPesosEfectivo = 0;
-        this.$fire({
-          title: "Error en el monto",
-          html: `<p>El monto ingresado excede el máximo en caja COP ${this.efectivo[1].monto}</p>`,
-          type: "warning",
-        });
-      }
-
-      if (
-        this.form.montoBolivaresEfectivo > parseFloat(this.efectivo[2].monto)
-      ) {
-        ban = false;
-        this.form.montoBolivaresEfectivo = 0;
-        this.$fire({
-          title: "Error en el monto",
-          html: `<p>El monto ingresado excede el máximo en caja Bs ${this.efectivo[2].monto}</p>`,
-          type: "warning",
-        });
-      }
-
-      if (ban) {
-        let newVal;
-        let montoBolivares;
-        let montoDolares;
-        let montoPesos;
-
-        // RESET MONTO ABONO
-        this.form.abono = 0;
-
-        // CALCULO DOLARES
-        montoDolares = parseFloat(this.form.montoDolaresEfectivo);
-
-        // CALCULO EN PESOS
-        montoPesos =
-          parseFloat(this.form.montoPesosEfectivo) /
-          parseFloat(this.tasas.peso_colombiano);
-
-        // CALCULO EN BOLIVARES
-        montoBolivares =
-          parseFloat(this.form.montoBolivaresEfectivo) /
-          parseFloat(this.tasas.bolivar);
-
-        // SUMATOORIA DE TODAS LAS MONEDAS
-        newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
-        this.form.abono = newVal;
-        return newVal;
-      }
-
-      return false;
     },
 
     async getDataCierre() {
+      this.overlay = true;
       await this.$axios
-        .get(
-          `${this.$config.API}/cierre-de-caja/${this.$store.state.login.dataUser.id_empleado}`
-        )
+        .get(`${this.$config.API}/cierre-de-caja/${this.$store.state.login.dataUser.id_empleado}`)
         .then((res) => {
-          const apiData = res.data.data;
-
-          // The API now returns the total amount (cash + fund) directly.
-          // We no longer need to sum the fund on the frontend.
-
-          // Safely get the total for each currency, defaulting to 0.
-          this.totDolares =
-            apiData.dolares && apiData.dolares.length > 0
-              ? parseFloat(apiData.dolares[0].monto) || 0
-              : 0;
-          this.totPesos =
-            apiData.pesos && apiData.pesos.length > 0
-              ? parseFloat(apiData.pesos[0].monto) || 0
-              : 0;
-          this.totBolivares =
-            apiData.bolivares && apiData.bolivares.length > 0
-              ? parseFloat(apiData.bolivares[0].monto) || 0
-              : 0;
-
-          // Update the `efectivo` array which is used by other parts of the component
-          this.efectivo = [
-            { moneda: "Dólares", monto: this.totDolares, tasa: 1 },
-            {
-              moneda: "Pesos",
-              monto: this.totPesos,
-              tasa: this.tasas.peso_colombiano,
-            },
-            {
-              moneda: "Bolívares",
-              monto: this.totBolivares,
-              tasa: this.tasas.bolivar,
-            },
-          ];
+          this.saldoPorMoneda = res.data.data.porMoneda || [];
         })
         .catch((err) => {
           console.error("Error al obtener datos de cierre de caja:", err);

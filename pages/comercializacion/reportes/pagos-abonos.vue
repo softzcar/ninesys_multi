@@ -483,7 +483,7 @@ export default {
 
           let ratio = 1;
           let montoAjustadoLocal = montoLocal;
-          let montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoLocal / tasaVal) : montoLocal;
+          let montoAjustadoUsd = parseFloat(this.convertirAMonedaBase(pago.moneda, montoLocal, tasaVal)) || 0;
 
           if (this.selectedCategory && this.selectedCategory !== 'Todas') {
             const categoryData = pago.product_categories.find(cat => cat && cat.category_name === this.selectedCategory);
@@ -492,7 +492,7 @@ export default {
               const totalOrden = parseFloat(pago.total_orden) || 1;
               ratio = totalCategoria / totalOrden;
               montoAjustadoLocal = ratio * montoLocal;
-              montoAjustadoUsd = (pago.moneda === "Bolívares" || pago.moneda === "Pesos") ? (montoAjustadoLocal / tasaVal) : montoAjustadoLocal;
+              montoAjustadoUsd = parseFloat(this.convertirAMonedaBase(pago.moneda, montoAjustadoLocal, tasaVal)) || 0;
             }
           }
 

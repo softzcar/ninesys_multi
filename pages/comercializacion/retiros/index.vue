@@ -54,99 +54,13 @@
 
                 <b-row>
                   <b-col
-                    xl="3"
-                    lg="3"
-                    md="3"
-                    sm="12"
-                    xs="12"
-                  >
-                    <b-row>
-                      <b-col>
-                        <hr />
-                        <h4 class="mb-4">Dólares {{ formatNumber(totalDolares) }}</h4>
-                      </b-col>
-                    </b-row>
-
-                    <b-row align-h="start">
-                      <b-col>
-                        <b-form-group
-                          id="input-group-1"
-                          label="EFECTIVO"
-                          label-for="input-dolares-efectivo"
-                          class="pl-2"
-                        >
-                          <b-form-input
-                            id="input-dolares-efectivo"
-                            type="number"
-                            step="0.10"
-                            min="0"
-                            @change="updateMontoRetiro"
-                            v-model="form.montoDolaresEfectivo"
-                          ></b-form-input>
-                        </b-form-group>
-                      </b-col>
-                    </b-row>
-
-                    <b-row>
-                      <b-col>
-                        <hr />
-                        <h4 class="mb-4">Pesos {{ formatNumber(totalPesos) }}</h4>
-                      </b-col>
-                    </b-row>
-
-                    <b-row align-h="start">
-                      <b-col>
-                        <b-form-group
-                          id="input-group-4"
-                          label="EFECTIVO"
-                          label-for="input-dolares-efectivo"
-                          class="pl-2"
-                        >
-                          <b-form-input
-                            id="input-pesos-efectivo"
-                            type="number"
-                            step="0.10"
-                            min="0"
-                            v-model="form.montoPesosEfectivo"
-                            @change="updateMontoRetiro"
-                          ></b-form-input>
-                        </b-form-group>
-                      </b-col>
-                    </b-row>
-
-                    <b-row>
-                      <b-col>
-                        <hr />
-                        <h4 class="mb-4">Bolívares {{ formatNumber(totalBolivares) }}</h4>
-                      </b-col>
-                    </b-row>
-                    <b-row align-h="start">
-                      <b-col>
-                        <b-form-group
-                          id="input-group-6"
-                          label="EFECTIVO"
-                          label-for="input-bolivares-efectivo "
-                          class="pl-2"
-                        >
-                          <b-form-input
-                            id="input-bolivares-efectivo"
-                            type="number"
-                            step="0.10"
-                            min="0"
-                            v-model="form.montoBolivaresEfectivo"
-                            @change="updateMontoRetiro"
-                          ></b-form-input>
-                        </b-form-group>
-                      </b-col>
-                    </b-row>
-                  </b-col>
-
-                  <b-col
-                    xl="9"
-                    lg="9"
-                    md="9"
+                    xl="8"
+                    lg="8"
+                    md="12"
                     sm="12"
                   >
+                    <hr />
+                    <ordenes-metodos-pago-dinamico ref="metodosPago" solo-efectivo @change="onPagosChange" />
                   </b-col>
                 </b-row>
 
@@ -161,7 +75,7 @@
                   <b-col>
                     <hr />
                     <h2 class="mb-4">
-                      TOTAL RETIRO: {{ formatNumber(totalRetiro) }}
+                      TOTAL RETIRO: {{ formatNumber(form.abono) }}
                       <b-button
                         size="lg"
                         class="ml-4"
@@ -209,25 +123,19 @@ import mixin from "~/mixins/mixins.js";
 import mixinLogin from "~/mixins/mixin-login.js";
 import { mapState } from "vuex";
 import FormMonedas from "~/components/formMonedas.vue";
+import MetodosPagoDinamico from "~/components/ordenes/MetodosPagoDinamico.vue";
 
 export default {
-  components: { FormMonedas },
+  components: { FormMonedas, MetodosPagoDinamico },
   data() {
     return {
       titulo: "Retiros",
       loading: true,
       caja: [],
+      pagosDinamicos: [],
+      porMoneda: [],
       form: {
         detalle: "",
-        montoDolaresEfectivo: 0,
-        montoDolaresZelle: 0,
-        montoDolaresPanama: 0,
-        montoPesosEfectivo: 0,
-        montoPesosTransferencia: 0,
-        montoBolivaresEfectivo: 0,
-        montoBolivaresPunto: 0,
-        montoBolivaresPagomovil: 0,
-        montoBolivaresTransferencia: 0,
         abono: 0, // Pago total o parcial
       },
     };
@@ -248,108 +156,6 @@ export default {
       return cargadas;
     },
 
-    totalDolares() {
-      let totalDolares = 0;
-      let dolaresEfectivo = parseFloat(this.form.montoDolaresEfectivo);
-      let dolaresZelle = parseFloat(this.form.montoDolaresZelle);
-      let dolaresPanama = parseFloat(this.form.montoDolaresPanama);
-
-      if (!dolaresEfectivo) {
-        dolaresEfectivo = 0.0;
-      }
-      if (!dolaresPanama) {
-        dolaresPanama = 0.0;
-      }
-      if (!dolaresZelle) {
-        dolaresZelle = 0.0;
-      }
-
-      totalDolares = dolaresEfectivo + dolaresPanama + dolaresZelle;
-      this.updateMontoRetiro();
-      return totalDolares.toFixed(2);
-    },
-
-    totalPesos() {
-      let totalPesos = 0;
-      let pesosEfectivo = parseFloat(this.form.montoPesosEfectivo);
-      let pesosTransferencia = parseFloat(this.form.montoPesosTransferencia);
-
-      if (!pesosEfectivo) {
-        pesosEfectivo = 0.0;
-      }
-      if (!pesosTransferencia) {
-        pesosTransferencia = 0.0;
-      }
-
-      totalPesos = pesosEfectivo + pesosTransferencia;
-      return totalPesos.toFixed(2);
-    },
-
-    totalBolivares() {
-      let totalBolivares = 0;
-      let bolivaresEfectivo = parseFloat(this.form.montoBolivaresEfectivo);
-      let bolivaresPagomovil = parseFloat(this.form.montoBolivaresPagomovil);
-      let bolivaresPunto = parseFloat(this.form.montoBolivaresPunto);
-      let bolivaresTransferencia = parseFloat(
-        this.form.montoBolivaresTransferencia
-      );
-
-      if (!bolivaresEfectivo) {
-        bolivaresEfectivo = 0.0;
-      }
-
-      if (!bolivaresPagomovil) {
-        bolivaresPagomovil = 0.0;
-      }
-
-      if (!bolivaresPunto) {
-        bolivaresPunto = 0.0;
-      }
-
-      if (!bolivaresTransferencia) {
-        bolivaresTransferencia = 0.0;
-      }
-
-      totalBolivares =
-        bolivaresEfectivo +
-        bolivaresPagomovil +
-        bolivaresTransferencia +
-        bolivaresPunto;
-      return totalBolivares.toFixed(2);
-    },
-
-    totalRetiro() {
-      // CALCULO DOLARES
-      const montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo) +
-        parseFloat(this.form.montoDolaresPanama) +
-        parseFloat(this.form.montoDolaresZelle);
-
-      // CALCULO EN PESOS (solo si tasa existe y > 0)
-      let montoPesos = 0;
-      if (this.tasas.peso_colombiano && parseFloat(this.tasas.peso_colombiano) > 0) {
-        montoPesos =
-          (parseFloat(this.form.montoPesosEfectivo) +
-            parseFloat(this.form.montoPesosTransferencia)) /
-          parseFloat(this.tasas.peso_colombiano);
-      }
-
-      // CALCULO EN BOLIVARES (solo si tasa existe y > 0)
-      let montoBolivares = 0;
-      if (this.tasas.bolivar && parseFloat(this.tasas.bolivar) > 0) {
-        montoBolivares =
-          (parseFloat(this.form.montoBolivaresEfectivo) +
-            parseFloat(this.form.montoBolivaresPagomovil) +
-            parseFloat(this.form.montoBolivaresPunto) +
-            parseFloat(this.form.montoBolivaresTransferencia)) /
-          parseFloat(this.tasas.bolivar);
-      }
-
-      let total = montoDolares + montoPesos + montoBolivares;
-
-      if (isNaN(total)) total = 0;
-      return total.toFixed(2);
-    },
 
     totalEnCaja() {
       if (!this.caja || this.caja.length === 0) {
@@ -405,27 +211,17 @@ export default {
       let msg = "";
       let ok = true;
 
-      // 1. VALIDACIÓN DE SALDO DISPONIBLE (PRIORIDAD)
-      const saldoDolares = parseFloat(this.caja[0] ? this.caja[0].monto : 0);
-      const saldoPesos = parseFloat(this.caja[1] ? this.caja[1].monto : 0);
-      const saldoBolivares = parseFloat(this.caja[2] ? this.caja[2].monto : 0);
-
-      const solicitadoDolares = parseFloat(this.form.montoDolaresEfectivo);
-      const solicitadoPesos = parseFloat(this.form.montoPesosEfectivo);
-      const solicitadoBolivares = parseFloat(this.form.montoBolivaresEfectivo);
-
-      if (solicitadoDolares > saldoDolares) {
-        ok = false;
-        msg += `<p>Saldo insuficiente en Dólares. Disponible: ${this.formatNumber(saldoDolares)}</p>`;
-      }
-      if (solicitadoPesos > saldoPesos) {
-        ok = false;
-        msg += `<p>Saldo insuficiente en Pesos. Disponible: ${this.formatNumber(saldoPesos)}</p>`;
-      }
-      if (solicitadoBolivares > saldoBolivares) {
-        ok = false;
-        msg += `<p>Saldo insuficiente en Bolívares. Disponible: ${this.formatNumber(saldoBolivares)}</p>`;
-      }
+      // 1. VALIDACIÓN DE SALDO DISPONIBLE (PRIORIDAD) -- por cada moneda con
+      // monto ingresado, se busca su saldo real en `caja` por el nombre exacto
+      // del catálogo (ej. "Dólares"), no por índice fijo.
+      this.porMoneda.forEach((entrada) => {
+        const saldoRow = this.caja.find((c) => c.moneda === entrada.nombre);
+        const saldoDisponible = parseFloat(saldoRow ? saldoRow.monto : 0);
+        if (entrada.montoLocal > saldoDisponible) {
+          ok = false;
+          msg += `<p>Saldo insuficiente en ${entrada.nombre}. Disponible: ${this.formatNumber(saldoDisponible)}</p>`;
+        }
+      });
 
       // Si no hay saldo, mostramos el error y no seguimos validando otras cosas (UX)
       if (!ok) {
@@ -438,7 +234,7 @@ export default {
       }
 
       // 2. OTRAS VALIDACIONES (TOTAL Y DETALLE)
-      if (parseFloat(this.totalRetiro) === 0) {
+      if (parseFloat(this.form.abono) === 0) {
         ok = false;
         msg = msg + "<p>El Total del retiro no puede ser Cero</p>";
       }
@@ -453,9 +249,9 @@ export default {
         let resumen = `<div class="text-left">
           <p><strong>Detalle:</strong> ${this.form.detalle}</p>
           <ul>`;
-        if (solicitadoDolares > 0) resumen += `<li>Dólares: ${this.formatNumber(solicitadoDolares)}</li>`;
-        if (solicitadoPesos > 0) resumen += `<li>Pesos: ${this.formatNumber(solicitadoPesos)}</li>`;
-        if (solicitadoBolivares > 0) resumen += `<li>Bolívares: ${this.formatNumber(solicitadoBolivares)}</li>`;
+        this.porMoneda.forEach((entrada) => {
+          resumen += `<li>${entrada.nombre}: ${this.formatNumber(entrada.montoLocal)}</li>`;
+        });
         resumen += `</ul><p class="text-center mt-3"><strong>¿Confirmar este retiro?</strong></p></div>`;
 
         this.$fire({
@@ -471,17 +267,7 @@ export default {
             try {
               const data = new URLSearchParams();
               data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
-              data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
-              data.set("montoDolaresZelle", this.form.montoDolaresZelle);
-              data.set("montoDolaresPanama", this.form.montoDolaresPanama);
-              data.set("montoPesosEfectivo", this.form.montoPesosEfectivo);
-              data.set("montoPesosTransferencia", this.form.montoPesosTransferencia);
-              data.set("montoBolivaresEfectivo", this.form.montoBolivaresEfectivo);
-              data.set("montoBolivaresPunto", this.form.montoBolivaresPunto);
-              data.set("montoBolivaresPagomovil", this.form.montoBolivaresPagomovil);
-              data.set("montoBolivaresTransferencia", this.form.montoBolivaresTransferencia);
-              data.set("tasa_dolar", this.tasas.bolivar);
-              data.set("tasa_peso", this.tasas.peso_colombiano);
+              data.set("pagos", JSON.stringify(this.pagosDinamicos));
               data.set("abono", this.form.abono);
               data.set("detalle", this.form.detalle);
 
@@ -493,21 +279,13 @@ export default {
                   text: res.data.message || "El retiro se ha registrado correctamente",
                   type: "success",
                 });
-                
+
                 // Resetear formulario
-                this.form = {
-                  detalle: "",
-                  montoDolaresEfectivo: 0,
-                  montoDolaresZelle: 0,
-                  montoDolaresPanama: 0,
-                  montoPesosEfectivo: 0,
-                  montoPesosTransferencia: 0,
-                  montoBolivaresEfectivo: 0,
-                  montoBolivaresPunto: 0,
-                  montoBolivaresPagomovil: 0,
-                  montoBolivaresTransferencia: 0,
-                  abono: 0,
-                };
+                this.form.detalle = "";
+                this.form.abono = 0;
+                this.pagosDinamicos = [];
+                this.porMoneda = [];
+                this.$refs.metodosPago?.resetear();
               } else {
                 throw new Error(res.data.error?.description || "Error desconocido al procesar el retiro");
               }
@@ -533,66 +311,13 @@ export default {
       }
     },
 
-
-
-    updateMontoRetiro() {
-      let newVal;
-      let montoBolivares;
-      let montoDolares;
-      let montoPesos;
-
-      // LIMPIAR VALORES ERRONEOS
-      if (this.form.montoBolivaresEfectivo === "")
-        this.form.montoBolivaresEfectivo = 0;
-      if (this.form.montoBolivaresPagomovil === "")
-        this.form.montoBolivaresPagomovil = 0;
-      if (this.form.montoBolivaresPunto === "")
-        this.form.montoBolivaresPunto = 0;
-      if (this.form.montoBolivaresTransferencia === "")
-        this.form.montoBolivaresTransferencia = 0;
-      if (this.form.montoDolaresEfectivo === "")
-        this.form.montoDolaresEfectivo = 0;
-      if (this.form.montoDolaresPanama === "") this.form.montoDolaresPanama = 0;
-      if (this.form.montoDolaresZelle === "") this.form.montoDolaresZelle = 0;
-      if (this.form.montoPesosEfectivo === "") this.form.montoPesosEfectivo = 0;
-      if (this.form.montoPesosTransferencia === "")
-        this.form.montoPesosTransferencia = 0;
-
-      // RESET MONTO ABONO
-      this.form.abono = 0;
-
-      // CALCULO DOLARES
-      montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo) +
-        parseFloat(this.form.montoDolaresPanama) +
-        parseFloat(this.form.montoDolaresZelle);
-
-      // CALCULO EN PESOS
-      montoPesos =
-        (parseFloat(this.form.montoPesosEfectivo) +
-          parseFloat(this.form.montoPesosTransferencia)) /
-        parseFloat(this.tasas.peso_colombiano);
-
-      // CALCULO EN BOLIVARES
-      montoBolivares =
-        (parseFloat(this.form.montoBolivaresEfectivo) +
-          parseFloat(this.form.montoBolivaresPagomovil) +
-          parseFloat(this.form.montoBolivaresPunto) +
-          parseFloat(this.form.montoBolivaresTransferencia)) /
-        parseFloat(this.tasas.bolivar);
-
-      // SUMATOORIA DE TODAS LAS MONEDAS
-      console.log("dolares", montoDolares);
-      console.log("pesos", montoPesos);
-      console.log("bolivares", montoBolivares);
-      newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
-      this.form.abono = newVal;
-
-      if (isNaN(newVal)) newVal = 0;
-
-      console.log("this.form.abono = ", newVal);
-      return newVal;
+    onPagosChange({ pagos, totalEnBase, porMoneda }) {
+      this.pagosDinamicos = pagos;
+      this.form.abono = totalEnBase.toFixed(2);
+      this.porMoneda = porMoneda;
     },
+
+
 
     async getCaja() {
       const todayStr = new Date().toISOString().substring(0, 10);

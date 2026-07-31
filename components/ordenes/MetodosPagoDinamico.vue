@@ -59,6 +59,14 @@
 <script>
 export default {
   name: "MetodosPagoDinamico",
+  props: {
+    // Cuando es true, solo se renderizan métodos con es_efectivo=1 (ej. retiro
+    // de caja física: no tiene sentido "retirar" por Zelle/Transferencia).
+    soloEfectivo: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       cargando: true,
@@ -88,7 +96,9 @@ export default {
   },
   methods: {
     metodosPorMoneda(idMoneda) {
-      return this.metodos.filter((m) => m.id_moneda === idMoneda);
+      return this.metodos.filter(
+        (m) => m.id_moneda === idMoneda && (!this.soloEfectivo || m.es_efectivo)
+      );
     },
     tasaMoneda(moneda) {
       const tasas = this.$store.state.login.tasas || {};
@@ -136,6 +146,25 @@ export default {
       });
       return pagos;
     },
+    // Desglose por moneda (nombre real del catálogo, ej. "Dólares") -- para
+    // consumidores que necesitan validar contra un saldo disponible por
+    // moneda (ej. retiro de caja), sin tener que resolver id_metodo_pago -> moneda ellos mismos.
+    obtenerPorMoneda() {
+      return this.monedas
+        .map((moneda) => {
+          const montoLocal = this.metodosPorMoneda(moneda._id).reduce((acc, metodo) => {
+            return acc + (parseFloat(this.montos[metodo._id]) || 0);
+          }, 0);
+          return {
+            id: moneda._id,
+            codigo: moneda.codigo,
+            nombre: moneda.nombre,
+            montoLocal,
+            montoBase: this.equivalenteEnBase(moneda, montoLocal),
+          };
+        })
+        .filter((entry) => entry.montoLocal > 0);
+    },
     resetear() {
       this.montos = {};
       this.detalles = {};
@@ -145,6 +174,7 @@ export default {
       this.$emit("change", {
         pagos: this.obtenerPagos(),
         totalEnBase: this.totalEnBase,
+        porMoneda: this.obtenerPorMoneda(),
       });
     },
   },

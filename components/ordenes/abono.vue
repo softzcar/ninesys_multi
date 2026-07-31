@@ -139,133 +139,12 @@
             </b-row>
 
             <b-row>
-              <b-col xl="3" lg="3" md="6" sm="12">
-                <b-row>
-                  <b-col>
-                    <hr />
-                    <h4>Dólares <b-badge variant="success">{{ totalDolares }}</b-badge></h4>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-1" label="EFECTIVO" label-for="input-dolares-efectivo" class="pl-2">
-                      <b-form-input id="input-dolares-efectivo" type="number" step="0.10" min="0"
-                        @change="updateMontoAbono" v-model="form.montoDolaresEfectivo"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-2" label="ZELLE" label-for="input-dolares-zelle" class="pl-2">
-                      <b-form-input id="input-dolares-zelle" type="number" step="0.10" min="0"
-                        @change="updateMontoAbono" v-model="form.montoDolaresZelle"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label="Detalle Zelle">
-                      <b-form-input v-model="form.detalleZelle" placeholder="Detalle Zelle"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-3" label="BANESCO PANAMA" label-for="input-dolares-zelle"
-                      class="pl-2">
-                      <b-form-input id="input-dolares-zelle" type="number" step="0.10" min="0"
-                        @change="updateMontoAbono" v-model="form.montoDolaresPanama"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label="Detalle Banesco">
-                      <b-form-input v-model="form.detallePanama" placeholder="Detalle Banesco"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
+              <b-col xl="8" lg="8" md="12" sm="12">
+                <hr />
+                <ordenes-metodos-pago-dinamico ref="metodosPago" @change="onPagosChange" />
               </b-col>
 
-              <b-col xl="3" lg="3" md="6" sm="12">
-                <b-row>
-                  <b-col>
-                    <hr />
-                    <h4>Pesos <b-badge variant="success">{{ totalPesos }}</b-badge></h4>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-4" label="EFECTIVO (USD)" label-for="input-pesos-efectivo" class="pl-2">
-                      <b-form-input id="input-pesos-efectivo" type="number" step="0.10" min="0"
-                        v-model="form.montoPesosEfectivo" @change="updateMontoAbono"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-5" label="TRANSFERENCIA (USD)" label-for="input-pesos-dolares-zelle" class="pl-2">
-                      <b-form-input id="input-pesos-dolares-zelle" type="number" step="0.10" min="0"
-                        v-model="form.montoPesosTransferencia" @change="updateMontoAbono"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label="Detalle Pesos">
-                      <b-form-input v-model="form.detallePesosTransferencia" placeholder="Detalle Pesos"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-              </b-col>
-
-              <b-col xl="3" lg="3" md="6" sm="12" xs="12">
-                <b-row>
-                  <b-col>
-                    <hr />
-                    <h4>Bolívares <b-badge variant="success">{{ totalBolivares }}</b-badge></h4>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-6" label="PAGO MOVIL (USD)" label-for="input-bolivares-pagomovil "
-                      class="pl-2">
-                      <b-form-input id="input-bolivares-pagomovil" type="number" step="0.10" min="0"
-                        v-model="form.montoBolivaresPagomovil" @change="updateMontoAbono"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label="Detalle Pagomovil">
-                      <b-form-input v-model="form.detallePagomovil" placeholder="Detalle Pagomovil"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-6" label="PUNTO (USD)" label-for="input-bolivares-punto " class="pl-2">
-                      <b-form-input id="input-bolivares-punto" type="number" step="0.10" min="0"
-                        v-model="form.montoBolivaresPunto" @change="updateMontoAbono"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-6" label="EFECTIVO (USD)" label-for="input-bolivares-efectivo "
-                      class="pl-2">
-                      <b-form-input id="input-bolivares-efectivo" type="number" step="0.10" min="0"
-                        v-model="form.montoBolivaresEfectivo" @change="updateMontoAbono"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-
-                <b-row align-h="start">
-                  <b-col>
-                    <b-form-group id="input-group-6" label="TRANSFERENCIA (USD)" label-for="input-bolivares-transferencia "
-                      class="pl-2">
-                      <b-form-input id="input-bolivares-transferencia" type="number" step="0.10" min="0"
-                        v-model="form.montoBolivaresTransferencia" @change="updateMontoAbono"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label="Detalle Transferencia">
-                      <b-form-input v-model="form.detalleBolivaresTransferencia"
-                        placeholder="Detalle Transferencia"></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-              </b-col>
-
-              <b-col xl="3" lg="3" md="6" sm="12" class="mb-4">
+              <b-col xl="4" lg="4" md="12" sm="12" class="mb-4">
                 <b-row>
                   <b-col>
                     <div v-if="
@@ -322,10 +201,11 @@
 import mixin from "~/mixins/mixins.js";
 import { mapState } from "vuex";
 import FormMonedas from "~/components/formMonedas.vue";
+import MetodosPagoDinamico from "~/components/ordenes/MetodosPagoDinamico.vue";
 
 export default {
   mixins: [mixin],
-  components: { FormMonedas },
+  components: { FormMonedas, MetodosPagoDinamico },
   data() {
     return {
       inputDisabled: false,
@@ -353,21 +233,10 @@ export default {
       overlay: false,
       form: {
         abono: 0,
-        montoDolaresEfectivo: 0,
-        montoDolaresZelle: 0,
-        detalleZelle: "",
-        montoDolaresPanama: 0,
-        detallePanama: "",
-        montoPesosEfectivo: 0,
-        montoPesosTransferencia: 0,
-        detallePesosTransferencia: "",
-        montoBolivaresEfectivo: 0,
-        montoBolivaresPunto: 0,
-        montoBolivaresPagomovil: 0,
-        detallePagomovil: "",
-        montoBolivaresTransferencia: 0,
-        detalleBolivaresTransferencia: "",
       },
+      // Fase 7 del rediseño de monedas: payload `pagos` armado por
+      // MetodosPagoDinamico.vue, listo para enviar a POST /orden/abono.
+      pagosDinamicos: [],
       campos: [
         { key: "orden", label: "Orden", sortable: true },
         { key: "empleado", label: "Vendedor", sortable: true },
@@ -409,72 +278,6 @@ export default {
         );
       }
       return cargadas;
-    },
-
-    totalDolares() {
-      let totalDolares = 0;
-      let dolaresEfectivo = parseFloat(this.form.montoDolaresEfectivo);
-      let dolaresZelle = parseFloat(this.form.montoDolaresZelle);
-      let dolaresPanama = parseFloat(this.form.montoDolaresPanama);
-
-      if (!dolaresEfectivo) {
-        dolaresEfectivo = 0.0;
-      }
-      if (!dolaresPanama) {
-        dolaresPanama = 0.0;
-      }
-      if (!dolaresZelle) {
-        dolaresZelle = 0.0;
-      }
-
-      totalDolares = dolaresEfectivo + dolaresPanama + dolaresZelle;
-      this.updateMontoAbono();
-      return totalDolares.toFixed(2);
-    },
-
-    totalPesos() {
-      let totalPesos = 0;
-      let pesosEfectivo = parseFloat(this.form.montoPesosEfectivo) || 0;
-      let pesosTransferencia = parseFloat(this.form.montoPesosTransferencia) || 0;
-
-      totalPesos = (pesosEfectivo + pesosTransferencia) * (parseFloat(this.tasas.peso_colombiano) || 0);
-      return totalPesos.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    },
-
-    totalBolivares() {
-      let totalBolivares = 0;
-      let bolivaresEfectivo = parseFloat(this.form.montoBolivaresEfectivo) || 0;
-      let bolivaresPagomovil = parseFloat(this.form.montoBolivaresPagomovil) || 0;
-      let bolivaresPunto = parseFloat(this.form.montoBolivaresPunto) || 0;
-      let bolivaresTransferencia = parseFloat(this.form.montoBolivaresTransferencia) || 0;
-
-      totalBolivares = (bolivaresEfectivo + bolivaresPagomovil + bolivaresTransferencia + bolivaresPunto) * (parseFloat(this.tasas.bolivar) || 0);
-      return totalBolivares.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    },
-
-    totalAbono() {
-      // CALCULO DOLARES
-      const montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo || 0) +
-        parseFloat(this.form.montoDolaresPanama || 0) +
-        parseFloat(this.form.montoDolaresZelle || 0);
-
-      // CALCULO EN PESOS (Ya están en USD)
-      const montoPesos =
-        parseFloat(this.form.montoPesosEfectivo || 0) +
-        parseFloat(this.form.montoPesosTransferencia || 0);
-
-      // CALCULO EN BOLIVARES (Ya están en USD)
-      const montoBolivares =
-        parseFloat(this.form.montoBolivaresEfectivo || 0) +
-        parseFloat(this.form.montoBolivaresPagomovil || 0) +
-        parseFloat(this.form.montoBolivaresPunto || 0) +
-        parseFloat(this.form.montoBolivaresTransferencia || 0);
-
-      let total = montoDolares + montoPesos + montoBolivares;
-
-      if (isNaN(total)) total = 0;
-      return total.toFixed(2);
     },
 
     calculated() {
@@ -537,37 +340,13 @@ export default {
       return tot.toFixed(2);
     },
 
-    updateMontoAbono() {
-      let newVal;
-      let montoBolivares;
-      let montoDolares;
-      let montoPesos;
-
-      // RESET MONTO ABONO
-      this.form.abono = 0;
-
-      // CALCULO DOLARES (Ya están en USD)
-      montoDolares =
-        parseFloat(this.form.montoDolaresEfectivo || 0) +
-        parseFloat(this.form.montoDolaresPanama || 0) +
-        parseFloat(this.form.montoDolaresZelle || 0);
-
-      // CALCULO EN PESOS (Ya están en USD)
-      montoPesos =
-        parseFloat(this.form.montoPesosEfectivo || 0) +
-        parseFloat(this.form.montoPesosTransferencia || 0);
-
-      // CALCULO EN BOLIVARES (Ya están en USD)
-      montoBolivares =
-        parseFloat(this.form.montoBolivaresEfectivo || 0) +
-        parseFloat(this.form.montoBolivaresPagomovil || 0) +
-        parseFloat(this.form.montoBolivaresPunto || 0) +
-        parseFloat(this.form.montoBolivaresTransferencia || 0);
-
-      // SUMATORIA DE TODAS LAS MONEDAS (TODAS EN USD)
-      newVal = (montoDolares + montoPesos + montoBolivares).toFixed(2);
-      this.form.abono = newVal;
-      return newVal;
+    // Fase 7 del rediseño de monedas: reemplaza updateMontoAbono() (que sumaba
+    // campos hardcodeados montoDolaresEfectivo, etc.). MetodosPagoDinamico.vue
+    // emite el total ya convertido a la moneda base de la empresa cada vez que
+    // cambia cualquier monto/referencia.
+    onPagosChange({ pagos, totalEnBase }) {
+      this.pagosDinamicos = pagos;
+      this.form.abono = totalEnBase.toFixed(2);
     },
 
     hacerAbono() {
@@ -679,42 +458,9 @@ export default {
       data.set("id", this.idorden);
       data.set("empleado", this.$store.state.login.dataUser.id_empleado);
       data.set("responsable", this.$store.state.login.dataUser.id_empleado);
-      //TODO aqui vamos a enviar cada metodod e pago por separado...
-      data.set("tasa_dolar", this.tasas.bolivar); // Changed from bolivar to dolar
-      data.set("tasa_peso", this.tasas.peso_colombiano);
-      data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
-      data.set("montoDolaresZelle", this.form.montoDolaresZelle);
-      data.set("montoDolaresPanama", this.form.montoDolaresPanama);
-
-      // Convertir montos a moneda local para el backend
-      const montoPesosEfectivo = (parseFloat(this.form.montoPesosEfectivo) || 0) * (parseFloat(this.tasas.peso_colombiano) || 0);
-      const montoPesosTransferencia = (parseFloat(this.form.montoPesosTransferencia) || 0) * (parseFloat(this.tasas.peso_colombiano) || 0);
-      const montoBolivaresEfectivo = (parseFloat(this.form.montoBolivaresEfectivo) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-      const montoBolivaresPunto = (parseFloat(this.form.montoBolivaresPunto) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-      const montoBolivaresPagomovil = (parseFloat(this.form.montoBolivaresPagomovil) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-      const montoBolivaresTransferencia = (parseFloat(this.form.montoBolivaresTransferencia) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-
-      data.set("montoPesosEfectivo", montoPesosEfectivo);
-      data.set("montoPesosTransferencia", montoPesosTransferencia);
-      data.set("montoBolivaresEfectivo", montoBolivaresEfectivo);
-      data.set("montoBolivaresPunto", montoBolivaresPunto);
-      data.set("montoBolivaresPagomovil", montoBolivaresPagomovil);
-      data.set("montoBolivaresTransferencia", montoBolivaresTransferencia);
-
+      data.set("pagos", JSON.stringify(this.pagosDinamicos));
       data.set("abono", this.form.abono);
       data.set("tipoAbono", "Abono a Orden");
-
-      data.set("detalleZelle", this.form.detalleZelle);
-      data.set("detallePanama", this.form.detallePanama);
-      data.set(
-        "detallePesosTransferencia",
-        this.form.detallePesosTransferencia
-      );
-      data.set("detallePagomovil", this.form.detallePagomovil);
-      data.set(
-        "detalleBolivaresTransferencia",
-        this.form.detalleBolivaresTransferencia
-      );
 
       // Descuento y Detalle
       if (!this.valueDescuento) {
@@ -743,18 +489,9 @@ export default {
             this.valueDescuentoDetalle = "";
             this.valueNotaCredito = 0;
             this.valueNotaCreditoDetalle = "";
-            this.form = {
-              abono: 0,
-              montoDolaresEfectivo: 0,
-              montoDolaresZelle: 0,
-              montoDolaresPanama: 0,
-              montoPesosEfectivo: 0,
-              montoPesosTransferencia: 0,
-              montoBolivaresEfectivo: 0,
-              montoBolivaresPunto: 0,
-              montoBolivaresPagomovil: 0,
-              montoBolivaresTransferencia: 0,
-            };
+            this.form.abono = 0;
+            this.pagosDinamicos = [];
+            this.$refs.metodosPago?.resetear();
 
             if (this.calculated === 0) {
               this.showError = false;
@@ -798,59 +535,6 @@ export default {
             this.successMsg =
               "No se hizo el abono, el servidor no respondió: " + error.message;
           }
-        });
-    },
-
-    async enviarAbono() {
-      this.overlay = true;
-      const data = new URLSearchParams();
-      data.set("responsable", this.$store.state.login.dataUser.id_empleado);
-      // data.set('form', this.form)
-      data.set("tasa_dolar", this.tasas.bolivar);
-      data.set("tasa_peso", this.tasas.peso_colombiano);
-      data.set("montoDolaresEfectivo", this.form.montoDolaresEfectivo);
-      data.set("montoDolaresZelle", this.form.montoDolaresZelle);
-      data.set("montoDolaresPanama", this.form.montoDolaresPanama);
-
-      // Convertir montos a moneda local para el backend
-      const montoPesosEfectivo = (parseFloat(this.form.montoPesosEfectivo) || 0) * (parseFloat(this.tasas.peso_colombiano) || 0);
-      const montoPesosTransferencia = (parseFloat(this.form.montoPesosTransferencia) || 0) * (parseFloat(this.tasas.peso_colombiano) || 0);
-      const montoBolivaresEfectivo = (parseFloat(this.form.montoBolivaresEfectivo) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-      const montoBolivaresPunto = (parseFloat(this.form.montoBolivaresPunto) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-      const montoBolivaresPagomovil = (parseFloat(this.form.montoBolivaresPagomovil) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-      const montoBolivaresTransferencia = (parseFloat(this.form.montoBolivaresTransferencia) || 0) * (parseFloat(this.tasas.bolivar) || 0);
-
-      data.set("montoPesosEfectivo", montoPesosEfectivo);
-      data.set("montoPesosTransferencia", montoPesosTransferencia);
-      data.set("montoBolivaresEfectivo", montoBolivaresEfectivo);
-      data.set("montoBolivaresPunto", montoBolivaresPunto);
-      data.set("montoBolivaresPagomovil", montoBolivaresPagomovil);
-      data.set("montoBolivaresTransferencia", montoBolivaresTransferencia);
-
-      data.set("abono", this.form.abono);
-      data.set("tipoAbono", "Abono a Orden");
-
-      console.log("data:", data);
-
-      await this.$axios
-        .post(`${this.$config.API}/otro-abono`, data)
-        .then((res) => {
-          this.valueDescuento = 0;
-          this.form = {
-            abono: 0,
-            montoDolaresEfectivo: 0,
-            montoDolaresZelle: 0,
-            montoDolaresPanama: 0,
-            montoPesosEfectivo: 0,
-            montoPesosTransferencia: 0,
-            montoBolivaresEfectivo: 0,
-            montoBolivaresPunto: 0,
-            montoBolivaresPagomovil: 0,
-            montoBolivaresTransferencia: 0,
-          };
-          this.overlay = false;
-          // this.getDataReport(this.fechaActual()).then(() => {
-          // })
         });
     },
 
