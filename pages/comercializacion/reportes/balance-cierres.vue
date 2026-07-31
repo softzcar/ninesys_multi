@@ -39,29 +39,13 @@
             </b-col>
           </b-row>
 
-          <!-- Resumen de Totales -->
+          <!-- Resumen de Totales: una tarjeta por cada moneda activa real de la empresa -->
           <b-row class="mb-4" v-if="datos.length > 0">
-            <b-col md="4">
+            <b-col md="4" v-for="m in monedas" :key="m._id">
               <div class="summary-card text-center p-3 shadow-sm bg-white rounded">
-                <h3 class="text-muted mb-1">Diferencia USD</h3>
-                <h1 :class="getDiffClass(totalDiferenciaUSD)" style="font-size: 2.5rem; font-weight: bold;">
-                  {{ formatNumber(totalDiferenciaUSD) }}
-                </h1>
-              </div>
-            </b-col>
-            <b-col md="4">
-              <div class="summary-card text-center p-3 shadow-sm bg-white rounded">
-                <h3 class="text-muted mb-1">Diferencia COP</h3>
-                <h1 :class="getDiffClass(totalDiferenciaCOP)" style="font-size: 2.5rem; font-weight: bold;">
-                  {{ formatNumber(totalDiferenciaCOP) }}
-                </h1>
-              </div>
-            </b-col>
-            <b-col md="4">
-              <div class="summary-card text-center p-3 shadow-sm bg-white rounded">
-                <h3 class="text-muted mb-1">Diferencia BS</h3>
-                <h1 :class="getDiffClass(totalDiferenciaBS)" style="font-size: 2.5rem; font-weight: bold;">
-                  {{ formatNumber(totalDiferenciaBS) }}
+                <h3 class="text-muted mb-1">Diferencia {{ m.codigo }}</h3>
+                <h1 :class="getDiffClass(totalDiferenciaPorMoneda(m.codigo))" style="font-size: 2.5rem; font-weight: bold;">
+                  {{ formatNumber(totalDiferenciaPorMoneda(m.codigo)) }}
                 </h1>
               </div>
             </b-col>
@@ -84,60 +68,6 @@
                     <b-spinner class="align-middle"></b-spinner>
                     <strong>Cargando...</strong>
                   </div>
-                </template>
-
-                <template #cell(fecha_cierre)="data">
-                  {{ formatTimestamp(data.value) }}
-                </template>
-
-                <template #cell(total_teorico_usd)="data">
-                  <span class="font-weight-bold">{{ formatNumber(data.value) }}</span>
-                </template>
-                
-                <template #cell(monto_cierre_usd)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(monto_cierre_cop)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(monto_cierre_bs)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(fondo_nuevo_usd)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(fondo_nuevo_cop)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(fondo_nuevo_bs)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(total_retirado_usd)="data">
-                  {{ formatNumber(data.value) }}
-                </template>
-
-                <template #cell(diferencia_usd)="data">
-                  <span :class="getDiffClass(calculateDiff(data.item, 'usd'))">
-                    {{ formatNumber(calculateDiff(data.item, 'usd')) }}
-                  </span>
-                </template>
-
-                <template #cell(diferencia_cop)="data">
-                  <span :class="getDiffClass(calculateDiff(data.item, 'cop'))">
-                    {{ formatNumber(calculateDiff(data.item, 'cop')) }}
-                  </span>
-                </template>
-
-                <template #cell(diferencia_bs)="data">
-                  <span :class="getDiffClass(calculateDiff(data.item, 'bs'))">
-                    {{ formatNumber(calculateDiff(data.item, 'bs')) }}
-                  </span>
                 </template>
               </b-table>
             </b-col>
@@ -210,24 +140,8 @@ export default {
       },
       datos: [],
       vendedores: [],
-      fields: [
-        { key: 'fecha_cierre', label: 'Fecha/Hora', sortable: true },
-        { key: 'vendedor', label: 'Vendedor', sortable: true },
-        { key: 'total_teorico_usd', label: 'Teórico USD', headerTitle: 'Suma de (Fondo Anterior + Recaudado) de todas las monedas convertido a USD', sortable: true, thClass: 'text-right bg-light', tdClass: 'text-right bg-light' },
-        { key: 'recaudado_usd', label: 'Rec. USD', headerTitle: 'Ventas en efectivo de este turno en Dólares', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'recaudado_cop', label: 'Rec. COP', headerTitle: 'Ventas en efectivo de este turno en Pesos', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'recaudado_bs', label: 'Rec. BS', headerTitle: 'Ventas en efectivo de este turno en Bolívares', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'monto_cierre_usd', label: 'Ret. USD', headerTitle: 'Efectivo retirado físicamente en Dólares', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'monto_cierre_cop', label: 'Ret. COP', headerTitle: 'Efectivo retirado físicamente en Pesos', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'monto_cierre_bs', label: 'Ret. BS', headerTitle: 'Efectivo retirado físicamente en Bolívares', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'fondo_nuevo_usd', label: 'Fondo USD', headerTitle: 'Efectivo que se quedó en la gaveta en Dólares', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'fondo_nuevo_cop', label: 'Fondo COP', headerTitle: 'Efectivo que se quedó en la gaveta en Pesos', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'fondo_nuevo_bs', label: 'Fondo BS', headerTitle: 'Efectivo que se quedó en la gaveta en Bolívares', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'total_retirado_usd', label: 'Total Real USD', headerTitle: 'Suma de (Retirado + Fondo) convertido a USD', sortable: true, thClass: 'text-right bg-light', tdClass: 'text-right bg-light font-weight-bold' },
-        { key: 'diferencia_usd', label: 'Diff USD', headerTitle: 'Total Real USD - Total Teórico USD', sortable: true, thClass: 'text-right', tdClass: 'text-right font-weight-bold' },
-        { key: 'diferencia_cop', label: 'Diff COP', headerTitle: 'Suma de (Retirado COP + Fondo COP) - (Fondo Ant COP + Recaudado COP)', sortable: true, thClass: 'text-right', tdClass: 'text-right font-weight-bold' },
-        { key: 'diferencia_bs', label: 'Diff BS', headerTitle: 'Suma de (Retirado BS + Fondo BS) - (Fondo Ant BS + Recaudado BS)', sortable: true, thClass: 'text-right', tdClass: 'text-right font-weight-bold' }
-      ]
+      monedas: [], // catálogo real de monedas activas de la empresa, devuelto por el backend
+      monedaBase: null
     };
   },
   computed: {
@@ -246,52 +160,112 @@ export default {
       });
       return options;
     },
-    balanceData() {
-      return this.datos.map(item => {
-        const usdVal = parseFloat(item.monto_cierre_usd) || 0;
-        const copVal = parseFloat(item.monto_cierre_cop) || 0;
-        const bsVal = parseFloat(item.monto_cierre_bs) || 0;
-        const tasaCop = parseFloat(item.tasa_cop) || 1;
-        const tasaBs = parseFloat(item.tasa_bs) || 1;
+    codigoBase() {
+      return this.monedaBase ? this.monedaBase.codigo : '';
+    },
+    // Columnas dinámicas: 3 por cada moneda activa real de la empresa
+    // (Recaudado/Retirado/Fondo/Diff), más el resumen en la moneda base --
+    // reemplaza los 3 bloques fijos USD/COP/BS que asumían siempre esas 3.
+    fields() {
+      const base = [
+        { key: 'fecha_cierre', label: 'Fecha/Hora', sortable: true, formatter: (v) => this.formatTimestamp(v) },
+        { key: 'vendedor', label: 'Vendedor', sortable: true },
+        {
+          key: 'total_teorico_base',
+          label: `Teórico ${this.codigoBase}`,
+          headerTitle: `Suma de (Fondo Anterior + Recaudado) de todas las monedas convertido a ${this.codigoBase}`,
+          sortable: true,
+          thClass: 'text-right bg-light',
+          tdClass: 'text-right bg-light',
+          formatter: (v) => this.formatNumber(v)
+        }
+      ];
 
-        // Nuevo Fondo (Real)
-        const nfUsd = parseFloat(item.fondo_nuevo_usd) || 0;
-        const nfCop = parseFloat(item.fondo_nuevo_cop) || 0;
-        const nfBs = parseFloat(item.fondo_nuevo_bs) || 0;
-
-        // Fondo Anterior (Teórico)
-        const faUsd = parseFloat(item.fondo_anterior_usd) || 0;
-        const faCop = parseFloat(item.fondo_anterior_cop) || 0;
-        const faBs = parseFloat(item.fondo_anterior_bs) || 0;
-
-        // Recaudado (Teórico)
-        const rUsd = parseFloat(item.recaudado_usd) || 0;
-        const rCop = parseFloat(item.recaudado_cop) || 0;
-        const rBs = parseFloat(item.recaudado_bs) || 0;
-
-        const totalRealUsd = (usdVal + nfUsd) + ((copVal + nfCop) / tasaCop) + ((bsVal + nfBs) / tasaBs);
-        const totalTeoricoUsd = (faUsd + rUsd) + ((faCop + rCop) / tasaCop) + ((faBs + rBs) / tasaBs);
-
-        return {
-          ...item,
-          total_retirado_usd: totalRealUsd,
-          total_teorico_usd: totalTeoricoUsd,
-          recaudado_cop: rCop,
-          recaudado_bs: rBs,
-          fondo_nuevo_usd: nfUsd,
-          fondo_nuevo_cop: nfCop,
-          fondo_nuevo_bs: nfBs
-        };
+      const porMoneda = [];
+      this.monedas.forEach((m) => {
+        porMoneda.push(
+          {
+            key: `rec_${m.codigo}`,
+            label: `Rec. ${m.codigo}`,
+            headerTitle: `Ventas en efectivo de este turno en ${m.nombre}`,
+            sortable: true,
+            thClass: 'text-right',
+            tdClass: 'text-right',
+            formatter: (v) => this.formatNumber(v)
+          },
+          {
+            key: `ret_${m.codigo}`,
+            label: `Ret. ${m.codigo}`,
+            headerTitle: `Efectivo retirado físicamente en ${m.nombre}`,
+            sortable: true,
+            thClass: 'text-right',
+            tdClass: 'text-right',
+            formatter: (v) => this.formatNumber(v)
+          },
+          {
+            key: `fondo_${m.codigo}`,
+            label: `Fondo ${m.codigo}`,
+            headerTitle: `Efectivo que se quedó en la gaveta en ${m.nombre}`,
+            sortable: true,
+            thClass: 'text-right',
+            tdClass: 'text-right',
+            formatter: (v) => this.formatNumber(v)
+          },
+          {
+            key: `diff_${m.codigo}`,
+            label: `Diff ${m.codigo}`,
+            headerTitle: `(Retirado + Fondo) - (Fondo Anterior + Recaudado) en ${m.nombre}`,
+            sortable: true,
+            thClass: 'text-right',
+            tdClass: (v) => `text-right font-weight-bold ${this.getDiffClass(v)}`,
+            formatter: (v) => this.formatNumber(v)
+          }
+        );
       });
+
+      const totales = [
+        {
+          key: 'total_real_base',
+          label: `Total Real ${this.codigoBase}`,
+          headerTitle: `Suma de (Retirado + Fondo) convertido a ${this.codigoBase}`,
+          sortable: true,
+          thClass: 'text-right bg-light',
+          tdClass: 'text-right bg-light font-weight-bold',
+          formatter: (v) => this.formatNumber(v)
+        },
+        {
+          key: 'diferencia_base',
+          label: `Diff ${this.codigoBase}`,
+          headerTitle: `Total Real ${this.codigoBase} - Total Teórico ${this.codigoBase}`,
+          sortable: true,
+          thClass: 'text-right',
+          tdClass: (v) => `text-right font-weight-bold ${this.getDiffClass(v)}`,
+          formatter: (v) => this.formatNumber(v)
+        }
+      ];
+
+      return [...base, ...porMoneda, ...totales];
     },
-    totalDiferenciaUSD() {
-      return this.datos.reduce((acc, item) => acc + this.calculateDiff(item, 'usd'), 0);
-    },
-    totalDiferenciaCOP() {
-      return this.datos.reduce((acc, item) => acc + this.calculateDiff(item, 'cop'), 0);
-    },
-    totalDiferenciaBS() {
-      return this.datos.reduce((acc, item) => acc + this.calculateDiff(item, 'bs'), 0);
+    // Aplana `porMoneda` (array por fila) a claves planas (rec_USD, ret_VES, ...)
+    // que coincidan con las keys dinámicas de `fields`, tal como lo espera b-table.
+    balanceData() {
+      return this.datos.map((item) => {
+        const flat = {
+          _id: item._id,
+          fecha_cierre: item.fecha_cierre,
+          vendedor: item.vendedor,
+          total_teorico_base: item.total_teorico_base,
+          total_real_base: item.total_real_base,
+          diferencia_base: item.diferencia_base
+        };
+        (item.porMoneda || []).forEach((pm) => {
+          flat[`rec_${pm.codigo}`] = pm.recaudado;
+          flat[`ret_${pm.codigo}`] = pm.cierre;
+          flat[`fondo_${pm.codigo}`] = pm.fondo_nuevo;
+          flat[`diff_${pm.codigo}`] = pm.diferencia;
+        });
+        return flat;
+      });
     }
   },
   mounted() {
@@ -315,6 +289,8 @@ export default {
       try {
         const res = await this.$axios.get(`${this.$config.API}/balance-de-cierres/${this.filtros.inicio}/${this.filtros.fin}/${this.filtros.vendedor}`);
         this.datos = res.data.data || [];
+        this.monedas = res.data.monedas || [];
+        this.monedaBase = res.data.monedaBase || null;
       } catch (e) {
         this.$fire({
           title: "Error",
@@ -325,16 +301,11 @@ export default {
         this.loading = false;
       }
     },
-    calculateDiff(item, currency) {
-      const valAnterior = item[`fondo_anterior_${currency}`] || 0;
-      const valRecaudado = item[`recaudado_${currency}`] || 0;
-      const valRetirado = item[`monto_cierre_${currency}`] || 0;
-      const valNuevoFondo = item[`fondo_nuevo_${currency}`] || 0;
-      
-      const teorico = valAnterior + valRecaudado;
-      const realEnCaja = valRetirado + valNuevoFondo;
-      
-      return realEnCaja - teorico;
+    totalDiferenciaPorMoneda(codigo) {
+      return this.datos.reduce((acc, item) => {
+        const pm = (item.porMoneda || []).find((p) => p.codigo === codigo);
+        return acc + (pm ? pm.diferencia : 0);
+      }, 0);
     },
     getDiffClass(val) {
       if (val > 0.1) return 'text-success';
