@@ -4,10 +4,16 @@
       <div v-for="moneda in monedas" :key="moneda._id" class="mb-4">
         <h5>
           {{ moneda.nombre }}
-          <small v-if="tasaMoneda(moneda) !== 1" class="text-muted">
+          <small v-if="tasaDisponible(moneda) && moneda.codigo !== monedaBaseCodigo" class="text-muted">
             (tasa: {{ tasaMoneda(moneda) }})
           </small>
         </h5>
+
+        <b-alert v-if="!tasaDisponible(moneda)" show variant="warning" class="py-2">
+          No hay tasa de cambio configurada para {{ moneda.nombre }}. Un administrador debe
+          configurarla en Empresa &rarr; Configuración &rarr; Monedas antes de poder registrar
+          pagos en esta moneda.
+        </b-alert>
 
         <b-row v-for="metodo in metodosPorMoneda(moneda._id)" :key="metodo._id" class="mb-2 align-items-end">
           <b-col md="4">
@@ -20,6 +26,7 @@
                   min="0"
                   step="0.01"
                   placeholder="0.00"
+                  :disabled="!tasaDisponible(moneda)"
                   @input="emitirCambio"
                 ></b-form-input>
               </b-input-group>
@@ -100,9 +107,16 @@ export default {
         (m) => m.id_moneda === idMoneda && (!this.soloEfectivo || m.es_efectivo)
       );
     },
+    // Devuelve la tasa numérica si está resuelta, o null si no hay ninguna
+    // fuente confiable (automática ni manual) -- nunca asume 1:1 en silencio.
     tasaMoneda(moneda) {
+      if (moneda.codigo === this.monedaBaseCodigo) return 1;
       const tasas = this.$store.state.login.tasas || {};
-      return parseFloat(tasas[moneda.codigo]) || 1;
+      const valor = parseFloat(tasas[moneda.codigo]);
+      return valor > 0 ? valor : null;
+    },
+    tasaDisponible(moneda) {
+      return this.tasaMoneda(moneda) !== null;
     },
     equivalenteEnBase(moneda, monto) {
       const n = parseFloat(monto) || 0;
@@ -110,7 +124,7 @@ export default {
         return n;
       }
       const tasa = this.tasaMoneda(moneda);
-      return tasa > 0 ? n / tasa : 0;
+      return tasa ? n / tasa : 0;
     },
     async cargarCatalogo() {
       this.cargando = true;
@@ -132,6 +146,7 @@ export default {
     obtenerPagos() {
       const pagos = [];
       this.monedas.forEach((moneda) => {
+        if (!this.tasaDisponible(moneda)) return; // sin tasa resuelta, no se puede capturar
         this.metodosPorMoneda(moneda._id).forEach((metodo) => {
           const monto = parseFloat(this.montos[metodo._id]) || 0;
           if (monto > 0) {
@@ -152,9 +167,11 @@ export default {
     obtenerPorMoneda() {
       return this.monedas
         .map((moneda) => {
-          const montoLocal = this.metodosPorMoneda(moneda._id).reduce((acc, metodo) => {
-            return acc + (parseFloat(this.montos[metodo._id]) || 0);
-          }, 0);
+          const montoLocal = this.tasaDisponible(moneda)
+            ? this.metodosPorMoneda(moneda._id).reduce((acc, metodo) => {
+                return acc + (parseFloat(this.montos[metodo._id]) || 0);
+              }, 0)
+            : 0;
           return {
             id: moneda._id,
             codigo: moneda.codigo,

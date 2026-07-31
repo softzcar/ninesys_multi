@@ -18,6 +18,37 @@
             {{ data.item.activo ? "Activa" : "Inactiva" }}
           </b-badge>
         </template>
+        <template #cell(tasa)="data">
+          <span v-if="data.item.es_base">1 (base)</span>
+          <span v-else-if="editandoTasaId === data.item._id">
+            <b-input-group size="sm" style="max-width: 160px">
+              <b-form-input
+                v-model="tasaEnEdicion"
+                type="number"
+                min="0"
+                step="0.000001"
+                autofocus
+                @keyup.enter="guardarTasa(data.item)"
+              ></b-form-input>
+              <b-input-group-append>
+                <b-button variant="success" @click="guardarTasa(data.item)">
+                  <b-icon icon="check"></b-icon>
+                </b-button>
+                <b-button variant="outline-secondary" @click="editandoTasaId = null">
+                  <b-icon icon="x"></b-icon>
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </span>
+          <span v-else>
+            <b-badge :variant="tasaBadgeVariant(data.item.codigo)" class="mr-1">
+              {{ tasaTexto(data.item.codigo) }}
+            </b-badge>
+            <b-button size="sm" variant="link" class="p-0" title="Editar tasa" @click="iniciarEdicionTasa(data.item)">
+              <b-icon icon="pencil"></b-icon>
+            </b-button>
+          </span>
+        </template>
         <template #cell(acciones)="data">
           <b-button
             size="sm"
@@ -29,6 +60,7 @@
           >
             Hacer Base
           </b-button>
+          <admin-metodos-pago-manager :moneda="data.item" class="mr-2 d-inline-block" />
           <b-button
             size="sm"
             variant="danger"
@@ -80,11 +112,15 @@ export default {
       idMonedaSoportadaSeleccionada: null,
       overlay: false,
       monedasRequestId: 0, // ver cargarMonedas()
+      tasas: {}, // { [codigo]: {tasa, fuente, fecha} }, ver cargarTasas()
+      editandoTasaId: null,
+      tasaEnEdicion: null,
       fields: [
         { key: "codigo", label: "Código" },
         { key: "nombre", label: "Nombre" },
         { key: "es_base", label: "" },
         { key: "activo", label: "Estado" },
+        { key: "tasa", label: "Tasa" },
         { key: "acciones", label: "Acciones" },
       ],
     };
@@ -125,6 +161,63 @@ export default {
       }
       this.$emit("loaded", this.monedas);
     },
+    async cargarTasas() {
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/tasas-cambio`);
+        const mapa = {};
+        (data?.data || []).forEach((t) => {
+          mapa[t.codigo] = t;
+        });
+        this.tasas = mapa;
+      } catch (err) {
+        console.error("Error al cargar tasas de cambio:", err);
+      }
+    },
+    tasaTexto(codigo) {
+      const t = this.tasas[codigo];
+      if (!t || t.tasa === null || t.tasa === undefined) return "Sin configurar";
+      const etiqueta = t.fuente === "manual" ? "Manual" : "Automática";
+      return `${etiqueta}: ${t.tasa}`;
+    },
+    tasaBadgeVariant(codigo) {
+      const t = this.tasas[codigo];
+      if (!t || t.tasa === null || t.tasa === undefined) return "danger";
+      return t.fuente === "manual" ? "info" : "success";
+    },
+    iniciarEdicionTasa(moneda) {
+      const t = this.tasas[moneda.codigo];
+      this.tasaEnEdicion = t && t.tasa !== null && t.tasa !== undefined ? t.tasa : null;
+      this.editandoTasaId = moneda._id;
+    },
+    async guardarTasa(moneda) {
+      const valor = parseFloat(this.tasaEnEdicion);
+      if (!valor || valor <= 0) {
+        this.$bvToast.toast("Indique una tasa mayor a 0", { variant: "danger" });
+        return;
+      }
+
+      this.overlay = true;
+      const data = new URLSearchParams();
+      data.set("id", moneda._id);
+      data.set("tasa", valor);
+
+      try {
+        await this.$axios.post(`${this.$config.API}/monedas/establecer-tasa`, data);
+        this.editandoTasaId = null;
+        await this.cargarTasas();
+        // Refresca la tasa en el store global para que los formularios de
+        // captura de pago (ej. Abono a la Orden) la reflejen sin recargar.
+        await this.$store.dispatch("login/cargarTasasPorCodigo");
+      } catch (err) {
+        const errData = err.response && err.response.data;
+        console.error("Error al establecer la tasa:", err);
+        this.$bvToast.toast((errData && errData.error) || "No se pudo establecer la tasa", {
+          variant: "danger",
+        });
+      } finally {
+        this.overlay = false;
+      }
+    },
     async cargarMonedasSoportadas() {
       const idPais = this.$store.state.login.dataEmpresa?.id_pais;
       if (!idPais) {
@@ -160,7 +253,7 @@ export default {
       try {
         await this.$axios.post(`${this.$config.API}/monedas`, data);
         this.idMonedaSoportadaSeleccionada = null;
-        await this.cargarMonedas();
+        await Promise.all([this.cargarMonedas(), this.cargarTasas()]);
       } catch (err) {
         const errData = err.response && err.response.data;
         // El select solo ofrece monedas reales del catálogo del país -- si ya
@@ -216,7 +309,8 @@ export default {
         const data = new URLSearchParams();
         data.set("id", moneda._id);
         await this.$axios.post(`${this.$config.API}/monedas/establecer-base`, data);
-        await this.cargarMonedas();
+        await Promise.all([this.cargarMonedas(), this.cargarTasas()]);
+        await this.$store.dispatch("login/cargarTasasPorCodigo");
       } catch (err) {
         if (err !== false) {
           const errData = err.response && err.response.data;
@@ -231,7 +325,7 @@ export default {
     },
   },
   async mounted() {
-    await Promise.all([this.cargarMonedas(), this.cargarMonedasSoportadas()]);
+    await Promise.all([this.cargarMonedas(), this.cargarMonedasSoportadas(), this.cargarTasas()]);
   },
 };
 </script>
