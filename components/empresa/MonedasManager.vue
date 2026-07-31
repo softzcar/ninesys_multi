@@ -163,18 +163,12 @@ export default {
         await this.cargarMonedas();
       } catch (err) {
         const errData = err.response && err.response.data;
+        // El select solo ofrece monedas reales del catálogo del país -- si ya
+        // existe una fila desasignada con ese código, la única acción posible
+        // es reactivarla (no hay creación libre de monedas nuevas). Preguntar
+        // "¿desea reactivarla?" no tiene sentido aquí: se reactiva directo.
         if (err.response && err.response.status === 409 && errData && errData.eliminado_existente) {
-          this.overlay = false;
-          try {
-            await this.$confirm(
-              `Ya existe una moneda eliminada llamada "${errData.nombre}". ¿Desea reactivarla?`,
-              "Moneda ya existe",
-              "question"
-            );
-            await this.addCurrency(errData.id);
-          } catch (e) {
-            // Usuario canceló la reactivación
-          }
+          await this.addCurrency(errData.id);
           return;
         }
         console.error("Error al agregar la moneda:", err);
