@@ -21,9 +21,20 @@
         <template #cell(acciones)="data">
           <b-button
             size="sm"
+            variant="outline-primary"
+            class="mr-2"
+            title="Establecer como moneda base"
+            :disabled="!!data.item.es_base"
+            @click="establecerBase(data.item)"
+          >
+            Hacer Base
+          </b-button>
+          <b-button
+            size="sm"
             variant="danger"
+            title="Desasignar de la empresa"
+            :disabled="!!data.item.es_base"
             @click="eliminarMoneda(data.item)"
-            :disabled="data.item.es_base"
           >
             <b-icon icon="trash"></b-icon>
           </b-button>
@@ -39,7 +50,7 @@
             <b-form-group
               label="Moneda:"
               label-for="new-moneda"
-              description="Solo se listan las monedas soportadas para el país de la empresa"
+              description="Solo se listan las monedas soportadas para el país de la empresa que aún no están asignadas"
             >
               <b-form-select
                 id="new-moneda"
@@ -79,10 +90,13 @@ export default {
   },
   computed: {
     opcionesMonedas() {
-      const opciones = this.monedasSoportadas.map((m) => ({
-        value: m.id_moneda_soportada,
-        text: `${m.nombre} (${m.codigo})`,
-      }));
+      const codigosAsignados = this.monedas.map((m) => m.codigo);
+      const opciones = this.monedasSoportadas
+        .filter((m) => !codigosAsignados.includes(m.codigo))
+        .map((m) => ({
+          value: m.id_moneda_soportada,
+          text: `${m.nombre} (${m.codigo})`,
+        }));
       return [{ value: null, text: "Seleccione una moneda" }, ...opciones];
     },
   },
@@ -164,8 +178,8 @@ export default {
 
       try {
         await this.$confirm(
-          `¿Desea eliminar la moneda "${moneda.nombre}"?`,
-          "Eliminar Moneda",
+          `¿Desea desasignar la moneda "${moneda.nombre}" de la empresa?`,
+          "Desasignar Moneda",
           "warning"
         );
 
@@ -176,7 +190,34 @@ export default {
         await this.cargarMonedas();
       } catch (err) {
         if (err !== false) {
-          console.error("Error al eliminar la moneda:", err);
+          console.error("Error al desasignar la moneda:", err);
+        }
+      } finally {
+        this.overlay = false;
+      }
+    },
+    async establecerBase(moneda) {
+      if (moneda.es_base) return;
+
+      try {
+        await this.$confirm(
+          `¿Desea establecer "${moneda.nombre}" como la moneda base de la empresa?`,
+          "Establecer Moneda Base",
+          "question"
+        );
+
+        this.overlay = true;
+        const data = new URLSearchParams();
+        data.set("id", moneda._id);
+        await this.$axios.post(`${this.$config.API}/monedas/establecer-base`, data);
+        await this.cargarMonedas();
+      } catch (err) {
+        if (err !== false) {
+          const errData = err.response && err.response.data;
+          console.error("Error al establecer la moneda base:", err);
+          this.$bvToast.toast((errData && errData.error) || "No se pudo establecer la moneda base", {
+            variant: "danger",
+          });
         }
       } finally {
         this.overlay = false;
