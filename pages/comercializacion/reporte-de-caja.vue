@@ -83,147 +83,58 @@
                   <b-col>
                     <h3 class="mt-4">Efectivo</h3>
 
-                  <h3>DOLARES</h3>
+                    <template v-for="m in dataReport.efectivo">
+                      <div :key="m.id_moneda">
+                        <h3>{{ m.nombre.toUpperCase() }}</h3>
 
-                  <b-alert
-                    v-if="!dataReport.efectivo || !dataReport.efectivo.dolares || dataReport.efectivo.dolares.length === 0"
-                    variant="info"
-                    show
-                  >No hay dólares en la caja</b-alert>
+                        <b-alert
+                          v-if="!m.items || m.items.length === 0"
+                          variant="info"
+                          show
+                        >No hay {{ m.nombre.toLowerCase() }} en la caja</b-alert>
 
-                  <div v-else>
-                    <b-table
-                      striped
-                      small
-                      :items="dataReport.efectivo.dolares"
-                      :fields="fields"
-                      foot-clone
-                    >
-                      <template #cell(moneda)="data">
-                        {{ data.item.moneda }}
-                        {{ data.item.metodo_pago }}
-                      </template>
+                        <div v-else>
+                          <b-table
+                            striped
+                            small
+                            :items="m.items"
+                            :fields="fields"
+                            foot-clone
+                          >
+                            <template #cell(moneda)="data">
+                              {{ data.item.moneda }}
+                              {{ data.item.metodo_pago }}
+                            </template>
 
-                      <template #cell(monto)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.monto) }}
+                            <template #cell(monto)="data">
+                              <div class="text-right">
+                                {{ formatNumber(data.item.monto) }}
+                              </div>
+                            </template>
+
+                            <template #cell(tasa)="data">
+                              <div class="text-right">
+                                {{ formatNumber(data.item.tasa) }}
+                              </div>
+                            </template>
+
+                            <template #cell(monto_base)="data">
+                              <div class="text-right">
+                                {{ formatNumber(data.item.monto_base) }}
+                              </div>
+                            </template>
+                          </b-table>
+
+                          <b-row>
+                            <b-col>
+                              <h4 class="text-right mb-4">Total {{ m.nombre }} {{ formatNumber(totalPorItems(m.items)) }}</h4>
+                            </b-col>
+                          </b-row>
                         </div>
-                      </template>
-
-                      <template #cell(tasa)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.tasa) }}
-                        </div>
-                      </template>
-
-                      <template #cell(dolares)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
-                        </div>
-                      </template>
-                    </b-table>
-
-                    <b-row>
-                      <b-col>
-                        <h4 class="text-right mb-4">Total Dólares {{ totalDolares }}</h4>
-                      </b-col>
-                    </b-row>
-                  </div>
-
-                  <h3>PESOS</h3>
-                  <b-alert
-                    v-if="!dataReport.efectivo || !dataReport.efectivo.pesos || dataReport.efectivo.pesos.length === 0"
-                    variant="info"
-                    show
-                  >No hay pesos en la caja</b-alert>
-
-                  <div v-else>
-                    <b-table
-                      striped
-                      small
-                      :items="dataReport.efectivo.pesos"
-                      :fields="fields"
-                      foot-clone
-                    >
-                      <template #cell(moneda)="data">
-                        {{ data.item.moneda }}
-                        {{ data.item.metodo_pago }}
-                      </template>
-
-                      <template #cell(monto)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.monto) }}
-                        </div>
-                      </template>
-
-                      <template #cell(tasa)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.tasa) }}
-                        </div>
-                      </template>
-
-                      <template #cell(dolares)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
-                        </div>
-                      </template>
-                    </b-table>
-
-                    <b-row>
-                      <b-col>
-                        <h4 class="text-right mb-4">Total Pesos {{ totalPesos }}</h4>
-                      </b-col>
-                    </b-row>
-                  </div>
-
-                  <h3>BOLIVARES</h3>
-
-                  <b-alert
-                    v-if="!dataReport.efectivo || !dataReport.efectivo.bolivares || dataReport.efectivo.bolivares.length === 0"
-                    variant="info"
-                    show
-                  >No hay bolívares en la caja</b-alert>
-
-                  <div v-else>
-                    <b-table
-                      striped
-                      small
-                      :items="dataReport.efectivo.bolivares"
-                      :fields="fields"
-                      foot-clone
-                    >
-                      <template #cell(moneda)="data">
-                        {{ data.item.moneda }}
-                        {{ data.item.metodo_pago }}
-                      </template>
-
-                      <template #cell(monto)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.monto) }}
-                        </div>
-                      </template>
-
-                      <template #cell(tasa)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.tasa) }}
-                        </div>
-                      </template>
-
-                      <template #cell(dolares)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
-                        </div>
-                      </template>
-                    </b-table>
-
-                    <b-row>
-                      <b-col>
-                        <h4 class="text-right mb-4">Total Bolívares {{ totalBolivares }}</h4>
-                      </b-col>
-                    </b-row>
-                  </div>
-                </b-col>
-              </b-row>
+                      </div>
+                    </template>
+                  </b-col>
+                </b-row>
 
               <b-row>
                 <b-col>
@@ -260,16 +171,16 @@
                         </div>
                       </template>
 
-                      <template #cell(dolares)="data">
+                      <template #cell(monto_base)="data">
                         <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
+                          {{ formatNumber(data.item.monto_base) }}
                         </div>
                       </template>
                     </b-table>
 
                     <b-row>
                       <b-col>
-                        <h4 class="text-right mb-4">Total Retiros {{ totalRetiros }}</h4>
+                        <h4 class="text-right mb-4">Total Retiros {{ formatNumber(totalRetiros) }}</h4>
                       </b-col>
                     </b-row>
                   </div>
@@ -280,9 +191,9 @@
                 <b-col>
                   <h4 class="text-right mb-4">
                     Total Efectivo
-                    <span class="money-result">$
+                    <span class="money-result">{{ simboloBase }}
                       {{
-                        getTotal("efectivo", "num") - getTotal("retiros", "num")
+                        formatNumber(getTotal("efectivo") - totalRetiros)
                       }}</span>
                   </h4>
                 </b-col>
@@ -292,148 +203,56 @@
             <b-card class="mt-4">
               <b-row>
                 <b-col>
-                  <h3>Zelle</h3>
+                  <template v-for="d in dataReport.digital">
+                    <div :key="d.nombre">
+                      <h3>{{ d.nombre }}</h3>
 
-                  <b-alert
-                    v-if="!dataReport.digital || !dataReport.digital.zelle || dataReport.digital.zelle.length === 0"
-                    variant="info"
-                    show
-                  >No hay Zelle</b-alert>
+                      <b-alert
+                        v-if="!d.items || d.items.length === 0"
+                        variant="info"
+                        show
+                      >No hay {{ d.nombre }}</b-alert>
 
-                  <div v-else>
-                    <b-table
-                      striped
-                      small
-                      :items="dataReport.digital.zelle"
-                      :fields="fields"
-                      foot-clone
-                    >
-                      <template #cell(moneda)="data">
-                        {{ data.item.moneda }}
-                        {{ data.item.metodo_pago }}
-                      </template>
+                      <div v-else>
+                        <b-table
+                          striped
+                          small
+                          :items="d.items"
+                          :fields="fields"
+                          foot-clone
+                        >
+                          <template #cell(moneda)="data">
+                            {{ data.item.moneda }}
+                            {{ data.item.metodo_pago }}
+                          </template>
 
-                      <template #cell(monto)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.monto) }}
-                        </div>
-                      </template>
+                          <template #cell(monto)="data">
+                            <div class="text-right">
+                              {{ formatNumber(data.item.monto) }}
+                            </div>
+                          </template>
 
-                      <template #cell(tasa)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.tasa) }}
-                        </div>
-                      </template>
+                          <template #cell(tasa)="data">
+                            <div class="text-right">
+                              {{ formatNumber(data.item.tasa) }}
+                            </div>
+                          </template>
 
-                      <template #cell(dolares)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
-                        </div>
-                      </template>
-                    </b-table>
+                          <template #cell(monto_base)="data">
+                            <div class="text-right">
+                              {{ formatNumber(data.item.monto_base) }}
+                            </div>
+                          </template>
+                        </b-table>
 
-                    <b-row>
-                      <b-col>
-                        <h4 class="text-right mb-4">Total Zelle {{ totalZelle }}</h4>
-                      </b-col>
-                    </b-row>
-                  </div>
-
-                  <h3>Pago Móvil</h3>
-
-                  <b-alert
-                    v-if="!dataReport.digital || !dataReport.digital.pagomovil || dataReport.digital.pagomovil.length === 0"
-                    variant="info"
-                    show
-                  >No hay Pago Móvil</b-alert>
-
-                  <div v-else>
-                    <b-table
-                      striped
-                      small
-                      :items="dataReport.digital.pagomovil"
-                      :fields="fields"
-                      foot-clone
-                    >
-                      <template #cell(moneda)="data">
-                        {{ data.item.moneda }}
-                        {{ data.item.metodo_pago }}
-                      </template>
-
-                      <template #cell(monto)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.monto) }}
-                        </div>
-                      </template>
-
-                      <template #cell(tasa)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.tasa) }}
-                        </div>
-                      </template>
-
-                      <template #cell(dolares)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
-                        </div>
-                      </template>
-                    </b-table>
-
-                    <b-row>
-                      <b-col>
-                        <h4 class="text-right mb-4">Total Pago Móvil {{ totalPagoMovil }}</h4>
-                      </b-col>
-                    </b-row>
-                  </div>
-
-                  <h3>Transferencias</h3>
-
-                  <b-alert
-                    v-if="!dataReport.digital || !dataReport.digital.transferencia || dataReport.digital.transferencia.length === 0"
-                    variant="info"
-                    show
-                  >No hay Transferencias</b-alert>
-
-                  <div v-else>
-                    <b-table
-                      striped
-                      small
-                      :items="dataReport.digital.transferencia"
-                      :fields="fields"
-                      foot-clone
-                    >
-                      <template #cell(moneda)="data">
-                        {{ data.item.moneda }}
-                        {{ data.item.metodo_pago }}
-                      </template>
-
-                      <template #cell(monto)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.monto) }}
-                        </div>
-                      </template>
-
-                      <template #cell(tasa)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.tasa) }}
-                        </div>
-                      </template>
-
-                      <template #cell(dolares)="data">
-                        <div class="text-right">
-                          {{ formatNumber(data.item.dolares) }}
-                        </div>
-                      </template>
-                    </b-table>
-
-                    <b-row>
-                      <b-col>
-                        <h4 class="text-right mb-4">
-                          Total Transferencias {{ totalTransferencias }}
-                        </h4>
-                      </b-col>
-                    </b-row>
-                  </div>
+                        <b-row>
+                          <b-col>
+                            <h4 class="text-right mb-4">Total {{ d.nombre }} {{ formatNumber(totalPorItems(d.items)) }}</h4>
+                          </b-col>
+                        </b-row>
+                      </div>
+                    </div>
+                  </template>
                 </b-col>
               </b-row>
             </b-card>
@@ -443,13 +262,9 @@
                 <hr />
                 <h4 class="text-right mb-4 mt-4 pb-4">
                   Total General
-                  <span class="money-result">$
+                  <span class="money-result">{{ simboloBase }}
                     {{
-                      totalGeneral(
-                        getTotal("efectivo", "num"),
-                        getTotal("digital", "num"),
-                        getTotal("retiros", "num")
-                      )
+                      formatNumber(getTotal("efectivo") + getTotal("digital") - totalRetiros)
                     }}</span>
                 </h4>
               </b-col>
@@ -486,23 +301,26 @@ export default {
       fechaConsultaInicio: null,
       fechaConsultaFin: null,
       dataReport: {
-        efectivo: {
-          dolares: [],
-          pesos: [],
-          bolivares: [],
-        },
-        digital: {
-          zelle: [],
-          pagomovil: [],
-          punto: [],
-          transferencia: [],
-        },
+        efectivo: [], // [{id_moneda, codigo, nombre, simbolo, items}]
+        digital: [], // [{nombre, items}]
         retiros: [],
       },
-      retiros: [],
-      pagos: [],
-      total: 0,
-      fields: [
+      monedaBase: null,
+    };
+  },
+  computed: {
+    ...mapState("login", ["dataUser", "access", "currentDepartamentId"]),
+
+    codigoBase() {
+      return this.monedaBase ? this.monedaBase.codigo : "";
+    },
+
+    simboloBase() {
+      return this.monedaBase ? this.monedaBase.simbolo : "$";
+    },
+
+    fields() {
+      return [
         { key: "moneda", label: "Moneda" },
         {
           key: "monto",
@@ -517,108 +335,16 @@ export default {
           tdClass: "text-right",
         },
         {
-          key: "dolares",
-          label: "Total Dólares",
+          key: "monto_base",
+          label: `Total ${this.codigoBase}`,
           thClass: "text-right",
           tdClass: "text-right",
         },
-      ],
-      fields_transferencias: [
-        { key: "moneda", label: "Moneda" },
-        { key: "tasa", label: "Tasa" },
-        {
-          key: "dolares",
-          label: "Dólares",
-          thClass: "text-right",
-          tdClass: "text-right",
-        },
-        {
-          key: "monto",
-          label: "Monto",
-          thClass: "text-right",
-          tdClass: "text-right",
-        },
-      ],
-      fieldsRetiros: [
-        { key: "moneda", label: "Moneda" },
-        {
-          key: "monto",
-          label: "Monto",
-          thClass: "text-right",
-          tdClass: "text-right",
-        },
-        { key: "detalle_retiro", label: "Detalle" },
-      ],
-    };
-  },
-  computed: {
-    ...mapState("login", ["dataUser", "access", "currentDepartamentId"]),
-
-    sumPagos() {
-      var result = [];
-      this.pagos.forEach(function (item) {
-        var key = item.metodo_pago + "-" + item.moneda;
-        var found = result.find((el) => el.key === key);
-        if (found) {
-          found.monto = parseFloat(found.monto) + parseFloat(item.monto);
-        } else {
-          result.push({
-            key,
-            monto: item.monto,
-            moneda: item.moneda,
-            metodo_pago: item.metodo_pago,
-          });
-        }
-      });
-      return result;
-    },
-
-    sumRetiros() {
-      var result = [];
-      this.retiros.forEach(function (item) {
-        var key = item.metodo_pago + "-" + item.moneda;
-        var found = result.find((el) => el.key === key);
-        if (found) {
-          found.monto = parseFloat(found.monto) + parseFloat(item.monto);
-        } else {
-          result.push({
-            key,
-            monto: item.monto,
-            moneda: item.moneda,
-            metodo_pago: item.metodo_pago,
-            detalle_retiro: item.detalle_retiro,
-          });
-        }
-      });
-      return result;
-    },
-
-    totalDolares() {
-      return this.dataReport.efectivo.dolares.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
-    },
-
-    totalPesos() {
-      return this.dataReport.efectivo.pesos.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
-    },
-
-    totalBolivares() {
-      return this.dataReport.efectivo.bolivares.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+      ];
     },
 
     totalRetiros() {
-      return this.dataReport.retiros.reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
-    },
-
-    totalZelle() {
-      return (this.dataReport.digital.zelle || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
-    },
-
-    totalPagoMovil() {
-      return (this.dataReport.digital.pagomovil || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
-    },
-
-    totalTransferencias() {
-      return (this.dataReport.digital.transferencia || []).reduce((total, item) => total + parseFloat(item.dolares || 0), 0).toFixed(2);
+      return this.totalPorItems(this.dataReport.retiros);
     },
 
     vendedoresOptions() {
@@ -630,40 +356,22 @@ export default {
   },
 
   methods: {
-    getTotal(campo, curr) {
-      let accumulatedDollars = 0;
+    totalPorItems(items) {
+      return (items || []).reduce((total, item) => total + (parseFloat(item.monto_base) || 0), 0);
+    },
+
+    // "efectivo"/"digital" son arrays de grupos ({items: [...]}), "retiros" ya es un array plano de items.
+    getTotal(campo) {
       const dataToProcess = this.dataReport[campo];
-
       if (!dataToProcess) {
-        return curr === "num" ? 0 : `${curr} 0.00`;
+        return 0;
       }
 
-      let items = [];
-      if (campo === "efectivo") {
-        items = [
-          ...(dataToProcess.dolares || []),
-          ...(dataToProcess.pesos || []),
-          ...(dataToProcess.bolivares || []),
-        ];
-      } else if (campo === "digital") {
-        items = [
-          ...(dataToProcess.zelle || []),
-          ...(dataToProcess.pagomovil || []),
-          ...(dataToProcess.punto || []),
-          ...(dataToProcess.transferencia || []),
-        ];
-      } else {
-        items = dataToProcess || [];
+      if (campo === "efectivo" || campo === "digital") {
+        return dataToProcess.reduce((total, grupo) => total + this.totalPorItems(grupo.items), 0);
       }
 
-      accumulatedDollars = items.reduce((total, item) => {
-        return total + (parseFloat(item.dolares) || 0);
-      }, 0);
-
-      if (curr === "num") {
-        return accumulatedDollars;
-      }
-      return `${curr} ${accumulatedDollars.toFixed(2)}`;
+      return this.totalPorItems(dataToProcess);
     },
 
     onSubmit(event) {
@@ -707,22 +415,15 @@ export default {
           `${this.$config.API}/reporte-de-caja/${inicio}/${fin}/${id_vendedor}`
         )
         .then((res) => {
-          const baseData = {
-            efectivo: { dolares: [], pesos: [], bolivares: [] },
-            digital: { zelle: [], pagomovil: [], punto: [], transferencia: [] },
-            retiros: [],
-          };
-
           const apiData = res.data.data || {};
-          
+
           this.dataReport = {
-            ...baseData,
-            ...apiData,
-            efectivo: { ...baseData.efectivo, ...(apiData.efectivo || {}) },
-            digital: { ...baseData.digital, ...(apiData.digital || {}) },
+            efectivo: apiData.efectivo || [],
+            digital: apiData.digital || [],
             retiros: apiData.retiros || [],
           };
 
+          this.monedaBase = res.data.monedaBase || null;
           this.vendedores = res.data.vendedores || [];
         });
     },
@@ -734,40 +435,6 @@ export default {
       let year = date.getFullYear();
 
       return `${year}-${month}-${day}`;
-    },
-
-    totalGeneral(efectivo, transferencias, retiros) {
-      let result =
-        parseFloat(efectivo) + parseFloat(transferencias) - parseFloat(retiros);
-      return result.toFixed(2);
-    },
-
-    async getDataReport(fecha) {
-      await this.$axios
-        .get(
-          `${this.$config.API}/retiros/${fecha}/${this.$store.state.login.dataUser.id_empleado}`
-        )
-        .then((res) => {
-          this.retiros = res.data.data;
-          /* this.report.forEach(item => {
-          this.sumatoriaDescuento += Number(item.pago_descuento)
-          this.sumatoriaTotal += Number(item.pago_total)
-          this.sumatoriaAbono += Number(item.pago_abono)
-        }) */
-        });
-    },
-
-    async getPagos(fecha) {
-      await this.$axios
-        .get(`${this.$config.API}/pagos-ordenes/${fecha}`)
-        .then((res) => {
-          this.pagos = res.data.data;
-          /* this.report.forEach(item => {
-          this.sumatoriaDescuento += Number(item.pago_descuento)
-          this.sumatoriaTotal += Number(item.pago_total)
-          this.sumatoriaAbono += Number(item.pago_abono)
-        }) */
-        });
     },
   },
 
