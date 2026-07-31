@@ -5,7 +5,7 @@
         <h5>
           {{ moneda.nombre }}
           <small v-if="tasaDisponible(moneda) && moneda.codigo !== monedaBaseCodigo" class="text-muted">
-            (tasa: {{ tasaMoneda(moneda) }})
+            (tasa: {{ tasaMoneda(moneda).toFixed(4) }})
           </small>
         </h5>
 

@@ -173,11 +173,17 @@ export default {
         console.error("Error al cargar tasas de cambio:", err);
       }
     },
+    // Solo redondea lo que se muestra en pantalla -- el cálculo real de
+    // conversión (en MetodosPagoDinamico.vue) sigue usando el valor completo
+    // que devuelve GET /tasas-cambio, sin perder precisión.
+    formatearTasa(valor) {
+      return Number(valor).toFixed(4);
+    },
     tasaTexto(codigo) {
       const t = this.tasas[codigo];
       if (!t || t.tasa === null || t.tasa === undefined) return "Sin configurar";
       const etiqueta = t.fuente === "manual" ? "Manual" : "Automática";
-      return `${etiqueta}: ${t.tasa}`;
+      return `${etiqueta}: ${this.formatearTasa(t.tasa)}`;
     },
     tasaBadgeVariant(codigo) {
       const t = this.tasas[codigo];
@@ -186,7 +192,7 @@ export default {
     },
     iniciarEdicionTasa(moneda) {
       const t = this.tasas[moneda.codigo];
-      this.tasaEnEdicion = t && t.tasa !== null && t.tasa !== undefined ? t.tasa : null;
+      this.tasaEnEdicion = t && t.tasa !== null && t.tasa !== undefined ? this.formatearTasa(t.tasa) : null;
       this.editandoTasaId = moneda._id;
     },
     async guardarTasa(moneda) {
