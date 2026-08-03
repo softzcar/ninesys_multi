@@ -39,8 +39,12 @@
                 :id="`detalle-${metodo._id}`"
                 v-model="detalles[metodo._id]"
                 placeholder="Número de referencia"
+                :state="estadoReferencia(metodo)"
                 @input="emitirCambio"
               ></b-form-input>
+              <b-form-invalid-feedback :state="estadoReferencia(metodo)">
+                La referencia es obligatoria para {{ metodo.nombre }}.
+              </b-form-invalid-feedback>
             </b-form-group>
           </b-col>
 
@@ -81,6 +85,10 @@ export default {
       metodos: [],
       montos: {},
       detalles: {},
+      // Los recuadros en rojo de "referencia obligatoria" solo se muestran
+      // después del primer intento de envío (validar()) -- no mientras el
+      // usuario todavía está llenando el formulario.
+      mostrarErroresReferencia: false,
     };
   },
   computed: {
@@ -99,6 +107,22 @@ export default {
         }, 0);
         return total + subtotal;
       }, 0);
+    },
+    // Métodos con monto capturado (>0) que requieren referencia y la
+    // dejaron vacía -- la única fuente de verdad de "falta algo por
+    // completar", usada tanto por validar() como por estadoReferencia().
+    metodosConReferenciaFaltante() {
+      const faltantes = [];
+      this.monedas.forEach((moneda) => {
+        this.metodosPorMoneda(moneda._id).forEach((metodo) => {
+          const monto = parseFloat(this.montos[metodo._id]) || 0;
+          const detalle = (this.detalles[metodo._id] || "").trim();
+          if (monto > 0 && metodo.requiere_referencia && !detalle) {
+            faltantes.push(metodo);
+          }
+        });
+      });
+      return faltantes;
     },
   },
   methods: {
@@ -182,9 +206,28 @@ export default {
         })
         .filter((entry) => entry.montoLocal > 0);
     },
+    // Público -- todo formulario que use este componente debe llamarlo antes
+    // de enviar el pago, y abortar el envío si devuelve false (mismo patrón
+    // ya usado para otras validaciones de estos formularios, ej. detalle de
+    // descuento obligatorio en nueva.vue). Centralizada aquí una sola vez
+    // para que la regla ("requiere_referencia" del catálogo real) se aplique
+    // igual en los 6 formularios que capturan pagos, sin repetirla en cada uno.
+    validar() {
+      this.mostrarErroresReferencia = true;
+      return this.metodosConReferenciaFaltante.length === 0;
+    },
+    // null = neutral (aún no se intentó enviar, o no aplica), false = falta
+    // la referencia y ya se intentó enviar -- bootstrap-vue pinta el input
+    // en rojo y muestra el b-form-invalid-feedback asociado.
+    estadoReferencia(metodo) {
+      if (!this.mostrarErroresReferencia) return null;
+      const invalido = this.metodosConReferenciaFaltante.some((m) => m._id === metodo._id);
+      return invalido ? false : null;
+    },
     resetear() {
       this.montos = {};
       this.detalles = {};
+      this.mostrarErroresReferencia = false;
       this.emitirCambio();
     },
     emitirCambio() {

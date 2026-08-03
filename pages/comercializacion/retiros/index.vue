@@ -244,6 +244,11 @@ export default {
         msg = msg + "<p>Debe escribir el detalle del retiro</p>";
       }
 
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        ok = false;
+        msg = msg + "<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>";
+      }
+
       if (ok) {
         // CONSTRUIR RESUMEN PARA CONFIRMACIÓN
         let resumen = `<div class="text-left">

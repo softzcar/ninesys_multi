@@ -212,6 +212,11 @@ export default {
         }
       });
 
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        ok = false;
+        msg += "<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>";
+      }
+
       if (!ok) {
         this.$fire({
           title: "Error en el monto",

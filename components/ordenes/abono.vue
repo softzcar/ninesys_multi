@@ -452,6 +452,12 @@ export default {
       this.showError = false;
       this.showSuccess = false;
 
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        this.errorMsg = "Hay un método de pago que requiere número de referencia y quedó vacío.";
+        this.showError = true;
+        return;
+      }
+
       this.overlay = true;
       this.inputDisabled = true;
       const data = new URLSearchParams();

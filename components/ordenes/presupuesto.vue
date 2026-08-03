@@ -903,6 +903,15 @@ export default {
         return;
       }
 
+      if (this.$refs.metodosPagoConversion && !this.$refs.metodosPagoConversion.validar()) {
+        this.$fire({
+          type: 'warning',
+          title: 'Falta la referencia de un pago',
+          text: 'Hay un método de pago que requiere número de referencia y quedó vacío.'
+        });
+        return;
+      }
+
       try {
         // Preparar payload con datos de pago
         // NOTA: se envía como URLSearchParams (form-urlencoded), no como

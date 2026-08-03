@@ -301,6 +301,11 @@ export default {
         msg = msg + "<p>Debe seleccionar el tipo abono</p>";
       }
 
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        ok = false;
+        msg = msg + "<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>";
+      }
+
       if (ok) {
         this.overlay = true;
         const data = new URLSearchParams();
@@ -410,6 +415,11 @@ export default {
       if (this.abonoOrderForm.detalle.trim().length === 0) {
         ok = false;
         msg = msg + "<p>Debe escribir el detalle del abono.</p>";
+      }
+
+      if (this.$refs.metodosPagoModal && !this.$refs.metodosPagoModal.validar()) {
+        ok = false;
+        msg = msg + "<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>";
       }
 
       if (ok) {

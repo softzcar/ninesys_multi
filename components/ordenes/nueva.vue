@@ -2650,6 +2650,15 @@ export default {
         return;
       }
 
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        this.$fire({
+          title: "Falta la referencia de un pago",
+          html: `<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>`,
+          type: "warning",
+        });
+        return;
+      }
+
       const endpoint = this.endpoint;
 
       this.overlay = true;
