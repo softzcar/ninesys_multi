@@ -110,7 +110,11 @@
                 <hr />
                 <h5>Disponible para cerrar</h5>
                 <b-list-group>
-                  <b-list-group-item v-for="m in saldoPorMoneda" :key="m.id_moneda">
+                  <b-list-group-item
+                    v-for="m in saldoPorMoneda"
+                    :key="m.id_moneda"
+                    :class="{ 'text-danger': parseFloat(m.total) < 0 }"
+                  >
                     {{ m.nombre }}: {{ formatNumber(m.total) }}
                   </b-list-group-item>
                   <b-list-group-item v-if="saldoPorMoneda.length === 0" class="text-muted">
