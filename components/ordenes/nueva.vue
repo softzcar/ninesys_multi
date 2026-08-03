@@ -2187,6 +2187,16 @@ export default {
 
     step3() {
       let ok = true;
+
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        this.$fire({
+          title: "Falta la referencia de un pago",
+          html: `<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>`,
+          type: "warning",
+        });
+        return false;
+      }
+
       // Veerificar el monto pagado
       let abono = parseFloat(this.form.abono);
       let descuento = parseFloat(this.form.descuento);
