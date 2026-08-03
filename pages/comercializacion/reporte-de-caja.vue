@@ -29,7 +29,7 @@
               @submit="onSubmit"
             >
               <b-row>
-                <b-col md="4" v-if="currentDepartamentId === 7">
+                <b-col md="4" v-if="currentDepartamentId === 5">
                   <h3>Vendedor</h3>
                   <b-form-select
                     v-model="vendedorSeleccionado"
@@ -469,14 +469,16 @@ export default {
 
   mounted() {
     this.overlay = true;
-    // Si no es administrador (ID 7), fijar el vendedor como el propio empleado
-    if (this.currentDepartamentId !== 7) {
+    // Si no es Administración (ID 5, el estándar real de la plantilla de
+    // empresa -- antes decía 7 por error, que en realidad es Diseño, ver
+    // hallazgo 2026-08-03), fijar el vendedor como el propio empleado.
+    if (this.currentDepartamentId !== 5) {
       this.vendedorSeleccionado = this.dataUser.id_empleado;
     }
 
     // Cargar vendedores inicialmente (usamos el repo de reporte de caja para traer la lista)
-    // Si no es administrador, cargamos solo sus datos
-    const idConsulta = this.currentDepartamentId === 7 ? 0 : this.dataUser.id_empleado;
+    // Si no es Administración, cargamos solo sus datos
+    const idConsulta = this.currentDepartamentId === 5 ? 0 : this.dataUser.id_empleado;
 
     this.getCierre(this.fechaConsultaInicio, this.fechaConsultaFin, idConsulta).then(() => {
       this.overlay = false;

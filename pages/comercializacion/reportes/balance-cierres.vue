@@ -150,7 +150,9 @@ export default {
       return (
         Number(this.dataUser?.acceso) === 1 ||
         this.currentDepartament === "Administración" ||
-        this.currentDepartamentId === 7
+        // ID 5 = Administración según la plantilla estándar de nueva empresa
+        // (antes decía 7 por error, que en realidad es Diseño, ver hallazgo 2026-08-03).
+        this.currentDepartamentId === 5
       );
     },
     vendedoresOptions() {
