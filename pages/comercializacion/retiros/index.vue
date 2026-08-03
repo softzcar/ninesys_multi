@@ -45,9 +45,11 @@
                   <b-col>
                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
                     <b-list-group class="mb-4">
-                      <b-list-group-item>DOLARES: {{ formatNumber(caja[0] ? caja[0].monto : 0) }}</b-list-group-item>
-                      <b-list-group-item>PESOS: {{ formatNumber(caja[1] ? caja[1].monto : 0) }}</b-list-group-item>
-                      <b-list-group-item>BOLIVARES: {{ formatNumber(caja[2] ? caja[2].monto : 0) }}</b-list-group-item>
+                      <b-list-group-item
+                        v-for="entrada in caja"
+                        :key="entrada.moneda"
+                        :class="{ 'text-danger': parseFloat(entrada.monto) < 0 }"
+                      >{{ entrada.moneda.toUpperCase() }}: {{ formatNumber(entrada.monto) }}</b-list-group-item>
                     </b-list-group>
                   </b-col>
                 </b-row>
