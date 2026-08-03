@@ -121,6 +121,7 @@
                 <b-button
                   type="submit"
                   variant="primary"
+                  :disabled="overlay"
                 >Buscar Orden</b-button>
               </b-form>
 
@@ -147,6 +148,7 @@
                     </div>
                 <b-button
                   variant="success"
+                  :disabled="overlay"
                   @click="sendOrderAbono"
                 >Registrar Abono</b-button>
               </div>
@@ -180,6 +182,7 @@
                     size="lg"
                     class="ml-4"
                     variant="success"
+                    :disabled="overlay"
                     @click="enviarAbono"
                   >ABONAR</b-button>
                 </h2>
@@ -283,6 +286,11 @@ export default {
         return; // Salir de la función, la lógica de abono a orden se maneja en el modal
       }
 
+      // Guarda contra doble envío -- ver mismo hallazgo en sendOrderAbono().
+      if (this.overlay) {
+        return;
+      }
+
       let ok = true;
       let msg = "";
 
@@ -352,6 +360,10 @@ export default {
     },
 
     async searchOrderForAbono() {
+      if (this.overlay) {
+        return;
+      }
+
       if (!this.orderNumberToAbono) {
         this.$fire({
           title: "Error",
@@ -404,6 +416,15 @@ export default {
     },
 
     async sendOrderAbono() {
+      // Guarda contra doble envío -- el :disabled="overlay" del botón ya lo
+      // evita en el caso normal, pero esto protege también un doble clic
+      // más rápido que el repintado. Sin esto, dos envíos casi simultáneos
+      // llegaban ambos al backend y duplicaban el abono (hallazgo real,
+      // ver bitácora).
+      if (this.overlay) {
+        return;
+      }
+
       let ok = true;
       let msg = "";
 
