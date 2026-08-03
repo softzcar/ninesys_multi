@@ -19,6 +19,9 @@
                                 <b-form-checkbox v-model="nuevo.requiere_referencia" class="mr-2 mb-2">
                                     Requiere referencia
                                 </b-form-checkbox>
+                                <b-form-checkbox v-model="nuevo.es_efectivo" class="mr-2 mb-2">
+                                    Es efectivo
+                                </b-form-checkbox>
                                 <b-button type="submit" variant="primary" class="mb-2">
                                     <b-icon icon="plus-lg"></b-icon> Agregar
                                 </b-button>
@@ -33,6 +36,16 @@
                                     <b-badge :variant="data.item.requiere_referencia ? 'info' : 'secondary'">
                                         {{ data.item.requiere_referencia ? "Sí" : "No" }}
                                     </b-badge>
+                                </template>
+                                <template #cell(es_efectivo)="data">
+                                    <b-button
+                                        size="sm"
+                                        :variant="data.item.es_efectivo ? 'success' : 'outline-secondary'"
+                                        title="Determina si aparece en Retiros y Cierre de Caja (dinero físico)"
+                                        @click="toggleEsEfectivo(data.item)"
+                                    >
+                                        {{ data.item.es_efectivo ? "Sí" : "No" }}
+                                    </b-button>
                                 </template>
                                 <template #cell(activo)="data">
                                     <b-badge :variant="data.item.activo ? 'success' : 'secondary'">
@@ -66,11 +79,13 @@ export default {
             nuevo: {
                 nombre: "",
                 requiere_referencia: false,
+                es_efectivo: false,
             },
             overlay: false,
             fields: [
                 { key: "nombre", label: "Nombre" },
                 { key: "requiere_referencia", label: "Requiere Referencia" },
+                { key: "es_efectivo", label: "Es Efectivo" },
                 { key: "activo", label: "Estado" },
                 { key: "acciones", label: "Acciones" },
             ],
@@ -120,13 +135,14 @@ export default {
             data.set("codigo", this.slugify(nombre));
             data.set("nombre", nombre);
             data.set("requiere_referencia", this.nuevo.requiere_referencia);
+            data.set("es_efectivo", this.nuevo.es_efectivo);
             if (reactivarId) {
                 data.set("reactivar_id", reactivarId);
             }
 
             try {
                 await this.$axios.post(`${this.$config.API}/metodos-pago`, data);
-                this.nuevo = { nombre: "", requiere_referencia: false };
+                this.nuevo = { nombre: "", requiere_referencia: false, es_efectivo: false };
                 await this.cargarMetodos();
             } catch (err) {
                 const errData = err.response && err.response.data;
@@ -156,6 +172,29 @@ export default {
         onSubmitNuevo(event) {
             event.preventDefault();
             this.guardarMetodo();
+        },
+        // "Es efectivo" determina si el método cuenta como dinero físico
+        // (aparece en Retiros/Cierre de Caja) -- se creó sin forma de
+        // corregirlo tras el alta (solo existía crear/eliminar), lo que dejó
+        // métodos reales marcados como "no efectivo" por defecto sin que el
+        // administrador lo notara (hallazgo real: Euro/Efectivo, 2026-08-03).
+        async toggleEsEfectivo(metodo) {
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id", metodo._id);
+            data.set("nombre", metodo.nombre);
+            data.set("requiere_referencia", metodo.requiere_referencia);
+            data.set("es_efectivo", !metodo.es_efectivo);
+            data.set("activo", metodo.activo);
+            try {
+                await this.$axios.post(`${this.$config.API}/metodos-pago/editar`, data);
+                await this.cargarMetodos();
+            } catch (err) {
+                console.error("Error al actualizar 'es efectivo':", err);
+                this.$bvToast.toast("No se pudo actualizar el método de pago", { variant: "danger" });
+            } finally {
+                this.overlay = false;
+            }
         },
         async eliminarMetodo(metodo) {
             this.overlay = true;
