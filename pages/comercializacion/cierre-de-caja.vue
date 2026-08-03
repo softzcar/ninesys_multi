@@ -94,7 +94,12 @@
                 sm="12"
               >
                 <hr />
-                <ordenes-metodos-pago-dinamico ref="metodosPago" solo-efectivo @change="onPagosChange" />
+                <ordenes-metodos-pago-dinamico
+                  ref="metodosPago"
+                  solo-efectivo
+                  :saldos-por-moneda="saldosPorMoneda"
+                  @change="onPagosChange"
+                />
               </b-col>
               <b-col
                 xl="4"
@@ -160,6 +165,18 @@ export default {
 
   computed: {
     ...mapState("login", ["dataUser", "access", "tasas"]),
+
+    // Mapa { [nombreMoneda]: saldo } para que MetodosPagoDinamico.vue
+    // deshabilite el input y avise de las monedas sin saldo, en vez de
+    // mostrar un input que la validación rechazará al enviar (mismo fix
+    // aplicado en Retiros, 2026-08-03).
+    saldosPorMoneda() {
+      const map = {};
+      (this.saldoPorMoneda || []).forEach((s) => {
+        map[s.nombre] = parseFloat(s.total) || 0;
+      });
+      return map;
+    },
 
     tasasCargadas() {
       let cargadas = false;

@@ -14,6 +14,9 @@
           configurarla en Empresa &rarr; Configuración &rarr; Monedas antes de poder registrar
           pagos en esta moneda.
         </b-alert>
+        <b-alert v-else-if="sinSaldoDisponible(moneda)" show variant="info" class="py-2">
+          No hay {{ moneda.nombre }} disponible en este momento.
+        </b-alert>
 
         <b-row v-for="metodo in metodosPorMoneda(moneda._id)" :key="metodo._id" class="mb-2 align-items-end">
           <b-col md="4">
@@ -26,7 +29,7 @@
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  :disabled="!tasaDisponible(moneda)"
+                  :disabled="!tasaDisponible(moneda) || sinSaldoDisponible(moneda)"
                   @input="emitirCambio"
                 ></b-form-input>
               </b-input-group>
@@ -76,6 +79,18 @@ export default {
     soloEfectivo: {
       type: Boolean,
       default: false,
+    },
+    // Opcional -- solo lo usan consumidores donde "cuánto hay disponible"
+    // tiene sentido (Retiros, Cierre de Caja; no aplica a Abono/Nueva Orden,
+    // que reciben dinero en vez de sacarlo). Mapa { [nombreMoneda]: saldo }.
+    // Si una moneda no aparece como clave, no se restringe (comportamiento
+    // igual al de siempre). Si aparece con saldo <= 0, el input se
+    // deshabilita y se avisa -- en vez de dejar que el usuario intente
+    // capturar un monto que la validación del formulario rechazará después
+    // (hallazgo real: Euro con 0 disponible mostraba su input igual, 2026-08-03).
+    saldosPorMoneda: {
+      type: Object,
+      default: () => ({}),
     },
   },
   data() {
@@ -142,6 +157,15 @@ export default {
     tasaDisponible(moneda) {
       return this.tasaMoneda(moneda) !== null;
     },
+    // true solo cuando el consumidor pasó saldosPorMoneda Y esta moneda
+    // específica tiene saldo <= 0 -- si el prop no trae esta moneda como
+    // clave, no restringe nada (mismo comportamiento que sin el prop).
+    sinSaldoDisponible(moneda) {
+      if (!Object.prototype.hasOwnProperty.call(this.saldosPorMoneda, moneda.nombre)) {
+        return false;
+      }
+      return parseFloat(this.saldosPorMoneda[moneda.nombre]) <= 0;
+    },
     equivalenteEnBase(moneda, monto) {
       const n = parseFloat(monto) || 0;
       if (moneda.codigo === this.monedaBaseCodigo) {
@@ -171,6 +195,7 @@ export default {
       const pagos = [];
       this.monedas.forEach((moneda) => {
         if (!this.tasaDisponible(moneda)) return; // sin tasa resuelta, no se puede capturar
+        if (this.sinSaldoDisponible(moneda)) return; // sin saldo, no se puede capturar
         this.metodosPorMoneda(moneda._id).forEach((metodo) => {
           const monto = parseFloat(this.montos[metodo._id]) || 0;
           if (monto > 0) {
@@ -191,7 +216,7 @@ export default {
     obtenerPorMoneda() {
       return this.monedas
         .map((moneda) => {
-          const montoLocal = this.tasaDisponible(moneda)
+          const montoLocal = this.tasaDisponible(moneda) && !this.sinSaldoDisponible(moneda)
             ? this.metodosPorMoneda(moneda._id).reduce((acc, metodo) => {
                 return acc + (parseFloat(this.montos[metodo._id]) || 0);
               }, 0)

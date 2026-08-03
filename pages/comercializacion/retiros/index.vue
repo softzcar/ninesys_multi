@@ -62,7 +62,12 @@
                     sm="12"
                   >
                     <hr />
-                    <ordenes-metodos-pago-dinamico ref="metodosPago" solo-efectivo @change="onPagosChange" />
+                    <ordenes-metodos-pago-dinamico
+                      ref="metodosPago"
+                      solo-efectivo
+                      :saldos-por-moneda="saldosPorMoneda"
+                      @change="onPagosChange"
+                    />
                   </b-col>
                 </b-row>
 
@@ -171,6 +176,16 @@ export default {
         return false;
       }
       return this.caja.some((current) => (parseFloat(current.monto) || 0) > 0);
+    },
+    // Mapa { [nombreMoneda]: saldo } para que MetodosPagoDinamico.vue
+    // deshabilite el input y avise de las monedas sin saldo (ej. Euro en 0),
+    // en vez de mostrar un input que la validación rechazará al enviar.
+    saldosPorMoneda() {
+      const map = {};
+      (this.caja || []).forEach((c) => {
+        map[c.moneda] = parseFloat(c.monto) || 0;
+      });
+      return map;
     },
   },
 
