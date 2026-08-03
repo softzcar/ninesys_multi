@@ -369,8 +369,15 @@ export default {
   },
 
   methods: {
+    // Redondeado a centavos aquí (en vez de solo al formatear) para que los
+    // totales de nivel superior (getTotal, Total General), que se arman
+    // sumando estos subtotales, coincidan centavo a centavo con la suma
+    // manual de lo que ya se ve en pantalla -- si no, "sumar los subtotales
+    // mostrados" y "Total General" podían diferir por unos centavos de
+    // arrastre de precisión flotante (reportado por el usuario, 2026-08-03).
     totalPorItems(items) {
-      return (items || []).reduce((total, item) => total + (parseFloat(item.monto_base) || 0), 0);
+      const total = (items || []).reduce((total, item) => total + (parseFloat(item.monto_base) || 0), 0);
+      return Math.round(total * 100) / 100;
     },
 
     // "Total Efectivo" combina TODAS las monedas convertidas -- útil como
@@ -392,7 +399,8 @@ export default {
       }
 
       if (campo === "efectivo" || campo === "digital") {
-        return dataToProcess.reduce((total, grupo) => total + this.totalPorItems(grupo.items), 0);
+        const total = dataToProcess.reduce((total, grupo) => total + this.totalPorItems(grupo.items), 0);
+        return Math.round(total * 100) / 100;
       }
 
       return this.totalPorItems(dataToProcess);
