@@ -40,7 +40,7 @@
               <div v-if="loading" class="text-center p-5">
                 <p class="mt-2 text-muted italic">Cargando información de caja...</p>
               </div>
-              <div v-else-if="totalEnCaja > 0">
+              <div v-else-if="hayFondosDisponibles">
                 <b-row>
                   <b-col>
                     <h2 class="mb-4">DINERO EN EFECTIVO:</h2>
@@ -157,14 +157,18 @@ export default {
     },
 
 
-    totalEnCaja() {
+    // Antes sumaba `monto` de TODAS las monedas directamente (Bolívares +
+    // Pesos + Dólares como si fueran la misma unidad) para decidir si
+    // mostrar el formulario -- un saldo negativo en una sola moneda (ej. un
+    // retiro histórico que ya excedía lo disponible en Pesos) podía arrastrar
+    // el total combinado a negativo y esconder la pantalla COMPLETA, aunque
+    // otras monedas sí tuvieran fondos reales disponibles (hallazgo real,
+    // 2026-08-03). Ahora basta con que UNA moneda tenga saldo positivo.
+    hayFondosDisponibles() {
       if (!this.caja || this.caja.length === 0) {
-        return 0;
+        return false;
       }
-      return this.caja.reduce(
-        (total, current) => total + (parseFloat(current.monto) || 0),
-        0
-      );
+      return this.caja.some((current) => (parseFloat(current.monto) || 0) > 0);
     },
   },
 
