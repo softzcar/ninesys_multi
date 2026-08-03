@@ -128,6 +128,13 @@
                           <b-row>
                             <b-col>
                               <h4 class="text-right mb-4">Total {{ m.nombre }} {{ formatNumber(totalPorItems(m.items)) }}</h4>
+                              <p
+                                v-if="totalRetirosPorMoneda(m.nombre) > 0"
+                                class="text-right text-muted small mb-4"
+                              >
+                                Neto {{ m.nombre }} (efectivo &minus; retiros de esta moneda):
+                                {{ formatNumber(totalPorItems(m.items) - totalRetirosPorMoneda(m.nombre)) }}
+                              </p>
                             </b-col>
                           </b-row>
                         </div>
@@ -190,12 +197,18 @@
               <b-row>
                 <b-col>
                   <h4 class="text-right mb-4">
-                    Total Efectivo
+                    Total Efectivo (todas las monedas convertidas a {{ codigoBase }})
                     <span class="money-result">{{ simboloBase }}
                       {{
                         formatNumber(getTotal("efectivo") - totalRetiros)
                       }}</span>
                   </h4>
+                  <p class="text-right text-muted small">
+                    Suma el neto del período (efectivo &minus; retiros) de cada moneda -- ver el
+                    desglose "Neto" debajo de cada moneda arriba. No es comparable directo contra
+                    el saldo disponible de una sola moneda en Retiros/Cierre de Caja, que es
+                    acumulado desde siempre, no de este rango de fechas.
+                  </p>
                 </b-col>
               </b-row>
             </b-card>
@@ -358,6 +371,17 @@ export default {
   methods: {
     totalPorItems(items) {
       return (items || []).reduce((total, item) => total + (parseFloat(item.monto_base) || 0), 0);
+    },
+
+    // "Total Efectivo" combina TODAS las monedas convertidas -- útil como
+    // panorama general, pero no comparable directo contra el saldo de una
+    // sola moneda (ej. Retiros/Cierre de Caja). Este desglose por moneda deja
+    // claro qué aportó cada una al neto del período (hallazgo real: el
+    // usuario comparó "Total Efectivo" contra el saldo de Dólares y no
+    // coincidían -- eran dos preguntas distintas, no un error, 2026-08-03).
+    totalRetirosPorMoneda(nombreMoneda) {
+      const items = (this.dataReport.retiros || []).filter((r) => r.moneda === nombreMoneda);
+      return this.totalPorItems(items);
     },
 
     // "efectivo"/"digital" son arrays de grupos ({items: [...]}), "retiros" ya es un array plano de items.
