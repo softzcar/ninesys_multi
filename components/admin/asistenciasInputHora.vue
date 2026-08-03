@@ -58,10 +58,11 @@ export default {
         } */
 
       let dataEmp;
-      // Obtener la fecha y hora actual en la zona horaria "America/Caracas" (Venezuela)
+      // Obtener la fecha y hora actual en la zona horaria de la empresa (país
+      // configurado) -- ya no fija a Venezuela, mismo patrón que mixin-time.js.
       const now = new Date();
       const options = {
-        timeZone: "America/Caracas",
+        timeZone: this.$store?.state?.login?.dataEmpresa?.timezone || "America/Caracas",
         hour: "numeric",
         minute: "numeric",
         hour12: true,
@@ -102,8 +103,10 @@ export default {
 
   methods: {
     convertToFullDateTime(time) {
-      // Obtener la hora actual en Venezuela
-      const nowVenezuela = DateTime.now().setZone("America/Caracas");
+      // Obtener la hora actual en la zona horaria de la empresa
+      const nowVenezuela = DateTime.now().setZone(
+        this.$store?.state?.login?.dataEmpresa?.timezone || "America/Caracas"
+      );
 
       const [hours, minutes] = time.split(":"); // Separar la hora y los minutos
 
