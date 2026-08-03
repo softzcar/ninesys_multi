@@ -355,6 +355,19 @@ export default {
         return;
       }
 
+      // Validar referencia obligatoria de los métodos de pago -- antes de
+      // mostrar el resumen de confirmación, no después (comportamiento
+      // confuso reportado: se mostraba "Verifique los datos..." y solo al
+      // confirmar aparecía el error de referencia faltante).
+      if (this.$refs.metodosPago && !this.$refs.metodosPago.validar()) {
+        this.$fire({
+          title: "Falta la referencia de un pago",
+          html: `<p>Hay un método de pago que requiere número de referencia y quedó vacío.</p>`,
+          type: "warning",
+        });
+        return;
+      }
+
       // Validar detalle de descuento
       if (parseFloat(this.valueDescuento) > 0 && !this.valueDescuentoDetalle) {
         this.$fire({
