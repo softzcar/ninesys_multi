@@ -67,8 +67,12 @@
     <b-overlay :show="mainOverlay" rounded="sm">
       <b-container>
         <b-row>
-          <b-col xs="12" sm="12" md="3" lg="3" xl="3" offset-md="9" offset-lg="9" offset-xl="9">
-            <form-monedas />
+          <b-col>
+            <!-- Ancho completo, alineado a la derecha por flex -- sin
+                 reservar columnas vacías como antes (offset-9, 2026-08-04) -->
+            <div class="d-flex justify-content-end">
+              <form-monedas />
+            </div>
           </b-col>
         </b-row>
       </b-container>

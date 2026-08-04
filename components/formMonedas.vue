@@ -1,67 +1,66 @@
 <template>
-  <div>
-    <!-- Header con botón de actualización -->
-    <div class="d-flex justify-content-end align-items-center mb-3">
+  <div class="form-monedas-bar">
+    <!-- Barra horizontal compacta: se envuelve (flex-wrap) en pantallas angostas
+         en vez de apilar cada pieza en su propio bloque -- evita que el widget
+         necesite una columna angosta dedicada para verse bien (2026-08-04). -->
+    <div class="d-flex flex-wrap align-items-center justify-content-end" style="gap: 0.5rem;">
       <b-button v-if="puedeEditarTasas" size="sm" variant="outline-primary" @click="cargarAutomaticamente"
         :disabled="cargando">
         <b-spinner small v-if="cargando"></b-spinner>
         <span v-else>🔄</span>
-        {{ cargando ? 'Cargando...' : 'Actualizar Automáticamente' }}
+        {{ cargando ? 'Cargando...' : 'Actualizar' }}
       </b-button>
-    </div>
 
-    <!-- Información de última actualización -->
-    <div v-if="infoActualizacion" class="mb-3">
-      <small class="text-muted">
-        <strong>Última actualización:</strong> {{ infoActualizacion.fecha_formateada }}
-        <b-badge v-if="puedeEditarTasas" :variant="infoActualizacion.fuente === 'fallback' ? 'warning' : 'success'"
-          class="ml-2">
-          {{ fuenteTexto }}
-        </b-badge>
-      </small>
+      <template v-if="infoActualizacion">
+        <b-badge variant="primary" v-b-tooltip.hover title="Tasa BCV">BCV: {{ tasaBcv }}</b-badge>
+        <b-badge variant="secondary" v-b-tooltip.hover title="Tasa manual guardada">Manual: {{ tasaManual }}</b-badge>
+      </template>
 
-      <!-- BCV vs Manual Comparison -->
-      <b-list-group class="mt-2">
-        <b-list-group-item class="d-flex justify-content-between align-items-center py-1 px-2">
-          <small class="mb-0"><strong>BCV:</strong></small>
-          <small><b-badge variant="primary">{{ tasaBcv }}</b-badge></small>
-        </b-list-group-item>
-        <b-list-group-item class="d-flex justify-content-between align-items-center py-1 px-2">
-          <small class="mb-0"><strong>Manual:</strong></small>
-          <small><b-badge variant="secondary">{{ tasaManual }}</b-badge></small>
-        </b-list-group-item>
-      </b-list-group>
-    </div>
-
-    <!-- Formulario de tasas -->
-    <div v-if="currencyConfigState === 'SHOW_FORM'">
-      <b-form v-for="moneda in additionalActiveMonedas" :key="moneda.moneda" @submit.prevent>
-        <b-form-group :label="'Tasa ' + capitalize(moneda.moneda)">
-          <b-input-group>
-            <b-form-input type="number" step="0.01" :value="moneda.valor || 0"
-              @change="updateTasa(moneda.moneda, $event, true)" @blur="persistirTasas" @keyup.enter="persistirTasas"
-              :readonly="!puedeEditarTasas" :disabled="!puedeEditarTasas" class="mb-2" />
-
-            <!-- Botón para aplicar BCV si es Bolívar -->
+      <template v-if="currencyConfigState === 'SHOW_FORM'">
+        <div
+          v-for="moneda in additionalActiveMonedas"
+          :key="moneda.moneda"
+          class="d-flex align-items-center"
+          style="gap: 0.25rem; min-width: 0;"
+        >
+          <label class="mb-0 small text-nowrap">{{ capitalize(moneda.moneda) }}:</label>
+          <b-input-group size="sm" style="min-width: 130px; width: 130px;">
+            <b-form-input
+              type="number"
+              step="0.01"
+              :value="moneda.valor || 0"
+              @change="updateTasa(moneda.moneda, $event, true)"
+              @blur="persistirTasas"
+              @keyup.enter="persistirTasas"
+              :readonly="!puedeEditarTasas"
+              :disabled="!puedeEditarTasas"
+            />
             <b-input-group-append v-if="moneda.moneda === 'bolivar' && puedeEditarTasas">
-              <b-button variant="outline-success" size="sm" @click="aplicarBcvManual" v-b-tooltip.hover
+              <b-button variant="outline-success" @click="aplicarBcvManual" v-b-tooltip.hover
                 title="Usar tasa BCV oficial">
-                Usar BCV
+                BCV
               </b-button>
             </b-input-group-append>
           </b-input-group>
-        </b-form-group>
-      </b-form>
+        </div>
+      </template>
+
+      <span v-else-if="currencyConfigState === 'ONLY_BASE_CURRENCY'" class="small text-muted">
+        Solo dólares (sin monedas adicionales configuradas)
+      </span>
+      <span v-else class="small text-muted">
+        Debe configurar las monedas para poder continuar.
+      </span>
     </div>
 
-    <!-- Solo moneda base (dólares) -->
-    <div v-else-if="currencyConfigState === 'ONLY_BASE_CURRENCY'">
-      <p><strong>No hay monedas adicionales configuradas, los precios se manejan solamente en dólares.</strong></p>
-    </div>
-
-    <!-- Sin configuración -->
-    <div v-else>
-      <p>Debe configurar las monedas para poder continuar.</p>
+    <!-- Última actualización: línea secundaria, discreta -->
+    <div v-if="infoActualizacion" class="text-right mt-1">
+      <small class="text-muted">
+        {{ infoActualizacion.fecha_formateada }}
+        <b-badge v-if="puedeEditarTasas" :variant="infoActualizacion.fuente === 'fallback' ? 'warning' : 'success'" class="ml-1">
+          {{ fuenteTexto }}
+        </b-badge>
+      </small>
     </div>
   </div>
 </template>
@@ -289,3 +288,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.form-monedas-bar {
+  width: 100%;
+  max-width: 100%;
+}
+</style>
