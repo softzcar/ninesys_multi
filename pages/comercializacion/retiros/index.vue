@@ -14,11 +14,15 @@
           <b-container>
             <b-row>
               <b-col>
-                <!-- Título y widget de tasas comparten la misma fila (en vez
-                     de una fila propia casi vacía) -- se envuelven en
-                     pantallas angostas (2026-08-04). -->
-                <div class="d-flex justify-content-between align-items-start flex-wrap">
-                  <h1 class="mb-4">Retiro de efectivo</h1>
+                <h1 class="mb-4">Retiro de efectivo</h1>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col>
+                <!-- Debajo del título, en su propia línea, alineado a la
+                     derecha -- mismo patrón consistente en todas las páginas
+                     que usan este widget (2026-08-04). -->
+                <div class="d-flex justify-content-end">
                   <form-monedas />
                 </div>
               </b-col>
