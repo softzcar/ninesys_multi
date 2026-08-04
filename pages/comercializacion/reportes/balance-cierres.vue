@@ -9,11 +9,9 @@
       <div v-if="isAdmin">
         <b-container fluid>
           <b-row class="mt-4">
-            <b-col class="d-flex justify-content-between align-items-center">
+            <b-col>
               <h1>Balance de Cierres de Caja</h1>
-              <b-button v-b-modal.modal-ayuda variant="info" size="sm" class="shadow-sm">
-                <i class="fas fa-info-circle mr-1"></i> Guía del Reporte
-              </b-button>
+              <common-page-guide />
             </b-col>
           </b-row>
 
@@ -94,48 +92,6 @@
             </b-col>
           </b-row>
 
-          <!-- Modal de Ayuda -->
-          <b-modal id="modal-ayuda" title="Guía: ¿Cómo entender este reporte?" size="lg" hide-footer centered>
-            <div class="p-2">
-              <h5 class="text-primary"><i class="fas fa-calculator mr-2"></i>La Lógica del Balance</h5>
-              <p>El reporte busca responder una pregunta simple: <strong>¿El dinero que se reportó coincide con lo que el sistema registró?</strong></p>
-              
-              <div class="bg-light p-3 rounded mb-4">
-                <strong>Fórmula básica:</strong><br>
-                <code>(Retirado + Fondo Final) - (Fondo Inicial + Recaudado) = Diferencia</code>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <h6><span class="badge badge-info">1</span> El Teórico (Lo que debería haber)</h6>
-                  <ul>
-                    <li><strong>Fondo Inicial:</strong> Dinero que quedó del turno anterior.</li>
-                    <li><strong>Recaudado:</strong> Ventas en efectivo realizadas hoy.</li>
-                  </ul>
-                </div>
-                <div class="col-md-6">
-                  <h6><span class="badge badge-success">2</span> El Real (Lo que hay físicamente)</h6>
-                  <ul>
-                    <li><strong>Retirado:</strong> Lo que el vendedor sacó para entregar.</li>
-                    <li><strong>Fondo Final:</strong> Lo que se quedó en la gaveta para mañana.</li>
-                  </ul>
-                </div>
-              </div>
-
-              <hr>
-
-              <h5 class="text-primary mt-4"><i class="fas fa-check-circle mr-2"></i>Interpretando las Diferencias</h5>
-              <div class="mb-3">
-                <span class="text-success font-weight-bold">0.00 (Verde):</span> La caja cuadró perfectamente. El reporte físico coincide con el sistema.<br>
-                <span class="text-danger font-weight-bold">Negativo (Rojo):</span> <strong>Falta Dinero.</strong> El vendedor reportó menos de lo que registró el sistema.<br>
-                <span class="text-warning font-weight-bold">Positivo:</span> <strong>Sobra Dinero.</strong> Hay más dinero físico que el registrado en ventas.
-              </div>
-
-              <p class="text-muted small italic">
-                <i class="fas fa-lightbulb mr-1"></i> <strong>Tip:</strong> Pasa el mouse sobre los títulos de las columnas en la tabla para ver una breve explicación de cada una.
-              </p>
-            </div>
-          </b-modal>
         </b-container>
       </div>
       <div v-else>

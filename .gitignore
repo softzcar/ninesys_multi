@@ -20,7 +20,12 @@ yarn-error.log*
 dist/
 
 # Static assets generated at build time
-static/
+# (static/* en vez de static/ -- un patrón de directorio completo no se
+# puede des-ignorar por dentro; con /* sí se puede, ver excepción abajo)
+static/*
+# Excepción: contenido de las guías de página (common/PageGuide.vue) --
+# es contenido editorial versionado, no un artefacto generado.
+!static/guias/
 
 # Notas del programador
 notes/
