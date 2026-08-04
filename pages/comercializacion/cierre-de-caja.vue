@@ -13,14 +13,11 @@
         <b-container>
           <b-row>
             <b-col>
-              <h1 class="mb-4">Cierre de Caja</h1>
-            </b-col>
-          </b-row>
-          <b-row>
-            <b-col>
-              <!-- Ancho completo, alineado a la derecha por flex -- sin
-                   reservar columnas vacías como antes (offset-9, 2026-08-04) -->
-              <div class="d-flex justify-content-end">
+              <!-- Título y widget de tasas comparten la misma fila (en vez de
+                   una fila propia casi vacía) -- se envuelven en pantallas
+                   angostas (2026-08-04). -->
+              <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <h1 class="mb-4">Cierre de Caja</h1>
                 <form-monedas />
               </div>
             </b-col>

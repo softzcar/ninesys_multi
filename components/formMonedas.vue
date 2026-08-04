@@ -291,7 +291,9 @@ export default {
 
 <style scoped>
 .form-monedas-bar {
-  width: 100%;
+  /* Sin width:100% a propósito -- así se ajusta a su propio contenido cuando
+     comparte fila con un título (flex), en vez de forzar su propia línea.
+     max-width evita que se desborde en pantallas angostas. */
   max-width: 100%;
 }
 </style>
