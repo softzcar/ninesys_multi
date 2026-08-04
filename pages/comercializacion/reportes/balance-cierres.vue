@@ -69,6 +69,27 @@
                     <strong>Cargando...</strong>
                   </div>
                 </template>
+
+                <template #cell(show_details)="row">
+                  <b-button size="sm" variant="outline-secondary" @click="row.toggleDetails">
+                    <i :class="row.detailsShowing ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+                    {{ row.detailsShowing ? 'Ocultar' : 'Ver' }}
+                  </b-button>
+                </template>
+
+                <template #row-details="row">
+                  <b-card class="m-2">
+                    <b-table
+                      v-if="monedasConActividad(row.item).length > 0"
+                      small
+                      striped
+                      responsive
+                      :items="monedasConActividad(row.item)"
+                      :fields="fieldsDetalleMoneda"
+                    ></b-table>
+                    <div v-else class="text-muted text-center">Sin movimiento por moneda en este cierre.</div>
+                  </b-card>
+                </template>
               </b-table>
             </b-col>
           </b-row>
@@ -165,11 +186,13 @@ export default {
     codigoBase() {
       return this.monedaBase ? this.monedaBase.codigo : '';
     },
-    // Columnas dinámicas: 3 por cada moneda activa real de la empresa
-    // (Recaudado/Retirado/Fondo/Diff), más el resumen en la moneda base --
-    // reemplaza los 3 bloques fijos USD/COP/BS que asumían siempre esas 3.
+    // Tabla principal: solo los totales combinados (siempre relevantes) + un
+    // botón para expandir el detalle por moneda -- antes generaba 4 columnas
+    // por cada moneda activa (hasta 21 columnas en total), casi todas en 0.00
+    // para cualquier cierre dado, reportado como "muy difícil de leer" por el
+    // usuario (2026-08-04). El detalle por moneda vive ahora en #row-details.
     fields() {
-      const base = [
+      return [
         { key: 'fecha_cierre', label: 'Fecha/Hora', sortable: true, formatter: (v) => this.formatTimestamp(v) },
         { key: 'vendedor', label: 'Vendedor', sortable: true },
         {
@@ -180,52 +203,7 @@ export default {
           thClass: 'text-right bg-light',
           tdClass: 'text-right bg-light',
           formatter: (v) => this.formatNumber(v)
-        }
-      ];
-
-      const porMoneda = [];
-      this.monedas.forEach((m) => {
-        porMoneda.push(
-          {
-            key: `rec_${m.codigo}`,
-            label: `Rec. ${m.codigo}`,
-            headerTitle: `Ventas en efectivo de este turno en ${m.nombre}`,
-            sortable: true,
-            thClass: 'text-right',
-            tdClass: 'text-right',
-            formatter: (v) => this.formatNumber(v)
-          },
-          {
-            key: `ret_${m.codigo}`,
-            label: `Ret. ${m.codigo}`,
-            headerTitle: `Efectivo retirado físicamente en ${m.nombre}`,
-            sortable: true,
-            thClass: 'text-right',
-            tdClass: 'text-right',
-            formatter: (v) => this.formatNumber(v)
-          },
-          {
-            key: `fondo_${m.codigo}`,
-            label: `Fondo ${m.codigo}`,
-            headerTitle: `Efectivo que se quedó en la gaveta en ${m.nombre}`,
-            sortable: true,
-            thClass: 'text-right',
-            tdClass: 'text-right',
-            formatter: (v) => this.formatNumber(v)
-          },
-          {
-            key: `diff_${m.codigo}`,
-            label: `Diff ${m.codigo}`,
-            headerTitle: `(Retirado + Fondo) - (Fondo Anterior + Recaudado) en ${m.nombre}`,
-            sortable: true,
-            thClass: 'text-right',
-            tdClass: (v) => `text-right font-weight-bold ${this.getDiffClass(v)}`,
-            formatter: (v) => this.formatNumber(v)
-          }
-        );
-      });
-
-      const totales = [
+        },
         {
           key: 'total_real_base',
           label: `Total Real ${this.codigoBase}`,
@@ -237,37 +215,57 @@ export default {
         },
         {
           key: 'diferencia_base',
-          label: `Diff ${this.codigoBase}`,
-          headerTitle: `Total Real ${this.codigoBase} - Total Teórico ${this.codigoBase}`,
+          label: `Diferencia Total ${this.codigoBase}`,
+          headerTitle: `Total Real ${this.codigoBase} - Total Teórico ${this.codigoBase} (todas las monedas combinadas)`,
           sortable: true,
+          thClass: 'text-right',
+          tdClass: (v) => `text-right font-weight-bold ${this.getDiffClass(v)}`,
+          formatter: (v) => this.formatNumber(v)
+        },
+        { key: 'show_details', label: 'Detalle por moneda', thClass: 'text-center', tdClass: 'text-center' }
+      ];
+    },
+    balanceData() {
+      return this.datos.map((item) => ({ ...item }));
+    },
+    // Columnas de la tabla anidada (#row-details) -- sin sufijo de moneda en
+    // las etiquetas porque cada fila ya trae su propia moneda en "nombre".
+    fieldsDetalleMoneda() {
+      return [
+        { key: 'nombre', label: 'Moneda' },
+        {
+          key: 'recaudado',
+          label: 'Recaudado',
+          headerTitle: 'Ventas en efectivo de este turno',
+          thClass: 'text-right',
+          tdClass: 'text-right',
+          formatter: (v) => this.formatNumber(v)
+        },
+        {
+          key: 'cierre',
+          label: 'Retirado',
+          headerTitle: 'Efectivo entregado/depositado al cerrar caja (no es un retiro del módulo de Retiros)',
+          thClass: 'text-right',
+          tdClass: 'text-right',
+          formatter: (v) => this.formatNumber(v)
+        },
+        {
+          key: 'fondo_nuevo',
+          label: 'Fondo',
+          headerTitle: 'Efectivo que se quedó en la gaveta para el próximo turno',
+          thClass: 'text-right',
+          tdClass: 'text-right',
+          formatter: (v) => this.formatNumber(v)
+        },
+        {
+          key: 'diferencia',
+          label: 'Diferencia',
+          headerTitle: '(Retirado + Fondo) - (Fondo Anterior + Recaudado) en esta moneda',
           thClass: 'text-right',
           tdClass: (v) => `text-right font-weight-bold ${this.getDiffClass(v)}`,
           formatter: (v) => this.formatNumber(v)
         }
       ];
-
-      return [...base, ...porMoneda, ...totales];
-    },
-    // Aplana `porMoneda` (array por fila) a claves planas (rec_USD, ret_VES, ...)
-    // que coincidan con las keys dinámicas de `fields`, tal como lo espera b-table.
-    balanceData() {
-      return this.datos.map((item) => {
-        const flat = {
-          _id: item._id,
-          fecha_cierre: item.fecha_cierre,
-          vendedor: item.vendedor,
-          total_teorico_base: item.total_teorico_base,
-          total_real_base: item.total_real_base,
-          diferencia_base: item.diferencia_base
-        };
-        (item.porMoneda || []).forEach((pm) => {
-          flat[`rec_${pm.codigo}`] = pm.recaudado;
-          flat[`ret_${pm.codigo}`] = pm.cierre;
-          flat[`fondo_${pm.codigo}`] = pm.fondo_nuevo;
-          flat[`diff_${pm.codigo}`] = pm.diferencia;
-        });
-        return flat;
-      });
     }
   },
   mounted() {
@@ -277,6 +275,16 @@ export default {
     }
   },
   methods: {
+    // Solo las monedas con algún movimiento real en ESTE cierre -- oculta el
+    // ruido de monedas activas de la empresa que no participaron en el turno.
+    monedasConActividad(item) {
+      return (item.porMoneda || []).filter((pm) =>
+        Math.abs(pm.recaudado) > 0.001 ||
+        Math.abs(pm.cierre) > 0.001 ||
+        Math.abs(pm.fondo_nuevo) > 0.001 ||
+        Math.abs(pm.fondo_anterior) > 0.001
+      );
+    },
     async cargarVendedores() {
       try {
         // Aprovechamos el endpoint de reporte de caja que ya trae vendedores
