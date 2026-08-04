@@ -14,6 +14,7 @@
           <b-row>
             <b-col>
               <h1 class="mb-4">{{ titulo }}</h1>
+              <common-page-guide />
             </b-col>
           </b-row>
           <b-row>
@@ -161,7 +162,10 @@
                             <b-col sm="4" class="mb-3">
                               <div class="h-100 p-3 rounded text-center border" style="background-color: #f8fafc; border-color: #cbd5e1 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                 <b-icon icon="calculator" class="text-muted mb-2" font-scale="1.5"></b-icon>
-                                <div class="text-muted text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Bruto</div>
+                                <div class="text-muted text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                  Total Bruto
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Valor de catálogo (antes de descuentos) de los productos de las órdenes con al menos un pago dentro del rango seleccionado." style="cursor: help;"></b-icon>
+                                </div>
                                 <div class="h4 font-weight-bold text-dark mt-1 mb-0">
                                   {{ formatNumber(totales.sumas.total_orden) }} $
                                 </div>
@@ -172,7 +176,10 @@
                             <b-col sm="4" class="mb-3">
                               <div class="h-100 p-3 rounded text-center border" style="background-color: #fffbeb; border-color: #fde68a !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                 <b-icon icon="percent" class="text-warning mb-2" font-scale="1.5"></b-icon>
-                                <div class="text-warning text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Descuentos</div>
+                                <div class="text-warning text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                  Descuentos
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Total de descuentos aplicados en esas mismas órdenes." style="cursor: help;"></b-icon>
+                                </div>
                                 <div class="h4 font-weight-bold text-warning mt-1 mb-0">
                                   {{ formatNumber(totales.sumas.descuentos) }} $
                                 </div>
@@ -183,7 +190,10 @@
                             <b-col sm="4" class="mb-3">
                               <div class="h-100 p-3 rounded text-center border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                 <b-icon icon="cash" class="text-success mb-2" font-scale="1.5"></b-icon>
-                                <div class="text-success text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Neto</div>
+                                <div class="text-success text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                  Total Neto
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Total Bruto menos Descuentos -- lo que esas órdenes realmente valen." style="cursor: help;"></b-icon>
+                                </div>
                                 <div class="h4 font-weight-bold text-success mt-1 mb-0">
                                   {{ formatNumber(totales.sumas.neto) }} $
                                 </div>
@@ -192,13 +202,16 @@
                           </b-row>
 
                           <b-row>
-                            <!-- Total Pagado / Abonos -->
+                            <!-- Total Pagado (histórico) -->
                             <b-col sm="6" class="mb-3">
                               <div class="h-100 p-3 rounded text-center border" style="background-color: #eff6ff; border-color: #bfdbfe !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                                 <b-icon icon="check2-circle" class="text-primary mb-2" font-scale="1.8"></b-icon>
-                                <div class="text-primary text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">Total Pagado / Abonos</div>
+                                <div class="text-primary text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                                  Total Pagado / Abonos
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Todo lo abonado en el historial completo de esas órdenes (no solo los pagos hechos dentro del rango de fechas seleccionado) -- por eso puede ser mayor que el desglose de Métodos de Pago, que sí está limitado al rango." style="cursor: help;"></b-icon>
+                                </div>
                                 <div class="h2 font-weight-bold text-primary mt-1 mb-0">
-                                  {{ formatNumber(totales.totalGeneral) }} $
+                                  {{ formatNumber(totales.sumas.pagadoHistorico) }} $
                                 </div>
                               </div>
                             </b-col>
@@ -207,9 +220,42 @@
                             <b-col sm="6" class="mb-3">
                               <div class="h-100 p-3 rounded text-center border" style="background-color: #fef2f2; border-color: #fecaca !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                                 <b-icon icon="exclamation-circle" class="text-danger mb-2" font-scale="1.8"></b-icon>
-                                <div class="text-danger text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">Saldo Pendiente Total</div>
+                                <div class="text-danger text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                                  Saldo Pendiente Total
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Saldo real y actual que aún deben esas órdenes, a día de hoy. Nunca es negativo por orden: el sobrepago de una orden no reduce lo pendiente de otra (ver tarjeta Sobrepago)." style="cursor: help;"></b-icon>
+                                </div>
                                 <div class="h2 font-weight-bold text-danger mt-1 mb-0">
                                   {{ formatNumber(totales.sumas.saldo) }} $
+                                </div>
+                              </div>
+                            </b-col>
+                          </b-row>
+
+                          <b-row>
+                            <!-- Sobrepago / Crédito a favor -->
+                            <b-col sm="6" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #f0fdfa; border-color: #99f6e4 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <b-icon icon="arrow-repeat" class="text-info mb-2" font-scale="1.5"></b-icon>
+                                <div class="text-info text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                  Sobrepago / Crédito a favor
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Suma de lo pagado de más en órdenes ya saldadas (su saldo pendiente real es negativo, pero se muestra en 0 en vez de restar del total pendiente de otras órdenes)." style="cursor: help;"></b-icon>
+                                </div>
+                                <div class="h4 font-weight-bold text-info mt-1 mb-0">
+                                  {{ formatNumber(totales.sumas.sobrepago) }} $
+                                </div>
+                              </div>
+                            </b-col>
+
+                            <!-- Notas de Crédito -->
+                            <b-col sm="6" class="mb-3">
+                              <div class="h-100 p-3 rounded text-center border" style="background-color: #f8fafc; border-color: #cbd5e1 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <b-icon icon="receipt" class="text-secondary mb-2" font-scale="1.5"></b-icon>
+                                <div class="text-secondary text-uppercase font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                  Notas de Crédito
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Notas de crédito aplicadas en esas órdenes -- incrementan lo que el cliente aún debe (no lo reducen)." style="cursor: help;"></b-icon>
+                                </div>
+                                <div class="h4 font-weight-bold text-secondary mt-1 mb-0">
+                                  {{ formatNumber(totales.sumas.notaCredito) }} $
                                 </div>
                               </div>
                             </b-col>
@@ -222,6 +268,7 @@
                             <div class="d-flex align-items-center mb-3">
                               <b-icon icon="wallet2" class="text-muted mr-2" font-scale="1.2"></b-icon>
                               <span class="text-uppercase font-weight-bold text-secondary" style="font-size: 0.85rem; letter-spacing: 0.05em;">Métodos de Pago</span>
+                              <b-icon icon="info-circle" class="ml-2 text-muted" v-b-tooltip.hover.click title="Solo los pagos recibidos dentro del rango de fechas seleccionado, agrupados por método -- distinto de 'Total Pagado / Abonos', que es el historial completo." style="cursor: help;"></b-icon>
                             </div>
                             <div v-if="totales.porMetodoPago && totales.porMetodoPago.length">
                               <div 
@@ -523,6 +570,17 @@ export default {
           const total_neto = yaProcesada ? 0 : totalNetoScaled;
           const saldo_pendiente = yaProcesada ? 0 : (saldoPendienteScaled > 0.01 ? saldoPendienteScaled : 0);
 
+          // Para que las tarjetas de resumen cuadren entre sí (Total Neto =
+          // Total Pagado histórico + Saldo Pendiente − Sobrepago − Notas de
+          // Crédito), el "Total Pagado" de la tarjeta usa el historial
+          // COMPLETO de abonos de la orden (no solo los pagos dentro del
+          // rango filtrado) -- mismo alcance que ya usa "Saldo Pendiente".
+          // El desglose "Métodos de Pago" sigue mostrando solo los pagos
+          // reales del rango (pregunta distinta: "qué entró en este
+          // período"), aclarado en su propio tooltip (2026-08-04).
+          const total_abono_historico = yaProcesada ? 0 : (ratio * totalAbonoBase);
+          const sobrepago = yaProcesada ? 0 : (saldoPendienteScaled < -0.01 ? Math.abs(saldoPendienteScaled) : 0);
+
           return {
             ...pago,
             montoAjustadoLocal,
@@ -532,6 +590,8 @@ export default {
             total_nota_credito_valor,
             total_neto,
             saldo_pendiente: saldo_pendiente,
+            total_abono_historico,
+            sobrepago,
             esDuplicado: yaProcesada
           };
         });
@@ -547,14 +607,16 @@ export default {
           descuentos: 0,
           notaCredito: 0,
           neto: 0,
-          saldo: 0
+          saldo: 0,
+          pagadoHistorico: 0,
+          sobrepago: 0
         }
       };
 
       const pagosSeguro = Array.isArray(this.pagosFiltrados) ? this.pagosFiltrados : [];
 
       pagosSeguro.forEach((item) => {
-        const { metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_nota_credito_valor, total_neto, saldo_pendiente } = item;
+        const { metodo_pago, montoAjustadoUsd, montoAjustadoLocal, total_orden, total_descuento_valor, total_nota_credito_valor, total_neto, saldo_pendiente, total_abono_historico, sobrepago } = item;
         const montoUsd = parseFloat(montoAjustadoUsd) || 0;
 
         totales.totalGeneral += montoUsd;
@@ -568,6 +630,8 @@ export default {
         totales.sumas.notaCredito += parseFloat(total_nota_credito_valor) || 0;
         totales.sumas.neto += parseFloat(total_neto) || 0;
         totales.sumas.saldo += parseFloat(saldo_pendiente) || 0;
+        totales.sumas.pagadoHistorico += parseFloat(total_abono_historico) || 0;
+        totales.sumas.sobrepago += parseFloat(sobrepago) || 0;
 
         if (!totales.porMetodoPago[metodo_pago]) {
           totales.porMetodoPago[metodo_pago] = 0;
