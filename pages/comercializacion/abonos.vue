@@ -17,17 +17,12 @@
             </b-col>
           </b-row>
           <b-row>
-            <b-col
-              xs="12"
-              sm="12"
-              md="6"
-              lg="4"
-              xl="4"
-              offset-md="6"
-              offset-lg="8"
-              offset-xl="8"
-            >
-              <form-monedas />
+            <b-col>
+              <!-- Ancho completo, alineado a la derecha por flex -- sin
+                   reservar columnas vacías como antes (offset-6/8, 2026-08-04) -->
+              <div class="d-flex justify-content-end">
+                <form-monedas />
+              </div>
             </b-col>
           </b-row>
         </b-container>
