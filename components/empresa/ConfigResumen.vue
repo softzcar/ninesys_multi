@@ -48,8 +48,20 @@
 
      <b-row>
       <b-col>
-        <h5 class="mt-2 mb-3">🎨 Personalización</h5>
-         <p>Opciones de visualización configuradas.</p>
+        <h5 class="mt-2 mb-3">🎨 Opciones de Visualización</h5>
+        <b-list-group flush v-if="personalizacionItems.length > 0">
+          <b-list-group-item
+            v-for="item in personalizacionItems"
+            :key="item.key"
+            class="d-flex justify-content-between align-items-center"
+          >
+            {{ item.label }}
+            <b-badge :variant="item.value ? 'success' : 'secondary'" pill>
+              {{ item.value ? 'Sí' : 'No' }}
+            </b-badge>
+          </b-list-group-item>
+        </b-list-group>
+        <p v-else class="text-muted">No hay opciones de personalización configuradas.</p>
       </b-col>
     </b-row>
   </b-card>
@@ -67,7 +79,23 @@ export default {
     horarioData: { type: Object, required: true },
     personalizacionData: { type: Object, required: true }
   },
+  computed: {
+    // Misma lógica de formateo de etiquetas que ConfigPersonalizacionForm.vue,
+    // para mostrar exactamente las mismas opciones (ya depuradas de campos
+    // legacy) con el mismo texto.
+    personalizacionItems() {
+      return Object.keys(this.personalizacionData || {}).map(key => ({
+        key,
+        label: this.formatSwitchLabel(key),
+        value: !!this.personalizacionData[key]
+      }));
+    }
+  },
   methods: {
+    formatSwitchLabel(key) {
+      let text = key.replace(/_/g, " ").replace("sys ", "");
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    },
     decimalToTime(decimal) {
       if (decimal === null || decimal === undefined) return "00:00";
       const hours = Math.floor(decimal);

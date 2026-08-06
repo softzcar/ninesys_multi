@@ -22,21 +22,33 @@
         </div>
 
         <!-- Menú de Opciones (Solo si no hay sección activa) -->
-        <b-row v-if="!activeSection">
-          <b-col md="4" v-for="item in menuItems" :key="item.id" class="mb-4">
-            <b-card 
-              @click="activeSection = item.id" 
-              class="h-100 text-center shadow-sm hover-card pointer"
-              bg-variant="light"
-            >
-              <div class="display-4 mb-3 text-primary">
-                <i :class="item.icon"></i>
-              </div>
-              <h4>{{ item.title }}</h4>
-              <p class="text-muted small">{{ item.description }}</p>
-            </b-card>
-          </b-col>
-        </b-row>
+        <div v-if="!activeSection">
+          <b-row>
+            <b-col md="4" v-for="item in menuItems" :key="item.id" class="mb-4">
+              <b-card
+                @click="activeSection = item.id"
+                class="h-100 text-center shadow-sm hover-card pointer"
+                bg-variant="light"
+              >
+                <div class="display-4 mb-3 text-primary">
+                  <i :class="item.icon"></i>
+                </div>
+                <h4>{{ item.title }}</h4>
+                <p class="text-muted small">{{ item.description }}</p>
+              </b-card>
+            </b-col>
+          </b-row>
+
+          <config-resumen
+            :admin-data="adminData"
+            :empresa-data="empresaData"
+            :nombre-pais="nombrePaisEmpresa"
+            :monedas-data="monedasData"
+            :gastos-data="gastosData"
+            :horario-data="horarioData"
+            :personalizacion-data="personalizacionData"
+          />
+        </div>
 
         <!-- Secciones Individuales -->
         <div v-else class="section-content">
@@ -98,17 +110,6 @@
               />
             </div>
 
-            <div v-else-if="activeSection === 'resumen'">
-              <config-resumen
-                :admin-data="adminData"
-                :empresa-data="empresaData"
-                :nombre-pais="nombrePaisEmpresa"
-                :monedas-data="monedasData"
-                :gastos-data="gastosData"
-                :horario-data="horarioData"
-                :personalizacion-data="personalizacionData"
-              />
-            </div>
           </b-card>
           
           <div class="mt-4">
@@ -188,7 +189,6 @@ export default {
         { id: 'timezone', title: 'Zona Horaria', icon: 'ti ti-world', description: 'Configure la zona horaria de la empresa.' },
         { id: 'personalizacion', title: 'Personalización', icon: 'ti ti-palette', description: 'Opciones visuales y comportamiento del sistema.' },
         { id: 'gastos', title: 'Gastos Fijos', icon: 'ti ti-receipt', description: 'Registre sus costos operativos mensuales.' },
-        { id: 'resumen', title: 'Resumen', icon: 'ti ti-check-box', description: 'Vista general de toda su configuración.' },
       ],
       countryCodes: [
         { value: 'AF', text: '+93 (Afganistán)' },
