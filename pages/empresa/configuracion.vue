@@ -484,7 +484,22 @@ export default {
       }
 
       if (personalizacionData) {
-        this.personalizacionData = { ...personalizacionData };
+        // Excluir campos legacy (mismo criterio ya aplicado en
+        // configuracionWizard.vue): "detalle terminar individual" y
+        // "comisión de costura" no los lee ningún código vivo (el único
+        // lector de cada uno está en un componente huérfano o en un bloque
+        // de backend comentado); "multiplicador_precio" es un valor
+        // decimal, no un interruptor -- este endpoint ni siquiera lo
+        // guardaba -- y se edita en su propia página dedicada
+        // (admin/MultiplicadorPrecio.vue). Auditado el 2026-08-06.
+        const LEGACY_FIELDS = [
+          'sys_mostrar_detalle_terminar_indicidual',
+          'sys_comision_de_costura',
+          'multiplicador_precio',
+        ];
+        this.personalizacionData = Object.fromEntries(
+          Object.entries(personalizacionData).filter(([key]) => !LEGACY_FIELDS.includes(key))
+        );
       }
     },
     parseAndSetPhoneNumber(formType, fullNumber) {
