@@ -213,7 +213,11 @@ export default {
         const data = new URLSearchParams()
         const { _id, ...fields } = this.gastoModel
         for (const k in fields) { if (fields[k] !== null) data.set(k, fields[k]) }
-        if (reactivarId) data.set('reactivar_id', reactivarId)
+        if (reactivarId) {
+          data.set('reactivar_id', reactivarId)
+          data.set('id_usuario', this.dataUser.id_empleado)
+          data.set('nombre_usuario', this.dataUser.nombre || this.dataUser.email || 'Sistema')
+        }
         await this.$axios.post(`${this.$config.API}/gastos`, data)
         this.$bvToast.toast(reactivarId ? 'Gasto reactivado exitosamente.' : 'Gasto creado exitosamente.', { title: 'Éxito', variant: 'success', solid: true })
         this.$bvModal.hide('modal-gasto-fijo')
@@ -278,9 +282,13 @@ export default {
     async confirmDelete(item) {
       let uso = 0
       try {
-        const { data } = await this.$axios.get(`${this.$config.API}/gastos/${item._id}/uso`)
+        // Timeout corto (propio, no el global de 30s de la app) -- esta
+        // consulta es solo un plus informativo antes de confirmar, nunca
+        // debe hacer sentir la interfaz "colgada" ante un problema de red
+        // puntual (hallazgo real reportado por el usuario, 2026-08-06).
+        const { data } = await this.$axios.get(`${this.$config.API}/gastos/${item._id}/uso`, { timeout: 5000 })
         uso = data.uso || 0
-      } catch (e) { /* si falla la consulta de uso, se sigue con la confirmación genérica */ }
+      } catch (e) { /* si falla o tarda la consulta de uso, se sigue con la confirmación genérica */ }
 
       const avisoUso = uso > 0
         ? `<p class="text-warning">Tiene <strong>${uso}</strong> pago${uso === 1 ? '' : 's'} registrado${uso === 1 ? '' : 's'} en su historial -- no se eliminará ese historial, pero considera Editar en vez de Eliminar si solo quieres desactivarla.</p>`
