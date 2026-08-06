@@ -86,9 +86,19 @@ export default {
     watch: {
       horario: {
         handler(newValue) {
-          // Ordenar siempre el array de días para mantener la consistencia
-          newValue.diasLaborales.sort((a, b) => a - b);
-          console.log("JSON de horario actualizado:", JSON.stringify(newValue, null, 2));
+          // Ordenar el array de días para mantener la consistencia -- sin
+          // mutar en el sitio: .sort() en el propio array observado siempre
+          // notifica a Vue 2 (aunque el orden no cambie), así que sobre un
+          // watcher "deep" en el mismo objeto esto provocaba un bucle
+          // infinito (bug real 2026-08-06, confirmado en consola con
+          // decenas de miles de disparos). Solo reasignar si el orden
+          // realmente cambió.
+          const ordenado = [...newValue.diasLaborales].sort((a, b) => a - b);
+          const yaOrdenado = newValue.diasLaborales.length === ordenado.length &&
+            newValue.diasLaborales.every((v, i) => v === ordenado[i]);
+          if (!yaOrdenado) {
+            newValue.diasLaborales = ordenado;
+          }
           this.$emit("change", newValue);
         },
         deep: true,
