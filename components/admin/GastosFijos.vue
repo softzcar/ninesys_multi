@@ -207,17 +207,33 @@ export default {
     async handleSubmit() {
       this.editMode ? await this.updateGasto() : await this.createGasto()
     },
-    async createGasto() {
+    async createGasto(reactivarId = null) {
       this.overlay = true
       try {
         const data = new URLSearchParams()
         const { _id, ...fields } = this.gastoModel
         for (const k in fields) { if (fields[k] !== null) data.set(k, fields[k]) }
+        if (reactivarId) data.set('reactivar_id', reactivarId)
         await this.$axios.post(`${this.$config.API}/gastos`, data)
-        this.$bvToast.toast('Gasto creado exitosamente.', { title: 'Éxito', variant: 'success', solid: true })
+        this.$bvToast.toast(reactivarId ? 'Gasto reactivado exitosamente.' : 'Gasto creado exitosamente.', { title: 'Éxito', variant: 'success', solid: true })
         this.$bvModal.hide('modal-gasto-fijo')
         await this.getGastos()
       } catch (e) {
+        const errData = e.response && e.response.data
+        // Ya existe una plantilla eliminada con este mismo nombre: ofrecer
+        // reactivarla en vez de crear una duplicada (mismo patrón ya usado
+        // en Tallas/Telas -- hallazgo real reportado por el usuario, 2026-08-06).
+        if (e.response && e.response.status === 409 && errData && errData.eliminado_existente) {
+          this.overlay = false
+          try {
+            const val = await this.$bvModal.msgBoxConfirm(
+              `Ya existe un gasto eliminado llamado "${errData.nombre}". ¿Desea reactivarlo con los datos actuales en vez de crear uno nuevo?`,
+              { title: 'Gasto ya existe', okVariant: 'primary', okTitle: 'Sí, reactivar', cancelTitle: 'Cancelar', centered: true }
+            )
+            if (val) await this.createGasto(errData.id)
+          } catch (e2) { /* usuario canceló */ }
+          return
+        }
         this.$bvToast.toast('Error al crear el gasto.', { title: 'Error', variant: 'danger', solid: true })
       } finally { this.overlay = false }
     },
