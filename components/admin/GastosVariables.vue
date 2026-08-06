@@ -67,6 +67,13 @@
             </b-form-group>
           </b-col>
         </b-row>
+        <b-row>
+          <b-col md="6">
+            <b-form-group label="Estatus:" label-for="estatus-select-var">
+              <b-form-select id="estatus-select-var" v-model="gastoModel.estatus" :options="[{value:'activo', text:'Activo'}, {value:'inactivo', text:'Inactivo'}]"></b-form-select>
+            </b-form-group>
+          </b-col>
+        </b-row>
         <b-alert show variant="info" class="small">
           <b-icon icon="info-circle"></b-icon> Para gastos variables no se define un monto fijo. El monto real se ingresa al momento de registrar cada pago.
         </b-alert>
