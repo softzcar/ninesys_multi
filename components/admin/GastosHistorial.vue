@@ -24,7 +24,7 @@
             </b-col>
             <b-col md="3">
               <b-form-group label="Tipo de gasto:" label-for="hist-tipo" class="mb-0">
-                <b-form-select id="hist-tipo" v-model="filtros.tipo" :options="opcionesTipo"></b-form-select>
+                <b-form-select id="hist-tipo" v-model="filtros.tipo" :options="opcionesTipo" @change="getRegistros"></b-form-select>
               </b-form-group>
             </b-col>
             <b-col md="3" class="d-flex align-items-end">
