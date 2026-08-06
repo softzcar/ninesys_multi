@@ -259,14 +259,28 @@ export default {
         this.$bvToast.toast('Error al registrar el pago.', { title: 'Error', variant: 'danger', solid: true })
       } finally { this.overlay = false }
     },
-    confirmDelete(item) {
-      this.$bvModal.msgBoxConfirm(`¿Eliminar la plantilla de gasto "${item.nombre}"? Esto no eliminará los pagos ya registrados.`, {
-        title: 'Confirmar Eliminación', okVariant: 'danger', okTitle: 'Sí, eliminar', cancelTitle: 'Cancelar', centered: true,
-      }).then(async (val) => {
+    async confirmDelete(item) {
+      let uso = 0
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/gastos/${item._id}/uso`)
+        uso = data.uso || 0
+      } catch (e) { /* si falla la consulta de uso, se sigue con la confirmación genérica */ }
+
+      const avisoUso = uso > 0
+        ? `<p class="text-warning">Tiene <strong>${uso}</strong> pago${uso === 1 ? '' : 's'} registrado${uso === 1 ? '' : 's'} en su historial -- no se eliminará ese historial, pero considera Editar en vez de Eliminar si solo quieres desactivarla.</p>`
+        : ''
+
+      this.$bvModal.msgBoxConfirm(
+        [this.$createElement('div', { domProps: { innerHTML: `¿Eliminar la plantilla de gasto "${item.nombre}"? Esto no eliminará los pagos ya registrados.${avisoUso}` } })],
+        { title: 'Confirmar Eliminación', okVariant: 'danger', okTitle: 'Sí, eliminar', cancelTitle: 'Cancelar', centered: true }
+      ).then(async (val) => {
         if (!val) return
         this.overlay = true
         try {
-          await this.$axios.delete(`${this.$config.API}/gastos/${item._id}`)
+          const data = new URLSearchParams()
+          data.set('id_usuario', this.dataUser.id_empleado)
+          data.set('nombre_usuario', this.dataUser.nombre || this.dataUser.email || 'Sistema')
+          await this.$axios.delete(`${this.$config.API}/gastos/${item._id}`, { data })
           this.$bvToast.toast('Gasto eliminado.', { title: 'Éxito', variant: 'success', solid: true })
           await this.getGastos()
         } catch (e) {
