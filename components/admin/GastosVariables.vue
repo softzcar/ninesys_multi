@@ -172,18 +172,36 @@ export default {
     resetPagoModal() { this.gastoAPagar = null; this.pagoModel = { monto: null, fecha_de_gasto: '', descripcion: '' } },
     handleOk(bvEvt) { bvEvt.preventDefault(); this.editMode ? this.updateGasto() : this.createGasto() },
     handlePagarOk(bvEvt) { bvEvt.preventDefault(); this.registrarPago() },
-    async createGasto() {
+    async createGasto(reactivarId = null) {
       this.overlay = true
       try {
         const data = new URLSearchParams()
         const { _id, ...fields } = this.gastoModel
         fields.tipo = 'variable'
         for (const k in fields) { if (fields[k] !== null) data.set(k, fields[k]) }
+        if (reactivarId) data.set('reactivar_id', reactivarId)
         await this.$axios.post(`${this.$config.API}/gastos`, data)
-        this.$bvToast.toast('Plantilla creada.', { title: 'Éxito', variant: 'success', solid: true })
+        this.$bvToast.toast(reactivarId ? 'Plantilla reactivada.' : 'Plantilla creada.', { title: 'Éxito', variant: 'success', solid: true })
         this.$bvModal.hide('modal-gasto-variable')
         await this.getGastos()
-      } catch (e) { this.$bvToast.toast('Error al crear.', { title: 'Error', variant: 'danger', solid: true }) }
+      } catch (e) {
+        const errData = e.response && e.response.data
+        // Ya existe una plantilla eliminada con este mismo nombre: ofrecer
+        // reactivarla en vez de crear una duplicada (mismo patrón ya usado
+        // en Gastos Fijos / Tallas / Telas).
+        if (e.response && e.response.status === 409 && errData && errData.eliminado_existente) {
+          this.overlay = false
+          try {
+            const val = await this.$bvModal.msgBoxConfirm(
+              `Ya existe una plantilla eliminada llamada "${errData.nombre}". ¿Desea reactivarla con los datos actuales en vez de crear una nueva?`,
+              { title: 'Plantilla ya existe', okVariant: 'primary', okTitle: 'Sí, reactivar', cancelTitle: 'Cancelar', centered: true }
+            )
+            if (val) await this.createGasto(errData.id)
+          } catch (e2) { /* usuario canceló */ }
+          return
+        }
+        this.$bvToast.toast('Error al crear.', { title: 'Error', variant: 'danger', solid: true })
+      }
       finally { this.overlay = false }
     },
     async updateGasto() {
@@ -222,14 +240,28 @@ export default {
       } catch (e) { this.$bvToast.toast('Error al registrar el pago.', { title: 'Error', variant: 'danger', solid: true }) }
       finally { this.overlay = false }
     },
-    confirmDelete(item) {
-      this.$bvModal.msgBoxConfirm(`¿Eliminar la plantilla "${item.nombre}"?`, {
-        title: 'Confirmar', okVariant: 'danger', okTitle: 'Eliminar', cancelTitle: 'Cancelar', centered: true,
-      }).then(async val => {
+    async confirmDelete(item) {
+      let uso = 0
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/gastos/${item._id}/uso`)
+        uso = data.uso || 0
+      } catch (e) { /* si falla la consulta de uso, se sigue con la confirmación genérica */ }
+
+      const avisoUso = uso > 0
+        ? `<p class="text-warning">Tiene <strong>${uso}</strong> pago${uso === 1 ? '' : 's'} registrado${uso === 1 ? '' : 's'} en su historial -- no se eliminará ese historial, pero considera Editar en vez de Eliminar si solo quieres desactivarla.</p>`
+        : ''
+
+      this.$bvModal.msgBoxConfirm(
+        [this.$createElement('div', { domProps: { innerHTML: `¿Eliminar la plantilla "${item.nombre}"?${avisoUso}` } })],
+        { title: 'Confirmar', okVariant: 'danger', okTitle: 'Eliminar', cancelTitle: 'Cancelar', centered: true }
+      ).then(async val => {
         if (!val) return
         this.overlay = true
         try {
-          await this.$axios.delete(`${this.$config.API}/gastos/${item._id}`)
+          const data = new URLSearchParams()
+          data.set('id_usuario', this.dataUser.id_empleado)
+          data.set('nombre_usuario', this.dataUser.nombre || this.dataUser.email || 'Sistema')
+          await this.$axios.delete(`${this.$config.API}/gastos/${item._id}`, { data })
           this.$bvToast.toast('Plantilla eliminada.', { title: 'Éxito', variant: 'success', solid: true })
           await this.getGastos()
         } catch (e) { this.$bvToast.toast('Error al eliminar.', { title: 'Error', variant: 'danger', solid: true }) }
