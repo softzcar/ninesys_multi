@@ -94,11 +94,6 @@ em {
     color: grey;
 }
 
-[required] {
-    color: red;
-    font-weight: 800;
-}
-
 .nombre-empresa {
     font-size: 1.6rem !important;
     font-weight: bold;
