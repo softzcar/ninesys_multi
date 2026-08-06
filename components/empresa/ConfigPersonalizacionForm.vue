@@ -73,6 +73,11 @@ export default {
           personalizacion: this.data
         });
 
+        // Refrescar los datos de la store para que no queden desactualizados
+        // tras guardar (antes, una recarga de página mostraba los valores
+        // viejos aunque el backend ya tenía los nuevos guardados).
+        await this.$store.dispatch("login/refreshData");
+
         this.$emit('saved', this.data);
         if (this.showSaveButton) {
             this.$fire({

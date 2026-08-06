@@ -186,6 +186,11 @@ export default {
         const adminUserId = this.$store.state.login.dataUser.id_empleado;
         await this.$axios.post(`${this.$config.API}/configuracion/admin/${adminUserId}`, payload);
 
+        // Refrescar los datos de la store para que no queden desactualizados
+        // tras guardar (antes, una recarga de página mostraba los valores
+        // viejos aunque el backend ya tenía los nuevos guardados).
+        await this.$store.dispatch("login/refreshData");
+
         this.$store.commit("login/removeConfiguracionFaltante", ["Teléfono del usuario"]);
         
         this.$emit('saved', this.data);

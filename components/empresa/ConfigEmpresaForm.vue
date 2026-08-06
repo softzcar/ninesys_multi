@@ -192,6 +192,11 @@ export default {
 
         await this.$axios.post(`${this.$config.API}/configuracion/empresa/${employeeId}`, payload);
 
+        // Refrescar los datos de la store para que no queden desactualizados
+        // tras guardar (antes, una recarga de página mostraba los valores
+        // viejos aunque el backend ya tenía los nuevos guardados).
+        await this.$store.dispatch("login/refreshData");
+
         const errorsToRemove = [
           "Número de registro legal de la empresa",
           "Dirección de la empresa (en empresas)",
