@@ -1,0 +1,50 @@
+- **Solicitud del Usuario:** "Sí, continuemos con presupuesto.vue" -- confirmando el pendiente identificado tras cerrar `nueva.vue`: replicar el mismo rework de búsqueda de clientes en el servidor (server-side search) en `presupuesto.vue`, ya que esta vista es casi una copia exacta de la misma arquitectura y tenía el mismo problema de precarga completa de la tabla `customers`.
+
+- **Fecha y Hora:** 2026-08-07 10:44:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/ordenes/presupuesto.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `227c223` (fix(presupuesto): búsqueda de clientes en el servidor en vez de precargar la tabla completa)
+  - Backend: N/A (reutiliza el endpoint `GET /customers?buscar=` ya implementado y desplegado para `nueva.vue`, commits `5952bbc`/`3b2ab56`)
+
+- **Acción Realizada:**
+  1. Se leyó `presupuesto.vue` completo (3070 líneas) y se localizaron los puntos exactos equivalentes a los ya corregidos en `nueva.vue`: `watch.query2`, `phoneExist()`, `step1()`, `updateCustomer()`, `mounted()`, `validateStep1()`, `loadFormGuardadas()` y `cargarPresupuestoEmitido()`.
+  2. Se releyó el código ya reescrito en `nueva.vue` (fuente de verdad del patrón, commit `322f855`) para replicarlo literalmente, sin improvisar variantes.
+  3. `watch.query2`: reemplazado por la versión con debounce (300ms, mínimo 2 caracteres, guard de formato `id | nombre` para no re-buscar tras seleccionar un resultado del typeahead).
+  4. Métodos nuevos agregados (idénticos a `nueva.vue`): `searchCustomers(texto)` (GET `/customers?buscar=`, alimenta `dataCustomers`/`customersSelect`) y `fetchCustomerById(id)` (GET `/customers/{id}`, traduce campos `billing_*` a nombres planos).
+  5. `phoneExist(telefono)` convertido a `async`, ahora usa `GET /customers/por-telefono/{tel}` en vez de escanear `this.myCustomers` (el array ya no contiene siempre todos los clientes).
+  6. `step1()`: se agregó `await` a la llamada `this.phoneExist(...)` (antes era una llamada síncrona no esperada, aunque `phoneExist` ahora es async).
+  7. `loadFormGuardadas()` (hidratación geográfica al cargar un borrador) y `cargarPresupuestoEmitido()` (hidratación completa del cliente al cargar un presupuesto ya emitido): sus `this.myCustomers.find(...)` reemplazados por `await this.fetchCustomerById(...)`.
+  8. `updateCustomer()`: tras crear/actualizar el cliente, ya no recarga la tabla completa (`GET /customers` sin filtro) -- ahora busca solo el cliente afectado por teléfono (`GET /customers?buscar={telefono}`). De paso corrige el mismo bug latente ya encontrado en `nueva.vue`: el match final usaba `el.cedula === this.form.cedula`, que nunca coincidía si la cédula quedaba vacía (el placeholder `"none"` solo se usa para construir la URL, nunca se aplica a `this.form.cedula`) -- se cambió a match por `telefono` (siempre presente y validado a esta altura del flujo).
+  9. `mounted()`: se quitó `this.loadDataCustomers()` del `Promise.all` de carga inicial (era la petición más pesada del lote).
+  10. `validateStep1()`: se quitó la llamada a `this.loadDataCustomers()`.
+  11. Se verificó explícitamente que `filterCustomer()` (usaba `this.myCustomers.find(...)`, línea 2033) y el bloque `watch.query2` comentado son código muerto -- sin ningún binding `@keyup`/`@blur` en el template que los invoque -- y se dejaron intactos, sin tocar, mismo criterio aplicado en `nueva.vue`.
+  12. `loadDataCustomers()` (el método original de precarga completa) se dejó intacto pero sin llamadas activas, igual que en `nueva.vue` (utilidad dormante de bajo riesgo).
+  13. Verificación de sintaxis con el chequeo Node.js estándar de la sesión (`vue-template-compiler` + `@babel/core`): script y template OK.
+  14. Commit y push a `refactor/modular-routes` (commit `227c223`).
+  15. Despliegue a Desarrollo (Contabo Dev) vía `ninesys-hub/bin/deploy.sh`, opción 2 (`npm run generate` + `rsync`).
+
+- **Inconvenientes y Desafíos:** El archivo es grande (3070 líneas) y algunas secciones tuvieron que leerse por partes (el visor de archivos trunca por tamaño de tokens). Se usó `grep -n` para ubicar con precisión cada punto de cambio antes de editar, evitando ediciones a ciegas.
+
+- **Decisión Final y Justificación:** Replicar el patrón de `nueva.vue` literalmente (mismos nombres de método, misma estructura, mismos comentarios explicativos) en vez de reinventar una solución distinta -- ambos archivos comparten la misma arquitectura de formulario por pestañas y el mismo store (`comerce/dataCustomers`), así que mantenerlos consistentes reduce la superficie de mantenimiento futuro y evita que un desarrollador tenga que recordar dos patrones distintos para el mismo problema.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Bash` (grep, node de verificación de sintaxis, git, deploy.sh, curl de verificación), `Edit`.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template) con el chequeo Node.js estándar: ambos OK.
+  - `git diff --stat`: 116 inserciones, 35 eliminaciones, solo en el archivo objetivo.
+  - Despliegue exitoso a Desarrollo (`✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO`).
+  - Confirmado en el servidor que el bundle compilado desplegado contiene el nuevo código (`grep -o 'buscar' _nuxt/*.js` encontró coincidencias) y que el sitio responde `200`.
+  - Push confirmado a `origin/refactor/modular-routes` (commit `227c223`).
+
+- **Logro Conseguido:** Se cerró la inconsistencia arquitectónica pendiente entre `nueva.vue` y `presupuesto.vue` -- ambas vistas ahora usan búsqueda de clientes acotada en el servidor en vez de precargar la tabla completa, eliminando en `presupuesto.vue` la misma fuente de saturación del pool de procesos PHP en Desarrollo que ya se había corregido en `nueva.vue`, y corrigiendo de paso el mismo bug latente de match por cédula vacía.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se replicó en `presupuesto.vue` el mismo rework de búsqueda de clientes en el servidor ya aplicado en `nueva.vue`, incluyendo el fix del bug latente de `updateCustomer()`, verificado sintácticamente y desplegado en Desarrollo.
