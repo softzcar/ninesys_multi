@@ -90,7 +90,7 @@ export default {
             console.log("vamos a cargar las ordenes")
             this.overlay = true
             await this.$axios
-                .get(`${this.$config.API}/comercializacion/ordenes/reporte/`)
+                .get(`${this.$config.API}/comercializacion/ordenes/reporte`)
                 .then((resp) => {
                     this.dataTable = resp.data
                     this.overlay = false
