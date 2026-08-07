@@ -1,0 +1,41 @@
+- **Solicitud del Usuario:** Continuando el trabajo del sidebar (ver `2026-08-07_11-30-00_tarea-sidebar-acordeon-y-configuracion.log`): (1) resolver que el color gris del submenú abierto aún se veía en blanco -- el usuario investigó con las DevTools del navegador y detectó que el elemento realmente visible es el `.nav-link`, proponiendo un selector `.sub-menu nav nav-item` con `background:#e9ecef` y preguntando si funcionaría y si la anidación de clases era correcta; (2) eliminar el nombre del departamento debajo del nombre del usuario en el perfil del sidebar, por quedar duplicado visualmente con el selector de departamento inmediatamente debajo.
+
+- **Fecha y Hora:** 2026-08-07 11:45:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/layout/AppSidebar.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `6b77353` (fix(sidebar): color gris visible en submenú abierto + quitar departamento duplicado del perfil)
+
+- **Acción Realizada:**
+  1. Se corrigió el selector propuesto por el usuario: `.sub-menu nav nav-item` (sin puntos) es CSS válido pero equivale a "elemento `<nav>` dentro de un elemento `<nav-item>`" -- nombres de etiqueta HTML, no clases -- y esas etiquetas no existen en el DOM real (los elementos reales son `<ul class="nav">` y `<li class="nav-item">`). Se explicó la corrección necesaria (`.sub-menu .nav .nav-item`, con puntos) y se validó que el elemento correcto a intervenir es `.nav-link` (como el propio usuario identificó en DevTools), no el `.nav-item` contenedor.
+  2. Se ubicó el bloque CSS centralizado ya existente en `AppSidebar.vue` (`::v-deep .sub-menu { background: #f8f9fa; .nav-link {...} }`) -- las Sidebar por rol (`SidebarAdmin.vue`, etc.) no tienen `<style>` propio, todo el estilo vive aquí, y requiere el prefijo `::v-deep` porque esos elementos los renderiza el componente hijo dinámico.
+  3. Se agregó `background-color: #e9ecef;` directamente a la regla base de `.nav-link` dentro de `::v-deep .sub-menu`, un tono apenas más marcado que el `#f8f9fa` del contenedor (que no se notaba, tapado por el nav-link individual). Los estados `:hover` y `.router-link-active` conservan su color de acento existente sin cambios, ya que se definen después y ganan especificidad/orden natural.
+  4. Se localizó el `currentDepartament` mostrado en el perfil (`<small class="profile-dept">{{ currentDepartament }}</small>`, línea 26). Se confirmó que este mismo estado (`mapState('login', ['currentDepartament', ...])`) tiene OTRO consumidor real: un `watch: { currentDepartament: { immediate: true, handler... } }` que sincroniza `selectedDepartamento` (el valor seleccionado en el `<b-form-select>` de departamento, mostrado justo debajo del perfil) -- por lo tanto NO se tocó el `mapState` ni el watcher, solo se eliminó esta visualización puntual, ya redundante con el selector.
+  5. Se eliminó también la regla CSS `.profile-dept { ... }`, que quedó huérfana tras remover su único uso en el template.
+  6. Verificación de sintaxis (script + template) con el chequeo Node.js estándar: OK.
+  7. Commit y push a `refactor/modular-routes` (commit `6b77353`).
+  8. Despliegue a Desarrollo (Contabo Dev) vía `deploy.sh`, opción 2.
+
+- **Inconvenientes y Desafíos:** Ninguno -- el usuario ya había hecho el diagnóstico correcto usando las herramientas de desarrollador del navegador (identificando `.nav-link` como el elemento real), lo que aceleró la implementación sin necesidad de investigación adicional por mi parte.
+
+- **Decisión Final y Justificación:** Se validó y corrigió la sintaxis del selector propuesto por el usuario en vez de simplemente aplicar una alternativa distinta sin explicar el error -- el usuario preguntó explícitamente "¿estoy bien con la anidación de clases?", así que la respuesta debía abordar ese punto concreto (los nombres de etiqueta vs. clase) antes de implementar. Se mantuvo intacto el `mapState`/watcher de `currentDepartament` en vez de eliminarlo por completo, ya que sigue siendo necesario para la sincronización del selector de departamento -- solo se quitó la visualización duplicada, evitando romper una funcionalidad real por una limpieza excesiva.
+
+- **Herramienta(s) Utilizada(s):** `Bash` (grep para ubicar los consumidores de `currentDepartament`, chequeo de sintaxis Node.js, git, deploy.sh), `Read`, `Edit`.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template): OK.
+  - `git diff`: cambio acotado a exactamente las 2 modificaciones pedidas, sin tocar el `mapState`/watcher que aún depende de `currentDepartament`.
+  - Despliegue exitoso a Desarrollo (`✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO`).
+  - Pendiente: confirmación visual del usuario en el navegador.
+
+- **Logro Conseguido:** El submenú abierto del sidebar ahora tiene un contraste de gris realmente visible (no solo definido en el contenedor sino aplicado directamente al elemento que el usuario ve), y el perfil del sidebar quedó más limpio al eliminar la duplicación visual del nombre del departamento (ya visible en el selector inmediatamente debajo), sin afectar la lógica de sincronización de ese selector.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se corrigió el selector CSS propuesto por el usuario (necesitaba puntos para ser selectores de clase, no de etiqueta) y se aplicó el color gris directamente al `.nav-link` (el elemento identificado con DevTools) dentro del bloque centralizado ya existente en `AppSidebar.vue`. Se eliminó también el nombre de departamento duplicado del perfil, preservando la lógica de sincronización con el selector de departamento. Desplegado en Desarrollo.
