@@ -12,7 +12,7 @@
             <h2 class="mb-4 text-center">Mi Relación de Pagos</h2>
 
             <!-- Opción para Vendedores -->
-            <div v-if="dataUser.departamento === 'Comercialización' || dataUser.departamento === 'Comecialización' || dataUser.departamento === 'Administración'" >
+            <div v-if="accessModule.accessData.id_modulo === 2 || accessModule.accessData.id_modulo === 1" >
               <vendedores-TablaDePagosVendedor :emp="dataUser.id_empleado" />
             </div>
 
@@ -44,8 +44,10 @@
 import { mapState } from 'vuex';
 import TablaDePagos from '~/components/empleados/TablaDePagos.vue';
 import TablaDePagosVendedor from '~/components/vendedores/TablaDePagosVendedor.vue';
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [mixinLogin],
   components: {
     'empleados-TablaDePagos': TablaDePagos,
     'vendedores-TablaDePagosVendedor': TablaDePagosVendedor,

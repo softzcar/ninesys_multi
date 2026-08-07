@@ -109,14 +109,14 @@
                         <th>CORTE</th>
                         <th>TELA</th>
                         <th class="hideMe" v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
+                            accessModule.accessData.id_modulo === 2 ||
+                            accessModule.accessData.id_modulo === 1
                         " style="text-align: right">
                             PRECIO
                         </th>
                         <th class="hideMe" v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
+                            accessModule.accessData.id_modulo === 2 ||
+                            accessModule.accessData.id_modulo === 1
                         " style="text-align: right">
                             TOTAL
                         </th>
@@ -139,18 +139,14 @@
                                 <td>{{ product.corte }}</td>
                                 <td>{{ product.tela }}</td>
                                 <td class="hideMe" v-if="
-                                    dataUser.departamento ===
-                                    'Comercialización' ||
-                                    dataUser.departamento ===
-                                    'Administración'
+                                    accessModule.accessData.id_modulo === 2 ||
+                                    accessModule.accessData.id_modulo === 1
                                 " style="text-align: right">
                                     {{ product.precio }}
                                 </td>
                                 <td class="hideMe" v-if="
-                                    dataUser.departamento ===
-                                    'Comercialización' ||
-                                    dataUser.departamento ===
-                                    'Administración'
+                                    accessModule.accessData.id_modulo === 2 ||
+                                    accessModule.accessData.id_modulo === 1
                                 " style="text-align: right">
                                     {{
                                         (
@@ -164,8 +160,8 @@
                     </table>
 
                     <div class="spacer hideMe" v-if="
-                        dataUser.departamento === 'Comercialización' ||
-                        dataUser.departamento === 'Administración'
+                        accessModule.accessData.id_modulo === 2 ||
+                        accessModule.accessData.id_modulo === 1
                     " style="text-align: right">
                         <h2>
                             ABONO: {{ floatMe(resOrden.orden[0].pago_abono) }}
@@ -212,6 +208,7 @@
 import { mapState, mapActions, mapGetters } from "vuex"
 import axios from "axios"
 import mixin from "~/mixins/mixins.js"
+import mixinLogin from "~/mixins/mixin-login.js"
 
 export default {
     data() {
@@ -319,7 +316,7 @@ export default {
         })
     },
 
-    mixins: [mixin],
+    mixins: [mixin, mixinLogin],
 }
 </script>
 

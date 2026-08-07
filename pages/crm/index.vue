@@ -7,8 +7,8 @@
     <div v-else>
       <menus-MenuLoader />
       <div v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Comercialización'
+                    accessModule.accessData.id_modulo === 1 ||
+                    accessModule.accessData.id_modulo === 2
                 ">
         <b-overlay :show="loading" spinner-small>
           <b-container fluid class="crm-board-container py-3">
@@ -287,8 +287,10 @@
 import draggable from "vuedraggable";
 import axios from "axios";
 import { mapState } from "vuex";
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [mixinLogin],
   components: {
     draggable,
   },

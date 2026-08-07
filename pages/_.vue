@@ -8,11 +8,11 @@
       <menus-MenuLoader />
       <div
         v-if="
-          dataUser.departamento === 'Comercialización' ||
-          dataUser.departamento === 'Administración'
+          accessModule.accessData.id_modulo === 2 ||
+          accessModule.accessData.id_modulo === 1
         "
       >
-        <b-container v-if="this.dataUser.departamento === 'Comercialización'">
+        <b-container v-if="accessModule.accessData.id_modulo === 2">
           <b-row>
             <b-col>
               <noFound />
@@ -38,8 +38,10 @@
 
 <script>
 import { mapState } from "vuex";
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [mixinLogin],
   computed: {
     ...mapState("login", ["dataUser", "access"]),
   },

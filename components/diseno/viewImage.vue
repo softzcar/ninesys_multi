@@ -24,7 +24,7 @@
             <b-col>
               <div v-if="
                 this.$store.state.login.dataUser.acceso ||
-                this.$store.state.login.dataUser.departamento === 'Comercialización'
+                accessModule.accessData.id_modulo === 2
               ">
                 <b-button class="mb-4" :disabled="disableButton" variant="info" @click="copiarAlPortapapeles">
                   <b-icon icon="image"></b-icon> Copiar Imagen
@@ -61,9 +61,10 @@
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
-  mixins: [mixin],
+  mixins: [mixin, mixinLogin],
 
   data() {
     return {

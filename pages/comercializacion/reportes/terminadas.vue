@@ -13,7 +13,7 @@
                 "
             >
                 <b-container
-                    v-if="this.dataUser.departamento === 'Comercialización'"
+                    v-if="accessModule.accessData.id_modulo === 2"
                 >
                     <b-row>
                         <b-col>

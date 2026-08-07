@@ -13,7 +13,7 @@
               Este V-IF es la capa de seguridad que valida que solo los usuarios
               del departamento de Comercialización puedan ver este módulo.
             -->
-            <div v-if="dataUser.departamento === 'Comercialización'">
+            <div v-if="accessModule.accessData.id_modulo === 2">
               <h2 class="mb-4 text-center">Mi Relación de Pagos</h2>
               <vendedores-TablaDePagosVendedor :emp="dataUser.id_empleado" />
             </div>
@@ -42,8 +42,10 @@
 
 <script>
 import { mapState } from 'vuex';
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [mixinLogin],
   computed: {
     ...mapState("login", ["dataUser", "access"]),
   },

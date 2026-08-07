@@ -93,8 +93,8 @@
                         <th
                             class="hideMe"
                             v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
+                                accessModule.accessData.id_modulo === 2 ||
+                                accessModule.accessData.id_modulo === 1
                             "
                             style="text-align: right"
                         >
@@ -103,8 +103,8 @@
                         <th
                             class="hideMe"
                             v-if="
-                                dataUser.departamento === 'Comercialización' ||
-                                dataUser.departamento === 'Administración'
+                                accessModule.accessData.id_modulo === 2 ||
+                                accessModule.accessData.id_modulo === 1
                             "
                             style="text-align: right"
                         >
@@ -130,9 +130,8 @@
                                 <td
                                     class="hideMe"
                                     v-if="
-                                        dataUser.departamento ===
-                                            'Comercialización' ||
-                                        dataUser.departamento === 'Administración'
+                                        accessModule.accessData.id_modulo === 2 ||
+                                        accessModule.accessData.id_modulo === 1
                                     "
                                     style="text-align: right"
                                 >
@@ -141,9 +140,8 @@
                                 <td
                                     class="hideMe"
                                     v-if="
-                                        dataUser.departamento ===
-                                            'Comercialización' ||
-                                        dataUser.departamento === 'Administración'
+                                        accessModule.accessData.id_modulo === 2 ||
+                                        accessModule.accessData.id_modulo === 1
                                     "
                                     style="text-align: right"
                                 >
@@ -169,8 +167,8 @@
                         class="spacer hideMe derecha"
                         style="width: 100% !important"
                         v-if="
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Administración'
+                            accessModule.accessData.id_modulo === 2 ||
+                            accessModule.accessData.id_modulo === 1
                         "
                     >
                         <h2>ABONO: {{ floatMe(form.abono) }}</h2>
@@ -215,6 +213,7 @@
 
 <script>
 import mixin from "~/mixins/mixins.js"
+import mixinLogin from "~/mixins/mixin-login.js"
 import { mapState, mapMutations } from "vuex"
 
 export default {
@@ -313,7 +312,7 @@ export default {
         if (this.showpreview) this.preview = true
         this.nextIdOrden()
     },
-    mixins: [mixin],
+    mixins: [mixin, mixinLogin],
     props: ["form", "showpreview", "go", "editingOrderId"],
 }
 </script>

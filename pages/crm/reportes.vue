@@ -7,8 +7,8 @@
     <div v-else>
       <menus-MenuLoader />
       <div v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Comercialización'
+                    accessModule.accessData.id_modulo === 1 ||
+                    accessModule.accessData.id_modulo === 2
                 ">
         <b-overlay :show="loading" spinner-small>
           <b-container fluid class="py-3">
@@ -153,6 +153,7 @@
 <script>
 import axios from "axios";
 import { mapState } from "vuex";
+import mixinLogin from "~/mixins/mixin-login.js";
 
 // Importar ApexCharts de forma compatible con SSR/Nuxt
 let VueApexCharts;
@@ -161,6 +162,7 @@ if (process.client) {
 }
 
 export default {
+  mixins: [mixinLogin],
   components: {
     apexchart: process.client ? VueApexCharts : { render: h => h("div") },
   },

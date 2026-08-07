@@ -279,8 +279,10 @@
 <script>
 import axios from "axios";
 import { mapState } from "vuex";
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [mixinLogin],
   props: {
     client: {
       type: Object,
@@ -390,7 +392,7 @@ export default {
       const id = this.client.id || this.client._id;
       
       let queryParam = "";
-      if (this.dataUser && (this.dataUser.departamento === 'Comercialización' || this.dataUser.departamento === 'Comecialización')) {
+      if (this.dataUser && this.accessModule.accessData.id_modulo === 2) {
         const sellerId = this.dataUser.id_usuario || this.dataUser.id_empleado;
         if (sellerId) {
           queryParam = `?id_vendedor=${sellerId}`;

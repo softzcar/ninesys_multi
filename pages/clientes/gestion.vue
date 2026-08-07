@@ -7,9 +7,8 @@
     <div v-else>
       <menus-MenuLoader />
       <div v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Comercialización' ||
-                    dataUser.departamento === 'Comecialización'
+                    accessModule.accessData.id_modulo === 1 ||
+                    accessModule.accessData.id_modulo === 2
                 ">
         <b-overlay
           :show="overlay"
@@ -18,9 +17,8 @@
           <b-container
             fluid
             v-if="
-                            dataUser.departamento === 'Administración' ||
-                            dataUser.departamento === 'Comercialización' ||
-                            dataUser.departamento === 'Comecialización'
+                            accessModule.accessData.id_modulo === 1 ||
+                            accessModule.accessData.id_modulo === 2
                         "
           >
             <!-- Fila de Título de la Página -->
@@ -240,8 +238,10 @@
 <script>
 import { mapState } from "vuex";
 import axios from "axios";
+import mixinLogin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [mixinLogin],
   data() {
     return {
       includedFields: ["first_name", "last_name", "cedula", "email", "phone", "address"],
@@ -503,7 +503,7 @@ export default {
 
     async getCustomers() {
       let url = `${this.$config.API}/customers`;
-      if (this.dataUser && (this.dataUser.departamento === 'Comercialización' || this.dataUser.departamento === 'Comecialización')) {
+      if (this.dataUser && this.accessModule.accessData.id_modulo === 2) {
         const sellerId = this.dataUser.id_usuario || this.dataUser.id_empleado;
         if (sellerId) {
           url += `?id_vendedor=${sellerId}`;

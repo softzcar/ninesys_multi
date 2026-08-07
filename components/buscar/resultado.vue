@@ -26,8 +26,8 @@
               <diseno-viewImage :id="orderId" :aprobada="true" />
             </span>
             <span v-if="
-              dataUser.departamento === 'Comecialización' ||
-              dataUser.departamento === 'Administración'
+              accessModule.accessData.id_modulo === 2 ||
+              accessModule.accessData.id_modulo === 1
             " class="floatme">
               <b-button-group v-if="activeCurrencies.length" size="sm">
                 <b-button v-for="currency in activeCurrencies" :key="currency.moneda"
@@ -177,14 +177,14 @@
               <th>TELA</th>
               <th>ATRIBUTOS</th>
               <th v-if="
-                dataUser.departamento === 'Comecialización' ||
-                dataUser.departamento === 'Administración'
+                accessModule.accessData.id_modulo === 2 ||
+                accessModule.accessData.id_modulo === 1
               " style="text-align: right">
                 PRECIO
               </th>
               <th v-if="
-                dataUser.departamento === 'Comecialización' ||
-                dataUser.departamento === 'Administración'
+                accessModule.accessData.id_modulo === 2 ||
+                accessModule.accessData.id_modulo === 1
               " style="text-align: right">
                 TOTAL
               </th>
@@ -216,14 +216,14 @@
                     <span v-else>N/A</span>
                   </td>
                   <td v-if="
-                    dataUser.departamento === 'Comecialización' ||
-                    dataUser.departamento === 'Administración'
+                    accessModule.accessData.id_modulo === 2 ||
+                    accessModule.accessData.id_modulo === 1
                   " style="text-align: right">
                     {{ currencySymbol }} {{ convertAndFormat(product.precio) }}
                   </td>
                   <td v-if="
-                    dataUser.departamento === 'Comecialización' ||
-                    dataUser.departamento === 'Administración'
+                    accessModule.accessData.id_modulo === 2 ||
+                    accessModule.accessData.id_modulo === 1
                   " style="text-align: right">
                     {{ currencySymbol }}
                     {{
@@ -244,8 +244,8 @@
             </div>
 
             <div class="spacer derecha" v-if="
-              dataUser.departamento === 'Comecialización' ||
-              dataUser.departamento === 'Administración'
+              accessModule.accessData.id_modulo === 2 ||
+              accessModule.accessData.id_modulo === 1
             " style="width: 100% !important">
               <h2>
                 ABONO:
@@ -339,6 +339,7 @@
 <script>
 import { mapState, mapActions, mapGetters } from "vuex";
 import mixin from "~/mixins/mixins.js";
+import mixinLogin from "~/mixins/mixin-login.js";
 import PrintService from '@/utils/PrintService';
 
 export default {
@@ -645,7 +646,7 @@ export default {
     }
   },
 
-  mixins: [mixin],
+  mixins: [mixin, mixinLogin],
 
   beforeDestroy() {
     if (this.imageAbortController) {
