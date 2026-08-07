@@ -116,7 +116,7 @@ export default {
             this.overlay = true
             await this.$axios
                 .get(
-                    `${this.$config.API}/comercializacion/ordenes/reporte/entregadas/${this.rango}`
+                    `${this.$config.API}/comercializacion/ordenes/reporte/entregadas/${this.rango}/${this.dataUser.id_empleado}`
                 )
                 .then((resp) => {
                     this.dataTable = resp.data
