@@ -594,7 +594,6 @@ $active-bg: rgba(23, 162, 184, 0.15);
       color: $text-primary !important;
 
       &:hover {
-        color: $accent-color !important;
         background: $hover-bg;
       }
 
