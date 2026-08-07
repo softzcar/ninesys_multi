@@ -47,7 +47,7 @@
         <span>Caja</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-caja" class="sub-menu">
+      <b-collapse id="sidebar-caja" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/retiros">
@@ -98,7 +98,7 @@
         <span>Reportes</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-reportes" class="sub-menu">
+      <b-collapse id="sidebar-reportes" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/reportes/terminadas">

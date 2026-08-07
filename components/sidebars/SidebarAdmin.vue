@@ -7,7 +7,7 @@
         <span>Órdenes y Lotes</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-ordenes" class="sub-menu">
+      <b-collapse id="sidebar-ordenes" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/ordenes">
@@ -45,7 +45,7 @@
         <span>Caja</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-caja" class="sub-menu">
+      <b-collapse id="sidebar-caja" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/comercializacion/retiros">
@@ -98,7 +98,7 @@
         <span>Diseños</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-disenos" class="sub-menu">
+      <b-collapse id="sidebar-disenos" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/diseno/asignacion">
@@ -134,7 +134,7 @@
         <span>Inventario</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-inventario" class="sub-menu">
+      <b-collapse id="sidebar-inventario" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/inventario/gestion">
@@ -172,7 +172,7 @@
         <span>Impresoras</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-impresoras" class="sub-menu">
+      <b-collapse id="sidebar-impresoras" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/gestion">
@@ -225,7 +225,7 @@
         <span>Empleados</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-empleados" class="sub-menu">
+      <b-collapse id="sidebar-empleados" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/empleados/gestion">
@@ -261,7 +261,7 @@
         <span>Productos</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-productos" class="sub-menu">
+      <b-collapse id="sidebar-productos" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/productos/gestion">
@@ -299,7 +299,7 @@
         <span>Pagos</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-pagos" class="sub-menu">
+      <b-collapse id="sidebar-pagos" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/empleados/planilla-de-pagos">
@@ -322,7 +322,7 @@
         <span>Reportes</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-reportes" class="sub-menu">
+      <b-collapse id="sidebar-reportes" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/reportes/general-eficiencia">
@@ -367,7 +367,7 @@
         <span>Varios</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-varios" class="sub-menu">
+      <b-collapse id="sidebar-varios" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
 
 
@@ -402,7 +402,7 @@
         <span>Gastos</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-gastos" class="sub-menu">
+      <b-collapse id="sidebar-gastos" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/empresa/gastos-fijos">
@@ -435,20 +435,10 @@
 
     <!-- Configuración -->
     <li class="nav-item">
-      <a class="nav-link" v-b-toggle="'sidebar-configuracion'">
+      <router-link class="nav-link" to="/empresa/configuracion">
         <b-icon icon="gear-fill" />
         <span>Configuración</span>
-        <b-icon icon="chevron-down" class="menu-arrow" />
-      </a>
-      <b-collapse id="sidebar-configuracion" class="sub-menu">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <router-link class="nav-link" to="/empresa/configuracion">
-              Configuración de Empresa
-            </router-link>
-          </li>
-        </ul>
-      </b-collapse>
+      </router-link>
     </li>
   </div>
 </template>

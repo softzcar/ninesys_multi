@@ -7,7 +7,7 @@
         <span>Reportes</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-reportes-prod" class="sub-menu">
+      <b-collapse id="sidebar-reportes-prod" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/reportes/general-eficiencia">
@@ -73,7 +73,7 @@
         <span>Inventario</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-inventario-prod" class="sub-menu">
+      <b-collapse id="sidebar-inventario-prod" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/inventario/gestion">
@@ -106,7 +106,7 @@
         <span>Impresoras</span>
         <b-icon icon="chevron-down" class="menu-arrow" />
       </a>
-      <b-collapse id="sidebar-impresoras-prod" class="sub-menu">
+      <b-collapse id="sidebar-impresoras-prod" class="sub-menu" accordion="app-sidebar-accordion">
         <ul class="nav flex-column">
           <li class="nav-item">
             <router-link class="nav-link" to="/impresoras/gestion">

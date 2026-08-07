@@ -59,7 +59,7 @@
             </b-badge>
             <b-icon v-show="!isCollapsed" icon="chevron-down" class="menu-arrow" />
           </a>
-          <b-collapse v-if="!isCollapsed" id="sidebar-whatsapp" class="sub-menu">
+          <b-collapse v-if="!isCollapsed" id="sidebar-whatsapp" class="sub-menu" accordion="app-sidebar-accordion">
             <ul class="nav flex-column">
               <li class="nav-item">
                 <router-link class="nav-link" to="/whatsapp">
