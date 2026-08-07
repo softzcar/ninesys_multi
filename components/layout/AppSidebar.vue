@@ -599,6 +599,12 @@ $active-bg: rgba(23, 162, 184, 0.15);
 
       &.router-link-exact-active,
       &.router-link-active {
+        // El selector del menú principal (.nav-item .nav-link.router-link-active,
+        // más abajo) también matchea estos links porque cada item de submenú
+        // sigue envuelto en un <li class="nav-item">. Misma especificidad que
+        // esta regla -- sin declarar color aquí explícitamente, el
+        // "color: $accent-color !important" de esa otra regla se filtraba.
+        color: $text-primary !important;
         background: $active-bg;
         font-weight: 500;
       }
