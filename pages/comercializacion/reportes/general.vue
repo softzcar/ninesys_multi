@@ -16,6 +16,19 @@
                     <b-row>
                         <b-col>
                             <h1 class="mb-4">{{ titulo }}</h1>
+
+                            <h5 class="mb-2">Filtrar por estatus de orden:</h5>
+                            <b-form-radio-group
+                                id="btn-radios-status"
+                                v-model="selectedStatus"
+                                :options="optionsStatus"
+                                button-variant="outline-primary"
+                                size="lg"
+                                name="radio-btn-status"
+                                class="mb-4"
+                                buttons
+                            ></b-form-radio-group>
+
                             <b-overlay :show="overlay" spinner-small>
                                 <b-table
                                     ref="table"
@@ -23,8 +36,8 @@
                                     small
                                     striped
                                     hover
-                                    :items="dataTable.items"
-                                    :fields="dataTable.fields"
+                                    :items="filteredItems"
+                                    :fields="fields"
                                 >
                                     <template #cell(_id)="data">
                                         <linkSearch :id="data.item._id" />
@@ -34,7 +47,7 @@
                                         <div
                                             v-for="(
                                                 item, index
-                                            ) in dataTable.vinculadas"
+                                            ) in vinculadas"
                                             v-bind:key="index"
                                         >
                                             <div
@@ -77,22 +90,59 @@ export default {
         return {
             overlay: true,
             titulo: "Reporte General de ordenes",
-            dataTable: [],
+            allItems: [],
+            vinculadas: [],
+            fields: [],
+            selectedStatus: "todas",
+            optionsStatus: [],
         }
     },
 
     computed: {
         ...mapState("login", ["dataUser", "access"]),
+
+        filteredItems() {
+            if (this.selectedStatus === "todas") {
+                return this.allItems
+            }
+            return this.allItems.filter(
+                (item) => item.status === this.selectedStatus
+            )
+        },
     },
 
     methods: {
+        generateStatusOptions() {
+            const uniqueStatuses = new Set()
+            this.allItems.forEach((item) => {
+                if (item.status) {
+                    uniqueStatuses.add(item.status.trim())
+                }
+            })
+
+            const statusOptions = [...uniqueStatuses]
+                .sort((a, b) => a.localeCompare(b))
+                .map((status) => ({ text: status, value: status }))
+
+            this.optionsStatus = [
+                { text: "Todas", value: "todas" },
+                ...statusOptions,
+            ]
+        },
+
         async getOrdenes() {
             console.log("vamos a cargar las ordenes")
             this.overlay = true
             await this.$axios
                 .get(`${this.$config.API}/comercializacion/ordenes/reporte`)
                 .then((resp) => {
-                    this.dataTable = resp.data
+                    this.allItems = resp.data.items
+                    this.vinculadas = resp.data.vinculadas
+                    this.fields = resp.data.fields.map((field) => ({
+                        ...field,
+                        sortable: field.key !== "vinculada",
+                    }))
+                    this.generateStatusOptions()
                     this.overlay = false
                 })
         },
