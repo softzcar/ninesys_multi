@@ -4,7 +4,7 @@
       <div v-if="series && series.length > 0">
         <apexchart
           type="bar"
-          height="350"
+          :height="chartHeight"
           :options="chartOptions"
           :series="series"
         />
@@ -31,6 +31,13 @@ export default {
     };
   },
   computed: {
+    // Altura dinámica: con barHeight 100% y muchas órdenes, un alto fijo
+    // comprime cada barra hasta volver ilegible el texto (departamento +
+    // cliente) que se dibuja dentro. 35px por barra es el mínimo legible;
+    // 350 sigue siendo el piso para pocas órdenes.
+    chartHeight() {
+      return Math.max(350, this.orders.length * 35);
+    },
     series() {
       // Mapear el progreso (paso) de cada orden
       // Suponemos que 'paso' va de 1 a N.
@@ -60,7 +67,7 @@ export default {
       return {
         chart: {
           type: 'bar',
-          height: 350,
+          height: this.chartHeight,
           toolbar: { show: false }
         },
         plotOptions: {
