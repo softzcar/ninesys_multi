@@ -594,6 +594,12 @@ $active-bg: rgba(23, 162, 184, 0.15);
       color: $text-primary !important;
 
       &:hover {
+        // El :hover del menú principal (.nav-item .nav-link:hover, más abajo)
+        // también matchea estos links (misma causa que el estado activo) y
+        // tiene MÁS especificidad que la regla base de arriba (el pseudo-selector
+        // :hover suma peso) -- sin declarar color aquí explícitamente con la
+        // misma especificidad, ese color se impone incluso en submenús.
+        color: $text-primary !important;
         background: $hover-bg;
       }
 
