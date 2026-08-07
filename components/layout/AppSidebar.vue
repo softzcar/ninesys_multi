@@ -560,13 +560,11 @@ $active-bg: rgba(23, 162, 184, 0.15);
 
       &:hover {
         background: $hover-bg;
-        color: $accent-color !important;
       }
 
       &.router-link-exact-active,
       &.router-link-active {
         background: $active-bg;
-        color: $accent-color !important;
         border-left-color: $accent-color;
         font-weight: 500;
       }
