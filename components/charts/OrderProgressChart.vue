@@ -93,7 +93,7 @@ export default {
             const order = self.orders[orderIndex];
             return order ? `${order.departamento} (${order.cliente})` : val;
           },
-          offsetX: 0,
+          offsetX: 10,
           dropShadow: {
             enabled: true
           }
