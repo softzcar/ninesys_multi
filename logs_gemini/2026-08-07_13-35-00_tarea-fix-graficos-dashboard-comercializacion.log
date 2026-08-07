@@ -1,0 +1,47 @@
+- **Solicitud del Usuario:** Continuando la auditoría de "Inicio" (Dashboard de Comercialización, rol Sarahit) tras cerrar los bugs de datos del backend, el usuario reportó y guio la corrección de varios problemas visuales en dos gráficos: "Progreso de Órdenes Activas" (texto ilegible por barras muy comprimidas) y "Cuentas por Cobrar" (sin título, label pegado al borde de la barra pequeña, y luego valores del eje Y con precisión decimal absurda).
+
+- **Fecha y Hora:** 2026-08-07 13:35:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/charts/OrderProgressChart.vue`
+  - `app_multi/components/charts/ReceivableChart.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `67e952e`, `461a52b`, `ecd6510`, `4e72b92`, `61f3e05` (OrderProgressChart) + `a6241c8`, `ab3c4dc`, `1a3317e`, `c579457` (ReceivableChart)
+
+- **Acción Realizada:**
+
+  **`OrderProgressChart.vue` ("Progreso de Órdenes Activas"):**
+  1. Alto fijo (350px) comprimía cada barra a ~11px con 30 órdenes activas, volviendo ilegible el texto (departamento + cliente) dibujado dentro. Se calculó un alto dinámico (`Math.max(350, orders.length * 35)`), aplicado tanto al prop del componente `apexchart` como a `chartOptions.chart.height`.
+  2. El texto quedaba pegado al borde izquierdo de la barra -- se probó `dataLabels.offsetX` (10, luego 20) sin ningún efecto visible en este tipo de gráfico (barra horizontal + distributed + textAnchor:'start'). Se abandonó ese enfoque y se agregó el padding directamente en el string del `formatter` (espacios de no separación al inicio), que sí se renderiza de forma confiable independiente del comportamiento de esa propiedad de ApexCharts.
+  3. Prueba A/B de color de texto: blanco con sombra (original) -> blanco sin sombra -> negro (`#212529`, mismo `$text-primary` del resto de la app) sin sombra, decisión final del usuario tras comparar visualmente los 3.
+
+  **`ReceivableChart.vue` ("Cuentas por Cobrar", antes sin nombre):**
+  4. Se agregó el título "Cuentas por Cobrar" (único gráfico del dashboard sin `title` en `chartOptions`).
+  5. El label de la barra "Pendiente" (la más corta) quedaba pegado a su punta -- primer intento, subir `offsetY` (-20 a -28), insuficiente.
+  6. Diagnóstico real: faltaba `plotOptions.bar.dataLabels.position: 'top'` explícito -- sin eso, ApexCharts NO anclaba cada label al tope de SU barra individual; las 3 etiquetas terminaban agrupadas a la altura de la barra más corta en vez de escalar con el valor real de cada una (confirmado visualmente: las 3 etiquetas aparecían a la misma altura sin importar el valor de la barra).
+  7. Con `position: 'top'` corregido, apareció el problema inverso (ahora correctamente anclado por barra, pero texto pegado al borde SUPERIOR): se subió `offsetY` a -18 y se agregó `yaxis.max` (120% del valor más alto) para dar margen extra a la barra "Total Vendido" (la más cercana al tope del eje), evitando que su label quedara pegado contra el título del gráfico.
+  8. Último hallazgo del usuario: el eje Y mostraba precisión decimal completa de punto flotante (ej. "8000.00000000000") en vez de 2 decimales como el resto del gráfico -- se agregó `yaxis.labels.formatter` con `toFixed(2)`.
+  9. Se revisó `BarChart.vue` (gráfico "Pagos Recibidos", mismo dashboard) por el mismo problema de decimales -- ya formateaba correctamente sus valores vía `formatNumber()`, no necesitó cambios.
+  10. Cada cambio verificado con el chequeo de sintaxis Node.js estándar de la sesión, commiteado y desplegado individualmente a Desarrollo, con confirmación visual del usuario entre cada iteración.
+
+- **Inconvenientes y Desafíos:** El ajuste de `ReceivableChart.vue` requirió varias iteraciones porque el síntoma cambiaba de forma engañosa entre intentos (texto pegado abajo -> tras "arreglarlo" con offsetY, apareció pegado arriba) -- la causa real (falta de `position: 'top'` explícito en `plotOptions.bar.dataLabels`) no era evidente hasta comparar visualmente que las 3 etiquetas estaban a la MISMA altura sin importar el valor de cada barra, lo cual solo se detectó pidiendo una captura de pantalla fresca al usuario en vez de seguir ajustando `offsetY` a ciegas.
+
+- **Decisión Final y Justificación:** Para el padding de `OrderProgressChart.vue`, se prefirió modificar el string del label directamente (en vez de seguir insistiendo con `offsetX`, que demostrablemente no tenía efecto en esta combinación específica de opciones de ApexCharts) porque es una solución garantizada a nivel de contenido renderizado, no dependiente de un comportamiento de librería que resultó no funcionar como se esperaba. Para `ReceivableChart.vue`, se optó por diagnosticar la causa raíz (falta de `position: 'top'`) en vez de seguir compensando con valores de `offsetY` cada vez más grandes, que hubiera sido un parche frágil sobre el síntoma equivocado.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (chequeo de sintaxis Node.js, git, deploy.sh).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template) en cada uno de los 9 commits: todos OK.
+  - Confirmación visual del usuario en el navegador después de cada despliegue, con capturas de pantalla que permitieron diagnosticar correctamente la causa real de cada síntoma en vez de adivinar.
+  - Todos los despliegues a Desarrollo exitosos.
+
+- **Logro Conseguido:** Se cerró por completo la revisión de "Inicio" (Dashboard de Comercialización) del rol Sarahit: 2 bugs de datos reales en el backend (case-sensitivity + ventana de tiempo) y 2 gráficos con problemas de legibilidad/presentación corregidos y verificados visualmente por el usuario, dejando la primera pantalla del checklist de auditoría del módulo Empleados completamente cerrada.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se corrigieron ambos gráficos del dashboard ("Progreso de Órdenes Activas" y "Cuentas por Cobrar") de forma iterativa con el usuario, incluyendo un diagnóstico real de causa raíz para el problema de posicionamiento de labels en "Cuentas por Cobrar" (faltaba anclar cada label al tope de su barra individual). "Inicio" queda cerrado para el rol Comercialización.
