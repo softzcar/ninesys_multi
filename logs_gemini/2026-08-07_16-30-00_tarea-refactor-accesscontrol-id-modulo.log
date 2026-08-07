@@ -1,0 +1,56 @@
+- **Solicitud del Usuario:** Tras encontrar y corregir el typo real en los datos ("Comecialización" en vez de "Comercialización") que causaba que el reporte "Órdenes Terminadas" se mostrara en blanco, el usuario preguntó por qué el sistema valida por el NOMBRE del departamento en vez de un ID fijo (comparando con "Administración", que sospechaba tenía un identificador estable), y pidió refactorizar el patrón para eliminar esta clase de bug de raíz.
+
+- **Fecha y Hora:** 2026-08-07 16:30:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados (15 modificados):**
+  - `components/buscar/resultado.vue`, `components/buscar/resultadoModal_v1.vue`
+  - `components/crm/ClientDetailDrawer.vue`
+  - `components/diseno/viewImage.vue`
+  - `components/ordenes/preview.vue`, `components/ordenes/presupuesto-preview.vue`
+  - `pages/_.vue` (404 catch-all de Nuxt)
+  - `pages/asistencias/index.vue`
+  - `pages/clientes/gestion.vue`
+  - `pages/comercializacion/reportes/terminadas.vue`
+  - `pages/crm/campanas.vue`, `pages/crm/index.vue`, `pages/crm/reportes.vue`
+  - `pages/relacion-de-pagos.vue`, `pages/vendedores/relacion-de-pagos.vue`
+  - No tocados intencionalmente: `components/Home.vue` (ocurrencia en bloque comentado), `components/ordenes/presupuestoPreview.vue` (ocurrencias en bloque comentado), `components/empleados/ReporteEficienciaEmpleados.vue` (semántica distinta, ver más abajo)
+
+- **Commits Relacionados:**
+  - Frontend: `f3f9c92` (fix(access-control): validar acceso por id_modulo en vez de nombre de departamento)
+  - Backend: N/A (ya cubierto por el commit `a2bffff` de la tarea anterior)
+
+- **Acción Realizada:**
+  1. Se investigó qué identificador estable existe realmente en el modelo de datos para validar "es este usuario del módulo Comercialización". Se encontró `api_empresas.modulos` -- tabla CENTRAL (no editable por empresa, compartida por todo el sistema) con exactamente 6 filas fijas: `1=Administración, 2=Comercialización, 3=Diseño, 4=Empleado, 5=Producción, 6=Revisión`.
+  2. Se confirmó que `components/Home.vue` YA usa correctamente este patrón (`accessModule.accessData.id_modulo === 2`) para decidir qué dashboard renderizar, vía el computed `accessModule` del mixin `mixins/mixin-login.js` (deriva `id_modulo` a partir de `currentDepartamentId` + `empleado.departamentos`, ambos ya presentes en el store).
+  3. Se hizo un barrido completo de `app_multi` (`grep -rn`) buscando todas las comparaciones `dataUser.departamento === 'Comercialización'` (y variantes con `'Administración'`/`'Producción'`/el typo `'Comecialización'`) -- 18 archivos, ~40 ocurrencias.
+  4. Para cada archivo: se verificó si ya importaba `mixins/mixin-login.js` (solo 2 de 18 lo tenían) y se agregó el import + registro en `mixins: [...]` donde faltaba (respetando el mixin `mixins.js` ya existente en la mayoría, agregando `mixinLogin` como segundo mixin).
+  5. Se reemplazó cada comparación por nombre por la equivalente en `accessModule.accessData.id_modulo` (ej. `=== 'Comercialización'` → `=== 2`; `=== 'Administración'` → `=== 1`; `=== 'Producción'` → `=== 5`), preservando exactamente la misma lógica de combinación (OR) de cada sitio.
+  6. **Primer intento con `sed` en `resultadoModal_v1.vue` produjo una sustitución rota** (mezcló `id_modulo` con literales de string sueltos por un patrón multilinea mal capturado) -- se revirtió el archivo con `git checkout` y se rehizo con ediciones precisas una por una.
+  7. Se identificaron y dejaron sin tocar 2 casos de código muerto (ocurrencias dentro de bloques `<!-- ... -->` comentados en `Home.vue` y `presupuestoPreview.vue`).
+  8. Se investigó `components/empleados/ReporteEficienciaEmpleados.vue` (3 ocurrencias) y se determinó que su `this.departamento` representa el departamento del EMPLEADO SELECCIONADO en un dropdown del reporte (no el del usuario logueado) -- un concepto distinto al de `accessModule` (que refleja la sesión actual). Se verificó que `GET /empleados` (backend) no expone ningún `id_modulo` para los departamentos de cada empleado en su respuesta, por lo que aplicar el mismo patrón ahí requeriría un cambio de backend fuera del alcance de esta tarea. Se dejó sin modificar, documentando el motivo.
+  9. Verificación de sintaxis (script + template) de los 15 archivos modificados con el chequeo Node.js estándar de la sesión: todos OK.
+  10. Barrido final (`grep -rn`) confirmando que solo quedan las 3 ocurrencias intencionalmente excluidas (2 código muerto + 1 caso de semántica distinta).
+  11. Commit y push a `refactor/modular-routes` (commit `f3f9c92`).
+  12. Despliegue a Desarrollo (Contabo Dev) vía `deploy.sh`, opción 2.
+
+- **Inconvenientes y Desafíos:** El uso de `sed` para una sustitución multilinea con indentación variable produjo una edición corrupta en el primer archivo tocado -- se detectó de inmediato revisando el resultado (antes de continuar con los demás archivos) y se corrigió revirtiendo con `git checkout` y rehaciendo con el editor de precisión (Edit tool) para todo el resto del refactor, evitando repetir el error.
+
+- **Decisión Final y Justificación:** Se optó por el patrón `id_modulo` (numérico, central, ya usado correctamente en `Home.vue`) en vez de simplemente agregar más variantes de nombre a las comparaciones existentes (como se había hecho parcialmente en 3 archivos con el workaround `=== 'Comecialización'`) -- ese enfoque solo pospone el problema hasta el próximo typo o renombre. Se decidió NO forzar el mismo patrón en `ReporteEficienciaEmpleados.vue` porque ahí el concepto es genuinamente distinto (departamento de un tercero, no de la sesión actual) y no hay un campo estable disponible sin tocar el backend -- forzarlo hubiera sido una corrección incorrecta disfrazada de consistencia.
+
+- **Herramienta(s) Utilizada(s):** `Bash` (grep extensivo, chequeo de sintaxis Node.js, git, deploy.sh), `Read`, `Edit`.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template) en los 15 archivos: todos OK.
+  - Barrido final confirmando cero ocurrencias vivas sin tratar (solo las 3 exclusiones documentadas).
+  - Despliegue exitoso a Desarrollo (`✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO`).
+  - Pendiente: confirmación visual del usuario en el navegador para "Órdenes Terminadas" y, si lo desea, para las demás pantallas afectadas.
+
+- **Logro Conseguido:** Se eliminó de raíz una clase completa de bugs de control de acceso que dependía de comparar texto libre, editable por empresa, contra literales hardcodeados en 18 archivos distintos -- vulnerable a cualquier typo o renombre futuro de un departamento operativo. Ahora las ~40 verificaciones dependen de una tabla central de solo 6 filas fijas del sistema, inmune a ese tipo de error. Complementa el fix de datos de la tarea anterior (que resolvía el síntoma inmediato) con una solución estructural que previene su recurrencia.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se refactorizaron 15 archivos (~40 comparaciones) reemplazando la validación por nombre de departamento por el patrón robusto ya existente en el código (`accessModule.accessData.id_modulo`, resuelto contra la tabla central `api_empresas.modulos`). Verificado sintácticamente y desplegado en Desarrollo. Dos casos de código muerto y un caso de semántica genuinamente distinta quedaron documentados y sin modificar.
