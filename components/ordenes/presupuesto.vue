@@ -745,10 +745,27 @@ export default {
   },
 
   watch: {
+    // Búsqueda de clientes acotada en el servidor mientras se escribe, en vez
+    // de precargar la tabla completa al montar (ver mounted()/searchCustomers,
+    // mismo fix aplicado en nueva.vue el 2026-08-07).
     query2(val) {
-      if (!val.trim() || val.trim() === "") {
+      const texto = val.trim();
+      if (!texto) {
         this.clearStep1();
+        this.$store.commit("comerce/setDataCustomers", []);
+        this.$store.commit("comerce/setDataCustomersSelect", []);
+        return;
       }
+      // Si el texto ya tiene el formato "id | nombre apellido - telefono" es
+      // porque el propio typeahead lo acaba de escribir al seleccionar un
+      // resultado (dispara @hit por separado) -- no es una búsqueda nueva.
+      if (/^\d+\s\|\s/.test(texto)) return;
+      if (texto.length < 2) return;
+
+      clearTimeout(this._customerSearchTimeout);
+      this._customerSearchTimeout = setTimeout(() => {
+        this.searchCustomers(texto);
+      }, 300);
     },
     /*     query2(val) {
       if (!val.trim() || val.trim() === '') {
@@ -1205,9 +1222,10 @@ export default {
           });
         }
 
-        // Buscar y mapear datos geográficos actualizados del cliente
+        // Buscar y mapear datos geográficos actualizados del cliente -- ya
+        // no está precargado en this.myCustomers, se busca puntualmente.
         if (loadedForm.id) {
-          const customer = this.myCustomers.find(el => el.id == loadedForm.id);
+          const customer = await this.fetchCustomerById(loadedForm.id);
           if (customer) {
             loadedForm.geografia = {
               idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
@@ -1255,9 +1273,10 @@ export default {
         // Mapear datos básicos
         this.form.id = data.id_wp; 
         
-        // Buscar detalles completos del cliente si existe id_wp
+        // Buscar detalles completos del cliente si existe id_wp -- ya no
+        // está precargado en this.myCustomers, se busca puntualmente.
         if (data.id_wp) {
-          const customer = this.myCustomers.find(el => el.id == data.id_wp);
+          const customer = await this.fetchCustomerById(data.id_wp);
           if (customer) {
             this.form.nombre = customer.first_name;
             this.form.apellido = customer.last_name;
@@ -1612,7 +1631,6 @@ export default {
       if (step1Ok) {
         this.disable1 = true;
         this.disable2 = false;
-        this.loadDataCustomers();
 
         setTimeout(() => {
           this.tabIndex = 1;
@@ -1703,7 +1721,7 @@ export default {
     async step1() {
       let ok = true;
       let msg = "";
-      let phoneExist = this.phoneExist(this.form.email);
+      let phoneExist = await this.phoneExist(this.form.email);
 
       console.log(`phoneExist`, phoneExist);
 
@@ -2151,18 +2169,20 @@ export default {
         const res = await this.$axios({ url: url, method: method, data: data });
         console.log("respuesta de actualizar - crear cliente", res);
         ok = true;
-        
-        // Cargar Clientes
-        const responseClientes = await this.$axios.get(`${this.$config.API}/customers`);
-        const responseData = responseClientes.data.data || (Array.isArray(responseClientes.data) ? responseClientes.data : []);
-        this.$store.commit(
-          "comerce/setDataCustomers",
-          responseData
-        );
 
-        let customersSelect = responseData.map((client) => {
+        // Cargar Clientes -- buscar solo el que acabamos de crear/actualizar
+        // (por teléfono, siempre presente y validado a esta altura) en vez
+        // de traer la tabla completa de nuevo (2026-08-07, ver watch: query2).
+        const responseClientes = await this.$axios.get(`${this.$config.API}/customers`, {
+          params: { buscar: telefono },
+        });
+        const clientesEncontrados = responseClientes.data.data || [];
+        this.$store.commit("comerce/setDataCustomers", clientesEncontrados);
+
+        let customersSelect = clientesEncontrados.map((client) => {
           return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
         });
+        this.customersSelect = customersSelect;
 
         this.$store.commit(
           "comerce/setDataCustomersSelect",
@@ -2170,8 +2190,8 @@ export default {
         );
 
         if (!this.form.id) {
-          const currCustomer = responseData.find(
-            (el) => el.cedula === this.form.cedula
+          const currCustomer = clientesEncontrados.find(
+            (el) => el.phone === telefono
           );
           this.form.id = currCustomer.id;
         }
@@ -2220,29 +2240,39 @@ export default {
       return email;
     },
 
-    phoneExist(telefono) {
+    // Antes escaneaba this.myCustomers (la lista completa precargada) --
+    // ahora que solo se busca en el servidor mientras se escribe (2026-08-07),
+    // ese array ya no contiene siempre a todos los clientes. Usa el endpoint
+    // dedicado que ya existía para esto (GET /customers/por-telefono/{tel}).
+    async phoneExist(telefono) {
       let result = { exist: false, msg: "" };
       const formattedPhone = this.form.telefono; // Ya viene formateado por onPhoneBlur
 
       if (formattedPhone && formattedPhone.trim().length) {
-        // Buscar si existe algún cliente con este teléfono
-        let existingCustomer = this.myCustomers.find(
-          (item) => item.phone === formattedPhone
-        );
+        try {
+          const { data } = await this.$axios.get(
+            `${this.$config.API}/customers/por-telefono/${encodeURIComponent(formattedPhone)}`
+          );
+          const existingCustomer = data.data;
 
-        if (existingCustomer) {
-          // Si estamos editando (tenemos un ID de cliente en el form)
-          // y el cliente encontrado es el mismo, no es un error (es su propio número).
-          // Si el ID del formulario está vacío, asumimos que es un cliente nuevo,
-          // por lo tanto si encontramos uno existente, es un duplicado.
+          if (existingCustomer) {
+            // Si estamos editando (tenemos un ID de cliente en el form)
+            // y el cliente encontrado es el mismo, no es un error (es su propio número).
+            // Si el ID del formulario está vacío, asumimos que es un cliente nuevo,
+            // por lo tanto si encontramos uno existente, es un duplicado.
 
-          // Nota: this.form.id puede ser numérico o string, aseguramos comparación laxa o conversión
-          const isSameCustomer = this.form.id && (String(this.form.id) === String(existingCustomer.id));
+            // Nota: este endpoint devuelve "_id" (no "id"); this.form.id puede
+            // ser numérico o string, aseguramos comparación laxa o conversión.
+            const isSameCustomer = this.form.id && (String(this.form.id) === String(existingCustomer._id));
 
-          if (!isSameCustomer) {
-            result.exist = true;
-            result.msg = `<p>El teléfono <strong>${formattedPhone}</strong> ya está registrado al cliente <strong>${existingCustomer.first_name} ${existingCustomer.last_name}</strong>.</p>`;
+            if (!isSameCustomer) {
+              result.exist = true;
+              result.msg = `<p>El teléfono <strong>${formattedPhone}</strong> ya está registrado al cliente <strong>${existingCustomer.first_name} ${existingCustomer.last_name}</strong>.</p>`;
+            }
           }
+        } catch (err) {
+          console.error("Error verificando teléfono existente:", err);
+          // No bloqueamos el guardado por un problema puntual de red/servidor
         }
       }
 
@@ -2819,6 +2849,54 @@ export default {
       }
     },
 
+    // Busca clientes en el servidor (acotado, ver GET /customers?buscar=)
+    // en vez de precargar la tabla completa. Alimenta los mismos campos del
+    // store (dataCustomers/customersSelect) que ya consumen loadForm(),
+    // myCustomers, etc. -- sin cambiar cómo se leen en el resto del archivo.
+    async searchCustomers(texto) {
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/customers`, {
+          params: { buscar: texto },
+        });
+        const clientes = data.data || [];
+        this.$store.commit("comerce/setDataCustomers", clientes);
+        const customersSelect = clientes.map((client) => {
+          return `${client.id} | ${client.first_name} ${client.last_name} - ${client.phone}`;
+        });
+        this.customersSelect = customersSelect;
+        this.$store.commit("comerce/setDataCustomersSelect", customersSelect);
+      } catch (err) {
+        console.error("Error buscando clientes:", err);
+      }
+    },
+    // Trae un cliente puntual por ID (usado al cargar una orden/presupuesto
+    // guardado para edición, cuando el cliente ya no está en el store porque
+    // dejamos de precargar la tabla completa). Reutiliza GET /customers/{id}
+    // y traduce sus nombres de campo "billing_*" (formato legado WooCommerce)
+    // a los mismos nombres planos que ya usa el resto de este archivo.
+    async fetchCustomerById(id) {
+      if (!id) return null;
+      try {
+        const { data } = await this.$axios.get(`${this.$config.API}/customers/${id}`);
+        const c = Array.isArray(data) ? data[0] : data;
+        if (!c) return null;
+        return {
+          id: c.id,
+          first_name: c.billing_first_name,
+          last_name: c.billing_last_name,
+          cedula: c.billing_postcode,
+          phone: c.phone || c.billing_phone,
+          email: c.billing_email,
+          address: c.billing_address_1,
+          id_catalogo_pais: c.id_catalogo_pais,
+          id_catalogo_estado: c.id_catalogo_estado,
+          id_catalogo_ciudad: c.id_catalogo_ciudad,
+        };
+      } catch (err) {
+        console.error("Error obteniendo cliente por ID:", err);
+        return null;
+      }
+    },
     async loadDataCustomers() {
       await this.$axios
         .get(`${this.$config.API}/customers`)
@@ -3009,9 +3087,12 @@ export default {
     window.addEventListener("resize", this.handleResize);
 
     try {
-      // Promise.all ejecuta todas las cargas de datos en paralelo para mayor eficiencia
+      // Promise.all ejecuta todas las cargas de datos en paralelo para mayor eficiencia.
+      // Clientes ya NO se precarga aquí (2026-08-07) -- se busca en el
+      // servidor mientras se escribe (ver watch: query2 / searchCustomers),
+      // era la petición más pesada de este lote y contribuía a saturar el
+      // pool de procesos PHP en Desarrollo (mismo fix aplicado en nueva.vue).
       await Promise.all([
-        this.loadDataCustomers(),
         this.loadDataTallas(),
         this.loadDataTelas(),
         this.loadDataProductos(),
