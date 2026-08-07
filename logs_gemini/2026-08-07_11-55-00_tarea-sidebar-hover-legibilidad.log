@@ -1,0 +1,38 @@
+- **Solicitud del Usuario:** Tras confirmar que el color del submenú y la eliminación del departamento duplicado se veían bien, reportó un problema de legibilidad al hacer mouseOver en los ítems del submenú: el texto cambiaba a un azul claro (`$accent-color`, variante tipo "info") sobre un fondo casi blanco (`$hover-bg`), poco legible. Pidió que el texto simplemente mantenga el mismo color que tiene en reposo (antes del hover), explícitamente sin usar negrita para evitar que cambie el tamaño/posición del texto (un movimiento extraño).
+
+- **Fecha y Hora:** 2026-08-07 11:55:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/layout/AppSidebar.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `9d9063f` (fix(sidebar): mantener color de texto en reposo al hacer hover en submenús)
+
+- **Acción Realizada:**
+  1. Se identificaron dos bloques CSS distintos de hover en `AppSidebar.vue`: uno para los ítems del menú principal (fuera de submenús, líneas ~551-582) y otro específico para `.sub-menu .nav-link` (líneas ~589-608) -- el pedido del usuario era exclusivamente sobre los submenús, así que solo se tocó el segundo bloque.
+  2. Se eliminó la línea `color: $accent-color !important;` dentro de la regla `&:hover` de `.sub-menu .nav-link`, dejando únicamente el cambio de fondo (`background: $hover-bg;`) como antes. Al no declarar `color` en el hover, el texto conserva el valor ya definido en la regla base del mismo selector (`color: $text-primary !important;`), sin necesidad de repetirlo.
+  3. Se dejó sin modificar el estado activo (`.router-link-active`/`.router-link-exact-active`), que sí cambia de color intencionalmente para indicar la página actual -- el usuario no pidió tocar ese estado, y sigue usando `font-weight: 500` solo ahí (donde no hay problema de "movimiento extraño" porque no cambia dinámicamente con el mouse).
+  4. Verificación de sintaxis (script + template) con el chequeo Node.js estándar: OK.
+  5. Commit y push a `refactor/modular-routes` (commit `9d9063f`).
+  6. Despliegue a Desarrollo (Contabo Dev) vía `deploy.sh`, opción 2.
+
+- **Inconvenientes y Desafíos:** Ninguno -- cambio de una sola línea, de bajo riesgo.
+
+- **Decisión Final y Justificación:** Se optó por la solución más simple posible (quitar la declaración de color en `:hover`, dejando que el texto herede el color ya definido en la regla base del mismo selector) en vez de declarar explícitamente `color: $text-primary !important` en el hover -- functionalmente idéntico, pero menos código repetido. Se respetó la preferencia explícita del usuario de NO usar `font-weight: bold` como alternativa, ya que él mismo anticipó correctamente el riesgo de un salto de layout por cambio de ancho del texto.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (chequeo de sintaxis Node.js, git, deploy.sh).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template): OK.
+  - `git diff`: cambio de una sola línea eliminada, sin efectos colaterales.
+  - Despliegue exitoso a Desarrollo (`✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO`).
+
+- **Logro Conseguido:** Se cerró la serie de mejoras de usabilidad del sidebar (acordeón, link de Configuración, color de submenú abierto, eliminación de duplicado, y ahora legibilidad en hover), todas verificadas visualmente por el usuario en el navegador durante la propia sesión.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se quitó el cambio de color de texto en el hover de los ítems de submenú, dejando solo el cambio de fondo -- el texto ahora conserva el mismo color legible que tiene en reposo. Desplegado en Desarrollo.
