@@ -74,7 +74,7 @@ export default {
           formatter: function (val) {
             return "$" + val.toFixed(2);
           },
-          offsetY: -8,
+          offsetY: -18,
           style: {
             fontSize: '12px',
             colors: ["#304758"]
@@ -98,6 +98,9 @@ export default {
           }
         },
         yaxis: {
+          // Margen del 20% sobre la barra más alta para que su label (arriba
+          // de la barra) tenga aire y no quede pegado al título del gráfico.
+          max: Math.ceil(this.sold * 1.2) || undefined,
           title: {
             text: 'Monto ($)'
           }
