@@ -1,0 +1,42 @@
+- **Solicitud del Usuario:** Tras el fix anterior (quitar `color: $accent-color` del estado activo en submenús), el usuario reportó que "Terminados" seguía viéndose con el mismo azul de acento en vez del color de texto normal. Investigó exhaustivamente por su cuenta con DevTools (Service Workers, Clear site data, hard refresh) sin éxito, y planteó una hipótesis propia acertada: si el fix del fondo gris SÍ funcionó y vive en el mismo bloque CSS, el problema debía estar en cómo se aplica el color específicamente al link, sugiriendo aplicar el mismo tipo de regla directamente sobre `.nav-link` o `a`.
+
+- **Fecha y Hora:** 2026-08-07 12:15:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/layout/AppSidebar.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `d81107e` (fix(sidebar): color de texto normal en el item activo de submenús (causa real))
+
+- **Acción Realizada:**
+  1. Se investigó primero la hipótesis de caché de build: se encontró y limpió una caché de `node_modules/.cache/babel-loader` desactualizada desde el 17 de julio (mientras la caché de Nuxt sí se actualizaba en cada build) -- limpieza legítima y necesaria, pero que NO resultó ser la causa raíz de este síntoma específico (se hizo un rebuild completo sin ella y el problema persistió).
+  2. Se investigó la hipótesis de CDN/Cloudflare: se confirmó que Cloudflare NO cachea el HTML (`cf-cache-status: DYNAMIC`), solo assets estáticos versionados por hash de contenido -- descartada como causa.
+  3. Se verificó directamente (vía SSH, sin pasar por navegador/caché alguna) el CSS real servido por el servidor en cada iteración, confirmando que el fix SÍ estaba compilado y desplegado correctamente -- el problema no era de despliegue.
+  4. **Causa raíz real, encontrada al inspeccionar el CSS minificado completo en crudo:** existen DOS reglas CSS distintas para el estado `router-link-active`, con la MISMA especificidad (`.sidebar-menu[data-v] .nav-item .nav-link.router-link-active` para el menú PRINCIPAL, y `.sidebar-menu[data-v] .sub-menu .nav-link.router-link-active` para el submenú). El selector del menú principal usa un combinador descendiente genérico (`.nav-item .nav-link`) que, al no estar limitado a hijos directos, TAMBIÉN matchea los links dentro de los submenús (cada item de submenú sigue envuelto en su propio `<li class="nav-item">`, anidado dentro del `.nav-item` del menú principal). La regla del menú principal declara `color: $accent-color !important`; la regla de submenú (antes del fix) NO declaraba `color` en absoluto -- así que no había nada que cancelara esa filtración, y el color de acento del menú principal "se colaba" hacia los items activos de los submenús. El fondo (`background`) sí se veía correctamente porque esa propiedad SÍ se redeclaraba en ambas reglas, y al tener igual especificidad, ganaba la última en orden de aparición (la de submenú, declarada después en el SCSS anidado).
+  5. Fix real: se agregó `color: $text-primary !important;` explícito en la regla `.router-link-active`/`.router-link-exact-active` DENTRO de `::v-deep .sub-menu .nav-link`, para cancelar correctamente el `!important` que se filtraba desde la regla del menú principal.
+  6. Verificación de sintaxis (script + template) con el chequeo Node.js estándar: OK.
+  7. Commit y push a `refactor/modular-routes` (commit `d81107e`).
+  8. Despliegue a Desarrollo (Contabo Dev) vía `deploy.sh`, opción 2.
+  9. Verificación directa (SSH, sin navegador) del CSS realmente servido tras el despliegue: confirmado `color:#212529!important` presente en la regla de submenú del CSS minificado en producción-de-pruebas.
+
+- **Inconvenientes y Desafíos:** La investigación tomó varias iteraciones fallidas antes de encontrar la causa real -- se investigaron y descartaron correctamente (aunque sin éxito para este síntoma) hipótesis de caché de Service Worker/PWA, caché de build (`node_modules/.cache`), y caché de CDN (Cloudflare), antes de identificar que el problema era puramente de especificidad/cascada CSS. La pista decisiva la aportó el propio usuario al notar que el fondo SÍ funcionaba pero el color no, señalando correctamente que el problema debía estar en la regla de color específicamente, no en el despliegue.
+
+- **Decisión Final y Justificación:** Se prefirió declarar `color` explícitamente en la regla de submenú (en vez de, por ejemplo, aumentar la especificidad del selector del menú principal para EXCLUIR submenús, ej. `.sidebar-menu > .nav > .nav-item > .nav-link` con combinador hijo directo) porque es el cambio mínimo, localizado, y no reordena ni reestructura selectores existentes que otros elementos del sidebar podrían depender de su comportamiento actual (riesgo de romper algo más al modificar el selector del menú principal, que no estaba en el alcance de esta tarea).
+
+- **Herramienta(s) Utilizada(s):** `Bash` (ssh + grep sobre el CSS crudo servido en cada iteración, chequeo de sintaxis Node.js, git, deploy.sh, curl para verificar headers de Cloudflare), `Read`, `Edit`.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template): OK.
+  - Verificación directa (SSH, bypaseando cualquier caché de navegador) del CSS minificado real servido tras el despliegue: `color:#212529!important` confirmado presente en la regla `.sub-menu .nav-link.router-link-active`.
+  - Despliegue exitoso a Desarrollo (`✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO`).
+  - Pendiente: confirmación visual final del usuario en el navegador.
+
+- **Logro Conseguido:** Se identificó y corrigió la causa raíz real de un bug de CSS sutil (filtración de estilos entre selectores de igual especificidad que coincidían accidentalmente por la estructura anidada del DOM), cerrando definitivamente la serie de mejoras del sidebar de esta sesión. De paso, se limpió una caché de build (`node_modules/.cache/babel-loader`) que llevaba semanas desactualizada -- aunque no era la causa de este bug específico, es una limpieza legítima que reduce el riesgo de inconsistencias similares en despliegues futuros.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se identificó la causa real: el selector de color activo del menú principal también matchea (por especificidad empatada) los items activos de los submenús, y como la regla de submenú no declaraba `color` explícitamente, no había nada que cancelara esa filtración. Se agregó el `color` explícito faltante, verificado directamente en el CSS servido por el servidor (sin depender de caché de navegador), y desplegado en Desarrollo.
