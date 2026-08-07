@@ -1,0 +1,43 @@
+- **Solicitud del Usuario:** Mejorar el sidebar (que funciona correctamente pero tiene muchos submenús): (1) que al abrir un submenú se cierren automáticamente los demás, para que solo haya uno abierto a la vez; (2) el submenú "Configuración" (que solo tiene una opción, "Configuración de Empresa") convertirlo en un link directo llamado simplemente "Configuración"; (3) explorar la posibilidad de un color discreto (gris muy clarito) para diferenciar visualmente el submenú abierto del menú principal, sin contraste agresivo.
+
+- **Fecha y Hora:** 2026-08-07 11:30:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/sidebars/SidebarAdmin.vue`
+  - `app_multi/components/sidebars/SidebarComercializacion.vue`
+  - `app_multi/components/sidebars/SidebarProduccion.vue`
+  - `app_multi/components/layout/AppSidebar.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `9da112b` (feat(sidebar): comportamiento de acordeón y simplificar submenú Configuración)
+
+- **Acción Realizada:**
+  1. Se identificaron los 6 componentes de sidebar por rol (`SidebarAdmin`, `SidebarComercializacion`, `SidebarDiseno`, `SidebarProduccion`, `SidebarEmpleado`, `SidebarRevision`, cargados dinámicamente desde `AppSidebar.vue` según el departamento del usuario). Se confirmó vía `grep -c "v-b-toggle"` que solo 3 tienen submenús colapsables reales: `SidebarAdmin` (12), `SidebarComercializacion` (2) y `SidebarProduccion` (3); más el submenú de WhatsApp definido directamente en `AppSidebar.vue` (1) -- 18 submenús en total. `SidebarDiseno`, `SidebarEmpleado` y `SidebarRevision` no tienen ninguno, sin cambios necesarios ahí.
+  2. **Acordeón:** se usó la prop nativa `accordion` de `b-collapse` (BootstrapVue) -- al asignar el mismo nombre de grupo (`accordion="app-sidebar-accordion"`) a los 18 `<b-collapse>`, BootstrapVue coordina automáticamente que solo uno esté expandido a la vez (usa el bus de eventos global `$root` de Vue, por lo que funciona entre componentes distintos sin relación padre-hijo directa, incluyendo el submenú de WhatsApp definido en el componente padre `AppSidebar.vue` junto con los submenús de los componentes hijos dinámicos). Cambio de una sola línea por `b-collapse` (agregar el atributo), sin JavaScript adicional.
+  3. **Configuración:** en `SidebarAdmin.vue`, el submenú "Configuración" (`v-b-toggle` + `b-collapse` con una sola opción "Configuración de Empresa") se reemplazó por un `router-link` directo a `/empresa/configuracion`, con el texto simplificado a "Configuración" (mismo ícono `gear-fill`).
+  4. **Color del submenú abierto:** se verificó el CSS existente en `AppSidebar.vue` (`::v-deep .sub-menu { background: #f8f9fa; ... }`) contra el fondo del sidebar (`$sidebar-bg: #ffffff`) -- ya existe un contraste sutil de gris muy claro (`#f8f9fa` vs blanco), exactamente el tipo de diferenciación discreta solicitada. Se dejó sin modificar (no se fabricó una solución nueva donde ya existía una adecuada); queda pendiente de confirmación visual del usuario por si se necesita acentuar un poco más.
+  5. Verificación de sintaxis (script + template) de los 4 archivos modificados con el chequeo Node.js estándar de la sesión: los 4 OK.
+  6. Commit y push a `refactor/modular-routes` (commit `9da112b`).
+  7. Despliegue a Desarrollo (Contabo Dev) vía `deploy.sh`, opción 2.
+
+- **Inconvenientes y Desafíos:** Se intentó verificar visualmente en el navegador (Brave, vía la extensión de Claude in Chrome) antes y después del cambio, pero la conexión con la extensión resultó intermitente durante la sesión (la pestaña reportaba éxito de navegación pero se quedaba en blanco, o arrojaba errores de "chrome-extension:// de otra extensión"). Se decidió no insistir más de 2-3 intentos (siguiendo el criterio de evitar bucles con herramientas de navegador) y proceder con la implementación basada en lectura directa del código + verificación de sintaxis, dejando la confirmación visual final a cargo del usuario.
+
+- **Decisión Final y Justificación:** Se usó la prop `accordion` nativa de BootstrapVue en vez de implementar lógica manual en JavaScript (ej. un array reactivo de IDs abiertos con watchers) -- es la solución menos invasiva posible (un atributo por elemento, sin tocar la lógica de los componentes), ya viene con la librería que el proyecto usa, y no introduce ningún estado nuevo que mantener. Para el color de fondo, se prefirió no tocar nada al confirmar que la funcionalidad pedida ya existía en el CSS, evitando una modificación innecesaria sobre algo que ya cumplía el objetivo.
+
+- **Herramienta(s) Utilizada(s):** `Bash` (grep, sed para la sustitución uniforme del atributo `accordion` en los 18 `b-collapse`, chequeo de sintaxis Node.js, git, deploy.sh), `Read`, `Edit`.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Verificación de sintaxis (script + template) en los 4 archivos: todos OK.
+  - `git diff --stat`: cambios acotados exactamente a los 4 archivos esperados, sin efectos colaterales.
+  - Despliegue exitoso a Desarrollo (`✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO`).
+  - Pendiente: confirmación visual del usuario en el navegador (el comportamiento de acordeón y el link de Configuración son cambios estructurales de bajo riesgo, pero no se pudo tomar una captura de pantalla en esta sesión por la intermitencia de la herramienta de navegador).
+
+- **Logro Conseguido:** El sidebar completo (todos los roles con submenús: Administración, Comercialización, Producción, más el menú de WhatsApp compartido) ahora se comporta como un acordeón real -- un solo submenú abierto a la vez, reduciendo el desorden visual reportado por el usuario. Se simplificó además un submenú de una sola opción a un link directo, reduciendo un clic innecesario para llegar a Configuración de Empresa.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se implementó el comportamiento de acordeón en los 18 submenús del sidebar (usando la prop nativa de BootstrapVue, sin JS adicional) y se simplificó el submenú "Configuración" a un link directo. El color de fondo gris clarito para submenús abiertos ya existía en el CSS y se dejó intacto. Desplegado en Desarrollo, pendiente de confirmación visual del usuario.
