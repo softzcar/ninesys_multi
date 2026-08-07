@@ -23,7 +23,6 @@
       </div>
       <div class="profile-info" v-show="!isCollapsed">
         <span class="profile-name">{{ dataUser.nombre }}</span>
-        <small class="profile-dept">{{ currentDepartament }}</small>
       </div>
     </div>
 
@@ -511,11 +510,6 @@ $active-bg: rgba(23, 162, 184, 0.15);
       font-size: 0.95rem;
       color: $text-primary;
     }
-
-    .profile-dept {
-      color: $text-secondary;
-      font-size: 0.8rem;
-    }
   }
 
   .app-sidebar.collapsed & {
@@ -596,6 +590,7 @@ $active-bg: rgba(23, 162, 184, 0.15);
       padding-left: 3rem;
       font-size: 0.9rem;
       border-left: none;
+      background-color: #e9ecef;
       color: $text-primary !important;
 
       &:hover {
