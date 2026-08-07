@@ -1,0 +1,38 @@
+- **Solicitud del Usuario:** Como parte del saneamiento del reporte "Órdenes Entregadas" (ver bitácora detallada en `ninesys-api/logs_gemini/2026-08-07_18-00-00_tarea-moment-entregada-y-fix-ordenes-entregadas.log`), tras diseñar e implementar en el backend el nuevo campo `ordenes.moment_entregada` (fecha/hora real de entrega, sincronizada por trigger) y corregir el endpoint correspondiente para que filtre por vendedor y por fecha real en vez de traer el historial completo, hacía falta actualizar el frontend para enviar el `id_empleado` que el endpoint ahora requiere.
+
+- **Fecha y Hora:** 2026-08-07 18:00:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `pages/comercializacion/reportes/entregadas.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `fd9ef07` (fix(reportes): filtrar Órdenes Entregadas por vendedor y por fecha real de entrega)
+  - Backend: `0b18039` (feat(ordenes): registrar fecha/hora real de entrega (moment_entregada) + fix reporte Órdenes Entregadas)
+
+- **Acción Realizada:**
+  1. Se leyó el archivo completo y se confirmó que ya usaba el control de acceso correcto (`accessModule.accessData.id_modulo === 2 || === 1`, del refactor de acceso de esta misma sesión) sin la comparación frágil por nombre de departamento que sí afectaba a otros 14 archivos -- no hacía falta ningún cambio de control de acceso aquí.
+  2. Se modificó `getOrdenes()` para agregar `/${this.dataUser.id_empleado}` a la URL consultada, igual que ya se hizo antes en `terminadas.vue`.
+  3. Verificado con el chequeo de sintaxis estándar del proyecto (Node.js + vue-template-compiler + @babel/core sobre script y template).
+  4. Commit y push a `refactor/modular-routes`.
+  5. Despliegue a Desarrollo (Contabo Dev) vía `ninesys-hub/bin/deploy.sh`, opción 2.
+  6. Verificación end-to-end contra el endpoint real desplegado con `curl` (responsable=22): "Un día" 0, "Una semana" 45, "Un mes" 336 -- coincide con la verificación local previa al despliegue.
+
+- **Inconvenientes y Desafíos:** Ninguno -- cambio de una sola línea, el archivo ya tenía el resto de la lógica (control de acceso, tabla, overlay) correcta de trabajo previo en la sesión.
+
+- **Decisión Final y Justificación:** Se mantuvo el cambio al mínimo indispensable (una sola línea, la URL) siguiendo la regla del proyecto de implementar de la manera menos invasiva posible -- toda la lógica de negocio del filtro (por vendedor y por fecha real) vive en el backend.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (chequeo de sintaxis, git, `deploy.sh`, `curl` de verificación final).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - Chequeo de sintaxis (script + template) sin errores.
+  - Verificación en vivo contra el endpoint desplegado en Desarrollo, 3 rangos de fecha, resultados consistentes con la prueba local previa al despliegue.
+
+- **Logro Conseguido:** El reporte "Órdenes Entregadas" ya no depende de un endpoint sin filtro alguno -- ahora envía el vendedor logueado, permitiendo que el backend acote correctamente por responsable y por fecha real de entrega.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se actualizó `entregadas.vue` para enviar el `id_empleado` del usuario logueado al endpoint ya corregido en el backend, se desplegó a Desarrollo y se verificó en vivo que el reporte ahora muestra resultados acotados por vendedor y por fecha real de entrega en los 3 rangos del selector.
