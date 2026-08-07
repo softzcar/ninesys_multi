@@ -1,0 +1,41 @@
+- **Solicitud del Usuario:** Al abrir "Reporte General de Órdenes" (último ítem pendiente de la auditoría del rol Comercialización), reportó el error `Method not allowed. Must be one of: OPTIONS` devuelto por `https://api.nineteengreen.com/comercializacion/ordenes/reporte/`, pidiendo primero lograr que la API devuelva datos y luego, con el reporte ya visible, decidir juntos qué cambios implementar. Con el endpoint ya funcionando, pidió: (1) habilitar la opción de ordenar la tabla por las tres columnas visibles -- Orden, Cliente y Status -- pero no por Vinculadas; (2) agregar un filtro "Filtrar por estatus de orden:" que funcione igual al ya existente en `/comercializacion/ordenes/activas`.
+
+- **Fecha y Hora:** 2026-08-07 19:00:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `pages/comercializacion/reportes/general.vue`
+  - `components/ordenes/activas.vue` (solo consultado como referencia del patrón de filtro por estatus)
+
+- **Commits Relacionados:**
+  - Frontend: `494c851` (fix trailing slash), `63aa1f4` (filtro por estatus + sortable)
+  - Backend: N/A (sin cambios en esta tarea)
+
+- **Acción Realizada:**
+  1. Se leyó `general.vue`: llamaba a `${API}/comercializacion/ordenes/reporte/` (con slash final). Se confirmó en `ninesys-api/app/routes/orders.php:1746` que la ruta está registrada SIN slash final. Verificado con `curl` directo (con header `Authorization: 194`): sin slash → 200 OK con datos reales; con slash → 405 Method Not Allowed (Slim trata ambas como rutas distintas). Se quitó el slash final de la URL en el frontend (commit `494c851`), desplegado y verificado en vivo que el endpoint ya respondía correctamente.
+  2. Se leyó `components/ordenes/activas.vue` para replicar exactamente el patrón ya usado en el proyecto para "Filtrar por estatus de orden:": un `b-form-radio-group` (`button-variant="outline-primary"`, `buttons`) cuyas opciones se generan dinámicamente a partir de los valores únicos de `status` presentes en los datos recibidos (más una opción "Todas"), en vez de una lista fija hardcodeada.
+  3. Se reestructuró `general.vue`: se separó la respuesta de la API en `allItems` (crudo, sin filtrar) y se agregó un `computed: filteredItems` que aplica el filtro de estatus seleccionado sobre `allItems`; la tabla ahora usa `:items="filteredItems"` en vez de bindear directamente la respuesta de la API. Se agregó `generateStatusOptions()` (mismo criterio que el método homónimo de `activas.vue`: `Set` de valores únicos, trim, orden alfabético, opción "Todas" al inicio).
+  4. Se habilitó `sortable: true` en las columnas cuya `key` no es `vinculada`, mapeando el array `fields` recibido de la API (`fields.map(field => ({...field, sortable: field.key !== 'vinculada'}))`) -- evita hardcodear los nombres de columna y automáticamente excluye solo "Vinculadas" si el backend cambia el orden o agrega columnas.
+  5. Verificado con el chequeo de sintaxis estándar del proyecto (vue-template-compiler + @babel/core, script y template).
+  6. Commit y push (`63aa1f4`). Despliegue a Desarrollo (Contabo Dev) vía `deploy.sh` (opción 2).
+  7. El usuario confirmó en el navegador que funciona correctamente.
+
+- **Inconvenientes y Desafíos:** La primera verificación en vivo con `curl` (sin header `Authorization`) del despliegue anterior (tarea de `moment_entregada`) había arrojado falsamente un error 500 -- se determinó en esa tarea que era por falta del header, no una regresión; en esta tarea se aplicó esa lección desde el principio, agregando el header `Authorization: 194` en la primera verificación con `curl` para diagnosticar directamente el 405 real (trailing slash) sin ruido adicional.
+
+- **Decisión Final y Justificación:** Se corrigió el mismatch de la URL en el frontend en vez de agregar una ruta duplicada con slash en el backend -- es el cambio de una sola línea, coincide con cómo están registradas todas las demás rutas del proyecto (sin slash final) y no introduce una segunda ruta a mantener. Para el filtro y el sortable, se reutilizó explícitamente el patrón ya validado en `activas.vue` en vez de inventar uno nuevo, manteniendo consistencia de UX entre reportes del mismo módulo.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Write`, `Bash` (curl de diagnóstico y verificación, chequeo de sintaxis, git, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+  - `curl` con y sin slash final, con header `Authorization`, confirmando la causa exacta del 405 antes de aplicar el fix.
+  - Chequeo de sintaxis (script + template) sin errores en ambos commits.
+  - Confirmación visual del usuario en el navegador tras el segundo despliegue: filtro por estatus y ordenamiento de columnas funcionando.
+
+- **Logro Conseguido:** Se desbloqueó por completo el último reporte pendiente del rol Comercialización (antes inaccesible por un error 405), y se le agregó paridad de UX con el resto del módulo (filtro por estatus, columnas ordenables) reutilizando un patrón ya existente en el proyecto. Con esto queda **CERRADA la auditoría completa del rol Comercialización** (15/15 links del sidebar revisados o cubiertos por el checklist de Admin) -- siguen pendientes los roles Diseño, Producción, Empleado genérico y Revisión.
+
+- **Observaciones de Gemini:** Ninguna adicional.
+
+- **Respuesta de Gemini:** Se corrigió el error 405 (mismatch de trailing slash entre frontend y backend) que impedía cargar "Reporte General de Órdenes", y se agregaron ordenamiento por columna (Orden/Cliente/Status) y un filtro por estatus de orden idéntico al ya usado en "Órdenes En Curso". Verificado por el usuario en el navegador. Con este reporte, queda cerrada la auditoría completa del rol Comercialización.
