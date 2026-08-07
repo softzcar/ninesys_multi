@@ -103,6 +103,11 @@ export default {
           max: Math.ceil(this.sold * 1.2) || undefined,
           title: {
             text: 'Monto ($)'
+          },
+          labels: {
+            formatter: function (val) {
+              return val.toFixed(2);
+            }
           }
         },
         fill: {
