@@ -95,7 +95,7 @@ export default {
           },
           offsetX: 10,
           dropShadow: {
-            enabled: true
+            enabled: false
           }
         },
         stroke: {
