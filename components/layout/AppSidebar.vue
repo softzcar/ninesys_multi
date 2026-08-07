@@ -599,7 +599,6 @@ $active-bg: rgba(23, 162, 184, 0.15);
 
       &.router-link-exact-active,
       &.router-link-active {
-        color: $accent-color !important;
         background: $active-bg;
         font-weight: 500;
       }
