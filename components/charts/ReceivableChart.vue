@@ -67,10 +67,19 @@ export default {
           formatter: function (val) {
             return "$" + val.toFixed(2);
           },
-          offsetY: -20,
+          offsetY: -28,
           style: {
             fontSize: '12px',
             colors: ["#304758"]
+          }
+        },
+        title: {
+          text: 'Cuentas por Cobrar',
+          align: 'center',
+          style: {
+            fontSize: '16px',
+            fontWeight: 600,
+            color: '#333'
           }
         },
         xaxis: {
