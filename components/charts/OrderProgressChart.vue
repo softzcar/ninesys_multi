@@ -88,12 +88,16 @@ export default {
             colors: ['#212529']
           },
           formatter: function (val, opt) {
-            // Mostrar nombre del departamento dentro de la barra
+            // Mostrar nombre del departamento dentro de la barra.
+            // offsetX no tiene efecto visible en este tipo de gráfico (barra
+            // horizontal + distributed + textAnchor start) -- el padding se
+            // agrega directamente en el texto con espacios de no separación,
+            // que sí se renderizan de forma confiable.
             const orderIndex = opt.dataPointIndex;
             const order = self.orders[orderIndex];
-            return order ? `${order.departamento} (${order.cliente})` : val;
+            return order ? `   ${order.departamento} (${order.cliente})` : val;
           },
-          offsetX: 20,
+          offsetX: 0,
           dropShadow: {
             enabled: false
           }
