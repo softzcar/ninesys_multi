@@ -85,7 +85,7 @@ export default {
           enabled: true,
           textAnchor: 'start',
           style: {
-            colors: ['#fff']
+            colors: ['#212529']
           },
           formatter: function (val, opt) {
             // Mostrar nombre del departamento dentro de la barra
@@ -93,7 +93,7 @@ export default {
             const order = self.orders[orderIndex];
             return order ? `${order.departamento} (${order.cliente})` : val;
           },
-          offsetX: 10,
+          offsetX: 20,
           dropShadow: {
             enabled: false
           }
