@@ -58,7 +58,14 @@ export default {
             distributed: true, // Colores distintos por barra
             horizontal: false,
             columnWidth: '55%',
-            endingShape: 'rounded'
+            endingShape: 'rounded',
+            dataLabels: {
+              // Sin esto, ApexCharts no ancla el label al tope de CADA barra
+              // individualmente -- las 3 etiquetas terminaban agrupadas a la
+              // misma altura (la de la barra más corta) en vez de escalar
+              // con el valor real de cada una.
+              position: 'top'
+            }
           }
         },
         colors: ['#008FFB', '#00E396', '#FF4560'], // Azul (Vendido), Verde (Cobrado), Rojo (Pendiente)
@@ -67,7 +74,7 @@ export default {
           formatter: function (val) {
             return "$" + val.toFixed(2);
           },
-          offsetY: -28,
+          offsetY: -8,
           style: {
             fontSize: '12px',
             colors: ["#304758"]
