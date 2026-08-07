@@ -68,7 +68,7 @@
   - [x] Cargar un presupuesto y emitir la orden
   - [x] Botón `[Limpiar Formulario]`
 
-- [ ] **Nuevo Presupuesto**
+- [x] **Nuevo Presupuesto** **(búsqueda de clientes migrada a server-side el 2026-08-07, mismo fix que Nueva Orden -- verificado en vivo por el usuario, typeahead busca correctamente por nombre y teléfono)**
   - [x] Crear unnuevo presupuesto a cliente
     - [x] Cargar Cliente existente
     - [x] Crear un nuevo cliente
