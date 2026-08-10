@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** "Ya lo probé, tenía un formulario vacío en la parte superior y un formulario con imagen subida, al probar eliminar el formulario vacío me eliminó el otro formulario con imagen, sí mostró el confirm pero el botón eliminó el formulario incorrecto." Orden afectada: 6515.
+
+- **Fecha y Hora:** 2026-08-10 11:30:00
+
+- **Proyecto(s):** Ambos
+
+- **Archivos Involucrados:**
+  - `components/disenosse/uploadPropuestaDisenador.vue` (fix real: `:key`)
+  - `ninesys-api/app/routes/production.php` (fix complementario: `ORDER BY`, ver bitácora homóloga en ese repo)
+
+- **Commits Relacionados:**
+  - Frontend: `7739798` (rama `refactor/modular-routes`)
+  - Backend: `737ea2d` (rama `feature/postgresql-support`)
+
+- **Acción Realizada:**
+  1. Se identificó la causa raíz real del bug reportado: `v-for="(rev, index) in misRevisiones" :key="index"` en `uploadPropuestaDisenador.vue` -- usar el índice del array como `:key` es un antipatrón de Vue conocido: si el orden de `misRevisiones` cambia entre una carga y otra (lo cual SÍ podía pasar, ver bitácora del backend sobre el `ORDER BY` sin desempate), Vue reutiliza la instancia del componente `diseno-uploadPropuesta` por POSICIÓN en pantalla en vez de por identidad real de la revisión, arrastrando estado interno de una revisión anterior sobre la que ahora corresponde a esa posición.
+  2. Se cambió `:key="index"` por `:key="rev.id_revision"` (identificador único y estable de cada revisión) tanto en el `b-card-group` como en el componente `diseno-uploadPropuesta`, y se simplificó el `v-for` de `(rev, index)` a solo `rev` (ya no se usaba `index` para nada más en el bloque).
+  3. Verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+  4. Commit, push y despliegue inmediato a Desarrollo (`ninesys-hub/bin/deploy.sh`, opción 2) -- se priorizó como corrección urgente al tratarse de un bug con pérdida de datos real (aunque acotada a Desarrollo, ver bitácora del backend sobre la recuperación).
+
+- **Inconvenientes y Desafíos:** El bug no era evidente por inspección superficial del componente que agregué (`uploadPropuesta.vue`, el botón "Eliminar" en sí funciona correctamente leyendo `this.item.id_revision`, que SIEMPRE está correctamente vinculado vía props reactivas) -- la causa real estaba un nivel arriba, en cómo el componente PADRE itera y asigna identidad a cada instancia hija. Encontrarlo requirió cruzar el reporte del usuario con los logs de acceso del servidor para confirmar exactamente qué `id_revision` se había borrado realmente, y desde ahí razonar hacia atrás sobre el mecanismo.
+
+- **Decisión Final y Justificación:** Se usó `rev.id_revision` como key en vez de, por ejemplo, un índice combinado con algún otro campo -- es el identificador natural, único y estable de cada revisión (columna `_id` real de la tabla `revisiones`), ya disponible en los datos sin necesidad de generarlo ni derivarlo.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Desplegado a Desarrollo. Verificación funcional y forense completa del lado del backend (ver bitácora homóloga en `ninesys-api`, incluye recuperación del dato afectado desde Producción).
+
+- **Logro Conseguido:** Se corrigió la causa raíz real de un bug con pérdida de datos (borrado del diseño equivocado), no solo el síntoma -- el fix es robusto ante cualquier reordenamiento futuro del listado, no depende de que el backend siempre devuelva el mismo orden.
+
+- **Observaciones:** Lección general del proyecto: cualquier `v-for` que use `index` como `:key` sobre datos que puedan reordenarse (recargas, filtros, inserciones) es un riesgo latente, especialmente si hay acciones destructivas atadas a un ítem de la lista -- vale la pena revisar si existen otros casos similares en el codebase en una auditoría futura.
+
+- **Respuesta:** Se corrigió el bug real: las tarjetas de diseño usaban la posición en el array como identificador (`:key="index"`) en vez del ID real de cada revisión, lo que combinado con un orden no garantizado del lado del backend causaba que el botón de eliminar operara sobre la revisión equivocada. Ya corregido y desplegado en Desarrollo.
