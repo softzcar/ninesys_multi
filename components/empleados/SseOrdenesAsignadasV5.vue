@@ -964,16 +964,7 @@ export default {
           existing.unidades += Math.round(parseFloat(item.unidades)) || 0;
         }
         return acc;
-      }, []).sort((a, b) => {
-        const prioA = parseInt(a.prioridad) || parseInt(a.urgent) || 0;
-        const prioB = parseInt(b.prioridad) || parseInt(b.urgent) || 0;
-        if (prioA !== prioB) {
-          return prioB - prioA;
-        }
-        const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
-        const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
-        return dateA - dateB;
-      });
+      }, []);
     },
 
     dataTablePendiente() {
@@ -1005,11 +996,7 @@ export default {
           existing.unidades += Math.round(parseFloat(item.unidades)) || 0;
         }
         return acc;
-      }, []).sort((a, b) => {
-        const dateA = a.fecha_hora ? new Date(a.fecha_hora).getTime() : 0;
-        const dateB = b.fecha_hora ? new Date(b.fecha_hora).getTime() : 0;
-        return dateA - dateB;
-      });
+      }, []);
     },
 
     dataTableReposiciones() {
