@@ -313,6 +313,12 @@ export default {
     },
 
     async postImage() {
+      // Guarda contra doble clic/doble toque: sin esto, dos clics rápidos en
+      // "Enviar Diseño" (o un reintento por lentitud de red) disparaban dos
+      // subidas independientes de la misma imagen -- bug real reportado por
+      // el usuario (la misma imagen terminaba creando dos diseños).
+      if (this.disableForm) return;
+      this.disableForm = true;
       this.overlay = true;
 
       let ok = true;
@@ -335,6 +341,7 @@ export default {
         const creado = await this.crearRevisionReal();
         if (!creado) {
           this.overlay = false;
+          this.disableForm = false;
           return;
         }
       }
@@ -396,6 +403,7 @@ export default {
           })
           .finally(() => {
             this.overlay = false;
+            this.disableForm = false;
           });
       } else {
         this.$fire({
@@ -404,6 +412,7 @@ export default {
           type: "warniing",
         });
         this.overlay = false;
+        this.disableForm = false;
       }
     },
 
