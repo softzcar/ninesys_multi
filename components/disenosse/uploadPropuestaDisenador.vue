@@ -112,18 +112,21 @@ export default {
       const serverRevisiones =
         this.revisiones.length > 0
           ? this.revisiones.filter(
-              (el) => parseInt(el.id_orden) === this.item.id_orden
+              (el) => parseInt(el.id_orden, 10) === parseInt(this.item.id_orden, 10)
             )
           : [];
 
       // Un borrador cuya revisión ya se resolvió y ya llegó del servidor se
       // excluye para no duplicar la tarjeta -- una vez confirmado por el
-      // servidor, el borrador local queda redundante.
+      // servidor, el borrador local queda redundante. Se normaliza a Number
+      // antes de comparar: un id_revision como string ("1091") nunca
+      // coincide con el mismo id numérico (1091) dentro de un Set.
       const idsDelServidor = new Set(
-        serverRevisiones.map((r) => r.id_revision)
+        serverRevisiones.map((r) => Number(r.id_revision))
       );
       const borradoresVisibles = this.borradores.filter(
-        (b) => b.id_revision === null || !idsDelServidor.has(b.id_revision)
+        (b) =>
+          b.id_revision === null || !idsDelServidor.has(Number(b.id_revision))
       );
 
       return [...borradoresVisibles, ...serverRevisiones];
@@ -147,7 +150,7 @@ export default {
     handleHide(bvModalEvt) {
       if (this.closingConfirmed) {
         this.closingConfirmed = false;
-        this.limpiarBorradoresNoResueltos();
+        this.limpiarTodosLosBorradores();
         return;
       }
 
@@ -173,7 +176,7 @@ export default {
         return;
       }
 
-      this.limpiarBorradoresNoResueltos();
+      this.limpiarTodosLosBorradores();
     },
 
     enableButton() {
@@ -221,8 +224,8 @@ export default {
       );
     },
 
-    limpiarBorradoresNoResueltos() {
-      this.borradores = this.borradores.filter((b) => b.id_revision !== null);
+    limpiarTodosLosBorradores() {
+      this.borradores = [];
     },
 
     token() {
