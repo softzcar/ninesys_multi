@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** "Ahora en la sección 'Diseños terminados' tenemos que se están mostrando los diseños de todos los diseñadores, se deben mostrar solo los diseños del diseñador logueado, y no tienen un limite de fechas, vamos a mostrar los registros de los últimos 30 dias unicamente en esta pagina y que sean solo del diseñador logueado"
+
+- **Fecha y Hora:** 2026-08-10 18:10:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/store/disenos.js`
+  - `app_multi/components/diseno/terminados.vue`
+
+- **Commits Relacionados:** Pendiente de commitear
+
+- **Acción Realizada:**
+  1. Se actualizó la acción `getDisenosTerminados` en `store/disenos.js` para extraer automáticamente el `id_empleado` del usuario autenticado (`rootState.login.dataUser`) y enviar `?id_empleado=X&dias=30` en el query string de la petición HTTP.
+  2. Se actualizó el hook `mounted()` en `components/diseno/terminados.vue` para garantizar que la vista solicite de forma explícita los diseños terminados del diseñador activo durante los últimos 30 días.
+
+- **Inconvenientes y Desafíos:** Ninguno.
+
+- **Decisión Final y Justificación:** Garantizar la privacidad y pertinencia de los datos en la vista de Diseños Terminados, mostrando al diseñador únicamente su trabajo reciente de los últimos 30 días.
+
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `run_command` (`git`, `deploy.sh`), `write_to_file`.
+
+- **Resultado:** Éxito.
+
+- **Verificación:** Código frontend listo para despliegue en Desarrollo.

@@ -43,12 +43,19 @@ export const actions = {
                 // commit('setEmpleadosAsignados', res.data.empleados)
             })
     },
-    async getDisenosTerminados({ commit }) {
+    async getDisenosTerminados({ commit, rootState }, payload = {}) {
+        const idEmpleado =
+            payload?.id_empleado ||
+            rootState.login.dataUser?.id_empleado ||
+            rootState.login.dataUser?.id_usuario;
+        const queryParams = new URLSearchParams();
+        if (idEmpleado) queryParams.set("id_empleado", idEmpleado);
+        queryParams.set("dias", payload?.dias || 30);
+
         await this.$axios
-            .get(`${this.$config.API}/disenos/terminados`)
+            .get(`${this.$config.API}/disenos/terminados?${queryParams.toString()}`)
             .then((res) => {
                 commit("setDisenosTerminados", res.data)
-                // commit('setEmpleadosAsignados', res.data.empleados)
             })
     },
     async getDisenosEmpleado({ commit }, id_empleado) {

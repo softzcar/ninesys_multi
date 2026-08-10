@@ -111,9 +111,14 @@ export default {
   },
 
   mounted() {
-    // this.getDisenos()
+    const idEmpleado =
+      this.$store.state.login.dataUser?.id_empleado ||
+      this.$store.state.login.dataUser?.id_usuario;
     this.$store
-      .dispatch("disenos/getDisenosTerminados")
+      .dispatch("disenos/getDisenosTerminados", {
+        id_empleado: idEmpleado,
+        dias: 30,
+      })
       .then(() => (this.overlay = false));
   },
 };
