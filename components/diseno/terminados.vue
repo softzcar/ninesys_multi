@@ -21,8 +21,12 @@
         <b-col>
           <b-table
             responsive
-            :fields="dataTable.fields"
+            striped
+            hover
+            :fields="fieldsComputed"
             :items="dataTable.items"
+            :sort-by.sync="sortBy"
+            :sort-desc.sync="sortDesc"
           >
             <template #cell(id)="data">
               <linkSearch :id="data.item.id" />
@@ -65,12 +69,27 @@ export default {
       overlay: true,
       items: [],
       fields: [],
+      sortBy: "orden",
+      sortDesc: true,
     };
   },
 
   computed: {
     dataTable() {
       return this.$store.state.disenos.disenosTerminados;
+    },
+    fieldsComputed() {
+      const rawFields = this.dataTable.fields || [];
+      return rawFields.map((f) => {
+        const isSortable =
+          f.sortable !== undefined
+            ? f.sortable
+            : f.key !== "imagen" && f.key !== "linkdrive";
+        return {
+          ...f,
+          sortable: isSortable,
+        };
+      });
     },
   },
 

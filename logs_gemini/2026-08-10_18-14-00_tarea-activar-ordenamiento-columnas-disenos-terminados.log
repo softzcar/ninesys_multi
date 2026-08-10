@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** "Activemos la opcion de ordenar en las columnaas de esta tabla"
+
+- **Fecha y Hora:** 2026-08-10 18:14:00
+
+- **Proyecto(s):** Frontend (`app_multi`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/diseno/terminados.vue`
+
+- **Commits Relacionados:** Pendiente de commitear
+
+- **Acción Realizada:**
+  1. Se agregó la propiedad computada `fieldsComputed` a `terminados.vue` para marcar dinámicamente el atributo `sortable: true` en las columnas de la tabla.
+  2. Se configuraron las propiedades reactivas `sortBy: 'orden'` y `sortDesc: true` para habilitar el ordenamiento descendente por defecto.
+  3. Se vincularon los atributos `:sort-by.sync` y `:sort-desc.sync` al componente `<b-table>`.
+
+- **Inconvenientes y Desafíos:** Ninguno.
+
+- **Decisión Final y Justificación:** Permitir al diseñador ordenar de forma interactiva e instantánea cualquier columna de la tabla de Diseños Terminados (por orden, cliente, fecha, etc.).
+
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `run_command`, `write_to_file`.
+
+- **Resultado:** Éxito.
+
+- **Verificación:** Tabla enriquecida con funcionalidad de ordenamiento interactivo.
