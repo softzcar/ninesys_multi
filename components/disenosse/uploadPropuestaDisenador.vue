@@ -39,12 +39,12 @@
         <b-row>
           <b-col>
             <b-card-group
-              v-for="(rev, index) in misRevisiones"
-              v-bind:key="index"
+              v-for="rev in misRevisiones"
+              v-bind:key="rev.id_revision"
               deck
             >
               <diseno-uploadPropuesta
-                :key="index"
+                :key="rev.id_revision"
                 :id="rev.id_revision"
                 :revision="rev.id_revision"
                 :item="rev"
