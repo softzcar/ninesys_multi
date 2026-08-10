@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** "ok he abierto dos formularios para subir imágenes, seleccioné una imagen distinta para cada uno, solo envié uno, al salir me pidió confirmación como lo programamos, le dije que quería salirme y sí lo hizo correctamente pero al volver a entrar me doy cuenta que envió dos veces la imagen que sí le di enviar... [...] tenía dos formularios abiertos pero solo le di enviar a uno pero el sistema envió la imagen dos veces." Seguido de: "¿OK pero sospecho que existe un loop para enviar las imágenes que está generando el bug, está enviando la misma imagen varias veces en lugar de determinar si realmente es la imagen correcta."
+
+- **Fecha y Hora:** 2026-08-10 15:10:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `components/diseno/uploadPropuesta.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `c08ab85` (rama `refactor/modular-routes`)
+
+- **Acción Realizada:**
+  1. Se identificó la causa real: el botón "Enviar Diseño" (y el input de archivo) ya estaban enlazados a `:disabled="disableForm"`, pero `disableForm` nunca se ponía en `true` en ningún punto de `postImage()` -- quedaba clickeable durante toda la subida (creación del registro + subida al CDN + `update-tipo`, varios segundos de red). Dos clics rápidos (o un reintento por lentitud de red, pensando que el primero no funcionó) disparaban dos llamadas independientes a `postImage()`, cada una ejecutando el flujo completo por separado: cada una crea SU PROPIO registro (`crearRevisionReal()`) y sube la MISMA imagen seleccionada (`this.newImage`, que no se limpia hasta que la subida termina con éxito) -- resultando en dos diseños distintos con la misma imagen. No es un loop de reintento automático, es una falta de guarda de re-entrada ante una acción repetida del usuario.
+  2. Se agregó una guarda al inicio de `postImage()`: `if (this.disableForm) return;` seguido de `this.disableForm = true;` -- bloquea cualquier llamada adicional mientras una ya está en curso. Se restauró `disableForm = false` en TODOS los caminos de salida del método: el `return` temprano si falla la creación del registro real, el `.finally()` de la subida (cubre éxito y fallo), y la rama de validación fallida (`else`).
+  3. Verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+  4. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** El usuario sospechó inicialmente de un "loop" que reenviaba la imagen -- se le aclaró que el mecanismo real es re-entrada por falta de guarda (dos invocaciones independientes del mismo método, no una repetición automática dentro de una sola invocación), ya que la distinción importa para descartar otras hipótesis (ej. un `setInterval`/reintento automático, que no existe en este código).
+
+- **Decisión Final y Justificación:** Se usó el campo `disableForm` que YA EXISTÍA en el estado del componente y ya estaba correctamente enlazado en el template -- solo faltaba efectivamente ponerlo en `true`/`false` en los momentos correctos. No se introdujo un mecanismo nuevo (ej. debounce), se completó uno que ya estaba a medio implementar.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Grep`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Desplegado a Desarrollo. Pendiente: limpiar el diseño duplicado real que quedó de la prueba del usuario, y decidir si desplegar también a Producción (el mismo bug está latente ahí, sin haber sido reportado todavía).
+
+- **Logro Conseguido:** Se cerró un bug real de duplicación de datos (creación de dos diseños con la misma imagen a partir de una sola intención de envío), causado por la ausencia de una guarda de re-entrada que el propio código ya sugería tener (variable `disableForm` sin usar).
+
+- **Observaciones:** Este mismo patrón (variable de "deshabilitar mientras se procesa" declarada pero nunca activada) podría existir en otros formularios del proyecto -- candidato a una revisión puntual futura si se decide.
+
+- **Respuesta:** Se corrigió: el botón "Enviar Diseño" ahora se deshabilita mientras la subida está en curso, evitando que un doble clic (o un reintento por lentitud de red) cree dos diseños con la misma imagen. No era un loop automático, sino la falta de un bloqueo que ya estaba parcialmente preparado en el código pero nunca se activaba.
