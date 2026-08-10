@@ -1,0 +1,36 @@
+- **Solicitud del Usuario:** "sí, probé de nuevo y funciona correctamente, me queda la duda de por qué si creo un formulario vacío este prevalece después de recargar la página [...] debemos crear el registro al momento de subir la imagen! si no quedarían esos registros basura en la base de datos [...] Entonces el comportamiento esperado es que el botón cree un nuevo formulario, si no se usa al momento de cerrar el modal desaparece."
+
+- **Fecha y Hora:** 2026-08-10 14:20:00
+
+- **Proyecto(s):** Frontend (ver bitácora homóloga en `ninesys-api` para el detalle del cambio de backend y la limpieza de datos)
+
+- **Archivos Involucrados:**
+  - `components/disenosse/uploadPropuestaDisenador.vue`
+  - `components/diseno/uploadPropuesta.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `395f5f5` (rama `refactor/modular-routes`)
+  - Backend: `5e0c2c8` (rama `feature/postgresql-support`)
+
+- **Acción Realizada:**
+  1. Se pasó por modo plan (agentes Explore + Plan) para diseñar el rediseño completo antes de tocar código -- ver `/home/developer/.claude/plans/s-arma-el-plan-snug-orbit.md` para el detalle técnico completo (mecánica de reactividad de Vue 2, estrategia de deduplicación, manejo del `:key` estable).
+  2. `uploadPropuestaDisenador.vue`: `addReview()` ya no llama a la API -- solo agrega un objeto "borrador" 100% local a un nuevo array `borradores` (con un `localKey` único, `id_revision: null`). `misRevisiones` ahora fusiona `borradores` + revisiones reales del servidor, con deduplicación (un borrador cuyo `id_revision` ya resolvió y ya aparece en los datos del servidor se excluye, evitando una tarjeta duplicada). El `v-for` usa `rev.localKey || rev.id_revision` como `:key` -- estable durante toda la vida del borrador, para que el componente no se remonte (y pierda el estado de una subida en curso) justo cuando pasa de local a real. `handleHide()` ahora limpia los borradores sin usar en ambos puntos de salida del método, sin tocar la lógica ya existente del confirm por imagen sin subir.
+  3. `uploadPropuesta.vue`: nuevo método `crearRevisionReal()` que hace el `POST /disenos/nuevo-con-revision` y emite el ID real al padre. `postImage()` lo invoca ahora, justo antes de subir la imagen, solo si el formulario todavía es local (`item.id_revision === null`). `mounted()` salta la búsqueda de imagen en el CDN para un borrador local (no hay nada que buscar todavía). `deleteDesign()` para un borrador local solo emite un evento al padre, sin ninguna llamada a la API ni confirmación (no hay nada que perder). `myTitle` muestra "PROPUESTA (nueva)" en vez de "PROPUESTA null" mientras el borrador no se resuelve.
+  4. Verificación de sintaxis con `vue-template-compiler` + `@babel/core` en ambos archivos.
+  5. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** Ninguno del lado del frontend en sí -- el diseño ya venía validado del modo plan (incluyendo la corrección de un problema real que el agente de planificación encontró: dos `borradores` simultáneos habrían colisionado en el `id`/`inputId` del DOM si se seguía usando `rev.id_revision` -- ya resuelto usando `localKey` también ahí).
+
+- **Decisión Final y Justificación:** Se mantuvo la secuencia exacta ya corregida hoy mismo (crear → subir → `await enviarTipoDiseno()` → `reload`) sin reordenarla, insertando el paso nuevo (crear el registro real) ANTES de esa secuencia ya probada, en vez de reestructurar todo el flujo -- minimiza el riesgo de reintroducir alguno de los bugs ya corregidos hoy en el mismo archivo.
+
+- **Herramienta(s) Utilizada(s):** Modo plan (agentes Explore + Plan), `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores en ambos archivos. Desplegado a Desarrollo. Verificación funcional completa del lado del backend, incluida la limpieza de datos existentes -- ver bitácora homóloga en `ninesys-api`.
+
+- **Logro Conseguido:** Se cerró de raíz un problema real de larga data (formularios vacíos acumulándose permanentemente en la base de datos desde hace más de un año) con un cambio de arquitectura que ahora lo previene por completo hacia adelante.
+
+- **Observaciones:** Ninguna adicional.
+
+- **Respuesta:** El botón "+ Nuevo Diseño" ya no crea ningún registro en la base de datos -- solo agrega un formulario local que desaparece sin dejar rastro si no se usa al cerrar el modal. El registro real se crea recién al enviar el diseño, justo antes de subir la imagen.
