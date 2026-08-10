@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** "OK he eliminado el diseño con imagen y el formulario vacío, esta vez el botón de eliminar ha eliminado correctamente el formulario correctamente pero han sucedido dos cosas a reparar, una que la imagen sigue en el servidor `https://cdn.nineteengreen.com/images/194/6515-1074.png?_=nrg7h22D` la otra que después de eliminar ambos formularios la orden dejó de aparecer en la tabla... LA orden debe seguir asignada al diseñador para que pueda subir nuevamente las imágenes que necesite..."
+
+- **Fecha y Hora:** 2026-08-10 12:00:00
+
+- **Proyecto(s):** Ambos
+
+- **Archivos Involucrados:**
+  - `components/diseno/uploadPropuesta.vue` (`deleteDesign()`)
+  - `ninesys-api/app/routes/designs.php` (fix relacionado -- la orden desaparecía de la tabla; ver bitácora homóloga en ese repo)
+
+- **Commits Relacionados:**
+  - Frontend: `5b8e01c` (rama `refactor/modular-routes`)
+  - Backend: `fefa835` (rama `feature/postgresql-support`)
+
+- **Acción Realizada:**
+  1. Sobre el reporte de "la imagen sigue en el servidor": se investigó (del lado del backend, ver bitácora homóloga) y no se pudo confirmar con certeza que el borrado del CDN realmente hubiera fallado esta vez -- el archivo ya no estaba presente al momento de revisar. Se encontró de todas formas un problema real de robustez en el código: el resultado del `DELETE` contra `ninesys-cdn` se descartaba en silencio (`.catch(() => {})`), sin revisar siquiera si la respuesta indicaba éxito (`{deleted: true}`) o fracaso -- si alguna vez falla de verdad, nadie se entera y queda un archivo huérfano en el servidor sin ningún rastro.
+  2. Se corrigió `deleteDesign()`: ahora se revisa la respuesta del CDN (`res.data.deleted !== true` cuenta como fallo, igual que cualquier error de red/HTTP), y si la imagen no se pudo borrar, se muestra un aviso claro al usuario DESPUÉS de confirmar que el registro sí se eliminó correctamente (no se bloquea el flujo, solo se informa).
+  3. Verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+  4. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** No fue posible reproducir un fallo real del borrado de imagen para verificar el aviso en un caso de fallo genuino -- se verificó solo que el código revisa correctamente la respuesta esperada del CDN (`{deleted: true}` vs cualquier otra cosa).
+
+- **Decisión Final y Justificación:** Se decidió avisar DESPUÉS del `reload` (no bloquear el borrado del registro por un fallo de la imagen) -- el registro en la base de datos es la fuente de verdad de qué diseños existen; un archivo huérfano en el CDN es un problema de limpieza, no debe impedir que el diseñador complete la acción principal que pidió.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Desplegado a Desarrollo.
+
+- **Logro Conseguido:** Se eliminó un punto de fallo silencioso real en el flujo de borrado -- de ahora en más, si el CDN no logra borrar una imagen, quedará visible para el usuario en vez de perderse sin dejar rastro.
+
+- **Observaciones:** El bug relacionado de "la orden desaparece de la tabla" (mucho más grave que este) se corrigió del lado del backend -- ver bitácora homóloga en `ninesys-api`.
+
+- **Respuesta:** Se corrigió el manejo del borrado de imagen del CDN para que avise si falla en vez de fallar en silencio. Sobre el caso puntual reportado, la imagen ya no estaba en el servidor al investigar -- no se pudo confirmar si realmente falló el borrado o fue una copia en caché, pero el código queda más robusto para detectarlo si vuelve a pasar.
