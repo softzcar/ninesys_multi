@@ -1,0 +1,38 @@
+- **Solicitud del Usuario:** "Estoy en la página `/diseno/disenos` en la tabla en la columna 'Revisión' tenemos un componente que permite subir los diseños para su posterior aprobación por parte de un administrador. Por defecto me muestra un formulario para subir un primer diseño [...] pero el formulario vacío se sigue mostrando... no hay manera de eliminar el formulario vacío. [...] el diseñador debería poder eliminar los diseños que envíe desde este formulario los cuales se muestran mientras que no estén aprobados. Luego de aprobados ya el diseñador no debe poder eliminarlos [...] Debemos entonces poner un botón que nos permita eliminar tanto un formulario vacío (sin confirmación alguna) y poder eliminar un diseño tanto de la base de datos como la imagen del servidor esta vez sí con un confirm."
+
+- **Fecha y Hora:** 2026-08-10 11:10:00
+
+- **Proyecto(s):** Ambos
+
+- **Archivos Involucrados:**
+  - `components/diseno/uploadPropuesta.vue` (botón "Eliminar" + método `deleteDesign()`)
+  - `components/disenosse/uploadPropuestaDisenador.vue` (solo lectura, componente padre)
+  - `components/disenosse/asignados.vue` (solo lectura, sirve la página `/diseno/disenos`)
+
+- **Commits Relacionados:**
+  - Frontend: `3ffcfa5` (rama `refactor/modular-routes`)
+  - Backend: `ab85fdf` (rama `feature/postgresql-support`, nuevo `DELETE /disenos/revision/{id_revision}`)
+
+- **Acción Realizada:**
+  1. Se ubicó el componente real detrás de cada tarjeta de "Revisión" en `/diseno/disenos`: `components/diseno/uploadPropuesta.vue`, que muestra el formulario de subida mientras `item.id_product === null` y no tenía ningún botón de borrado.
+  2. Se agregó un botón "Eliminar" (`b-icon="trash"`, `variant="outline-danger"`) justo debajo del badge de estatus, visible solo mientras `item.estatus !== 'Aprobado'`.
+  3. Se agregó el método `deleteDesign()`: si la revisión es un formulario vacío (`id_product === null`) borra de inmediato sin pedir confirmación; si ya tiene un diseño enviado, muestra un `$confirm` ("¿Eliminar este diseño?") y, al confirmar, borra el registro contra el nuevo endpoint `DELETE {API}/disenos/revision/{id_revision}` y, además, la imagen física llamando directo a `ninesys-cdn` con el mismo patrón de URL (`urlCDN`) que ya usa el formulario para subir la imagen (`DELETE` en vez de `POST`, mismo endpoint, sin cambios ahí).
+  4. Verificación de sintaxis con `vue-template-compiler` + `@babel/core` (mismo chequeo estándar del proyecto).
+  5. Commit, push y despliegue a Desarrollo (Contabo) vía `ninesys-hub/bin/deploy.sh` (opción 2).
+  6. El endpoint backend nuevo se verificó exhaustivamente (3 escenarios reales con datos desechables) desde el lado de `ninesys-api` -- ver bitácora homóloga en ese repo para el detalle completo de esa verificación.
+
+- **Inconvenientes y Desafíos:** No se pudo verificar visualmente el botón nuevo en el navegador dentro de esta sesión porque la sesión de Chrome disponible estaba logueada como otro empleado sin diseños asignados, y no se contaba con las credenciales de "Maru" (la empleada que el usuario tenía activa) para iniciar sesión como ella. Se le pidió al usuario confirmar visualmente desde su propia sesión ya autenticada.
+
+- **Decisión Final y Justificación:** Un solo botón con comportamiento condicional (sin confirmación para un formulario vacío -- no hay nada que perder; con confirmación para un diseño ya enviado -- se pierde el archivo y el registro) en vez de dos botones separados, replicando exactamente el pedido del usuario.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`), agente Explore.
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Despliegue a Desarrollo confirmado. Comportamiento de negocio verificado del lado del backend (ver bitácora de `ninesys-api` para el detalle) -- pendiente confirmación visual del usuario en su propia sesión.
+
+- **Logro Conseguido:** Se cerró un hueco funcional real -- hasta ahora un diseñador no tenía ninguna forma de corregir un error propio (formulario vacío creado por accidente, o un diseño mal enviado antes de ser revisado), quedando atascado en la interfaz para siempre.
+
+- **Observaciones:** Pendiente que el usuario confirme visualmente el botón desde su sesión real de Maru.
+
+- **Respuesta:** Se agregó un botón "Eliminar" en cada tarjeta de diseño de `/diseno/disenos`: si es un formulario vacío se borra al instante sin preguntar nada; si ya tiene un diseño enviado, pide confirmación y borra tanto el registro como la imagen. Una vez "Aprobado", el botón desaparece.
