@@ -348,7 +348,7 @@ export default {
               "Content-Type": "multipart/form-data",
             },
           })
-          .then((res) => {
+          .then(async (res) => {
             if (res.data.uploaded) {
               if (this.previewUrl) {
                 URL.revokeObjectURL(this.previewUrl);
@@ -357,9 +357,14 @@ export default {
               this.imagenReciénSubida = true;
               this.newImage = null;
               this.tmpImage = res.data.url + "?_=" + this.token();
-              this.$emit("reload", "true");
               this.$emit("button", false);
-              this.enviarTipoDiseno();
+              // Recién ahora, con id_product ya guardado, es seguro recargar
+              // -- si se emitía antes, el padre recargaba con id_product
+              // todavía en NULL y el watcher de `item` pisaba tmpImage de
+              // vuelta al placeholder "no hay imagen" (bug real reportado
+              // por el usuario).
+              await this.enviarTipoDiseno();
+              this.$emit("reload", "true");
               this.overlay = false;
             } else {
               this.$fire({
