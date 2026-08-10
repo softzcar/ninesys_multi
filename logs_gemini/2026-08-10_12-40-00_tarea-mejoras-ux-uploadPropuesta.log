@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** "Vamos con las dos nuevas cosas por hacer, la primera más sencilla es que después de crear un nuevo formulario para subir diseños se muestra un alert informando que el proceso ha terminado correctamente, esto no es necesario es más bien molesto, eliminemos ese alert, por otra parte vamos a evaluar la posibilidad de ver un preview de la imagen que se va a subir una vez seleccionado el archivo por parte del diseñador y que el modal no se cierre automáticamente cada vez que se sube un archivo, pues es posible que quiera subir más de un diseño. Esta funcionalidad de cerrarlo al subir la imagen quedó de una implementación anterior..."
+
+- **Fecha y Hora:** 2026-08-10 12:40:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `components/disenosse/uploadPropuestaDisenador.vue` (quitar alert de éxito en `addReview()`)
+  - `components/diseno/uploadPropuesta.vue` (preview de imagen + no cerrar modal)
+
+- **Commits Relacionados:**
+  - Frontend: `0cf6073` (rama `refactor/modular-routes`)
+
+- **Acción Realizada:**
+  1. Se quitó el `this.$fire({title: "Éxito", ...})` que se mostraba tras crear un nuevo proyecto de diseño vacío ("+ Nuevo Diseño") -- ya solo emite `reload` sin ningún aviso visual.
+  2. Se agregó un `watch` sobre `newImage` (el `File` seleccionado en el `<b-form-file>`) que genera una URL local con `URL.createObjectURL()` y la asigna a `tmpImage` -- reutilizando el `<b-card-img-lazy :src="tmpImage">` que ya existía en el tope de la tarjeta, sin agregar un elemento nuevo. Se agregó `beforeDestroy()` y limpieza en el momento en que la imagen real ya se subió (`postImage()`) para revocar la URL local (`URL.revokeObjectURL`) y evitar fugas de memoria.
+  3. Se quitó `this.$emit("closemodal")` de `enviarTipoDiseno()` -- el modal ya no se cierra automáticamente después de subir un diseño, permitiendo subir varios diseños para la misma orden sin tener que reabrirlo. Se dejó intacta la plomería `@closemodal="hideMe"` en el componente padre (no se usa desde ningún otro lugar de este componente, pero no aporta nada tocarla -- cambio mínimo).
+  4. Verificación de sintaxis con `vue-template-compiler` + `@babel/core` en ambos archivos.
+  5. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** Ninguno relevante -- cambios acotados y directos.
+
+- **Decisión Final y Justificación:** Se reutilizó el `<img>` ya existente (`tmpImage`) para el preview en vez de agregar un elemento nuevo -- menos invasivo, y visualmente es exactamente donde el diseñador ya espera ver la imagen del diseño.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores en ambos archivos. Desplegado a Desarrollo. Pendiente confirmación visual del usuario.
+
+- **Logro Conseguido:** Se eliminó un alert innecesario, se agregó feedback visual inmediato (preview) antes de subir, y se corrigió un comportamiento heredado de una implementación anterior que interrumpía el flujo de subir varios diseños seguidos.
+
+- **Observaciones:** Ninguna adicional.
+
+- **Respuesta:** Se quitó el alert molesto al crear un formulario nuevo, se agregó previsualización local inmediata de la imagen elegida (antes de subirla), y el modal ya no se cierra automáticamente después de cada subida -- se puede seguir agregando diseños sin reabrirlo.
