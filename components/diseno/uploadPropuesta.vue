@@ -24,6 +24,21 @@
         style="text-transform: uppercase; font-size: 1.2rem; font-weight: bold"
         :variant="variantAlert"
       >{{ miRevision }}</b-alert>
+
+      <div
+        class="text-right mb-2"
+        v-if="item.estatus !== 'Aprobado'"
+      >
+        <b-button
+          size="sm"
+          variant="outline-danger"
+          :disabled="overlay"
+          @click="deleteDesign()"
+        >
+          <b-icon icon="trash"></b-icon> Eliminar
+        </b-button>
+      </div>
+
       <b-form-group
         id="input-group-1"
         label="Detalle:"
@@ -335,6 +350,50 @@ export default {
           type: "warniing",
         });
         this.overlay = false;
+      }
+    },
+
+    async deleteDesign() {
+      const esFormularioVacio = this.item.id_product === null;
+
+      const ejecutarBorrado = async () => {
+        this.overlay = true;
+        this.overlayText = "Eliminando...";
+        try {
+          await this.$axios.delete(
+            `${this.$config.API}/disenos/revision/${this.item.id_revision}`
+          );
+
+          if (!esFormularioVacio) {
+            // Elimina también la imagen física del CDN (mismo endpoint al
+            // que ya se sube la imagen, ver urlCDN).
+            await axios.delete(this.urlCDN).catch(() => {});
+          }
+
+          this.$emit("reload", true);
+        } catch (err) {
+          this.$fire({
+            title: "Error",
+            html: `<p>No se pudo eliminar el diseño.</p><p>${
+              err.response?.data?.error || err
+            }</p>`,
+            type: "error",
+          });
+        } finally {
+          this.overlay = false;
+        }
+      };
+
+      if (esFormularioVacio) {
+        ejecutarBorrado();
+      } else {
+        this.$confirm(
+          "Esta acción eliminará el diseño enviado y su imagen de forma permanente.",
+          "¿Eliminar este diseño?",
+          "warning"
+        )
+          .then(() => ejecutarBorrado())
+          .catch(() => {});
       }
     },
 
