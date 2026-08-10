@@ -1,0 +1,34 @@
+- **Solicitud del Usuario:** "Ok intenté cerrar el modal sin subir la imagen y me ha mostrado el confirm correctamente, luego subí la imagen y me lo volvió a mostrar ya sin imágenes por subir..."
+
+- **Fecha y Hora:** 2026-08-10 13:10:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `components/diseno/uploadPropuesta.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `db6fc48` (rama `refactor/modular-routes`)
+
+- **Acción Realizada:**
+  1. Se confirmó el bug: `postImage()` nunca reseteaba `newImage` a `null` tras una subida exitosa -- el confirm de cierre agregado en la tarea anterior revisa `c.newImage` en cada tarjeta, así que seguía viendo el archivo ya subido como "pendiente" y pedía confirmación de más.
+  2. Se agregó `this.newImage = null` en el bloque de éxito de `postImage()`. Al hacerlo, se detectó un segundo problema potencial antes de desplegarlo: el `watch: { newImage() {...} }` agregado para el preview corre en el siguiente tick de Vue (asíncrono), es decir DESPUÉS de la asignación síncrona de `newImage = null` pero probablemente ANTES de que termine el `POST /diseno/update-tipo` (red, mucho más lento que un tick) -- su rama `else if (this.item.id_product === null)` habría pisado el `tmpImage` recién actualizado con la URL real, devolviéndolo al placeholder "no-image" mientras se espera la recarga del padre.
+  3. Se agregó una bandera (`imagenReciénSubida`) que se fija justo antes de limpiar `newImage` en `postImage()`, y que el watcher revisa al inicio para no tocar nada (solo se resetea a sí misma) cuando el reset viene de una subida exitosa -- evita el pisado sin necesidad de reestructurar el flujo existente.
+  4. Verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+  5. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** El fix obvio (solo limpiar `newImage`) habría introducido una regresión nueva (imagen recién subida mostrándose como placeholder momentáneamente) si no se hubiera revisado la interacción con el watcher agregado en la tarea anterior -- se detectó por inspección del código antes de desplegar, no por otro reporte del usuario.
+
+- **Decisión Final y Justificación:** Se usó una bandera de una sola lectura en vez de, por ejemplo, quitar la rama `else if` del watcher por completo -- esa rama sigue siendo necesaria para el caso real de que el usuario cancele la selección del archivo (click en la "x" del input) sin haber subido nada.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Desplegado a Desarrollo. Pendiente confirmación visual del usuario.
+
+- **Logro Conseguido:** El confirm de cierre de modal ahora refleja el estado real -- solo aparece cuando genuinamente hay una imagen seleccionada sin enviar.
+
+- **Observaciones:** Se identificó `sendNewImage()` como método muerto (definido pero nunca invocado desde el template) durante esta revisión -- no se tocó, fuera de alcance de esta tarea puntual.
+
+- **Respuesta:** Corregido -- después de subir una imagen con éxito, ya no queda marcada como "pendiente", así que el confirm al cerrar el modal solo aparece cuando realmente hay algo sin subir.
