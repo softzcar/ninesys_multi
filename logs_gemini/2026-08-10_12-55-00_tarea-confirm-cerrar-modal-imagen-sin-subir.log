@@ -1,0 +1,34 @@
+- **Solicitud del Usuario:** "¿Podemos poner un confirm al momento de cerrar este modal en caso que el diseñador haya seleccionado alguna imagen pero no la haya subido? Por otra parte me causa curiosidad que si dejo un formulario vacío en el modal y luego vuelvo a entrar aparece de nuevo... ¿Se crea algún registro al momento de crear el formulario sin que se haya subido alguna imagen?"
+
+- **Fecha y Hora:** 2026-08-10 12:55:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `components/disenosse/uploadPropuestaDisenador.vue` (`@hide` del modal + `handleHide()`)
+
+- **Commits Relacionados:**
+  - Frontend: `a48e374` (rama `refactor/modular-routes`)
+
+- **Acción Realizada:**
+  1. Se respondió la pregunta del usuario (sin cambio de código, solo explicación): sí, `POST /disenos/nuevo-con-revision` (disparado por "+ Nuevo Diseño") crea de inmediato una fila real en `disenos` y otra en `revisiones` con `id_product = NULL`, antes de que exista cualquier imagen -- por eso un formulario vacío persiste al volver a entrar, no es un estado temporal de la UI. Ya es borrable sin confirmación con el botón agregado en una tarea anterior del mismo día.
+  2. Se implementó el confirm al cerrar el modal: se agregó `ref="proposalCards"` a cada tarjeta `<diseno-uploadPropuesta>` dentro del `v-for` (Vue 2 -- un `ref` dentro de `v-for` produce un array con todas las instancias), y `@hide="handleHide"` al `<b-modal>`.
+  3. `handleHide(bvModalEvt)` revisa, vía `this.$refs.proposalCards`, si alguna tarjeta hija tiene `newImage` (el archivo ya seleccionado en el input, propiedad reactiva interna de cada instancia) sin subir. Si es así, llama a `bvModalEvt.preventDefault()` y muestra un `$confirm`; si el usuario confirma, se marca `closingConfirmed = true` y se vuelve a llamar `$bvModal.hide()` en el siguiente tick -- la propia bandera evita que el segundo intento dispare el confirm de nuevo (patrón estándar de BootstrapVue para confirmar antes de cerrar un modal).
+  4. Verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+  5. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** Ninguno relevante -- patrón estándar y bien documentado de BootstrapVue (`@hide` + `preventDefault` + bandera de reintento).
+
+- **Decisión Final y Justificación:** Se usó `$refs` para leer el estado interno de las tarjetas hijas en vez de levantar el estado con eventos (`@pending-image`) -- más simple, sin agregar plomería nueva de comunicación entre componentes solo para esta verificación puntual al momento de cerrar.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Desplegado a Desarrollo. Pendiente confirmación visual del usuario.
+
+- **Logro Conseguido:** Se evita perder en silencio una imagen ya seleccionada (pero no enviada) si el diseñador cierra el modal por accidente (X, click afuera, tecla Esc).
+
+- **Observaciones:** Ninguna adicional.
+
+- **Respuesta:** Se agregó confirmación al cerrar el modal (X, click afuera, Esc) si hay una imagen seleccionada sin subir en cualquiera de las tarjetas abiertas. Sobre la pregunta del formulario vacío: sí, se crea un registro real en la base de datos apenas se hace clic en "+ Nuevo Diseño" (antes de subir cualquier imagen) -- por eso persiste al volver a entrar; ya es borrable sin confirmación con el botón de basura agregado antes.
