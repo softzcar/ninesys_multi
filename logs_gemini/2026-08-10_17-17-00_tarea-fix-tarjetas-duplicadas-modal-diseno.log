@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** "/plan OK ese Bug quedó resuleto, ahora tenemos uno nuevo, en caso de abrir este modal, crar DOS formularios, solo enviar uno, cerrar el modal y volverlo a abrir, en el modal se muestra el diseÑo DOS VECES... Vamos a resolver este! Confío en ti!" -- seguido de "Procede a aplicar la solución".
+
+- **Fecha y Hora:** 2026-08-10 17:17:00
+
+- **Proyecto(s):** Frontend (`app_multi`) en Desarrollo (`vps-contabo-dev`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/disenosse/uploadPropuestaDisenador.vue`
+
+- **Commits Relacionados:** N/A (edición directa y despliegue a desarrollo)
+
+- **Acción Realizada:**
+  1. Se diagnosticó la causa raíz: al enviar solo 1 de 2 borradores locales, el borrador enviado recibía su `id_revision` real del servidor. Al cerrar el modal, `limpiarBorradoresNoResueltos()` filtraba únicamente los borradores con `id_revision === null` (eliminando el borrador no enviado), pero dejando el borrador enviado en el array local `this.borradores`. Al reabrir el modal, se renderizaba tanto la revisión real de la prop `revisiones` como la copia en `this.borradores`, produciendo una tarjeta duplicada.
+  2. Se modificó `uploadPropuestaDisenador.vue`:
+     - Se renombró y reestructuró `limpiarBorradoresNoResueltos()` por `limpiarTodosLosBorradores()`, asignando `this.borradores = []` cada vez que el modal se cierra (`handleHide`).
+     - Se reforzó el filtrado computado `misRevisiones` con casteo numérico estricto (`parseInt(..., 10)` y `Number(...)`) para evitar discrepancias de tipos.
+  3. Se ejecutó el script de despliegue a Desarrollo `/home/developer/Escritorio/niesys/ninesys-hub/bin/deploy.sh` (Opción 2).
+
+- **Inconvenientes y Desafíos:** Ninguno.
+
+- **Decisión Final y Justificación:** Limpiar completamente el array `this.borradores = []` al cerrar el modal es la solución más robusta y limpia, ya que los borradores solo deben existir en la memoria de la sesión activa del modal. Al cerrar, cualquier revisión guardada es leída de la fuente de verdad (servidor) y cualquier borrador no enviado se descarta.
+
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `run_command` (`deploy.sh`), `write_to_file`.
+
+- **Resultado:** Éxito.
+
+- **Verificación:**
+  - Código fuente actualizado en `uploadPropuestaDisenador.vue`.
+  - Despliegue completado con éxito hacia `vps-contabo-dev`.
+
+- **Logro Conseguido:** Se eliminó por completo el error de tarjetas duplicadas al reabrir el modal tras un envío parcial de borradores.
+
+- **Observaciones:** Desplegado únicamente a Desarrollo (`https://app.nineteengreen.com`).
+
+- **Respuesta:** Fix aplicado y desplegado en Desarrollo.
