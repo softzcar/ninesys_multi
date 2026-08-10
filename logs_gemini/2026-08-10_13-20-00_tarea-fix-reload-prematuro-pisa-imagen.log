@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** "ok ahora funciona correctamente la validación, pero tenemos un nuevo bug, has programado correctamente que al momento de seleccionar la imagen se muestre en el contenedor de imagen, pero después de que muestra el alert confirmando que ha subido correctamente, desaparece la imagen y muestra la imagen que indica que aún no hay imagen..."
+
+- **Fecha y Hora:** 2026-08-10 13:20:00
+
+- **Proyecto(s):** Frontend
+
+- **Archivos Involucrados:**
+  - `components/diseno/uploadPropuesta.vue`
+
+- **Commits Relacionados:**
+  - Frontend: `4161a67` (rama `refactor/modular-routes`)
+
+- **Acción Realizada:**
+  1. Se identificó la causa: en `postImage()`, `this.$emit("reload", "true")` se disparaba INMEDIATAMENTE después de subir la imagen al CDN, pero ANTES de llamar a `enviarTipoDiseno()` (que es quien realmente guarda `id_product` en la base de datos vía `POST /diseno/update-tipo`). El padre recargaba los datos de inmediato, con `id_product` todavía en `NULL` en el servidor -- el watcher `item(val)` (`if (val.id_product === null) tmpImage = placeholder`) pisaba la imagen recién subida de vuelta al placeholder "no hay imagen", justo en el momento en que `enviarTipoDiseno()` terminaba y mostraba su alert de éxito (de ahí que pareciera que el alert "causaba" la desaparición -- en realidad fue el reload prematuro, que coincidía en el tiempo con el alert por ser ambos consecuencia del mismo flujo).
+  2. Se reordenó `postImage()`: ahora se hace `await this.enviarTipoDiseno()` (asegurando que `id_product` ya esté guardado en la base) ANTES de emitir `"reload"`. Cuando el padre recarga, ya trae el `id_product` correcto, así que el watcher `item(val)` no vuelve a resetear la imagen.
+  3. Verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+  4. Commit, push y despliegue a Desarrollo.
+
+- **Inconvenientes y Desafíos:** El síntoma reportado por el usuario ("desaparece justo después del alert") apuntaba, a primera vista, a una relación causal con el propio alert -- pero el alert de `enviarTipoDiseno()` y el reload prematuro son dos efectos del mismo flujo async, coincidentes en el tiempo por casualidad de la carrera entre el POST del reload (rápido, sin esperar nada) y el POST de `update-tipo` (que sí necesitaba completarse antes). Hubo que leer el orden real de las llamadas, no solo el síntoma visual reportado.
+
+- **Decisión Final y Justificación:** Se ordenó el flujo para que sea correcto por construcción (esperar a que el dato esté persistido antes de recargarlo) en vez de, por ejemplo, hacer que el watcher `item(val)` fuera más permisivo/tolerante a datos transitorios -- la causa real era el orden de las operaciones, no la lógica del watcher (que es correcta: si `id_product` es NULL, no hay imagen que mostrar).
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (verificación de sintaxis, `git`, `deploy.sh`).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Sintaxis Vue 2 (template + script) sin errores. Desplegado a Desarrollo. Pendiente confirmación visual del usuario.
+
+- **Logro Conseguido:** Se corrigió una condición de carrera real entre dos operaciones async relacionadas (subir imagen + guardar tipo de diseño) que hacía que la imagen recién subida desapareciera de la vista tras cada envío exitoso -- esta es la tercera iteración de fixes sobre el mismo flujo de subida en el mismo día (preview → confirm de cierre → este), cada una revelando el siguiente problema real al corregir el anterior.
+
+- **Observaciones:** Ninguna adicional.
+
+- **Respuesta:** Corregido -- la imagen ya no debería desaparecer después de subirse. La causa real no era el alert en sí, sino que la recarga de datos se disparaba antes de que terminara de guardarse el tipo de diseño, trayendo datos todavía desactualizados.
