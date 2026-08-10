@@ -121,7 +121,14 @@ export default {
       showCard: true,
       miRevision: "",
       miDetalle: "",
+      previewUrl: null,
     };
+  },
+
+  beforeDestroy() {
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+    }
   },
 
   watch: {
@@ -139,6 +146,20 @@ export default {
 
     item(val) {
       if (val.id_product === null) {
+        this.tmpImage = `${this.$config.CDN}/images/no-image.png`;
+      }
+    },
+
+    newImage(val) {
+      // Previsualización local del archivo elegido, antes de subirlo.
+      if (this.previewUrl) {
+        URL.revokeObjectURL(this.previewUrl);
+        this.previewUrl = null;
+      }
+      if (val) {
+        this.previewUrl = URL.createObjectURL(val);
+        this.tmpImage = this.previewUrl;
+      } else if (this.item.id_product === null) {
         this.tmpImage = `${this.$config.CDN}/images/no-image.png`;
       }
     },
@@ -202,8 +223,9 @@ export default {
     },
 
     async enviarTipoDiseno() {
-      this.$emit("closemodal");
-
+      // No se cierra el modal automáticamente: el diseñador puede querer
+      // subir más de un diseño para la misma orden sin tener que volver a
+      // abrirlo (comportamiento heredado de una implementación anterior).
       const data = new URLSearchParams();
       data.set("id_diseno", this.item.id_diseno);
       data.set("url_imagen", this.tmpImage);
@@ -320,6 +342,10 @@ export default {
           })
           .then((res) => {
             if (res.data.uploaded) {
+              if (this.previewUrl) {
+                URL.revokeObjectURL(this.previewUrl);
+                this.previewUrl = null;
+              }
               this.tmpImage = res.data.url + "?_=" + this.token();
               this.$emit("reload", "true");
               this.$emit("button", false);

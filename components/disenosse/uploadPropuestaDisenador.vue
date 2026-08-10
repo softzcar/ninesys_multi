@@ -152,12 +152,7 @@ export default {
 
           this.$axios
             .post(`${this.$config.API}/disenos/nuevo-con-revision`, data)
-            .then((res) => {
-              this.$fire({
-                title: "Éxito",
-                html: `<p>${res.data.message}</p>`,
-                type: "success",
-              });
+            .then(() => {
               this.$emit("reload", true);
             })
             .catch((err) => {
