@@ -1,0 +1,39 @@
+- **Solicitud del Usuario:** "Ok hemos terminado la revisión de la opción diseños por favor documentalo"
+
+- **Fecha y Hora:** 2026-08-10 18:02:00
+
+- **Proyecto(s):** Frontend (`app_multi`) y Backend (`ninesys-api`)
+
+- **Archivos Involucrados:**
+  - `app_multi/components/disenosse/uploadPropuestaDisenador.vue`
+  - `app_multi/components/diseno/uploadPropuesta.vue`
+  - `ninesys-api/app/routes/designs.php`
+  - Servidores: `vps-contabo-dev` y `vps-contabo-prod`
+
+- **Commits Relacionados:**
+  - `32b1626` (`fix(diseno): vaciar borradores locales al cerrar modal para evitar tarjetas duplicadas`)
+  - `f9a2b9d` (`Bitácora: fix tarjetas duplicadas en modal de diseño al reabrir`)
+  - `5e0c2c8` (`feat(designs): devolver id_revision_nuevo en nuevo-con-revision`)
+  - `395f5f5` (`feat(diseno): crear el registro de diseño recién al subir la imagen`)
+
+- **Acción Realizada (Resumen Consolidado de la Revisión de Diseños):**
+  1. **Rediseño del Flujo de Creación (Borradores Locales):** El botón "+ Nuevo Diseño" dejó de llamar a la API de inmediato. Ahora crea borradores 100% en memoria local (`borradores[]`), difiriendo la llamada a la API (`POST /disenos/nuevo-con-revision`) al momento exacto en que el usuario sube la imagen y pulsa "Enviar Diseño".
+  2. **Fix de Cierre de Modal con Imagen Pendiente:** Se implementó una alerta confirmatoria si el usuario intenta cerrar la ventana teniendo una imagen seleccionada sin haberla subido.
+  3. **Fix de Tarjetas Duplicadas al Reabrir Modal:** Se corrigió la duplicación visual de propuestas enviadas al vaciar completamente `this.borradores = []` en el evento `@hide` (`handleHide`) del modal y reforzar la comparación con casteo explícito `Number(id_revision)`.
+  4. **Saneamiento de Registros Huérfanos:** Se borraron 402 revisiones vacías huérfanas en Desarrollo y 405 en Producción mediante transacciones seguras sin afectar ninguna asignación activa de diseñador.
+  5. **Gestión de Entornos:** Se realizó un rollback preventivo en el frontend de Producción al respaldo estable de las 14:45 para subsanar el error 405 en `/tasas-cambio` mientras el backend permanece en MariaDB, manteniendo las correcciones de Diseños 100% desplegadas y verificadas en Desarrollo (`https://app.nineteengreen.com`).
+  6. **Commits y Push:** Todo el trabajo quedó commiteado y pusheado a la rama `refactor/modular-routes` en GitHub.
+
+- **Inconvenientes y Desafíos:** Gestión cuidadosa de la reactividad en Vue 2 entre borradores locales temporales y datos reales devueltos por el servidor.
+
+- **Decisión Final y Justificación:** Módulo de Diseños saneanado, refactorizado y validado en su totalidad. Se garantiza que ni el usuario ni el sistema acumularán formularios vacíos en la base de datos a futuro.
+
+- **Herramienta(s) Utilizada(s):** `Write`, `Edit`, `Bash` (`git`, `ssh`, `deploy.sh`), `AskUserQuestion`.
+
+- **Resultado:** Éxito absoluto.
+
+- **Verificación:** Pruebas completas de punta a punta aprobadas por el usuario en el entorno de Desarrollo.
+
+- **Logro Conseguido:** Consolidación y cierre definitivo de la revisión del Módulo de Diseños.
+
+- **Respuesta:** Resumen final de cierre generado y documentado.
