@@ -18,6 +18,7 @@
       :title="title"
       :id="modal"
       hide-footer
+      @hide="handleHide"
     >
       <b-overlay
         :show="overlay"
@@ -44,6 +45,7 @@
               deck
             >
               <diseno-uploadPropuesta
+                ref="proposalCards"
                 :key="rev.id_revision"
                 :id="rev.id_revision"
                 :revision="rev.id_revision"
@@ -79,6 +81,7 @@ export default {
       tabs: [],
       tabCounter: 0,
       banReload: false,
+      closingConfirmed: false,
     };
   },
 
@@ -124,6 +127,34 @@ export default {
   methods: {
     hideMe() {
       this.$bvModal.hide(this.modal);
+    },
+
+    handleHide(bvModalEvt) {
+      if (this.closingConfirmed) {
+        this.closingConfirmed = false;
+        return;
+      }
+
+      const tarjetas = this.$refs.proposalCards;
+      const tieneImagenSinSubir = Array.isArray(tarjetas)
+        ? tarjetas.some((c) => c && c.newImage)
+        : false;
+
+      if (tieneImagenSinSubir) {
+        bvModalEvt.preventDefault();
+        this.$confirm(
+          "Seleccionaste una imagen que todavía no se subió. Si cierras ahora, se perderá.",
+          "¿Cerrar sin subir la imagen?",
+          "warning"
+        )
+          .then(() => {
+            this.closingConfirmed = true;
+            this.$nextTick(() => {
+              this.$bvModal.hide(this.modal);
+            });
+          })
+          .catch(() => {});
+      }
     },
 
     enableButton() {
