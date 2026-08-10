@@ -179,7 +179,9 @@ export default {
     },
 
     myTitle() {
-      return "PROPUESTA " + this.revision;
+      return this.revision === null
+        ? "PROPUESTA (nueva)"
+        : "PROPUESTA " + this.revision;
     },
 
     urlCDN() {
@@ -326,6 +328,17 @@ export default {
         msg += "<p>Seleccione una imagen</p>";
       }
 
+      if (ok && this.item.id_revision === null) {
+        // Formulario todavía local -- crear el registro real recién ahora,
+        // antes de poder subir nada (el CDN nombra el archivo con el
+        // id_revision real).
+        const creado = await this.crearRevisionReal();
+        if (!creado) {
+          this.overlay = false;
+          return;
+        }
+      }
+
       if (ok) {
         let fileToUpload = this.newImage;
         if (this.newImage && this.newImage.type.startsWith("image/")) {
@@ -395,6 +408,12 @@ export default {
     },
 
     async deleteDesign() {
+      if (this.item.id_revision === null) {
+        // Formulario 100% local -- nada que borrar en el servidor.
+        this.$emit("borrador-descartado", { localKey: this.localKey });
+        return;
+      }
+
       const esFormularioVacio = this.item.id_product === null;
 
       const ejecutarBorrado = async () => {
@@ -458,6 +477,36 @@ export default {
       }
     },
 
+    // Crea recién ahora el registro real (disenos + revisiones) para un
+    // formulario que hasta este momento era 100% local -- solo se llama al
+    // enviar un diseño, nunca al crear el formulario vacío. Mientras no se
+    // suba nada, no queda ningún rastro en la base de datos.
+    async crearRevisionReal() {
+      const data = new URLSearchParams();
+      data.set("id_orden", this.idorden);
+      data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
+
+      try {
+        const res = await this.$axios.post(
+          `${this.$config.API}/disenos/nuevo-con-revision`,
+          data
+        );
+        this.$emit("revision-creada", {
+          localKey: this.localKey,
+          id_diseno: res.data.id_diseno_nuevo,
+          id_revision: res.data.id_revision_nuevo,
+        });
+        return true;
+      } catch (err) {
+        this.$fire({
+          title: "Error",
+          html: `<p>No se pudo crear el proyecto de diseño.</p><p>${err}</p>`,
+          type: "error",
+        });
+        return false;
+      }
+    },
+
     findImage() {
       let token = this.token();
       fetch(this.urlCDN)
@@ -477,7 +526,13 @@ export default {
     if (this.item.id_product) {
       this.tipoDiseno = this.item.id_product;
     }
-    this.findImage();
+    if (this.item.id_revision === null) {
+      // Formulario local, todavía sin registro real -- no hay nada que
+      // buscar en el CDN todavía.
+      this.tmpImage = `${this.$config.CDN}/images/no-image.png`;
+    } else {
+      this.findImage();
+    }
     if (this.miRevision === "Rechazado") {
       this.showCard = false;
       this.variantAlert = "warning";
@@ -499,6 +554,7 @@ export default {
     "idorden",
     "productos",
     "closemodal",
+    "localKey",
   ],
 };
 </script>

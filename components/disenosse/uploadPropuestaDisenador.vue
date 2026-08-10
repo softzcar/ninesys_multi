@@ -41,17 +41,20 @@
           <b-col>
             <b-card-group
               v-for="rev in misRevisiones"
-              v-bind:key="rev.id_revision"
+              v-bind:key="rev.localKey || rev.id_revision"
               deck
             >
               <diseno-uploadPropuesta
                 ref="proposalCards"
-                :key="rev.id_revision"
-                :id="rev.id_revision"
+                :key="rev.localKey || rev.id_revision"
+                :id="rev.localKey || rev.id_revision"
                 :revision="rev.id_revision"
                 :item="rev"
+                :localKey="rev.localKey"
                 @reload="reloadData"
                 @closemodal="hideMe"
+                @revision-creada="onRevisionCreada"
+                @borrador-descartado="onBorradorDescartado"
                 :nextReview="nextReview"
                 :button="enableButton"
                 :productos="productos"
@@ -82,6 +85,7 @@ export default {
       tabCounter: 0,
       banReload: false,
       closingConfirmed: false,
+      borradores: [],
     };
   },
 
@@ -105,13 +109,24 @@ export default {
 
   computed: {
     misRevisiones() {
-      if (this.revisiones.length > 0) {
-        return this.revisiones.filter(
-          (el) => parseInt(el.id_orden) === this.item.id_orden
-        );
-      } else {
-        return [];
-      }
+      const serverRevisiones =
+        this.revisiones.length > 0
+          ? this.revisiones.filter(
+              (el) => parseInt(el.id_orden) === this.item.id_orden
+            )
+          : [];
+
+      // Un borrador cuya revisión ya se resolvió y ya llegó del servidor se
+      // excluye para no duplicar la tarjeta -- una vez confirmado por el
+      // servidor, el borrador local queda redundante.
+      const idsDelServidor = new Set(
+        serverRevisiones.map((r) => r.id_revision)
+      );
+      const borradoresVisibles = this.borradores.filter(
+        (b) => b.id_revision === null || !idsDelServidor.has(b.id_revision)
+      );
+
+      return [...borradoresVisibles, ...serverRevisiones];
     },
 
     buttonTitle() {
@@ -132,6 +147,7 @@ export default {
     handleHide(bvModalEvt) {
       if (this.closingConfirmed) {
         this.closingConfirmed = false;
+        this.limpiarBorradoresNoResueltos();
         return;
       }
 
@@ -154,7 +170,10 @@ export default {
             });
           })
           .catch(() => {});
+        return;
       }
+
+      this.limpiarBorradoresNoResueltos();
     },
 
     enableButton() {
@@ -167,42 +186,43 @@ export default {
       this.overlay = false;
     },
 
+    // "+ Nuevo Diseño" ya no escribe en la base de datos -- solo agrega un
+    // formulario local. El registro real (disenos + revisiones) se crea
+    // recién cuando el diseñador realmente sube una imagen (ver
+    // crearRevisionReal() en diseno/uploadPropuesta.vue). Si el formulario
+    // no se usa, desaparece solo al cerrar el modal, sin dejar rastro.
     addReview() {
-      this.disableButton = true;
-      this.overlay = true;
-      this.$confirm(
-        `Se creará un nuevo proyecto de diseño para esta orden, el cual podrá especificar y cargar posteriormente.`,
-        "¿Desea agregar un nuevo diseño?",
-        "question"
-      )
-        .then(() => {
-          this.overlay = true;
-          const data = new URLSearchParams();
-          data.set("id_orden", this.item.id_orden);
-          data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
+      const rand = Math.random().toString(36).substring(2, 9);
+      this.borradores.push({
+        localKey: `local-${Date.now()}-${rand}`,
+        id_revision: null,
+        id_diseno: null,
+        id_orden: this.item.id_orden,
+        id_empleado: this.$store.state.login.dataUser.id_empleado,
+        id_product: null,
+        revision: null,
+        estatus: "Esperando Respuesta",
+        tipo: "Diseño por definir",
+        detalles: null,
+      });
+    },
 
-          this.$axios
-            .post(`${this.$config.API}/disenos/nuevo-con-revision`, data)
-            .then(() => {
-              this.$emit("reload", true);
-            })
-            .catch((err) => {
-              this.$fire({
-                title: "Error",
-                html: `<p>El nuevo diseño no se pudo crear.</p><p>${err}</p>`,
-                type: "error",
-              });
-            })
-            .finally(() => {
-              this.overlay = false;
-              this.disableButton = false;
-            });
-        })
-        .catch(() => {
-          this.overlay = false;
-          this.disableButton = false;
-          return false;
-        });
+    onRevisionCreada({ localKey, id_diseno, id_revision }) {
+      const borrador = this.borradores.find((b) => b.localKey === localKey);
+      if (borrador) {
+        borrador.id_diseno = id_diseno;
+        borrador.id_revision = id_revision;
+      }
+    },
+
+    onBorradorDescartado({ localKey }) {
+      this.borradores = this.borradores.filter(
+        (b) => b.localKey !== localKey
+      );
+    },
+
+    limpiarBorradoresNoResueltos() {
+      this.borradores = this.borradores.filter((b) => b.id_revision !== null);
     },
 
     token() {
