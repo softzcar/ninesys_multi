@@ -122,6 +122,7 @@ export default {
       miRevision: "",
       miDetalle: "",
       previewUrl: null,
+      imagenReciénSubida: false,
     };
   },
 
@@ -151,6 +152,13 @@ export default {
     },
 
     newImage(val) {
+      if (this.imagenReciénSubida) {
+        // El propio postImage() ya limpió newImage y fijó tmpImage con la
+        // URL real recién subida -- no pisarlo con el placeholder acá.
+        this.imagenReciénSubida = false;
+        return;
+      }
+
       // Previsualización local del archivo elegido, antes de subirlo.
       if (this.previewUrl) {
         URL.revokeObjectURL(this.previewUrl);
@@ -346,6 +354,8 @@ export default {
                 URL.revokeObjectURL(this.previewUrl);
                 this.previewUrl = null;
               }
+              this.imagenReciénSubida = true;
+              this.newImage = null;
               this.tmpImage = res.data.url + "?_=" + this.token();
               this.$emit("reload", "true");
               this.$emit("button", false);
