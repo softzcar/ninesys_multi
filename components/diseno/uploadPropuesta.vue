@@ -364,13 +364,33 @@ export default {
             `${this.$config.API}/disenos/revision/${this.item.id_revision}`
           );
 
+          let imagenNoEliminada = false;
           if (!esFormularioVacio) {
             // Elimina también la imagen física del CDN (mismo endpoint al
-            // que ya se sube la imagen, ver urlCDN).
-            await axios.delete(this.urlCDN).catch(() => {});
+            // que ya se sube la imagen, ver urlCDN). No se descarta el
+            // resultado: si el CDN no la borró, se avisa en vez de quedar
+            // un archivo huérfano sin que nadie se entere.
+            await axios
+              .delete(this.urlCDN)
+              .then((res) => {
+                if (!res.data || res.data.deleted !== true) {
+                  imagenNoEliminada = true;
+                }
+              })
+              .catch(() => {
+                imagenNoEliminada = true;
+              });
           }
 
           this.$emit("reload", true);
+
+          if (imagenNoEliminada) {
+            this.$fire({
+              title: "Diseño eliminado",
+              html: "<p>El registro se eliminó correctamente, pero la imagen no se pudo borrar del servidor. Puede quedar un archivo huérfano.</p>",
+              type: "warning",
+            });
+          }
         } catch (err) {
           this.$fire({
             title: "Error",
