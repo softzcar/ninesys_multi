@@ -62,6 +62,7 @@ export default {
             const data = new URLSearchParams()
             data.set("id_diseno", this.item.id_diseno || 0)
             data.set("id_orden", this.item.id_orden)
+            data.set("id_empleado", this.$store.state.login.dataUser.id_empleado)
             data.set("ajustes", this.form.ajustes)
             data.set("personalizaciones", this.form.personalizaciones)
 
@@ -89,9 +90,13 @@ export default {
         getDatos() {
             this.overlay = true
 
+            // Filtrar por id_diseno (no id_orden): una orden puede tener mas
+            // de un diseñador asignado, cada uno con su propio id_diseno --
+            // filtrar solo por id_orden precargaba el formulario con los
+            // ajustes de OTRO diseñador que ya hubiera trabajado esta misma orden.
             this.responseFull = this.ajustes
             this.responseData = this.ajustes
-                .filter((el) => el.id_orden == this.item.id_orden)
+                .filter((el) => el.id_diseno == this.item.id_diseno)
                 .map((el) => {
                     if (el.tipo === "ajuste") {
                         this.form.ajustes = el.cantidad

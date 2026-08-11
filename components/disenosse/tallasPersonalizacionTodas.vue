@@ -40,8 +40,11 @@ export default {
     methods: {
         async loadDisenos() {
             this.overlay = true
+            const idEmpleado = this.$store.state.login.dataUser.id_empleado
             await this.$axios
-                .get(`${this.$config.API}/sse/disenos-todo`)
+                .get(`${this.$config.API}/sse/disenos-todo`, {
+                    params: { id_empleado: idEmpleado },
+                })
                 .then((res) => {
                     const rawItems = res.data.items || []
                     this.items = rawItems.reduce((acumulador, objeto) => {
