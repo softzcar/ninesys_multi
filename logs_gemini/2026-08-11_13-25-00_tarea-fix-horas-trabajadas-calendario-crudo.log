@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** Al auditar las interfaces especializadas de departamento (Empleados), se reportó que "HORAS TRABAJADAS" en la Relación de Trabajos mostraba un número de horas irreal para un empleado real.
+- **Fecha y Hora:** 2026-08-11 13:25:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - `components/empleados/TablaDePagos.vue`
+- **Commits Relacionados:**
+    - Frontend: `e75dded`
+    - Backend: N/A
+- **Acción Realizada:** `horasTrabajadas` (computed de `TablaDePagos.vue`) sumaba `tiempo_transcurrido` (diferencia cruda de calendario entre `fecha_inicio` y `fecha_terminado`, calculada en el backend) sin restar noches ni fines de semana. Si una tarea quedaba abierta varios días de calendario antes de cerrarse, contaba como trabajo continuo -- caso real confirmado con el empleado 5 (Montar Tallas): 202.09 horas mostradas, de las cuales 199 venían de una sola tarea (orden 5708) abierta 3 días de calendario. Se reemplazó el cálculo por el mismo horario-laboral-aware ya usado en `DashboardEmpleado.vue`/`PagosReporteEmpleado.vue` (`calcularTiempoTrabajoIndividual` de `mixins/mixin-time.js`), con fallback a la diferencia cruda solo si la empresa no tiene horario laboral configurado.
+- **Inconvenientes y Desafíos:** Mismo patrón de bug ya visto en esta sesión ("983% eficiencia" del dashboard) -- sumar diferencia de calendario cruda en vez de tiempo dentro de horario laboral. Al reprobar horas más tarde con Yervin, se detectó un segundo problema compuesto (el backend excluía tareas ya pagadas de forma incorrecta, una regresión de Antigravity) -- documentado y corregido aparte, ver bitácora `2026-08-11_16-30-00_tarea-revertir-filtro-fecha-pago-horas-antigravity.log` (ninesys-api) y memoria `project_regresion_antigravity_horas_fecha_pago`.
+- **Decisión Final y Justificación:** Reutilizar el cálculo horario-laboral-aware ya validado en otras pantallas en vez de crear una lógica nueva -- mismo patrón, misma fuente de verdad (`mixin-time.js`).
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (git, deploy.sh).
+- **Resultado:** Éxito.
+- **Verificación:** Con datos reales, el caso del empleado 5 (orden 5708, Montar Tallas) pasó de 202.09 a 61.09 horas. Desplegado a Desarrollo.
+- **Logro Conseguido:** Corregido un cálculo de horas trabajadas que inflaba masivamente el total ante cualquier tarea dejada abierta varios días -- afectaba directamente el monto de comisión/pago mostrado al empleado.
+- **Referencias de Sesión (Contexto):** N/A (sesión de Claude Code, no Antigravity/Gemini).
+- **Observaciones de Gemini:** N/A (tarea realizada por Claude).
+- **Respuesta de Gemini:** N/A (ver resumen entregado al usuario en el chat).
