@@ -11,8 +11,49 @@
         @reload="reloadMe" @disBtnTodo="disBtnTodo" />
     </span>
 
-    <b-modal :id="modal" :title="title" hide-footer size="lg" data-testid="modal-datos-extra">
+    <b-modal :id="modal" :title="title" hide-footer size="lg" data-testid="modal-datos-extra"
+      @shown="cargarNotasAnteriores">
       <b-overlay :show="overlay" spinner-small>
+
+        <!-- Información de contexto de la orden -->
+        <b-card class="mb-4" bg-variant="light" data-testid="info-contexto-orden">
+          <b-row>
+            <b-col cols="12" md="8">
+              <div v-if="infoProducto" class="mb-1"><strong>Producto:</strong> {{ infoProducto }}
+                <span v-if="item && item.talla"> — Talla: {{ item.talla }}</span>
+              </div>
+              <div v-if="infoCliente" class="mb-1"><strong>Cliente:</strong> {{ infoCliente }}</div>
+              <div v-if="infoCantidad !== null" class="mb-1"><strong>Cantidad:</strong> {{ infoCantidad }}</div>
+              <div v-if="item && item.fecha_entrega" class="mb-1">
+                <!-- fecha_entrega ya llega formateada como DD-MM-YYYY desde el backend -->
+                <strong>Fecha de entrega:</strong> {{ item.fecha_entrega }}
+              </div>
+              <div v-if="esreposicion && item && item.detalle_reposicion" class="mb-1">
+                <strong>Detalle de la reposición:</strong> {{ item.detalle_reposicion }}
+              </div>
+            </b-col>
+            <b-col cols="12" md="4" class="text-md-right">
+              <b-badge v-if="infoEsUrgente" variant="danger" class="mb-2 p-2">URGENTE</b-badge>
+              <div v-if="infoTiempoEstimadoMin !== null">
+                Estimado: {{ infoTiempoEstimadoMin }} min
+              </div>
+              <div v-if="infoTiempoTranscurridoMin !== null" :class="infoVaAtrasado ? 'text-danger' : 'text-success'">
+                Transcurrido: {{ infoTiempoTranscurridoMin }} min
+              </div>
+            </b-col>
+          </b-row>
+
+          <div v-if="cargandoNotas" class="mt-3">
+            <b-spinner small></b-spinner> Buscando notas de departamentos anteriores...
+          </div>
+          <div v-else-if="notasAnteriores.length" class="mt-3">
+            <strong>Notas de departamentos anteriores:</strong>
+            <div v-for="(nota, idx) in notasAnteriores" :key="idx" class="mt-1">
+              <b-badge variant="secondary">{{ nota.departamento }}</b-badge>
+              <span class="ml-1">({{ nota.empleado }}): {{ nota.nota }}</span>
+            </div>
+          </div>
+        </b-card>
 
         <!-- Alerta cuando faltan impresoras o insumos -->
         <b-alert v-if="$store.getters['login/currentDepartamentTipo'] === 'impresion' && !puedeUsarModalImpresion" show
@@ -336,6 +377,8 @@ export default {
       esReposicion: null,
       queryInsumo: "",
       title: `Datos Extra ${this.$store.state.login.currentDepartament}`,
+      notasAnteriores: [],
+      cargandoNotas: false,
       overlay: false,
       btnText: "Terminar",
       ButtonDisabled: false,
@@ -381,6 +424,36 @@ export default {
   computed: {
     placeholderInput() {
       return 'Cantidad de Material utilizado';
+    },
+
+    // --- Datos Extra: información de contexto de la orden (item viene con
+    // nombres de campo distintos según sea tarea principal o reposición) ---
+    infoProducto() {
+      return this.item?.producto || this.item?.nombre_producto || '';
+    },
+    infoCliente() {
+      return this.item?.cliente || '';
+    },
+    infoCantidad() {
+      return this.item?.unidades ?? this.item?.piezas_actuales ?? this.item?.unidades_solicitadas ?? null;
+    },
+    infoEsUrgente() {
+      return parseInt(this.item?.prioridad) > 0;
+    },
+    infoTiempoEstimadoMin() {
+      const segundos = parseFloat(this.item?.tiempo_produccion);
+      return segundos > 0 ? Math.round(segundos / 60) : null;
+    },
+    infoTiempoTranscurridoMin() {
+      if (!this.item?.fecha_inicio) return null;
+      const inicio = new Date(this.item.fecha_inicio.replace(' ', 'T'));
+      if (isNaN(inicio.getTime())) return null;
+      const minutos = (Date.now() - inicio.getTime()) / 60000;
+      return minutos >= 0 ? Math.round(minutos) : null;
+    },
+    infoVaAtrasado() {
+      if (this.infoTiempoEstimadoMin === null || this.infoTiempoTranscurridoMin === null) return false;
+      return this.infoTiempoTranscurridoMin > this.infoTiempoEstimadoMin;
     },
 
     getUnidadRow() {
@@ -911,6 +984,24 @@ export default {
   },
 
   methods: {
+    async cargarNotasAnteriores() {
+      if (!this.idorden) return;
+      this.cargandoNotas = true;
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/ordenes/notas-por-empleado/${this.idorden}`);
+        const filas = Array.isArray(res.data) ? res.data : [];
+        // Solo notas de OTROS departamentos (no el propio, que el empleado ya conoce/escribe aqui mismo)
+        this.notasAnteriores = filas.filter(
+          (f) => f.tiene_nota == 1 && f.departamento !== this.$store.state.login.currentDepartament
+        );
+      } catch (e) {
+        console.error("Error al cargar notas de departamentos anteriores:", e);
+        this.notasAnteriores = [];
+      } finally {
+        this.cargandoNotas = false;
+      }
+    },
+
     async refreshConfig() {
       try {
         console.log("DEBUG - Modal Extra - Refrescando configuración...");
