@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import mixin from "~/mixins/mixin-login.js";
 
 export default {
@@ -43,23 +43,11 @@ export default {
         }
     },
 
-    methods: {
-        ...mapActions('empleados', ['updateDataTable2']),
-    },
-
     computed: {
         ...mapState('login', ['dataUser', 'access']),
         ...mapState('empleados', ['dataTable2']),
         ...mapGetters('empleados', ['getDataTable2']),
     },
 
-    mounted() {
-        let obj = {
-            id: 9,
-            peso: 12.45,
-        }
-        console.log('mounted ready', obj)
-        this.updateDataTable2(obj)
-    },
 }
 </script>
