@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Corregir el bug encontrado incidentalmente durante la prueba del modal "Datos Extra": `RangeError: Invalid time zone specified: NULL` en la consola del navegador, al calcular la eficiencia en segundo plano en la pantalla de Órdenes Asignadas.
+- **Fecha y Hora:** 2026-08-11 16:05:00
+- **Proyecto(s):** Frontend (app_multi) + Datos (Desarrollo, empresa 194) + Infraestructura (ninesys-hub)
+- **Archivos Involucrados:**
+    - `store/login.js` (mutation `setDataEmpresa`)
+    - `/home/developer/Escritorio/niesys/ninesys-hub/bin/sync_empresas_centrales_194_prod_to_dev.sh` (función `mysql_extract`, no es repo git)
+    - Dato corregido: `api_empresas.empresas.timezone` para `id_empresa=194` en Desarrollo (Postgres)
+- **Commits Relacionados:**
+    - Frontend: `b9754a6` (refactor/modular-routes)
+    - Backend: N/A
+- **Acción Realizada:**
+    1. **Causa raíz identificada:** `empresas.timezone` para la empresa 194 en Desarrollo contenía el string literal de 4 caracteres `"NULL"`, no un NULL real. Confirmado contra Producción (`SELECT timezone IS NULL` → `1`, es decir en Producción SÍ es un NULL real) que el dato correcto es NULL -- el string literal es un artefacto de la sincronización, no un valor legítimo.
+    2. **Causa del artefacto:** `sync_empresas_centrales_194_prod_to_dev.sh` extrae datos de Producción con `mysql -N -s -e "..."` (modo batch), que representa un NULL real como el texto literal `"NULL"` -- pero el paso posterior `\copy ... WITH (FORMAT text, NULL '\N')` en Postgres solo reconoce el marcador `\N` como NULL, no la palabra "NULL". El texto se importó tal cual como dato.
+    3. **Fix del dato** (Desarrollo únicamente): `UPDATE empresas SET timezone = NULL WHERE id_empresa = 194 AND timezone = 'NULL';` -- verificado 1 fila afectada.
+    4. **Fix de raíz en el script:** se agregó un `awk` a `mysql_extract()` que convierte cualquier campo que sea exactamente `"NULL"` al marcador `\N` antes de escribir el TSV, evitando que se repita en futuras sincronizaciones (para esta columna o cualquier otra que llegue NULL desde Producción). Verificado con una prueba standalone del awk contra datos simulados.
+    5. **Fix defensivo en frontend** (`store/login.js`, mutation `setDataEmpresa`): se sanea `data.timezone` a `null` si llega como el string `"NULL"` (case-insensitive, con trim), en el ÚNICO punto donde se guarda `dataEmpresa` en el store -- protege a todos los consumidores actuales (`SseOrdenesAsignadasV5.vue:1801`, y potencialmente `DashboardEmpleado.vue`/`PagosReporteEmpleado.vue` si alguna vez leen timezone) sin tocar cada uno por separado.
+- **Inconvenientes y Desafíos:** La verificación visual final en el navegador (confirmar que el error de consola ya no aparece) no se pudo completar -- la herramienta de automatización de Chrome falló de forma persistente en esta sesión (`Can't interact with browser-internal or unparseable URLs` incluso después de navegaciones exitosas, en múltiples pestañas y reintentos). Se verificó en su lugar que el código corregido está presente en el bundle JS ya desplegado en Desarrollo (`grep` de la cadena `trim().toUpperCase` en los archivos `_nuxt/*.js` del servidor).
+- **Decisión Final y Justificación:** Se aplicó el fix en 3 capas (dato actual + script que lo generó + guardia defensiva en el frontend) siguiendo el principio de corregir la causa raíz sin dejar de proteger contra recurrencias -- el dato solo corrige el síntoma de hoy, el script previene que vuelva a pasar en el próximo sync, y la guardia en el store protege incluso si algún otro proceso (fuera de este script) vuelve a introducir el string "NULL" en el futuro.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Bash` (ssh, psql, mysql, awk, git), `deploy.sh` (opción 2), navegador (claude-in-chrome, verificación incompleta por fallo de la herramienta).
+- **Resultado:** Parcial -- código corregido, desplegado y confirmado presente en el bundle; verificación visual en vivo pendiente por falla de la herramienta de navegador (no del código).
+- **Verificación:** Dato corregido confirmado en Desarrollo (`timezone IS NULL` ahora true para empresa 194). Script corregido y sintaxis validada (`bash -n`) y probado el `awk` de forma aislada. Bundle JS desplegado confirmado contener el fix (`grep` en el servidor). Verificación end-to-end en navegador (consola sin el error) NO completada por fallo de la herramienta -- pendiente de confirmar en una sesión futura o por el usuario directamente.
+- **Logro Conseguido:** Bug de timezone corregido en sus 3 capas (dato, causa raíz del script de sync, y guardia defensiva en el frontend) para la empresa 194, con protección genérica contra el mismo patrón de corrupción para cualquier empresa futura.
+- **Referencias de Sesión (Contexto):** N/A (sesión de Claude Code, no Antigravity/Gemini).
+- **Observaciones de Gemini:** N/A (tarea realizada por Claude).
+- **Respuesta de Gemini:** N/A (ver resumen entregado al usuario en el chat).
