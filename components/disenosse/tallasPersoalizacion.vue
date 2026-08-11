@@ -60,7 +60,8 @@ export default {
             this.overlay = true
 
             const data = new URLSearchParams()
-            data.set("id_diseno", this.item.id_diseno)
+            data.set("id_diseno", this.item.id_diseno || 0)
+            data.set("id_orden", this.item.id_orden)
             data.set("ajustes", this.form.ajustes)
             data.set("personalizaciones", this.form.personalizaciones)
 

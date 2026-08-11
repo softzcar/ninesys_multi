@@ -612,19 +612,16 @@ export default {
         const fechaTerminadoStr = fecha_terminado;
 
         if (!fechaInicioStr || !fechaTerminadoStr) {
-          return 0; // O algún otro valor que indique que las fechas no están definidas
+          return "0.00";
         }
 
-        const fechaInicio = new Date(fechaInicioStr);
-        const fechaTerminado = new Date(fechaTerminadoStr);
+        const fechaInicio = new Date(typeof fechaInicioStr === 'string' && !fechaInicioStr.includes('T') ? fechaInicioStr.replace(' ', 'T') : fechaInicioStr);
+        const fechaTerminado = new Date(typeof fechaTerminadoStr === 'string' && !fechaTerminadoStr.includes('T') ? fechaTerminadoStr.replace(' ', 'T') : fechaTerminadoStr);
 
-        // Calcular la diferencia en milisegundos
         const diferenciaMs = fechaTerminado.getTime() - fechaInicio.getTime();
-
-        // Convertir milisegundos a minutos
         const diferenciaMinutos = diferenciaMs / (1000 * 60);
 
-        return diferenciaMinutos.toFixed(2);
+        return isNaN(diferenciaMinutos) || diferenciaMinutos < 0 ? "0.00" : diferenciaMinutos.toFixed(2);
       },
       montoComisionEmpelado(
         comision_tipo,

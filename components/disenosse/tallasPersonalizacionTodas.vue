@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-table striped hover :fields="fields" :items="ajustes">
+        <b-table striped hover :fields="fields" :items="items">
             <template #cell(id_orden)="data">
                 <linkSearch :id="data.item.id_orden" />
             </template>
@@ -38,20 +38,13 @@ export default {
     },
 
     methods: {
-        loadDisenos() {
-            this.source = new EventSource(`${this.$config.API}/sse/disenos-todo`)
-
-            this.source.addEventListener('message', (event) => {
-                const eventData = JSON.parse(event.data)
-                const eventType = event.type
-
-                if (eventType === 'chat') {
-                    this.events.push(eventData)
-                }
-
-                if (eventType === 'message') {
-                    this.events = eventData
-                    this.items = eventData.items.reduce((acumulador, objeto) => {
+        async loadDisenos() {
+            this.overlay = true
+            await this.$axios
+                .get(`${this.$config.API}/sse/disenos-todo`)
+                .then((res) => {
+                    const rawItems = res.data.items || []
+                    this.items = rawItems.reduce((acumulador, objeto) => {
                         const idOrden = objeto.id_orden
                         const objetoExistente = acumulador.find(
                             (item) => item.id_orden === idOrden
@@ -63,22 +56,13 @@ export default {
 
                         return acumulador
                     }, [])
-                    // this.revisiones = eventData.revisiones
-                    this.ajustes = eventData.ajustes
+                    this.ajustes = res.data.ajustes || []
                     this.overlay = false
-                }
-            })
-
-            this.source.addEventListener('error', (error) => {
-                console.error('Error in SSE connection:', error)
-                // alert(error)
-                this.source.close() // Cerrar la conexión actual
-
-                // Intentar reconectar después de un cierto período de tiempo
-                /* setTimeout(() => {
-                  this.connectToServer()
-                }, 120000) // Puedes ajustar el tiempo de espera según tus necesidades */
-            })
+                })
+                .catch((err) => {
+                    console.error('Error al cargar disenos todo:', err)
+                    this.overlay = false
+                })
         },
     },
 }

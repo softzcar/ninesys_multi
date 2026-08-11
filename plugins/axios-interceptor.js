@@ -147,8 +147,13 @@ export default function ({ $axios, store, app }) {
 
     $axios.onRequest(async (config) => {
         // Mantener el id_empresa como antes para APIs que no son WhatsApp
-        const id_empresa = store.state.login?.idEmpresa || 0
-        config.headers.common["Authorization"] = id_empresa
+        const id_empresa = store.state.login?.idEmpresa || store.state.login?.dataEmpresa?.id || 0
+        if (config.headers) {
+            config.headers["Authorization"] = id_empresa
+            if (config.headers.common) {
+                config.headers.common["Authorization"] = id_empresa
+            }
+        }
 
         // Para endpoints de WhatsApp, usar token JWT
         if (isWhatsAppService(config.url)) {
@@ -169,7 +174,12 @@ export default function ({ $axios, store, app }) {
 
             // Usar token JWT si está disponible
             if (token) {
-                config.headers.common["Authorization"] = `Bearer ${token}`
+                if (config.headers) {
+                    config.headers["Authorization"] = `Bearer ${token}`
+                    if (config.headers.common) {
+                        config.headers.common["Authorization"] = `Bearer ${token}`
+                    }
+                }
             }
         }
 
