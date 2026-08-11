@@ -68,6 +68,16 @@ export const mutations = {
         state.modulos = data
     },
     setDataEmpresa(state, data) {
+        // Saneo defensivo: la empresa 194 llegó con timezone = string literal
+        // 'NULL' (artefacto de un script de sincronización MySQL->Postgres que
+        // exportaba NULL real como el texto "NULL"), lo que rompía
+        // Intl.DateTimeFormat en cada lugar que usa `dataEmpresa.timezone || fallback`
+        // (el string 'NULL' es truthy, así que el fallback nunca se activaba).
+        // Se sanea aquí, en el único punto donde se guarda dataEmpresa, para
+        // proteger a todos los consumidores sin tocar cada uno por separado.
+        if (data && typeof data.timezone === 'string' && data.timezone.trim().toUpperCase() === 'NULL') {
+            data.timezone = null
+        }
         state.dataEmpresa = data
         if (data && data.tipos_de_monedas) {
             const initialTasas = { dolar: 1 } // Siempre iniciamos con dolar en 1
