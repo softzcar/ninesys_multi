@@ -116,9 +116,10 @@
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import mixinTime from "~/mixins/mixin-time.js";
 
 export default {
-  mixins: [mixin],
+  mixins: [mixin, mixinTime],
 
   data() {
     return {
@@ -144,18 +145,39 @@ export default {
         this.$store.state.login.dataUser.departamento !== "Administración"
       ) {
         if (Array.isArray(this.ordenesSemana)) {
-          // Filtrar las órdenes que tienen un tiempo transcurrido válido y sumarlo.
-          // Asumimos que 'tiempo_transcurrido' está en segundos.
-          totalSegundos = this.ordenesSemana
-            .filter(
-              (el) =>
-                el.tiempo_transcurrido != null &&
-                !isNaN(parseFloat(el.tiempo_transcurrido))
-            )
-            .reduce(
-              (acc, orden) => acc + parseFloat(orden.tiempo_transcurrido),
-              0
-            );
+          let horarioLaboral = this.$store.state.login.dataEmpresa?.horario_laboral;
+          if (typeof horarioLaboral === "string") {
+            try {
+              horarioLaboral = JSON.parse(horarioLaboral);
+            } catch (e) {
+              horarioLaboral = null;
+            }
+          }
+
+          this.ordenesSemana.forEach((orden) => {
+            if (!orden.fecha_inicio || !orden.fecha_terminado) return;
+
+            if (horarioLaboral) {
+              // Tiempo efectivo dentro del horario laboral configurado --
+              // antes se sumaba la diferencia de calendario cruda entre
+              // fecha_inicio y fecha_terminado (tiempo_transcurrido, calculado
+              // en el backend), lo que mostraba cientos de "horas" cuando una
+              // tarea quedaba abierta varios días antes de cerrarse (mismo
+              // patrón que el bug de "983% eficiencia" del dashboard).
+              const tarea = {
+                fecha_inicio: new Date(orden.fecha_inicio.replace(" ", "T")),
+                fecha_fin: new Date(orden.fecha_terminado.replace(" ", "T")),
+              };
+              totalSegundos +=
+                this.calcularTiempoTrabajoIndividual(tarea, [], horarioLaboral) / 1000;
+            } else if (
+              orden.tiempo_transcurrido != null &&
+              !isNaN(parseFloat(orden.tiempo_transcurrido))
+            ) {
+              // Fallback si la empresa no tiene horario laboral configurado.
+              totalSegundos += parseFloat(orden.tiempo_transcurrido);
+            }
+          });
         }
       }
 
