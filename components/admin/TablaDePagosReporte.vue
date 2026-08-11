@@ -13,14 +13,36 @@
                 RELACIÓN DE PAGOS
               </h3>
             </b-list-group-item>
+            <!-- Badge de tipo de compensación -->
+            <b-list-group-item v-if="tipoCompensacion" variant="light">
+              <b-badge :variant="tipoCompensacion.variant" class="p-2" style="font-size: 1rem;">
+                {{ tipoCompensacion.icono }} {{ tipoCompensacion.texto }}
+              </b-badge>
+            </b-list-group-item>
+
             <b-list-group-item variant="info">
               <h3>{{ horasTrabajadas }} HORAS</h3>
             </b-list-group-item>
-            <b-list-group-item variant="success"><strong>TERMINADO</strong> $
-              {{ totalTerminado }}</b-list-group-item>
-            <b-list-group-item variant="danger"><strong>PENDIENTE</strong> $
-              {{ totalPendiente }}</b-list-group-item>
-            <b-list-group-item variant="primary"><strong>TOTAL</strong> $ {{ total }}</b-list-group-item>
+
+            <!-- Mostrar salario fijo solo si el tipo de compensación lo incluye -->
+            <b-list-group-item v-if="debesMostrarSalario && parseFloat(salarioFijo) > 0" variant="warning">
+              <strong>SALARIO PENDIENTE ({{ datosEmpleado?.salario_periodo?.toUpperCase() || 'SEMANAL' }})</strong> ${{
+                salarioFijo }}
+            </b-list-group-item>
+
+            <!-- Mostrar comisiones solo si el tipo de compensación lo incluye -->
+            <div v-if="debesMostrarComisiones">
+              <b-list-group-item variant="success">
+                <strong>COMISIONES TERMINADAS</strong> ${{ totalComisionesTerminadas }}
+              </b-list-group-item>
+              <b-list-group-item variant="danger">
+                <strong>COMISIONES PENDIENTES</strong> ${{ totalComisionesPendientes }}
+              </b-list-group-item>
+            </div>
+
+            <b-list-group-item variant="primary">
+              <strong>TOTAL</strong> $ {{ total }}
+            </b-list-group-item>
           </b-list-group>
         </b-col>
       </b-row>
@@ -120,6 +142,7 @@ export default {
       ordenesSemana: [],
       ordenesTerminadas: [],
       ordenesPendientes: [],
+      datosEmpleado: null,
     };
   },
 
@@ -323,13 +346,13 @@ export default {
         this.departamento === "Administración"
       ) {
         comision = this.ordenesTerminadas.reduce((total, orden) => {
-          total += parseFloat(orden.monto_pago);
+          total += parseFloat(orden.monto_pago || 0);
           return total;
         }, 0);
       } else {
         comision = this.ordenesTerminadas.reduce((total, orden) => {
           if (orden.fecha_terminado !== null) {
-            total += parseFloat(orden.monto_pago);
+            total += parseFloat(orden.monto_pago || 0);
           }
           return total;
         }, 0);
@@ -338,28 +361,159 @@ export default {
       return comision.toFixed(2);
     },
 
+    totalComisionesTerminadas() {
+      let comision = 0;
+      if (
+        this.departamento === "Comercialización" ||
+        this.departamento === "Administración"
+      ) {
+        comision = this.ordenesTerminadas.reduce((total, orden) => {
+          total += parseFloat(orden.monto_pago || 0);
+          return total;
+        }, 0);
+      } else {
+        comision = this.ordenesTerminadas.reduce((total, orden) => {
+          if (orden.fecha_terminado !== null) {
+            total += parseFloat(orden.monto_pago || 0);
+          }
+          return total;
+        }, 0);
+      }
+      return comision.toFixed(2);
+    },
+
+    salarioFijo() {
+      if (!this.datosEmpleado) return "0.00";
+
+      const salarioTipo = this.datosEmpleado.salario_tipo;
+
+      if (salarioTipo === "Salario" || salarioTipo === "Salario más Comisión") {
+        const montoBase = parseFloat(this.datosEmpleado.salario_monto || 0);
+        const periodo = (this.datosEmpleado.salario_periodo || 'mensual').toLowerCase();
+        
+        let divisor = 1;
+        if (periodo === 'semanal') {
+          divisor = 4;
+        } else if (periodo === 'quincenal') {
+          divisor = 2;
+        }
+        
+        const montoPeriodo = montoBase / divisor;
+        return montoPeriodo.toFixed(2);
+      }
+
+      return "0.00";
+    },
+
+    debesMostrarSalario() {
+      if (!this.datosEmpleado) return false;
+      const tipo = this.datosEmpleado.salario_tipo;
+      return tipo === "Salario" || tipo === "Salario más Comisión";
+    },
+
+    debesMostrarComisiones() {
+      if (!this.datosEmpleado) return true;
+      const tipo = this.datosEmpleado.salario_tipo;
+      return tipo === "Comisión" || tipo === "Salario más Comisión";
+    },
+
+    tipoCompensacion() {
+      if (!this.datosEmpleado) return null;
+
+      const tipo = this.datosEmpleado.salario_tipo;
+
+      const config = {
+        'Salario': { texto: 'Salario Fijo', variant: 'warning', icono: '💰' },
+        'Comisión': { texto: 'Por Comisión', variant: 'success', icono: '📈' },
+        'Salario más Comisión': { texto: 'Salario + Comisión', variant: 'info', icono: '💼' }
+      };
+
+      return config[tipo] || null;
+    },
+
     diferencia() {
       return this.totalTerminado - this.totalPendiente;
     },
 
     totalPendiente() {
-      var total = 0;
-      this.ordenesPendientes.forEach((orden) => {
-        if (orden.fecha_terminado === null) {
-          total += this.montoComisionEmpelado(
-            orden.comision_tipo,
-            orden.total_comision_variable,
-            orden.total_comision_fija
-          );
-        }
-      });
+      let comision = 0;
+      if (this.departamento === "Diseño") {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          if (orden.progreso !== "terminada") {
+            total += parseFloat(orden.monto_pago || 0);
+          }
+          return total;
+        }, 0);
+      } else if (
+        this.departamento === "Comercialización" ||
+        this.departamento === "Administración"
+      ) {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          total += parseFloat(orden.monto_pago || 0);
+          return total;
+        }, 0);
+      } else {
+        var total = 0;
+        this.ordenesPendientes.forEach((orden) => {
+          if (orden.progreso !== "terminada" && orden.fecha_terminado === null) {
+            total += this.montoComisionEmpelado(
+              orden.comision_tipo,
+              orden.total_comision_variable,
+              orden.total_comision_fija
+            );
+          }
+        });
+        comision = total;
+      }
 
-      return total.toFixed(2);
+      return comision.toFixed(2);
     },
+
+    totalComisionesPendientes() {
+      let comision = 0;
+      if (this.departamento === "Diseño") {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          if (orden.progreso !== "terminada") {
+            total += parseFloat(orden.monto_pago || 0);
+          }
+          return total;
+        }, 0);
+      } else if (
+        this.departamento === "Comercialización" ||
+        this.departamento === "Administración"
+      ) {
+        comision = this.ordenesPendientes.reduce((total, orden) => {
+          total += parseFloat(orden.monto_pago || 0);
+          return total;
+        }, 0);
+      } else {
+        var total = 0;
+        this.ordenesPendientes.forEach((orden) => {
+          if (orden.progreso !== "terminada" && orden.fecha_terminado === null) {
+            total += this.montoComisionEmpelado(
+              orden.comision_tipo,
+              orden.total_comision_variable,
+              orden.total_comision_fija
+            );
+          }
+        });
+        comision = total;
+      }
+      return comision.toFixed(2);
+    },
+
     total() {
-      const tot =
-        parseFloat(this.totalPendiente) + parseFloat(this.totalTerminado);
-      return tot.toFixed(2);
+      let total = 0;
+      
+      if (this.debesMostrarSalario) {
+        total += parseFloat(this.salarioFijo);
+      }
+      
+      if (this.debesMostrarComisiones) {
+        total += parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
+      }
+      
+      return total.toFixed(2);
     },
 
     trabajosTerminados() {
@@ -387,19 +541,16 @@ export default {
       const fechaTerminadoStr = fecha_terminado;
 
       if (!fechaInicioStr || !fechaTerminadoStr) {
-        return 0; // O algún otro valor que indique que las fechas no están definidas
+        return "0.00";
       }
 
-      const fechaInicio = new Date(fechaInicioStr);
-      const fechaTerminado = new Date(fechaTerminadoStr);
+      const fechaInicio = new Date(typeof fechaInicioStr === 'string' && !fechaInicioStr.includes('T') ? fechaInicioStr.replace(' ', 'T') : fechaInicioStr);
+      const fechaTerminado = new Date(typeof fechaTerminadoStr === 'string' && !fechaTerminadoStr.includes('T') ? fechaTerminadoStr.replace(' ', 'T') : fechaTerminadoStr);
 
-      // Calcular la diferencia en milisegundos
       const diferenciaMs = fechaTerminado.getTime() - fechaInicio.getTime();
-
-      // Convertir milisegundos a minutos
       const diferenciaMinutos = diferenciaMs / (1000 * 60);
 
-      return diferenciaMinutos.toFixed(2);
+      return isNaN(diferenciaMinutos) || diferenciaMinutos < 0 ? "0.00" : diferenciaMinutos.toFixed(2);
     },
     montoComisionEmpelado(
       comision_tipo,
@@ -441,6 +592,7 @@ export default {
         this.ordenesSemana = resp.data.ordenes_semana;
         this.ordenesTerminadas = resp.data.ordenes_terminadas;
         this.ordenesPendientes = resp.data.ordenes_pendientes;
+        this.datosEmpleado = resp.data.datos_empleado;
         this.overlay = false;
       });
     },
