@@ -122,7 +122,10 @@ const sidebarComponentMap = {
   'menus/menuDisenador': () => import('@/components/sidebars/SidebarDiseno.vue'),
   'menus/menuProduccion': () => import('@/components/sidebars/SidebarProduccion.vue'),
   'menus/menuEmpleado': () => import('@/components/sidebars/SidebarEmpleado.vue'),
-  'menus/menuRevision': () => import('@/components/sidebars/SidebarRevision.vue'),
+  // 'menus/menuRevision' eliminado 2026-08-11: rol inalcanzable (ningun
+  // departamento tiene id_modulo=6, ni siquiera en la plantilla de empresa
+  // nueva) con bugs reales de codigo (JOIN roto contra tabla legada,
+  // colision de vocabulario en pagos.estatus). Ver bitacora del mismo dia.
 };
 
 export default {
