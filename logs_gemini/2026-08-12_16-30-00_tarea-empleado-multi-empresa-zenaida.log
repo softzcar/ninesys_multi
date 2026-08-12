@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Ver bitácora hermana completa en `ninesys-api/logs_gemini/2026-08-12_15-30-00_...log` (contexto, evaluación de impacto y diseño acordado con el usuario, idénticos). Resumen: empleada Zenaida trabajó en la empresa 194 y ahora también en la 204 -- el sistema no permitía crearla en la segunda empresa por email/teléfono ya registrados. Diseño acordado: una sesión-empresa activa a la vez por identidad, con selector de empresa al login cuando hay más de una asignación.
+- **Fecha y Hora:** 2026-08-12 16:30:00
+- **Proyecto(s):** Frontend (backend en bitácora hermana de `ninesys-api`)
+- **Archivos Involucrados:**
+  - `components/login/form.vue`
+  - `components/admin/EmpleadoNuevo.vue`
+- **Commits Relacionados:**
+  - Frontend: `29cb907`, `6882463`
+  - Backend: `8fbd070` (ver bitácora hermana)
+- **Acción Realizada:**
+  1. **`components/login/form.vue`:** se extrajo la lógica de envío/manejo de respuesta de `letMeIn()` a un método compartido `doLogin(idEmpresa)`, reutilizado por un nuevo método `elegirEmpresa(idEmpresa)`. Si el backend responde `requiere_seleccion_empresa: true`, se muestra una pantalla nueva (reemplaza temporalmente el formulario de login) con la lista de empresas devuelta, cada una como botón; al elegir una, se reenvía `/login` con `id_empresa` y se completa el flujo normal (mismo manejo de `res.data.data.access === true` que ya existía, sin duplicar código).
+  2. **`components/admin/EmpleadoNuevo.vue`:** `guardarEmpleado()` ahora acepta un parámetro opcional `reactivarId`; si está presente, se agrega `reactivar_id` al payload. En el `.catch()`, se detecta la respuesta 409 + `eliminado_existente` del backend (email ya perteneciente a un empleado desactivado en la misma empresa) y se muestra un `$bvModal.msgBoxConfirm` ofreciendo reactivar -- al confirmar, se reintenta la misma función pasando el `id_usuario` recibido como `reactivarId`. Mismo patrón exacto ya usado y probado en `GastosFijos.vue` (copiado, no reinventado).
+- **Inconvenientes y Desafíos:** Al escribir `doLogin()` se dejó por error un bloque `{ }` anidado redundante (artefacto de extraer el código del `if (ban) { ... }` original) -- detectado y corregido antes de desplegar revisando el archivo completo tras la edición, junto con un `} else { this.loading = false }` residual de la estructura vieja que ya no aplicaba con la nueva separación de responsabilidades.
+- **Decisión Final y Justificación:** Reutilizar el patrón de reactivación ya establecido (Gastos/Tallas/Telas/Categorías) en vez de diseñar uno nuevo para empleados -- mismo lenguaje de UI, mismo flujo de confirmación, consistente con el resto del sistema.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (`node --check`, `git`, `deploy.sh`).
+- **Resultado:** Éxito.
+- **Verificación:** Sintaxis verificada con `node --check` sobre el bloque `<script>` extraído de ambos componentes. El flujo de backend completo (login con selector, reactivación) ya fue verificado end-to-end por `curl` contra los endpoints reales antes de escribir el frontend (ver bitácora hermana) -- el frontend consume exactamente esos mismos contratos de respuesta ya confirmados. Verificación visual en navegador pendiente de confirmación del usuario tras el despliegue.
+- **Logro Conseguido:** El selector de empresa y el flujo de reactivación quedan disponibles para cualquier usuario final, completando de punta a punta (backend + frontend) el caso real de Zenaida.
+- **Referencias de Sesión (Contexto):**
+  - Plan: [he-estado-trabajanod-con-hazy-pascal.md](file:///home/developer/.claude/plans/he-estado-trabajanod-con-hazy-pascal.md)
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Selector de empresa en login + flujo de reactivación de empleado implementados y desplegados en Desarrollo, reutilizando patrones ya establecidos en el proyecto.
