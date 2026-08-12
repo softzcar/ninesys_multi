@@ -14,43 +14,58 @@
         <b-col class="mb-4 mt-4">
             <h5 class="mb-2">Filtrar por estado de pago:</h5>
             <b-form-radio-group id="btn-radios-2" v-model="selectedRadio" :options="optionsRadio"
-                button-variant="outline-primary" size="lg" name="radio-btn-outline" @input="applyFilters()"
+                button-variant="outline-primary" size="lg" name="radio-btn-outline"
                 buttons></b-form-radio-group>
-            
+
             <h5 class="mt-4 mb-2">Filtrar por categoría de producto:</h5>
             <b-form-radio-group id="btn-radios-categories" v-model="selectedCategory" :options="optionsCategories"
-                button-variant="outline-primary" size="lg" name="radio-btn-categories" @input="applyFilters()"
-                buttons></b-form-radio-group>
+                button-variant="outline-primary" size="lg" name="radio-btn-categories"
+                @input="fetchPage({ reset: true })" buttons></b-form-radio-group>
 
             <h5 class="mt-4 mb-2">Filtrar por estatus de orden:</h5>
             <b-form-radio-group id="btn-radios-status" v-model="selectedStatus" :options="optionsStatus"
-                button-variant="outline-primary" size="lg" name="radio-btn-status" @input="applyFilters()"
-                buttons></b-form-radio-group>
+                button-variant="outline-primary" size="lg" name="radio-btn-status"
+                @input="fetchPage({ reset: true })" buttons></b-form-radio-group>
         </b-col>
         <b-col
           offset-lg="8"
           offset-xl="8"
         >
           <b-input-group
-            class="mb-4"
+            class="mb-2"
             size="sm"
           >
             <b-form-input
               id="filter-input"
               v-model="filter"
               type="search"
-              placeholder="Filtrar Resultados"
+              debounce="400"
+              placeholder="Buscar orden o cliente (en todo el historial)"
+              @update="fetchPage({ reset: true })"
             ></b-form-input>
 
             <b-input-group-append>
               <b-button
                 :disabled="!filter"
-                @click="filter = ''"
+                @click="clearSearch"
               >
                 Limpiar
               </b-button>
             </b-input-group-append>
           </b-input-group>
+        </b-col>
+      </b-row>
+
+      <b-row v-if="busquedaActiva" class="mb-4">
+        <b-col>
+          <b-alert show variant="info" class="text-center d-flex flex-column flex-md-row align-items-center justify-content-center">
+            <span class="mb-2 mb-md-0 mr-md-3">
+              Ignorando el rango de fechas -- hay un filtro o búsqueda activa (categoría, estado, vendedor o texto), buscando en todo el historial.
+            </span>
+            <b-button size="sm" variant="outline-secondary" @click="resetFilters">
+              Limpiar todos los filtros
+            </b-button>
+          </b-alert>
         </b-col>
       </b-row>
 
@@ -83,7 +98,7 @@
                 <b-form-select
                   v-model="selectedVendedor"
                   :options="vendedores"
-                  @change="applyFilters()"
+                  @change="fetchPage({ reset: true })"
                 />
               </b-col>
             </b-row>
@@ -108,17 +123,10 @@
 
       <b-row>
         <b-col>
-          <h3 class="mb-3 text-primary">{{ filterName }} {{ totalRows }} Ordenes</h3>
-          <b-pagination
-            v-model="currentPage"
-            :total-rows="totalRows"
-            :per-page="perPage"
-          ></b-pagination>
-
-          <p class="mt-3">Página actual: {{ currentPage }}</p>
+          <h3 class="mb-3 text-primary">
+            {{ filterName }} -- {{ dataTable.length }}<span v-if="selectedRadio === 'todas'"> de {{ totalCount }}</span> Ordenes
+          </h3>
           <b-table
-            :per-page="perPage"
-            :current-page="currentPage"
             ref="table"
             responsive
             small
@@ -126,9 +134,8 @@
             hover
             :items="dataTable"
             :fields="fields"
-            @filtered="onFiltered"
-            :filter="filter"
-            :filter-included-fields="includedFields"
+            show-empty
+            empty-text="No se encontraron órdenes con estos filtros."
           >
             <template #cell(orden)="data">
               <linkSearch :id="data.item.orden" :key="data.item.orden" />
@@ -174,7 +181,6 @@
                       :index="data.index"
                       :key="data.item.orden"
                       :idorden="data.item.orden"
-                      :item="filterPago(data.item.orden)"
                       :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
                       @reload="reloadMe()"
                     />
@@ -185,7 +191,6 @@
                     :index="data.index"
                     :key="data.item.orden"
                     :idorden="data.item.orden"
-                    :item="filterPago(data.item.orden)"
                     :sobrePago="data.item.payment_status === 'sobrepagada' ? data.item.monto_pendiente * -1 : 0"
                     @reload="reloadMe()"
                   />
@@ -193,6 +198,17 @@
               </div>
             </template>
           </b-table>
+
+          <div id="ordenes-activas-scroll-sentinel"
+              style="height: 50px; display: flex; align-items: center; justify-content: center;">
+            <div v-if="isLoadingMore" class="text-muted">
+              <b-spinner small variant="success" class="mr-2"></b-spinner>
+              Cargando más órdenes...
+            </div>
+            <div v-else-if="endOfList && dataTable.length > 0" class="text-muted small">
+              Fin de la lista ({{ dataTable.length }} órdenes mostradas)
+            </div>
+          </div>
         </b-col>
       </b-row>
     </b-container>
@@ -200,7 +216,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import mixin from "~/mixins/mixins.js";
 
 export default {
@@ -214,33 +230,31 @@ export default {
           { text: "Sobrepagadas", value: "sobrepagada" },
       ],
       selectedCategory: "todas",
-      optionsCategories: [],
+      optionsCategories: [{ text: "Todas", value: "todas" }],
       selectedStatus: "todas",
-      optionsStatus: [],
-      dataTable: [],
+      optionsStatus: [{ text: "Todas", value: "todas" }],
       ordenesActivas: [],
       fechaConsultaInicio: "",
       fechaConsultaFin: "",
       fields: [],
       selectedVendedor: 0,
-      vendedores: [],
-      pagos: [],
-      includedFields: ["orden", "cliente_nombre"],
-      perPage: 25,
-      currentPage: 1,
-      filter: null,
+      vendedores: [{ value: 0, text: "Todos" }],
+      filter: "",
       loading: {
         show: true,
         text: "Cargando ordenes activas...",
       },
-      totalRows: 0,
-      ordenesLength: 0,
+      // Paginación real por cursor (ord._id) + scroll infinito -- mismo esquema ya
+      // aplicado en Todas las Órdenes.
+      cursor: null,
+      totalCount: 0,
+      isLoadingMore: false,
+      endOfList: false,
+      scrollObserver: null,
     };
   },
 
   methods: {
-    ...mapActions("comerce", ["getOrdenesActivas"]),
-
     resetFilters() {
       this.fechaConsultaInicio = "";
       this.fechaConsultaFin = "";
@@ -248,7 +262,35 @@ export default {
       this.selectedRadio = "todas";
       this.selectedCategory = "todas";
       this.selectedStatus = "todas";
-      this.applyFilters();
+      this.filter = "";
+      this.fetchPage({ reset: true });
+    },
+
+    clearSearch() {
+      this.filter = "";
+      this.fetchPage({ reset: true });
+    },
+
+    async fetchOpciones() {
+      try {
+        // Mismo endpoint ya usado en Todas las Órdenes -- categorías/vendedores son
+        // catálogos globales, no específicos de esta página.
+        const res = await this.$axios.get(`${this.$config.API}/table/ordenes-todas/opciones`);
+        this.optionsCategories = [
+          { text: "Todas", value: "todas" },
+          ...res.data.categorias.map(c => ({ text: c, value: c })),
+        ];
+        this.optionsStatus = [
+          { text: "Todas", value: "todas" },
+          ...res.data.estados_orden.map(s => ({ text: s, value: s })),
+        ];
+        this.vendedores = [
+          { value: 0, text: "Todos" },
+          ...res.data.vendedores.map(v => ({ value: v._id, text: v.nombre })),
+        ];
+      } catch (error) {
+        console.error("Error cargando opciones de filtro:", error);
+      }
     },
 
     onSubmit(event) {
@@ -273,178 +315,95 @@ export default {
         });
         return;
       }
-      this.applyFilters();
+      this.fetchPage({ reset: true });
     },
 
-    generateCategoryOptions() {
-      if (!this.ordenesActivas || this.ordenesActivas.length === 0) {
-        this.optionsCategories = [];
-        return;
+    // Reemplaza getOrdenesActivas()/getPagos()/applyFilters(): un único método que pide
+    // una página real al servidor (fecha, búsqueda, vendedor, categoría, estado -- todos
+    // como filtros del WHERE) y la anexa al buffer acumulado. reset=true vuelve a la
+    // primera página; reset=false es "cargar más" desde el scroll infinito.
+    async fetchPage({ reset = false } = {}) {
+      if (this.isLoadingMore) return;
+      this.isLoadingMore = true;
+      if (reset) {
+        this.loading.show = true;
+        this.ordenesActivas = [];
+        this.cursor = null;
+        this.endOfList = false;
       }
 
-      const uniqueCategories = new Map();
-      this.ordenesActivas.forEach(order => {
-        if (order.product_categories && Array.isArray(order.product_categories)) {
-          order.product_categories.forEach(cat => {
-            if (cat.category_name) {
-              const trimmedCat = cat.category_name.trim();
-              const lowerCaseCat = trimmedCat.toLowerCase();
-              if (trimmedCat && !uniqueCategories.has(lowerCaseCat)) {
-                uniqueCategories.set(lowerCaseCat, trimmedCat); // Use original casing for display
-              }
-            }
-          });
+      const searchTerm = (this.filter || "").trim();
+
+      try {
+        const params = {
+          fecha_inicio: this.fechaConsultaInicio,
+          fecha_fin: this.fechaConsultaFin,
+          ignorar_fecha: this.busquedaActiva ? 1 : 0,
+          search: searchTerm,
+          id_vendedor: this.selectedVendedor,
+          categoria: this.selectedCategory,
+          estado_orden: this.selectedStatus,
+          limit: 25,
+        };
+        if (!reset && this.cursor) {
+          params.cursor = this.cursor;
         }
-      });
 
-      const categoryOptions = [...uniqueCategories.values()].map(originalCat => ({
-        text: originalCat,
-        value: originalCat,
-      }));
-
-      // Sort categories alphabetically for better UX
-      categoryOptions.sort((a, b) => a.text.localeCompare(b.text));
-
-      this.optionsCategories = [
-        { text: "Todas", value: "todas" },
-        ...categoryOptions,
-      ];
-    },
-
-    generateStatusOptions() {
-      if (!this.ordenesActivas || this.ordenesActivas.length === 0) {
-        this.optionsStatus = [];
-        return;
-      }
-
-      const uniqueStatuses = new Set();
-      this.ordenesActivas.forEach(order => {
-        if (order.estatus) {
-          uniqueStatuses.add(order.estatus.trim());
-        }
-      });
-
-      const statusOptions = [...uniqueStatuses].map(status => ({
-        text: status,
-        value: status,
-      }));
-
-      // Sort alphabetically
-      statusOptions.sort((a, b) => a.text.localeCompare(b.text));
-
-      this.optionsStatus = [
-        { text: "Todas", value: "todas" },
-        ...statusOptions,
-      ];
-    },
-
-    applyFilters() {
-      let filtered = [...this.ordenesConEstadoDePago]; // Start from the computed property
-
-      // Filter by seller
-      if (this.selectedVendedor != 0) {
-        filtered = filtered.filter(el => el.id_vendedor == this.selectedVendedor);
-      }
-
-      // Filter by date range
-      if (this.fechaConsultaInicio && this.fechaConsultaFin) {
-        const inicio = new Date(this.fechaConsultaInicio);
-        const fin = new Date(this.fechaConsultaFin);
-        fin.setHours(23, 59, 59, 999); // Include the whole end day
-
-        filtered = filtered.filter(item => {
-          const fechaInicio = new Date(item.fecha_inicio);
-          const fechaEntrega = new Date(item.fecha_entrega);
-          return (
-            (fechaInicio >= inicio && fechaInicio <= fin) ||
-            (fechaEntrega >= inicio && fechaEntrega <= fin) ||
-            (fechaInicio <= inicio && fechaEntrega >= fin)
-          );
-        });
-      }
-      
-      // Filter by payment status
-      if (this.selectedRadio === "pagadas") {
-          filtered = filtered.filter(el => el.payment_status === 'pagada');
-      } else if (this.selectedRadio === "pendientes") {
-          filtered = filtered.filter(el => el.payment_status === 'pendiente');
-      } else if (this.selectedRadio === "sobrepagada") {
-          filtered = filtered.filter(el => el.payment_status === 'sobrepagada');
-      }
-
-      // Filter by category
-      if (this.selectedCategory !== "todas") {
-        filtered = filtered.filter(order => 
-            order.product_categories && order.product_categories.some(cat => cat.category_name === this.selectedCategory)
+        const res = await this.$axios.get(
+          `${this.$config.API}/table/ordenes-activas/${this.dataUser.id_empleado}`,
+          { params }
         );
-      }
 
-      // Filter by status
-      if (this.selectedStatus !== "todas") {
-        filtered = filtered.filter(order => order.estatus === this.selectedStatus);
-      }
-
-      this.dataTable = filtered;
-      this.totalRows = filtered.length;
-    },
-
-    async getOrdenesActivas(id_empleado) {
-      await this.$axios
-        .get(`${this.$config.API}/table/ordenes-activas/${id_empleado}`)
-        .then((res) => {
+        if (!this.fields || !this.fields.length) {
           this.fields = res.data.fields;
-          // Añadir la columna 'Estatus'
           this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
-          this.ordenesActivas = res.data.items;
-          this.ordenesLength = this.ordenesActivas.length;
-          this.totalRows = this.ordenesActivas.length;
-          this.generateCategoryOptions();
-          this.generateStatusOptions();
-        });
+        }
+
+        this.ordenesActivas.push(...res.data.items);
+        this.cursor = res.data.next_cursor;
+        this.endOfList = res.data.next_cursor === null;
+        if (typeof res.data.total_count === 'number') {
+          this.totalCount = res.data.total_count;
+        }
+      } catch (error) {
+        console.error("Error cargando las ordenes activas:", error);
+      } finally {
+        this.isLoadingMore = false;
+        this.loading.show = false;
+        this.setupInfiniteScroll();
+      }
     },
 
-    async getPagos() {
-      this.overlay = true;
-      await this.$axios
-        .get(`${this.$config.API}/reporte-de-pagos`)
-        .then((resp) => {
-          this.pagos = resp.data.pagos;
-          this.vendedores = resp.data.vendedores.map((el) => {
-            return {
-              value: el._id,
-              text: el.nombre,
-            };
-          });
-          this.vendedores.unshift({ value: 0, text: "Todos" });
-          this.overlay = false;
-        });
-    },
-
-    filterPago(idOrden) {
-      return this.pagos.filter((el) => el.orden == idOrden);
-    },
-
-    onFiltered(filteredItems) {
-      this.totalRows = filteredItems.length;
-      this.currentPage = 1;
+    setupInfiniteScroll() {
+      if (this.scrollObserver) {
+        this.scrollObserver.disconnect();
+        this.scrollObserver = null;
+      }
+      this.$nextTick(() => {
+        const sentinel = document.getElementById('ordenes-activas-scroll-sentinel');
+        if (sentinel) {
+          const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !this.isLoadingMore && !this.endOfList) {
+              this.fetchPage({ reset: false });
+            }
+          }, { threshold: 0.1 });
+          observer.observe(sentinel);
+          this.scrollObserver = observer;
+        }
+      });
     },
 
     reloadMe() {
-      this.overlay = true;
-      Promise.all([
-        this.getOrdenesActivas(this.dataUser.id_empleado),
-        this.getPagos()
-      ]).then(() => {
-        this.applyFilters(); // Call applyFilters after both data sources are loaded
-        this.loading.show = false;
-        this.overlay = false;
-      });
+      this.fetchPage({ reset: true });
     },
   },
 
   computed: {
-    misOrdenes() {
-      return this.ordenesActivas;
+    busquedaActiva() {
+      return (this.filter || "").trim().length >= 2
+        || this.selectedCategory !== 'todas'
+        || this.selectedStatus !== 'todas'
+        || this.selectedVendedor != 0;
     },
     filterName() {
       const option = this.optionsRadio.find(opt => opt.value === this.selectedRadio);
@@ -452,26 +411,11 @@ export default {
     },
     ordenesConEstadoDePago() {
         if (!this.ordenesActivas || !this.ordenesActivas.length) return [];
-        
+
         return this.ordenesActivas.map(orden => {
-            // Priority: use the pre-calculated saldo_pendiente from the backend if available
-            // This ensures consistency with the payment modal (abonos table)
-            let montoPendiente;
-            if (orden.saldo_pendiente !== undefined) {
-                montoPendiente = parseFloat(orden.saldo_pendiente);
-            } else {
-                // Fallback to manual calculation if for some reason it's not present
-                const pagosDeOrden = this.pagos.filter(p => p.orden == orden.orden);
-                const totalAbonado = pagosDeOrden.reduce((acc, pago) => {
-                    const monto = parseFloat(pago.monto) || 0;
-                    const tasa = parseFloat(pago.tasa) || 1;
-                    return acc + (monto / tasa);
-                }, 0);
-                
-                const totalOrden = parseFloat(orden.total) || 0;
-                const totalDescuento = parseFloat(orden.descuento_total) || 0;
-                montoPendiente = totalOrden - totalAbonado - totalDescuento;
-            }
+            // saldo_pendiente siempre viene calculado desde el backend (misma columna
+            // usada por el modal de abono, ver /table/ordenes-activas).
+            const montoPendiente = parseFloat(orden.saldo_pendiente) || 0;
 
             let payment_status = 'pendiente';
             const epsilon = 0.1; // Tolerance for floating point errors
@@ -490,11 +434,26 @@ export default {
             };
         });
     },
+    // Único filtro que sigue siendo client-side, sobre el buffer acumulado -- el estado
+    // de pago no es una columna plana. Vendedor/categoría/estatus ya son filtros reales
+    // del servidor (ver fetchPage).
+    dataTable() {
+      let filtered = this.ordenesConEstadoDePago;
+      if (this.selectedRadio === "pagadas") {
+        filtered = filtered.filter(el => el.payment_status === 'pagada');
+      } else if (this.selectedRadio === "pendientes") {
+        filtered = filtered.filter(el => el.payment_status === 'pendiente');
+      } else if (this.selectedRadio === "sobrepagada") {
+        filtered = filtered.filter(el => el.payment_status === 'sobrepagada');
+      }
+      return filtered;
+    },
     ...mapState("login", ["dataUser"]),
   },
 
-  mounted() {
-    this.reloadMe();
+  async mounted() {
+    await this.fetchOpciones();
+    await this.fetchPage({ reset: true });
   },
 
   mixins: [mixin],
