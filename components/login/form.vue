@@ -9,6 +9,24 @@
             </b-row> -->
 
       <configuracion-wizard v-if="showConfigWizard" />
+      <b-row v-else-if="mostrarSelectorEmpresa" class="text-center vh-100" align-v="center">
+        <b-col align-v="center">
+          <b-card style="max-width: 20rem" class="text-center" align-v="center">
+            <h2>ninesys</h2>
+            <hr />
+            <p>Su cuenta está asignada a más de una empresa. Elija a cuál desea acceder:</p>
+            <b-list-group>
+              <b-list-group-item
+                v-for="emp in empresasDisponibles"
+                :key="emp.id_empresa"
+                button
+                @click="elegirEmpresa(emp.id_empresa)"
+              >{{ emp.nombre }}</b-list-group-item>
+            </b-list-group>
+            <b-button class="mt-3" variant="link" @click="mostrarSelectorEmpresa = false">Cancelar</b-button>
+          </b-card>
+        </b-col>
+      </b-row>
       <b-row v-else class="text-center vh-100" align-v="center">
         <b-col align-v="center">
           <b-card style="max-width: 20rem" class="text-center" align-v="center">
@@ -83,6 +101,11 @@ export default {
         email: "",
         password: "",
       },
+      // Una identidad puede estar asignada a más de una empresa (ver /login,
+      // 2026-08-12) -- si el backend responde requiere_seleccion_empresa, se
+      // muestra esta lista en vez de completar el login de una vez.
+      mostrarSelectorEmpresa: false,
+      empresasDisponibles: [],
     };
   },
   computed: {
@@ -145,16 +168,40 @@ export default {
       }
 
       if (ban) {
+        await this.doLogin();
+      } else {
+        this.loading = false;
+      }
+    },
+
+    // Reenvía el login con la empresa elegida en el selector (ver
+    // requiere_seleccion_empresa más abajo).
+    async elegirEmpresa(idEmpresa) {
+      this.loading = true;
+      this.mostrarSelectorEmpresa = false;
+      await this.doLogin(idEmpresa);
+    },
+
+    async doLogin(idEmpresa) {
         this.loading = true;
 
         const data = new URLSearchParams();
         data.set("email", this.form.email);
         data.set("password", this.form.password);
+        if (idEmpresa) {
+          data.set("id_empresa", idEmpresa);
+        }
 
         await this.$axios
           .post(`${this.$config.API}/login`, data)
                     .then((res) => {
-                      if (res.data.data.access === true) {
+                      if (res.data.requiere_seleccion_empresa) {
+                        // La identidad tiene más de una empresa asignada -- mostrar el
+                        // selector en vez de completar el login todavía.
+                        this.loading = false;
+                        this.empresasDisponibles = res.data.empresas || [];
+                        this.mostrarSelectorEmpresa = true;
+                      } else if (res.data.data.access === true) {
                         this.loadingText = "Cargando datos, por favor espere...";
 
                         // Incluir el teléfono del usuario en dataUser si viene en datos_usuario
@@ -250,9 +297,6 @@ export default {
           .finally(() => {
             this.loading = false;
           });
-      } else {
-        this.loading = false;
-      }
     },
 
     async getConfigData() {
