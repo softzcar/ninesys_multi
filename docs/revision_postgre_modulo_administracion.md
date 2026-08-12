@@ -191,15 +191,15 @@
 
 ## Pagos
 
-- [ ] Planilla de Pagos
-- [ ] Histórico de Pagos
+- [ ] Planilla de Pagos **(bug real corregido 2026-07-21, commit `4bd543d`: "Total General" del modal "Confirmar Procesamiento de Pagos" podía quedar desactualizado vs. lo realmente procesado -- causa raíz: `totalCancelado` era un `data()` sincronizado a mano en 4 puntos, convertido a `computed` para que nunca se desincronice. Verificado matemáticamente contra la BD real, PERO sin re-probar el flujo completo en el navegador con pagos pendientes reales -- no había ninguno disponible ese día. Falta esa verificación visual antes de cerrar del todo)**
+- [ ] Histórico de Pagos **(nunca auditado directamente -- solo se usó como referencia de datos correctos al investigar el bug de Planilla de Pagos arriba. 0 commits en `PagosHistorico.vue`/`PagosHistoricoModal.vue` en los últimos meses)**
 
 
 
 ## Reportes
 
 - [x] Reporte general **(renombrado de "semanal" a "Reporte General de Eficiencia" -- URL, endpoint y links del sidebar; corregido fallback 100% falso en Eficiencia Tiempo/Material cuando no hay datos reales -- ahora N/A; corregido 500 en el modal de eficiencia de insumos por columna eliminada en limpieza anterior; corregido cálculo de "Real" en eficiencia de insumos que aplicaba rendimiento sin condición, inflando el consumo real hasta 11x en algunas órdenes; verificado con datos reales que el progressbar de eficiencia de tiempo calcula correctamente -- los desfases observados son de configuración de datos, no de código)**
-- [ ] Rendimiento
+- ~~Rendimiento~~ **(entrada muerta del checklist -- ese link ya no existe en el sidebar actual de Reportes, confirmado por grep en `SidebarAdmin.vue`. No corresponde a ninguna página real hoy)**
 - [x] Eficiencia Empleados **(selector de empleado rediseñado -- ocupaba todo el ancho en desktop; corregida inflación 60x en Eficiencia Tiempo por mezclar segundos con minutos; corregida etiqueta "minutos" incorrecta en modal de detalle; corregido consumo_real_total inflado en Eficiencia Insumos por rendimiento aplicado sin verificar unidad del insumo; corregido "0%" engañoso -- ahora N/A cuando no hay datos reales; corregido JOIN roto en Eficiencia Insumos por id_catalogo_insumos_prodcutos NULL en 69% del historial de inventario_movimientos, usando inventario.id_catalogo como respaldo; restaurado cálculo de HORAS TRABAJADAS -- código muerto tras un `return` hacía que siempre mostrara 0.00, afectaba también producción MySQL; agregado modal de detalle de horas con estado de pago por tarea (pagado/pendiente); corregido PENDIENTE $ que ignoraba procentaje_comision de reparto entre empleados en el mismo lote, riesgo de duplicación de comisión -- sin impacto en datos actuales pero confirmado en 130 asignaciones históricas)**
 - ~~Insumos por orden~~ **(página eliminada del sidebar y del código el 22/07 -- ya no aplica)**
 - ~~Insumos~~ **(link eliminado del sidebar el 22/07 -- ya no aplica)**
@@ -230,4 +230,4 @@
 
 ## Configuración
 
-- [ ] Configuración de la Empresa
+- [x] Configuración de la Empresa **(checklist nunca se marcó pese a estar CERRADA 2026-08-06, 8/8 cards -- confirmado por >7 commits: CSS global roto eliminado, staleness en 5 cards corregido, bucle infinito en Horario, 3 switches muertos eliminados, Resumen restructurado, contraseñas texto plano señaladas)**
