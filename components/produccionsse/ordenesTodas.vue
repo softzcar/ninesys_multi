@@ -32,7 +32,7 @@
                         </b-input-group-append>
                     </b-input-group>
                     <p v-if="busquedaActiva" class="text-info small mb-4">
-                        Buscando en todo el historial -- el rango de fechas se ignora mientras haya texto en el buscador.
+                        Buscando en todo el historial -- el rango de fechas se ignora mientras haya un filtro o búsqueda activa.
                     </p>
                 </b-col>
             </b-row>
@@ -262,12 +262,20 @@ export default {
             }
 
             const searchTerm = (this.filter || "").trim();
+            // Igual que la búsqueda de texto: si el usuario filtra por categoría/estado/
+            // vendedor, ignorar el rango de fechas -- si no, "Cancelada" combinado con el
+            // rango por defecto (ej. este mes) parece devolver "ninguna" cuando en realidad
+            // sí existen, solo que fuera del rango cargado (mismo bug de raíz que la búsqueda).
+            const filtroActivo = searchTerm.length >= 2
+                || this.selectedCategory !== 'todas'
+                || this.selectedOrderStatus !== 'todas'
+                || this.selectedVendedor != 0;
 
             try {
                 const params = {
                     fecha_inicio: this.fechaConsultaInicio,
                     fecha_fin: this.fechaConsultaFin,
-                    ignorar_fecha: searchTerm.length >= 2 ? 1 : 0,
+                    ignorar_fecha: filtroActivo ? 1 : 0,
                     search: searchTerm,
                     id_vendedor: this.selectedVendedor,
                     categoria: this.selectedCategory,
@@ -326,7 +334,10 @@ export default {
 
     computed: {
         busquedaActiva() {
-            return (this.filter || "").trim().length >= 2;
+            return (this.filter || "").trim().length >= 2
+                || this.selectedCategory !== 'todas'
+                || this.selectedOrderStatus !== 'todas'
+                || this.selectedVendedor != 0;
         },
         ordenesConEstadoDePago() {
             if (!this.ordenes || !this.ordenes.length) return [];
