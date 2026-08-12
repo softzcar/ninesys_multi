@@ -191,7 +191,7 @@
 
 ## Pagos
 
-- [ ] Planilla de Pagos **(bug real corregido 2026-07-21, commit `4bd543d`: "Total General" del modal "Confirmar Procesamiento de Pagos" podía quedar desactualizado vs. lo realmente procesado -- causa raíz: `totalCancelado` era un `data()` sincronizado a mano en 4 puntos, convertido a `computed` para que nunca se desincronice. Verificado matemáticamente contra la BD real, PERO sin re-probar el flujo completo en el navegador con pagos pendientes reales -- no había ninguno disponible ese día. Falta esa verificación visual antes de cerrar del todo)**
+- [x] Planilla de Pagos **(bug real corregido 2026-07-21, commit `4bd543d`: "Total General" del modal "Confirmar Procesamiento de Pagos" podía quedar desactualizado vs. lo realmente procesado -- causa raíz: `totalCancelado` era un `data()` sincronizado a mano en 4 puntos, convertido a `computed` para que nunca se desincronice. Verificado en vivo el 2026-08-12 con 140 pagos reales pendientes (rango 12/01/2026-11/08/2026): "Total General" de la pantalla principal y del modal "Confirmar Procesamiento de Pagos" coinciden exacto en $317.37, sin abrir/cerrar desincronización. Cerrado sin necesidad de tocar código)**
 - [ ] Histórico de Pagos **(nunca auditado directamente -- solo se usó como referencia de datos correctos al investigar el bug de Planilla de Pagos arriba. 0 commits en `PagosHistorico.vue`/`PagosHistoricoModal.vue` en los últimos meses)**
 
 
