@@ -247,9 +247,15 @@ export default {
             });
           })
           .catch((err) => {
+            const mensajeBackend = err.response?.data?.message;
             this.$fire({
-              title: "Desactivar Empleado",
-              html: `<p>Ocurrió un error al desactivar el empleado</p><p>${err}</p>`,
+              title:
+                err.response?.status === 409
+                  ? "No se puede desactivar"
+                  : "Desactivar Empleado",
+              html: mensajeBackend
+                ? `<p>${mensajeBackend}</p>`
+                : `<p>Ocurrió un error al desactivar el empleado</p><p>${err}</p>`,
               type: "danger",
             });
           })
