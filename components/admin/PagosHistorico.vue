@@ -191,8 +191,12 @@ export default {
         return nameA.localeCompare(nameB);
       }).map(item => {
         // Agregar salario, bonos y descontar descuentos para mostrar el total real pagado
-        const salarioRecord = this.salariosDetalles.find(s => s.id_empleado === item.id_empleado);
-        const salario = salarioRecord ? parseFloat(salarioRecord.monto) : 0;
+        // Postgres agrupa por (id_empleado, tipo_salario) -- puede haber más de una fila
+        // por empleado si tuviera más de un tipo de salario en el mismo período. Sumar
+        // todas en vez de tomar solo la primera (.find()) evita perder monto en ese caso.
+        const salario = this.salariosDetalles
+          .filter(s => s.id_empleado === item.id_empleado)
+          .reduce((sum, s) => sum + parseFloat(s.monto), 0);
         const bonos = this.bonosDetalles
           .filter(b => b.id_empleado === item.id_empleado)
           .reduce((sum, b) => sum + parseFloat(b.monto), 0);
@@ -252,10 +256,11 @@ export default {
 
     // Métodos para filtrar detalles extra
     filterSalario(id_empleado) {
-      const sal = this.salariosDetalles.find(el => el.id_empleado === id_empleado);
-      // El salario ya viene sumado o es un registro único por periodo?
-      // La query agrupa por empleado.
-      return sal ? parseFloat(sal.monto) : 0;
+      // Postgres agrupa por (id_empleado, tipo_salario) -- puede haber más de una
+      // fila por empleado, sumar todas en vez de tomar solo la primera.
+      return this.salariosDetalles
+        .filter(el => el.id_empleado === id_empleado)
+        .reduce((sum, el) => sum + parseFloat(el.monto), 0);
     },
 
     filterBonos(id_empleado) {
