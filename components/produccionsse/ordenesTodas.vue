@@ -31,9 +31,19 @@
                             </b-button>
                         </b-input-group-append>
                     </b-input-group>
-                    <p v-if="busquedaActiva" class="text-info small mb-4">
-                        Buscando en todo el historial -- el rango de fechas se ignora mientras haya un filtro o búsqueda activa.
-                    </p>
+                </b-col>
+            </b-row>
+
+            <b-row v-if="busquedaActiva" class="mb-4">
+                <b-col>
+                    <b-alert show variant="info" class="text-center d-flex flex-column flex-md-row align-items-center justify-content-center">
+                        <span class="mb-2 mb-md-0 mr-md-3">
+                            Ignorando el rango de fechas -- hay un filtro o búsqueda activa (categoría, estado, vendedor o texto), buscando en todo el historial.
+                        </span>
+                        <b-button size="sm" variant="outline-secondary" @click="resetFilters">
+                            Limpiar todos los filtros
+                        </b-button>
+                    </b-alert>
                 </b-col>
             </b-row>
 
