@@ -286,7 +286,7 @@ export default {
             }
             this.overlay = false
         },
-        async guardarEmpleado() {
+        async guardarEmpleado(reactivarId = null) {
             this.overlay = true
 
             // --- VALIDACIONES DE DATOS BÁSICOS ---
@@ -479,6 +479,14 @@ export default {
             data.set("fecha_ingreso", this.form.fecha_ingreso)
             data.set("id_seguridad_social", this.form.id_seguridad_social)
 
+            // Si es un reintento tras confirmar reactivación (email ya perteneciente a
+            // un empleado desactivado en esta empresa, ver .catch() más abajo), el
+            // backend ignora el resto de los datos de identidad (ya existen) y solo
+            // reactiva la asignación + departamentos de esta empresa.
+            if (reactivarId) {
+                data.set("reactivar_id", reactivarId)
+            }
+
             // --- VALIDACIÓN CARGA FAMILIAR ---
 
             // 6. Validar carga familiar (cada dependiente debe tener nombre y parentesco)
@@ -538,10 +546,27 @@ export default {
                     if (this.$refs.tabs) this.$refs.tabs.currentTab = 0
                     this.$bvModal.hide(this.modal)
                 })
-                .catch(error => {
+                .catch(async error => {
+                    const errData = error.response && error.response.data
+                    // El email ya pertenece a un empleado desactivado EN ESTA empresa
+                    // (mismo patrón ya usado en Gastos/Tallas/Telas/Categorías): ofrecer
+                    // reactivarlo en vez de bloquear sin salida.
+                    if (error.response && error.response.status === 409 && errData && errData.eliminado_existente) {
+                        this.overlay = false
+                        try {
+                            const val = await this.$bvModal.msgBoxConfirm(
+                                `El email "${this.form.email}" ya pertenece a un empleado desactivado en esta empresa. ¿Desea reactivarlo con los departamentos seleccionados en vez de crear uno nuevo?`,
+                                { title: "Empleado ya existe", okVariant: "primary", okTitle: "Sí, reactivar", cancelTitle: "Cancelar", centered: true }
+                            )
+                            if (val) {
+                                await this.guardarEmpleado(errData.id_usuario)
+                            }
+                        } catch (e2) { /* usuario canceló */ }
+                        return
+                    }
                     this.$fire({
                         title: "Error de Registro",
-                        html: `<p>Ocurrió un error al guardar: ${error.response ? (error.response.data.error || error.response.data.message) : error.message}</p>`,
+                        html: `<p>Ocurrió un error al guardar: ${errData ? (errData.error || errData.message) : error.message}</p>`,
                         type: "error",
                     })
                 })
