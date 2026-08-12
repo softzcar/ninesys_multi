@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** "ok dame de nuevo ahora la lista de pendientes que tenemos aún si quedan" (sesión previa) seguido hoy de: "los check list no viene siendo confiables... Revisalos contra los logs para determinar que realmente falta y armas un nuevo checklist a partir de las tareas que confirmes que si faltan... procede a corregir el checklist".
+- **Fecha y Hora:** 2026-08-12 08:51:00
+- **Proyecto(s):** Frontend (documentación)
+- **Archivos Involucrados:**
+  - `docs/revision_postgre_modulo_administracion.md`
+- **Commits Relacionados:**
+  - Frontend: `598070c`
+  - Backend: N/A
+- **Acción Realizada:** El usuario cuestionó la confiabilidad del checklist de auditoría de Administración (dudaba específicamente de "Planilla de Pagos"/"Histórico de Pagos" marcados como pendientes). Se cruzó CADA ítem sin marcar contra `git log` real y contra las memorias de auditorías ya cerradas, en vez de confiar en el estado del archivo:
+  1. **"Configuración de la Empresa"** aparecía sin marcar pese a estar CERRADA desde el 2026-08-06 (8/8 cards) -- confirmado por >7 commits reales (CSS global roto eliminado, staleness en 5 cards, bucle infinito de Horario, 3 switches muertos, Resumen restructurado). El checklist nunca se actualizó tras cerrar esa auditoría. Marcado como hecho.
+  2. **"Rendimiento"** (sección Reportes) resultó ser una entrada MUERTA -- ese link ya no existe en el sidebar actual (`SidebarAdmin.vue` solo tiene 6 links en Reportes hoy, ninguno "Rendimiento"). Removido/tachado, mismo tratamiento que otras entradas muertas ya presentes en el archivo ("Insumos por orden", "Insumos").
+  3. **"Planilla de Pagos"**: SÍ tuvo trabajo real reciente -- bug corregido el 2026-07-21 (commit `4bd543d`, "Total General" desincronizado). Se anotó el fix ya cerrado, pero se dejó pendiente la verificación visual en navegador (no se pudo hacer ese día por falta de pagos reales pendientes).
+  4. **"Histórico de Pagos"**: confirmado que NUNCA se auditó directamente -- solo se usó como referencia de datos correctos al investigar el bug de Planilla de Pagos (0 commits en `PagosHistorico.vue`/`PagosHistoricoModal.vue`).
+- **Inconvenientes y Desafíos:** Distinguir qué páginas corresponden a qué sidebar fue clave -- "Planilla de Pagos"/"Histórico de Pagos" viven en `SidebarAdmin.vue` (panel de administración), un sidebar completamente distinto de los sidebars por rol de empleado (Comercialización/Diseño/Producción) ya auditados en sesiones anteriores. Confundir ambos hubiera llevado a asumir incorrectamente que ya estaban cubiertos.
+- **Decisión Final y Justificación:** Se decidió no confiar en el estado binario (marcado/sin marcar) del checklist sin verificación -- cada ítem dudoso se cruzó contra evidencia objetiva (git log, memoria de auditorías cerradas, grep del sidebar actual) antes de tocar el archivo, exactamente el método que el usuario pidió explícitamente.
+- **Herramienta(s) Utilizada(s):** Bash (`grep`, `git log`), Read, Edit.
+- **Resultado:** Éxito.
+- **Verificación:** Cada corrección del checklist se respaldó con evidencia verificable (hash de commit, ausencia confirmada de un link en el sidebar actual, o ausencia confirmada de commits en el archivo correspondiente) -- documentada inline en el propio checklist para que quede trazable.
+- **Logro Conseguido:** El checklist de Administración queda alineado con la realidad del código por primera vez en semanas, evitando que sesiones futuras pierdan tiempo re-auditando trabajo ya cerrado (Configuración de la Empresa) o persiguiendo un link que ya no existe (Rendimiento).
+- **Referencias de Sesión (Contexto):** N/A
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Checklist corregido: "Configuración de la Empresa" marcada como hecha (estaba cerrada desde el 06-ago, nunca se actualizó), "Rendimiento" removida (link muerto), y "Planilla de Pagos"/"Histórico de Pagos" anotadas con precisión (la primera con un fix real ya cerrado y verificación visual pendiente, la segunda genuinamente nunca auditada).
