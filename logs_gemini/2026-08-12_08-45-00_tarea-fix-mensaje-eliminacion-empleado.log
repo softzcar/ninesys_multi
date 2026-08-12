@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Continuación del fix de `/empleados/eliminar` (backend) elegido como punto de partida del día -- ver bitácora hermana en `ninesys-api/logs_gemini/2026-08-12_08-29-00_tarea-fix-eliminacion-destructiva-empleados.log`.
+- **Fecha y Hora:** 2026-08-12 08:45:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `pages/empleados/gestion/index.vue` (método `deleteEmpleado`, líneas ~228-266)
+- **Commits Relacionados:**
+  - Frontend: 0696425
+  - Backend: 54180f2
+- **Acción Realizada:** El backend ahora responde HTTP 409 con un mensaje explicativo cuando no puede desactivar a un empleado (tareas terminadas o en curso). El `.catch()` del método `deleteEmpleado` mostraba siempre el mismo texto genérico ("Ocurrió un error al desactivar el empleado") sin importar la causa. Se actualizó para leer `err.response.data.message` (el mensaje real que ahora manda el backend) y mostrarlo, cambiando además el título del modal a "No se puede desactivar" específicamente cuando el status es 409 (para distinguir un bloqueo esperado de un error real de servidor).
+- **Inconvenientes y Desafíos:** Ninguno. El texto del `$confirm` inicial (línea 230) ya era preciso (no promete reversibilidad de las tareas, solo la reactivación del usuario), así que no requirió cambios -- se revisó por si acaso, ya que el plan original lo señalaba como posible pendiente.
+- **Decisión Final y Justificación:** Usar optional chaining (`err.response?.data?.message`) para no romper si el error es de red (sin `response`), con fallback al mensaje genérico anterior.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (`git commit`/`push`, `deploy.sh`).
+- **Resultado:** Éxito.
+- **Verificación:** Desplegado a Desarrollo (Contabo Dev, rsync completo, "DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO"). No se hizo verificación visual en navegador en esta tarea puntual (el fix del backend ya se probó end-to-end por API directamente); queda como prueba visual pendiente si se quiere confirmar el modal en pantalla.
+- **Logro Conseguido:** El usuario que intente desactivar a un empleado con tareas activas ahora ve el motivo real (cuántas tareas terminadas o en curso tiene) en vez de un error genérico sin contexto.
+- **Referencias de Sesión (Contexto):**
+  - Plan: [he-estado-trabajanod-con-hazy-pascal.md](file:///home/developer/.claude/plans/he-estado-trabajanod-con-hazy-pascal.md)
+- **Observaciones de Gemini:** N/A (tarea realizada por Claude Code, no por Antigravity).
+- **Respuesta de Gemini:** N/A
