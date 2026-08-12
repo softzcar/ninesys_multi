@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** "ok vamos a proceder con estos pasos" -- verificación visual de Planilla de Pagos (bug ya corregido el 2026-07-21, pendiente de confirmar en navegador con pagos reales) + auditoría desde cero de Histórico de Pagos (nunca auditada según el checklist).
+- **Fecha y Hora:** 2026-08-12 10:10:00
+- **Proyecto(s):** Frontend (backend en bitácora hermana de `ninesys-api`)
+- **Archivos Involucrados:**
+  - `components/admin/PagosHistorico.vue` (fix defensivo de suma de salario)
+  - `docs/revision_postgre_modulo_administracion.md` (checklist)
+- **Commits Relacionados:**
+  - Frontend: `557e6a8` (cierre Planilla de Pagos), `a84667c` (fix salario), `73d591f` (cierre Histórico de Pagos)
+  - Backend: `25b0c55`, `b1cfd9c`, `3659aad` (ver bitácora de `ninesys-api`)
+- **Acción Realizada:**
+  1. **Planilla de Pagos:** con 140 pagos reales pendientes en Desarrollo (rango real 12/01/2026-11/08/2026), el usuario abrió la pantalla y el modal "Confirmar Procesamiento de Pagos" -- ambos mostraron **$317.37** de forma consistente, confirmando que el fix del 21-jul (`totalCancelado` como `computed`) sigue sin desincronizarse. Cerrado sin tocar código.
+  2. **Histórico de Pagos:** al leer el componente completo para auditar desde cero, se encontró que `pagosResumenUnificado` y `filterSalario()` usaban `.find()` sobre `salariosDetalles` (toma solo la primera fila de salario por empleado). Como Postgres agrupa `pagos_salarios` por `(id_empleado, tipo_salario)`, un empleado con más de un tipo en el mismo período perdería silenciosamente el resto. Verificado contra el histórico completo de la 194 (`pagos_salarios` JOIN `pagos`, agrupado por empleado+fecha_pago+tipo_salario) que esto nunca ha ocurrido en la práctica -- hallazgo latente, sin caso real afectado hoy. Corregido de todas formas (cambiar `.find()` por `.filter().reduce()`) por ser trivial y sin downside.
+  3. El resto de los hallazgos de esta auditoría (inyección SQL, SQL leak, multiplicación de montos en la categoría diseñadores, doble conteo por falso positivo) fueron todos de backend -- ver bitácora completa en `ninesys-api/logs_gemini/2026-08-12_10-05-00_...log`.
+- **Inconvenientes y Desafíos:** La verificación visual de Planilla de Pagos requería credenciales de administrador que Claude no tenía -- la automatización de navegador (Chrome extension) además estaba bloqueada por permisos de sitio no otorgados para ese dominio. Se resolvió pidiendo al usuario que hiciera la verificación manualmente en su sesión ya logueada (usuario SAyerlin), mientras Claude calculaba en paralelo el total esperado por SQL directo contra Desarrollo para poder confirmar o refutar el número reportado.
+- **Decisión Final y Justificación:** Priorizar la verificación con datos REALES de producción-en-desarrollo (140 pagos reales, semana real del 07/08) en vez de crear datos de prueba desechables, ya que casualmente había suficiente actividad real pendiente/histórica para cubrir ambos escenarios (pendientes y ya pagados) sin necesidad de fabricar nada.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (`node --check`, `git`, `deploy.sh`), `ssh`+`psql` (verificación cruzada de totales), captura de pantalla del usuario (verificación visual real).
+- **Resultado:** Éxito.
+- **Verificación:** Planilla de Pagos: $317.37 idéntico en pantalla principal y modal, confirmado por el usuario. Histórico de Pagos: tras los 3 fixes de backend, el "TOTAL GENERAL" de la semana 03-09/08/2026 pasó de un valor inflado (~$1229.99) a **$1147.89**, confirmado exacto por el usuario en el navegador.
+- **Logro Conseguido:** Se cerraron 2 secciones completas del checklist de Administración (Planilla de Pagos y Histórico de Pagos) con verificación en vivo contra datos reales, y se corrigió un bug financiero real (multiplicación de hasta 4x en pagos a diseñadores) que llevaba tiempo sin detectarse.
+- **Referencias de Sesión (Contexto):** N/A
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Planilla de Pagos verificada sin desincronización ($317.37 consistente). Histórico de Pagos auditado desde cero: 4 hallazgos reales corregidos (inyección SQL, SQL leak, multiplicación hasta 4x, doble conteo), total real confirmado en $1147.89. Checklist actualizado, Producción queda sin estos fixes por decisión explícita del usuario.
