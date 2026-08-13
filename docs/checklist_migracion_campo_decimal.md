@@ -47,7 +47,7 @@ Múltiples campos monetarios en el mismo archivo, campo dentro de `v-for`, o nom
 - [x] `components/admin/EmpleadoNuevo.vue` — mismo patrón exacto que `EmpleadoEditar.vue`.
 - [x] `components/admin/GastosFijos.vue` — `gastoModel.monto` + `pagoModel.monto` (2 monetarios).
 - [x] `components/admin/GastosHistorial.vue` — `editModel.monto`. Confirmado envuelto en `b-input-group` (el mismo contexto que causó el bug de carrera ya corregido) — buen caso de prueba adicional.
-- [ ] `components/admin/AsignacionDeInsumosAProductosTab.vue` — 1 campo probablemente precio de insumo (verificar contexto exacto); `row.item.cantidad` NO aplica.
+- [x] `components/admin/AsignacionDeInsumosAProductosTab.vue` — `comisionActual` ("Monto de comisión por unidad producida") confirmado monetario, migrado. `row.item.cantidad` NO aplica. (Archivo tenía WIP ajeno preexistente sin commitear -- aislado con `git add -p`, mismo procedimiento que `MonedasManager.vue`).
 - [x] `components/inventario/InsumoNuevoTinta.vue` — `form.costo` + `form.rendimiento` monetarios; `form.mililitros` NO aplica.
 - [x] `components/inventario/InsumoEditarTinta.vue` — `form.rendimiento` + `form.costo` monetarios.
 - [x] `components/inventario/InsumoClonar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
@@ -59,10 +59,10 @@ Múltiples campos monetarios en el mismo archivo, campo dentro de `v-for`, o nom
 - [ ] `components/formMonedas.vue` — `moneda.valor` (tasa de cambio) monetario, dentro de `v-for`.
 - [x] `components/products/ProductEditar.vue` — SIN ACCIÓN: el bloque con `form.price`/`form.unidades` está completamente COMENTADO (código muerto). Los precios reales van por `<admin-AsignacionDePrecios>` = `AsignacionDePreciosForm.vue`, ya migrado en el piloto original. `form.stock_quantity` (activo) NO aplica (cantidad).
 - [x] `components/whatsapp/WaConfiguracion.vue` — `sttConfig.stt_monthly_usd_limit` monetario, migrado; `max_tokens`/`stt_long_audio_seconds` NO aplican (no son $).
-- [ ] `components/produccionsse/asignarEmpleadoMulti.vue` — `row.item.comision` (verificar si es monto $ o hay ambigüedad con step="1").
-- [ ] `components/empleados/SseOrdenesAsignadasModalExtra.vue` — `itemForm.input` (nombre genérico, verificar qué representa realmente); el resto de campos del archivo (canales de tinta, desperdicio) NO aplican.
-- [ ] `components/comercio/editarProductos.vue` — solo se encontró `cantidad` (NO aplica) en el barrido de `type="number"`; verificar si hay un campo de precio/monto en otro formato antes de cerrar sin acción.
-- [ ] `components/comercio/editarProductos2.vue` — mismo caso que `editarProductos.vue`.
+- [x] `components/produccionsse/asignarEmpleadoMulti.vue` — SIN ACCIÓN: `row.item.comision` es en realidad "Porcentaje Comisión" (distribución de % entre empleados, ver `calculoPorcentaje`/label real del campo) -- NO es monto $, confirmado.
+- [x] `components/empleados/SseOrdenesAsignadasModalExtra.vue` — SIN ACCIÓN: `itemForm.input` es una cantidad de consumo de material con unidad dinámica (kg/metros, ver `getUnidadRow()`), no un monto. Resto del archivo ya confirmado no monetario.
+- [x] `components/comercio/editarProductos.vue` — SIN ACCIÓN: la columna "precio" de la tabla es de solo lectura (sin `#cell(precio)` custom, renderiza texto plano); único input real es `cantidad`, ya confirmado no monetario.
+- [x] `components/comercio/editarProductos2.vue` — SIN ACCIÓN, mismo caso exacto que `editarProductos.vue`.
 
 ## Confirmado SIN campos monetarios (no requieren acción, no volver a investigar)
 

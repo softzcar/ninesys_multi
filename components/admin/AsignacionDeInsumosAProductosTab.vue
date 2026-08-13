@@ -28,9 +28,9 @@
         <h3>Comisión del Departamento</h3>
         <p class="text-muted small mb-2">Monto de comisión por unidad producida en este departamento</p>
         <b-form inline>
-          <b-form-input
-            type="number" min="0" step="0.01" style="width: 140px"
-            v-model.number="comisionActual"
+          <campo-decimal
+            style="width: 140px"
+            v-model="comisionActual"
             :disabled="savingComision"
           />
           <b-button @click="saveComision" class="ml-2" variant="success" :disabled="savingComision">
