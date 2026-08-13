@@ -125,6 +125,11 @@
               Servicio Técnico
             </router-link>
           </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/reporte-impresoras">
+              Reporte de Impresoras
+            </router-link>
+          </li>
         </ul>
       </b-collapse>
     </li>
