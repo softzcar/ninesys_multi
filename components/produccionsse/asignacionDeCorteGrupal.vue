@@ -37,7 +37,11 @@
                   striped
                   :fields="fieldsOrdenesEnCurso"
                   :items="enCurso"
-                />
+                >
+                  <template #cell(orden)="row">
+                    <linkSearch :id="row.item.orden" />
+                  </template>
+                </b-table>
               </b-card-text>
               <b-card-text v-else>
                 <b-alert

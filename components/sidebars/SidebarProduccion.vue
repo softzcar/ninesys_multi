@@ -50,14 +50,6 @@
       </router-link>
     </li>
 
-    <!-- Lotes -->
-    <li class="nav-item">
-      <router-link class="nav-link" to="/produccion/lotes">
-        <b-icon icon="collection" />
-        <span>Lotes</span>
-      </router-link>
-    </li>
-
     <!-- Asistencias -->
     <li class="nav-item">
       <router-link class="nav-link" to="/asistencias">
