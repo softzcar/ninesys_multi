@@ -501,17 +501,27 @@ export default {
       return finalData;
     },
 
+    // Promediar los PORCENTAJES de cada orden (media simple) le da el mismo
+    // peso a una orden de 2 minutos que a una de 3 horas -- una sola orden con
+    // poco tiempo real pero un presupuesto grande puede arrastrar el promedio
+    // a números de miles por ciento. Confirmado con datos reales (194, semana
+    // del 10-16/08/2026): el promedio simple daba >2000%, mientras que sumar
+    // todos los segundos reales/proyectados primero y sacar el porcentaje al
+    // final daba 66.7% (número creíble). Por eso se suman los segundos crudos
+    // que ahora manda el backend (tiempo_real_segundos/tiempo_proyectado_segundos,
+    // material_real_cantidad/material_meta_cantidad) en vez de promediar los
+    // porcentajes ya calculados de cada orden.
     avgTimeEfficiency() {
-      const valid = this.filteredItems.filter(i => i.eficiencia_tiempo !== null && i.eficiencia_tiempo !== 'N/A' && !isNaN(i.eficiencia_tiempo));
-      if (!valid.length) return 0;
-      const sum = valid.reduce((acc, curr) => acc + parseFloat(curr.eficiencia_tiempo), 0);
-      return (sum / valid.length).toFixed(1);
+      const totalReal = this.filteredItems.reduce((acc, i) => acc + (parseFloat(i.tiempo_real_segundos) || 0), 0);
+      const totalProyectado = this.filteredItems.reduce((acc, i) => acc + (parseFloat(i.tiempo_proyectado_segundos) || 0), 0);
+      if (totalReal <= 0) return 0;
+      return ((totalProyectado / totalReal) * 100).toFixed(1);
     },
     avgMaterialEfficiency() {
-      const valid = this.filteredItems.filter(i => i.eficiencia_material !== null && i.eficiencia_material !== 'N/A' && !isNaN(i.eficiencia_material));
-      if (!valid.length) return 0;
-      const sum = valid.reduce((acc, curr) => acc + parseFloat(curr.eficiencia_material), 0);
-      return (sum / valid.length).toFixed(1);
+      const totalReal = this.filteredItems.reduce((acc, i) => acc + (parseFloat(i.material_real_cantidad) || 0), 0);
+      const totalMeta = this.filteredItems.reduce((acc, i) => acc + (parseFloat(i.material_meta_cantidad) || 0), 0);
+      if (totalReal <= 0) return 0;
+      return ((totalMeta / totalReal) * 100).toFixed(1);
     },
 
     // --- DATOS PARA TOP 10 ---
