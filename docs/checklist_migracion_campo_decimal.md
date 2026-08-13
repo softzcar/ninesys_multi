@@ -53,8 +53,8 @@ Múltiples campos monetarios en el mismo archivo, campo dentro de `v-for`, o nom
 - [x] `components/inventario/InsumoClonar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
 - [x] `components/inventario/InsumoEditar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
 - [x] `components/inventario/InsumoClonarTinta.vue` — `form.rendimiento` + `form.costo` monetarios; `form.mililitros` NO aplica.
-- [ ] `components/ordenes/abono.vue` — `value` + `valueDescuento` + `valueNotaCredito` (3 monetarios).
-- [ ] `components/ordenes/nueva.vue` — `form.abono` + `form.descuento` + `form.total` (readonly, baja prioridad) monetarios; `form.productos[].cantidad` NO aplica.
+- [x] `components/ordenes/abono.vue` — solo 2 monetarios reales (`valueDescuento` + `valueNotaCredito`). `value` (el abono en sí) está COMENTADO en el template -- el monto real hoy se captura vía `<ordenes-metodos-pago-dinamico>` (el componente de Tier G). De paso se quitó un atributo `lab` suelto sin función (typo/cruft preexistente en el tag).
+- [x] `components/ordenes/nueva.vue` — `form.descuento` (real) + `form.total` (readonly, migrado también por consistencia visual, sin riesgo al ser solo lectura). `form.abono` está COMENTADO (2 veces) -- mismo patrón que `abono.vue`, el abono real se captura vía `<ordenes-metodos-pago-dinamico>`. `form.productos[].cantidad` NO aplica.
 - [ ] `components/ordenes/MetodosPagoDinamico.vue` — `montos[metodo._id]` monetario, dentro de doble `v-for` (moneda × método). **ALTO IMPACTO Y ALTO CUIDADO:** este componente es compartido por 6 formularios reales (nueva orden, presupuesto, abono, retiros, cierre de caja, abonos) — migrarlo propaga el cambio a los 6 de una vez, pero también significa que un error aquí rompe 6 pantallas simultáneamente. Probar en las 6 antes de dar por cerrado.
 - [ ] `components/formMonedas.vue` — `moneda.valor` (tasa de cambio) monetario, dentro de `v-for`.
 - [ ] `components/products/ProductEditar.vue` — `form.price` monetario; `stock_quantity`/`unidades` NO aplican.

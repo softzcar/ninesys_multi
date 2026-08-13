@@ -167,15 +167,15 @@
                     this.$store.state.login.dataUser.departamento ===
                     'Administración'
                   ">
-                    <b-form-input min="0" lab :disabled="inputDisabled" v-model="valueDescuento" type="number"
-                      placeholder="Descuento" class="mt-4 mb-2"></b-form-input>
+                    <campo-decimal :disabled="inputDisabled" v-model="valueDescuento"
+                      placeholder="Descuento" class="mt-4 mb-2"></campo-decimal>
                     <b-form-input :disabled="inputDisabled" v-model="valueDescuentoDetalle" type="text"
                       placeholder="Detalle del descuento (Obligatorio)" class="mb-4"></b-form-input>
 
                     <hr />
                     <h4>Nota de Crédito</h4>
-                    <b-form-input min="0" :disabled="inputDisabled" v-model="valueNotaCredito" type="number"
-                      placeholder="Monto Nota de Crédito" class="mt-4 mb-2"></b-form-input>
+                    <campo-decimal :disabled="inputDisabled" v-model="valueNotaCredito"
+                      placeholder="Monto Nota de Crédito" class="mt-4 mb-2"></campo-decimal>
                     <b-form-input :disabled="inputDisabled" v-model="valueNotaCreditoDetalle" type="text"
                       placeholder="Detalle de la nota de crédito (Obligatorio)" class="mb-4"></b-form-input>
                   </div>

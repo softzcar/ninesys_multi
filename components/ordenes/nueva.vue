@@ -490,8 +490,8 @@
                                         <b-form-group label="Precio en USD (Total de la Orden):"
                                           label-for="input-precio-usd-readonly">
                                           <b-input-group prepend="$">
-                                            <b-form-input id="input-precio-usd-readonly" :value="form.total"
-                                              type="number" readonly disabled />
+                                            <campo-decimal id="input-precio-usd-readonly" :value="form.total"
+                                              readonly disabled />
                                           </b-input-group>
                                           <small class="text-muted">Este valor se carga automáticamente del total de la
                                             orden</small>
@@ -543,9 +543,9 @@
                                     <b-col>
                                       <b-form-group id="input-group-10" label="DESCUENTO"
                                         label-for="input-dolares-descuento" class="pl-2">
-                                        <b-form-input id="input-grpoup-10" min="0" step="0.10" v-model="form.descuento"
-                                          @keydown.enter.stop.prevent type="number" class="mb-2 mr-sm-2 mb-sm-0"
-                                          placeholder="Ingrese el descuento"></b-form-input>
+                                        <campo-decimal id="input-grpoup-10" v-model="form.descuento"
+                                          @keydown.enter.stop.prevent class="mb-2 mr-sm-2 mb-sm-0"
+                                          placeholder="Ingrese el descuento"></campo-decimal>
                                       </b-form-group>
                                       <b-form-input v-model="form.descuentoDetalle"
                                         placeholder="Detalle Descuento"></b-form-input>
