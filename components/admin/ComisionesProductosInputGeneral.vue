@@ -6,12 +6,9 @@
     >
       <b-row>
         <b-col>
-          <b-form-input
+          <campo-decimal
             :id="idInput"
             style="width: 100px"
-            type="number"
-            min="0"
-            step="0.01"
             :value="comision"
             :disabled="inputDisabled"
             @change="notificarCambio"

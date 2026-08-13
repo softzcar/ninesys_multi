@@ -2,7 +2,7 @@
     <div>
         <b-overlay :show="overlay" spinner-small>
             <div v-if="item.departamento === 'Costura'">
-                <b-form-input :id="idInput" style="width: 100px" type="number" min="0" step="0.10" v-model="comision"
+                <campo-decimal :id="idInput" style="width: 100px" v-model="comision"
                     @change="guardarComision" :disabled="inputDisabled" />
             </div>
 

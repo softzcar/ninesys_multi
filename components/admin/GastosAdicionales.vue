@@ -65,7 +65,7 @@
       <b-row>
         <b-col md="7">
           <b-form-group label="Monto pagado:" label-for="monto-adicional">
-            <b-form-input id="monto-adicional" v-model.number="gastoModel.monto" type="number" step="0.01" min="0.01" required placeholder="0.00"></b-form-input>
+            <campo-decimal id="monto-adicional" v-model="gastoModel.monto" required placeholder="0.00"></campo-decimal>
           </b-form-group>
         </b-col>
         <b-col md="5">

@@ -22,14 +22,12 @@
           <span v-if="data.item.es_base">1 (base)</span>
           <span v-else-if="editandoTasaId === data.item._id">
             <b-input-group size="sm" style="max-width: 160px">
-              <b-form-input
+              <campo-decimal
                 v-model="tasaEnEdicion"
-                type="number"
-                min="0"
-                step="0.000001"
+                :decimals="6"
                 autofocus
                 @keyup.enter="guardarTasa(data.item)"
-              ></b-form-input>
+              ></campo-decimal>
               <b-input-group-append>
                 <b-button variant="success" @click="guardarTasa(data.item)">
                   <b-icon icon="check"></b-icon>

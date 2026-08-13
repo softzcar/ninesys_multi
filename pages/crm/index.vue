@@ -208,13 +208,11 @@
 
         <!-- Monto Estimado -->
         <b-form-group label="Monto Estimado ($) *" label-for="op-amount">
-          <b-form-input
+          <campo-decimal
             id="op-amount"
             v-model="newOp.monto_estimado"
-            type="number"
-            step="0.01"
             required
-          ></b-form-input>
+          ></campo-decimal>
         </b-form-group>
 
         <!-- Asignación de Vendedores -->

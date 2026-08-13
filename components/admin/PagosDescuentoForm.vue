@@ -3,7 +3,7 @@
         <b-overlay :show="overlay" spinner-small>
             <div class="mb-2">
                 <label for="input-monto">Monto </label>
-                <b-form-input id="input-monto" style="width: 100px" type="number" min="0" step="0.10" v-model="item.monto" />
+                <campo-decimal id="input-monto" style="width: 100px" v-model="item.monto" />
 
                 <label for="input-descripcion">Descripción </label>
                 <b-form-input id="input-descripcion" style="width: 200px" type="text" v-model="item.descripcion" />

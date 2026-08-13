@@ -20,7 +20,7 @@
       <b-row>
         <b-col>
           <b-form-group label="Costo ($)">
-            <b-form-input v-model="form.costo" type="number" step="0.01" />
+            <campo-decimal v-model="form.costo" />
           </b-form-group>
         </b-col>
         <b-col>

@@ -28,15 +28,12 @@
                                     label="Precio:"
                                     label-for="input-precio"
                                 >
-                                    <b-form-input
+                                    <campo-decimal
                                         id="input-precio"
                                         v-model="form.precio"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
                                         placeholder="Ingrese el precio del atributo"
                                         required
-                                    ></b-form-input>
+                                    ></campo-decimal>
                                 </b-form-group>
 
                                 <b-button type="submit" variant="primary">Guardar</b-button>

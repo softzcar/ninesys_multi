@@ -88,7 +88,7 @@
         </b-alert>
         <b-form-group label="Monto pagado:" label-for="pago-monto-var">
           <b-input-group :append="gastoAPagar.moneda">
-            <b-form-input id="pago-monto-var" v-model.number="pagoModel.monto" type="number" step="0.01" min="0.01" required placeholder="0.00"></b-form-input>
+            <campo-decimal id="pago-monto-var" v-model="pagoModel.monto" required placeholder="0.00"></campo-decimal>
           </b-input-group>
         </b-form-group>
         <b-form-group label="Fecha del pago:" label-for="pago-fecha-var">

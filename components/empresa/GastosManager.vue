@@ -34,7 +34,7 @@
       <b-row>
         <b-col md="3">
           <b-form-group label="Monto:" label-for="gasto-monto">
-            <b-form-input id="gasto-monto" v-model.number="newGasto.monto" type="number" step="0.01" required></b-form-input>
+            <campo-decimal id="gasto-monto" v-model="newGasto.monto" required></campo-decimal>
           </b-form-group>
         </b-col>
         <b-col md="3">
