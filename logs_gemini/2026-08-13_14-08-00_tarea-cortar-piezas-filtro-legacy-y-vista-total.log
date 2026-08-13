@@ -1,0 +1,22 @@
+# Bitácora de Trabajo - Cortar Piezas: nunca mostraba tareas + vista total para el Jefe de Producción
+
+- **Solicitud del Usuario:** El usuario reportó que la URL `.../sse/produccion/corte/21` (empleado Tahilin, no es de Corte) devolvía `items: []`. Tras confirmar que sí había miles de tareas reales pendientes, se investigó a fondo. Después: "Vamos a activar al departamento de Producción el reporte de impresoras, la gestión de remanentes NO" (tarea distinta, ver otra bitácora) y, en la misma línea de este hallazgo: el Jefe de Producción necesita ver el total de la empresa, no su propia cola (vacía por diseño, ya que su trabajo es asignar, no ejecutar).
+- **Fecha y Hora:** 2026-08-13 13:55:00 - 14:08:00
+- **Proyecto(s):** Ambos (Frontend + Backend)
+- **Archivos Involucrados:**
+  - `ninesys-api/app/routes/production.php` (`/sse/produccion/corte/{id_empleado}`)
+  - `ninesys-api/app/routes/manufacturing.php` (`/sse/empleados/ordenes-asignadas/{id_empleado}`)
+  - `app_multi/components/produccionsse/asignacionDeCorteGrupal.vue`
+- **Commits Relacionados:**
+  - Frontend: `4792394`
+  - Backend: `0659d9a`, `fb8281a`
+- **Acción Realizada:** Verificación SQL directa: `lotes_detalles.id_empleado` está 100% NULL para las 5247 tareas de corte realmente pendientes -- la misma columna legacy ya encontrada rota en Órdenes Activas, aquí con un impacto mucho mayor en volumen. La asignación real vive en `lotes_detalles_empleados_asignados` (LDEA), a nivel orden+departamento (no por fila de `lotes_detalles`), así que se reescribió el filtro con `EXISTS` contra LDEA en vez de comparar directo `id_empleado`. Verificado: Jesus (empleado real de Corte) tenía 820 tareas pendientes en LDEA que la página nunca mostraba; con el fix la consulta recuperó 2110 filas (606 órdenes). Segunda parte: el Jefe de Producción (Tahilin, departamento "Producción" general) no tiene tareas de corte asignadas a sí mismo por diseño -- su trabajo es asignarlas, no ejecutarlas. Se agregó el parámetro `?todos=1` a ambos endpoints: cuando está presente, se omite el filtro por empleado y se devuelve el total de tareas pendientes de la empresa. El frontend decide automáticamente cuál modo pedir según si `currentDepartamentTipo` del usuario logueado es 'corte' o no.
+- **Inconvenientes y Desafíos:** Ninguno mayor -- el patrón de causa raíz (columna legacy `id_empleado` en desuso) ya era conocido de la tarea de Órdenes Activas, lo que aceleró el diagnóstico.
+- **Decisión Final y Justificación:** `EXISTS` contra LDEA en vez de un `JOIN`, para no generar fan-out de filas cuando una orden tiene múltiples asignaciones. El modo `?todos=1` se activa por rol (tipo de departamento) en vez de un botón manual, para que la experiencia sea automática y correcta según quién esté logueado.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (SQL directo, curl), navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado con curl contra el servidor real: empleado 5 (Jesus, Corte real) sin el parámetro devuelve sus 2110 tareas propias; empleado 21 (Tahilin) sin el parámetro devuelve 0 (correcto, no es de Corte); empleado 21 con `?todos=1` devuelve 5247 items, coincidente exacto con el conteo SQL directo del total de tareas pendientes de la empresa. Verificado en navegador (con una pestaña nueva, por caché de bundle) que la tabla y "Trabajos en curso" ahora muestran datos reales masivos para la sesión de Tahilin.
+- **Logro Conseguido:** "Cortar Piezas" pasó de estar vacía para absolutamente cualquier usuario (incluyendo empleados reales de Corte con miles de tareas pendientes) a mostrar correctamente la cola personal de cada cortador, y el panorama completo de la empresa para el Jefe de Producción.
+
+- **Observaciones de Claude:** Este es el tercer caso en el día del mismo patrón de causa raíz (columna `lotes_detalles.id_empleado` obsoleta) -- sugiere que cualquier otra parte del sistema que aún dependa de esa columna probablemente esté rota de la misma forma.
+- **Respuesta de Claude:** Corregido el filtro legacy que dejaba la página vacía para todos, y agregada la vista total para el rol de supervisor, que por diseño nunca tiene tareas propias asignadas.

@@ -1,0 +1,22 @@
+# Bitácora de Trabajo - Órdenes Activas (Producción): EventSource roto + columnas en desuso
+
+- **Solicitud del Usuario:** Auditar "Órdenes Activas" del sidebar de Producción. Reportado: la página solo mostraba el título, el endpoint devolvía "(canceled)" en devtools sin ningún código de error numérico. "Vamos a hacer que el endpoint retorne datos para ver que se está renderizando en este reporte en primer lugar y ver qué hacer con él."
+- **Fecha y Hora:** 2026-08-13 11:59:00 - 12:15:00
+- **Proyecto(s):** Ambos (Frontend + Backend)
+- **Archivos Involucrados:**
+  - `ninesys-api/app/routes/production.php` (`GET /sse/produccion/ordenes-activas`)
+  - `app_multi/components/produccionsse/ordenesActivas.vue`
+  - `app_multi/components/produccionsse/ordenesActivasDetalles.vue`
+- **Commits Relacionados:**
+  - Frontend: `446249f`, `1c7eff7`, `9439f67`
+  - Backend: `1af6ac7`
+- **Acción Realizada:** Diagnóstico en dos capas de bugs apilados. (1) Protocolo: el frontend usaba `EventSource` (esperando un stream `text/event-stream` real), pero el backend hace tiempo dejó de transmitir SSE real y solo devuelve JSON plano (`Content-Type: application/json`) -- el navegador cancela cualquier `EventSource` que no reciba ese content-type exacto, produciendo el "(canceled)" sin código numérico. Corregido convirtiendo `ordenesActivas.vue` de `EventSource` a `axios.get()` normal. (2) Datos: la consulta SQL original hacía `JOIN lotes_detalles a ON a.id_empleado = b.id_usuario JOIN ordenes_productos c ON c._id = a.id_ordenes_productos WHERE a.progreso = 'en curso'` -- confirmado por SQL directo que `lotes_detalles.id_empleado` está NULL en el 100% de las 176 filas reales "en curso" (la asignación real migró a `lotes_detalles_empleados_asignados`, LDEA), así que el INNER JOIN devolvía 0 filas siempre. Reescrita para consultar LDEA directamente, simplificando la salida a `orden, empleado, departamento, hora, fecha` (sin detalle de producto/talla/corte/tela, ya que LDEA no guarda ese vínculo para las filas realmente activas). A pedido del usuario, se agregó el componente `linkSearch` dentro del modal de detalles (botón del ojito) para poder abrir el detalle completo del producto desde ahí, compensando el detalle perdido.
+- **Inconvenientes y Desafíos:** El diagnóstico inicial (protocolo EventSource) no era suficiente por sí solo -- incluso corrigiendo el transporte, los datos seguían en 0 filas por el segundo bug (columna `id_empleado` en desuso), que requirió una segunda ronda de investigación SQL directa contra la base real.
+- **Decisión Final y Justificación:** Simplificar la salida a orden+empleado+departamento (opción elegida explícitamente por el usuario vía pregunta de aclaración) en vez de intentar reconstruir el detalle de producto, que ya no es reconstruible desde el modelo de datos actual.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (SQL directo contra Desarrollo, curl), navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado contra la base de datos real devolviendo exactamente 10 filas, coincidentes con lo que se veía en pantalla en vivo. Verificado en navegador que el botón `linkSearch` abre correctamente el detalle completo de la orden (productos, tallas, telas, cliente).
+- **Logro Conseguido:** "Órdenes Activas" pasó de estar completamente vacía/rota a mostrar en tiempo real qué empleado está trabajando en qué orden y departamento ahora mismo, con acceso al detalle completo desde el mismo modal.
+
+- **Observaciones de Claude:** Se identificaron 8 archivos más en la aplicación que aún usan `EventSource` contra endpoints `/sse/*` -- probablemente comparten el mismo bug de protocolo. Atendido en una tarea posterior el mismo día (ver bitácora de Cortar Piezas EventSource).
+- **Respuesta de Claude:** Corregidos ambos bugs apilados (protocolo de transporte y columna de datos en desuso); Órdenes Activas ahora muestra datos reales en tiempo real, con acceso al detalle completo del producto vía linkSearch.

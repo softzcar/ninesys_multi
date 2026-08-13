@@ -1,0 +1,21 @@
+# Bitácora de Trabajo - Habilitar "Reporte de Impresoras" para el departamento de Producción
+
+- **Solicitud del Usuario:** Verificar si Inventario/Impresoras en el sidebar de Producción son las mismas opciones que en Administración. Tras confirmar que Producción tenía un subconjunto (faltaban Gestión de Remanentes y 3 reportes de Impresoras): "Vamos a activar al departamento de Producción el reporte de impresoras, la gestión de remanentes NO. Debemos hacer una revisión interna para decidir qué es prudente que el Jefe de Producción tenga acceso."
+- **Fecha y Hora:** 2026-08-13 14:45:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/components/sidebars/SidebarProduccion.vue`
+  - `app_multi/pages/reporte-impresoras.vue`
+- **Commits Relacionados:**
+  - Frontend: `7d4c70c`
+  - Backend: N/A
+- **Acción Realizada:** Se comparó línea por línea `SidebarAdmin.vue` contra `SidebarProduccion.vue`, confirmando que Producción es un subconjunto real de Administración en Inventario (falta Gestión de Remanentes) e Impresoras (faltan Reporte de Impresoras, Reporte de Tintas, Tintas Actuales). A pedido explícito y acotado del usuario, se agregó solo "Reporte de Impresoras": link nuevo en el sidebar de Producción y ampliación del guard de acceso de la página (antes solo `departamento === 'Administración'`, ahora también `'Producción'`). Gestión de Remanentes y los otros 2 reportes de impresoras quedaron deliberadamente fuera, a la espera de una revisión de accesos más amplia que el usuario planteó como pendiente aparte.
+- **Inconvenientes y Desafíos:** Ninguno -- cambio acotado y de bajo riesgo (solo lectura de un reporte).
+- **Decisión Final y Justificación:** Alcance mínimo pedido explícitamente por el usuario, quien manifestó preocupación por que el rol de Producción tenga acceso a modificar/eliminar cosas fuera de su competencia -- se difiere cualquier acceso de escritura hasta esa revisión.
+- **Herramienta(s) Utilizada(s):** Edit, navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en navegador con la sesión real de Tahilin (Producción): la página cargó con datos reales de 7 impresoras sin bloqueo de acceso; confirmado que "Gestión de Remanentes" sigue sin aparecer en el submenú Inventario de Producción.
+- **Logro Conseguido:** El Jefe de Producción ahora puede consultar el estado de las impresoras sin necesitar acceso de Administración, sin ampliar accesos de escritura que aún no fueron evaluados.
+
+- **Observaciones de Claude:** Queda pendiente, a solicitud del propio usuario, una revisión dedicada de qué accesos de modificación/eliminación son prudentes para el rol de Producción -- no se debe asumir que el resto del sidebar de Administración puede replicarse sin este análisis.
+- **Respuesta de Claude:** Habilitado el Reporte de Impresoras para Producción con el alcance mínimo pedido; Gestión de Remanentes queda fuera a propósito hasta la revisión de accesos pendiente.

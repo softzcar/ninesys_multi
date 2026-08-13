@@ -1,0 +1,20 @@
+# Bitácora de Trabajo - Switch "Enviar avisos automáticos por WhatsApp a vendedores" (frontend)
+
+- **Solicitud del Usuario:** Tras revisar los commits de `msg_ninesys` de ayer (delay humano anti-bloqueo en respuestas de IA a clientes), el usuario reportó con una captura de pantalla real que el aviso de "conversación asignada" a un vendedor también se envía en ráfaga instantánea (2-3 mensajes seguidos), el mismo patrón que ya causó un bloqueo temporal de cuenta. "Vamos a implementar un switch en la página de configuración que ya existe, en la misma sección 'Opciones adicionales', para desactivar los envíos automáticos a empleados. Procede."
+- **Fecha y Hora:** 2026-08-13 16:17:00
+- **Proyecto(s):** Ambos (Frontend app_multi + Backend msg_ninesys, ver bitácoras de msg_ninesys para la parte de backend)
+- **Archivos Involucrados:**
+  - `app_multi/components/whatsapp/WaConfiguracion.vue`
+- **Commits Relacionados:**
+  - Frontend: `bff6a49`
+  - Backend: `b9c020f` (msg_ninesys)
+- **Acción Realizada:** Se agregó un nuevo `b-form-checkbox` en la tarjeta "Opciones adicionales" de `/whatsapp/configuracion`, junto a los switches ya existentes ("Responder en grupos", "IA siempre activa"), con el mismo patrón de wiring (`data()`, `hasChanges`, `applyData`, `saveSettings`) que ya usaban esos campos. El nuevo campo (`notify_vendors_whatsapp`) se conecta al setting homónimo agregado en `msg_ninesys` (`wa_ai_settings`).
+- **Inconvenientes y Desafíos:** Ninguno en el frontend en sí -- el riesgo real (columna faltante en otras empresas) apareció al verificar en el navegador y se resolvió en el lado de backend/base de datos (ver bitácora de msg_ninesys).
+- **Decisión Final y Justificación:** Reutilizar el patrón exacto de los switches ya existentes en la misma tarjeta, para consistencia visual y de código -- sin introducir un componente o mecanismo nuevo.
+- **Herramienta(s) Utilizada(s):** Edit, navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado visualmente en el navegador contra la empresa real 204 ("19 print", la empresa que sufrió el bloqueo original) -- el switch aparece correctamente con su estado real (activado) y su texto explicativo completo.
+- **Logro Conseguido:** Existe ahora un control real en la interfaz para apagar los avisos automáticos de WhatsApp a vendedores sin afectar la asignación de conversaciones, mitigando el riesgo de un nuevo bloqueo de cuenta por ráfaga de mensajes.
+
+- **Observaciones de Claude:** Este cambio de frontend por sí solo no tiene efecto sin el cambio correspondiente de backend en `msg_ninesys` (columna nueva + lógica de gating en `handoffToHuman()`) -- ver bitácoras de ese repositorio para el resto de la historia, incluyendo un hallazgo real de una empresa que quedó rota temporalmente por una migración de base de datos incompleta.
+- **Respuesta de Claude:** Switch agregado en Configuración WhatsApp > Opciones adicionales, verificado visualmente contra la empresa real afectada por el bloqueo original.

@@ -1,0 +1,21 @@
+# Bitácora de Trabajo - Investigación y eliminación del botón "TERMINAR TAREA" en Cortar Piezas (riesgo de pago duplicado)
+
+- **Solicitud del Usuario:** "¿Qué rayos hace el botón [TERMINAR TAREA]? ¿A qué registros afecta? ¿Es capaz de suplantar al botón [TERMINAR] del módulo de Empleados? NO hagas ningún cambio en este momento, solo investiga." Tras el hallazgo: "Vamos a quitar ese botón de allí, que cada empleado termine su tarea desde su interfaz."
+- **Fecha y Hora:** 2026-08-13 14:15:00 - 14:25:00
+- **Proyecto(s):** Frontend (app_multi) -- investigación cruzada con Backend (ninesys-api), sin cambios de backend
+- **Archivos Involucrados:**
+  - `app_multi/components/produccionsse/asignacionDeCorteGrupal.vue`
+  - Investigados sin modificar: `app_multi/components/empleados/BotonTerminarModalListaDeTareas.vue`, `ninesys-api/app/routes/manufacturing.php` (`/empleados/registrar-paso/{tipo}/{departamento}/{id_lotes_detalles}/{unidades}` vs `/registrar-paso-empleado`)
+- **Commits Relacionados:**
+  - Frontend: `c0be56b`
+  - Backend: N/A
+- **Acción Realizada:** Investigación pura primero (sin tocar código): el botón llamaba a `POST /empleados/registrar-paso/fin/...`, un endpoint legacy que actualiza `lotes_detalles.progreso` directamente e inserta un pago, SIN tocar `lotes_detalles_empleados_asignados` (LDEA) en absoluto. El botón real del módulo de Empleados usa un endpoint completamente distinto (`/registrar-paso-empleado`), que sí opera sobre LDEA, revisa si hay otros empleados pendientes en el mismo paso antes de avanzar la orden, y calcula la comisión con lógica más completa (incluye excedentes reales de `inventario_corte`). Ambos endpoints insertan en `pagos` de forma independiente -- conclusión: usar el botón viejo en paralelo al flujo real podía generar pago duplicado por la misma tarea física y dejar el estado de LDEA desincronizado (el empleado real seguiría viendo la tarea como pendiente en su panel, y la orden nunca avanzaría de paso). Se encontró además un bug latente en el cálculo de comisión del endpoint viejo (una subconsulta que asumía erróneamente que el ID recibido era de LDEA cuando en realidad es de `lotes_detalles`, tablas con secuencias de ID distintas). Con esta evidencia, el usuario pidió eliminar el botón: se quitó la columna y el botón de la tabla "Trabajos en curso" de Cortar Piezas, sin tocar el backend legacy (queda ahí, sin ningún llamador activo desde esta página).
+- **Inconvenientes y Desafíos:** Distinguir con certeza cuál de los dos endpoints paralelos ("registrar-paso" legacy vs "registrar-paso-empleado" real) es el que efectivamente usa el módulo de Empleados hoy requirió comparar ambos archivos línea por línea.
+- **Decisión Final y Justificación:** Eliminar el botón de la interfaz en vez de redirigirlo al endpoint correcto -- decisión explícita del usuario: "que cada empleado termine su tarea desde su interfaz", manteniendo este reporte de Producción como uno de solo consulta.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep cruzado entre ambos endpoints).
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en navegador que la tabla "Trabajos en curso" ya no muestra el botón ni la columna vacía que lo alojaba, sin afectar el resto de la funcionalidad de la página.
+- **Logro Conseguido:** Eliminado un riesgo real de pago duplicado y desincronización de estado de producción -- un hallazgo de seguridad/integridad de datos que no estaba en el alcance original de la auditoría pero que el usuario pidió atender de inmediato por su gravedad potencial.
+
+- **Observaciones de Claude:** Quedan otras variantes del mismo patrón de botón legacy en el código (`BotonTerminar.vue`, `btnTerminar.vue`, `BotonTerminarModal.vue`, `BotonTerminarListaDeTareas.vue`, `BotonTerminarModalV2.vue`, `BotonTerminarModalListaDeTareasV2.vue`, `BotonIniciarModalListaDeTareas.vue`) -- no se investigó si alguna sigue en uso en otra parte del sistema, señalado como pendiente para revisión futura si el usuario lo solicita.
+- **Respuesta de Claude:** Investigación completa entregada antes de tocar nada, confirmando el riesgo real de pago duplicado; tras la decisión del usuario, se eliminó el botón de la interfaz sin tocar el backend legacy.

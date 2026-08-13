@@ -1,0 +1,21 @@
+# Bitácora de Trabajo - Eliminación del reporte "Cortar" del sidebar de Producción
+
+- **Solicitud del Usuario:** "Me han solicitado eliminar el reporte 'Cortar' de Producción, no conseguimos mostrar información útil allí y esa información se puede consultar por otras vías. Vamos a eliminarlo de raíz."
+- **Fecha y Hora:** 2026-08-13 17:01:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/components/sidebars/SidebarProduccion.vue`
+  - Eliminado: `app_multi/pages/produccion/cortar.vue`
+- **Commits Relacionados:**
+  - Frontend: `b7477ed`
+  - Backend: N/A
+- **Acción Realizada:** Se verificó uso antes de eliminar: el componente principal que renderizaba la página (`asignacionDeCorteGrupal.vue`, extensamente corregido en tareas anteriores del mismo día) también lo usa `/empleados/resumen` (vista de "Resumen" para empleados del departamento de Corte) -- por lo tanto NO se eliminó el componente ni los endpoints que consume, solo la página de Producción y su link en el sidebar.
+- **Inconvenientes y Desafíos:** Ninguno -- verificación de uso simple por grep antes de actuar.
+- **Decisión Final y Justificación:** Eliminación quirúrgica (solo la página+link de Producción) en vez de eliminar el componente compartido completo, para no romper `/empleados/resumen`, una función distinta que el usuario no pidió tocar.
+- **Herramienta(s) Utilizada(s):** Bash (git rm, grep de uso cruzado), Edit, curl (verificación de rutas).
+- **Resultado:** Éxito.
+- **Verificación:** Verificado por curl que `/produccion/cortar/` ahora devuelve 404, y que `/empleados/resumen/` sigue devolviendo 200 sin verse afectado.
+- **Logro Conseguido:** Eliminado un reporte que, pese a las múltiples correcciones técnicas reales del mismo día (protocolo SSE, columna legacy, vista total), el usuario determinó que no aportaba información útil en la práctica -- limpieza acorde a esa decisión de negocio, sin dejar código muerto ni romper la función compartida.
+
+- **Observaciones de Claude:** Esta decisión llega después de una serie extensa de correcciones técnicas reales sobre la misma página en el mismo día -- ilustra que un reporte puede quedar técnicamente correcto y aun así no ser útil en la práctica; la decisión de eliminarlo fue de negocio, no técnica.
+- **Respuesta de Claude:** Página y link de sidebar eliminados; componente compartido y sus endpoints preservados intactos por seguir en uso real en `/empleados/resumen`.

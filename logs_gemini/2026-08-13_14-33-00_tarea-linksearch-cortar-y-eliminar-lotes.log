@@ -1,0 +1,22 @@
+# Bitácora de Trabajo - linkSearch en Cortar Piezas + eliminación de la sección "Lotes"
+
+- **Solicitud del Usuario:** "Vamos a poner el componente linkSearch donde mostramos el ID de la orden [en Cortar Piezas] y luego vamos a ELIMINAR esta opción LOTES y su página."
+- **Fecha y Hora:** 2026-08-13 14:33:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/components/produccionsse/asignacionDeCorteGrupal.vue`
+  - `app_multi/components/sidebars/SidebarProduccion.vue`
+  - Eliminados: `app_multi/pages/produccion/lotes.vue`, `components/admin/resumenLotes.vue`, `components/admin/updateInsumo.vue`
+- **Commits Relacionados:**
+  - Frontend: `e98e731`
+  - Backend: N/A
+- **Acción Realizada:** Se agregó `linkSearch` en la columna "Orden" de la tarjeta "Trabajos en curso" de Cortar Piezas (la tabla principal ya lo tenía). Para "Lotes": se verificó uso antes de eliminar -- la página usaba en exclusiva 2 componentes (`resumenLotes.vue`, `updateInsumo.vue`) sin ninguna otra referencia en el resto del código, así que se eliminaron los 3 archivos junto con el link del sidebar de Producción.
+- **Inconvenientes y Desafíos:** Ninguno -- verificación de uso directa por grep antes de eliminar, siguiendo la convención ya establecida en la sesión.
+- **Decisión Final y Justificación:** Eliminación completa en vez de solo ocultar el link, ya que ningún otro código dependía de esos 3 archivos.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (grep de uso), navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en navegador: el botón de la orden en "Trabajos en curso" ahora abre el detalle completo vía linkSearch; el sidebar de Producción pasa directo de "Cortar" a "Asistencias" sin "Lotes" en medio; la ruta `/produccion/lotes/` devuelve 404.
+- **Logro Conseguido:** Mejora de usabilidad (acceso directo al detalle desde la tabla) y limpieza de una sección del sidebar que ya no tenía razón de existir.
+
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** linkSearch agregado en la columna Orden; sección Lotes y sus 2 componentes exclusivos eliminados sin afectar el resto del sistema.

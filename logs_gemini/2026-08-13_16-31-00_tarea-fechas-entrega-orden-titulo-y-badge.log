@@ -1,0 +1,21 @@
+# Bitácora de Trabajo - Fechas de Entrega: orden por fecha + fix de título inconsistente + simplificación de badges
+
+- **Solicitud del Usuario:** (1) "Vamos a ordenar los registros por fecha, que veamos la entrega más cercana de primera." (2) Con una captura real: "esta orden 6522 aparece a tiempo con una fecha que NO corresponde al correlativo de fechas según el orden que establecimos, ¿qué sucede allí?" (3) Con otra captura real: "vamos a ver por qué en las órdenes del 14/08/26 aparecen unas A TIEMPO y otras EN EL DÍA." Aclarado por el usuario: "no pongamos más estados, 'en riesgo' me parece confuso -- A TIEMPO si hay más de un día de margen, EN EL DÍA si es hoy, RETRASADO si no."
+- **Fecha y Hora:** 2026-08-13 16:31:00 - 16:55:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/mixins/mixin-proyeccion-entrega.js`
+  - `app_multi/pages/ordenes-fechas-entrega.vue`
+- **Commits Relacionados:**
+  - Frontend: `44c4005`, `a62db73`, `8f16177`
+  - Backend: N/A
+- **Acción Realizada:** (1) Se cambió el criterio de orden de la lista de `orden_fila_orden` (posición en cola de producción, sin relación con la fecha) a `fecha_entrega_orden` ascendente (la más próxima primero), con las órdenes sin fecha al final. Verificado con datos reales de 73 órdenes de la empresa 194. (2) El usuario detectó que el título de cada acordeón mostraba una fecha que no coincidía con el nuevo orden -- diagnóstico: el título usaba `fecha_estimada_finalizacion_orden_formateada` (proyección de fin de producción), mientras la lista se ordenaba por `fecha_entrega_orden` (fecha pactada) -- dos campos distintos. Corregido para que el título muestre la misma fecha por la que se ordena; la fecha estimada de finalización se movió al detalle (antes no aparecía en ningún otro lado). (3) El usuario notó que órdenes con la misma fecha de entrega (14/08) tenían badges distintos ("A TIEMPO" vs "EN EL DÍA"). Diagnóstico: el cálculo del badge mezclaba dos criterios bajo la misma etiqueta "EN EL DÍA" -- (a) fecha de entrega literalmente hoy, (b) proyección de producción tardía aunque la fecha aún no llegara. A pedido explícito del usuario (rechazando la propuesta de un estado nuevo "EN RIESGO"), se simplificó a un único criterio basado solo en la proximidad de la fecha: A TIEMPO (más de un día de margen), EN EL DÍA (hoy), RETRASADO (ya pasó) -- sin agregar estados nuevos.
+- **Inconvenientes y Desafíos:** El primer intento de aclaración de "EN EL DÍA" (proponer un nuevo estado "EN RIESGO" vía pregunta estructurada) fue rechazado por el usuario como confuso -- se ajustó a la solución más simple que el propio usuario propuso.
+- **Decisión Final y Justificación:** En los 3 casos, la elección fue simplicidad y coherencia visual (mostrar siempre el mismo campo que determina el orden/estado) por sobre preservar toda la sofisticación del cálculo original -- decisión explícita y repetida del usuario en esta tarea.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (simulación de la lógica de orden/badge contra datos reales vía curl+Python), navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Cada uno de los 3 fixes se verificó simulando la lógica nueva contra datos reales de la API antes y después del cambio, confirmando que el resultado visible coincide exactamente con lo esperado (incluyendo el caso puntual reportado por el usuario: las 3 órdenes de la captura de pantalla resultaron tener la misma fecha pactada exacta, confirmando que el problema era el campo mostrado, no el orden de la lista).
+- **Logro Conseguido:** El reporte "Fechas de Entrega" ahora se lee de forma coherente de principio a fin: ordenado por urgencia real, con el título y el color del badge basados siempre en el mismo criterio (la fecha pactada), sin ambigüedad entre "hoy" y "en riesgo de atraso".
+
+- **Observaciones de Claude:** Estos 3 hallazgos fueron reportados por el usuario con capturas de pantalla reales tras usar la página -- confirma el valor de que el usuario pruebe activamente cada fix en vivo en vez de solo confiar en la verificación técnica del desarrollador.
+- **Respuesta de Claude:** Corregidos los 3 problemas reportados en cascada sobre la misma página; verificado cada uno contra datos reales antes de reportar como resuelto.

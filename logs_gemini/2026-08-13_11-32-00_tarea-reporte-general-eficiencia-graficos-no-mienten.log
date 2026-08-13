@@ -1,0 +1,22 @@
+# Bitácora de Trabajo - Reporte General de Eficiencia: 4 correcciones para que los gráficos no mientan
+
+- **Solicitud del Usuario:** Auditar la página "Reportes > Reporte General de Eficiencia" (rol Producción) verificando que los datos sean reales y los gráficos no mientan al renderizarse, dentro de la revisión del sidebar de Producción.
+- **Fecha y Hora:** 2026-08-13 11:32:00 - 11:38:00
+- **Proyecto(s):** Ambos (Frontend + Backend)
+- **Archivos Involucrados:**
+  - `ninesys-api/app/routes/reports.php` (`GET /reportes/general-eficiencia-detallado`)
+  - `app_multi/components/progreso-tiempo-semaforo.vue`
+  - `app_multi/pages/reportes/general-eficiencia.vue`
+- **Commits Relacionados:**
+  - Frontend: `9c50ca4`, `faa0347`
+  - Backend: `2adf72d`, `d694444`
+- **Acción Realizada:** El usuario reportó que la eficiencia de tiempo se disparaba a valores absurdos (ej. 2032.5%) cuando un empleado iniciaba y terminaba una tarea en el mismo instante (nunca inició la tarea en el sistema en tiempo real). Se aplicaron 4 correcciones: (1) backend, se agregó un umbral de 60s: mediciones de tiempo real menores a ese umbral se descartan como no medibles (`'N/A'` en vez de un porcentaje absurdo), zerando tanto el valor proyectado como el real juntos para no sesgar el agregado; (2) frontend en `progreso-tiempo-semaforo.vue`, se quitaron dos columnas de la tabla ("Inicio Estimado"/"Fin Estimado") que siempre eran idénticas a las columnas "Real" -- confirmado por el SQL que nunca calculaban un valor distinto, así que eran engañosas; (3) el cálculo agregado de "Eficiencia Tiempo/Material" en el dashboard se rediseñó de "promedio de porcentajes por orden" (matemáticamente incorrecto: da peso desproporcionado a órdenes con denominador chico) a "suma de totales primero, luego un solo cálculo del ratio final" (`avgTimeEfficiency`/`avgMaterialEfficiency` en `general-eficiencia.vue`); (4) fix de zona horaria en `initCurrentWeek()`: `toISOString()` desplazaba el rango de fechas por defecto un día en horario nocturno de Venezuela (UTC-4), reemplazado por un formateador de fecha local.
+- **Inconvenientes y Desafíos:** El primer intento de fix (solo el umbral de 60s en el backend) no fue suficiente -- verificado en vivo, el dashboard agregado apenas se movió (2022.5% → 2032.5%). Se investigó más a fondo hasta encontrar el error estadístico real (promedio de porcentajes en vez de suma de totales), que fue la causa principal del valor absurdo.
+- **Decisión Final y Justificación:** Umbral de 60s elegido porque cualquier tarea real (aunque sea pequeña) toma más de un minuto -- por debajo de eso es evidencia casi segura de que el empleado no usó el sistema en tiempo real. El rediseño del agregado a "suma de totales" es el método estadísticamente correcto para promediar ratios con denominadores de tamaño muy distinto entre sí.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (verificación con curl/SQL contra Desarrollo), navegador (Chrome DevTools vía extensión).
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en vivo con datos reales de la empresa 194: Eficiencia Tiempo del dashboard agregado pasó de 2032.5% a 21.0%; Eficiencia Material de 127.6% a 105.7%; un caso individual de empleado pasó de 1376.8% a 294.9% (aún alto pero ya no absurdo, reflejando datos reales de mala captura, no un bug de cálculo); un caso extremo de 3500% quedó correctamente omitido (N/A) por el umbral de 60s.
+- **Logro Conseguido:** El dashboard de Reporte General de Eficiencia ya no exagera artificialmente los porcentajes de eficiencia por errores de captura de datos ni por un método de promediado matemáticamente incorrecto -- los números que ve el Jefe de Producción ahora reflejan la realidad operativa.
+
+- **Observaciones de Claude:** El bug del promedio de porcentajes es un patrón de error estadístico clásico ("average of ratios" vs "ratio of sums") que probablemente exista en otros reportes agregados del sistema -- vale la pena tenerlo en mente para futuras auditorías de reportes.
+- **Respuesta de Claude:** Corregidos los 4 problemas reales encontrados en el Reporte General de Eficiencia; verificado en vivo que los porcentajes ahora son creíbles y reflejan datos reales.

@@ -1,0 +1,29 @@
+# Bitácora de Trabajo - Migración CampoDecimal Fase 2 (Tiers A-G) - CIERRE del pendiente
+
+- **Solicitud del Usuario:** Continuación de la migración de inputs monetarios a `CampoDecimal` (componente creado en Fase 1) al resto de la aplicación, cubriendo todos los campos reales identificados en el checklist de migración.
+- **Fecha y Hora:** 2026-08-13 09:51:01 - 10:24:51
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/admin/EmpleadoEditar.vue`, `EmpleadoNuevo.vue`, `GastosFijos.vue`, `GastosHistorial.vue` (Tier A)
+  - `components/admin/InsumoClonar.vue`, `InsumoEditar.vue`, `InsumoNuevoTinta.vue`, `InsumoEditarTinta.vue`, `InsumoClonarTinta.vue` (Tier B)
+  - `components/ordenes/abono.vue`, `nueva.vue` (Tier C)
+  - `components/whatsapp/WaConfiguracion.vue` (Tier D)
+  - `components/admin/AsignacionDeInsumosAProductosTab.vue` (Tier E)
+  - `components/formMonedas.vue` (Tier F)
+  - `components/ordenes/MetodosPagoDinamico.vue` (Tier G, componente compartido por 6 formularios)
+  - `docs/checklist_migracion_campo_decimal.md`
+- **Commits Relacionados:**
+  - Frontend: `5e4574c`, `c096896`, `731d5e9`, `9463144`, `1079aec`, `46e9c08`
+  - Backend: N/A
+- **Acción Realizada:** Se completaron los Tiers A-G del plan de migración: 74 archivos revisados en total para identificar todos los inputs monetarios reales de la aplicación. En cada tier se migró el/los campo(s) real(es) al componente `CampoDecimal` y se descartaron explícitamente (verificando el código, no solo el nombre del campo) los falsos positivos: `detallePagos.vue` (inputs comentados, código muerto), `form.abono` en `abono.vue`/`nueva.vue` (el abono real se captura vía `MetodosPagoDinamico.vue`, no ahí), `ProductEditar.vue` (bloque de precio comentado), `asignarEmpleadoMulti.vue` (es un porcentaje, no un monto), `SseOrdenesAsignadasModalExtra.vue` (cantidad de material, no monto), `editarProductos.vue`/`editarProductos2.vue` (columna de precio de solo lectura). El cierre (Tier G) migró `MetodosPagoDinamico.vue`, un componente compartido por los 6 formularios reales de captura de pagos (nueva orden, presupuesto, abono, otros abonos, retiros, cierre de caja) -- un solo cambio propaga la máscara bancaria a los 6 simultáneamente, preservando el patrón `v-model` + `@input="emitirCambio"` ya existente.
+- **Inconvenientes y Desafíos:** Distinguir campos monetarios reales de falsos positivos (código comentado, porcentajes, cantidades de material, columnas de solo lectura) requirió revisar el código real de cada candidato en vez de confiar en el nombre de la variable.
+- **Decisión Final y Justificación:** Migración exhaustiva en vez de parcial -- el pendiente "input decimal bancario" quedaba abierto desde 2026-07-09 (ver memoria del proyecto) y el usuario pidió cerrarlo por completo, cubriendo el 100% de los inputs monetarios reales identificados.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (grep para localizar candidatos), git.
+- **Resultado:** Éxito.
+- **Verificación:** Revisión de código de cada archivo candidato antes de migrar o descartar. Queda pendiente la verificación visual en navegador por parte del usuario en las 6 pantallas consumidoras de `MetodosPagoDinamico.vue`, según nota del propio commit de cierre.
+- **Logro Conseguido:** Cierre completo del pendiente de migración a `CampoDecimal` -- 74 archivos auditados, todos los campos monetarios reales de la aplicación (Empleados, Insumos, Órdenes, Gastos, WhatsApp/STT, Monedas, y los 6 formularios de pago) migrados al componente con máscara bancaria, con documentación clara de por qué cada falso positivo fue descartado.
+
+**Nota:** esta bitácora fue reconstruida a partir de los mensajes de commit (ya muy detallados) de una sesión de Claude Code anterior en el mismo día, distinta de la sesión que generó el resto de las bitácoras de 2026-08-13 -- no se tuvo acceso directo al contexto conversacional original, solo a git log.
+
+- **Observaciones de Claude:** Los mensajes de commit de esta tanda ya seguían un estándar de documentación muy completo (qué se migró, qué se descartó y por qué), lo cual permitió reconstruir esta bitácora con alta fidelidad pese a no tener el contexto conversacional original.
+- **Respuesta de Claude:** Fase 2 (Tiers A-G) completada, cerrando el pendiente de migración a `CampoDecimal` iniciado en Fase 1. Pendiente confirmar visualmente en navegador que las 6 pantallas de pago funcionan correctamente con el componente compartido migrado.

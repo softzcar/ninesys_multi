@@ -1,0 +1,21 @@
+# Bitácora de Trabajo - Fechas de Entrega: página completamente vacía + UI de pestañas amontonadas
+
+- **Solicitud del Usuario:** Auditar "Fechas de Entrega" del sidebar de Producción. La página estaba completamente vacía. Tras diagnóstico, el usuario eligió explícitamente "simplificar el frontend" (opción 1 de 3 presentadas) para resolverlo, aceptando perder detalle. Después, reportó que con decenas de órdenes las pestañas se amontonaban arriba y el detalle se renderizaba muy lejos del click.
+- **Fecha y Hora:** 2026-08-13 12:29:00 - 12:38:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/mixins/mixin-proyeccion-entrega.js`
+  - `app_multi/pages/ordenes-fechas-entrega.vue`
+- **Commits Relacionados:**
+  - Frontend: `5dc401f`, `f6e7d5f`
+  - Backend: N/A (solo lectura/análisis de `ninesys-api/app/routes/manufacturing.php`, endpoint `/ordenes/proyeccion-entrega`, no modificado)
+- **Acción Realizada:** Diagnóstico: el backend (comentario en el propio SQL: "Versión 7: Ultra-optimización final") dejó de devolver `id_empleado` por fila -- solo agrega `cant_empleados` por departamento. El algoritmo del frontend (`proyectarEntregaConCola`, ~355 líneas) reconstruía colas de trabajo cruzando órdenes por empleado, y sin ese campo descartaba silenciosamente el 100% de las filas (456/456 confirmado por consola). Se reescribió la función (reducida a ~95 líneas) para proyectar cada orden de forma independiente, encadenando sus propios departamentos por orden de proceso, reutilizando el tiempo ya paralelizado que manda el backend -- sin depender de `id_empleado` en ningún punto. El reporte pasó de mostrar producto > departamento a mostrar departamento directamente (detalle no reconstruible con el modelo actual), compensado con un botón `linkSearch` para ver el detalle completo del producto. Segunda ronda: con decenas de órdenes, `b-tabs` generaba varias filas de pestañas arriba de la pantalla. Se reemplazó por un acordeón (`b-collapse` por orden, accordion group) donde el detalle aparece inmediatamente debajo de la orden en la que se hace click, con solo una orden expandida a la vez.
+- **Inconvenientes y Desafíos:** El usuario rechazó dos veces la herramienta de pregunta estructurada (AskUserQuestion) prefiriendo aclarar por texto libre -- se ajustó el flujo de conversación a preguntas directas en texto plano.
+- **Decisión Final y Justificación:** Simplificación del frontend en vez de tocar el backend (opción explícita del usuario) -- el reporte se llama "Detalles de Órdenes" y se aceptó reducir el nivel de detalle en vez de intentar reconstruir el vínculo perdido a nivel de producto.
+- **Herramienta(s) Utilizada(s):** Edit, Bash, navegador (verificación visual).
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en navegador: la página pasó de 0 pestañas a decenas de órdenes reales con fechas proyectadas. Orden 6573 verificada en detalle: 7 departamentos encadenados en horario laboral, tiempo total coincidente exacto con la suma de los departamentos individuales. Acordeón verificado: clic en una orden expande el detalle inmediatamente debajo, y abrir otra orden cierra automáticamente la anterior.
+- **Logro Conseguido:** "Fechas de Entrega" pasó de estar completamente vacía a mostrar proyecciones reales de entrega para todas las órdenes activas, con una interfaz utilizable incluso con un volumen alto de órdenes.
+
+- **Observaciones de Claude:** El patrón "comentario del backend indicando una optimización previa que cambió la forma de la respuesta, sin actualizar el frontend consumidor" se repitió 3 veces en la sesión (Órdenes Activas, Fechas de Entrega, y luego Cortar Piezas) -- posible indicio de que otras optimizaciones de backend similares podrían tener el mismo problema en páginas aún no auditadas.
+- **Respuesta de Claude:** Corregida la causa raíz (campo faltante en la respuesta del backend) simplificando el algoritmo del frontend según lo pedido; corregida además la usabilidad de la interfaz con un acordeón que escala bien con decenas de órdenes.

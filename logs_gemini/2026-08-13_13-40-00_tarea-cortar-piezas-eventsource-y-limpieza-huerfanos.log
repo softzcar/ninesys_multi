@@ -1,0 +1,23 @@
+# Bitácora de Trabajo - Cortar Piezas: EventSource roto + limpieza de 8 archivos con el mismo bug
+
+- **Solicitud del Usuario:** Continuación de la revisión del sidebar de Producción con "Cortar". Además: "vamos a arreglar los 8 archivos con EventSource" (lista de archivos con el mismo patrón de bug detectada en la tarea de Órdenes Activas).
+- **Fecha y Hora:** 2026-08-13 13:40:00
+- **Proyecto(s):** Ambos (Frontend + Backend)
+- **Archivos Involucrados:**
+  - `ninesys-api/app/routes/production.php` (`/sse/produccion/corte/{id_empleado}`)
+  - `ninesys-api/app/routes/manufacturing.php` (`/sse/empleados/ordenes-asignadas/{id_empleado}`)
+  - `app_multi/components/produccionsse/asignacionDeCorteGrupal.vue`
+  - Eliminados: `components/produccion/asignacionDeCorteGrupal.vue`, `components/produccionsse/asignacionDeCorteGrupal_sse_muchas_recargas.vue`, `components/empleados/SseOrdenesAsignadas.vue`, `SseOrdenesAsignadasV2.vue`, `SseOrdenesAsignadasV3.vue`, `pages/test/index_basic.vue`
+- **Commits Relacionados:**
+  - Frontend: `4243d39`
+  - Backend: `e532fb8`
+- **Acción Realizada:** Se auditaron los 8 archivos flaggeados. Cruce contra el resto del código (grep de uso) reveló que 6 de los 8 eran huérfanos sin ninguna referencia real (versiones V2/V3 abandonadas, una variante duplicada, y una página de prueba tipo tutorial en `/test/index_basic`) -- eliminados en vez de reparados. El único componente realmente en uso (`asignacionDeCorteGrupal.vue`, usado en Cortar Piezas y en `/empleados/resumen`) tenía un bug de protocolo más severo que los anteriores: el backend usaba una clase `SSE` que manda headers `text/event-stream` + `echo`/`flush()` directo EN PARALELO a la respuesta JSON normal que arma Slim -- una respuesta corrupta que el navegador no podía interpretar de ninguna manera (ni como SSE real ni como JSON limpio), a diferencia del caso más simple de Órdenes Activas. Se reescribieron ambos endpoints para ejecutar las mismas consultas directamente y devolver JSON limpio (mismo patrón ya usado en `/sse/diseno`). De paso se corrigieron 2 bugs reales encontrados en el camino: una subconsulta que referenciaba `{$args['id_departamento']}`, un parámetro que esa ruta nunca declaraba, y una consulta muerta con el id_empleado hardcodeado en 24.
+- **Inconvenientes y Desafíos:** El componente `disenosse/asignados.vue`, originalmente en la lista de 8, resultó ser un falso positivo -- ya usaba `axios.get()` correctamente; el `EventSource` detectado por el grep vivía muerto dentro de un bloque comentado.
+- **Decisión Final y Justificación:** Eliminar los huérfanos en vez de repararlos (convención ya establecida en la sesión: verificar uso antes de arreglar/mantener) -- ninguno tenía referencias reales, mantenerlos solo habría sido deuda técnica.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (grep de uso, git log de antigüedad), navegador.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en navegador sin errores de consola tras el fix. Confirmado por SQL directo que, al momento de la verificación, no había tareas de corte realmente pendientes en la empresa 194 -- la tabla vacía observada era el estado correcto, no un síntoma del bug (aclarado en detalle en la siguiente tarea, donde se encontró que sí había un problema adicional).
+- **Logro Conseguido:** Eliminado un patrón de bug de protocolo SSE/EventSource más severo que el de Órdenes Activas; limpieza de 6 archivos huérfanos que llevaban meses sin uso, reduciendo superficie de mantenimiento.
+
+- **Observaciones de Claude:** Aunque el fix de protocolo quedó verificado, la tabla seguía vacía -- en la siguiente tarea del mismo día se encontró que había una causa raíz adicional (columna legacy en desuso) detrás de esa aparente "falta de datos".
+- **Respuesta de Claude:** Corregido el bug de transporte SSE/JSON en los 2 endpoints reales de Cortar Piezas y eliminados 6 archivos huérfanos con el mismo patrón de bug sin ningún uso real en el código.
