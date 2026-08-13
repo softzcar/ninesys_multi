@@ -554,18 +554,22 @@ export default {
 
                 const todosDeptosTerminados = deptosOrdenados.length > 0 && deptosOrdenados.every(d => d.fecha_terminado instanceof Date && !isNaN(d.fecha_terminado.getTime()));
 
+                // Estado del badge: se basa solo en qué tan cerca está la fecha de
+                // entrega pactada de hoy -- no en la proyección de producción.
+                // Antes mezclaba ambos criterios y terminaba usando "EN EL DÍA"
+                // para dos cosas distintas (entrega literalmente hoy vs. proyectado
+                // a terminar tarde con la fecha aún lejos), lo cual confundía al
+                // leer el reporte. A pedido del usuario: A TIEMPO con más de un
+                // día de margen, EN EL DÍA si la entrega es hoy, RETRASADO si ya
+                // pasó -- sin agregar un estado nuevo.
                 orden.variant = 'secondary'; orden.variant_text = '';
                 if (todosDeptosTerminados) {
                     orden.variant = 'info'; orden.variant_text = 'TERMINADO';
                 } else if (orden.fecha_entrega_orden instanceof Date && !isNaN(orden.fecha_entrega_orden.getTime())) {
                     const hoyNormalizada = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
                     const entregaNormalizada = new Date(orden.fecha_entrega_orden.getFullYear(), orden.fecha_entrega_orden.getMonth(), orden.fecha_entrega_orden.getDate());
-                    if (calculo.fechaFinalOrdenPendientes && calculo.fechaFinalOrdenPendientes > orden.fecha_entrega_orden) {
-                        if (entregaNormalizada.getTime() < hoyNormalizada.getTime()) {
-                            orden.variant = 'danger'; orden.variant_text = 'RETRASADO';
-                        } else {
-                            orden.variant = 'warning'; orden.variant_text = 'EN EL DÍA';
-                        }
+                    if (entregaNormalizada.getTime() < hoyNormalizada.getTime()) {
+                        orden.variant = 'danger'; orden.variant_text = 'RETRASADO';
                     } else if (entregaNormalizada.getTime() === hoyNormalizada.getTime()) {
                         orden.variant = 'warning'; orden.variant_text = 'EN EL DÍA';
                     } else {
