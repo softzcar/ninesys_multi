@@ -20,7 +20,13 @@
                  elegida se renderizaba muy abajo, lejos del click. Se cambió a
                  un acordeón: el detalle aparece inmediatamente debajo de la
                  orden en la que se hace click, y solo una orden está expandida
-                 a la vez (accordion group) para no perder el orden de la lista. -->
+                 a la vez (accordion group) para no perder el orden de la lista.
+                 El título mostraba fecha_estimada_finalizacion_orden (proyección
+                 de fin de producción) mientras la lista se ordena por
+                 fecha_entrega_orden (fecha pactada) -- dos campos distintos, así
+                 que al ordenar por fecha pactada el título dejaba de verse en
+                 orden. Corregido para mostrar la misma fecha por la que se
+                 ordena; la fecha estimada de finalización se movió al detalle. -->
             <b-card
               v-for="orden in ordenesProyectadas"
               :key="orden.id_orden"
@@ -36,7 +42,7 @@
               >
                 <span>
                   Orden {{ orden.id_orden }} - Entrega:
-                  {{ orden.fecha_estimada_finalizacion_orden_formateada }}
+                  {{ orden.fecha_entrega_formateada }}
                 </span>
                 <b-badge :variant="orden.variant">{{ orden.variant_text }}</b-badge>
               </b-card-header>
@@ -71,6 +77,10 @@
                     {{
                                             orden.fecha_inicio_orden_formateada
                                         }}
+                  </p>
+                  <p class="card-text">
+                    <strong>Fecha Estimada de Finalización:</strong>
+                    {{ orden.fecha_estimada_finalizacion_orden_formateada }}
                   </p>
                   <b-table
                     striped
