@@ -354,10 +354,14 @@ export default {
     // (antes había dos casi idénticos: uno para la carga inicial y otro para
     // el @reload del botón "Terminar", este último con un `this.emp` que
     // nunca estaba definido).
+    // El Jefe de Producción (u otro rol que no sea Corte) no tiene tareas de
+    // corte asignadas a sí mismo -- su trabajo es asignárselas a otros -- así
+    // que ve el total de la empresa (?todos=1) en vez de su propia cola vacía.
     async getOrdenesAsignadas() {
       try {
+        const esCorte = this.$store.getters["login/currentDepartamentTipo"] === "corte";
         const { data } = await this.$axios.get(
-          `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.$store.state.login.dataUser.id_empleado}`
+          `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.$store.state.login.dataUser.id_empleado}${esCorte ? "" : "?todos=1"}`
         );
         this.enCurso = data.trabajos_en_curso || [];
       } catch (error) {
@@ -394,11 +398,13 @@ export default {
     // 2026-08-13: mismo problema que getOrdenesAsignadas -- /sse/produccion/corte
     // ya no es un stream SSE real (ver nota en production.php). Se elimina
     // también connectToServer()/closeConnection(), que ya no tienen función
-    // sin una conexión persistente que abrir/cerrar.
+    // sin una conexión persistente que abrir/cerrar. Mismo caso de ?todos=1
+    // que getOrdenesAsignadas -- ver nota arriba.
     async loadOrdersProduction() {
       try {
+        const esCorte = this.$store.getters["login/currentDepartamentTipo"] === "corte";
         const { data } = await this.$axios.get(
-          `${this.$config.API}/sse/produccion/corte/${this.$store.state.login.dataUser.id_empleado}`
+          `${this.$config.API}/sse/produccion/corte/${this.$store.state.login.dataUser.id_empleado}${esCorte ? "" : "?todos=1"}`
         );
         this.items = data.items || [];
         this.empleados = data.empleados || [];
