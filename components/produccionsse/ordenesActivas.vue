@@ -22,8 +22,6 @@
 </template>
 
 <script>
-import { prependListener } from 'process'
-
 export default {
   data() {
     return {
@@ -100,57 +98,30 @@ export default {
     },
   },
   methods: {
-    loadOrdersProduction() {
-      this.source = new EventSource(
-        `${this.$config.API}/sse/produccion/ordenes-activas`
-      )
-      this.source.addEventListener('message', (event) => {
-        const eventData = JSON.parse(event.data)
-        const eventType = event.type
-        if (eventType === 'chat') {
-          this.events.push(eventData)
-        }
-        if (eventType === 'message') {
-          this.events = eventData
-          this.items = eventData.items
-          this.overlay = false
-        }
-      })
-      this.source.addEventListener('error', (error) => {
-        console.error('Error in SSE connection:', error)
-        // alert(error)
-        this.source.close() // Cerrar la conexión actual
-        // Intentar reconectar después de un cierto período de tiempo
-        /* setTimeout(() => {
-          this.connectToServer()
-        }, 120000) // Puedes ajustar el tiempo de espera según tus necesidades */
-      })
-    },
-    connectToServer() {
-      this.loadOrdersProduction()
-    },
-    closeConnection() {
-      if (this.source) {
-        this.source.close()
-        this.source = null
+    // El endpoint /sse/produccion/ordenes-activas dejó de transmitir Server-Sent
+    // Events reales hace tiempo (el backend solo devuelve un JSON normal,
+    // Content-Type: application/json) -- EventSource exige el formato/encabezado
+    // text/event-stream, así que la conexión se cancelaba sola en el navegador
+    // sin ningún dato (reportado 2026-08-13: "(canceled)" en el panel de red,
+    // la página solo mostraba el título). El resto de componentes de este mismo
+    // patrón que sí funcionan (ej. controlDeProduccionPro.vue, contra el
+    // endpoint hermano /sse/produccion) ya usan axios normal, no EventSource.
+    async loadOrdersProduction() {
+      this.overlay = true
+      try {
+        const { data } = await this.$axios.get(
+          `${this.$config.API}/sse/produccion/ordenes-activas`
+        )
+        this.items = data.items || []
+      } catch (error) {
+        console.error('Error al cargar órdenes activas:', error)
+      } finally {
+        this.overlay = false
       }
     },
   },
   mounted() {
-    this.connectToServer()
-
-    // Eliminar el evento 'beforeunload' para evitar cierres de conexión innecesarios
-    window.removeEventListener('beforeunload', this.closeConnection)
+    this.loadOrdersProduction()
   },
-
-  beforeDestroy() {
-    // Cerrar la conexión SSE antes de que el componente se destruya
-    this.closeConnection()
-
-    // Eliminar el evento 'beforeunload' para evitar cierres de conexión innecesarios
-    window.removeEventListener('beforeunload', this.closeConnection)
-  },
-
-  components: { prependListener },
 }
 </script>
