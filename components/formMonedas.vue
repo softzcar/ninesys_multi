@@ -25,9 +25,7 @@
         >
           <label class="mb-0 small text-nowrap">{{ capitalize(moneda.moneda) }}:</label>
           <b-input-group size="sm" style="min-width: 130px; width: 130px;">
-            <b-form-input
-              type="number"
-              step="0.01"
+            <campo-decimal
               :value="moneda.valor || 0"
               @change="updateTasa(moneda.moneda, $event, true)"
               @blur="persistirTasas"
