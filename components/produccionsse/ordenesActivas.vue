@@ -32,65 +32,40 @@ export default {
   },
 
   computed: {
+    // El backend ya no puede vincular una asignación activa a un producto/talla/
+    // corte/tela específico (2026-08-13: el modelo de datos actual, LDEA, ya no
+    // guarda ese vínculo) -- se agrupa por empleado con las órdenes y el
+    // departamento en el que está trabajando cada una.
     dataTable() {
       return this.items.reduce((result, obj) => {
-        const {
-          empleado,
-          orden,
-          producto,
-          cantidad,
-          talla,
-          corte,
-          tela,
-          hora,
-          fecha,
-        } = obj
+        const { empleado, orden, departamento, hora, fecha } = obj
 
-        // Verificar si ya existe una entrada para el empleado en el resultado
         const employeeEntry = result.find(
           (entry) => entry.empleado === empleado
         )
 
         if (employeeEntry) {
-          // Verificar si la orden ya existe en el vector de órdenes del empleado
           if (!employeeEntry.ordenes.includes(orden)) {
-            // Si la orden no existe, agregarla al vector de órdenes
             employeeEntry.ordenes.push(orden)
           }
 
-          // Crear el detalle con los campos requeridos
-          const detalle = {
+          employeeEntry.detalles.push({
             orden,
-            producto,
-            cantidad,
-            talla,
-            corte,
-            tela,
+            departamento,
             hora: `${hora} ${fecha}`,
-          }
-
-          // Agregar el detalle al vector de detalles
-          employeeEntry.detalles.push(detalle)
+          })
         } else {
-          // Si el empleado no existe, crear una nueva entrada
-          const newEntry = {
+          result.push({
             empleado,
             ordenes: [orden],
             detalles: [
               {
                 orden,
-                producto,
-                cantidad,
-                talla,
-                corte,
-                tela,
+                departamento,
                 hora: `${hora} ${fecha}`,
               },
             ],
-          }
-
-          // Agregar la nueva entrada al resultado
-          result.push(newEntry)
+          })
         }
 
         return result
