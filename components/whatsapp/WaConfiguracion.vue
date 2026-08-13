@@ -252,12 +252,9 @@
               label-for="stt-limit"
               description="Al alcanzar este gasto, los audios se pasan a un agente humano."
             >
-              <b-form-input
+              <campo-decimal
                 id="stt-limit"
-                v-model.number="sttConfig.stt_monthly_usd_limit"
-                type="number"
-                min="0"
-                step="0.5"
+                v-model="sttConfig.stt_monthly_usd_limit"
               />
             </b-form-group>
           </b-col>
