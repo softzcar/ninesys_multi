@@ -43,7 +43,7 @@
                       class="mt-3 mb-3"
                       :item="row.item"
                       :itemfather="row.item"
-                      @reload="getOrdenesAsignadasReload"
+                      @reload="getOrdenesAsignadas"
                     />
                   </template>
                 </b-table>
@@ -157,8 +157,6 @@
 </template>
 
 <script>
-import { prependListener } from "process";
-
 export default {
   data() {
     return {
@@ -349,104 +347,22 @@ export default {
   },
 
   methods: {
-    getOrdenesAsignadasReload() {
-      this.msg = "Estamos buscando sus tareas por favor espere..";
-      this.source = new EventSource(
-        `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.emp}`
-      );
-
-      this.source.addEventListener("message", (event) => {
-        console.group("SSE Listener");
-        console.log("event message", event);
-        const eventData = JSON.parse(event.data);
-        const eventType = event.type;
-
-        if (eventType === "chat") {
-          this.events.push(eventData);
-        }
-
-        if (eventType === "message") {
-          // this.events = eventData
-          this.ordenes = eventData.items.filter(
-            (item) =>
-              item.id_woo != "11" ||
-              item.id_woo != "12" ||
-              item.id_woo != "13" ||
-              item.id_woo != "14" ||
-              item.id_woo != "15" ||
-              item.id_woo != "16" ||
-              item.id_woo != "112" ||
-              item.id_woo != "113" ||
-              item.id_woo != "168" ||
-              item.id_woo != "169" ||
-              item.id_woo != "170" ||
-              item.id_woo != "171" ||
-              item.id_woo != "172" ||
-              item.id_woo != "173"
-          );
-          console.log("eventData", eventData);
-          this.enCurso = eventData.trabajos_en_curso;
-          /* if (eventData.pagos.length) {
-            this.pagos = eventData.pagos[0]
-          } */
-          console.groupEnd();
-        }
-      });
-
-      this.source.addEventListener("error", (error) => {
-        console.error("Error in SSE connection:", error);
-        this.source.close(); // Cerrar la conexión actual
-      });
-    },
-    getOrdenesAsignadas() {
-      this.source = new EventSource(
-        `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.$store.state.login.dataUser.id_empleado}`
-      );
-
-      this.source.addEventListener("message", (event) => {
-        console.log("event SSE", event);
-        const eventData = JSON.parse(event.data);
-        const eventType = event.type;
-
-        if (eventType === "chat") {
-          this.events.push(eventData);
-        }
-
-        if (eventType === "message") {
-          // this.events = eventData
-          this.ordenes = eventData.items.filter(
-            (item) =>
-              item.id_woo != "11" ||
-              item.id_woo != "12" ||
-              item.id_woo != "13" ||
-              item.id_woo != "14" ||
-              item.id_woo != "15" ||
-              item.id_woo != "16" ||
-              item.id_woo != "112" ||
-              item.id_woo != "113" ||
-              item.id_woo != "168" ||
-              item.id_woo != "169" ||
-              item.id_woo != "170" ||
-              item.id_woo != "171" ||
-              item.id_woo != "172" ||
-              item.id_woo != "173"
-          );
-          this.enCurso = eventData.trabajos_en_curso;
-          /* if (eventData.pagos.length) {
-            this.pagos = eventData.pagos[0]
-          } */
-        }
-      });
-
-      this.source.addEventListener("error", (error) => {
-        console.error("Error in SSE connection:", error);
-        this.source.close(); // Cerrar la conexión actual
-
-        // Intentar reconectar después de tres minutos (180 segundos)
-        /* setTimeout(() => {
-          this.getOrdenesAsignadas()
-        }, 120000) */
-      });
+    // 2026-08-13: /sse/empleados/ordenes-asignadas dejó de ser un stream SSE
+    // real (el backend ahora devuelve JSON normal, ver nota en manufacturing.php)
+    // -- EventSource fallaba con "Error in SSE connection" y la tarjeta
+    // "Trabajos en curso" quedaba siempre vacía. Se unifica en un solo método
+    // (antes había dos casi idénticos: uno para la carga inicial y otro para
+    // el @reload del botón "Terminar", este último con un `this.emp` que
+    // nunca estaba definido).
+    async getOrdenesAsignadas() {
+      try {
+        const { data } = await this.$axios.get(
+          `${this.$config.API}/sse/empleados/ordenes-asignadas/${this.$store.state.login.dataUser.id_empleado}`
+        );
+        this.enCurso = data.trabajos_en_curso || [];
+      } catch (error) {
+        console.error("Error al cargar órdenes asignadas:", error);
+      }
     },
 
     getDataTable(data) {
@@ -475,42 +391,21 @@ export default {
       }
     },
 
-    loadOrdersProduction() {
-      this.source = new EventSource(
-        `${this.$config.API}/sse/produccion/corte/${this.$store.state.login.dataUser.id_empleado}`
-      );
-      this.source.addEventListener("message", (event) => {
-        const eventData = JSON.parse(event.data);
-        const eventType = event.type;
-        if (eventType === "chat") {
-          this.events.push(eventData);
-        }
-        if (eventType === "message") {
-          this.events = eventData;
-          this.items = eventData.items;
-          this.empleados = eventData.empleados;
-          this.overlay = false;
-        }
-      });
-      this.source.addEventListener("error", (error) => {
-        console.error("Error in SSE connection:", error);
-        // alert(error)
-        this.source.close(); // Cerrar la conexión actual
-        // Intentar reconectar después de un cierto período de tiempo
-        /* setTimeout(() => {
-          this.connectToServer()
-        }, 120000) // Puedes ajustar el tiempo de espera según tus necesidades */
-      });
-    },
-
-    connectToServer() {
-      this.loadOrdersProduction();
-    },
-
-    closeConnection() {
-      if (this.source) {
-        this.source.close();
-        this.source = null;
+    // 2026-08-13: mismo problema que getOrdenesAsignadas -- /sse/produccion/corte
+    // ya no es un stream SSE real (ver nota en production.php). Se elimina
+    // también connectToServer()/closeConnection(), que ya no tienen función
+    // sin una conexión persistente que abrir/cerrar.
+    async loadOrdersProduction() {
+      try {
+        const { data } = await this.$axios.get(
+          `${this.$config.API}/sse/produccion/corte/${this.$store.state.login.dataUser.id_empleado}`
+        );
+        this.items = data.items || [];
+        this.empleados = data.empleados || [];
+      } catch (error) {
+        console.error("Error al cargar piezas de corte:", error);
+      } finally {
+        this.overlay = false;
       }
     },
 
@@ -636,27 +531,12 @@ export default {
           },
         ];
       }
-      this.closeConnection();
       this.loadOrdersProduction();
     },
   },
   mounted() {
     this.inicio();
     this.getOrdenesAsignadas();
-    // this.loadOrdersProduction()
-    this.connectToServer();
-    // Eliminar el evento 'beforeunload' para evitar cierres de conexión innecesarios
-    // window.removeEventListener('beforeunload', this.closeConnection)
   },
-
-  beforeDestroy() {
-    // Cerrar la conexión SSE antes de que el componente se destruya
-    this.closeConnection();
-
-    // Eliminar el evento 'beforeunload' para evitar cierres de conexión innecesarios
-    window.removeEventListener("beforeunload", this.closeConnection);
-  },
-
-  components: { prependListener },
 };
 </script>
