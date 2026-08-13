@@ -7,8 +7,8 @@
     v-bind="$attrs"
     v-on="listeners"
     :value="displayValue"
+    :formatter="maskFormatter"
     :placeholder="effectivePlaceholder"
-    @input.native="onInput"
     @paste="onPaste"
     @focus="snapCursorToEnd"
     @click="snapCursorToEnd"
@@ -21,6 +21,16 @@
 // Ej: escribir "150" produce "1.50". No se edita en medio del número, solo
 // se agrega/borra desde la derecha (igual que los inputs de monto de apps
 // bancarias).
+//
+// Usa el prop `formatter` NATIVO de <b-form-input> (BootstrapVue) en vez de
+// un listener @input.native separado: <b-form-input> ya escucha el evento
+// nativo "input" internamente y escribe su propio valor crudo al DOM -- un
+// segundo listener nativo independiente compite por el mismo evento sin
+// sincronizarse con ese mecanismo interno, y cuál de los dos "gana" depende
+// del contexto (confirmado roto envuelto en <b-input-group>, 2026-08-13).
+// El prop `formatter` es el único camino soportado por la librería para
+// interceptar/reescribir el valor en el mismo ciclo que ya usa
+// internamente, sin ninguna carrera.
 export default {
   name: "CampoDecimal",
   inheritAttrs: false,
@@ -42,18 +52,13 @@ export default {
       default: null,
     },
   },
-  data() {
-    return {
-      digits: this.numberToDigits(this.value),
-    }
-  },
   computed: {
     listeners() {
       const { input, ...rest } = this.$listeners
       return rest
     },
     displayValue() {
-      return this.formatDigits(this.digits)
+      return this.formatDigits(this.numberToDigits(this.value))
     },
     effectivePlaceholder() {
       if (this.placeholder !== null) return this.placeholder
@@ -61,14 +66,6 @@ export default {
     },
     maxDigits() {
       return this.maxIntegerDigits + this.decimals
-    },
-  },
-  watch: {
-    value(newVal) {
-      const newDigits = this.numberToDigits(newVal)
-      if (newDigits !== this.digits) {
-        this.digits = newDigits
-      }
     },
   },
   methods: {
@@ -81,7 +78,9 @@ export default {
     formatDigits(digits) {
       if (!digits) return ""
       const padded = digits.padStart(this.decimals + 1, "0")
-      const integerPart = padded.slice(0, -this.decimals).replace(/^0+(?=\d)/, "")
+      const integerPart = padded
+        .slice(0, this.decimals > 0 ? -this.decimals : undefined)
+        .replace(/^0+(?=\d)/, "")
       const decimalPart = padded.slice(-this.decimals)
       return this.decimals > 0 ? `${integerPart}.${decimalPart}` : integerPart
     },
@@ -89,14 +88,15 @@ export default {
       if (!digits) return null
       return parseInt(digits, 10) / Math.pow(10, this.decimals)
     },
-    emitValue() {
-      this.$emit("input", this.digitsToNumber(this.digits))
-    },
-    onInput(event) {
-      const raw = event.target.value
-      this.digits = raw.replace(/\D/g, "").slice(0, this.maxDigits)
-      this.emitValue()
+    // Llamado por <b-form-input> en cada tecleo (evento nativo "input"
+    // interno de la librería) -- recibe el valor crudo ya editado por el
+    // navegador y devuelve el string formateado que la librería usará como
+    // su propio localValue. Un único origen de verdad para el DOM.
+    maskFormatter(rawValue) {
+      const digits = String(rawValue).replace(/\D/g, "").slice(0, this.maxDigits)
+      this.$emit("input", this.digitsToNumber(digits))
       this.$nextTick(() => this.snapCursorToEnd())
+      return this.formatDigits(digits)
     },
     onPaste(event) {
       event.preventDefault()
@@ -104,10 +104,10 @@ export default {
       const normalized = this.normalizeDecimalString(clipboard)
       const parsed = parseFloat(normalized)
       if (isNaN(parsed)) return
-      this.digits = Math.round(Math.abs(parsed) * Math.pow(10, this.decimals))
+      const digits = Math.round(Math.abs(parsed) * Math.pow(10, this.decimals))
         .toString()
         .slice(0, this.maxDigits)
-      this.emitValue()
+      this.$emit("input", this.digitsToNumber(digits))
       this.$nextTick(() => this.snapCursorToEnd())
     },
     normalizeDecimalString(text) {
