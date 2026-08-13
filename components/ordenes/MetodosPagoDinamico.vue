@@ -22,16 +22,13 @@
           <b-col md="4">
             <b-form-group :label="metodo.nombre" :label-for="`monto-${metodo._id}`">
               <b-input-group :prepend="moneda.simbolo || moneda.codigo">
-                <b-form-input
+                <campo-decimal
                   :id="`monto-${metodo._id}`"
-                  v-model.number="montos[metodo._id]"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  v-model="montos[metodo._id]"
                   placeholder="0.00"
                   :disabled="!tasaDisponible(moneda) || sinSaldoDisponible(moneda)"
                   @input="emitirCambio"
-                ></b-form-input>
+                ></campo-decimal>
               </b-input-group>
             </b-form-group>
           </b-col>

@@ -55,7 +55,13 @@ Múltiples campos monetarios en el mismo archivo, campo dentro de `v-for`, o nom
 - [x] `components/inventario/InsumoClonarTinta.vue` — `form.rendimiento` + `form.costo` monetarios; `form.mililitros` NO aplica.
 - [x] `components/ordenes/abono.vue` — solo 2 monetarios reales (`valueDescuento` + `valueNotaCredito`). `value` (el abono en sí) está COMENTADO en el template -- el monto real hoy se captura vía `<ordenes-metodos-pago-dinamico>` (el componente de Tier G). De paso se quitó un atributo `lab` suelto sin función (typo/cruft preexistente en el tag).
 - [x] `components/ordenes/nueva.vue` — `form.descuento` (real) + `form.total` (readonly, migrado también por consistencia visual, sin riesgo al ser solo lectura). `form.abono` está COMENTADO (2 veces) -- mismo patrón que `abono.vue`, el abono real se captura vía `<ordenes-metodos-pago-dinamico>`. `form.productos[].cantidad` NO aplica.
-- [ ] `components/ordenes/MetodosPagoDinamico.vue` — `montos[metodo._id]` monetario, dentro de doble `v-for` (moneda × método). **ALTO IMPACTO Y ALTO CUIDADO:** este componente es compartido por 6 formularios reales (nueva orden, presupuesto, abono, retiros, cierre de caja, abonos) — migrarlo propaga el cambio a los 6 de una vez, pero también significa que un error aquí rompe 6 pantallas simultáneamente. Probar en las 6 antes de dar por cerrado.
+- [x] `components/ordenes/MetodosPagoDinamico.vue` — `montos[metodo._id]` migrado. Cambio mínimo: se preservó `v-model` + `@input="emitirCambio"` (patrón ya usado en el archivo), `:disabled`, `placeholder`; se quitaron `type`/`min`/`step` (ya no aplican). **Verificación pendiente del usuario en las 6 pantallas reales que usan este componente:**
+  - `components/ordenes/nueva.vue` → Nueva Orden, pestaña "Pago y asignación"
+  - `components/ordenes/presupuesto.vue` → Nuevo Presupuesto
+  - `components/ordenes/abono.vue` → Abono a una orden específica
+  - `pages/comercializacion/abonos.vue` → Otros Abonos
+  - `pages/comercializacion/retiros/index.vue` → Retiros
+  - `pages/comercializacion/cierre-de-caja.vue` → Cierre de Caja
 - [x] `components/formMonedas.vue` — `moneda.valor` (tasa de cambio) monetario, dentro de `v-for`, migrado. Usa `:value`+`@change` (no v-model) igual que `ComisionesProductosInputGeneral.vue`; `updateTasa()` ya hace `parseFloat()` así que acepta el string que devuelve el evento nativo sin problema.
 - [x] `components/products/ProductEditar.vue` — SIN ACCIÓN: el bloque con `form.price`/`form.unidades` está completamente COMENTADO (código muerto). Los precios reales van por `<admin-AsignacionDePrecios>` = `AsignacionDePreciosForm.vue`, ya migrado en el piloto original. `form.stock_quantity` (activo) NO aplica (cantidad).
 - [x] `components/whatsapp/WaConfiguracion.vue` — `sttConfig.stt_monthly_usd_limit` monetario, migrado; `max_tokens`/`stt_long_audio_seconds` NO aplican (no son $).
@@ -70,4 +76,6 @@ Múltiples campos monetarios en el mismo archivo, campo dentro de `v-for`, o nom
 
 ## Registro de avance
 
-- **2026-08-13**: Análisis completo de los 74 archivos con `type="number"`, clasificación en Fase 1 (13 archivos)/Fase 2 (20 archivos)/sin acción (37 archivos). Documento creado. Empezando ejecución de Fase 1.
+- **2026-08-13**: Análisis completo de los 74 archivos con `type="number"`, clasificación en Fase 1 (13 archivos)/Fase 2 (21 archivos)/sin acción (37 archivos). Documento creado. Fase 1 completa (13/13).
+- **2026-08-13**: Bug real encontrado y corregido en `CampoDecimal.vue` (carrera de eventos con el listener interno de `b-form-input`, reportado por el usuario en Gastos Variables) -- reescrito para usar el prop `formatter` nativo de BootstrapVue. Ver bitácora `2026-08-13_09-45-00_tarea-fix-race-condition-campo-decimal.log`.
+- **2026-08-13**: Fase 2 completa -- Tiers A a G migrados (detalle en cada ítem arriba). Quedan solo 2 archivos "confirmados sin campos monetarios" que se sumaron en el camino (`ProductEditar.vue`, `asignarEmpleadoMulti.vue`, `SseOrdenesAsignadasModalExtra.vue`, `editarProductos.vue`, `editarProductos2.vue` -- ya movidos a la lista de "sin acción" abajo). **Cierre total del pendiente: TODOS los inputs monetarios reales de la aplicación quedaron identificados y, donde aplicaba, migrados.** Pendiente únicamente la verificación visual del usuario en las 6 pantallas de Tier G.
