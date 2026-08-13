@@ -10,9 +10,12 @@
     <b-modal :id="modal" size="xl" hide-footer>
       <template #modal-title> Detalles </template>
       <div class="d-block text-center">
-        <!-- <h3>Hello From This Modal!</h3> -->
         <p>
-          <b-table striped hover :items="items"></b-table>
+          <b-table striped hover :items="items">
+            <template #cell(orden)="data">
+              <linkSearch :id="data.item.orden" />
+            </template>
+          </b-table>
         </p>
       </div>
     </b-modal>
