@@ -133,7 +133,7 @@
           </small>
         </b-form-checkbox>
 
-        <b-form-checkbox v-model="form.always_ai" switch>
+        <b-form-checkbox v-model="form.always_ai" switch class="mb-3">
           IA siempre activa (sin pasar a modo humano)
           <small class="text-muted d-block">
             <strong>Desactivado (predeterminado):</strong> cuando se genera un presupuesto o
@@ -142,6 +142,19 @@
             <strong>Activado:</strong> la IA sigue respondiendo en todas las conversaciones
             sin excepción. El sistema igual notifica al asesor asignado en cada evento, pero
             no silencia al bot ni cambia el modo de la conversación.
+          </small>
+        </b-form-checkbox>
+
+        <b-form-checkbox v-model="form.notify_vendors_whatsapp" switch>
+          Enviar avisos automáticos por WhatsApp a vendedores
+          <small class="text-muted d-block">
+            <strong>Activado (predeterminado):</strong> cuando se le asigna una conversación a
+            un vendedor, recibe un aviso por su WhatsApp personal (además del aviso interno en
+            el panel).<br>
+            <strong>Desactivado:</strong> esos avisos automáticos por WhatsApp se omiten por
+            completo. La asignación de la conversación ocurre igual, solo se silencia el
+            mensaje de WhatsApp al vendedor -- útil para prevenir bloqueos de cuenta por envío
+            de mensajes automáticos en ráfaga.
           </small>
         </b-form-checkbox>
       </b-card>
@@ -480,6 +493,7 @@ export default {
         max_tokens: 1024,
         respond_in_groups: false,
         always_ai: false,
+        notify_vendors_whatsapp: true,
       },
       // Snapshot para detectar cambios
       originalForm: null,
@@ -595,6 +609,7 @@ export default {
         "max_tokens",
         "respond_in_groups",
         "always_ai",
+        "notify_vendors_whatsapp",
       ];
       for (const f of fields) {
         if (this.form[f] !== this.originalForm[f]) return true;
@@ -645,6 +660,9 @@ export default {
         (data.max_tokens != null ? Number(data.max_tokens) : 1024);
       this.form.respond_in_groups = !!(data.respondInGroups ?? data.respond_in_groups);
       this.form.always_ai = !!(data.alwaysAi ?? data.always_ai);
+      this.form.notify_vendors_whatsapp = !!(
+        data.notifyVendorsWhatsapp ?? data.notify_vendors_whatsapp ?? true
+      );
 
       const kb = data.knowledgeBase ?? data.knowledge_base ?? null;
       if (kb && typeof kb === "object") {
@@ -706,6 +724,7 @@ export default {
           max_tokens: this.form.max_tokens,
           respond_in_groups: this.form.respond_in_groups ? 1 : 0,
           always_ai: this.form.always_ai ? 1 : 0,
+          notify_vendors_whatsapp: this.form.notify_vendors_whatsapp ? 1 : 0,
           knowledge_base: this.knowledgeBaseText.trim()
             ? JSON.parse(this.knowledgeBaseText)
             : null,
