@@ -434,14 +434,24 @@ export default {
 
       const horarioLaboral = this.$store.state.login.dataEmpresa?.horario_laboral || [];
       let agrupacion_empleados = {};
+      // Evita contar 2 veces el presupuesto de la misma tarea cuando existe más
+      // de una asignación (lotes_detalles_empleados_asignados) para el mismo
+      // empleado+orden+departamento -- cada fila trae el presupuesto COMPLETO
+      // de esa tarea, no una porción, así que solo debe sumarse una vez.
+      const proyectadoYaContado = new Set();
+      // Un empleado que nunca marca "inicio" en el sistema y solo lo hace justo
+      // al cerrar la tarea (inicio≈fin) deja un tiempo real de segundos frente a
+      // un presupuesto de minutos/horas -- no es una medición real de su trabajo,
+      // se excluye del cálculo (ni suma ni resta) en vez de inflar o hundir su
+      // porcentaje. Confirmado con el usuario (2026-08-13) que este es el
+      // comportamiento real de captura, no un caso aislado.
+      const UMBRAL_SEGUNDOS_MINIMO = 60;
 
       filteredTareas.forEach(row => {
         const nom = row.empleado_nombre;
         if (!agrupacion_empleados[nom]) {
           agrupacion_empleados[nom] = { proyectado: 0, real: 0 };
         }
-
-        agrupacion_empleados[nom].proyectado += parseFloat(row.projected_seconds || 0);
 
         let rawFin = row.fecha_terminado;
         if (!rawFin) {
@@ -459,17 +469,28 @@ export default {
         };
 
         const tiempoEfectivoMs = this.calcularTiempoTrabajoIndividual(tareaParseada, [], horarioLaboral);
-        agrupacion_empleados[nom].real += (tiempoEfectivoMs / 1000); 
+        const segundosReales = tiempoEfectivoMs / 1000;
+
+        if (segundosReales < UMBRAL_SEGUNDOS_MINIMO) {
+          return;
+        }
+
+        const claveTarea = `${nom}|${row.id_orden}|${row.id_departamento}`;
+        if (!proyectadoYaContado.has(claveTarea)) {
+          proyectadoYaContado.add(claveTarea);
+          agrupacion_empleados[nom].proyectado += parseFloat(row.projected_seconds || 0);
+        }
+
+        agrupacion_empleados[nom].real += segundosReales;
       });
 
       let finalData = [];
       for (const [empleado, vals] of Object.entries(agrupacion_empleados)) {
-        let eff = 100;
-        if (vals.real > 0) {
-          eff = (vals.proyectado / vals.real) * 100;
-        } else if (vals.proyectado > 0 && vals.real === 0) {
-           eff = 100;
-        }
+        // Sin ninguna tarea con tiempo real medible (todas por debajo del
+        // umbral), no hay con qué calcular una eficiencia -- se omite del
+        // gráfico en vez de mostrar un 100% que no refleja nada real.
+        if (vals.real <= 0) continue;
+        const eff = (vals.proyectado / vals.real) * 100;
         finalData.push({
            name: empleado,
            efficiency: parseFloat(eff).toFixed(1)
@@ -563,19 +584,30 @@ export default {
     this.fetchData();
   },
   methods: {
+    // Formatea a YYYY-MM-DD usando los componentes de fecha LOCALES -- usar
+    // .toISOString() aquí convierte a UTC primero, y en Venezuela (UTC-4)
+    // cualquier carga de la página después de las 8pm hora local ya cae en el
+    // día siguiente en UTC, desfasando todo el rango "semana actual" un día.
+    formatearFechaLocal(fecha) {
+      const anio = fecha.getFullYear();
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      return `${anio}-${mes}-${dia}`;
+    },
+
     initCurrentWeek() {
       const d = new Date();
       const day = d.getDay(); // 0 (Dom) a 6 (Sab)
       const diff = day === 0 ? -6 : 1 - day; // Lunes
-      
+
       const lunes = new Date(d);
       lunes.setDate(d.getDate() + diff);
-      
+
       const domingo = new Date(lunes);
       domingo.setDate(lunes.getDate() + 6);
 
-      this.fechaInicio = lunes.toISOString().substring(0, 10);
-      this.fechaFin = domingo.toISOString().substring(0, 10);
+      this.fechaInicio = this.formatearFechaLocal(lunes);
+      this.fechaFin = this.formatearFechaLocal(domingo);
     },
 
     async fetchData() {

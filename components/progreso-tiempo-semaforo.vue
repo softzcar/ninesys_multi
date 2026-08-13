@@ -203,12 +203,16 @@ export default {
       inputEfficiencyData: null,
       isLoadingReport: false,
 
+      // "Inicio/Fin Estimado" se quitaron de esta tabla (2026-08-13): el
+      // backend los calculaba idénticos a "Inicio/Terminado Real" (MISMA
+      // expresión SQL) -- no existe hoy ningún cálculo real de fecha estimada,
+      // mostrarlos como si fueran datos distintos confundía al comparar
+      // planeado vs. real. "Tiempo Estimado" (presupuesto de producción) sí es
+      // un dato real e independiente, se mantiene.
       fieldsTareas: [
         { key: "nombre_departamento", label: "Departamento" },
         { key: "fecha_inicio_formateada", label: "Inicio Real" },
         { key: "fecha_terminado_formateada", label: "Terminado Real" },
-        { key: "fecha_estimada_inicio_formateada", label: "Inicio Estimado" },
-        { key: "fecha_estimada_fin_formateada", label: "Fin Estimado" },
         {
           key: "tiempo_total_orden_depto_formateado",
           label: "Tiempo Estimado",
