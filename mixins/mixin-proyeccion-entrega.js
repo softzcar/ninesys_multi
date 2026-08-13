@@ -514,9 +514,16 @@ export default {
                 });
             });
 
-            // 2. Ordenar las órdenes (según orden_fila_orden, luego id_orden)
+            // 2. Ordenar las órdenes por fecha de entrega pactada (la más
+            // cercana primero) -- así el reporte se lee de forma útil, en
+            // vez del orden de cola de producción que tenía antes. Las
+            // órdenes sin fecha de entrega quedan al final. Desempate: mismo
+            // criterio de antes (orden_fila_orden, luego id_orden).
             let ordenesFinal = Object.values(ordenesAgregadas);
             ordenesFinal.sort((a, b) => {
+                const fechaA = a.fecha_entrega_orden ? a.fecha_entrega_orden.getTime() : Infinity;
+                const fechaB = b.fecha_entrega_orden ? b.fecha_entrega_orden.getTime() : Infinity;
+                if (fechaA !== fechaB) return fechaA - fechaB;
                 if (a.orden_fila_orden === b.orden_fila_orden) return parseInt(a.id_orden) - parseInt(b.id_orden);
                 return a.orden_fila_orden - b.orden_fila_orden;
             });
