@@ -37,16 +37,7 @@
                   striped
                   :fields="fieldsOrdenesEnCurso"
                   :items="enCurso"
-                >
-                  <template #cell(id_lotes_detalles)="row">
-                    <empleados-BotonTerminarModalListaDeTareas
-                      class="mt-3 mb-3"
-                      :item="row.item"
-                      :itemfather="row.item"
-                      @reload="getOrdenesAsignadas"
-                    />
-                  </template>
-                </b-table>
+                />
               </b-card-text>
               <b-card-text v-else>
                 <b-alert
@@ -197,10 +188,6 @@ export default {
         {
           key: "tela",
           label: "Tela",
-        },
-        {
-          key: "id_lotes_detalles",
-          label: " ",
         },
       ],
     };
