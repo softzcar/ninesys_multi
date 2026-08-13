@@ -442,49 +442,47 @@ export default {
             return null; // Si ambos fallan
         },
 
-        proyectarEntregaConCola(dataOrdenes, horarioLaboral) {
-            console.log("MIXIN COLA vFinal: proyectarEntregaConCola LLAMADO");
-            if (!dataOrdenes || !Array.isArray(dataOrdenes)) { console.error("MIXIN COLA ERROR: 'dataOrdenes' no es un array."); return []; }
+        // Reescrito 2026-08-13: la versión anterior armaba una cola de
+        // disponibilidad POR EMPLEADO (colasPorEmpleado), para lo cual
+        // necesitaba un id_empleado por fila. El backend (GET
+        // /ordenes/proyeccion-entrega) fue optimizado en algún momento
+        // ("Versión 7") para devolver una fila agregada por orden+departamento
+        // en vez de una fila por asignación individual -- ya no manda
+        // id_empleado (solo cant_empleados, un conteo) y el tiempo estimado
+        // (tiempo_total_orden_depto) ya viene dividido entre esa cantidad de
+        // empleados. El guard `if (id_empleado === null...) return` de la
+        // versión anterior descartaba silenciosamente el 100% de las filas
+        // (confirmado con datos reales: 456 de 456 items), dejando la página
+        // completamente vacía.
+        //
+        // Simplificación acordada con el usuario: en vez de reconstruir una
+        // cola cruzada entre órdenes por empleado (dato que el backend ya no
+        // expone), cada orden se proyecta de forma independiente encadenando
+        // sus propios departamentos en orden de proceso, usando el tiempo ya
+        // paralelizado que manda el backend. Se pierde el detalle por
+        // producto (el backend tampoco lo separa por producto en esta
+        // consulta agregada) -- el reporte pasa a mostrar departamento en vez
+        // de producto > departamento.
+        proyectarEntregaConCola(dataDepartamentos, horarioLaboral) {
+            if (!dataDepartamentos || !Array.isArray(dataDepartamentos)) { console.error("MIXIN PROYECCIÓN ERROR: 'dataDepartamentos' no es un array."); return []; }
             if (!horarioLaboral || typeof horarioLaboral !== 'object' || !horarioLaboral.diasLaborales || !horarioLaboral.diasLaborales.length) {
-                 console.error("MIXIN COLA ERROR: 'horarioLaboral' inválido.", horarioLaboral); return [];
+                 console.error("MIXIN PROYECCIÓN ERROR: 'horarioLaboral' inválido.", horarioLaboral); return [];
             }
 
-            const resumenTiemposPorPuesto = this.calcularTiemposAcumuladosPorPuesto(dataOrdenes);
-
-            // --- INICIO DE LOS CAMBIOS RELEVANTES ---
-            const realCurrentMoment = new Date(); // La hora exacta en que se ejecuta el mixin (para comparaciones de estado real)
-
-            // Paso 1: Definir el "inicio del día laboral" para la fecha actual (ej. 2025-06-04 08:30:00)
-            let fixedDailyStartOfBusiness = new Date(realCurrentMoment.getFullYear(), realCurrentMoment.getMonth(), realCurrentMoment.getDate());
-            fixedDailyStartOfBusiness.setHours(Math.floor(horarioLaboral.horaInicioManana), (horarioLaboral.horaInicioManana % 1) * 60, 0, 0);
-
-            // Paso 2: Ajustar este "inicio del día laboral" para asegurar que caiga en un horario laboral válido
-            // Esto es crucial si el día actual es un fin de semana o si el horario inicial está en una pausa
-            fixedDailyStartOfBusiness = this.ajustarInicioAlHorarioLaboral(fixedDailyStartOfBusiness, horarioLaboral);
-
-            // Paso 3: Determinar el punto de partida REAL para la proyección de colas de empleados
-            // Debe ser el MÁXIMO entre el "inicio fijo del día laboral" y el "momento actual real"
-            // Esto garantiza consistencia PERO no proyecta trabajo "hacia atrás" si el usuario llega tarde en el día
-            const projectionStartingPoint = new Date(Math.max(fixedDailyStartOfBusiness.getTime(), realCurrentMoment.getTime()));
-            // --- FIN DE LOS CAMBIOS RELEVANTES ---
-
-
-            const colasPorEmpleado = {}; // Clave: id_empleado, Valor: Date (próxima disponibilidad)
+            const ahora = new Date();
+            const inicioProyeccionPorDefecto = this.ajustarInicioAlHorarioLaboral(new Date(ahora.getTime()), horarioLaboral) || ahora;
 
             const ordenesAgregadas = {};
-            // 1. Agregación y conversión inicial
-            dataOrdenes.forEach(item => {
-                const { id_orden, id_producto, id_empleado, 
-                        nombre_producto, cantidad, nombre_departamento,
-                        tiempo_estimado_produccion, orden_proceso_departamento,
-                        fecha_inicio, fecha_terminado, fecha_entrega_orden, orden_fila_orden
-                } = item;
-                const idDeptoOriginal = item.id_departamento;
 
-                if (id_empleado === null || id_empleado === undefined) {
-                    console.warn(`Item de orden ${id_orden}, depto ${nombre_departamento} no tiene id_empleado. Saltando item.`);
-                    return; 
-                }
+            // 1. Agregación por orden -- cada fila del backend ya es un
+            // departamento consolidado (posiblemente varios empleados).
+            dataDepartamentos.forEach(item => {
+                const {
+                    id_orden, id_departamento, nombre_departamento,
+                    fecha_inicio, fecha_terminado, fecha_entrega_orden,
+                    total_unidades, tiempo_total_orden_depto,
+                    orden_fila_orden, orden_proceso_departamento, cant_empleados
+                } = item;
 
                 let itemFechaInicioDate = fecha_inicio ? new Date(fecha_inicio.replace(" ", "T")) : null;
                 if (itemFechaInicioDate && isNaN(itemFechaInicioDate.getTime())) itemFechaInicioDate = null;
@@ -493,310 +491,85 @@ export default {
                 let itemFechaEntregaDate = fecha_entrega_orden ? this.parseFechaFlexible(fecha_entrega_orden) : null;
                 if (itemFechaEntregaDate && isNaN(itemFechaEntregaDate.getTime())) itemFechaEntregaDate = null;
 
-                const cantidadParsed = parseInt(cantidad) || 0;
-                const tiempoItemSegundos = (parseInt(tiempo_estimado_produccion) || 0) * cantidadParsed;
-
-                let tiempoRealDeptoSegundos = 0;
-                if (itemFechaInicioDate && itemFechaTerminadoDate) {
-                    const diffMs = itemFechaTerminadoDate.getTime() - itemFechaInicioDate.getTime();
-                    if (diffMs >= 0) { tiempoRealDeptoSegundos = Math.floor(diffMs / 1000); }
-                }
-                
                 if (!ordenesAgregadas[id_orden]) {
                     ordenesAgregadas[id_orden] = {
-                        id_orden: id_orden,
+                        id_orden,
                         orden_fila_orden: orden_fila_orden !== null && orden_fila_orden !== undefined ? parseInt(orden_fila_orden) : Infinity,
-                        items_departamentos_originales: [],
-                        items_departamentos: [], // Se poblará en el paso 4
-                        fecha_inicio_programada_orden: null,
-                        tiempo_total_original_orden_segundos: 0,
-                        duracion_pendiente_orden_segundos: 0,
-                        fecha_final_calculada_individual_pendientes: null,
+                        total_unidades: parseInt(total_unidades) || 0,
                         fecha_entrega_orden: itemFechaEntregaDate,
-                        fecha_inicio_real_en_cola: null,
-                        fecha_finalizacion_estimada_en_cola: null,
-                        resumen_tiempos_pendientes_por_puesto: resumenTiemposPorPuesto,
-                        productos: [],
-                        productos_info_temp: {},
-                        fecha_inicio_formateada: 'No iniciada',
-                        fecha_entrega_formateada: 'Pendiente formatear',
-                        fecha_estimada_entrega_formateada: 'No calculada',
-                        tiempo_neto_orden_formateado: '',
-                        tiempo_pendiente_orden_formateado: '',
-                        variant: 'secondary', variant_text: ''
+                        items_departamentos_originales: [],
                     };
-                } else {
-                    if (itemFechaEntregaDate && !ordenesAgregadas[id_orden].fecha_entrega_orden) {
-                         ordenesAgregadas[id_orden].fecha_entrega_orden = itemFechaEntregaDate;
-                    }
-                }
-                const currentFilaOrden = orden_fila_orden !== null && orden_fila_orden !== undefined ? parseInt(orden_fila_orden) : Infinity;
-                if (currentFilaOrden < ordenesAgregadas[id_orden].orden_fila_orden) {
-                    ordenesAgregadas[id_orden].orden_fila_orden = currentFilaOrden;
+                } else if (itemFechaEntregaDate && !ordenesAgregadas[id_orden].fecha_entrega_orden) {
+                    ordenesAgregadas[id_orden].fecha_entrega_orden = itemFechaEntregaDate;
                 }
 
                 ordenesAgregadas[id_orden].items_departamentos_originales.push({
-                    id_orden, // Manteniendo el cambio anterior
-                    id_producto, id_departamento: idDeptoOriginal, id_empleado, 
-                    nombre_producto, cantidad: cantidadParsed, nombre_departamento,
-                    tiempo_estimado_segundos: tiempoItemSegundos,
-                    orden_proceso: parseInt(orden_proceso_departamento),
-                    orden_fila_orden: parseInt(orden_fila_orden),
-                    fecha_inicio_original_item: itemFechaInicioDate, // Date o null
-                    fecha_terminado: itemFechaTerminadoDate,       // Date o null
-                    tiempo_estimado_depto_formateado: this.formatearTiempo(tiempoItemSegundos * 1000),
-                    tiempo_real_depto_segundos: tiempoRealDeptoSegundos,
-                    tiempo_real_depto_formateado: this.formatearTiempo(tiempoRealDeptoSegundos * 1000),
+                    id_departamento,
+                    nombre_departamento,
+                    cant_empleados: parseInt(cant_empleados) || 0,
+                    tiempo_estimado_segundos: Math.round(parseFloat(tiempo_total_orden_depto) || 0),
+                    orden_proceso: parseInt(orden_proceso_departamento) || 0,
+                    fecha_inicio_original_item: itemFechaInicioDate,
+                    fecha_terminado: itemFechaTerminadoDate,
                 });
-                ordenesAgregadas[id_orden].tiempo_total_original_orden_segundos += tiempoItemSegundos;
-
-                if (!ordenesAgregadas[id_orden].productos_info_temp[id_producto]) {
-                    ordenesAgregadas[id_orden].productos_info_temp[id_producto] = {
-                        id_producto, nombre_producto, cantidad_total: 0,
-                        tiempo_total_estimado_producto_segundos: 0,
-                    };
-                }
-                ordenesAgregadas[id_orden].productos_info_temp[id_producto].cantidad_total += cantidadParsed;
-                ordenesAgregadas[id_orden].productos_info_temp[id_producto].tiempo_total_estimado_producto_segundos += tiempoItemSegundos;
             });
 
-            // 2. Cálculo individual de duraciones (sin colas de empleados, para `duracion_pendiente_orden_segundos`)
-            for (const id_orden in ordenesAgregadas) {
-                const orden = ordenesAgregadas[id_orden];
-                let itemsParaCalculoInd = JSON.parse(JSON.stringify(orden.items_departamentos_originales));
-                itemsParaCalculoInd.sort((a, b) => a.orden_proceso - b.orden_proceso);
-
-                orden.fecha_inicio_programada_orden = null;
-                let puntoPartidaParaCalculoIndividual = null;
-                let ultimoTerminadoFecha = null;
-                let primerPendienteConFechaInicio = null;
-
-                for(const depto of itemsParaCalculoInd){
-                    // Las fechas ya son Date o null por el parseo de JSON.parse(JSON.stringify(new Date()))
-                    const fiOriginalDate = depto.fecha_inicio_original_item ? new Date(depto.fecha_inicio_original_item) : null;
-                    const ftOriginalDate = depto.fecha_terminado ? new Date(depto.fecha_terminado) : null;
-
-                    if (fiOriginalDate) {
-                        if (!orden.fecha_inicio_programada_orden || fiOriginalDate < orden.fecha_inicio_programada_orden) {
-                            orden.fecha_inicio_programada_orden = fiOriginalDate;
-                        }
-                    }
-                    if(ftOriginalDate){ ultimoTerminadoFecha = ftOriginalDate; }
-                    else if(!primerPendienteConFechaInicio && fiOriginalDate){ primerPendienteConFechaInicio = fiOriginalDate; }
-                }
-
-                if(primerPendienteConFechaInicio) { puntoPartidaParaCalculoIndividual = new Date(primerPendienteConFechaInicio.getTime()); }
-                else if (ultimoTerminadoFecha) { puntoPartidaParaCalculoIndividual = new Date(ultimoTerminadoFecha.getTime()); }
-                else if (orden.fecha_inicio_programada_orden) { puntoPartidaParaCalculoIndividual = new Date(orden.fecha_inicio_programada_orden.getTime()); }
-                // CAMBIO: Usar 'projectionStartingPoint' para la partida individual si no hay referencias
-                else { puntoPartidaParaCalculoIndividual = new Date(projectionStartingPoint.getTime()); } 
-
-
-                const calculoIndividual = this.calcularDuracionesYFechasDeptos(
-                    puntoPartidaParaCalculoIndividual, itemsParaCalculoInd, horarioLaboral
-                );
-                if (calculoIndividual) {
-                    orden.duracion_pendiente_orden_segundos = calculoIndividual.duracionNetaPendienteSegundos || 0;
-                    orden.fecha_final_calculada_individual_pendientes = calculoIndividual.fechaFinalOrdenPendientes; // Date o null
-                } else {
-                    console.warn(`Fallo en calculoIndividual para orden ${id_orden}. Estimando duración pendiente.`);
-                    orden.duracion_pendiente_orden_segundos = orden.items_departamentos_originales.reduce((sum, d_orig) => {
-                        const ftDate = d_orig.fecha_terminado; // Es Date o null
-                        return sum + (!(ftDate instanceof Date && !isNaN(ftDate.getTime())) ? (d_orig.tiempo_estimado_segundos || 0) : 0);
-                    },0);
-                    orden.fecha_final_calculada_individual_pendientes = null;
-                }
-                orden.tiempo_neto_orden_formateado = this.formatearTiempo(orden.tiempo_total_original_orden_segundos * 1000);
-                orden.tiempo_pendiente_orden_formateado = this.formatearTiempo(orden.duracion_pendiente_orden_segundos * 1000);
-            }
-
-            // 3. Ordenar para la Cola (según orden_fila_orden y luego fecha_inicio_programada_orden)
-            let ordenesParaCola = Object.values(ordenesAgregadas);
-            ordenesParaCola.sort((a, b) => {
-                 if (a.orden_fila_orden === Infinity && b.orden_fila_orden === Infinity) {
-                    const dateA = a.fecha_inicio_programada_orden ? a.fecha_inicio_programada_orden.getTime() : Infinity;
-                    const dateB = b.fecha_inicio_programada_orden ? b.fecha_inicio_programada_orden.getTime() : Infinity;
-                    if (dateA === dateB) return parseInt(a.id_orden) - parseInt(b.id_orden);
-                    return dateA - dateB;
-                }
-                if (a.orden_fila_orden === b.orden_fila_orden) {
-                    const dateA = a.fecha_inicio_programada_orden ? a.fecha_inicio_programada_orden.getTime() : Infinity;
-                    const dateB = b.fecha_inicio_programada_orden ? b.fecha_inicio_programada_orden.getTime() : Infinity;
-                    if (dateA === dateB) return parseInt(a.id_orden) - parseInt(b.id_orden);
-                    return dateA - dateB;
-                }
+            // 2. Ordenar las órdenes (según orden_fila_orden, luego id_orden)
+            let ordenesFinal = Object.values(ordenesAgregadas);
+            ordenesFinal.sort((a, b) => {
+                if (a.orden_fila_orden === b.orden_fila_orden) return parseInt(a.id_orden) - parseInt(b.id_orden);
                 return a.orden_fila_orden - b.orden_fila_orden;
             });
 
+            // 3. Proyectar cada orden de forma independiente, encadenando sus
+            // propios departamentos por orden_proceso (reutiliza
+            // calcularDuracionesYFechasDeptos, que no depende de id_empleado).
+            ordenesFinal.forEach(orden => {
+                const deptosOrdenados = [...orden.items_departamentos_originales].sort((a, b) => a.orden_proceso - b.orden_proceso);
 
-            // 4. Procesar la cola CON COLAS POR EMPLEADO
-            for (const orden of ordenesParaCola) {
-                orden.items_departamentos = []; // Reset para poblar con recalculados
-                let fechaFinDeptoAnteriorEnEstaOrden = null;
-                let fechaInicioRealPrimerDeptoDeLaOrden = null; 
-
-                const deptosOriginalesOrdenados = [...orden.items_departamentos_originales].sort((a,b) => a.orden_proceso - b.orden_proceso);
-
-                for (const deptoOriginal of deptosOriginalesOrdenados) {
-                    const deptoRecalculado = JSON.parse(JSON.stringify(deptoOriginal)); // Copia profunda para modificar
-                    // Convertir fechas de string (de JSON.parse) a Date
-                    deptoRecalculado.fecha_inicio_original_item = deptoRecalculado.fecha_inicio_original_item ? new Date(deptoRecalculado.fecha_inicio_original_item) : null;
-                    deptoRecalculado.fecha_terminado = deptoRecalculado.fecha_terminado ? new Date(deptoRecalculado.fecha_terminado) : null;
-                    
-                    const idEmp = deptoRecalculado.id_empleado;
-                    const debugIdTarea = `Orden ${orden.id_orden}, Depto ${deptoRecalculado.nombre_departamento} (Emp ${idEmp})`;
-
-                    if (deptoRecalculado.fecha_terminado) { // Departamento ya terminado
-                        deptoRecalculado.fecha_inicio_calculada_depto = deptoRecalculado.fecha_inicio_original_item; // Asumimos que el inicio fue el original
-                        deptoRecalculado.fecha_finalizacion_estimada_depto = new Date(deptoRecalculado.fecha_terminado.getTime());
-                        
-                        const finTerminadoAjustado = this.ajustarInicioAlHorarioLaboral(new Date(deptoRecalculado.fecha_terminado.getTime()), horarioLaboral);
-                        if (finTerminadoAjustado) {
-                            if (!colasPorEmpleado[idEmp] || finTerminadoAjustado.getTime() > colasPorEmpleado[idEmp].getTime()) {
-                                colasPorEmpleado[idEmp] = new Date(finTerminadoAjustado.getTime());
-                            }
-                            fechaFinDeptoAnteriorEnEstaOrden = new Date(finTerminadoAjustado.getTime());
-                        } else {
-                            console.error(`[ProyCola] Error ajustando fin de depto terminado ${debugIdTarea}`);
-                            deptoRecalculado.fecha_finalizacion_estimada_depto_formateada = "ErrAjusteFinTerm"; // Marcar error
-                        }
-                        // El inicio de la orden en cola es el del primer depto (terminado o no)
-                        if(!fechaInicioRealPrimerDeptoDeLaOrden && deptoRecalculado.fecha_inicio_calculada_depto) {
-                            fechaInicioRealPrimerDeptoDeLaOrden = new Date(deptoRecalculado.fecha_inicio_calculada_depto.getTime());
-                        }
-
-                    } else { // Departamento PENDIENTE
-                        // CAMBIO: Usar 'projectionStartingPoint' para empleados sin cola
-                        let fechaProximaDisponibleEmpleado = colasPorEmpleado[idEmp] ? new Date(colasPorEmpleado[idEmp].getTime()) : new Date(projectionStartingPoint.getTime());
-                        
-                        let inicioTentativoDepto = new Date(fechaProximaDisponibleEmpleado.getTime());
-
-                        if (fechaFinDeptoAnteriorEnEstaOrden) {
-                            inicioTentativoDepto = new Date(Math.max(inicioTentativoDepto.getTime(), fechaFinDeptoAnteriorEnEstaOrden.getTime()));
-                        }
-                        if (deptoRecalculado.fecha_inicio_original_item) { 
-                            inicioTentativoDepto = new Date(Math.max(inicioTentativoDepto.getTime(), deptoRecalculado.fecha_inicio_original_item.getTime()));
-                        }
-                        
-                        const inicioCalculadoAjustado = this.ajustarInicioAlHorarioLaboral(inicioTentativoDepto, horarioLaboral);
-
-                        if (!inicioCalculadoAjustado) {
-                            console.error(`[ProyCola] Error ajustando inicio para ${debugIdTarea}. Inicio tentativo: ${inicioTentativoDepto.toISOString()}`);
-                            deptoRecalculado.fecha_inicio_calculada_depto_formateada = "ErrAjusteIniDepto";
-                            deptoRecalculado.fecha_finalizacion_estimada_depto_formateada = "ErrAjusteIniDepto";
-                            orden.items_departamentos.push(deptoRecalculado);
-                            fechaFinDeptoAnteriorEnEstaOrden = null; // Propagar error al fin de la orden
-                            break; 
-                        }
-                        
-                        deptoRecalculado.fecha_inicio_calculada_depto = new Date(inicioCalculadoAjustado.getTime());
-                        if (!fechaInicioRealPrimerDeptoDeLaOrden) {
-                            fechaInicioRealPrimerDeptoDeLaOrden = new Date(inicioCalculadoAjustado.getTime());
-                        }
-
-                        const tiempoDeptoMs = (deptoRecalculado.tiempo_estimado_segundos || 0) * 1000;
-                        const finEstimadoDepto = this.calcularFechaFinTarea(
-                            new Date(inicioCalculadoAjustado.getTime()),
-                            tiempoDeptoMs,
-                            horarioLaboral,
-                            debugIdTarea
-                        );
-
-                        if (!finEstimadoDepto) {
-                            console.error(`[ProyCola] Error calculando fin para ${debugIdTarea}`);
-                            deptoRecalculado.fecha_finalizacion_estimada_depto_formateada = "ErrCalcFinDepto";
-                            orden.items_departamentos.push(deptoRecalculado);
-                            fechaFinDeptoAnteriorEnEstaOrden = null;
-                            break; 
-                        }
-
-                        deptoRecalculado.fecha_finalizacion_estimada_depto = new Date(finEstimadoDepto.getTime());
-                        colasPorEmpleado[idEmp] = new Date(finEstimadoDepto.getTime()); 
-                        fechaFinDeptoAnteriorEnEstaOrden = new Date(finEstimadoDepto.getTime()); 
-                    }
-                    
-                    // Formatear fechas para visualización (incluso si hubo error, se mostrará el mensaje)
-                    deptoRecalculado.fecha_inicio_original_item_formateada = deptoRecalculado.fecha_inicio_original_item ? this.formatDateTime12h(deptoRecalculado.fecha_inicio_original_item) : 'N/A';
-                    deptoRecalculado.fecha_terminado_original_item_formateada = deptoRecalculado.fecha_terminado ? this.formatDateTime12h(deptoRecalculado.fecha_terminado) : 'N/A';
-                    
-                    if (!deptoRecalculado.fecha_inicio_calculada_depto_formateada) { // Si no se seteó un error antes
-                        deptoRecalculado.fecha_inicio_calculada_depto_formateada = deptoRecalculado.fecha_inicio_calculada_depto ? this.formatDateTime12h(deptoRecalculado.fecha_inicio_calculada_depto) : 'Error';
-                    }
-                    if (!deptoRecalculado.fecha_finalizacion_estimada_depto_formateada) { // Si no se seteó un error antes
-                        deptoRecalculado.fecha_finalizacion_estimada_depto_formateada = deptoRecalculado.fecha_finalizacion_estimada_depto ? this.formatDateTime12h(deptoRecalculado.fecha_finalizacion_estimada_depto) : 'Error';
-                    }
-                    
-                    orden.items_departamentos.push(deptoRecalculado);
-                } // Fin for deptoOriginal of deptosOriginalesOrdenados
-
-                orden.fecha_inicio_real_en_cola = fechaInicioRealPrimerDeptoDeLaOrden; // Puede ser null si todos los deptos fallaron
-                orden.fecha_finalizacion_estimada_en_cola = fechaFinDeptoAnteriorEnEstaOrden; // Puede ser null si el último depto falló
-
-                // Formateo final de la orden
-                orden.fecha_entrega_formateada = orden.fecha_entrega_orden ? this.formatDate(orden.fecha_entrega_orden) : 'N/A';
-                orden.fecha_inicio_formateada = orden.fecha_inicio_real_en_cola ? this.formatDateTime12h(orden.fecha_inicio_real_en_cola) : (orden.fecha_inicio_programada_orden ? `Programado: ${this.formatDateTime12h(orden.fecha_inicio_programada_orden)} (Error Cola)`: 'Error en cálculo de inicio');
-                orden.fecha_estimada_entrega_formateada = orden.fecha_finalizacion_estimada_en_cola ? this.formatDateTime12h(orden.fecha_finalizacion_estimada_en_cola) : 'Error en cálculo de fin';
-                
-                // Lógica de variant y variant_text (adaptada)
-                orden.variant = 'secondary'; orden.variant_text = '';
-                const todosDeptosOriginalesTerminados = orden.items_departamentos_originales.length > 0 && orden.items_departamentos_originales.every(
-                    d_orig => d_orig.fecha_terminado instanceof Date && !isNaN(d_orig.fecha_terminado.getTime())
-                );
-                // Un depto está pendiente si NO tiene fecha_terminado en la lista RECALCULADA.
-                const algunDeptoRecalculadoPendiente = orden.items_departamentos.some(
-                    d_recalc => !(d_recalc.fecha_finalizacion_estimada_depto instanceof Date && !isNaN(d_recalc.fecha_finalizacion_estimada_depto.getTime())) || !d_recalc.fecha_terminado // Si no tiene fecha estimada O no tiene fecha_terminado original
-                );
-                // Ningún depto original iniciado si NINGUNO tiene fecha_inicio_original_item
-                const ningunDeptoOriginalIniciado = orden.items_departamentos_originales.every(
-                     d_orig => !(d_orig.fecha_inicio_original_item instanceof Date && !isNaN(d_orig.fecha_inicio_original_item.getTime()))
-                );
-
-                // CAMBIO: Usar 'realCurrentMoment' para la lógica de variante
-                if (todosDeptosOriginalesTerminados && !algunDeptoRecalculadoPendiente) { // Todos los originales estaban terminados Y todos los recalculados se consideran terminados (tienen fecha estimada)
-                     orden.variant = 'info'; orden.variant_text = 'TERMINADO';
+                let puntoPartida = null;
+                for (const d of deptosOrdenados) {
+                    if (d.fecha_inicio_original_item) { puntoPartida = d.fecha_inicio_original_item; break; }
                 }
-                else if (ningunDeptoOriginalIniciado && orden.fecha_inicio_real_en_cola && orden.fecha_inicio_real_en_cola > realCurrentMoment) {
-                    orden.variant = 'light'; orden.variant_text = 'Por iniciar';
+                if (!puntoPartida) puntoPartida = inicioProyeccionPorDefecto;
+
+                const calculo = this.calcularDuracionesYFechasDeptos(puntoPartida, deptosOrdenados, horarioLaboral);
+
+                orden.departamentos = calculo.itemsDepartamentosActualizados;
+                orden.tiempo_total_estimado_orden_segundos = calculo.duracionNetaOriginalTotalSegundos;
+                orden.tiempo_total_estimado_orden_formateado = this.formatearTiempo(calculo.duracionNetaOriginalTotalSegundos * 1000);
+                orden.fecha_inicio_orden_formateada = this.formatDateTime12h(puntoPartida);
+                orden.fecha_estimada_finalizacion_orden = calculo.fechaFinalOrdenPendientes;
+                orden.fecha_estimada_finalizacion_orden_formateada = calculo.fechaFinalOrdenPendientes
+                    ? this.formatDateTime12h(calculo.fechaFinalOrdenPendientes)
+                    : (calculo.duracionNetaPendienteSegundos === 0 ? 'Terminado' : 'No calculada');
+                orden.fecha_entrega_formateada = orden.fecha_entrega_orden ? this.formatDate(orden.fecha_entrega_orden) : 'N/A';
+
+                const todosDeptosTerminados = deptosOrdenados.length > 0 && deptosOrdenados.every(d => d.fecha_terminado instanceof Date && !isNaN(d.fecha_terminado.getTime()));
+
+                orden.variant = 'secondary'; orden.variant_text = '';
+                if (todosDeptosTerminados) {
+                    orden.variant = 'info'; orden.variant_text = 'TERMINADO';
                 } else if (orden.fecha_entrega_orden instanceof Date && !isNaN(orden.fecha_entrega_orden.getTime())) {
-                    if (orden.fecha_finalizacion_estimada_en_cola && orden.fecha_finalizacion_estimada_en_cola > orden.fecha_entrega_orden) {
+                    const hoyNormalizada = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+                    const entregaNormalizada = new Date(orden.fecha_entrega_orden.getFullYear(), orden.fecha_entrega_orden.getMonth(), orden.fecha_entrega_orden.getDate());
+                    if (calculo.fechaFinalOrdenPendientes && calculo.fechaFinalOrdenPendientes > orden.fecha_entrega_orden) {
+                        if (entregaNormalizada.getTime() < hoyNormalizada.getTime()) {
+                            orden.variant = 'danger'; orden.variant_text = 'RETRASADO';
+                        } else {
+                            orden.variant = 'warning'; orden.variant_text = 'EN EL DÍA';
+                        }
+                    } else if (entregaNormalizada.getTime() === hoyNormalizada.getTime()) {
                         orden.variant = 'warning'; orden.variant_text = 'EN EL DÍA';
                     } else {
-                        const hoyNormalizada = new Date(realCurrentMoment.getFullYear(), realCurrentMoment.getMonth(), realCurrentMoment.getDate());
-                        const entregaPactadaNormalizada = new Date(orden.fecha_entrega_orden.getFullYear(), orden.fecha_entrega_orden.getMonth(), orden.fecha_entrega_orden.getDate());
-                        // Si la fecha de entrega ya pasó Y la orden no está marcada como TERMINADO (es decir, algunDeptoRecalculadoPendiente es true)
-                        if (entregaPactadaNormalizada.getTime() < hoyNormalizada.getTime() && algunDeptoRecalculadoPendiente) { 
-                            orden.variant = 'danger'; orden.variant_text = 'RETRASADO';
-                        } else if (entregaPactadaNormalizada.getTime() === hoyNormalizada.getTime()) {
-                            orden.variant = 'warning'; orden.variant_text = 'EN EL DÍA';
-                        } else {
-                            orden.variant = 'success'; orden.variant_text = 'A TIEMPO';
-                        }
+                        orden.variant = 'success'; orden.variant_text = 'A TIEMPO';
                     }
-                } else { // Sin fecha de entrega clara o error en cálculo de fin de orden
-                    if (!orden.fecha_finalizacion_estimada_en_cola) {
-                        orden.variant = 'light'; orden.variant_text = 'Error Cálculo Cola';
-                    } else {
-                        orden.variant = 'light'; orden.variant_text = 'Sin fecha entrega';
-                    }
+                } else {
+                    orden.variant = 'light'; orden.variant_text = 'Sin fecha entrega';
                 }
+            });
 
-                // Poblar productos finales con los items_departamentos RECALCULADOS
-                orden.productos = Object.values(orden.productos_info_temp || {}).map(prodInfo => {
-                    const departamentosDelProducto = orden.items_departamentos 
-                        .filter(d => d.id_producto === prodInfo.id_producto)
-                        .map(d_copia => ({...d_copia})) 
-                        .sort((ca,cb) => ca.orden_proceso - cb.orden_proceso);
-                    return {
-                        id_producto: prodInfo.id_producto, nombre_producto: prodInfo.nombre_producto,
-                        cantidad_total: prodInfo.cantidad_total,
-                        tiempo_total_estimado_producto_formateado: this.formatearTiempo(prodInfo.tiempo_total_estimado_producto_segundos * 1000),
-                        departamentos: departamentosDelProducto
-                    };
-                });
-                delete orden.productos_info_temp; 
-            } // Fin for orden of ordenesParaCola
-
-            return ordenesParaCola;
+            return ordenesFinal;
         }
     }
 };

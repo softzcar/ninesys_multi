@@ -10,6 +10,11 @@
         <b-row>
           <b-col>
             <h2 class="mb-4">Detalles de Órdenes</h2>
+            <!-- 2026-08-13: el backend ya no separa el tiempo por producto dentro
+                 de cada departamento (consulta agregada por orden+departamento) --
+                 este reporte muestra departamento en vez de producto > departamento.
+                 El número de orden abre el detalle completo (productos, tallas,
+                 telas) desde linkSearch. -->
             <b-tabs>
               <b-tab
                 v-for="orden in proyectarEntregaConCola(
@@ -21,6 +26,18 @@
                 :title="`Orden ${orden.id_orden} - Entrega: ${orden.fecha_estimada_finalizacion_orden_formateada}`"
               >
                 <b-card>
+                  <p class="card-text">
+                    <linkSearch :id="orden.id_orden" />
+                    <b-badge :variant="orden.variant" class="ml-2">{{ orden.variant_text }}</b-badge>
+                  </p>
+                  <p class="card-text">
+                    <strong>Unidades Totales:</strong>
+                    {{ orden.total_unidades }}
+                  </p>
+                  <p class="card-text">
+                    <strong>Fecha de Entrega Pactada:</strong>
+                    {{ orden.fecha_entrega_formateada }}
+                  </p>
                   <p class="card-text">
                     <strong>Tiempo Total Estimado de la
                       Orden:</strong>
@@ -41,31 +58,12 @@
                     striped
                     hover
                     :fields="fields"
-                    :items="orden.productos"
+                    :items="orden.departamentos"
                   >
-                    <template #cell(departamentos)="row">
-                      <b-list-group>
-                        <b-list-group-item
-                          v-for="(prod, index) in row
-                                                        .item.departamentos"
-                          :key="index"
-                          class="d-flex justify-content-between align-items-center"
-                        >
-                          {{
-                                                        prod.nombre_departamento
-                                                    }}
-                          <b-badge
-                            variant="primary"
-                            pill
-                          >{{
-                                                            (
-                                                                prod.tiempo_estimado_segundos /
-                                                                60
-                                                            ).toFixed(1)
-                                                        }}
-                            Min</b-badge>
-                        </b-list-group-item>
-                      </b-list-group>
+                    <template #cell(estado)="row">
+                      <b-badge :variant="row.item.fecha_terminado ? 'success' : 'secondary'">
+                        {{ row.item.fecha_terminado ? 'Terminado' : 'Pendiente' }}
+                      </b-badge>
                     </template>
                   </b-table>
                 </p>
@@ -88,22 +86,32 @@ export default {
   data() {
     return {
       fechas: [],
+      // 2026-08-13: campos por departamento (ya no por producto, ver nota en
+      // el template).
       fields: [
         {
-          key: "nombre_producto",
-          label: "Producto",
+          key: "nombre_departamento",
+          label: "Departamento",
         },
         {
-          key: "hora",
-          label: "Hora",
+          key: "estado",
+          label: "Estado",
         },
         {
-          key: "tiempo_total_estimado_producto_formateado",
-          label: "Tiempo estimado",
+          key: "cant_empleados",
+          label: "Empleados Asignados",
         },
         {
-          key: "departamentos",
-          label: "Departamentos",
+          key: "fecha_inicio_original_item_formateada",
+          label: "Inicio Real",
+        },
+        {
+          key: "fecha_finalizacion_estimada_depto_formateada",
+          label: "Fin (real o estimado)",
+        },
+        {
+          key: "tiempo_estimado_depto_formateado",
+          label: "Tiempo Estimado",
         },
       ],
     };
