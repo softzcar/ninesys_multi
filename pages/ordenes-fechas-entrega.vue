@@ -14,21 +14,41 @@
                  de cada departamento (consulta agregada por orden+departamento) --
                  este reporte muestra departamento en vez de producto > departamento.
                  El número de orden abre el detalle completo (productos, tallas,
-                 telas) desde linkSearch. -->
-            <b-tabs>
-              <b-tab
-                v-for="orden in proyectarEntregaConCola(
-                                    fechas,
-                                    $store.state.login.dataEmpresa
-                                        .horario_laboral
-                                )"
-                :key="orden.id_orden"
-                :title="`Orden ${orden.id_orden} - Entrega: ${orden.fecha_estimada_finalizacion_orden_formateada}`"
+                 telas) desde linkSearch.
+                 2026-08-13: con decenas de órdenes, las pestañas (b-tabs) se
+                 amontonaban en varias filas arriba y el detalle de la orden
+                 elegida se renderizaba muy abajo, lejos del click. Se cambió a
+                 un acordeón: el detalle aparece inmediatamente debajo de la
+                 orden en la que se hace click, y solo una orden está expandida
+                 a la vez (accordion group) para no perder el orden de la lista. -->
+            <b-card
+              v-for="orden in ordenesProyectadas"
+              :key="orden.id_orden"
+              no-body
+              class="mb-2"
+            >
+              <b-card-header
+                v-b-toggle="`collapse-orden-${orden.id_orden}`"
+                header-tag="header"
+                role="tab"
+                class="d-flex justify-content-between align-items-center"
+                style="cursor: pointer"
               >
-                <b-card>
+                <span>
+                  Orden {{ orden.id_orden }} - Entrega:
+                  {{ orden.fecha_estimada_finalizacion_orden_formateada }}
+                </span>
+                <b-badge :variant="orden.variant">{{ orden.variant_text }}</b-badge>
+              </b-card-header>
+              <b-collapse
+                :id="`collapse-orden-${orden.id_orden}`"
+                accordion="ordenes-fechas-entrega-accordion"
+                role="tabpanel"
+                lazy
+              >
+                <b-card-body>
                   <p class="card-text">
                     <linkSearch :id="orden.id_orden" />
-                    <b-badge :variant="orden.variant" class="ml-2">{{ orden.variant_text }}</b-badge>
                   </p>
                   <p class="card-text">
                     <strong>Unidades Totales:</strong>
@@ -52,8 +72,6 @@
                                             orden.fecha_inicio_orden_formateada
                                         }}
                   </p>
-                </b-card>
-                <p>
                   <b-table
                     striped
                     hover
@@ -66,9 +84,9 @@
                       </b-badge>
                     </template>
                   </b-table>
-                </p>
-              </b-tab>
-            </b-tabs>
+                </b-card-body>
+              </b-collapse>
+            </b-card>
           </b-col>
         </b-row>
       </b-container>
@@ -119,6 +137,17 @@ export default {
 
   computed: {
     ...mapState("login", ["dataUser", "access"]),
+
+    // Antes se llamaba proyectarEntregaConCola() directo en el v-for del
+    // template -- se recalculaba en cada render (ej. al abrir/cerrar el
+    // acordeón). Con decenas de órdenes eso es costoso; como computed solo
+    // se recalcula si cambian this.fechas o el horario laboral.
+    ordenesProyectadas() {
+      return this.proyectarEntregaConCola(
+        this.fechas,
+        this.$store.state.login.dataEmpresa.horario_laboral
+      );
+    },
   },
 
   methods: {
