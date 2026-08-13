@@ -42,14 +42,6 @@
       </router-link>
     </li>
 
-    <!-- Cortar -->
-    <li class="nav-item">
-      <router-link class="nav-link" to="/produccion/cortar">
-        <b-icon icon="scissors" />
-        <span>Cortar</span>
-      </router-link>
-    </li>
-
     <!-- Asistencias -->
     <li class="nav-item">
       <router-link class="nav-link" to="/asistencias">
