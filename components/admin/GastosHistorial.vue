@@ -80,7 +80,7 @@
         </b-alert>
         <b-form-group label="Monto:" label-for="edit-monto">
           <b-input-group :append="editModel.moneda">
-            <b-form-input id="edit-monto" v-model.number="editModel.monto" type="number" step="0.01" required></b-form-input>
+            <campo-decimal id="edit-monto" v-model="editModel.monto" required></campo-decimal>
           </b-input-group>
         </b-form-group>
         <b-form-group label="Fecha del pago:" label-for="edit-fecha">

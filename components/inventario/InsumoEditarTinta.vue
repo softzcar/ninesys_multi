@@ -81,13 +81,13 @@
 
                                 <b-form-group id="input-group-3-rend" label="Rendimiento:"
                                     label-for="input-rendimiento">
-                                    <b-form-input id="input-rendimiento" v-model="form.rendimiento"
-                                        placeholder="0.00" type="number" min="0" step="0.10"></b-form-input>
+                                    <campo-decimal id="input-rendimiento" v-model="form.rendimiento"
+                                        placeholder="0.00"></campo-decimal>
                                 </b-form-group>
 
                                 <b-form-group id="input-group-4-costo" label="Costo Total:" label-for="input-costo">
-                                    <b-form-input id="input-costo" v-model="form.costo"
-                                        placeholder="0.00" type="number" min="0" step="0.10"></b-form-input>
+                                    <campo-decimal id="input-costo" v-model="form.costo"
+                                        placeholder="0.00"></campo-decimal>
                                 </b-form-group>
 
                                 <!-- SECCIÓN 3: Clasificación -->

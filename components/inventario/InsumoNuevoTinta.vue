@@ -128,14 +128,11 @@
                                 label="Costo:"
                                 label-for="input-costo"
                             >
-                                <b-form-input
+                                <campo-decimal
                                     id="input-costo"
                                     v-model="form.costo"
                                     placeholder="Ingrese el costo"
-                                    type="number"
-                                    min="0"
-                                    step="0.10"
-                                ></b-form-input>
+                                ></campo-decimal>
                             </b-form-group>
 
                             <b-form-group
@@ -143,14 +140,11 @@
                                 label="Rendimiento:"
                                 label-for="input-rendimiento"
                             >
-                                <b-form-input
+                                <campo-decimal
                                     id="input-rendimiento"
                                     v-model="form.rendimiento"
                                     placeholder="Ingrese la cantidad"
-                                    type="number"
-                                    min="0"
-                                    step="0.10"
-                                ></b-form-input>
+                                ></campo-decimal>
                             </b-form-group>
 
                             <!-- <b-form-group

@@ -61,7 +61,7 @@
         <b-row>
           <b-col md="6">
             <b-form-group label="Monto de referencia:" label-for="monto-input-fijo">
-              <b-form-input id="monto-input-fijo" v-model="gastoModel.monto" type="number" step="0.01" required></b-form-input>
+              <campo-decimal id="monto-input-fijo" v-model="gastoModel.monto" required></campo-decimal>
             </b-form-group>
           </b-col>
           <b-col md="6">
@@ -92,7 +92,7 @@
           <strong>{{ gastoAPagar.nombre }}</strong> — Monto referencial: {{ gastoAPagar.monto | currency }} {{ gastoAPagar.moneda }}
         </b-alert>
         <b-form-group label="Monto pagado:" label-for="pago-monto-fijo">
-          <b-form-input id="pago-monto-fijo" v-model.number="pagoModel.monto" type="number" step="0.01" required placeholder="Ingrese el monto real pagado"></b-form-input>
+          <campo-decimal id="pago-monto-fijo" v-model="pagoModel.monto" required placeholder="Ingrese el monto real pagado"></campo-decimal>
         </b-form-group>
         <b-form-group label="Fecha del pago:" label-for="pago-fecha-fijo">
           <b-form-input id="pago-fecha-fijo" v-model="pagoModel.fecha_de_gasto" type="date" required></b-form-input>

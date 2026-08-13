@@ -42,17 +42,17 @@ Un solo campo, sin `v-for`, sin dependencias cruzadas — swap directo de `type=
 
 Múltiples campos monetarios en el mismo archivo, campo dentro de `v-for`, o nombre ambiguo que requiere leer el archivo antes de decidir. Orden sugerido (no es una regla fija, ajustar según convenga al tocar cada área):
 
-- [ ] `components/admin/detallePagos.vue` — `value` + `valueDescuento` (2 monetarios). Verificar si el componente se instancia dentro de un `v-for` del padre.
-- [ ] `components/admin/EmpleadoEditar.vue` — `form.salario` + `form.comision` monetarios; `form.comisionPorcentaje` NO aplica (es %).
-- [ ] `components/admin/EmpleadoNuevo.vue` — mismo patrón exacto que `EmpleadoEditar.vue`.
-- [ ] `components/admin/GastosFijos.vue` — `gastoModel.monto` + `pagoModel.monto` (2 monetarios).
-- [ ] `components/admin/GastosHistorial.vue` — `editModel.monto`. Verificar el `v-for` del archivo (probablemente de otra sección, no de este campo).
+- [x] `components/admin/detallePagos.vue` — SIN ACCIÓN: los inputs de `value`/`valueDescuento` están completamente COMENTADOS en el template (código muerto, líneas 72-97). No hay ningún input real que migrar. Las variables siguen usándose internamente como string (`.trim()`), pero no hay UI que las alimente hoy.
+- [x] `components/admin/EmpleadoEditar.vue` — `form.salario` + `form.comision` monetarios; `form.comisionPorcentaje` NO aplica (es %).
+- [x] `components/admin/EmpleadoNuevo.vue` — mismo patrón exacto que `EmpleadoEditar.vue`.
+- [x] `components/admin/GastosFijos.vue` — `gastoModel.monto` + `pagoModel.monto` (2 monetarios).
+- [x] `components/admin/GastosHistorial.vue` — `editModel.monto`. Confirmado envuelto en `b-input-group` (el mismo contexto que causó el bug de carrera ya corregido) — buen caso de prueba adicional.
 - [ ] `components/admin/AsignacionDeInsumosAProductosTab.vue` — 1 campo probablemente precio de insumo (verificar contexto exacto); `row.item.cantidad` NO aplica.
-- [ ] `components/inventario/InsumoNuevoTinta.vue` — `form.costo` + `form.rendimiento` monetarios; `form.mililitros` NO aplica.
-- [ ] `components/inventario/InsumoEditarTinta.vue` — `form.rendimiento` + `form.costo` monetarios.
-- [ ] `components/inventario/InsumoClonar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
-- [ ] `components/inventario/InsumoEditar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
-- [ ] `components/inventario/InsumoClonarTinta.vue` — `form.rendimiento` + `form.costo` monetarios; `form.mililitros` NO aplica.
+- [x] `components/inventario/InsumoNuevoTinta.vue` — `form.costo` + `form.rendimiento` monetarios; `form.mililitros` NO aplica.
+- [x] `components/inventario/InsumoEditarTinta.vue` — `form.rendimiento` + `form.costo` monetarios.
+- [x] `components/inventario/InsumoClonar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
+- [x] `components/inventario/InsumoEditar.vue` — `costoMetro` + `form.rendimiento` + `form.costo` monetarios.
+- [x] `components/inventario/InsumoClonarTinta.vue` — `form.rendimiento` + `form.costo` monetarios; `form.mililitros` NO aplica.
 - [ ] `components/ordenes/abono.vue` — `value` + `valueDescuento` + `valueNotaCredito` (3 monetarios).
 - [ ] `components/ordenes/nueva.vue` — `form.abono` + `form.descuento` + `form.total` (readonly, baja prioridad) monetarios; `form.productos[].cantidad` NO aplica.
 - [ ] `components/ordenes/MetodosPagoDinamico.vue` — `montos[metodo._id]` monetario, dentro de doble `v-for` (moneda × método). **ALTO IMPACTO Y ALTO CUIDADO:** este componente es compartido por 6 formularios reales (nueva orden, presupuesto, abono, retiros, cierre de caja, abonos) — migrarlo propaga el cambio a los 6 de una vez, pero también significa que un error aquí rompe 6 pantallas simultáneamente. Probar en las 6 antes de dar por cerrado.
