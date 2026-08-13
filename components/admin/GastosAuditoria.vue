@@ -80,17 +80,16 @@
 export default {
   name: 'GastosAuditoria',
   data() {
-    const today = new Date().toISOString().substring(0, 10)
-    const lastWeek = new Date()
-    lastWeek.setDate(lastWeek.getDate() - 7)
-    const sevenDaysAgo = lastWeek.toISOString().substring(0, 10)
-
     return {
       overlay: false,
       logs: [],
+      // Sin fechas por defecto, mismo motivo que GastosHistorial.vue -- una
+      // bitácora debe mostrar todo el historial al entrar, no una ventana de
+      // 7 días que puede ocultar ediciones/eliminaciones reales más viejas
+      // sin ninguna explicación en pantalla.
       filtros: {
-        desde: sevenDaysAgo,
-        hasta: today,
+        desde: '',
+        hasta: '',
         accion: ''
       },
       opcionesAccion: [

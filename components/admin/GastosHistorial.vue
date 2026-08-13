@@ -126,16 +126,18 @@ export default {
     },
   },
   data() {
-    const now = new Date()
-    const primerDiaMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-    const hoy = now.toISOString().substring(0, 10)
     return {
       overlay: false,
       registros: [],
       editModel: null,
       deleteModel: null,
       deleteMotivo: '',
-      filtros: { desde: primerDiaMes, hasta: hoy, tipo: '' },
+      // Sin fechas por defecto -- es un historial, no un reporte de un
+      // período acotado. Con un rango por defecto (ej. "mes actual"), un
+      // pago real de un mes anterior queda oculto sin ninguna explicación
+      // ("No se encontraron pagos"), dando la falsa impresión de que no hay
+      // historial cuando sí lo hay.
+      filtros: { desde: '', hasta: '', tipo: '' },
       opcionesTipo: [
         { value: '', text: 'Todos los tipos' },
         { value: 'fijo', text: 'Fijos' },
