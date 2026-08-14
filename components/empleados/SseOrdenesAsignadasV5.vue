@@ -1704,8 +1704,10 @@ export default {
         const idsToFetch = ordenesIds.filter(id => !this.eficienciaOrdenCache[id]);
 
         if (idsToFetch.length > 0) {
+          const idEmpleado = this.$store.state.login.dataUser.id_empleado;
+          const idDepartamento = this.$store.state.login.currentDepartamentId;
           const insumosPromises = idsToFetch.map((idOrden) =>
-            this.$axios.get(`${this.$config.API}/eficiencia-orden/${idOrden}`)
+            this.$axios.get(`${this.$config.API}/eficiencia-orden/${idOrden}`, { params: { id_empleado: idEmpleado, id_departamento: idDepartamento } })
               .then((resp) => {
                 const insumos = resp.data.insumos_asignados || [];
                 const datos = insumos.map((ins) => ({ ...ins, id_orden: idOrden }));
