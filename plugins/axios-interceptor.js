@@ -3,65 +3,73 @@ import axios from 'axios'
 // Caché de peticiones GET en vuelo y recientes (TTL 2 segundos)
 const requestCache = new Map()
 
-if (!axios.Axios.prototype.request.__wrappedForCache) {
-  const originalRequest = axios.Axios.prototype.request
+export default function ({ $axios, store, app }) {
 
-  axios.Axios.prototype.request = function (configOrUrl, config) {
-    let normalizedConfig
-    if (typeof configOrUrl === 'string') {
-      normalizedConfig = config || {}
-      normalizedConfig.url = configOrUrl
-    } else {
-      normalizedConfig = configOrUrl || {}
-    }
+  // La clave de caché DEBE incluir la empresa/usuario que hace la petición: este
+  // wrapper corre antes de que el interceptor onRequest fije el header
+  // Authorization (id_empresa), así que dos empresas distintas pidiendo la misma
+  // url+params dentro del TTL recibirían la respuesta de la OTRA empresa si la
+  // clave no las distingue (bug real: /refresh-session/{id} devolvía datos de
+  // una empresa distinta a la que estaba activa en ese momento).
+  if (!axios.Axios.prototype.request.__wrappedForCache) {
+    const originalRequest = axios.Axios.prototype.request
 
-    const method = (normalizedConfig.method || 'get').toLowerCase()
-    if (method === 'get') {
-      const url = normalizedConfig.url || ''
-      let paramsStr = ''
-      try {
-        paramsStr = normalizedConfig.params ? JSON.stringify(normalizedConfig.params) : ''
-      } catch (e) {
-        paramsStr = String(normalizedConfig.params)
-      }
-      const key = `${url}?${paramsStr}`
-
-      const now = Date.now()
-      const cached = requestCache.get(key)
-
-      console.log(`🔍 [AXIOS-CACHE] Solicitud: ${key} | Cacheado: ${!!cached} | Edad: ${cached ? (now - cached.timestamp) + 'ms' : 'N/A'}`)
-
-      // Reutilizar si no ha expirado
-      if (cached && (now - cached.timestamp < 2000)) {
-        console.log(`🔄 [AXIOS-CACHE] Reutilizando respuesta/promesa para: ${url}`)
-        return cached.promise
+    axios.Axios.prototype.request = function (configOrUrl, config) {
+      let normalizedConfig
+      if (typeof configOrUrl === 'string') {
+        normalizedConfig = config || {}
+        normalizedConfig.url = configOrUrl
+      } else {
+        normalizedConfig = configOrUrl || {}
       }
 
-      const promise = originalRequest.call(this, normalizedConfig)
-        .then(response => {
-          return response
-        })
-        .catch(error => {
-          // Si falló, remover de caché inmediatamente para permitir reintentos
-          requestCache.delete(key)
-          return Promise.reject(error)
+      const method = (normalizedConfig.method || 'get').toLowerCase()
+      if (method === 'get') {
+        const url = normalizedConfig.url || ''
+        let paramsStr = ''
+        try {
+          paramsStr = normalizedConfig.params ? JSON.stringify(normalizedConfig.params) : ''
+        } catch (e) {
+          paramsStr = String(normalizedConfig.params)
+        }
+        const idEmpresa = store.state.login?.idEmpresa || store.state.login?.dataEmpresa?.id || 0
+        const key = `${idEmpresa}|${url}?${paramsStr}`
+
+        const now = Date.now()
+        const cached = requestCache.get(key)
+
+        console.log(`🔍 [AXIOS-CACHE] Solicitud: ${key} | Cacheado: ${!!cached} | Edad: ${cached ? (now - cached.timestamp) + 'ms' : 'N/A'}`)
+
+        // Reutilizar si no ha expirado
+        if (cached && (now - cached.timestamp < 2000)) {
+          console.log(`🔄 [AXIOS-CACHE] Reutilizando respuesta/promesa para: ${url}`)
+          return cached.promise
+        }
+
+        const promise = originalRequest.call(this, normalizedConfig)
+          .then(response => {
+            return response
+          })
+          .catch(error => {
+            // Si falló, remover de caché inmediatamente para permitir reintentos
+            requestCache.delete(key)
+            return Promise.reject(error)
+          })
+
+        requestCache.set(key, {
+          promise,
+          timestamp: now
         })
 
-      requestCache.set(key, {
-        promise,
-        timestamp: now
-      })
+        return promise
+      }
 
-      return promise
+      return originalRequest.call(this, normalizedConfig)
     }
 
-    return originalRequest.call(this, normalizedConfig)
+    axios.Axios.prototype.request.__wrappedForCache = true
   }
 
-  axios.Axios.prototype.request.__wrappedForCache = true
-}
-
-export default function ({ $axios, store, app }) {
 
   // Función auxiliar para verificar si una URL pertenece al servicio WhatsApp
   const isWhatsAppService = (url) => {
