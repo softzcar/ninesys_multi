@@ -365,13 +365,12 @@
 </template>
 
 <script>
-import eficienciaInsumoMixin from "~/mixins/mixin-insumos";
 import mixin from "~/mixins/mixins.js";
 
 const eficienciaOrdenCacheModal = {};
 
 export default {
-  mixins: [eficienciaInsumoMixin, mixin],
+  mixins: [mixin],
   data() {
     return {
       esReposicion: null,
@@ -407,9 +406,6 @@ export default {
         { key: "input", label: "" },
         { key: "id", label: "" },
       ],
-      datosEficiencia: {},
-      eficienciaCalculada: null,
-      intentoDeCalculo: false,
       // Mapa de colores para inputs de tinta
       colorMap: {
         c: '#00FFFF',    // Cyan
@@ -1148,12 +1144,6 @@ export default {
       this.$set(this.form[index], 'validInsumo', true); // Marcar como válido
       console.log("ID LISTO", this.form[index].select);
       console.log("form", this.form);
-
-      // CALCULAR EL RENDIMIENTO DEL MATERIAL
-      this.getDataEficiencia(
-        this.idorden,
-        this.$store.state.login.currentDepartamentId
-      ).then(() => this.calcular());
     },
 
     generateRandomId() {
@@ -2041,53 +2031,6 @@ export default {
                     }
                 });
         }, */
-
-    calcular() {
-      this.intentoDeCalculo = true;
-      this.eficienciaCalculada = this.calcularEficienciaInsumo(
-        this.datosEficiencia
-      );
-
-      // Ejemplo de cómo podrías usarlo con otros datos
-      // const otrosDatos = {
-      //   cantidadProductosOrden: 10,
-      //   consumoRealTotalOrdenUnidadBase: 0, // No se usó este insumo
-      //   factorConversionUnidadInsumo: 5,
-      //   consumoTeoricoPorProductoUnidadConvertida: 1
-      // };
-      // const otraEficiencia = this.calcularEficienciaInsumo(otrosDatos);
-      // console.log('Otra eficiencia:', otraEficiencia); // Debería ser Infinity
-
-      // const datosConDesperdicio = {
-      //   cantidadProductosOrden: 5,
-      //   consumoRealTotalOrdenUnidadBase: 0.5, // Se gastó 0.5 kg
-      //   factorConversionUnidadInsumo: 1, // kg a kg (sin conversión)
-      //   consumoTeoricoPorProductoUnidadConvertida: 0 // No se esperaba gastar nada
-      // };
-      // const eficienciaDesperdicio = this.calcularEficienciaInsumo(datosConDesperdicio);
-      // console.log('Eficiencia con desperdicio:', eficienciaDesperdicio); // Debería ser 0
-    },
-
-    async getDataEficiencia(idOrden, idDep) {
-      this.overlay = true;
-      await this.$axios
-        .get(`${this.$config.API}/inventario/eficiencia/${idOrden}/${idDep}`)
-        .then((res) => {
-          console.log("datos:", res.data[0]);
-
-          this.datosEficiencia = res.data[0];
-        })
-        .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<P>No se cargaron los datos correctamente</p><p>${err}</p>`,
-            type: "error",
-          });
-        })
-        .finally(() => {
-          this.overlay = false;
-        });
-    },
 
     async getEficienciaEstimada() {
       if (eficienciaOrdenCacheModal[this.idorden]) {
