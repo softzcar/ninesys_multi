@@ -673,11 +673,19 @@ export default {
         if (!productosUnicos.has(key)) {
           const tipo = this.$store.getters['login/currentDepartamentTipo'];
           const isRepo = !!(this.esReposicion || this.esreposicion || (this.item && (this.item.esreposicion || this.item.es_reposicion)));
+          // "unidades" ya viene acotado por el backend a lo que este empleado tiene
+          // realmente asignado (asignación granular por producto) cuando aplica, con
+          // fallback automático a la cantidad total si no hay asignación granular --
+          // por eso debe preferirse sobre "cantidad_original" (que SIEMPRE es el total
+          // de la orden sin importar el empleado). Se usa cantidad_original solo si
+          // "unidades" viene ausente (null/undefined), no si es 0 (0 es un valor real).
           const u = isRepo
             ? (parseFloat(this.item.unidades) || 0)
             : (tipo === 'corte'
                 ? (parseFloat(item.unidades) || 0)
-                : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0));
+                : (item.unidades !== null && item.unidades !== undefined
+                    ? (parseFloat(item.unidades) || 0)
+                    : (parseFloat(item.cantidad_original) || 0)));
           productosUnicos.set(key, {
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
             unidades: u,
@@ -726,11 +734,17 @@ export default {
         if (!productosUnicos.has(key)) {
           const tipo = this.$store.getters['login/currentDepartamentTipo'];
           const isRepo = !!(this.esReposicion || this.esreposicion || (this.item && (this.item.esreposicion || this.item.es_reposicion)));
+          // Ver nota en materialEstimadoDepartamento: "unidades" ya viene acotado por
+          // el backend a la asignación granular real del empleado, con fallback
+          // automático a la cantidad total si no aplica -- debe preferirse sobre
+          // "cantidad_original" (siempre el total de la orden).
           const u = isRepo
             ? (parseFloat(this.item.unidades) || 0)
             : (tipo === 'corte'
                 ? (parseFloat(item.unidades) || 0)
-                : (parseFloat(item.cantidad_original) || parseFloat(item.unidades) || 0));
+                : (item.unidades !== null && item.unidades !== undefined
+                    ? (parseFloat(item.unidades) || 0)
+                    : (parseFloat(item.cantidad_original) || 0)));
           productosUnicos.set(key, {
             catalogo: item.catalogo || 'Sin catálogo',
             cantidad_estimada: parseFloat(item.cantidad_estimada_de_consumo) || 0,
@@ -2100,7 +2114,12 @@ export default {
 
       this.overlay = true;
       await this.$axios
-        .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`)
+        .get(`${this.$config.API}/eficiencia-orden/${this.idorden}`, {
+          params: {
+            id_empleado: this.$store.state.login.dataUser.id_empleado,
+            id_departamento: this.$store.state.login.currentDepartamentId,
+          },
+        })
         .then((res) => {
           this.eficienciaDetalles = res.data.detalles;
           const insumosData = (res.data.insumos_asignados || []).map(ins => ({ ...ins, id_orden: this.idorden }));
