@@ -238,6 +238,7 @@ export default {
                         this.$store.commit("login/setDatosUsuario", res.data.datos_usuario);
                         this.$store.commit("login/setDatosPersonalizacion", res.data.datos_personalizacion);
                         this.$store.commit("login/setConfiguracionFaltante", []); // Array vacío porque está completo
+                        this.$store.commit("login/setWizardOperativo", res.data.wizard_operativo || null);
 
                         this.$store.commit("login/setLoading", false);
                         this.getConfigData();

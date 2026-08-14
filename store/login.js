@@ -18,6 +18,7 @@ export const state = () => ({
     loading: true,
     activo: false,
     configuracionFaltante: [],
+    wizardOperativo: null, // Estado del wizard operativo (fase 2, posterior al institucional)
     token: null, // Token JWT
     refreshToken: null, // Token de refresco
     // Nuevos campos para tasas automáticas
@@ -29,6 +30,9 @@ export const state = () => ({
 export const mutations = {
     setConfiguracionFaltante(state, data) {
         state.configuracionFaltante = data;
+    },
+    setWizardOperativo(state, data) {
+        state.wizardOperativo = data;
     },
     removeConfiguracionFaltante(state, errorsToRemove) {
         state.configuracionFaltante = state.configuracionFaltante.filter(
@@ -195,6 +199,9 @@ export const actions = {
                 if (data.modulos) {
                     commit('setModulos', data.modulos);
                 }
+
+                // Actualizar estado del wizard operativo (fase 2)
+                commit('setWizardOperativo', data.wizard_operativo || null);
 
                 return { success: true };
             }
