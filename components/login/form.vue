@@ -241,6 +241,18 @@ export default {
                         this.$store.commit("login/setWizardOperativo", res.data.wizard_operativo || null);
 
                         this.$store.commit("login/setLoading", false);
+
+                        // El login no siempre dispara una navegación de ruta real (si ya
+                        // estamos en "/", el contenido solo cambia reactivamente), y el
+                        // middleware "auth" de Nuxt solo se evalúa en cambios de ruta -- sin
+                        // esto, un cliente que hace login por primera vez con el wizard
+                        // incompleto vería el dashboard normal en vez del wizard.
+                        const wo = res.data.wizard_operativo;
+                        if (wo && !wo.wizard_operativo_completo && !wo.wizard_operativo_omitido_en) {
+                          this.$router.push("/configuracion-operativa");
+                          return;
+                        }
+
                         this.getConfigData();
                       } else {
                         // Este bloque 'else' es por si la API devuelve un código 200 pero con acceso denegado.
