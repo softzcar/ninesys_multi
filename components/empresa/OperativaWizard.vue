@@ -309,6 +309,9 @@ const DEFINICION_PASOS = [
     descripcion: "Nombre, teléfono y contraseña del administrador de la cuenta.",
     rutaSugerida: "Configuración > Datos del Administrador",
     formRefs: ["adminForm"],
+    // Sin valor por defecto razonable (no hay "nombre de admin" genérico) --
+    // este paso sí bloquea el avance si el formulario queda incompleto.
+    bloqueaSiIncompleto: true,
   },
   {
     clave: "empresa",
@@ -317,6 +320,9 @@ const DEFINICION_PASOS = [
     descripcion: "Nombre legal, registro, dirección y datos de contacto de tu empresa.",
     rutaSugerida: "Configuración > Datos de la Empresa",
     formRefs: ["empresaForm"],
+    // Igual que "admin": nombre/registro legal/dirección/teléfono/email de la
+    // empresa no tienen ningún default válido, así que este paso bloquea.
+    bloqueaSiIncompleto: true,
   },
   {
     clave: "monedas",
@@ -517,16 +523,21 @@ export default {
       const paso = this.obtenerPasoPorTab(props.activeTabIndex);
       if (paso && !paso.noAplica) {
         // Pasos institucionales: intenta guardar de verdad con el formulario
-        // real (mismo save() que usa el wizard viejo). Si falla la validación
-        // (campos vacíos/inválidos), el propio formulario ya avisa con su
-        // alerta -- el resultado se ignora a propósito para no bloquear el
-        // avance: el cliente puede seguir con el valor por defecto y
-        // completarlo después desde Configuración.
+        // real (mismo save() que usa el wizard viejo). Si falla la
+        // validación (campos vacíos/inválidos), el propio formulario ya
+        // avisa con su alerta. La mayoría de estos pasos tienen un valor por
+        // defecto razonable (país, horario, personalización) y dejan
+        // avanzar igual -- pero "admin" y "empresa" no tienen ningún
+        // default válido (no existe un "nombre de empresa" genérico), así
+        // que esos dos sí bloquean el avance hasta completarse.
         if (paso.formRefs) {
           for (const refName of paso.formRefs) {
             const formInstance = this.$refs[refName];
             if (formInstance && typeof formInstance.save === "function") {
-              await formInstance.save();
+              const guardado = await formInstance.save();
+              if (!guardado && paso.bloqueaSiIncompleto) {
+                return;
+              }
             }
           }
         }
