@@ -659,8 +659,17 @@ export default {
   justify-content: flex-start !important;
   text-align: left !important;
 }
+/* Ancho fijo por paso: si cada <li> se dimensiona a su propio contenido
+   (flex: 0 0 auto), el ancho varía según el largo del título ("Datos del
+   Administrador" vs "Monedas"), y al envolver en varias filas cada fila
+   termina con una distribución de espacio distinta -- se ve desordenado
+   y los pasos de una fila no quedan alineados con los de la fila de
+   arriba. Con un ancho fijo igual para todos, flex-wrap arma una
+   cuadrícula real: la misma cantidad de pasos por fila y cada columna
+   alineada verticalmente entre filas. */
 .wizard-operativo-inner .wizard-nav-pills > li {
   text-align: center;
-  flex: 0 0 auto;
+  flex: 0 0 120px;
+  width: 120px;
 }
 </style>
