@@ -206,7 +206,7 @@
           :before-change="() => validarPaso(13)"
         >
           <paso-cabecera :paso="pasoPorClave('inventario_tintas')" />
-          <inventario-gestion v-if="!pasoPorClave('inventario_tintas').noAplica" />
+          <inventario-InsumoNuevoTinta v-if="!pasoPorClave('inventario_tintas').noAplica" />
         </tab-content>
 
         <tab-content
