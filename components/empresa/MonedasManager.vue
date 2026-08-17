@@ -223,11 +223,11 @@ export default {
       }
     },
     async cargarMonedasSoportadas() {
-      const idPais = this.$store.state.login.dataEmpresa?.id_pais;
-      if (!idPais) {
-        this.monedasSoportadas = [];
-        return;
-      }
+      // Si la empresa aún no tiene país configurado (ej. el cliente saltó ese
+      // paso del wizard dejándolo por defecto), no hay forma de filtrar las
+      // monedas soportadas -- se usa Venezuela (id_pais=1 en paises_soportados)
+      // como fallback para que el selector de monedas nunca quede vacío.
+      const idPais = this.$store.state.login.dataEmpresa?.id_pais || 1;
       try {
         const { data } = await this.$axios.get(
           `${this.$config.API}/monedas-soportadas/${idPais}`
@@ -327,9 +327,21 @@ export default {
         this.overlay = false;
       }
     },
+    async reloadAll() {
+      await Promise.all([this.cargarMonedas(), this.cargarMonedasSoportadas(), this.cargarTasas()]);
+    },
+  },
+  watch: {
+    "$store.state.login.dataEmpresa.id_pais": {
+      async handler(newVal) {
+        if (newVal) {
+          await this.reloadAll();
+        }
+      }
+    }
   },
   async mounted() {
-    await Promise.all([this.cargarMonedas(), this.cargarMonedasSoportadas(), this.cargarTasas()]);
+    await this.reloadAll();
   },
 };
 </script>

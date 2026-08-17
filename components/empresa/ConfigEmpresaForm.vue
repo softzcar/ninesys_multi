@@ -68,6 +68,7 @@
               v-model="data.email"
               type="email"
               placeholder="Ingrese un correo electrónico"
+              autocomplete="off"
               required
             ></b-form-input>
           </b-form-group>
