@@ -31,7 +31,6 @@
                 v-if="!props.isLastStep"
                 @click="avanzar(props)"
                 variant="primary"
-                :disabled="!pasoSatisfecho(obtenerPasoPorTab(props.activeTabIndex))"
               >
                 {{ pasoRevisado(obtenerPasoPorTab(props.activeTabIndex)) ? "Continuar" : "Marcar como revisado y continuar" }}
               </b-button>
