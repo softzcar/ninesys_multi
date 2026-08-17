@@ -68,7 +68,14 @@
       </b-alert>
 
       <b-alert v-if="session.status === 'DEGRADED'" variant="warning" show class="mt-3 mb-0">
-        La reconexión automática se agotó. Es necesario reiniciar manualmente la conexión.
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>La reconexión automática se agotó. Es necesario reiniciar manualmente la conexión.</span>
+          <b-button size="sm" variant="warning" :disabled="actionLoading !== null" @click="doRestart">
+            <b-spinner v-if="actionLoading === 'restart'" small class="mr-1" />
+            <b-icon v-else icon="arrow-clockwise" class="mr-1" />
+            Reiniciar ahora
+          </b-button>
+        </div>
       </b-alert>
     </b-card>
 
