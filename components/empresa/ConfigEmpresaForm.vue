@@ -1,5 +1,5 @@
 <template>
-  <b-form @submit.prevent="save">
+  <b-form @submit.prevent="save" autocomplete="off">
     <b-overlay :show="overlay">
       <b-row class="justify-content-center">
         <b-col md="12">
@@ -62,11 +62,13 @@
             </b-input-group>
           </b-form-group>
 
-          <b-form-group label="Email de la Empresa:" label-for="empresa-email">
+          <b-form-group label="Email de la Empresa:" label-for="empresa-contacto-correo">
             <b-form-input
-              id="empresa-email"
+              id="empresa-contacto-correo"
+              name="empresa-contacto-correo"
               v-model="data.email"
-              type="email"
+              type="text"
+              inputmode="email"
               placeholder="Ingrese un correo electrónico"
               autocomplete="off"
               required
