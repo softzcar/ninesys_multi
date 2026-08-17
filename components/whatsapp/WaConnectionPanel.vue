@@ -155,6 +155,7 @@ export default {
       qrCode: null,
       actionLoading: null,
       serviceHealth: null,
+      pollTimer: null,
     }
   },
 
@@ -203,10 +204,20 @@ export default {
     this.fetchSessionInfo()
     if (this.showHealth) this.fetchServiceHealth()
     this.initSocket()
+    // Red de seguridad: mientras se espera el escaneo, consulta el estado
+    // real cada pocos segundos. El evento 'ready' por socket debería llegar
+    // solo, pero si por cualquier motivo no llega (reconexión perdida,
+    // evento descartado, etc.), esto igual refleja la conexión real sin
+    // que el usuario tenga que adivinar que debe presionar "Actualizar
+    // estado" manualmente.
+    this.pollTimer = setInterval(() => {
+      if (this.session.status !== 'READY') this.fetchSessionInfo()
+    }, 5000)
   },
 
   beforeDestroy() {
     this.teardownSocket()
+    if (this.pollTimer) clearInterval(this.pollTimer)
   },
 
   methods: {
@@ -263,12 +274,22 @@ export default {
 
       this.setupSocketListeners(socket)
 
-      const doSubscribe = () => socket.emit('subscribe', this.idEmpresa)
+      // El socket es una instancia global compartida (reconnection: true en el
+      // plugin), así que puede reconectarse en cualquier momento durante el
+      // rato que el usuario tarda en escanear el QR. Antes esto usaba
+      // socket.once('connect', ...) -- solo re-suscribía a la sala
+      // "company-{id}" la PRIMERA vez que conectaba. Si el socket se
+      // reconectaba después (red inestable, sleep del navegador, etc.), la
+      // suscripción se perdía para siempre y ningún evento 'ready'/'qr'
+      // volvía a llegar a este cliente, aunque el escaneo sí hubiera
+      // conectado el teléfono del lado del servidor. Con socket.on (no
+      // once) se re-suscribe en cada conexión, incluidas las reconexiones.
+      this._doSubscribe = () => socket.emit('subscribe', this.idEmpresa)
+      socket.on('connect', this._doSubscribe)
 
       if (socket.connected) {
-        doSubscribe()
+        this._doSubscribe()
       } else {
-        socket.once('connect', doSubscribe)
         socket.connect()
       }
     },
@@ -322,6 +343,7 @@ export default {
     teardownSocket() {
       const socket = this.$wsSocket
       if (!socket) return
+      socket.off('connect', this._doSubscribe)
       socket.off('qr', this._onQr)
       socket.off('ready', this._onReady)
       socket.off('status', this._onStatus)
