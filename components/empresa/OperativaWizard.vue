@@ -1,6 +1,6 @@
 <template>
   <div class="wizard-operativo-container d-flex align-items-center justify-content-center">
-    <b-container class="mt-5">
+    <b-container fluid class="mt-5 wizard-operativo-inner">
       <h2 class="text-center mb-4">Configuración de tu Empresa</h2>
 
       <form-wizard
@@ -616,5 +616,40 @@ export default {
 <style>
 .wizard-operativo-container {
   min-height: 80vh;
+}
+
+/* El wizard institucional viejo tiene pocos pasos y cabe en el ancho
+   normal de Bootstrap; este, con 18 pasos, necesita más espacio horizontal
+   para que quepan la mayor cantidad posible de círculos en una sola fila
+   antes de pasar a una segunda línea. */
+.wizard-operativo-inner {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Achica un poco los círculos y sus etiquetas para que quepan más por
+   fila sin verse amontonados. */
+.wizard-operativo-inner .wizard-icon-circle {
+  width: 50px;
+  height: 50px;
+}
+.wizard-operativo-inner .wizard-icon-circle .wizard-icon {
+  font-size: 18px;
+}
+.wizard-operativo-inner .stepTitle {
+  font-size: 12px;
+}
+
+/* Cuando los pasos no caben en una sola fila, la librería los centra por
+   defecto -- eso hace que la fila de abajo se vea como un bloque aparte
+   en vez de continuación de la fila de arriba. Alineándola a la izquierda
+   mantiene el mismo margen entre ambas filas. */
+.wizard-operativo-inner .wizard-nav-pills {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+.wizard-operativo-inner .wizard-nav-pills > li {
+  text-align: center;
 }
 </style>
