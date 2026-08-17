@@ -2,6 +2,17 @@
     <div>
         <b-button
             size="sm"
+            class="mb-4 mr-1"
+            :variant="asiganr_numero_de_paso == 1 ? 'success' : 'secondary'"
+            :disabled="overlay"
+            title="Asignar número de paso"
+            @click="confirmarAsignarPaso"
+        >
+            <b-icon icon="list-ol"></b-icon
+        ></b-button>
+
+        <b-button
+            size="sm"
             class="mb-4"
             @click="$bvModal.show(modal)"
             variant="primary"
@@ -46,23 +57,6 @@
                             :disabled="overlay || isDefaultDepartment"
                         />
                     </b-form-group>
-                    <b-form-group
-                        id="input-group-2"
-                        label="Asignar número de paso:"
-                        description="Indica si este departamento forma parte de el orden de la cadena de producción"
-                        label-for="input-1"
-                    >
-                        <b-form-checkbox
-                            id="checkbox-1"
-                            v-model="asiganr_numero_de_paso"
-                            name="checkbox-1"
-                            value="1"
-                            unchecked-value="0"
-                            switch
-                        >
-                        </b-form-checkbox>
-                    </b-form-group>
-
                     <b-form-group
                         id="input-group-6"
                         label="Enviar mensaje:"
@@ -178,6 +172,48 @@ export default {
         onModalHidden() {
             // this.newDep = ''
             // this.asiganr_numero_de_paso = 0
+        },
+
+        async confirmarAsignarPaso() {
+            try {
+                await this.$confirm(
+                    "Indica si este departamento forma parte de el orden de la cadena de producción",
+                    "Asignar número de paso",
+                    "question"
+                );
+                await this.guardarAsignarPaso();
+            } catch (e) {
+                // Cancelado por el usuario, no hacer nada
+            }
+        },
+
+        async guardarAsignarPaso() {
+            const nuevoValor = this.asiganr_numero_de_paso == 1 ? 0 : 1;
+            this.overlay = true;
+            const data = new URLSearchParams();
+            data.set("id_departamento", this.item._id);
+            data.set("departamento", this.newDep);
+            data.set("asignar_paso", nuevoValor);
+            data.set("enviar_mensaje", this.enviarMensaje);
+            data.set("modulo", this.modulo);
+            data.set("tipo", this.tipo);
+
+            await this.$axios
+                .post(`${this.$config.API}/departamentos/editar`, data)
+                .then(() => {
+                    this.asiganr_numero_de_paso = nuevoValor;
+                    this.$emit("reload", "true");
+                })
+                .catch((err) => {
+                    this.$fire({
+                        title: "Asignar número de paso",
+                        html: `<p>Ocurrió un error al actualizar</p> <p>${err}</p>`,
+                        type: "error",
+                    });
+                })
+                .finally(() => {
+                    this.overlay = false;
+                });
         },
 
         async guardarOrdenDepartamento() {
