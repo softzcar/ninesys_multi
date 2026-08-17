@@ -32,7 +32,7 @@
                 @click="avanzar(props)"
                 variant="primary"
               >
-                {{ pasoRevisado(obtenerPasoPorTab(props.activeTabIndex)) ? "Continuar" : "Marcar como revisado y continuar" }}
+                Siguiente
               </b-button>
               <b-button @click="finalizarWizard()" v-else variant="success">
                 Finalizar
@@ -65,8 +65,10 @@
         >
           <paso-cabecera :paso="pasoPorClave('admin')" />
           <config-admin-form
+            ref="adminForm"
             :initial-data="adminData"
             :country-codes="countryCodes"
+            :show-save-button="false"
             @phone-blur="handlePhoneBlur"
           />
         </tab-content>
@@ -78,8 +80,10 @@
         >
           <paso-cabecera :paso="pasoPorClave('empresa')" />
           <config-empresa-form
+            ref="empresaForm"
             :initial-data="empresaData"
             :country-codes="countryCodes"
+            :show-save-button="false"
             @phone-blur="handlePhoneBlur"
           />
         </tab-content>
@@ -94,7 +98,7 @@
             Si omites este paso sin configurar al menos una moneda con método de pago, no podrás
             capturar pagos en Nueva Orden hasta que lo configures.
           </b-alert>
-          <config-monedas-form />
+          <config-monedas-form ref="monedasForm" :show-save-button="false" />
         </tab-content>
 
         <tab-content
@@ -103,7 +107,7 @@
           :before-change="() => validarPaso(3)"
         >
           <paso-cabecera :paso="pasoPorClave('horario')" />
-          <config-horario-form :initial-data="horarioData" />
+          <config-horario-form ref="horarioForm" :initial-data="horarioData" :show-save-button="false" />
         </tab-content>
 
         <tab-content
@@ -112,9 +116,9 @@
           :before-change="() => validarPaso(4)"
         >
           <paso-cabecera :paso="pasoPorClave('personalizacion')" />
-          <config-personalizacion-form :initial-data="personalizacionData" />
+          <config-personalizacion-form ref="personalizacionForm" :initial-data="personalizacionData" :show-save-button="false" />
           <hr class="my-4" />
-          <config-timezone-form :initial-data="timezoneData" />
+          <config-timezone-form ref="timezoneForm" :initial-data="timezoneData" :show-save-button="false" />
         </tab-content>
 
         <tab-content
@@ -123,7 +127,7 @@
           :before-change="() => validarPaso(5)"
         >
           <paso-cabecera :paso="pasoPorClave('gastos')" />
-          <config-gastos-form :initial-data="gastosData" :monedas="monedasData" />
+          <config-gastos-form ref="gastosForm" :initial-data="gastosData" :monedas="monedasData" :show-save-button="false" />
         </tab-content>
 
         <tab-content
@@ -304,6 +308,7 @@ const DEFINICION_PASOS = [
     icon: "ti ti-user",
     descripcion: "Nombre, teléfono y contraseña del administrador de la cuenta.",
     rutaSugerida: "Configuración > Datos del Administrador",
+    formRefs: ["adminForm"],
   },
   {
     clave: "empresa",
@@ -311,6 +316,7 @@ const DEFINICION_PASOS = [
     icon: "ti ti-home",
     descripcion: "Nombre legal, registro, dirección y datos de contacto de tu empresa.",
     rutaSugerida: "Configuración > Datos de la Empresa",
+    formRefs: ["empresaForm"],
   },
   {
     clave: "monedas",
@@ -318,6 +324,7 @@ const DEFINICION_PASOS = [
     icon: "ti ti-money",
     descripcion: "Configura las monedas y métodos de pago que vas a aceptar.",
     rutaSugerida: "Configuración > Monedas",
+    formRefs: ["monedasForm"],
   },
   {
     clave: "horario",
@@ -325,6 +332,7 @@ const DEFINICION_PASOS = [
     icon: "ti ti-alarm-clock",
     descripcion: "Días y horas de operación de tu empresa.",
     rutaSugerida: "Configuración > Horario Laboral",
+    formRefs: ["horarioForm"],
   },
   {
     clave: "personalizacion",
@@ -332,6 +340,7 @@ const DEFINICION_PASOS = [
     icon: "ti ti-palette",
     descripcion: "Opciones visuales, zona horaria y comportamiento del sistema.",
     rutaSugerida: "Configuración > Personalización",
+    formRefs: ["personalizacionForm", "timezoneForm"],
   },
   {
     clave: "gastos",
@@ -339,6 +348,7 @@ const DEFINICION_PASOS = [
     icon: "ti ti-receipt",
     descripcion: "Registra tus costos operativos mensuales recurrentes.",
     rutaSugerida: "Configuración > Gastos Fijos",
+    formRefs: ["gastosForm"],
   },
   {
     clave: "departamentos",
@@ -498,9 +508,6 @@ export default {
       if (paso === null) return true;
       return !!(paso && (paso.revisado || paso.noAplica));
     },
-    pasoRevisado(paso) {
-      return !!(paso && paso.revisado);
-    },
     mostrarBotonOmitirTodo(activeTabIndex) {
       // Visible desde el 2º paso real en adelante (tab 2 = "empleados"), no en
       // la Bienvenida ni durante el primer paso ("departamentos").
@@ -508,9 +515,25 @@ export default {
     },
     async avanzar(props) {
       const paso = this.obtenerPasoPorTab(props.activeTabIndex);
-      if (paso && !paso.noAplica && !paso.revisado) {
-        const ok = await this.marcarRevisado(paso.clave);
-        if (!ok) return;
+      if (paso && !paso.noAplica) {
+        // Pasos institucionales: intenta guardar de verdad con el formulario
+        // real (mismo save() que usa el wizard viejo). Si falla la validación
+        // (campos vacíos/inválidos), el propio formulario ya avisa con su
+        // alerta -- el resultado se ignora a propósito para no bloquear el
+        // avance: el cliente puede seguir con el valor por defecto y
+        // completarlo después desde Configuración.
+        if (paso.formRefs) {
+          for (const refName of paso.formRefs) {
+            const formInstance = this.$refs[refName];
+            if (formInstance && typeof formInstance.save === "function") {
+              await formInstance.save();
+            }
+          }
+        }
+        if (!paso.revisado) {
+          const ok = await this.marcarRevisado(paso.clave);
+          if (!ok) return;
+        }
       }
       props.nextTab();
     },
