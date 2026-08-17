@@ -277,6 +277,13 @@ export default {
   flex-wrap: wrap;
 }
 .filtro-departamento-buttons >>> .btn {
+  /* Bootstrap le da flex:1 1 auto a los botones dentro de un .btn-group,
+     así que al envolver en más de una fila, cada fila reparte el ancho
+     completo entre los botones que le tocaron -- con menos botones en la
+     última fila, esos quedan mucho más anchos que los de arriba y se ven
+     como un elemento distinto. Se fuerza ancho natural (sin crecer) para
+     que el tamaño de cada botón sea el mismo sin importar en qué fila caiga. */
+  flex: 0 0 auto;
   margin-bottom: 4px;
 }
 </style>
