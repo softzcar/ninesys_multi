@@ -103,11 +103,15 @@
             </div>
 
             <div v-else-if="activeSection === 'gastos'">
-              <config-gastos-form 
-                :initial-data="gastosData" 
+              <config-gastos-form
+                :initial-data="gastosData"
                 :monedas="monedasData"
                 @saved="loadInitialData"
               />
+            </div>
+
+            <div v-else-if="activeSection === 'operativo'">
+              <operativa-wizard />
             </div>
 
           </b-card>
@@ -126,6 +130,7 @@
 <script>
 import { mapState } from "vuex"
 import ConfiguracionWizard from '~/components/empresa/configuracionWizard.vue'
+import OperativaWizard from '~/components/empresa/OperativaWizard.vue'
 import ConfigAdminForm from '~/components/empresa/ConfigAdminForm.vue'
 import ConfigEmpresaForm from '~/components/empresa/ConfigEmpresaForm.vue'
 import ConfigPersonalizacionForm from '~/components/empresa/ConfigPersonalizacionForm.vue'
@@ -140,6 +145,7 @@ export default {
   name: 'ConfiguracionEmpresa',
   components: {
     ConfiguracionWizard,
+    OperativaWizard,
     ConfigAdminForm,
     ConfigEmpresaForm,
     ConfigPersonalizacionForm,
@@ -189,6 +195,7 @@ export default {
         { id: 'timezone', title: 'Zona Horaria', icon: 'ti ti-world', description: 'Configure la zona horaria de la empresa.' },
         { id: 'personalizacion', title: 'Personalización', icon: 'ti ti-palette', description: 'Opciones visuales y comportamiento del sistema.' },
         { id: 'gastos', title: 'Gastos Fijos', icon: 'ti ti-receipt', description: 'Registre sus costos operativos mensuales.' },
+        { id: 'operativo', title: 'Configuración Operativa', icon: 'ti ti-settings', description: 'Revise y reemplace los datos de ejemplo: departamentos, empleados, productos, insumos, impresoras y más.' },
       ],
       countryCodes: [
         { value: 'AF', text: '+93 (Afganistán)' },
