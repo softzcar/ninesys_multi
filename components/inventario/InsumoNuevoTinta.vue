@@ -160,7 +160,7 @@
                                 >
                                 </b-form-select>
                             </b-form-group> -->
-                            <b-button type="submit" variant="primary"
+                            <b-button type="submit" variant="primary" :disabled="overlay"
                                 >Guardar</b-button
                             >
                             <b-button @click="resetForm" variant="danger"

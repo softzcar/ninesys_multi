@@ -362,12 +362,19 @@ export default {
         const idStr = s.id_insumo ? String(s.id_insumo).toLowerCase() : "";
         const skuStr = s.sku ? String(s.sku).toLowerCase() : "";
         const insumoStr = s.insumo ? String(s.insumo).toLowerCase() : "";
+        // s.color trae el CÓDIGO del color (ej. "C"), no el nombre -- por eso
+        // se compara también contra el nombre completo (ej. "Cyan") tomado del
+        // catálogo de colores, o buscar "cyan" nunca encontraba nada aunque la
+        // tinta sí existiera.
         const colorStr = s.color ? String(s.color).toLowerCase() : "";
-        
-        return idStr.includes(query) || 
-               skuStr.includes(query) || 
-               insumoStr.includes(query) || 
-               colorStr === query;
+        const colorInfo = this.coloresOptions.find(c => c._id === s.id_color_tinta);
+        const colorNombreStr = colorInfo && colorInfo.nombre ? String(colorInfo.nombre).toLowerCase() : "";
+
+        return idStr.includes(query) ||
+               skuStr.includes(query) ||
+               insumoStr.includes(query) ||
+               colorStr === query ||
+               colorNombreStr.includes(query);
       }).slice(0, 10);
     },
     selectedSupply() {
