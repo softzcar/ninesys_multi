@@ -359,7 +359,7 @@ const DEFINICION_PASOS = [
   {
     clave: "departamentos",
     titulo: "Departamentos",
-    icon: "ti ti-building",
+    icon: "ti ti-briefcase",
     descripcion:
       "Sembramos 8 departamentos de ejemplo (Impresión, Estampado, Corte, Costura, Administración, Comercialización, Diseño, Producción). Ajusta los nombres y desactiva los que no apliquen a tu negocio -- esto determina más adelante si te pedimos datos de impresoras y tintas.",
     rutaSugerida: "Empleados > Gestión de Departamentos",
@@ -397,7 +397,7 @@ const DEFINICION_PASOS = [
   {
     clave: "comisiones",
     titulo: "Comisiones de productos",
-    icon: "ti ti-percent",
+    icon: "ti ti-stats-up",
     descripcion: "Ajusta las comisiones de ejemplo por producto y departamento.",
     rutaSugerida: "Productos > Comisiones de Productos",
   },
@@ -411,7 +411,7 @@ const DEFINICION_PASOS = [
   {
     clave: "tintas",
     titulo: "Recarga de tintas",
-    icon: "ti ti-droplet",
+    icon: "ti ti-spray",
     descripcion: "Registra la primera carga real de tintas para tus impresoras.",
     rutaSugerida: "Inventario > Recarga de Tintas",
   },
@@ -425,7 +425,7 @@ const DEFINICION_PASOS = [
   {
     clave: "whatsapp",
     titulo: "WhatsApp",
-    icon: "ti ti-brand-whatsapp",
+    icon: "ti ti-comments",
     descripcion: "Escanea el código QR para conectar tu número de WhatsApp y decide si el bot responde automáticamente.",
     rutaSugerida: "WhatsApp > Conexión",
   },
@@ -635,7 +635,10 @@ export default {
   height: 50px;
 }
 .wizard-operativo-inner .wizard-icon-circle .wizard-icon {
-  font-size: 18px;
+  /* El proyecto tiene una regla global "body * { font-size: 99% !important }"
+     que gana por !important sin importar la especificidad -- hay que
+     igualarla para que el tamaño del ícono realmente se aplique. */
+  font-size: 32px !important;
 }
 .wizard-operativo-inner .stepTitle {
   font-size: 12px;
