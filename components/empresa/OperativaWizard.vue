@@ -201,9 +201,18 @@
         </tab-content>
 
         <tab-content
+          :title="tituloPaso(pasoPorClave('inventario_tintas'))"
+          :icon="pasoPorClave('inventario_tintas').icon"
+          :before-change="() => validarPaso(13)"
+        >
+          <paso-cabecera :paso="pasoPorClave('inventario_tintas')" />
+          <inventario-gestion v-if="!pasoPorClave('inventario_tintas').noAplica" />
+        </tab-content>
+
+        <tab-content
           :title="tituloPaso(pasoPorClave('tintas'))"
           :icon="pasoPorClave('tintas').icon"
-          :before-change="() => validarPaso(13)"
+          :before-change="() => validarPaso(14)"
         >
           <paso-cabecera :paso="pasoPorClave('tintas')" />
           <AdminRecargaTintas v-if="!pasoPorClave('tintas').noAplica" />
@@ -212,7 +221,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('tallas_telas'))"
           :icon="pasoPorClave('tallas_telas').icon"
-          :before-change="() => validarPaso(14)"
+          :before-change="() => validarPaso(15)"
         >
           <paso-cabecera :paso="pasoPorClave('tallas_telas')" />
           <h5 class="mt-4 mb-2">Tallas</h5>
@@ -225,7 +234,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('whatsapp'))"
           :icon="pasoPorClave('whatsapp').icon"
-          :before-change="() => validarPaso(15)"
+          :before-change="() => validarPaso(16)"
         >
           <paso-cabecera :paso="pasoPorClave('whatsapp')" />
 
@@ -407,6 +416,13 @@ const DEFINICION_PASOS = [
     icon: "ti ti-printer",
     descripcion: "Reemplaza las 2 impresoras de ejemplo por las impresoras reales de tu taller.",
     rutaSugerida: "Inventario > Gestión de Impresoras",
+  },
+  {
+    clave: "inventario_tintas",
+    titulo: "Inventario de Tintas",
+    icon: "ti ti-ink-pen",
+    descripcion: "Registra el stock inicial de cada tinta (color y tecnología) que usarán tus impresoras -- sin esto no podrás recargarlas en el siguiente paso.",
+    rutaSugerida: "Inventario > Gestión",
   },
   {
     clave: "tintas",
