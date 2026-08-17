@@ -161,9 +161,10 @@
           :title="tituloPaso(pasoPorClave('productos'))"
           :icon="pasoPorClave('productos').icon"
           :before-change="() => validarPaso(9)"
+          v-slot="{ active }"
         >
           <paso-cabecera :paso="pasoPorClave('productos')" />
-          <productos-gestion />
+          <productos-gestion :tab-active="active" />
         </tab-content>
 
         <tab-content

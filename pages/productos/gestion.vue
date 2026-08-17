@@ -144,6 +144,21 @@
 import { mapState } from "vuex";
 
 export default {
+  props: {
+    // Cuando esta página vive dentro de un paso de vue-form-wizard, la
+    // librería monta TODOS los pasos de una vez (usa v-show, no v-if) --
+    // así que mounted() se dispara una sola vez al abrir el wizard, antes
+    // de que el usuario cree categorías en el paso anterior ("Categorías
+    // de productos"). Sin este prop (pasado por OperativaWizard.vue vía
+    // v-slot="{ active }"), el store de categorías queda desactualizado y
+    // el selector de categoría al editar un producto nunca muestra la
+    // recién creada. Fuera del wizard (uso normal en /productos/gestion)
+    // el valor por defecto no cambia nunca, así que no afecta ese flujo.
+    tabActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
   data() {
     return {
       prductAttributes: [],
@@ -196,6 +211,15 @@ export default {
     ...mapState("login", ["dataUser", "access"]),
     myTable() {
       return this.items;
+    },
+  },
+
+  watch: {
+    tabActive(newVal) {
+      if (newVal) {
+        this.getCategorias();
+        this.getProductsAttributes();
+      }
     },
   },
 
