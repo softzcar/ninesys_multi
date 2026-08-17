@@ -643,13 +643,24 @@ export default {
 
 /* Cuando los pasos no caben en una sola fila, la librería los centra por
    defecto -- eso hace que la fila de abajo se vea como un bloque aparte
-   en vez de continuación de la fila de arriba. Alineándola a la izquierda
-   mantiene el mismo margen entre ambas filas. */
+   en vez de continuación de la fila de arriba. El <ul> de pasos no ocupa
+   el 100% del ancho disponible por defecto (se ajusta a su contenido),
+   así que aunque se le ponga justify-content:flex-start, el <ul> completo
+   queda centrado como bloque dentro de .wizard-navigation -- forzar el
+   ancho completo es lo que realmente hace que la alineación a la
+   izquierda tenga efecto. */
+.wizard-operativo-inner .wizard-navigation {
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
 .wizard-operativo-inner .wizard-nav-pills {
+  width: 100% !important;
+  flex: 1 1 100% !important;
   justify-content: flex-start !important;
   text-align: left !important;
 }
 .wizard-operativo-inner .wizard-nav-pills > li {
   text-align: center;
+  flex: 0 0 auto;
 }
 </style>
