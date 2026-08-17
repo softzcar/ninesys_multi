@@ -1,12 +1,12 @@
 <template>
   <div class="wizard-operativo-container d-flex align-items-center justify-content-center">
     <b-container class="mt-5">
-      <h2 class="text-center mb-4">Configuración Operativa</h2>
+      <h2 class="text-center mb-4">Configuración de tu Empresa</h2>
 
       <form-wizard
         v-if="isReady"
-        title="Personaliza los datos de ejemplo de tu empresa"
-        subtitle="Al crear tu cuenta cargamos datos de ejemplo para que el sistema funcione desde el primer momento. Revísalos y reemplázalos por los tuyos."
+        title="Completa la configuración de tu empresa"
+        subtitle="Carga tus datos reales donde los tengas a mano. Donde no, puedes dejar el valor por defecto y completarlo después desde Configuración."
         color="#007bff"
         :start-index="startIndex"
         @on-complete="finalizarWizard"
@@ -43,16 +43,16 @@
         </template>
 
         <tab-content title="Bienvenida" icon="ti ti-hand-point-right">
-          <h2 class="display-4 text-center mb-4">¡Ya casi está todo listo!</h2>
+          <h2 class="display-4 text-center mb-4">¡Bienvenido a Ninesys!</h2>
           <p class="lead text-center">
-            Tu cuenta se creó con datos de ejemplo (departamentos, empleados, productos, insumos,
-            impresoras, etc.) para que puedas explorar el sistema de inmediato.
+            Tu cuenta se creó con datos de ejemplo (empresa, departamentos, empleados, productos,
+            insumos, impresoras, etc.) para que puedas explorar el sistema de inmediato.
           </p>
           <hr class="my-4" />
           <p class="text-center">
-            Este asistente te guía, paso a paso, para reemplazar esos datos de ejemplo por los
-            reales de tu negocio. Si en algún paso prefieres dejarlo para después, puedes
-            continuar usando el dato de ejemplo por ahora y ajustarlo luego desde el menú normal.
+            Este asistente te guía, paso a paso, para cargar los datos reales de tu empresa. Si en
+            algún paso no tienes el dato a mano, puedes dejarlo con su valor por defecto y
+            completarlo después desde Configuración.
           </p>
           <p class="mt-4 text-center">
             Por favor, haz clic en <strong>Siguiente</strong> para comenzar.
@@ -60,9 +60,77 @@
         </tab-content>
 
         <tab-content
+          :title="tituloPaso(pasoPorClave('admin'))"
+          :icon="pasoPorClave('admin').icon"
+          :before-change="() => validarPaso(0)"
+        >
+          <paso-cabecera :paso="pasoPorClave('admin')" />
+          <config-admin-form
+            :initial-data="adminData"
+            :country-codes="countryCodes"
+            @phone-blur="handlePhoneBlur"
+          />
+        </tab-content>
+
+        <tab-content
+          :title="tituloPaso(pasoPorClave('empresa'))"
+          :icon="pasoPorClave('empresa').icon"
+          :before-change="() => validarPaso(1)"
+        >
+          <paso-cabecera :paso="pasoPorClave('empresa')" />
+          <config-empresa-form
+            :initial-data="empresaData"
+            :country-codes="countryCodes"
+            @phone-blur="handlePhoneBlur"
+          />
+        </tab-content>
+
+        <tab-content
+          :title="tituloPaso(pasoPorClave('monedas'))"
+          :icon="pasoPorClave('monedas').icon"
+          :before-change="() => validarPaso(2)"
+        >
+          <paso-cabecera :paso="pasoPorClave('monedas')" />
+          <b-alert show variant="warning" class="small">
+            Si omites este paso sin configurar al menos una moneda con método de pago, no podrás
+            capturar pagos en Nueva Orden hasta que lo configures.
+          </b-alert>
+          <config-monedas-form />
+        </tab-content>
+
+        <tab-content
+          :title="tituloPaso(pasoPorClave('horario'))"
+          :icon="pasoPorClave('horario').icon"
+          :before-change="() => validarPaso(3)"
+        >
+          <paso-cabecera :paso="pasoPorClave('horario')" />
+          <config-horario-form :initial-data="horarioData" />
+        </tab-content>
+
+        <tab-content
+          :title="tituloPaso(pasoPorClave('personalizacion'))"
+          :icon="pasoPorClave('personalizacion').icon"
+          :before-change="() => validarPaso(4)"
+        >
+          <paso-cabecera :paso="pasoPorClave('personalizacion')" />
+          <config-personalizacion-form :initial-data="personalizacionData" />
+          <hr class="my-4" />
+          <config-timezone-form :initial-data="timezoneData" />
+        </tab-content>
+
+        <tab-content
+          :title="tituloPaso(pasoPorClave('gastos'))"
+          :icon="pasoPorClave('gastos').icon"
+          :before-change="() => validarPaso(5)"
+        >
+          <paso-cabecera :paso="pasoPorClave('gastos')" />
+          <config-gastos-form :initial-data="gastosData" :monedas="monedasData" />
+        </tab-content>
+
+        <tab-content
           :title="tituloPaso(pasoPorClave('departamentos'))"
           :icon="pasoPorClave('departamentos').icon"
-          :before-change="() => validarPaso(0)"
+          :before-change="() => validarPaso(6)"
         >
           <paso-cabecera :paso="pasoPorClave('departamentos')" />
           <departamentos-gestion />
@@ -71,7 +139,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('empleados'))"
           :icon="pasoPorClave('empleados').icon"
-          :before-change="() => validarPaso(1)"
+          :before-change="() => validarPaso(7)"
         >
           <paso-cabecera :paso="pasoPorClave('empleados')" />
           <empleados-gestion />
@@ -80,7 +148,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('categorias'))"
           :icon="pasoPorClave('categorias').icon"
-          :before-change="() => validarPaso(2)"
+          :before-change="() => validarPaso(8)"
         >
           <paso-cabecera :paso="pasoPorClave('categorias')" />
           <categorias-gestion />
@@ -89,7 +157,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('productos'))"
           :icon="pasoPorClave('productos').icon"
-          :before-change="() => validarPaso(3)"
+          :before-change="() => validarPaso(9)"
         >
           <paso-cabecera :paso="pasoPorClave('productos')" />
           <productos-gestion />
@@ -98,7 +166,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('insumos'))"
           :icon="pasoPorClave('insumos').icon"
-          :before-change="() => validarPaso(4)"
+          :before-change="() => validarPaso(10)"
         >
           <paso-cabecera :paso="pasoPorClave('insumos')" />
           <h5 class="mt-4 mb-2">Catálogo de insumos</h5>
@@ -114,7 +182,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('comisiones'))"
           :icon="pasoPorClave('comisiones').icon"
-          :before-change="() => validarPaso(5)"
+          :before-change="() => validarPaso(11)"
         >
           <paso-cabecera :paso="pasoPorClave('comisiones')" />
           <admin-ComisionesProductos />
@@ -123,7 +191,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('impresoras'))"
           :icon="pasoPorClave('impresoras').icon"
-          :before-change="() => validarPaso(6)"
+          :before-change="() => validarPaso(12)"
         >
           <paso-cabecera :paso="pasoPorClave('impresoras')" />
           <impresoras-gestion v-if="!pasoPorClave('impresoras').noAplica" />
@@ -132,7 +200,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('tintas'))"
           :icon="pasoPorClave('tintas').icon"
-          :before-change="() => validarPaso(7)"
+          :before-change="() => validarPaso(13)"
         >
           <paso-cabecera :paso="pasoPorClave('tintas')" />
           <AdminRecargaTintas v-if="!pasoPorClave('tintas').noAplica" />
@@ -141,7 +209,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('tallas_telas'))"
           :icon="pasoPorClave('tallas_telas').icon"
-          :before-change="() => validarPaso(8)"
+          :before-change="() => validarPaso(14)"
         >
           <paso-cabecera :paso="pasoPorClave('tallas_telas')" />
           <h5 class="mt-4 mb-2">Tallas</h5>
@@ -154,7 +222,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('whatsapp'))"
           :icon="pasoPorClave('whatsapp').icon"
-          :before-change="() => validarPaso(9)"
+          :before-change="() => validarPaso(15)"
         >
           <paso-cabecera :paso="pasoPorClave('whatsapp')" />
 
@@ -212,6 +280,14 @@ import { FormWizard, TabContent } from "vue-form-wizard";
 import "vue-form-wizard/dist/vue-form-wizard.min.css";
 import { mapState } from "vuex";
 import PasoCabecera from "~/components/empresa/PasoCabecera.vue";
+import ConfigAdminForm from "~/components/empresa/ConfigAdminForm.vue";
+import ConfigEmpresaForm from "~/components/empresa/ConfigEmpresaForm.vue";
+import ConfigMonedasForm from "~/components/empresa/ConfigMonedasForm.vue";
+import ConfigHorarioForm from "~/components/empresa/ConfigHorarioForm.vue";
+import ConfigPersonalizacionForm from "~/components/empresa/ConfigPersonalizacionForm.vue";
+import ConfigTimezoneForm from "~/components/empresa/ConfigTimezoneForm.vue";
+import ConfigGastosForm from "~/components/empresa/ConfigGastosForm.vue";
+import institucionalWizardData from "~/mixins/institucionalWizardData.js";
 import DepartamentosGestion from "~/pages/departamentos/gestion.vue";
 import EmpleadosGestion from "~/pages/empleados/gestion/index.vue";
 import CategoriasGestion from "~/pages/categorias/gestion.vue";
@@ -223,6 +299,48 @@ import TallasGestion from "~/pages/tallas/index.vue";
 import TelasGestion from "~/pages/telas.vue";
 
 const DEFINICION_PASOS = [
+  {
+    clave: "admin",
+    titulo: "Datos del Administrador",
+    icon: "ti ti-user",
+    descripcion: "Nombre, teléfono y contraseña del administrador de la cuenta.",
+    rutaSugerida: "Configuración > Datos del Administrador",
+  },
+  {
+    clave: "empresa",
+    titulo: "Datos de la Empresa",
+    icon: "ti ti-home",
+    descripcion: "Nombre legal, registro, dirección y datos de contacto de tu empresa.",
+    rutaSugerida: "Configuración > Datos de la Empresa",
+  },
+  {
+    clave: "monedas",
+    titulo: "Monedas",
+    icon: "ti ti-money",
+    descripcion: "Configura las monedas y métodos de pago que vas a aceptar.",
+    rutaSugerida: "Configuración > Monedas",
+  },
+  {
+    clave: "horario",
+    titulo: "Horario Laboral",
+    icon: "ti ti-alarm-clock",
+    descripcion: "Días y horas de operación de tu empresa.",
+    rutaSugerida: "Configuración > Horario Laboral",
+  },
+  {
+    clave: "personalizacion",
+    titulo: "Personalización",
+    icon: "ti ti-palette",
+    descripcion: "Opciones visuales, zona horaria y comportamiento del sistema.",
+    rutaSugerida: "Configuración > Personalización",
+  },
+  {
+    clave: "gastos",
+    titulo: "Gastos Fijos",
+    icon: "ti ti-receipt",
+    descripcion: "Registra tus costos operativos mensuales recurrentes.",
+    rutaSugerida: "Configuración > Gastos Fijos",
+  },
   {
     clave: "departamentos",
     titulo: "Departamentos",
@@ -300,10 +418,18 @@ const DEFINICION_PASOS = [
 
 export default {
   name: "OperativaWizard",
+  mixins: [institucionalWizardData],
   components: {
     FormWizard,
     TabContent,
     PasoCabecera,
+    ConfigAdminForm,
+    ConfigEmpresaForm,
+    ConfigMonedasForm,
+    ConfigHorarioForm,
+    ConfigPersonalizacionForm,
+    ConfigTimezoneForm,
+    ConfigGastosForm,
     DepartamentosGestion,
     EmpleadosGestion,
     CategoriasGestion,
