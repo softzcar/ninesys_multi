@@ -213,9 +213,10 @@
           :title="tituloPaso(pasoPorClave('tintas'))"
           :icon="pasoPorClave('tintas').icon"
           :before-change="() => validarPaso(14)"
+          v-slot="{ active }"
         >
           <paso-cabecera :paso="pasoPorClave('tintas')" />
-          <AdminRecargaTintas v-if="!pasoPorClave('tintas').noAplica" />
+          <AdminRecargaTintas v-if="!pasoPorClave('tintas').noAplica" :tab-active="active" />
         </tab-content>
 
         <tab-content

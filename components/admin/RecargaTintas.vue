@@ -281,6 +281,20 @@
 <script>
 export default {
   name: "RecargaTintas",
+  props: {
+    // Cuando este componente vive dentro de un paso de vue-form-wizard, la
+    // librería monta TODOS los pasos de una vez (usa v-show, no v-if) -- así
+    // que created() se dispara una sola vez al abrir el wizard, antes de que
+    // el usuario cree impresoras/tintas en pasos anteriores. Sin este prop
+    // (pasado por OperativaWizard.vue vía v-slot="{ active }"), la lista de
+    // insumos queda desactualizada y el buscador nunca encuentra la tinta
+    // recién creada. Fuera del wizard (uso normal en /inventario/recarga-tintas)
+    // el valor por defecto no cambia nunca, así que no afecta ese flujo.
+    tabActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
   data() {
     return {
       impresoras: [], // Aquí se cargarán las impresoras desde la API
@@ -378,6 +392,11 @@ export default {
     }
   },
   watch: {
+    tabActive(newVal) {
+      if (newVal) {
+        this.loadInitialData();
+      }
+    },
     selectedPrinterId(newVal) {
       if (newVal) {
         const selectedPrinter = this.impresoras.find(imp => imp._id === newVal);
