@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="d-flex flex-nowrap">
         <b-button
             size="sm"
             class="mb-4 mr-1"

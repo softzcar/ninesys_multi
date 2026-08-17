@@ -56,13 +56,13 @@
                                                         }}</b-badge>
                         </h5>
                         <span
-                          class="mt-4"
-                          style="width: 80%"
+                          class="mt-4 text-truncate"
+                          style="flex: 1 1 auto; min-width: 0;"
                         >{{
                                                         departamento.departamento
                                                     }}</span>
 
-                        <span class="mt-3">
+                        <span class="mt-3 d-flex flex-nowrap flex-shrink-0 align-items-center">
                           <admin-departamentosEdit
                             :key="departamento._id"
                             :item="departamento"
@@ -70,29 +70,20 @@
                                                             getDepartamentos()
                                                         "
                           />
-                        </span>
-                        <span class="ml-2 mt-3">
-                          <admin-departamentosDelete
-                            @reload="
+                          <span class="ml-2">
+                            <admin-departamentosDelete
+                              @reload="
                                                             getDepartamentos()
                                                         "
-                            :iddep="
+                              :iddep="
                                                             departamento._id
                                                         "
-                            :key="departamento._id"
-                            :nombre="
+                              :key="departamento._id"
+                              :nombre="
                                                             departamento.departamento
                                                         "
-                          />
-                          <!-- <b-button
-                                                        size="sm"
-                                                        class="mb-4"
-                                                        variant="danger"
-                                                    >
-                                                        <b-icon
-                                                            icon="trash"
-                                                        ></b-icon> 
-                                                    </b-button>-->
+                            />
+                          </span>
                         </span>
                       </b-list-group-item>
                     </draggable>
@@ -108,13 +99,13 @@
                         class="pb-3 drag-handle d-flex align-items-left"
                       >
                         <span
-                          class="mt-4"
-                          style="width: 80%"
+                          class="mt-4 text-truncate"
+                          style="flex: 1 1 auto; min-width: 0;"
                         >{{
                                                         departamento.departamento
                                                     }}</span>
 
-                        <span class="mt-3">
+                        <span class="mt-3 d-flex flex-nowrap flex-shrink-0 align-items-center">
                           <admin-departamentosEdit
                             :key="departamento._id"
                             :item="departamento"
@@ -122,16 +113,16 @@
                                                             getDepartamentos()
                                                         "
                           />
-                        </span>
-                        <span class="ml-2 mt-3">
-                          <b-button
-                            size="sm"
-                            class="mb-4"
-                            variant="danger"
-                            :disabled="departamento._id >= 1 && departamento._id <= 8"
-                          >
-                            <b-icon icon="trash"></b-icon>
-                          </b-button>
+                          <span class="ml-2">
+                            <b-button
+                              size="sm"
+                              class="mb-4"
+                              variant="danger"
+                              :disabled="departamento._id >= 1 && departamento._id <= 8"
+                            >
+                              <b-icon icon="trash"></b-icon>
+                            </b-button>
+                          </span>
                         </span>
                       </b-list-group-item>
                     </b-list-group>
