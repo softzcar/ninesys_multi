@@ -171,13 +171,14 @@
           :title="tituloPaso(pasoPorClave('insumos'))"
           :icon="pasoPorClave('insumos').icon"
           :before-change="() => validarPaso(10)"
+          v-slot="{ active }"
         >
           <paso-cabecera :paso="pasoPorClave('insumos')" />
           <h5 class="mt-4 mb-2">Catálogo de insumos</h5>
           <catalogo-insumos-gestion />
           <hr class="my-4" />
           <h5 class="mb-2">Insumos asignados a cada producto</h5>
-          <admin-InsumosDeProductos />
+          <admin-InsumosDeProductos :tab-active="active" />
           <hr class="my-4" />
           <h5 class="mb-2">Inventario físico</h5>
           <inventario-gestion />

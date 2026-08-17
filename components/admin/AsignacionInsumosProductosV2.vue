@@ -61,6 +61,21 @@
 <script>
 export default {
   name: "AsignacionInsumosProductosV2",
+  props: {
+    // Cuando este componente vive dentro de un paso de vue-form-wizard, la
+    // librería monta TODOS los pasos de una vez (usa v-show, no v-if) --
+    // así que mounted() se dispara una sola vez al abrir el wizard, antes
+    // de que el usuario cree un producto nuevo en el paso anterior
+    // "Productos". Sin este prop (pasado por OperativaWizard.vue vía
+    // v-slot="{ active }"), la lista de productos queda desactualizada y
+    // el producto recién creado nunca aparece para asignarle insumos.
+    // Fuera del wizard (uso normal) el valor por defecto no cambia nunca,
+    // así que no afecta ese flujo.
+    tabActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
   data() {
     return {
       loading: true,
@@ -79,6 +94,13 @@ export default {
   },
   async mounted() {
     await this.fetchData();
+  },
+  watch: {
+    tabActive(newVal) {
+      if (newVal) {
+        this.fetchData();
+      }
+    },
   },
   methods: {
     async fetchData() {
