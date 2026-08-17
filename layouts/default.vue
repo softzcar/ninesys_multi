@@ -69,8 +69,11 @@ export default {
       return !!this.access;
     },
     showSidebar() {
-      // No mostrar sidebar en páginas de auth
-      const hiddenRoutes = ['/login', '/logout', '/registro', '/password-reset'];
+      // No mostrar sidebar en páginas de auth ni durante el wizard de
+      // configuración obligatorio de primera vez -- si el sidebar quedara
+      // visible ahí, el cliente podría saltarse el wizard navegando
+      // directamente a cualquier módulo antes de tener datos correctos.
+      const hiddenRoutes = ['/login', '/logout', '/registro', '/password-reset', '/configuracion-operativa'];
       const currentPath = this.$route?.path || '';
 
       // Solo mostrar si está logueado y tiene departamento asignado
