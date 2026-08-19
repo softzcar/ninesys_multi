@@ -152,7 +152,7 @@
                       <b-button
                         :variant="isTaskInProcess(item) ? 'success' : 'primary'"
                         class="btn-main-action mr-2"
-                        :disabled="!item.esreposicion && !isTaskInProcess(item) && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)"
+                        :disabled="(!item.esreposicion && !isTaskInProcess(item) && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)) || (isTaskInProcess(item) && itemEstaPausado(item))"
                         @click="handleRightPanelClick(item)"
                       >
                         <b-icon :icon="isTaskInProcess(item) ? 'check-lg' : 'play-fill'" class="mr-1"></b-icon>
@@ -302,6 +302,7 @@
                       <b-button
                         variant="success"
                         class="btn-main-action mr-2"
+                        :disabled="itemEstaPausado(item)"
                         @click="handleRightPanelClick(item)"
                       >
                         <b-icon icon="check-lg" class="mr-1"></b-icon> Terminar
@@ -483,7 +484,7 @@
                       <b-button
                         :variant="isTaskInProcess(item) ? 'success' : 'primary'"
                         class="btn-main-action mr-2"
-                        :disabled="!item.esreposicion && !isTaskInProcess(item) && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)"
+                        :disabled="(!item.esreposicion && !isTaskInProcess(item) && verificarOrdenProceso(item.orden_proceso, item.orden_proceso_min)) || (isTaskInProcess(item) && itemEstaPausado(item))"
                         @click="handleRightPanelClick(item)"
                       >
                         <b-icon :icon="isTaskInProcess(item) ? 'check-lg' : 'play-fill'" class="mr-1"></b-icon>
@@ -580,6 +581,7 @@
                       <b-button
                         variant="success"
                         class="btn-main-action mr-2"
+                        :disabled="itemEstaPausado(item)"
                         @click="handleRightPanelClick(item)"
                       >
                         <b-icon icon="check-lg" class="mr-1"></b-icon> Terminar
@@ -1514,6 +1516,23 @@ export default {
     verificarOrdenProceso(idOrdenProceso, min) {
       let IdVerificado = idOrdenProceso === null ? min : idOrdenProceso;
       return IdVerificado != this.$store.state.login.currentOrdenProceso;
+    },
+
+    // Misma condición que ya usa empleados-pausasEmpleados.vue (evento
+    // disBtnTodo) para deshabilitar el botón "Terminar Todo" del modal --
+    // pero ese componente solo controla el botón OCULTO que dispara el
+    // modal (data-testid="btn-terminar-todo"); el botón visible "Terminar"
+    // de esta vista (el que el empleado realmente ve y toca) nunca
+    // reflejaba ese estado, así que quedaba habilitado en apariencia
+    // aunque no hiciera nada mientras la tarea estuviera en pausa.
+    itemEstaPausado(item) {
+      if (!this.pausas || this.pausas.length === 0) return false;
+      const idOrden = item.orden || item.id_orden;
+      return this.pausas.some((p) =>
+        p.id_orden == idOrden &&
+        p.id_departamento === this.$store.state.login.currentDepartamentId &&
+        p.id_empleado === this.$store.state.login.dataUser.id_empleado
+      );
     },
 
     filterFechaEstimada(idOrden) {
