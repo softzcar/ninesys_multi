@@ -72,14 +72,17 @@
                     </b-row>
                     <b-row>
                         <b-col md="6">
-                            <b-form-group label="Tinta Estimada (ml por metro)" description="Estimado de ml de tinta por metro de material impreso a full print, sin considerar saturación. Se usa solo como referencia visual junto a los inputs de tinta, no autocompleta ni valida.">
+                            <b-form-group label="Tinta Estimada (ml por metro)" description="Estimado de ml de tinta por metro de material impreso a full print, sin considerar saturación. Se usa para calcular la referencia visual que se muestra junto a los inputs de tinta.">
                                 <b-form-input type="number" step="0.1" min="0" v-model="form.ml_tinta_por_metro"></b-form-input>
                             </b-form-group>
                         </b-col>
-                        <b-col md="6" class="d-flex align-items-center">
-                            <b-form-checkbox v-model="form.mostrar_tinta_estimada" :value="1" :unchecked-value="0" class="mt-4">
-                                Mostrar tinta estimada en el modal de Impresión
+                        <b-col md="6" class="d-flex flex-column justify-content-center">
+                            <b-form-checkbox v-model="form.ingresar_tinta_manual" :value="1" :unchecked-value="0">
+                                Ingresar consumo de tinta manualmente
                             </b-form-checkbox>
+                            <small class="text-muted">
+                                Activado: el empleado debe tipear los ml por color al terminar. Desactivado: no se pide nada, solo se muestra el estimado de referencia.
+                            </small>
                         </b-col>
                     </b-row>
 
@@ -195,7 +198,7 @@ export default {
                 capacidad_contenedor: '',
                 estado: 'activa',
                 ml_tinta_por_metro: 12,
-                mostrar_tinta_estimada: 1,
+                ingresar_tinta_manual: 1,
                 notes: '',
                 canales: []
             },
@@ -339,7 +342,7 @@ export default {
                 capacidad_contenedor: '',
                 estado: 'activa',
                 ml_tinta_por_metro: 12,
-                mostrar_tinta_estimada: 1,
+                ingresar_tinta_manual: 1,
                 notes: '',
                 canales: []
             };

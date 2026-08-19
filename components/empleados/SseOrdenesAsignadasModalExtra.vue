@@ -109,22 +109,27 @@
                   required></b-form-select>
               </b-form-group>
 
-              <!-- Tintas dinámicas según canales_colores de la impresora -->
-              <b-row v-if="getCanalesForIndex(index).length > 0">
-                <b-col v-for="canal in getCanalesForIndex(index)" :key="canal.codigo">
-                  <b-form-group :label="canal.codigo">
-                    <b-form-input
-                      :id="'input-canal-' + index + '-' + canal.codigo"
-                      v-model="impresora.canales[canal.codigo]"
-                      type="number" step="0.1" min="0"
-                      :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
-                      :style="{ backgroundColor: canal.color_hex || '#cccccc', color: getContrastColor(canal.color_hex), fontWeight: 'bold' }"
-                    ></b-form-input>
-                  </b-form-group>
-                </b-col>
-              </b-row>
-              <b-alert v-else-if="impresora.id_impresora !== null" show variant="warning" class="mt-2">
-                Esta impresora no tiene canales de color configurados.
+              <!-- Tintas dinámicas según canales_colores de la impresora (solo si la impresora está en modo manual) -->
+              <template v-if="esModoManualForIndex(index)">
+                <b-row v-if="getCanalesForIndex(index).length > 0">
+                  <b-col v-for="canal in getCanalesForIndex(index)" :key="canal.codigo">
+                    <b-form-group :label="canal.codigo">
+                      <b-form-input
+                        :id="'input-canal-' + index + '-' + canal.codigo"
+                        v-model="impresora.canales[canal.codigo]"
+                        type="number" step="0.1" min="0"
+                        :disabled="!puedeUsarModalImpresion || impresora.id_impresora === null"
+                        :style="{ backgroundColor: canal.color_hex || '#cccccc', color: getContrastColor(canal.color_hex), fontWeight: 'bold' }"
+                      ></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-alert v-else-if="impresora.id_impresora !== null" show variant="warning" class="mt-2">
+                  Esta impresora no tiene canales de color configurados.
+                </b-alert>
+              </template>
+              <b-alert v-else-if="impresora.id_impresora !== null" show variant="info" class="mt-2">
+                Esta impresora está en modo automático: no se requiere ingresar ml de tinta manualmente.
               </b-alert>
 
               <small v-if="tintaEstimadaMlForIndex(index)" class="text-muted d-block mt-2">
@@ -1254,7 +1259,7 @@ export default {
       const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
       if (!selectedId) return null;
       const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
-      if (!selectedPrinter || !parseInt(selectedPrinter.mostrar_tinta_estimada)) return null;
+      if (!selectedPrinter) return null;
 
       const metros = parseFloat(this.materialEstimadoDepartamento.total);
       const mlPorMetro = parseFloat(selectedPrinter.ml_tinta_por_metro);
@@ -1262,6 +1267,21 @@ export default {
       if (!mlPorMetro || isNaN(mlPorMetro) || mlPorMetro <= 0) return null;
 
       return (metros * mlPorMetro).toFixed(2);
+    },
+
+    /**
+     * true si la impresora seleccionada en este índice exige captura manual de
+     * ml por color (comportamiento por defecto/histórico). false = modo
+     * automático: no se pide nada al empleado, solo se muestra la referencia.
+     * Por defecto true (si no hay impresora seleccionada aún, o el campo no
+     * llegó todavía) para no ocultar el formulario sin que el admin lo decida.
+     */
+    esModoManualForIndex(index) {
+      const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
+      if (!selectedId || !this.impresoras) return true;
+      const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
+      if (!selectedPrinter || selectedPrinter.ingresar_tinta_manual === undefined || selectedPrinter.ingresar_tinta_manual === null) return true;
+      return parseInt(selectedPrinter.ingresar_tinta_manual) !== 0;
     },
 
     // Calcula el color de texto (blanco/negro) según el fondo para legibilidad
@@ -1546,6 +1566,12 @@ export default {
               if (impresora.id_impresora === null) {
                 ok = false;
                 msg = msg + `<p>Impresora ${numImp}: Seleccione una impresora</p>`;
+                continue;
+              }
+
+              // En modo automático (ingresar_tinta_manual = 0) no se exige
+              // captura de canales -- el formulario ni siquiera se muestra.
+              if (!this.esModoManualForIndex(i)) {
                 continue;
               }
 
