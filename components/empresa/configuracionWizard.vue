@@ -701,11 +701,21 @@ export default {
     },
 
     async validateEmpresaStep() {
-      return await this.$refs.empresaForm.save();
+      const saved = await this.$refs.empresaForm.save();
+      if (saved) {
+        if (this.$refs.monedasForm && this.$refs.monedasForm.refreshData) {
+          await this.$refs.monedasForm.refreshData();
+        }
+      }
+      return saved;
     },
 
     async validateMonedasStep() {
-      return await this.$refs.monedasForm.save();
+      const saved = await this.$refs.monedasForm.save();
+      if (saved && this.$refs.monedasForm.monedasActuales) {
+        this.monedasData = this.$refs.monedasForm.monedasActuales;
+      }
+      return saved;
     },
 
     async validateHorarioStep() {

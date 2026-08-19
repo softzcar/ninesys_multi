@@ -616,14 +616,42 @@ export default {
             html: `<p>el insumo "${this.nuevoInsumo}" se ha creado correctamente</p>`,
             type: "success",
           });
+
+          const newItem = res.data && res.data.data && res.data.data[0] ? res.data.data[0] : null;
+          const newId = newItem ? newItem._id : (res.data && res.data.response ? parseInt(res.data.response.insert_id) : null);
+          const newName = newItem ? newItem.nombre : this.nuevoInsumo;
+
+          if (newId) {
+            if (Array.isArray(this.selectinsumos) && !this.selectinsumos.some(opt => opt.value === newId)) {
+              this.selectinsumos.push({ value: newId, text: newName });
+            }
+            this.selectedInsumoBase = newId;
+          }
+
           this.$emit("reload", true);
         })
         .catch((err) => {
-          this.$fire({
-            title: "Error",
-            html: `<p>No se pudo crear el insumo</p><p>${err}</p>`,
-            type: "error",
-          });
+          const resData = err.response && err.response.data ? err.response.data : null;
+          const existingItem = resData && resData.existing_item ? resData.existing_item : null;
+          if (existingItem && existingItem._id) {
+            const existId = existingItem._id;
+            const existName = existingItem.nombre || this.nuevoInsumo;
+            if (Array.isArray(this.selectinsumos) && !this.selectinsumos.some(opt => opt.value === existId)) {
+              this.selectinsumos.push({ value: existId, text: existName });
+            }
+            this.selectedInsumoBase = existId;
+            this.$fire({
+              title: "Insumo Existente",
+              html: `<p>El insumo "${existName}" ya existe en el catálogo y ha sido seleccionado automáticamente.</p>`,
+              type: "info",
+            });
+          } else {
+            this.$fire({
+              title: "Error",
+              html: `<p>No se pudo crear el insumo</p><p>${err}</p>`,
+              type: "error",
+            });
+          }
         })
         .finally(() => {
           this.nuevoInsumo = "";

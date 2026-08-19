@@ -59,12 +59,36 @@ Para cada formulario, probar con **al menos 2 monedas distintas en el mismo pago
 
 
 
-## G. Ricardo
+##  Ricardo
 
 - [x] lapagina `/comercializacion/reportes/pagos-abonos` no muestra correctametne el monto `**Saldo Pendiente Total**` con relación a las demás Cards
 - [x] Revisar interfaz ene l fuljo de empleados donde el empleado no debe asignar material parece que se ve **FEO** — Causa raíz: `empresas.timezone` de la empresa 194 tenía el string literal `"NULL"` (artefacto de sincronización MySQL→Postgres), lo que rompía `Intl.DateTimeFormat` en el cálculo de eficiencia en segundo plano de "Órdenes Asignadas" y degradaba la interfaz. Corregido en 3 capas (dato, script de sync, guardia defensiva en `store/login.js`) el 2026-08-11. Confirmado por el usuario que el error ya no aparece.
-- [ ] El empleado debe pode abrir una sola sesión (SEGURIDAD),  
+- [ ] El empleado debe pode abrir una sola sesión (LO ATENDEREMOS CUANDO IMPLEMENTEMOS LA SEGURIDAD DEL SISTEMA),  
 - [x] En el emplado Yervin en la relacion de pagos muesta un numero de horas irreal — "HORAS TRABAJADAS" sumaba diferencia de calendario cruda (sin restar noches/fines de semana) en vez de tiempo dentro de horario laboral. Corregido el 2026-08-11 (`TablaDePagos.vue`, mismo cálculo ya usado en el dashboard); verificado en vivo con Yervin: pasó de un valor inflado a 0.58 horas reales.
+- [x] Cuando una orden tiene dos productos distintos por ejemplo Impresion DTF y Sublimacion y se asigna un emplado para imprimir DTF y otro para imprimir Sublimación el sistema nos abe quien está haciendo que, enotnces le exige que ingrese insumos para ambos productos a ambos empleados... (Thailyn)
+- [x] La vendedora Zenaida sigue apareciendo en el select de empleados de balance ya bonos y pagos en poduccion, investigar si el bug es solo en esta pagina o en todo el sItema, la vendedora zenaida esta desactivada en el sistema.
+- [x] Eliminar el reporte 'Cortar' De Producción
+- [x] En el reporte que meuestra 'Buscar' parece estat harcodeada la dirección de la empresa, debe mostrase la dierección que se le asigne a cda empresa en su configuración.
+- [ ] WhatApp tambene sta mezclando las empresas
+- [x] wizard de inicio: Agregar emoleados, seleccioanr departametneos que si se van a utilizar, 
+- [x] wizard inicio: NEcesitmaos en el wizard ocnfigurar de manera sistematica y logica la carga inicial de datos, 
+- [ ] En la planilla ya no se muestra los empleados con salario base despues de lso cambios en la asigancion de prodcutos granulares
+- [ ] En la configuración del horario laboral necsitamos implementar poder asiganr solo medio dia de trabajo... 
+- [ ] En crear nueva orden tenemos productos que son impresion por ejemplo, estos productos NO llevan talla, puede que leven tela o simplemente se venda la impresion en papel... lo quehace tambena l corte opcional, veamos como podemos indicar que existen porductos que no son prendas pero sis e fabrican.
+- [ ] En el emplado IMPRESIÓN  tenemos un inconveninete en el flujo de recolecciond e losd atos de la tinta. El sistema aestá pensado para un escenario donde el software siempre de los datros que se bene intorducir, sin mebargo existen casos recurrentes donde la información proporcionada no es confiable o d eplano la inforacioń no esta disponible denependiendo dle sofware que use la impresora... La solución propuesta es buscar la amnera de 'promediar' la cantidad de tinta utlizada dependiend de los emtros impresos entre recargas... Tener en cuenta que impresoras usan tntas distintas algunas suan ams tipos de tintas que otras... 
+- [ ] Desde Clientes poner un filtro similar al que tenemos en la pestaña prductos en el botón catálogo para filtrar clientes.
 
 
 
+## Usuarios empresa 206
+
+| Nombre(Click to sort ascending) | Usuario(Click to sort ascending) | Departamentos      | Clave       |
+| ------------------------------- | -------------------------------- | ------------------ | ----------- |
+| Administrador Wizard            | ozcaratencio@gmail.com           | Administración     | Ninesys@026 |
+| Empleado Impresión              | impresion@empresa206.com         | Impresión          | 123         |
+| Empleado Estampado              | estampado@empresa206.com         | ImpresiónEstampado | 123         |
+| Empleado Corte                  | corte@empresa206.com             | CorteBordado       | 123         |
+| Empleado Costura                | costura@empresa206.com           | Costura            | 123         |
+| Empleado Diseño                 | diseno@empresa206.com            | Diseño             | 123         |
+| Empleado Comercialización       | comercializacion@empresa206.com  | Comercialización   | 123         |
+| Empleado Producción             | produccion@empresa206.com        | Producción         | 123         |
