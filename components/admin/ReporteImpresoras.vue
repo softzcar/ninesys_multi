@@ -8,7 +8,7 @@
         <div class="card-body">
           <b-table striped hover :items="impresoras" :fields="fields">
             <template #cell(tintas_recargas)="row">
-              <b-button size="sm" variant="primary" @click="row.toggleDetails" class="mr-2" :disabled="!row.item.tintas_recargas || row.item.tintas_recargas.length === 0 || (row.item.tintas_recargas.length === 1 && row.item.tintas_recargas[0].id === null)">
+              <b-button size="sm" variant="primary" @click="row.toggleDetails" class="mr-2" :disabled="!row.item.tintas_recargas || row.item.tintas_recargas.length === 0">
                 {{ row.detailsShowing ? 'Ocultar' : 'Mostrar' }} Recargas
               </b-button>
             </template>
@@ -45,7 +45,7 @@
                     <span v-else class="text-muted italic">Abierto</span>
                   </template>
                   <template #cell(fecha_recarga)="data">
-                    {{ formatDate(data.value ? data.value.split(' ')[0] : '') }}
+                    {{ formatDate(data.value ? data.value.split(/[ T]/)[0] : '') }}
                   </template>
                 </b-table>
               </b-card>
