@@ -126,6 +126,11 @@
               <b-alert v-else-if="impresora.id_impresora !== null" show variant="warning" class="mt-2">
                 Esta impresora no tiene canales de color configurados.
               </b-alert>
+
+              <small v-if="tintaEstimadaMlForIndex(index)" class="text-muted d-block mt-2">
+                <b-icon icon="info-circle"></b-icon>
+                Tinta Estimada (Sistema): {{ tintaEstimadaMlForIndex(index) }} ml
+              </small>
             </b-card>
 
             <!-- Botón para añadir impresora -->
@@ -1237,6 +1242,26 @@ export default {
       if (!selectedId) return [];
       const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
       return (selectedPrinter && selectedPrinter.canales_colores) ? selectedPrinter.canales_colores : [];
+    },
+
+    /**
+     * Estimado de tinta de referencia (SOLO visual) para la impresora seleccionada
+     * en este índice = metros del "Material Estimado (Sistema)" * ml_tinta_por_metro
+     * de esa impresora. No autocompleta ni valida los inputs de canal de color.
+     */
+    tintaEstimadaMlForIndex(index) {
+      if (!this.impresoras || this.impresoras.length === 0) return null;
+      const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
+      if (!selectedId) return null;
+      const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
+      if (!selectedPrinter || !parseInt(selectedPrinter.mostrar_tinta_estimada)) return null;
+
+      const metros = parseFloat(this.materialEstimadoDepartamento.total);
+      const mlPorMetro = parseFloat(selectedPrinter.ml_tinta_por_metro);
+      if (!metros || isNaN(metros) || metros <= 0) return null;
+      if (!mlPorMetro || isNaN(mlPorMetro) || mlPorMetro <= 0) return null;
+
+      return (metros * mlPorMetro).toFixed(2);
     },
 
     // Calcula el color de texto (blanco/negro) según el fondo para legibilidad

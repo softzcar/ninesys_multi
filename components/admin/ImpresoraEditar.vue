@@ -70,6 +70,18 @@
                             </b-form-group>
                         </b-col>
                     </b-row>
+                    <b-row>
+                        <b-col md="6">
+                            <b-form-group label="Tinta Estimada (ml por metro)" description="Estimado de ml de tinta por metro de material impreso a full print, sin considerar saturación. Se usa solo como referencia visual junto a los inputs de tinta, no autocompleta ni valida.">
+                                <b-form-input type="number" step="0.1" min="0" v-model="form.ml_tinta_por_metro"></b-form-input>
+                            </b-form-group>
+                        </b-col>
+                        <b-col md="6" class="d-flex align-items-center">
+                            <b-form-checkbox v-model="form.mostrar_tinta_estimada" :value="1" :unchecked-value="0" class="mt-4">
+                                Mostrar tinta estimada en el modal de Impresión
+                            </b-form-checkbox>
+                        </b-col>
+                    </b-row>
 
                     <!-- Canales de color dinámicos -->
                     <b-row class="mt-3 mb-4">
@@ -183,6 +195,8 @@ export default {
                 id_catalogo_tintas: null,
                 capacidad_contenedor: '',
                 estado: 'activa',
+                ml_tinta_por_metro: 12,
+                mostrar_tinta_estimada: 1,
                 notes: '',
                 canales: []
             },
@@ -270,6 +284,8 @@ export default {
                 id_catalogo_tintas: this.item.id_catalogo_tintas || null,
                 capacidad_contenedor: this.item.capacidad_contenedor || '',
                 estado: this.item.estado || 'activa',
+                ml_tinta_por_metro: this.item.ml_tinta_por_metro !== undefined && this.item.ml_tinta_por_metro !== null ? this.item.ml_tinta_por_metro : 12,
+                mostrar_tinta_estimada: this.item.mostrar_tinta_estimada !== undefined && this.item.mostrar_tinta_estimada !== null ? parseInt(this.item.mostrar_tinta_estimada) : 1,
                 notes: this.item.notes || this.item.notas || '',
                 canales: canalesIds
             };
