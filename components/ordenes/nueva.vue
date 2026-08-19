@@ -1287,7 +1287,7 @@ export default {
             categoria: fullProduct
               ? this.getCategory(fullProduct.categories)
               : null,
-            diseno: apiProd.producto_fisico === 0,
+            diseno: apiProd.producto_fisico === 0 || apiProd.requiere_talla_corte_tela === 0,
             precio: finalPrice,
             original_selected_price:
               original_selected_price > 0 ? original_selected_price : totalSinMultiplicador,
@@ -3042,7 +3042,12 @@ export default {
             xl: 0,
             categoria: this.getCategory(product.categories),
             // Si producto_fisico es 0, no es físico (es un diseño), por lo tanto diseno = true.
-            diseno: product.producto_fisico === 0,
+            // También true si requiere_talla_corte_tela = 0: producto físico que se
+            // entrega tal cual (ej. impresión DTF standalone), sin confeccionarse
+            // como prenda -- misma lógica de deshabilitar talla/corte/tela y saltar
+            // la validación (checkTallasTelas), pero sin tocar producto_fisico ni
+            // es_diseno para no afectar cálculos de comisiones/manufactura.
+            diseno: product.producto_fisico === 0 || product.requiere_talla_corte_tela === 0,
             // precio: product.regular_price || 0,
             // product.price es un campo legacy que ya no se mantiene -- el precio real
             // vive en product.prices (products_prices), se toma el primero como default

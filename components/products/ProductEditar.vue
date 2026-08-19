@@ -156,6 +156,19 @@
                     </small>
                   </b-form-group>
 
+                  <b-form-group v-if="form.producto_fisico === 1">
+                    <b-form-checkbox
+                      v-model="form.requiere_talla_corte_tela"
+                      :value="1"
+                      :unchecked-value="0"
+                    >
+                      Requiere Talla, Corte y Tela
+                    </b-form-checkbox>
+                    <small class="text-muted">
+                      Desmarque si el producto se entrega tal cual se imprime, sin confeccionarse como prenda (ej. impresión DTF standalone, sin talla/corte/tela).
+                    </small>
+                  </b-form-group>
+
                   <b-form-group
                     id="input-group-stock"
                     label="Stock / Cantidad:"
@@ -228,6 +241,7 @@ export default {
         prices: [],
         producto_fisico: 0,
         es_diseno: 0,
+        requiere_talla_corte_tela: 1,
         stock_quantity: 0,
       },
       form_old: {
@@ -266,6 +280,7 @@ export default {
               : null,
           producto_fisico: newData.producto_fisico || 0,
           es_diseno: newData.es_diseno || 0,
+          requiere_talla_corte_tela: newData.requiere_talla_corte_tela !== undefined && newData.requiere_talla_corte_tela !== null ? newData.requiere_talla_corte_tela : 1,
           stock_quantity: newData.stock_quantity || 0,
         };
       },
@@ -328,6 +343,7 @@ export default {
       data.set("sku", this.form.sku);
       data.set("producto_fisico", this.form.producto_fisico);
       data.set("es_diseno", this.form.es_diseno);
+      data.set("requiere_talla_corte_tela", this.form.requiere_talla_corte_tela);
       data.set("stock_quantity", this.form.stock_quantity);
 
       await this.$axios
@@ -397,6 +413,7 @@ export default {
         prices: [],
         producto_fisico: 0,
         es_diseno: 0,
+        requiere_talla_corte_tela: 1,
         stock_quantity: 0,
       };
       // Trick to reset/clear native browser form validation state
@@ -415,6 +432,7 @@ export default {
         prices: [],
         producto_fisico: 0,
         es_diseno: 0,
+        requiere_talla_corte_tela: 1,
         stock_quantity: 0,
       };
       this.overlay = false;

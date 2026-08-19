@@ -69,6 +69,15 @@
               </small>
             </b-form-group>
 
+            <b-form-group v-if="form.producto_fisico === 1">
+              <b-form-checkbox v-model="form.requiere_talla_corte_tela" :value="1" :unchecked-value="0">
+                Requiere Talla, Corte y Tela
+              </b-form-checkbox>
+              <small class="text-muted">
+                Desmarque si el producto se entrega tal cual se imprime, sin confeccionarse como prenda (ej. impresión DTF standalone, sin talla/corte/tela).
+              </small>
+            </b-form-group>
+
             <b-button type="submit" variant="success">Guardar</b-button>
           </b-form>
         </div>
@@ -127,6 +136,7 @@ export default {
         prices: [],
         producto_fisico: 1, // Por defecto activado (físico)
         es_diseno: 0, // Por defecto desactivado (no es diseño)
+        requiere_talla_corte_tela: 1, // Por defecto activado (comportamiento actual)
         stock_quantity: 0,
       },
       // New state for the two-step process
@@ -203,6 +213,7 @@ export default {
       data.set("sku", this.form.sku);
       data.set("producto_fisico", this.form.producto_fisico);
       data.set("es_diseno", this.form.es_diseno);
+      data.set("requiere_talla_corte_tela", this.form.requiere_talla_corte_tela);
       data.set("stock_quantity", this.form.stock_quantity);
       if (reactivarId) {
         data.set("reactivar_id", reactivarId);
