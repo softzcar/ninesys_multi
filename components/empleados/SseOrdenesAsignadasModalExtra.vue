@@ -553,13 +553,17 @@ export default {
 
         if (isStrictDepto) return true;
 
-        // Hermandad: Estampado y Corte deben ver los materiales asignados como 'tela' sin importar el departamento asignado
+        // Hermandad: Estampado y Corte deben ver los materiales asignados como
+        // 'tela' sin importar el departamento asignado -- incluida la Tela
+        // asignada directamente a Impresión (caso real y común: la tela se
+        // sublima/estampa en Impresión pero igual se corta después). Excluir
+        // por tipo de departamento ('impresion') bloqueaba justo ese caso; el
+        // nombre "papel" ya es suficiente para no arrastrar el papel de
+        // sublimación (que sí es exclusivo de Impresión) hacia Corte/Estampado.
         const currentTipo = this.$store.getters['login/currentDepartamentTipo'];
-        const elTipo = this.getDeptTipoById(el.id_departamento);
         if (
           (['corte', 'estampado'].includes(currentTipo)) &&
           (el.tipo_insumo === "tela" || el.catalogo?.toLowerCase().includes("tela")) &&
-          elTipo !== "impresion" &&
           !el.catalogo?.toLowerCase().includes("papel")
         ) {
           return true;
@@ -1508,13 +1512,6 @@ export default {
       this.formCor = {
         input: 0,
       };
-    },
-
-    getDeptTipoById(id) {
-      if (!id) return 'general';
-      const dept = this.$store.state.login.departamentos.find(el => parseInt(el._id) === parseInt(id));
-      if (dept && dept.tipo) return dept.tipo;
-      return 'general';
     },
 
     onReserForm(event) {
