@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** "¿Como quedó nuestra programación para actualizar automáticamente nuestro valor el ml al momento de recargar la tinta, lo implementamos?" -- seguido de: "vamos a incluir en el plan actualizar el reporte del consumo de tinta que se muestra en el componente que se muestra en la columna 'Costo insumos' en el 'Reporte de Costos de Producción'". Confirmación del enfoque de calibración por color, tras discusión: "Si me parece bien tu enfoque."
+- **Fecha y Hora:** 2026-08-19 15:13:19
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** `components/empleados/SseOrdenesAsignadasModalExtra.vue`, `components/admin/ReporteCostosDeProduccionInsumos.vue`
+- **Commits Relacionados:**
+    - Frontend: `b1ed3a6`
+    - Backend: `551d091`
+- **Acción Realizada:**
+  1. `SseOrdenesAsignadasModalExtra.vue`: nuevo método `estimadoPorCanalForIndex()` que calcula, para cada canal activo de la impresora, el ratio ml/metro calibrado de ese color específico (o un respaldo parejo del valor manual del admin si aún no tiene calibración propia), multiplicado por los metros de la orden. `tintaEstimadaMlForIndex()` (referencia visual) ahora suma esos estimados por canal. `postImp()` usa este mismo cálculo para guardar el estimado en modo automático, marcado con `es_estimado=1`.
+  2. `ReporteCostosDeProduccionInsumos.vue`: muestra una etiqueta "(estimado)" junto al costo de tintas y por fila cuando el valor viene de un estimado automático, no de una captura manual real.
+- **Inconvenientes y Desafíos:** El usuario reportó inicialmente que el reporte de costos solo mostraba tinta Cyan para una impresora CMYKW -- se verificó vía consulta directa que en realidad los 5 colores sí se habían guardado correctamente (24ml cada uno); fue una lectura incompleta de la captura de pantalla original del usuario, no un bug.
+- **Decisión Final y Justificación:** El estimado se calcula por canal individualmente (no un promedio parejo fijo) para que la calibración progresiva por color (hecha en el backend) se refleje en la referencia visual y en lo que efectivamente se guarda.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Verificado con datos reales de la orden 3 (empresa 206): 5 colores guardados con 24ml cada uno, coincidiendo con el respaldo parejo esperado (10 metros × 12 ml/metro ÷ 5 canales) antes de que existiera ninguna calibración por color.
+- **Logro Conseguido:** El modal de finalización de Impresión y el reporte de costos ya reflejan el estimado automático marcado como tal, sin perder el dato como ocurría antes.
+- **Observaciones de Claude:** Parte frontend de la Fase 2 de tinta, ver también el log correspondiente en el backend (`551d091`) para el detalle completo de la auto-calibración.
+- **Respuesta de Claude:** Implementado el cálculo de estimado por canal (usando calibración por color cuando existe) y la etiqueta "(estimado)" en el reporte de costos, para que el usuario distinga siempre un dato capturado a mano de uno calculado automáticamente.

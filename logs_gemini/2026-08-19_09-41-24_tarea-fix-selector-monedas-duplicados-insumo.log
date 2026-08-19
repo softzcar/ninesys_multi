@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** [Reconstruido desde el mensaje de commit -- reportes del usuario durante pruebas en vivo del wizard de configuración de moneda base y del modal de creación de insumos, registrados en `docs/QA_rediseno_monedas_dinamicas_ozcar.md`]: el selector de monedas no se refrescaba tras guardar el paso "Empresa" del wizard (donde puede cambiar la moneda base), y crear un insumo ya existente desde el modal de asignación solo mostraba un error en vez de seleccionar el insumo existente.
+- **Fecha y Hora:** 2026-08-19 09:41:24
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/configuracionWizard.vue`, `components/empresa/ConfigMonedasForm.vue`, `components/admin/AsignacionDeInsumosAProductosTab.vue`, `docs/QA_rediseno_monedas_dinamicas_ozcar.md`
+- **Commits Relacionados:**
+    - Frontend: `13f1fed`
+    - Backend: N/A
+- **Acción Realizada:**
+  1. `configuracionWizard.vue`/`ConfigMonedasForm.vue`: al guardar el paso "Empresa" del wizard se refresca el gestor de monedas (la moneda base puede cambiar en ese paso), y se sincroniza `monedasActuales` tras guardar el paso "Monedas", siguiendo el mismo patrón de staleness ya usado en otros pasos del wizard.
+  2. `AsignacionDeInsumosAProductosTab.vue`: al crear un insumo nuevo desde el modal, si ya existe uno igual el backend lo informa (`existing_item`) -- en vez de mostrar solo un error, ahora se selecciona automáticamente el insumo existente.
+  3. Checklist de QA actualizado con los hallazgos y pendientes reportados por el usuario durante las pruebas en vivo.
+- **Inconvenientes y Desafíos:** Ninguno registrado.
+- **Decisión Final y Justificación:** Reutilizar el mismo patrón de refresco de staleness ya presente en otros pasos del wizard, en vez de introducir un mecanismo nuevo.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** No detallada en el mensaje de commit original (reconstruido desde git log, sin transcript de la sesión).
+- **Logro Conseguido:** El selector de monedas queda consistente tras cambiar la moneda base desde el wizard, y crear un insumo duplicado ya no bloquea al usuario con un error sin salida.
+- **Observaciones de Claude:** Esta entrada se reconstruyó a partir del mensaje de commit `13f1fed`, ya que no se generó un log `.log` en el momento (la sesión original que hizo este trabajo no está en el historial de conversación disponible).
+- **Respuesta de Claude:** N/A (reconstruido desde git log).

@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** Convertir el interruptor "mostrar tinta estimada" (solo visual) en un modo real manual/automático: si la impresora está en modo automático, el empleado ya no debe tener que capturar manualmente los ml por color al finalizar la tarea.
+- **Fecha y Hora:** 2026-08-19 10:18:04
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** `components/admin/ImpresoraNueva.vue`, `components/admin/ImpresoraEditar.vue`, `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+- **Commits Relacionados:**
+    - Frontend: `5f35225`
+    - Backend: `74d2a05`
+- **Acción Realizada:**
+  1. `ImpresoraNueva.vue`/`ImpresoraEditar.vue`: checkbox renombrado a "Ingresar consumo de tinta manualmente", con texto explicando el efecto de cada estado.
+  2. `SseOrdenesAsignadasModalExtra.vue`: nuevo método `esModoManualForIndex()`; si la impresora seleccionada está en modo automático, el formulario de captura de ml por color no se muestra ni se exige en la validación -- solo queda visible la leyenda "Tinta Estimada (Sistema)". En modo manual (default) el comportamiento es idéntico al de antes.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** En modo automático, el dato en ese momento simplemente no se guardaba (se perdía) -- comportamiento explícitamente diferido a la "Fase 2" (completada más tarde a las 15:12) que sí lo guarda como estimado.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Formulario de captura oculto correctamente al seleccionar una impresora en modo automático.
+- **Logro Conseguido:** El empleado ya no tiene que tipear datos de tinta poco confiables cuando la impresora no los provee de forma fiable.
+- **Observaciones de Claude:** Parte 2 de la "Fase 1" de tinta.
+- **Respuesta de Claude:** El formulario de captura de tinta ahora se oculta automáticamente cuando la impresora está configurada en modo automático.

@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** Configurar un valor de referencia de consumo de tinta (ml por metro) por impresora, visible como estimado al capturar los datos de una tarea de Impresión, ya que distintas marcas/tecnologías de impresión consumen tinta de forma distinta.
+- **Fecha y Hora:** 2026-08-19 09:49:22
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** `components/admin/ImpresoraNueva.vue`, `components/admin/ImpresoraEditar.vue`, `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+- **Commits Relacionados:**
+    - Frontend: `c20d2a9`
+    - Backend: `4fd19e8`
+- **Acción Realizada:**
+  1. `ImpresoraNueva.vue`/`ImpresoraEditar.vue`: agregados los campos "Tinta Estimada (ml por metro)" e interruptor "Mostrar tinta estimada", junto a Capacidad del Contenedor.
+  2. `SseOrdenesAsignadasModalExtra.vue`: nuevo método `tintaEstimadaMlForIndex()` que calcula metros de "Material Estimado (Sistema)" × `ml_tinta_por_metro` de la impresora seleccionada, mostrado junto a los inputs de canal de color como referencia visual (no autocompleta ni valida el guardado).
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Valor puramente informativo en esta primera etapa -- no se guarda ni se exige, para no bloquear a empleados con datos incompletos mientras se valida el enfoque.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Campo visible en formulario de impresora y referencia visual mostrada en el modal de finalización de Impresión.
+- **Logro Conseguido:** Primera pieza visible de la funcionalidad de estimación de tinta.
+- **Observaciones de Claude:** Punto de partida ("Fase 1") de una funcionalidad completada en varias iteraciones durante el día.
+- **Respuesta de Claude:** Agregado el campo de tinta estimada por metro configurable por impresora, con referencia visual en el modal de finalización de Impresión.

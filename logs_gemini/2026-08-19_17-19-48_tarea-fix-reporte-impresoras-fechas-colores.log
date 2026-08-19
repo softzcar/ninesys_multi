@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** "ya lo revisé en el navegador... vimos en los datos que verificaste que el consumo de 24ml se había registrado para todos los colores, en este reporte K y W aparecen en CERO y Y ni siquiera aparece, vamos a ver que le sucede a este reporte en la página `/reporte-impresoras`".
+- **Fecha y Hora:** 2026-08-19 17:19:48
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** `components/admin/ReporteImpresoras.vue`, `docs/QA_rediseno_monedas_dinamicas_ozcar.md`
+- **Commits Relacionados:**
+    - Frontend: `463aa08`
+    - Backend: `c6500e0`, `448c4a3`
+- **Acción Realizada:**
+  1. `fecha_recarga` ahora llega en formato ISO con "T" (`2026-08-19T15:30:17`); el `split(' ')` que asumía espacio se cambió por `split(/[ T]/)` para no mostrar basura como "19T15:30:17/08/2026".
+  2. El botón "Mostrar Recargas" ya no depende del sentinel `id===null` de una sola fila (ahora el backend puede devolver varias filas sin recarga real, una por color configurado sin historial) -- se simplificó a deshabilitar solo si no hay ninguna fila en absoluto.
+- **Inconvenientes y Desafíos:** El cambio del botón reveló un tercer bug (NaN en las columnas del color sin recarga), reportado por el usuario inmediatamente después de este fix y corregido en la siguiente tarea (17:38).
+- **Decisión Final y Justificación:** Ver log del backend de esta misma tarea para el detalle de los 2 bugs de datos corregidos en paralelo.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito (con un tercer bug encontrado y corregido en la tarea siguiente).
+- **Verificación:** Verificado en el navegador real (Chrome DevTools vía MCP) con recarga completa de la página: fechas ya se muestran correctamente ("19/08/2026"), los 4 colores con recarga muestran su consumo correcto.
+- **Logro Conseguido:** El Reporte de Impresoras muestra fechas legibles y ya no oculta colores sin historial de recarga.
+- **Observaciones de Claude:** Verificación hecha con herramientas de automatización de navegador (Claude in Chrome) contra la página real en Desarrollo, incluyendo recarga forzada para descartar bundle JS en caché.
+- **Respuesta de Claude:** Corregida la columna de fecha (mostraba "19T15:30:17/08/2026" en vez de "19/08/2026") y el botón "Mostrar Recargas", que ahora se habilita correctamente cuando hay colores sin historial de recarga que mostrar.

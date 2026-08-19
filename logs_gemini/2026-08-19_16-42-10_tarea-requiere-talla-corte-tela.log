@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** "ok vamos ahora a atender un bug que está pendiente y del que no te había informado. Acabamos de crear la orden 3 con éxito, sin embargo tenemos un problema con el producto que se incluyó en la orden verás, en este caso el producto es 'impresión DTF' Este producto implica que solo se imprime y se entrega la impresión, no se confecciona ninguna prenda... existe código que permite identificar si un producto es un diseño y entiende que no requiere los campos talla, corte y tela. Necesitamos poder identificar algunos productos como 'no confeccionables' o algo similar con una descripción más adecuada en la interfaz tal vez que nos permita indicar que para este producto no se requieren estos datos tampoco y puedan mostrarse los controles disabled y puedan pasar la validación con éxito para el siguiente paso del Wizard".
+- **Fecha y Hora:** 2026-08-19 16:42:10
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** `components/ordenes/nueva.vue`, `components/ordenes/presupuesto.vue`, `components/products/ProductEditar.vue`, `components/products/new.vue`
+- **Commits Relacionados:**
+    - Frontend: `b85d19b`
+    - Backend: `29adac9`, `899a43c`
+- **Acción Realizada:**
+  1. `new.vue`/`ProductEditar.vue`: checkbox nuevo "Requiere Talla, Corte y Tela" (visible solo si "Producto Físico" está activo), default marcado -- mismo comportamiento de hoy para todo producto existente.
+  2. `nueva.vue`/`presupuesto.vue` (2 ocurrencias cada uno): el flag interno `diseno` -- que ya deshabilita talla/corte/tela y salta la validación `checkTallasTelas()` -- ahora también se activa cuando `requiere_talla_corte_tela=0`, sin tocar `producto_fisico` ni `es_diseno`, reutilizando las 3 conductas que ya dependen de ese flag (inputs deshabilitados, botón de duplicar línea deshabilitado, validación saltada).
+- **Inconvenientes y Desafíos:** El campo no llegaba inicialmente a la interfaz porque el backend (`getAllProducts()`) no lo incluía en su respuesta -- ver detalle en el log del backend de esta misma tarea.
+- **Decisión Final y Justificación:** Ampliar la condición que ya activa el flag `diseno` (en vez de crear un flag nuevo y duplicar lógica de disabled/validación) para reutilizar las 3 conductas existentes con el mínimo cambio posible.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Producto "impresión DTF" (empresa 206) marcado con `requiere_talla_corte_tela=0` vía SQL directo para pruebas; verificación completa del flujo en el navegador pendiente de confirmación del usuario al cierre de la sesión.
+- **Logro Conseguido:** Un producto físico que no se confecciona como prenda (ej. impresión DTF standalone) ya puede marcarse para que la orden no le exija talla/corte/tela, con los controles deshabilitados y la validación del Wizard pasando correctamente.
+- **Observaciones de Claude:** Ver también el log del backend para el detalle del bug de campo ausente en `GET /products`, encontrado durante la verificación en vivo de esta misma tarea.
+- **Respuesta de Claude:** Agregado el checkbox "Requiere Talla, Corte y Tela" en el formulario de producto; al desmarcarlo, la orden trata ese producto como no confeccionable (misma conducta ya usada para diseños), sin tocar los campos existentes de producto físico/diseño.

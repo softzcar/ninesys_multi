@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** [Reconstruido desde el mensaje de commit -- reportado por el usuario]: Corte no mostraba el input de excedente/desperdicio para tela que había sido asignada al departamento de Impresión (donde se sublima/estampa antes de cortar).
+- **Fecha y Hora:** 2026-08-19 12:44:07
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+- **Commits Relacionados:**
+    - Frontend: `4444900`
+    - Backend: N/A
+- **Acción Realizada:**
+  1. La regla de "hermandad" que permite a Corte/Estampado ver los materiales tipo Tela asignados a departamentos anteriores (para poder registrar el excedente/desperdicio de tela cortada, sin importar en qué departamento se registró el consumo) excluía cualquier insumo asignado a un departamento tipo `'impresion'` -- pero la tela se asigna con frecuencia precisamente a Impresión (se sublima/estampa ahí y luego igual se corta).
+  2. Se eliminó esa condición (el nombre "papel" ya es suficiente para no arrastrar el papel de sublimación, exclusivo de Impresión, hacia Corte -- la exclusión por tipo de departamento era redundante y bloqueaba el caso real) y el método `getDeptTipoById()`, que quedó sin uso.
+- **Inconvenientes y Desafíos:** En el producto probado ese día (orden 1, empresa 206) no había ningún insumo tipo Tela asignado en ninguna etapa -- Corte no mostraba el input de excedente para ese caso puntual, pero se confirmó que era dato de ficha técnica faltante, no un bug adicional. El fix cubre el caso general reportado: cuando SÍ hay Tela asignada a Impresión, Corte ahora la hereda.
+- **Decisión Final y Justificación:** Eliminar la exclusión por tipo de departamento en vez de agregar una excepción puntual, ya que el filtro por nombre "papel" ya cumplía el propósito original de esa condición sin bloquear el caso real de tela asignada a Impresión.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** No detallada en el mensaje de commit original (reconstruido desde git log, sin transcript de la sesión).
+- **Logro Conseguido:** Corte ya puede registrar excedente/desperdicio de tela asignada a Impresión, cubriendo el flujo real de sublimación/estampado previo al corte.
+- **Observaciones de Claude:** Esta entrada se reconstruyó a partir del mensaje de commit `4444900`, ya que no se generó un log `.log` en el momento.
+- **Respuesta de Claude:** N/A (reconstruido desde git log).

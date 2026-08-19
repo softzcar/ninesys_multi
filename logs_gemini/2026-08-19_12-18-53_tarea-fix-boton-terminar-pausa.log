@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** [Reconstruido desde el mensaje de commit -- reportado por el usuario]: el botón "Terminar" que ve el empleado en su dashboard seguía habilitado y sin efecto mientras la tarea estaba en pausa.
+- **Fecha y Hora:** 2026-08-19 12:18:53
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empleados/SseOrdenesAsignadasV5.vue`
+- **Commits Relacionados:**
+    - Frontend: `eb4625d`
+    - Backend: N/A
+- **Acción Realizada:**
+  1. Se encontró que `empleados-pausasEmpleados.vue` ya emitía correctamente `disBtnTodo(true/false)` al pausar/reanudar, pero ese evento solo llegaba al botón OCULTO que abre el modal de finalización (`data-testid="btn-terminar-todo"`) dentro de `SseOrdenesAsignadasModalExtra.vue`. El botón "Terminar" que el empleado realmente ve y toca en el dashboard (`SseOrdenesAsignadasV5.vue`) nunca reflejaba ese estado.
+  2. Nuevo método `itemEstaPausado(item)`, con la misma condición que ya usa `pausasEmpleados.vue` (pausa activa para esta orden/departamento/empleado), aplicado a los 4 botones "Terminar" de la vista (2 variantes con texto fijo + 2 variantes que alternan Iniciar/Terminar).
+  3. Se confirmó que el botón se reactiva correctamente solo cuando `this.pausas` se refresca tras reanudar (ya disparaba `reloadMe()`).
+- **Inconvenientes y Desafíos:** Ninguno registrado.
+- **Decisión Final y Justificación:** Reutilizar la misma condición de "pausa activa" ya centralizada en `pausasEmpleados.vue`, aplicándola donde realmente hacía falta (el botón visible), en vez de duplicar lógica nueva.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** No detallada en el mensaje de commit original (reconstruido desde git log, sin transcript de la sesión).
+- **Logro Conseguido:** Un empleado ya no puede finalizar por error una tarea que está en pausa desde el botón que realmente usa en su día a día.
+- **Observaciones de Claude:** Esta entrada se reconstruyó a partir del mensaje de commit `eb4625d`, ya que no se generó un log `.log` en el momento.
+- **Respuesta de Claude:** N/A (reconstruido desde git log).

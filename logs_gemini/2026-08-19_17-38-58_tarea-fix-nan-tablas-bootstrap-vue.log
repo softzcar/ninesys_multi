@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** "ya lo revisé en el navegador, se ve bien pero antes cuando no tenía datos deshabilitábamos el botón 'Mostrar Recargas' ahora está activo y al abrirlo muestra NaN en las columnas y ahora si aparece el color Y pero no muestra datos ¿que sucede?".
+- **Fecha y Hora:** 2026-08-19 17:38:58
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `mixins/mixins.js`
+- **Commits Relacionados:**
+    - Frontend: `86e05a4`
+    - Backend: N/A
+- **Acción Realizada:**
+  1. Se reprodujo el bug en vivo con Claude in Chrome (navegación real, recarga forzada para descartar bundle en caché) contra `/reporte-impresoras` en Desarrollo.
+  2. Se confirmó vía inspección directa del componente Vue en el navegador (acceso a la instancia real vía `__vue__`, no solo la API) que el dato en `comp.impresoras` SÍ era `null` real, y que `formatNumber(null)` llamado directamente devolvía "0.00" correctamente -- descartando el dato de origen y la función en sí como causa.
+  3. Se interceptó `formatNumber` con un wrapper temporal para loguear el valor exacto recibido durante el render real: reveló que `<b-table>` de bootstrap-vue convierte internamente los valores `null` de un item en cadena vacía (`''`) antes de pasarlos al scoped slot de la celda.
+  4. `isNaN('')` es `false` (`Number('') === 0`), así que el chequeo existente `num === null || num === undefined || isNaN(num)` no detectaba este caso, y `parseFloat('')` producía `NaN`.
+  5. Corregido agregando `num === ""` al chequeo en `formatNumber` y, por el mismo patrón de bug, también en `formatMonto` (mismo archivo, misma lógica sin ese chequeo).
+- **Inconvenientes y Desafíos:** La causa no era evidente por inspección estática del código -- formatNumber(null) se comprobó explícitamente seguro; fue necesario interceptar la función en vivo dentro del navegador real para capturar el valor exacto que bootstrap-vue realmente pasaba en cada llamada durante el render.
+- **Decisión Final y Justificación:** Corregido en el mixin compartido (no solo en el componente del reporte) porque el defecto es de `<b-table>` en general, y afecta a cualquier tabla del sistema que reciba un valor `null` real desde el backend en una celda formateada con `formatNumber`/`formatMonto`.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), Claude in Chrome (navigate, computer/screenshot, javascript_tool para inspección y monkey-patch en vivo), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en el navegador real tras el despliegue (recarga forzada + captura de pantalla): la fila del color Y ya muestra "0.00" en las columnas sin dato en vez de "NaN".
+- **Logro Conseguido:** Corregido un defecto de clase general (no solo del Reporte de Impresoras) que habría reaparecido en cualquier otra tabla del sistema que mostrara un campo null proveniente del backend.
+- **Observaciones de Claude:** Cierre de la cadena de 3 bugs reales encontrados a partir de la observación inicial del usuario sobre el Reporte de Impresoras (fechas, colores sin recarga, y este NaN).
+- **Respuesta de Claude:** Corregido el NaN: bootstrap-vue convierte los valores null en cadena vacía antes de mostrarlos, y el chequeo de "sin valor" no lo contemplaba. Corregido en el mixin compartido para prevenir el mismo problema en cualquier otra tabla del sistema.
