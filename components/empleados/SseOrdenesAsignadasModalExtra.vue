@@ -1254,23 +1254,52 @@ export default {
     },
 
     /**
-     * Estimado de tinta de referencia (SOLO visual) para la impresora seleccionada
-     * en este índice = metros del "Material Estimado (Sistema)" * ml_tinta_por_metro
-     * de esa impresora. No autocompleta ni valida los inputs de canal de color.
+     * Estimado de tinta POR CANAL (SOLO visual / para guardar en modo automático)
+     * para la impresora seleccionada en este índice. Por cada canal activo, usa
+     * el ratio ml/metro ya CALIBRADO para ese color específico (tabla
+     * tintas_calibracion_colores, expuesto por el backend como canal.ml_por_metro)
+     * si existe; si ese color todavía no tiene calibración propia, cae a una
+     * porción pareja del valor manual del admin (ml_tinta_por_metro / cantidad de
+     * canales activos) como respaldo. Nunca autocompleta ni valida los inputs.
      */
-    tintaEstimadaMlForIndex(index) {
-      if (!this.impresoras || this.impresoras.length === 0) return null;
+    estimadoPorCanalForIndex(index) {
+      if (!this.impresoras || this.impresoras.length === 0) return [];
       const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
-      if (!selectedId) return null;
+      if (!selectedId) return [];
       const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
-      if (!selectedPrinter) return null;
+      if (!selectedPrinter) return [];
+
+      const canales = this.getCanalesForIndex(index);
+      if (!canales.length) return [];
 
       const metros = parseFloat(this.materialEstimadoDepartamento.total);
-      const mlPorMetro = parseFloat(selectedPrinter.ml_tinta_por_metro);
-      if (!metros || isNaN(metros) || metros <= 0) return null;
-      if (!mlPorMetro || isNaN(mlPorMetro) || mlPorMetro <= 0) return null;
+      if (!metros || isNaN(metros) || metros <= 0) return [];
 
-      return (metros * mlPorMetro).toFixed(2);
+      const mlPorMetroRespaldo = parseFloat(selectedPrinter.ml_tinta_por_metro);
+      const respaldoPorCanal = (!mlPorMetroRespaldo || isNaN(mlPorMetroRespaldo) || mlPorMetroRespaldo <= 0)
+        ? 0
+        : mlPorMetroRespaldo / canales.length;
+
+      return canales.map(canal => {
+        const ratioCalibrado = parseFloat(canal.ml_por_metro);
+        const ratio = (!isNaN(ratioCalibrado) && ratioCalibrado > 0) ? ratioCalibrado : respaldoPorCanal;
+        return {
+          id_color: canal.id_color,
+          codigo: canal.codigo,
+          ml: ratio > 0 ? parseFloat((ratio * metros).toFixed(2)) : 0,
+        };
+      });
+    },
+
+    /**
+     * Estimado de tinta de referencia (SOLO visual) = suma de los estimados por
+     * canal. No autocompleta ni valida los inputs de canal de color.
+     */
+    tintaEstimadaMlForIndex(index) {
+      const estimados = this.estimadoPorCanalForIndex(index);
+      if (!estimados.length) return null;
+      const total = estimados.reduce((acc, e) => acc + e.ml, 0);
+      return total > 0 ? total.toFixed(2) : null;
     },
 
     /**
@@ -1770,12 +1799,25 @@ export default {
         data.set("id_empleado", this.$store.state.login.dataUser.id_empleado);
         data.set("id_impresora", impresora.id_impresora);
 
-        // Enviar cada canal dinámico en el formato colores[id_color]=cantidad que espera el backend
-        const canales = this.getCanalesForIndex(index);
-        canales.forEach(canal => {
-          const cantidad = impresora.canales[canal.codigo] || 0;
-          data.set(`colores[${canal.id_color}]`, cantidad);
-        });
+        const esModoManual = this.esModoManualForIndex(index);
+        data.set("es_estimado", esModoManual ? "0" : "1");
+
+        if (esModoManual) {
+          // Enviar cada canal dinámico en el formato colores[id_color]=cantidad que espera el backend
+          const canales = this.getCanalesForIndex(index);
+          canales.forEach(canal => {
+            const cantidad = impresora.canales[canal.codigo] || 0;
+            data.set(`colores[${canal.id_color}]`, cantidad);
+          });
+        } else {
+          // Modo automático: no hay captura manual -- se guarda el estimado por
+          // canal (ratio calibrado del color, o respaldo parejo del valor del
+          // admin) marcado explícitamente como estimado, no como dato real.
+          const estimados = this.estimadoPorCanalForIndex(index);
+          estimados.forEach(estimado => {
+            data.set(`colores[${estimado.id_color}]`, estimado.ml);
+          });
+        }
 
         return this.$axios.post(`${this.$config.API}/empleados/tintas`, data);
       });

@@ -29,7 +29,12 @@
                 <b-row class="align-items-center">
                   <b-col md="4" class="border-right">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span>Costo de Tintas:</span>
+                      <span>
+                        Costo de Tintas:
+                        <b-badge v-if="hayTintaEstimada" variant="warning" pill class="ml-1" title="Uno o más valores de tinta son un estimado calculado, no una medición manual real">
+                          (estimado)
+                        </b-badge>
+                      </span>
                       <b-badge variant="info" pill class="px-3 py-2 font-weight-bold">
                         $ {{ totalTintaCosto.toFixed(2) }}
                       </b-badge>
@@ -81,6 +86,9 @@
             </template>
             <template #cell(total_tinta_costo)="data">
               $ {{ (Number(data.item.total_tinta_costo) || 0).toFixed(2) }}
+              <b-badge v-if="data.item.es_estimado" variant="warning" pill class="ml-1" title="Estimado calculado, no una medición manual real">
+                estimado
+              </b-badge>
             </template>
 
 
@@ -229,6 +237,9 @@ export default {
     },
     totalTintaCosto() {
       return this.reporte.tintas.reduce((sum, item) => sum + (Number(item.total_tinta_costo) || 0), 0);
+    },
+    hayTintaEstimada() {
+      return this.reporte.tintas.some(item => !!item.es_estimado);
     },
     totalInsumosCosto() {
       return this.reporte.insumos_consumidos.reduce((sum, item) => sum + (Number(item.total_insumo) || 0), 0);
