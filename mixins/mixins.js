@@ -366,7 +366,11 @@ export default {
     formatNumber(num) {
       let myNum
 
-      if (num === null || num === undefined || isNaN(num)) {
+      // bootstrap-vue's <b-table> convierte los valores null de un item en
+      // cadena vacía ('') antes de pasarlos al scoped slot de la celda --
+      // isNaN('') es false (Number('') === 0), así que sin este chequeo
+      // explícito cae en parseFloat('') = NaN y se muestra "NaN" en pantalla.
+      if (num === null || num === undefined || num === "" || isNaN(num)) {
         myNum = 0
       } else {
         myNum = parseFloat(num)
@@ -381,7 +385,9 @@ export default {
     formatMonto(num) {
       let myNum
 
-      if (num === null || num === undefined) {
+      // Mismo caso que formatNumber: bootstrap-vue convierte null a '' en
+      // <b-table>, y parseFloat('') = NaN si no se filtra antes.
+      if (num === null || num === undefined || num === "" || isNaN(num)) {
         myNum = 0
       } else {
         myNum = parseFloat(num)
