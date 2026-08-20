@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Agregar turno Nocturno a Horario Laboral, permitir omitir un turno específico en un día específico, y validar conflictos de horario con mensaje claro (ej. AM/PM invertido). Énfasis explícito en cuidado dado el costo ya invertido en los cálculos de horas.
+- **Fecha y Hora:** 2026-08-20 09:18:06
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/HorarioLaboralEditor.vue`, `components/empresa/ConfigHorarioForm.vue`, `mixins/mixin-time.js`, `mixins/procesamientoOrdenes.js`
+- **Commits Relacionados:**
+    - Frontend: `f9d9757`
+    - Backend: `28a877d`
+- **Acción Realizada:**
+  1. `HorarioLaboralEditor.vue`: agregada 3ra columna "Turno Noche"; cada turno obtiene su propio selector de días (chips Lun-Dom), inicializado desde `diasLaborales` la primera vez y editable independientemente después.
+  2. Validación local (JS, mismo algoritmo que el backend) antes de permitir guardar: `horaFin > horaInicio` por turno y ausencia de solapamiento entre turnos activos, con mensaje inline claro (ej. "El turno 'Tarde' se solapa con 'Mañana'... revise si seleccionó a.m./p.m. correctamente").
+  3. `ConfigHorarioForm.vue`: envía las 5 claves nuevas en el POST.
+  4. `mixin-time.js` (`calcularTiempoTrabajoIndividual`) y `procesamientoOrdenes.js` (`ajustarInicioAlHorarioLaboral`/`calcularFechaFinLaboral`): agregado bloque/rama Noche, usando `diasManana`/`diasTarde` con fallback a `diasLaborales`.
+- **Inconvenientes y Desafíos:** Ninguno bloqueante en esta primera pasada; los 2 bugs reales (bucle infinito, alineación) se detectaron después, al probar en producción de Dev (ver `4c4110b` y `78fce3a`).
+- **Decisión Final y Justificación:** Turno Noche sin cruce de medianoche -- mismo patrón que Mañana/Tarde, confirmado con el usuario antes de implementar, para no tocar el núcleo de iteración día-por-día ya verificado.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git, node para scripts de verificación ad-hoc), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Scripts Node ad-hoc simulando el mixin ligado a un objeto plano, verificando totales de horas esperados para datos en formato viejo (regresión cero) y nuevos escenarios con turno Noche.
+- **Logro Conseguido:** Turno Nocturno, omisión de turno por día y validación de solapamiento disponibles de punta a punta en la UI.
+- **Observaciones de Claude:** Ver `3d0fa5c` y `ca7dc81` (ajustes de texto/alineación menores el mismo día) y la Fase 2 (`94497f9`) construida sobre este mismo diseño.

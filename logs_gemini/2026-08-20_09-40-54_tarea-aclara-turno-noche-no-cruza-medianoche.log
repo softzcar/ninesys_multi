@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** Ajuste menor de claridad de UI, encontrado durante la propia revisión de la Fase 1 de Horario Laboral (`f9d9757`) -- dejar explícito para el usuario final que el Turno Noche no cruza hacia la madrugada del día siguiente.
+- **Fecha y Hora:** 2026-08-20 09:40:54
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/HorarioLaboralEditor.vue`
+- **Commits Relacionados:**
+    - Frontend: `3d0fa5c`
+    - Backend: N/A
+- **Acción Realizada:** Agregado `<b-alert>` explicativo: "El turno Noche solo admite horarios hasta la medianoche (ej. 06:00 p.m. a 11:30 p.m.). No es posible configurar un horario que cruce hacia la madrugada del día siguiente (ej. 10:00 p.m. a 06:00 a.m.)."
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Evitar que un admin configure sin saberlo un horario que el sistema no soporta (cruce de medianoche), en vez de solo documentarlo internamente.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Verificación visual en Desarrollo tras el despliegue.
+- **Logro Conseguido:** Reduce el riesgo de que un administrador configure un horario que el sistema no puede representar correctamente.

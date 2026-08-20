@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** "ok arregla el texto del horario nocturno, ponle en la parte inferior para que los tres horarios se vean alineados" (con captura de pantalla mostrando el texto empujando la columna fuera de alineación).
+- **Fecha y Hora:** 2026-08-20 15:02:22
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/HorarioLaboralEditor.vue`
+- **Commits Relacionados:**
+    - Frontend: `78fce3a`
+    - Backend: N/A
+- **Acción Realizada:** El texto "Opcional. Deje vacío..." del turno Noche, agregado como parte de la Fase 2 (`94497f9`), estaba ubicado justo después del `<h5>Turno Noche</h5>`, empujando los campos de esa columna hacia abajo respecto a Mañana/Tarde. Movido al pie de la columna (después del botón "Aplicar horario general"), mismo patrón ya usado para la advertencia general de medianoche.
+- **Inconvenientes y Desafíos:** Es la segunda vez el mismo día que un texto explicativo de Turno Noche desalinea las columnas (ver también `ca7dc81`, mismo problema con otro texto en la Fase 1) -- patrón a tener en cuenta para futuros textos agregados a esa columna.
+- **Decisión Final y Justificación:** Mismo criterio que `ca7dc81`: los textos explicativos secundarios van al pie, nunca antes de los campos del formulario.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Confirmado por el usuario tras el despliegue.
+- **Logro Conseguido:** Las 3 columnas del formulario de Horario Laboral quedan alineadas de forma estable.

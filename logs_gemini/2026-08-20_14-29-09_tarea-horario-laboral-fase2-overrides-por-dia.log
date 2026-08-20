@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** "No pude configurar un horario diferente para el día sábado, si cambio la hora de entrada el día sábado la cambia en toda la semana... es inútil ese selector de días si no me selecciona el día para cambiarlo independientemente."
+- **Fecha y Hora:** 2026-08-20 14:29:09
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/HorarioLaboralEditor.vue`, `mixins/mixin-time.js`, `mixins/procesamientoOrdenes.js`
+- **Commits Relacionados:**
+    - Frontend: `94497f9`
+    - Backend: `1aa5f88`
+- **Acción Realizada:**
+  1. Reemplazado el bloque "Días de este turno" (chips) de cada turno por una tabla de 7 filas (Lun..Dom) con checkbox "Activo" y horas de inicio/fin propias por fila, precargadas con la hora base del turno.
+  2. "Días Laborales" en la parte superior pasa de checkbox-group editable a resumen de solo lectura (unión de los días activos en cualquier turno) -- elimina la confusión de 4 selectores de días editables simultáneos.
+  3. Botón "Aplicar horario general a todos los días" por turno, para el caso común de horas iguales toda la semana.
+  4. `computed.errorValidacion`: port JS del algoritmo de validación por día del backend, usando la nueva `resolverHorasEfectivasDia(turno, dia)`.
+  5. `mixin-time.js` y `procesamientoOrdenes.js`: agregada `resolverHorasEfectivasDia(horarioLaboral, turno, diaSemana)` (misma lógica que la versión PHP) y usada en los cálculos de horas trabajadas y proyección de fecha de entrega.
+- **Inconvenientes y Desafíos:** Esta misma tarea introdujo, sin detectarse hasta la prueba real del usuario, un bucle infinito en el watcher `deep: true` del componente (ver `4c4110b`, corregido el mismo día como hotfix).
+- **Decisión Final y Justificación:** Tabla de 7 filas por turno en vez de mantener chips + un mapa de excepciones aparte -- edita horas y activación en el mismo lugar, resolviendo directamente la confusión que reportó el usuario.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git, node para scripts de verificación ad-hoc), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito (con hotfix necesario el mismo día, ver `4c4110b`).
+- **Verificación:** Scripts Node ad-hoc verificando totales de horas para escenarios con y sin overrides; verificado en curl que un horario sin overrides calcula igual que antes.
+- **Logro Conseguido:** Resuelto de fondo el caso real reportado por el usuario -- horas distintas para un día puntual (ej. Sábado) dentro del mismo turno, sin perder los turnos con nombre ni duplicar el modelo.

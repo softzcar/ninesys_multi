@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** "Al interactuar con el selector de horas del horario laboral la interfaz se cuelga."
+- **Fecha y Hora:** 2026-08-20 14:51:36
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/HorarioLaboralEditor.vue`
+- **Commits Relacionados:**
+    - Frontend: `4c4110b`
+    - Backend: N/A
+- **Acción Realizada:** El watcher `deep: true` de `horario` reasignaba incondicionalmente `newValue.diasLaborales = union` con un array recién creado en cada invocación, incluso cuando el contenido no cambiaba. En Vue 2, reasignar un array reactivo a una nueva referencia siempre dispara el watcher otra vez (comparación por referencia, no por contenido) -- al watchear el mismo objeto que se está mutando, esto formaba un bucle infinito. Corregido con el mismo patrón "solo reasignar si el contenido realmente difiere" ya usado para `diasManana`/`diasTarde`/`diasNoche` (documentado como bug ya corregido antes, 2026-08-06), ahora aplicado también a `diasLaborales`.
+- **Inconvenientes y Desafíos:** Regresión real en producción de Dev, introducida por la Fase 2 (`94497f9`) del mismo día -- corregida como hotfix inmediato tras el reporte del usuario.
+- **Decisión Final y Justificación:** Guardar comparando longitud + elemento por elemento antes de reasignar, en vez de deshabilitar el watcher o quitar `deep: true`, para no perder la reactividad necesaria en el resto del componente.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (node para simulación standalone del watcher, git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Simulación Node standalone del watcher confirmando estabilización tras exactamente 1 iteración post-fix; verificado en Desarrollo que la interfaz ya no se cuelga al tocar cualquier hora.
+- **Logro Conseguido:** Corregido un bug crítico de UI (interfaz colgada) en producción de Dev, detectado y resuelto el mismo día que se introdujo.

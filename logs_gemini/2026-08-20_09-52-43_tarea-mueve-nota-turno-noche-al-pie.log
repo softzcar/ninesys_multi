@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** Ajuste menor de layout encontrado durante la propia revisión de la Fase 1 -- el texto agregado en `3d0fa5c` bajo el encabezado empujaba la columna de Turno Noche fuera de alineación con Mañana/Tarde.
+- **Fecha y Hora:** 2026-08-20 09:52:43
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/empresa/HorarioLaboralEditor.vue`
+- **Commits Relacionados:**
+    - Frontend: `ca7dc81`
+    - Backend: N/A
+- **Acción Realizada:** Movida la nota explicativa de Turno Noche del encabezado de la columna al pie del formulario (mismo patrón usado para la advertencia general de medianoche).
+- **Inconvenientes y Desafíos:** Este mismo tipo de desalineación reapareció más tarde con un texto distinto (`78fce3a`), tras la Fase 2.
+- **Decisión Final y Justificación:** Mantener las 3 columnas del formulario visualmente alineadas es más importante que la ubicación exacta de un texto explicativo secundario.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Verificación visual en Desarrollo tras el despliegue.
+- **Logro Conseguido:** Formulario de Horario Laboral con las 3 columnas correctamente alineadas.

@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** "ok el orden está bien pero el check de diseño cae en una línea nueva" (con captura de pantalla mostrando el checkbox "Es un Diseño" flotando junto al botón "+Precios" en vez de en su propia línea).
+- **Fecha y Hora:** 2026-08-20 15:53:53
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/products/new.vue`
+- **Commits Relacionados:**
+    - Frontend: `202d006`
+    - Backend: N/A
+- **Acción Realizada:** Causa raíz: la clase CSS global `.floatme` (`float: left`) aplicada al botón "+Precios" (`admin-AsignacionDePreciosNuevo`) no tenía nada que limpiara el float antes del siguiente elemento -- al reordenar "Es un Diseño" como el siguiente hermano directo (parte de `4c32d43`), este quedó flotando junto al botón. Corregido con `<div style="clear: both;"></div>` inmediatamente después del componente flotado. Confirmado que `ProductEditar.vue` no usa `floatme` en ese punto, por lo que no tiene el mismo problema.
+- **Inconvenientes y Desafíos:** El bug no era evidente por inspección estática -- solo se manifestaba visualmente por la interacción entre el reordenamiento nuevo y una clase CSS global preexistente.
+- **Decisión Final y Justificación:** Clearfix puntual en el único archivo afectado, en vez de tocar la clase `.floatme` global (que podría afectar otros usos no relacionados).
+- **Herramienta(s) Utilizada(s):** Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Confirmado por el usuario tras el despliegue ("ha quedado bien!").
+- **Logro Conseguido:** Cierre correcto de la tarea de reordenamiento del formulario de producto, sin defectos visuales pendientes.

@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** "Primero vamos a poner el check 'Es un Diseño' debajo del botón [+ Precios], debajo de él ponemos el check 'Producto Físico' y debajo de este el check 'Requiere talla, Corte, tela'... el texto que pone 'Marque esta opción si el producto es un artículo físico que requiere inventario' lo vamos a cambiar por el texto 'Indica si el producto se va a fabricar' -- estos cambios en nuevo producto y editar producto."
+- **Fecha y Hora:** 2026-08-20 15:39:36
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** `components/products/new.vue`, `components/products/ProductEditar.vue`
+- **Commits Relacionados:**
+    - Frontend: `4c32d43`
+    - Backend: N/A
+- **Acción Realizada:** Reordenados los 3 checkboxes al orden solicitado (Es un Diseño -> Producto Físico -> Requiere Talla/Corte/Tela) en ambos formularios (creación y edición de producto); actualizado el texto bajo "Producto Físico" al nuevo texto solicitado.
+- **Inconvenientes y Desafíos:** Ninguno detectado en esta pasada -- el bug de línea nueva del checkbox "Es un Diseño" se encontró después, al probar en el navegador (ver `202d006`).
+- **Decisión Final y Justificación:** Cambio puramente de UI/orden y texto, sin tocar la lógica de validación ni el payload enviado al backend.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (git), `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo).
+- **Resultado:** Éxito (con hotfix necesario el mismo día, ver `202d006`).
+- **Verificación:** Verificación visual en Desarrollo tras el despliegue; el usuario reportó el bug de línea nueva en la misma revisión.
+- **Logro Conseguido:** Formularios de creación y edición de producto reordenados según el flujo que el usuario considera más natural.
