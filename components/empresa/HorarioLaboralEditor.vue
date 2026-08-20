@@ -57,9 +57,6 @@
       <b-col md="4">
         <h5>Turno Noche</h5>
         <small class="text-muted d-block mb-2">Opcional. Deje vacío si la empresa no maneja turno nocturno.</small>
-        <b-alert show variant="warning" class="py-2 px-3 small mb-3">
-          Este turno solo admite horarios <strong>hasta la medianoche</strong> (ej. 06:00 p.m. a 11:30 p.m.). No es posible configurar un horario que cruce hacia la madrugada del día siguiente (ej. 10:00 p.m. a 06:00 a.m.).
-        </b-alert>
         <b-form-group label="Hora de Inicio:">
           <b-form-input v-model="horaInicioNocheFormatted" type="time"></b-form-input>
         </b-form-group>
@@ -77,6 +74,10 @@
         </b-form-group>
       </b-col>
     </b-row>
+
+    <b-alert show variant="warning" class="py-2 px-3 small mt-3 mb-0">
+      El turno Noche solo admite horarios <strong>hasta la medianoche</strong> (ej. 06:00 p.m. a 11:30 p.m.). No es posible configurar un horario que cruce hacia la madrugada del día siguiente (ej. 10:00 p.m. a 06:00 a.m.).
+    </b-alert>
   </div>
 </template>
 
