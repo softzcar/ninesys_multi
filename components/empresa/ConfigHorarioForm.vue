@@ -1,7 +1,7 @@
 <template>
   <b-form @submit.prevent="save">
     <b-overlay :show="overlay">
-      <horario-laboral-editor :initial-horario="data" @change="updateData" />
+      <horario-laboral-editor :initial-horario="data" @change="updateData" @validacion="updateValidacion" />
       
       <div class="text-right mt-4" v-if="showSaveButton">
         <b-button type="submit" variant="primary">Guardar Cambios</b-button>
@@ -31,18 +31,33 @@ export default {
   data() {
     return {
       overlay: false,
-      data: { ...this.initialData }
+      data: { ...this.initialData },
+      horarioValido: true,
+      horarioMensajeError: null,
     };
   },
   methods: {
     updateData(newData) {
       this.data = newData;
     },
+    updateValidacion({ valido, mensaje }) {
+      this.horarioValido = valido;
+      this.horarioMensajeError = mensaje;
+    },
     async save() {
       if (!this.data || !this.data.diasLaborales || this.data.diasLaborales.length === 0) {
         this.$fire({
           title: "Datos Incompletos",
           html: "Debe configurar al menos un día laboral.",
+          type: "warning",
+        });
+        return false;
+      }
+
+      if (!this.horarioValido) {
+        this.$fire({
+          title: "Horario en conflicto",
+          html: this.horarioMensajeError || "Revise las horas de los turnos, hay un conflicto entre ellas.",
           type: "warning",
         });
         return false;
@@ -71,9 +86,12 @@ export default {
         }
         return true;
       } catch (err) {
+        // Este endpoint responde los errores en la clave "error", no
+        // "message" -- sin este fallback, el mensaje claro de conflicto de
+        // horario devuelto por el backend nunca llegaba a mostrarse.
         this.$fire({
           title: "Error al Guardar",
-          html: `No se pudo guardar el horario laboral. <p>${err.response?.data?.message || err.message}</p>`,
+          html: `No se pudo guardar el horario laboral. <p>${err.response?.data?.error || err.response?.data?.message || err.message}</p>`,
           type: "error",
         });
         return false;

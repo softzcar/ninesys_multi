@@ -150,6 +150,10 @@
                   <strong>Días:</strong> {{ formatDiasLaborales(horarioData.diasLaborales) }} <br />
                   <strong>Mañana:</strong> de {{ decimalToTime(horarioData.horaInicioManana) }} a {{ decimalToTime(horarioData.horaFinManana) }} <br />
                   <strong>Tarde:</strong> de {{ decimalToTime(horarioData.horaInicioTarde) }} a {{ decimalToTime(horarioData.horaFinTarde) }}
+                  <template v-if="horarioData.horaInicioNoche !== null && horarioData.horaInicioNoche !== undefined && horarioData.horaFinNoche !== null && horarioData.horaFinNoche !== undefined">
+                    <br />
+                    <strong>Noche:</strong> de {{ decimalToTime(horarioData.horaInicioNoche) }} a {{ decimalToTime(horarioData.horaFinNoche) }}
+                  </template>
                 </p>
                  <p v-else>No se ha definido un horario laboral.</p>
               </b-col>

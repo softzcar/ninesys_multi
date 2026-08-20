@@ -336,11 +336,35 @@ export default {
       return ordenesAProcesar;
     },
 
+    // Turnos (Mañana/Tarde/Noche) activos para un día de la semana dado,
+    // ordenados por hora de inicio. Un turno participa solo si tiene horas
+    // configuradas (Noche es opcional, null/ausente = no se usa) Y el día
+    // está en la lista de días de ESE turno específico (diasManana/
+    // diasTarde/diasNoche), con fallback a diasLaborales para horarios
+    // guardados antes de que existieran los días por turno -- mismo criterio
+    // de retrocompatibilidad usado en el backend y en mixin-time.js.
+    obtenerTurnosActivosDelDia(horarioLaboral, diaSemana) {
+      const diasLaborales = horarioLaboral.diasLaborales || [];
+      const diasManana = horarioLaboral.diasManana ?? diasLaborales;
+      const diasTarde = horarioLaboral.diasTarde ?? diasLaborales;
+      const diasNoche = horarioLaboral.diasNoche ?? diasLaborales;
+      const turnos = [];
+      if (diasManana.includes(diaSemana) && horarioLaboral.horaInicioManana != null && horarioLaboral.horaFinManana != null) {
+        turnos.push({ inicio: horarioLaboral.horaInicioManana, fin: horarioLaboral.horaFinManana });
+      }
+      if (diasTarde.includes(diaSemana) && horarioLaboral.horaInicioTarde != null && horarioLaboral.horaFinTarde != null) {
+        turnos.push({ inicio: horarioLaboral.horaInicioTarde, fin: horarioLaboral.horaFinTarde });
+      }
+      if (diasNoche.includes(diaSemana) && horarioLaboral.horaInicioNoche != null && horarioLaboral.horaFinNoche != null) {
+        turnos.push({ inicio: horarioLaboral.horaInicioNoche, fin: horarioLaboral.horaFinNoche });
+      }
+      return turnos.sort((a, b) => a.inicio - b.inicio);
+    },
+
     calcularFechaFinLaboral(fechaInicio, duracionSegundos, horarioLaboral) {
       if (!(fechaInicio instanceof Date && !isNaN(fechaInicio.getTime()))) return null;
       let fechaActual = new Date(fechaInicio.getTime());
       let segundosRestantes = duracionSegundos;
-      const { horaInicioManana, horaFinManana, horaInicioTarde, horaFinTarde } = horarioLaboral;
       let iteraciones = 0;
       const MAX_ITER_CALCULO = 10000;
       while (segundosRestantes > 0) {
@@ -349,18 +373,26 @@ export default {
         const fechaAjustada = this.ajustarInicioAlHorarioLaboral(fechaActual, horarioLaboral);
         if (!fechaAjustada) return null;
         fechaActual = fechaAjustada;
+        const diaSemana = fechaActual.getDay();
+        const turnos = this.obtenerTurnosActivosDelDia(horarioLaboral, diaSemana);
         const horaActualDecimal = fechaActual.getHours() + fechaActual.getMinutes() / 60 + fechaActual.getSeconds() / 3600;
-        let finTurnoDecimal;
-        if (horaActualDecimal >= horaInicioManana && horaActualDecimal < horaFinManana) finTurnoDecimal = horaFinManana;
-        else if (horaActualDecimal >= horaInicioTarde && horaActualDecimal < horaFinTarde) finTurnoDecimal = horaFinTarde;
-        else { fechaActual.setHours(fechaActual.getHours() + 1); continue; }
+        const turnoActual = turnos.find(t => horaActualDecimal >= t.inicio && horaActualDecimal < t.fin);
+        if (!turnoActual) {
+          // ajustarInicioAlHorarioLaboral siempre debería dejar fechaActual
+          // dentro de un turno -- si no, es un horario mal formado; avanzar
+          // una hora evita quedar en bucle infinito y deja que la próxima
+          // vuelta reintente el ajuste.
+          fechaActual.setHours(fechaActual.getHours() + 1);
+          continue;
+        }
+        const finTurnoDecimal = turnoActual.fin;
         const segundosDisponiblesEnTurno = (finTurnoDecimal - horaActualDecimal) * 3600;
         if (segundosRestantes <= segundosDisponiblesEnTurno) {
           fechaActual.setSeconds(fechaActual.getSeconds() + segundosRestantes);
           segundosRestantes = 0;
         } else {
           segundosRestantes -= segundosDisponiblesEnTurno;
-          fechaActual.setHours(Math.floor(finTurnoDecimal), (finTurnoDecimal % 1) * 60, 0, 0);
+          fechaActual.setHours(Math.floor(finTurnoDecimal), Math.round((finTurnoDecimal % 1) * 60), 0, 0);
           fechaActual.setSeconds(fechaActual.getSeconds() + 1);
         }
       }
@@ -376,25 +408,33 @@ export default {
         iteraciones++;
         if (iteraciones > MAX_ITER_AJUSTE) return null;
         const diaSemana = fecha.getDay();
+        const turnos = this.obtenerTurnosActivosDelDia(horarioLaboral, diaSemana);
         const horaActualDecimal = fecha.getHours() + fecha.getMinutes() / 60 + fecha.getSeconds() / 3600;
-        if (horarioLaboral.diasLaborales.includes(diaSemana)) {
-          const { horaInicioManana, horaFinManana, horaInicioTarde, horaFinTarde } = horarioLaboral;
-          if (horaActualDecimal < horaInicioManana) {
-            fecha.setHours(Math.floor(horaInicioManana), (horaInicioManana % 1) * 60, 0, 0);
-            return fecha;
-          } else if (horaActualDecimal >= horaInicioManana && horaActualDecimal < horaFinManana) return fecha;
-          else if (horaActualDecimal >= horaFinManana && horaActualDecimal < horaInicioTarde) {
-            fecha.setHours(Math.floor(horaInicioTarde), (horaInicioTarde % 1) * 60, 0, 0);
-            return fecha;
-          } else if (horaActualDecimal >= horaInicioTarde && horaActualDecimal < horaFinTarde) return fecha;
-          else {
-            fecha.setDate(fecha.getDate() + 1);
-            fecha.setHours(Math.floor(horaInicioManana), (horaInicioManana % 1) * 60, 0, 0);
+
+        let dentroDeUnTurno = false;
+        let siguienteInicio = null;
+        for (const turno of turnos) {
+          if (horaActualDecimal >= turno.inicio && horaActualDecimal < turno.fin) {
+            dentroDeUnTurno = true;
+            break;
           }
-        } else {
-          fecha.setDate(fecha.getDate() + 1);
-          fecha.setHours(Math.floor(horarioLaboral.horaInicioManana), (horarioLaboral.horaInicioManana % 1) * 60, 0, 0);
+          if (horaActualDecimal < turno.inicio && (siguienteInicio === null || turno.inicio < siguienteInicio)) {
+            siguienteInicio = turno.inicio;
+          }
         }
+
+        if (dentroDeUnTurno) return fecha;
+        if (siguienteInicio !== null) {
+          fecha.setHours(Math.floor(siguienteInicio), Math.round((siguienteInicio % 1) * 60), 0, 0);
+          return fecha;
+        }
+
+        // Ningún turno aplica hoy (día completo sin turnos activos) o ya
+        // pasaron todos los de hoy -- probar el día siguiente desde las 00:00.
+        // No se puede "adelantar" directo a horaInicioManana como antes,
+        // porque Mañana podría estar omitida ese día específico.
+        fecha.setDate(fecha.getDate() + 1);
+        fecha.setHours(0, 0, 0, 0);
       }
     },
 
