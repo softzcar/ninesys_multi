@@ -1,14 +1,16 @@
 <template>
   <div>
     <b-form-group label="Días Laborales:">
-      <b-form-checkbox-group
-        v-model="horario.diasLaborales"
-        :options="diasOptions"
-        buttons
-        button-variant="outline-primary"
-        size="md"
-      ></b-form-checkbox-group>
-      <small class="text-muted">Días en que la empresa abre, en cualquier turno. Cada turno abajo puede tener sus propios días activos (ej. Tarde sin Sábado).</small>
+      <div>
+        <b-badge
+          v-for="opt in diasLaboralesResumen"
+          :key="opt.value"
+          variant="primary"
+          class="mr-1"
+        >{{ opt.text }}</b-badge>
+        <span v-if="diasLaboralesResumen.length === 0" class="text-muted">Sin días activos en ningún turno.</span>
+      </div>
+      <small class="text-muted">Resumen de los días en que la empresa abre en al menos un turno (se calcula solo, según lo que marque en cada turno abajo).</small>
     </b-form-group>
 
     <b-alert :show="!!errorValidacion" variant="danger">
@@ -20,57 +22,171 @@
     <b-row>
       <b-col md="4">
         <h5>Turno Mañana</h5>
-        <b-form-group label="Hora de Inicio:">
-          <b-form-input v-model="horaInicioMananaFormatted" type="time"></b-form-input>
+        <b-form-group label="Horario General:">
+          <b-row>
+            <b-col>
+              <small class="text-muted">Hora de Inicio</small>
+              <b-form-input v-model="horaInicioMananaFormatted" type="time"></b-form-input>
+            </b-col>
+            <b-col>
+              <small class="text-muted">Hora de Fin</small>
+              <b-form-input v-model="horaFinMananaFormatted" type="time"></b-form-input>
+            </b-col>
+          </b-row>
+          <small class="text-muted">Aplica a todo día activo que no tenga un horario propio abajo.</small>
         </b-form-group>
-        <b-form-group label="Hora de Fin:">
-          <b-form-input v-model="horaFinMananaFormatted" type="time"></b-form-input>
-        </b-form-group>
+
         <b-form-group label="Días de este turno:">
-          <b-form-checkbox-group
-            v-model="horario.diasManana"
-            :options="diasOptions"
-            buttons
-            button-variant="outline-secondary"
-            size="sm"
-          ></b-form-checkbox-group>
+          <table class="table table-sm table-borderless mb-1">
+            <tbody>
+              <tr v-for="opt in diasOptions" :key="opt.value">
+                <td class="align-middle" style="width: 4.5rem;">
+                  <b-form-checkbox
+                    :checked="diaActivo('Manana', opt.value)"
+                    @change="toggleDiaActivo('Manana', opt.value)"
+                  >{{ opt.text }}</b-form-checkbox>
+                </td>
+                <td>
+                  <b-form-input
+                    type="time"
+                    size="sm"
+                    :disabled="!diaActivo('Manana', opt.value)"
+                    :value="decimalToTime(horaEfectivaDia('Manana', opt.value, 'Inicio'))"
+                    @change="actualizarOverride('Manana', opt.value, 'Inicio', $event)"
+                  ></b-form-input>
+                </td>
+                <td>
+                  <b-form-input
+                    type="time"
+                    size="sm"
+                    :disabled="!diaActivo('Manana', opt.value)"
+                    :value="decimalToTime(horaEfectivaDia('Manana', opt.value, 'Fin'))"
+                    @change="actualizarOverride('Manana', opt.value, 'Fin', $event)"
+                  ></b-form-input>
+                </td>
+                <td class="align-middle">
+                  <small v-if="tieneOverride('Manana', opt.value)" class="text-warning">excepción</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <b-button size="sm" variant="outline-secondary" @click="aplicarHorarioGeneralATodos('Manana')">
+            Aplicar horario general a todos los días
+          </b-button>
         </b-form-group>
       </b-col>
+
       <b-col md="4">
         <h5>Turno Tarde</h5>
-        <b-form-group label="Hora de Inicio:">
-          <b-form-input v-model="horaInicioTardeFormatted" type="time"></b-form-input>
+        <b-form-group label="Horario General:">
+          <b-row>
+            <b-col>
+              <small class="text-muted">Hora de Inicio</small>
+              <b-form-input v-model="horaInicioTardeFormatted" type="time"></b-form-input>
+            </b-col>
+            <b-col>
+              <small class="text-muted">Hora de Fin</small>
+              <b-form-input v-model="horaFinTardeFormatted" type="time"></b-form-input>
+            </b-col>
+          </b-row>
+          <small class="text-muted">Aplica a todo día activo que no tenga un horario propio abajo.</small>
         </b-form-group>
-        <b-form-group label="Hora de Fin:">
-          <b-form-input v-model="horaFinTardeFormatted" type="time"></b-form-input>
-        </b-form-group>
+
         <b-form-group label="Días de este turno:">
-          <b-form-checkbox-group
-            v-model="horario.diasTarde"
-            :options="diasOptions"
-            buttons
-            button-variant="outline-secondary"
-            size="sm"
-          ></b-form-checkbox-group>
+          <table class="table table-sm table-borderless mb-1">
+            <tbody>
+              <tr v-for="opt in diasOptions" :key="opt.value">
+                <td class="align-middle" style="width: 4.5rem;">
+                  <b-form-checkbox
+                    :checked="diaActivo('Tarde', opt.value)"
+                    @change="toggleDiaActivo('Tarde', opt.value)"
+                  >{{ opt.text }}</b-form-checkbox>
+                </td>
+                <td>
+                  <b-form-input
+                    type="time"
+                    size="sm"
+                    :disabled="!diaActivo('Tarde', opt.value)"
+                    :value="decimalToTime(horaEfectivaDia('Tarde', opt.value, 'Inicio'))"
+                    @change="actualizarOverride('Tarde', opt.value, 'Inicio', $event)"
+                  ></b-form-input>
+                </td>
+                <td>
+                  <b-form-input
+                    type="time"
+                    size="sm"
+                    :disabled="!diaActivo('Tarde', opt.value)"
+                    :value="decimalToTime(horaEfectivaDia('Tarde', opt.value, 'Fin'))"
+                    @change="actualizarOverride('Tarde', opt.value, 'Fin', $event)"
+                  ></b-form-input>
+                </td>
+                <td class="align-middle">
+                  <small v-if="tieneOverride('Tarde', opt.value)" class="text-warning">excepción</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <b-button size="sm" variant="outline-secondary" @click="aplicarHorarioGeneralATodos('Tarde')">
+            Aplicar horario general a todos los días
+          </b-button>
         </b-form-group>
       </b-col>
+
       <b-col md="4">
         <h5>Turno Noche</h5>
         <small class="text-muted d-block mb-2">Opcional. Deje vacío si la empresa no maneja turno nocturno.</small>
-        <b-form-group label="Hora de Inicio:">
-          <b-form-input v-model="horaInicioNocheFormatted" type="time"></b-form-input>
+        <b-form-group label="Horario General:">
+          <b-row>
+            <b-col>
+              <small class="text-muted">Hora de Inicio</small>
+              <b-form-input v-model="horaInicioNocheFormatted" type="time"></b-form-input>
+            </b-col>
+            <b-col>
+              <small class="text-muted">Hora de Fin</small>
+              <b-form-input v-model="horaFinNocheFormatted" type="time"></b-form-input>
+            </b-col>
+          </b-row>
+          <small class="text-muted">Aplica a todo día activo que no tenga un horario propio abajo.</small>
         </b-form-group>
-        <b-form-group label="Hora de Fin:">
-          <b-form-input v-model="horaFinNocheFormatted" type="time"></b-form-input>
-        </b-form-group>
+
         <b-form-group label="Días de este turno:">
-          <b-form-checkbox-group
-            v-model="horario.diasNoche"
-            :options="diasOptions"
-            buttons
-            button-variant="outline-secondary"
-            size="sm"
-          ></b-form-checkbox-group>
+          <table class="table table-sm table-borderless mb-1">
+            <tbody>
+              <tr v-for="opt in diasOptions" :key="opt.value">
+                <td class="align-middle" style="width: 4.5rem;">
+                  <b-form-checkbox
+                    :checked="diaActivo('Noche', opt.value)"
+                    :disabled="horario.horaInicioNoche === null || horario.horaFinNoche === null"
+                    @change="toggleDiaActivo('Noche', opt.value)"
+                  >{{ opt.text }}</b-form-checkbox>
+                </td>
+                <td>
+                  <b-form-input
+                    type="time"
+                    size="sm"
+                    :disabled="!diaActivo('Noche', opt.value)"
+                    :value="decimalToTime(horaEfectivaDia('Noche', opt.value, 'Inicio'))"
+                    @change="actualizarOverride('Noche', opt.value, 'Inicio', $event)"
+                  ></b-form-input>
+                </td>
+                <td>
+                  <b-form-input
+                    type="time"
+                    size="sm"
+                    :disabled="!diaActivo('Noche', opt.value)"
+                    :value="decimalToTime(horaEfectivaDia('Noche', opt.value, 'Fin'))"
+                    @change="actualizarOverride('Noche', opt.value, 'Fin', $event)"
+                  ></b-form-input>
+                </td>
+                <td class="align-middle">
+                  <small v-if="tieneOverride('Noche', opt.value)" class="text-warning">excepción</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <b-button size="sm" variant="outline-secondary" @click="aplicarHorarioGeneralATodos('Noche')">
+            Aplicar horario general a todos los días
+          </b-button>
         </b-form-group>
       </b-col>
     </b-row>
@@ -100,15 +216,19 @@ export default {
     };
 
     // Retrocompatibilidad: un horario guardado antes de que existieran los
-    // días por turno y el turno Noche no trae estas claves. Mañana/Tarde
-    // heredan diasLaborales (así refleja el comportamiento actualmente
-    // vigente para ese horario); Noche arranca vacío/sin horas, ya que es
-    // un turno nuevo que nadie configuró todavía.
+    // días por turno, el turno Noche, o las excepciones por día no trae
+    // estas claves. Mañana/Tarde heredan diasLaborales (así refleja el
+    // comportamiento actualmente vigente para ese horario); Noche arranca
+    // vacío/sin horas; overridesX arranca vacío (ningún horario viejo pudo
+    // haber tenido excepciones, es una funcionalidad nueva).
     if (!Array.isArray(base.diasManana)) base.diasManana = [...base.diasLaborales];
     if (!Array.isArray(base.diasTarde)) base.diasTarde = [...base.diasLaborales];
     if (!Array.isArray(base.diasNoche)) base.diasNoche = [];
     if (base.horaInicioNoche === undefined) base.horaInicioNoche = null;
     if (base.horaFinNoche === undefined) base.horaFinNoche = null;
+    if (!base.overridesManana || typeof base.overridesManana !== "object") base.overridesManana = {};
+    if (!base.overridesTarde || typeof base.overridesTarde !== "object") base.overridesTarde = {};
+    if (!base.overridesNoche || typeof base.overridesNoche !== "object") base.overridesNoche = {};
 
     return {
       horario: base,
@@ -121,6 +241,7 @@ export default {
         { text: "Sáb", value: 6 },
         { text: "Dom", value: 0 },
       ],
+      nombresDiasSemana: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
     };
   },
   computed: {
@@ -150,35 +271,45 @@ export default {
       get() { return this.horario.horaFinNoche === null ? "" : this.decimalToTime(this.horario.horaFinNoche); },
       set(newValue) { this.horario.horaFinNoche = newValue ? this.timeToDecimal(newValue) : null; },
     },
-    // Mismo algoritmo que el backend (validarHorarioLaboral en config.php):
-    // cada turno con horas definidas debe tener fin > inicio, y ningún par
-    // de turnos activos puede solaparse en su rango horario. El backend
-    // sigue siendo la autoridad final -- esto es solo para feedback
-    // inmediato al usuario, sin esperar el viaje de ida y vuelta al servidor.
+    // "Días Laborales" ya no se edita directo -- es la unión de los días
+    // activos en cualquiera de los 3 turnos, para que el usuario no tenga
+    // que mantener sincronizados 4 selectores de días distintos (el general
+    // + 3 por turno); solo queda uno editable por turno, la tabla de abajo.
+    diasLaboralesResumen() {
+      const activos = new Set([
+        ...(this.horario.diasManana || []),
+        ...(this.horario.diasTarde || []),
+        ...(this.horario.diasNoche || []),
+      ]);
+      return this.diasOptions.filter((opt) => activos.has(opt.value));
+    },
+    // Mismo algoritmo que el backend (validarHorarioLaboral en config.php),
+    // pero corrido día por día: desde que un turno puede tener horas
+    // distintas en un día puntual (overridesX), el solapamiento entre
+    // turnos también puede ocurrir solo un día específico, sin afectar el
+    // resto de la semana. El backend sigue siendo la autoridad final --
+    // esto es solo para feedback inmediato al usuario.
     errorValidacion() {
-      const turnos = [
-        { nombre: "Mañana", inicio: this.horario.horaInicioManana, fin: this.horario.horaFinManana },
-        { nombre: "Tarde", inicio: this.horario.horaInicioTarde, fin: this.horario.horaFinTarde },
-        { nombre: "Noche", inicio: this.horario.horaInicioNoche, fin: this.horario.horaFinNoche },
-      ];
+      const nombresTurno = { Manana: "Mañana", Tarde: "Tarde", Noche: "Noche" };
 
-      const activos = [];
-      for (const turno of turnos) {
-        if (turno.inicio === null || turno.inicio === undefined || turno.fin === null || turno.fin === undefined) {
-          continue; // turno no configurado, no participa en la validación
+      for (let dia = 0; dia <= 6; dia++) {
+        const activos = [];
+        for (const turno of ["Manana", "Tarde", "Noche"]) {
+          const rango = this.resolverHorasEfectivasDia(turno, dia);
+          if (!rango) continue;
+          if (rango.fin <= rango.inicio) {
+            return `El turno "${nombresTurno[turno]}" el ${this.nombresDiasSemana[dia]} tiene la hora de fin (${this.formatearHoraAmPm(rango.fin)}) antes o igual a la hora de inicio (${this.formatearHoraAmPm(rango.inicio)}). Revise si seleccionó a.m./p.m. correctamente.`;
+          }
+          activos.push({ nombre: nombresTurno[turno], ...rango });
         }
-        if (turno.fin <= turno.inicio) {
-          return `El turno "${turno.nombre}" tiene la hora de fin (${this.formatearHoraAmPm(turno.fin)}) antes o igual a la hora de inicio (${this.formatearHoraAmPm(turno.inicio)}). Revise si seleccionó a.m./p.m. correctamente.`;
-        }
-        activos.push(turno);
-      }
 
-      activos.sort((a, b) => a.inicio - b.inicio);
-      for (let i = 0; i < activos.length - 1; i++) {
-        const anterior = activos[i];
-        const siguiente = activos[i + 1];
-        if (siguiente.inicio < anterior.fin) {
-          return `El turno "${siguiente.nombre}" (${this.formatearHoraAmPm(siguiente.inicio)} - ${this.formatearHoraAmPm(siguiente.fin)}) se solapa con el turno "${anterior.nombre}" (${this.formatearHoraAmPm(anterior.inicio)} - ${this.formatearHoraAmPm(anterior.fin)}). Revise si seleccionó a.m./p.m. correctamente.`;
+        activos.sort((a, b) => a.inicio - b.inicio);
+        for (let i = 0; i < activos.length - 1; i++) {
+          const anterior = activos[i];
+          const siguiente = activos[i + 1];
+          if (siguiente.inicio < anterior.fin) {
+            return `El turno "${siguiente.nombre}" (${this.formatearHoraAmPm(siguiente.inicio)} - ${this.formatearHoraAmPm(siguiente.fin)}) se solapa con el turno "${anterior.nombre}" (${this.formatearHoraAmPm(anterior.inicio)} - ${this.formatearHoraAmPm(anterior.fin)}) el ${this.nombresDiasSemana[dia]}. Revise si seleccionó a.m./p.m. correctamente.`;
+          }
         }
       }
 
@@ -194,17 +325,23 @@ export default {
           // watcher "deep" en el mismo objeto esto provocaba un bucle
           // infinito (bug real 2026-08-06, confirmado en consola con
           // decenas de miles de disparos). Solo reasignar si el orden
-          // realmente cambió. Mismo criterio aplicado a los 3 arrays nuevos
-          // de días por turno.
+          // realmente cambió.
           const ordenarSiCambio = (arr) => {
             const ordenado = [...arr].sort((a, b) => a - b);
             const yaOrdenado = arr.length === ordenado.length && arr.every((v, i) => v === ordenado[i]);
             return yaOrdenado ? arr : ordenado;
           };
-          newValue.diasLaborales = ordenarSiCambio(newValue.diasLaborales);
           newValue.diasManana = ordenarSiCambio(newValue.diasManana);
           newValue.diasTarde = ordenarSiCambio(newValue.diasTarde);
           newValue.diasNoche = ordenarSiCambio(newValue.diasNoche);
+
+          // diasLaborales ya no se edita directo -- se deriva de los 3
+          // anteriores en cada cambio, para que el backend (que todavía la
+          // usa como respaldo de horarios sin diasManana/Tarde/Noche
+          // propios) siempre reciba un valor consistente con lo que
+          // realmente se configuró en la tabla de cada turno.
+          const union = [...new Set([...newValue.diasManana, ...newValue.diasTarde, ...newValue.diasNoche])].sort((a, b) => a - b);
+          newValue.diasLaborales = union;
 
           this.$emit("change", newValue);
           this.$emit("validacion", { valido: !this.errorValidacion, mensaje: this.errorValidacion });
@@ -231,6 +368,70 @@ export default {
       let horas12 = horas24 % 12;
       if (horas12 === 0) horas12 = 12;
       return `${String(horas12).padStart(2, "0")}:${String(minutos).padStart(2, "0")} ${periodo}`;
+    },
+    diaActivo(turno, dia) {
+      return (this.horario[`dias${turno}`] || []).includes(dia);
+    },
+    toggleDiaActivo(turno, dia) {
+      const clave = `dias${turno}`;
+      const actuales = this.horario[clave] || [];
+      if (actuales.includes(dia)) {
+        this.horario[clave] = actuales.filter((d) => d !== dia);
+        // Al desactivar el día se descarta cualquier excepción propia -- si
+        // se reactiva luego, vuelve a mostrar el horario general en vez de
+        // resucitar una excepción vieja que el usuario ya no recuerda haber
+        // configurado.
+        this.eliminarOverride(turno, dia);
+      } else {
+        this.horario[clave] = [...actuales, dia];
+      }
+    },
+    tieneOverride(turno, dia) {
+      const overrides = this.horario[`overrides${turno}`] || {};
+      return !!overrides[dia];
+    },
+    // Horas efectivas de un turno en un día: si ese día tiene una excepción
+    // (overridesX), se usan esas horas; si no, la hora general del turno.
+    // Misma regla que resolverHorasEfectivasDia() en config.php (backend).
+    horaEfectivaDia(turno, dia, campo) {
+      const overrides = this.horario[`overrides${turno}`] || {};
+      const ov = overrides[dia];
+      if (ov && ov[`hora${campo}`] !== undefined && ov[`hora${campo}`] !== null) {
+        return ov[`hora${campo}`];
+      }
+      return this.horario[`hora${campo}${turno}`];
+    },
+    // Versión completa (inicio + fin) usada por la validación -- devuelve
+    // null si el turno no aplica ese día (día no activo, o turno sin horas
+    // generales configuradas y sin excepción propia).
+    resolverHorasEfectivasDia(turno, dia) {
+      if (!this.diaActivo(turno, dia)) return null;
+      const inicio = this.horaEfectivaDia(turno, dia, "Inicio");
+      const fin = this.horaEfectivaDia(turno, dia, "Fin");
+      if (inicio === null || inicio === undefined || fin === null || fin === undefined) return null;
+      return { inicio, fin };
+    },
+    actualizarOverride(turno, dia, campo, timeStr) {
+      const decimal = this.timeToDecimal(timeStr);
+      const clave = `overrides${turno}`;
+      const actuales = this.horario[clave] || {};
+      const actual = actuales[dia] || {
+        horaInicio: this.horario[`horaInicio${turno}`],
+        horaFin: this.horario[`horaFin${turno}`],
+      };
+      const nuevo = { ...actual, [`hora${campo}`]: decimal };
+      this.horario[clave] = { ...actuales, [dia]: nuevo };
+    },
+    eliminarOverride(turno, dia) {
+      const clave = `overrides${turno}`;
+      const actuales = this.horario[clave] || {};
+      if (actuales[dia] === undefined) return;
+      const copia = { ...actuales };
+      delete copia[dia];
+      this.horario[clave] = copia;
+    },
+    aplicarHorarioGeneralATodos(turno) {
+      this.horario[`overrides${turno}`] = {};
     },
   },
   mounted() {

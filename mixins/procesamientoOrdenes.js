@@ -336,27 +336,36 @@ export default {
       return ordenesAProcesar;
     },
 
-    // Turnos (Mañana/Tarde/Noche) activos para un día de la semana dado,
-    // ordenados por hora de inicio. Un turno participa solo si tiene horas
-    // configuradas (Noche es opcional, null/ausente = no se usa) Y el día
-    // está en la lista de días de ESE turno específico (diasManana/
-    // diasTarde/diasNoche), con fallback a diasLaborales para horarios
-    // guardados antes de que existieran los días por turno -- mismo criterio
-    // de retrocompatibilidad usado en el backend y en mixin-time.js.
-    obtenerTurnosActivosDelDia(horarioLaboral, diaSemana) {
+    // Horas efectivas de un turno en un día específico: si ese día tiene una
+    // excepción en overridesX (Fase 2 -- ej. Sábado con horas distintas al
+    // resto de la semana), se usa esa; si no, la hora general del turno. El
+    // día debe estar en diasX (con fallback a diasLaborales para horarios de
+    // antes de la Fase 1) para que el turno aplique. Misma regla que su
+    // equivalente en config.php (backend) y mixin-time.js.
+    resolverHorasEfectivasDia(horarioLaboral, turno, diaSemana) {
       const diasLaborales = horarioLaboral.diasLaborales || [];
-      const diasManana = horarioLaboral.diasManana ?? diasLaborales;
-      const diasTarde = horarioLaboral.diasTarde ?? diasLaborales;
-      const diasNoche = horarioLaboral.diasNoche ?? diasLaborales;
+      const dias = horarioLaboral[`dias${turno}`] ?? diasLaborales;
+      if (!dias.includes(diaSemana)) return null;
+
+      const overrides = horarioLaboral[`overrides${turno}`] || {};
+      const ov = overrides[diaSemana];
+      if (ov && ov.horaInicio != null && ov.horaFin != null) {
+        return { inicio: ov.horaInicio, fin: ov.horaFin };
+      }
+
+      const inicio = horarioLaboral[`horaInicio${turno}`];
+      const fin = horarioLaboral[`horaFin${turno}`];
+      if (inicio == null || fin == null) return null;
+      return { inicio, fin };
+    },
+
+    // Turnos (Mañana/Tarde/Noche) activos para un día de la semana dado, ya
+    // resueltos (override o base) y ordenados por hora de inicio.
+    obtenerTurnosActivosDelDia(horarioLaboral, diaSemana) {
       const turnos = [];
-      if (diasManana.includes(diaSemana) && horarioLaboral.horaInicioManana != null && horarioLaboral.horaFinManana != null) {
-        turnos.push({ inicio: horarioLaboral.horaInicioManana, fin: horarioLaboral.horaFinManana });
-      }
-      if (diasTarde.includes(diaSemana) && horarioLaboral.horaInicioTarde != null && horarioLaboral.horaFinTarde != null) {
-        turnos.push({ inicio: horarioLaboral.horaInicioTarde, fin: horarioLaboral.horaFinTarde });
-      }
-      if (diasNoche.includes(diaSemana) && horarioLaboral.horaInicioNoche != null && horarioLaboral.horaFinNoche != null) {
-        turnos.push({ inicio: horarioLaboral.horaInicioNoche, fin: horarioLaboral.horaFinNoche });
+      for (const turno of ['Manana', 'Tarde', 'Noche']) {
+        const rango = this.resolverHorasEfectivasDia(horarioLaboral, turno, diaSemana);
+        if (rango) turnos.push(rango);
       }
       return turnos.sort((a, b) => a.inicio - b.inicio);
     },

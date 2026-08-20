@@ -247,8 +247,33 @@ export default {
 
             return { resultadosPorOrdenArray, porcentajeEficienciaGlobal };
         },
+        // Horas efectivas de un turno en un día específico: si ese día tiene
+        // una excepción en overridesX (Fase 2 -- ej. Sábado con horas
+        // distintas al resto de la semana), se usa esa; si no, la hora
+        // general del turno (horaInicioX/horaFinX). En ambos casos el día
+        // debe estar en diasX para que el turno aplique -- si no, null
+        // (turno omitido ese día). diasX ausente (horario de antes de la
+        // Fase 1) cae a diasLaborales -- mismo criterio de retrocompatibilidad
+        // que su equivalente en el backend (resolverHorasEfectivasDia,
+        // config.php). Única función que conoce esta regla de resolución en
+        // el frontend, reutilizada en calcularTiempoTrabajoIndividual() y en
+        // calcularHorasLaboradasReales() más abajo.
+        resolverHorasEfectivasDia(horarioLaboral, turno, diaSemana) {
+            const dias = (horarioLaboral[`dias${turno}`] ?? horarioLaboral.diasLaborales ?? []).map(d => parseInt(d));
+            if (!dias.includes(diaSemana)) return null;
+
+            const overrides = horarioLaboral[`overrides${turno}`] || {};
+            const ov = overrides[diaSemana];
+            if (ov && ov.horaInicio !== undefined && ov.horaInicio !== null && ov.horaFin !== undefined && ov.horaFin !== null) {
+                return { inicio: ov.horaInicio, fin: ov.horaFin };
+            }
+
+            const inicio = horarioLaboral[`horaInicio${turno}`];
+            const fin = horarioLaboral[`horaFin${turno}`];
+            if (inicio === null || inicio === undefined || fin === null || fin === undefined) return null;
+            return { inicio, fin };
+        },
         calcularTiempoTrabajoIndividual(tarea, pausas, horarioLaboral) {
-            // ... (tu función calcularTiempoTrabajoIndividual sin cambios)
             let tiempoTotalTrabajoMs = differenceInMilliseconds(tarea.fecha_fin, tarea.fecha_inicio);
             let tiempoPausasMs = 0;
 
@@ -265,87 +290,36 @@ export default {
 
             let tiempoTrabajoEfectivoMs = 0;
             let fechaActual = new Date(tarea.fecha_inicio);
-            // diasManana/diasTarde/diasNoche permiten omitir un turno en días
-            // específicos (ej. Tarde sin sábado). Si el horario es de antes de
-            // esta funcionalidad (sin esas claves), se usa diasLaborales para
-            // los 3 -- mismo comportamiento de siempre, cero regresión.
-            const diasMananaNum = (horarioLaboral.diasManana ?? horarioLaboral.diasLaborales).map(d => parseInt(d));
-            const diasTardeNum = (horarioLaboral.diasTarde ?? horarioLaboral.diasLaborales).map(d => parseInt(d));
-            const diasNocheNum = (horarioLaboral.diasNoche ?? horarioLaboral.diasLaborales).map(d => parseInt(d));
-            // Noche es opcional: null/ausente significa que la empresa no lo usa.
-            const tieneNoche = horarioLaboral.horaInicioNoche !== null && horarioLaboral.horaInicioNoche !== undefined &&
-                horarioLaboral.horaFinNoche !== null && horarioLaboral.horaFinNoche !== undefined;
 
             while (fechaActual < tarea.fecha_fin) {
                 const diaSemana = fechaActual.getDay();
+                const finDia = new Date(fechaActual);
+                finDia.setHours(23, 59, 59, 999);
 
-                // La compuerta ya NO usa diasLaborales por sí sola: cada turno
-                // decide con su propia lista de días si aplica este día
-                // (diasManana/diasTarde/diasNoche), para que "omitir un turno
-                // un día puntual" funcione aunque ese día siga marcado como
-                // laboral en general. Se sigue calculando algo solo si AL
-                // MENOS un turno aplica hoy, para no perder tiempo si el día
-                // no es laboral en absoluto.
-                if (diasMananaNum.includes(diaSemana) || diasTardeNum.includes(diaSemana) || (tieneNoche && diasNocheNum.includes(diaSemana))) {
-                    const finDia = new Date(fechaActual);
-                    finDia.setHours(23, 59, 59, 999);
+                const inicioPeriodoTrabajo = new Date(fechaActual);
+                const finPeriodoTrabajo = new Date(Math.min(tarea.fecha_fin, finDia));
 
-                    const inicioPeriodoTrabajo = new Date(fechaActual);
-                    const finPeriodoTrabajo = new Date(Math.min(tarea.fecha_fin, finDia));
+                // Considerar solo el tiempo dentro del horario laboral del día
+                let tiempoLaboralDiaMs = 0;
 
-                    // Considerar solo el tiempo dentro del horario laboral del día
-                    let tiempoLaboralDiaMs = 0;
+                for (const turno of ['Manana', 'Tarde', 'Noche']) {
+                    const rango = this.resolverHorasEfectivasDia(horarioLaboral, turno, diaSemana);
+                    if (!rango) continue;
 
-                    // Mañana
-                    if (diasMananaNum.includes(diaSemana)) {
-                        const inicioManana = new Date(fechaActual);
-                        inicioManana.setHours(Math.floor(horarioLaboral.horaInicioManana), Math.round((horarioLaboral.horaInicioManana % 1) * 60), 0, 0);
-                        const finManana = new Date(fechaActual);
-                        finManana.setHours(Math.floor(horarioLaboral.horaFinManana), Math.round((horarioLaboral.horaFinManana % 1) * 60), 0, 0);
-                        const intervaloManana = { start: inicioManana, end: finManana };
+                    const inicioTurno = new Date(fechaActual);
+                    inicioTurno.setHours(Math.floor(rango.inicio), Math.round((rango.inicio % 1) * 60), 0, 0);
+                    const finTurno = new Date(fechaActual);
+                    finTurno.setHours(Math.floor(rango.fin), Math.round((rango.fin % 1) * 60), 0, 0);
 
-                        const inicioTrabajoManana = new Date(Math.max(inicioPeriodoTrabajo, intervaloManana.start));
-                        const finTrabajoManana = new Date(Math.min(finPeriodoTrabajo, intervaloManana.end));
+                    const inicioTrabajoTurno = new Date(Math.max(inicioPeriodoTrabajo, inicioTurno));
+                    const finTrabajoTurno = new Date(Math.min(finPeriodoTrabajo, finTurno));
 
-                        if (inicioTrabajoManana < finTrabajoManana) {
-                            tiempoLaboralDiaMs += differenceInMilliseconds(finTrabajoManana, inicioTrabajoManana);
-                        }
+                    if (inicioTrabajoTurno < finTrabajoTurno) {
+                        tiempoLaboralDiaMs += differenceInMilliseconds(finTrabajoTurno, inicioTrabajoTurno);
                     }
-
-                    // Tarde
-                    if (diasTardeNum.includes(diaSemana)) {
-                        const inicioTarde = new Date(fechaActual);
-                        inicioTarde.setHours(Math.floor(horarioLaboral.horaInicioTarde), Math.round((horarioLaboral.horaInicioTarde % 1) * 60), 0, 0);
-                        const finTarde = new Date(fechaActual);
-                        finTarde.setHours(Math.floor(horarioLaboral.horaFinTarde), Math.round((horarioLaboral.horaFinTarde % 1) * 60), 0, 0);
-                        const intervaloTarde = { start: inicioTarde, end: finTarde };
-
-                        const inicioTrabajoTarde = new Date(Math.max(inicioPeriodoTrabajo, intervaloTarde.start));
-                        const finTrabajoTarde = new Date(Math.min(finPeriodoTrabajo, intervaloTarde.end));
-
-                        if (inicioTrabajoTarde < finTrabajoTarde) {
-                            tiempoLaboralDiaMs += differenceInMilliseconds(finTrabajoTarde, inicioTrabajoTarde);
-                        }
-                    }
-
-                    // Noche (opcional, no cruza medianoche -- mismo patrón que Mañana/Tarde)
-                    if (tieneNoche && diasNocheNum.includes(diaSemana)) {
-                        const inicioNoche = new Date(fechaActual);
-                        inicioNoche.setHours(Math.floor(horarioLaboral.horaInicioNoche), Math.round((horarioLaboral.horaInicioNoche % 1) * 60), 0, 0);
-                        const finNoche = new Date(fechaActual);
-                        finNoche.setHours(Math.floor(horarioLaboral.horaFinNoche), Math.round((horarioLaboral.horaFinNoche % 1) * 60), 0, 0);
-                        const intervaloNoche = { start: inicioNoche, end: finNoche };
-
-                        const inicioTrabajoNoche = new Date(Math.max(inicioPeriodoTrabajo, intervaloNoche.start));
-                        const finTrabajoNoche = new Date(Math.min(finPeriodoTrabajo, intervaloNoche.end));
-
-                        if (inicioTrabajoNoche < finTrabajoNoche) {
-                            tiempoLaboralDiaMs += differenceInMilliseconds(finTrabajoNoche, inicioTrabajoNoche);
-                        }
-                    }
-
-                    tiempoTrabajoEfectivoMs += tiempoLaboralDiaMs;
                 }
+
+                tiempoTrabajoEfectivoMs += tiempoLaboralDiaMs;
 
                 fechaActual = addDays(fechaActual, 1);
                 fechaActual.setHours(0, 0, 0, 0);
@@ -455,68 +429,27 @@ export default {
 
             let horasTotales = 0;
             let fechaActual = new Date(fechaInicio);
-            // diasManana/diasTarde/diasNoche permiten omitir un turno en días
-            // específicos. Horario de antes de esta funcionalidad (sin esas
-            // claves) usa diasLaborales para los 3 -- cero regresión.
-            const diasMananaNum = (horarioLaboral.diasManana ?? horarioLaboral.diasLaborales).map(d => parseInt(d));
-            const diasTardeNum = (horarioLaboral.diasTarde ?? horarioLaboral.diasLaborales).map(d => parseInt(d));
-            const diasNocheNum = (horarioLaboral.diasNoche ?? horarioLaboral.diasLaborales).map(d => parseInt(d));
-            const tieneNoche = horarioLaboral.horaInicioNoche !== null && horarioLaboral.horaInicioNoche !== undefined &&
-                horarioLaboral.horaFinNoche !== null && horarioLaboral.horaFinNoche !== undefined;
 
             while (fechaActual < fechaTerminado) {
                 const diaSemana = fechaActual.getDay(); // 0 = Domingo, 1 = Lunes, etc.
 
-                // Calcular tiempo en horario de mañana
-                if (diasMananaNum.includes(diaSemana)) {
-                    const inicioManana = new Date(fechaActual);
-                    inicioManana.setHours(Math.floor(horarioLaboral.horaInicioManana), (horarioLaboral.horaInicioManana % 1) * 60, 0, 0);
+                for (const turno of ['Manana', 'Tarde', 'Noche']) {
+                    const rango = this.resolverHorasEfectivasDia(horarioLaboral, turno, diaSemana);
+                    if (!rango) continue;
 
-                    const finManana = new Date(fechaActual);
-                    finManana.setHours(Math.floor(horarioLaboral.horaFinManana), (horarioLaboral.horaFinManana % 1) * 60, 0, 0);
+                    const inicioTurno = new Date(fechaActual);
+                    inicioTurno.setHours(Math.floor(rango.inicio), (rango.inicio % 1) * 60, 0, 0);
 
-                    // Intersección con el período de trabajo
-                    const inicioTrabajoManana = new Date(Math.max(fechaInicio, inicioManana));
-                    const finTrabajoManana = new Date(Math.min(fechaTerminado, finManana));
-
-                    if (inicioTrabajoManana < finTrabajoManana) {
-                        const tiempoMananaMs = differenceInMilliseconds(finTrabajoManana, inicioTrabajoManana);
-                        horasTotales += tiempoMananaMs / (1000 * 60 * 60); // Convertir a horas
-                    }
-                }
-
-                // Calcular tiempo en horario de tarde
-                if (diasTardeNum.includes(diaSemana)) {
-                    const inicioTarde = new Date(fechaActual);
-                    inicioTarde.setHours(Math.floor(horarioLaboral.horaInicioTarde), (horarioLaboral.horaInicioTarde % 1) * 60, 0, 0);
-
-                    const finTarde = new Date(fechaActual);
-                    finTarde.setHours(Math.floor(horarioLaboral.horaFinTarde), (horarioLaboral.horaFinTarde % 1) * 60, 0, 0);
+                    const finTurno = new Date(fechaActual);
+                    finTurno.setHours(Math.floor(rango.fin), (rango.fin % 1) * 60, 0, 0);
 
                     // Intersección con el período de trabajo
-                    const inicioTrabajoTarde = new Date(Math.max(fechaInicio, inicioTarde));
-                    const finTrabajoTarde = new Date(Math.min(fechaTerminado, finTarde));
+                    const inicioTrabajoTurno = new Date(Math.max(fechaInicio, inicioTurno));
+                    const finTrabajoTurno = new Date(Math.min(fechaTerminado, finTurno));
 
-                    if (inicioTrabajoTarde < finTrabajoTarde) {
-                        const tiempoTardeMs = differenceInMilliseconds(finTrabajoTarde, inicioTrabajoTarde);
-                        horasTotales += tiempoTardeMs / (1000 * 60 * 60); // Convertir a horas
-                    }
-                }
-
-                // Calcular tiempo en horario nocturno (opcional, no cruza medianoche)
-                if (tieneNoche && diasNocheNum.includes(diaSemana)) {
-                    const inicioNoche = new Date(fechaActual);
-                    inicioNoche.setHours(Math.floor(horarioLaboral.horaInicioNoche), (horarioLaboral.horaInicioNoche % 1) * 60, 0, 0);
-
-                    const finNoche = new Date(fechaActual);
-                    finNoche.setHours(Math.floor(horarioLaboral.horaFinNoche), (horarioLaboral.horaFinNoche % 1) * 60, 0, 0);
-
-                    const inicioTrabajoNoche = new Date(Math.max(fechaInicio, inicioNoche));
-                    const finTrabajoNoche = new Date(Math.min(fechaTerminado, finNoche));
-
-                    if (inicioTrabajoNoche < finTrabajoNoche) {
-                        const tiempoNocheMs = differenceInMilliseconds(finTrabajoNoche, inicioTrabajoNoche);
-                        horasTotales += tiempoNocheMs / (1000 * 60 * 60); // Convertir a horas
+                    if (inicioTrabajoTurno < finTrabajoTurno) {
+                        const tiempoTurnoMs = differenceInMilliseconds(finTrabajoTurno, inicioTrabajoTurno);
+                        horasTotales += tiempoTurnoMs / (1000 * 60 * 60); // Convertir a horas
                     }
                 }
 
