@@ -134,7 +134,6 @@
 
       <b-col md="4">
         <h5>Turno Noche</h5>
-        <small class="text-muted d-block mb-2">Opcional. Deje vacío si la empresa no maneja turno nocturno.</small>
         <b-form-group label="Horario General:">
           <b-row>
             <b-col>
@@ -188,6 +187,7 @@
             Aplicar horario general a todos los días
           </b-button>
         </b-form-group>
+        <small class="text-muted d-block">Opcional. Deje vacío si la empresa no maneja turno nocturno.</small>
       </b-col>
     </b-row>
 
