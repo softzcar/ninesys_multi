@@ -339,9 +339,20 @@ export default {
           // anteriores en cada cambio, para que el backend (que todavía la
           // usa como respaldo de horarios sin diasManana/Tarde/Noche
           // propios) siempre reciba un valor consistente con lo que
-          // realmente se configuró en la tabla de cada turno.
+          // realmente se configuró en la tabla de cada turno. MISMO cuidado
+          // que ordenarSiCambio arriba: un array recién creado (aunque su
+          // contenido sea idéntico al anterior) siempre notifica a Vue 2,
+          // y como este watcher reasigna una propiedad del objeto que él
+          // mismo observa, reasignar sin condición aquí formaba un bucle
+          // infinito real (confirmado: colgaba la interfaz al tocar
+          // cualquier selector de hora). Solo reasignar si el conjunto
+          // realmente cambió.
           const union = [...new Set([...newValue.diasManana, ...newValue.diasTarde, ...newValue.diasNoche])].sort((a, b) => a - b);
-          newValue.diasLaborales = union;
+          const diasLaboralesActual = newValue.diasLaborales || [];
+          const unionIgual = diasLaboralesActual.length === union.length && diasLaboralesActual.every((v, i) => v === union[i]);
+          if (!unionIgual) {
+            newValue.diasLaborales = union;
+          }
 
           this.$emit("change", newValue);
           this.$emit("validacion", { valido: !this.errorValidacion, mensaje: this.errorValidacion });
