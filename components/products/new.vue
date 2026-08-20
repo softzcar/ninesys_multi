@@ -30,6 +30,7 @@
 
             <b-form-group label-for="input-price">
               <admin-AsignacionDePreciosNuevo class="floatme" @reload="updatePrices($event)" />
+              <div style="clear: both;"></div>
             </b-form-group>
 
             <div v-if="form.prices.length > 0" class="mt-3 mb-3">
