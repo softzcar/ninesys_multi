@@ -42,21 +42,6 @@
             </div>
 
             <b-form-group>
-              <b-form-checkbox v-model="form.producto_fisico" :value="1" :unchecked-value="0"
-                @change="onProductoFisicoChange">
-                Producto Físico
-              </b-form-checkbox>
-              <small class="text-muted">
-                Marque esta opción si el producto es un artículo físico que requiere inventario
-              </small>
-            </b-form-group>
-
-            <b-form-group v-if="form.producto_fisico === 1" label="Cantidad de Stock:" label-for="input-stock">
-              <b-form-input id="input-stock" v-model="form.stock_quantity" type="number"
-                placeholder="Cantidad inicial de stock" required></b-form-input>
-            </b-form-group>
-
-            <b-form-group>
               <b-form-checkbox v-model="form.es_diseno" :value="1" :unchecked-value="0"
                 :disabled="form.producto_fisico === 1">
                 Es un Diseño
@@ -67,6 +52,21 @@
               <small v-if="form.producto_fisico === 1" class="text-warning">
                 <br />Los productos físicos no pueden ser diseños
               </small>
+            </b-form-group>
+
+            <b-form-group>
+              <b-form-checkbox v-model="form.producto_fisico" :value="1" :unchecked-value="0"
+                @change="onProductoFisicoChange">
+                Producto Físico
+              </b-form-checkbox>
+              <small class="text-muted">
+                Indica si el producto se va a fabricar
+              </small>
+            </b-form-group>
+
+            <b-form-group v-if="form.producto_fisico === 1" label="Cantidad de Stock:" label-for="input-stock">
+              <b-form-input id="input-stock" v-model="form.stock_quantity" type="number"
+                placeholder="Cantidad inicial de stock" required></b-form-input>
             </b-form-group>
 
             <b-form-group v-if="form.producto_fisico === 1">

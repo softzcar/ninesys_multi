@@ -124,20 +124,6 @@
 
                   <b-form-group>
                     <b-form-checkbox
-                      v-model="form.producto_fisico"
-                      :value="1"
-                      :unchecked-value="0"
-                      @change="onProductoFisicoChange"
-                    >
-                      Producto Físico
-                    </b-form-checkbox>
-                    <small class="text-muted">
-                      Marque esta opción si el producto es un artículo físico que requiere inventario
-                    </small>
-                  </b-form-group>
-
-                  <b-form-group>
-                    <b-form-checkbox
                       v-model="form.es_diseno"
                       :value="1"
                       :unchecked-value="0"
@@ -153,6 +139,20 @@
                       class="text-warning"
                     >
                       <br />Los productos físicos no pueden ser diseños
+                    </small>
+                  </b-form-group>
+
+                  <b-form-group>
+                    <b-form-checkbox
+                      v-model="form.producto_fisico"
+                      :value="1"
+                      :unchecked-value="0"
+                      @change="onProductoFisicoChange"
+                    >
+                      Producto Físico
+                    </b-form-checkbox>
+                    <small class="text-muted">
+                      Indica si el producto se va a fabricar
                     </small>
                   </b-form-group>
 
