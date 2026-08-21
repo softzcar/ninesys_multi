@@ -1240,7 +1240,7 @@ export default {
             );
             if (tallaSeleccionada) {
               const nombreTalla = tallaSeleccionada.text;
-              const esTallaXL = nombreTalla.toUpperCase().startsWith("XL");
+              const esTallaXL = nombreTalla.toUpperCase().includes("XL");
               if (esTallaXL) {
                 const numeroTalla = nombreTalla.toUpperCase().replace("XL", "");
                 xl = numeroTalla === "" ? 1 : parseInt(numeroTalla) || 0;
@@ -1890,7 +1890,7 @@ export default {
       }
 
       const nombreTalla = tallaSeleccionada.text;
-      const esTallaXL = nombreTalla.toUpperCase().startsWith("XL");
+      const esTallaXL = nombreTalla.toUpperCase().includes("XL");
 
       if (esTallaXL) {
         const numeroTalla = nombreTalla.toUpperCase().replace("XL", "");
