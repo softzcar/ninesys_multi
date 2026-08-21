@@ -1,0 +1,50 @@
+# Bitácora de Trabajo - Diagnóstico de "reinicios" del frontend y aviso de nueva versión (toast) en vez de reload silencioso
+
+Fecha: 2026-08-21
+Hora: 12:15:00
+Proyecto: Frontend (app_multi)
+
+## Solicitud del Usuario
+
+El usuario reportó que `app.nineteengreen.com` "se reinicia sola" desde hace unos días sin que él lo solicite, y preguntó si podía ser causado por la depuración del navegador (Claude in Chrome) que se ha usado durante la sesión.
+
+## Investigación
+
+Se descartó primero la hipótesis más obvia (un proceso Node.js reiniciándose en el VPS): `app.nineteengreen.com` no corre como proceso persistente -- es un build **estático** de Nuxt (`nuxt generate`), servido directamente por OpenLiteSpeed. No existe ningún proceso Node escuchando para ese dominio en el servidor.
+
+La causa real, confirmada con evidencia directa en el propio bundle desplegado (`_nuxt/2ba9900.js`): Nuxt 2 incluye por defecto un manejador de "chunk loading error" (`@nuxt/vue-app/template/utils.js` y `.nuxt/client.js`) que llama a `window.location.reload(true)` automáticamente y sin aviso cuando el navegador intenta cargar un fragmento de JS que ya no existe -- típicamente porque hubo un despliegue nuevo mientras el usuario tenía la app abierta en una pestaña. Esto coincide exactamente con "desde hace unos días": el período de despliegues frecuentes del frontend durante esta sesión de trabajo conjunta. Se descartó explícitamente que tuviera relación con la depuración del navegador.
+
+## Tarea Realizada
+
+Se intentó primero interceptar `window.location.reload` directamente para reemplazar el reload silencioso por un aviso. Se descubrió en pruebas reales en el navegador que esto **no es posible**: `window.location.reload` es una propiedad `configurable: false` en Chrome, por lo que tanto la asignación directa como `Object.defineProperty` lanzan `TypeError`.
+
+Se optó por un enfoque distinto y más robusto: detección **proactiva** de nueva versión, en vez de interceptar el evento reactivo de Nuxt. El plugin nuevo (`plugins/chunk-reload-toast.js`) revisa cada 3 minutos el HTML de `/` y compara el hash del manifest de webpack (`_nuxt/manifest.<hash>.js`, que cambia en cada build) contra el que se cargó al abrir la app. Si detecta un cambio, muestra un toast de Bootstrap-Vue persistente (`noAutoHide: true`, con botón de cierre nativo) con un enlace "Haz clic aquí para recargar" que dispara la recarga real solo cuando el usuario lo decide.
+
+## Archivos Modificados
+- `plugins/chunk-reload-toast.js` (nuevo)
+- `nuxt.config.js` (registro del plugin, modo cliente)
+
+## Commits Relacionados
+- app_multi: `fc591ca` (rama `refactor/modular-routes`)
+
+## Inconvenientes y Desafíos
+
+El primer intento (override de `window.location.reload`) se probó en vivo con un servidor de desarrollo local levantado para la ocasión y arrojó un error real en consola (`TypeError: Cannot assign to read only property 'reload'`) -- confirmado también que `Object.defineProperty` falla igual porque la propiedad es `configurable: false`, no solo `writable: false`. Se descartó ese camino con evidencia directa antes de intentar cualquier otro parche, en vez de asumir que funcionaría.
+
+El patrón de reload silencioso de Nuxt vive en código generado/de `node_modules` (no en el repo propio), así que no era viable ni deseable parchearlo directamente -- se optó por una solución 100% en código propio del proyecto.
+
+## Decisión Final y Justificación
+
+Detección proactiva por comparación de manifest en vez de interceptar el evento reactivo -- es la única opción viable dado que el navegador bloquea la sobreescritura de `location.reload`, y además da al usuario aviso ANTES de que ocurra un error real de chunk (mejor experiencia que solo suavizar el reload existente).
+
+## Resultado
+
+Éxito. Verificado en vivo en un servidor de desarrollo local levantado para la prueba: el toast se renderiza correctamente (título, texto, enlace de recarga, botón de cierre nativo, persistente sin autocierre) mediante invocación manual equivalente a la que hace el plugin. La lógica de detección (fetch + regex de manifest) se validó por separado contra el HTML real desplegado en Producción/Desarrollo, confirmando el patrón exacto `_nuxt/manifest.<hash>.js`; no se pudo probar el polling completo en vivo porque el modo `nuxt dev` local no genera nombres de archivo con hash (solo aplica al build estático real).
+
+## Herramienta(s) Utilizada(s)
+
+Servidor de desarrollo local (`npm run dev`) levantado y detenido solo para esta prueba; Chrome (vía automatización) para verificar visualmente el toast y leer los mensajes de consola que revelaron el error real de `Object.defineProperty`.
+
+## Logro Conseguido
+
+El usuario ya no debería perder su vista actual sin aviso tras un despliegue del frontend mientras tiene la app abierta -- en su lugar verá un aviso claro y persistente, con control total sobre cuándo recargar.
