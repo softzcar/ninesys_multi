@@ -1,0 +1,54 @@
+# Bitácora de Trabajo - Botón "+" para crear categoría desde el formulario de producto + fix de bug de fondo (select vacío)
+
+Fecha: 2026-08-21
+Hora: 14:40:00
+Proyecto: Frontend (app_multi)
+
+## Solicitud del Usuario
+
+Agregar, en los formularios de crear y editar producto, un botón junto al select de Categoría que abra el modal "Nueva Categoría" (el mismo de `/categorias/gestion`) y recargue las opciones del select al crear una nueva -- pero solo el ícono "+", sin texto, para no ocupar demasiado espacio dentro del modal de producto.
+
+## Tarea Realizada
+
+**1. Botón compacto reutilizable**: se agregó un prop `iconOnly` a `CategoriasNuevo.vue` (el componente ya existente, usado en `/categorias/gestion`). Con `icon-only` activado, renderiza solo un botón pequeño con el ícono "+" (con tooltip "Nueva Categoría"); sin el prop, se comporta exactamente igual que antes (retrocompatible, cero cambio para su uso existente).
+
+**2. Integración en ambos formularios**: se agregó `<admin-CategoriasNuevo icon-only @reload="fetchCategories" />` junto al select de categoría en `new.vue` y `ProductEditar.vue` (en `ProductEditar.vue` había un segundo bloque idéntico pero comentado/muerto -- no se tocó, solo el activo).
+
+**3. Bug de fondo encontrado y corregido (no reportado explícitamente, hallado al probar en el navegador)**: antes de agregar el botón, se probó el select de categoría existente y estaba **completamente vacío** -- en cualquier empresa, siempre. Investigado a fondo:
+   - La acción de Vuex `getDataCategories` nunca se llamaba desde ningún componente del proyecto (grep completo del repo).
+   - Aun corrigiendo eso y llamándola, seguía sin funcionar: la acción hace `commit("dataCategories", data)`, pero la mutación real registrada en el store se llama `setDataCategories` (con el prefijo "set" que sí tienen todas sus mutaciones hermanas). Error real capturado en consola: `[vuex] unknown local mutation type: dataCategories, global type: comerce/dataCategories`.
+   - Se corrigieron ambos: se agregó `fetchCategories()` (llamada en `created()`) en `new.vue` y `ProductEditar.vue`, y se corrigió el nombre de la mutación en `store/comerce.js`.
+
+## Archivos Modificados
+- `components/admin/CategoriasNuevo.vue`
+- `components/products/new.vue`
+- `components/products/ProductEditar.vue`
+- `store/comerce.js`
+
+## Commits Relacionados
+- app_multi: `a4f28f4` (rama `refactor/modular-routes`)
+
+## Inconvenientes y Desafíos
+
+Se encontraron 2 bugs superpuestos en la misma pieza de código, no solo uno: primero se pensó que bastaba con llamar a la acción existente, pero al probarlo en el navegador (con `read_console_messages`) apareció el segundo error real de Vuex -- sin esa verificación en vivo se habría entregado un fix a medias que seguía sin mostrar categorías.
+
+De paso se notó que las hermanas de esta acción (`getDataProductos`, `getDataCustomers`, `getDataTallas`, `getDataTelas`) tienen el mismo patrón de `commit` sin el prefijo "set" -- no se tocaron por no ser parte de lo pedido hoy, pero es probable que compartan el mismo bug; queda como hallazgo para una futura tarea si el usuario lo pide.
+
+## Decisión Final y Justificación
+
+Prop `iconOnly` en el componente existente en vez de duplicar el modal -- evita mantener 2 copias del formulario/lógica de creación de categoría (que ya maneja reactivación de categorías eliminadas, validación, etc.).
+
+## Resultado
+
+Éxito. Verificado en vivo en un servidor de desarrollo local: el select de categoría, antes vacío, ahora muestra las categorías reales de la empresa; el botón "+" abre el modal, y al guardar una categoría nueva aparece de inmediato en el select sin recargar la página. Se crearon y luego se eliminaron 2 categorías de prueba en la empresa 194 (Desarrollo) usadas solo para esta verificación.
+
+## Verificación
+
+1. Select vacío confirmado antes del fix (screenshot + inspección del DOM).
+2. Tras el primer fix (llamar a la acción), el error de Vuex confirmado en consola real del navegador.
+3. Tras el segundo fix (nombre de mutación correcto), select poblado con las categorías reales de la empresa (confirmado listando `option.textContent` del DOM).
+4. Flujo completo probado dos veces: creación de categoría vía el botón "+" con reload en caliente (sin recargar la página) confirmando que la nueva categoría aparece de inmediato en el select.
+
+## Logro Conseguido
+
+El select de categoría de los formularios de producto -- que estaba roto para todas las empresas desde siempre -- ahora funciona, y además se puede crear una categoría nueva sin salir del formulario de producto.
