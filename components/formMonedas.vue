@@ -218,6 +218,14 @@ export default {
             })
         );
 
+        // Refrescar login.tasas (por código ISO) en el mismo momento -- sin
+        // esto, catalogo_monedas quedaba sincronizado pero MetodosPagoDinamico.vue
+        // seguía usando el valor viejo en memoria hasta que el usuario salía
+        // y volvía a entrar a la orden. El usuario necesita poder ajustar la
+        // tasa y usarla de inmediato en el mismo paso de pago, sin rehacer
+        // los pasos previos (cliente/productos) de la orden.
+        await this.$store.dispatch('login/cargarTasasPorCodigo');
+
       } catch (error) {
         console.error('Error al persistir tasas:', error);
         this.$bvToast.toast('Error al guardar la tasa en el servidor.', {
