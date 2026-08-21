@@ -1,0 +1,57 @@
+# Bitácora de Trabajo - La tasa manual del Bolívar no se aplicaba en el cálculo de pagos (seguía usando BCV)
+
+Fecha: 2026-08-21
+Hora: 16:30:00
+Proyecto: Frontend (app_multi) + Backend (ninesys-api)
+
+## Solicitud del Usuario
+
+El usuario configuró una tasa manual de 900 Bs/$ para la empresa 194, pero al registrar un pago en Bolívares dentro de una orden, el sistema seguía convirtiendo usando la tasa del BCV (779.95) en vez de la manual. Confirmó explícitamente su intención de diseño: el usuario elige con qué tasa quiere trabajar (BCV o manual); el BCV se sigue consultando y mostrando de fondo, pero la tasa manual, una vez elegida, debe prevalecer.
+
+## Investigación
+
+Se encontraron 2 problemas superpuestos, no solo uno:
+
+1. **Split de almacenamiento**: existen 2 sistemas paralelos de tasas (parte del rediseño de monedas en curso). El widget que el usuario usa (`formMonedas.vue`, en la barra superior de "Nueva Orden") guarda su valor manual SOLO en `empresas.tipos_de_monedas` (sistema legado, JSON central) -- de ahí lo lee correctamente el cálculo del TOTAL de la orden. Pero el cálculo de conversión de PAGOS (`MetodosPagoDinamico.vue`) lee de `catalogo_monedas.tasa_manual` (sistema nuevo, por empresa), que nunca se actualizaba desde ese widget -- la elección del usuario ni siquiera llegaba ahí.
+
+2. **Lógica de prioridad invertida**: aun si el valor llegara al sistema nuevo, el endpoint `GET /tasas-cambio` trataba la tasa manual como un simple respaldo de emergencia (comentario explícito en el código: "para monedas sin estrategia automática... o si falla"), no como la elección deliberada y persistente del usuario. Mientras bcv.org.ve respondiera, siempre ganaba el automático.
+
+## Tarea Realizada
+
+**Backend (`ninesys-api`)**:
+- `tasas_cambio.php`: invertida la prioridad -- si existe una tasa manual configurada para una moneda no-base, se usa siempre (sin importar si la automática está disponible). Solo se recurre a la automática cuando NO hay tasa manual configurada todavía (moneda recién activada o empresa nueva).
+- `monedas.php`: nuevo endpoint `POST /monedas/establecer-tasa-por-codigo` -- mismo efecto que el ya existente `/monedas/establecer-tasa`, pero resolviendo la moneda por su código ISO (VES, COP) en vez de requerir el `_id` interno de `catalogo_monedas`, que el widget legado no conoce.
+
+**Frontend (`app_multi`)**:
+- `formMonedas.vue`: `persistirTasas()` ahora, además de guardar en el sistema legado (como ya hacía), sincroniza el valor con `catalogo_monedas.tasa_manual` vía el nuevo endpoint, para las monedas no-base configuradas (bolivar->VES, peso_colombiano->COP). Best-effort: si la moneda aún no existe en `catalogo_monedas` para esa empresa, no falla ni bloquea el guardado ya exitoso del sistema legado.
+
+## Archivos Modificados
+- `ninesys-api/app/routes/tasas_cambio.php`
+- `ninesys-api/app/routes/monedas.php`
+- `app_multi/components/formMonedas.vue`
+
+## Commits Relacionados
+- ninesys-api: `869afba` (rama `feature/postgresql-support`)
+- app_multi: `0032cd2` (rama `refactor/modular-routes`)
+
+## Inconvenientes y Desafíos
+
+Durante la verificación en vivo, un intento inicial de escribir "900" en el campo (triple-click + escribir) produjo un valor corrupto (650009) -- el campo usa un componente propio de máscara "estilo bancario" (`CampoDecimal.vue`) que siempre reposiciona el cursor al final en cualquier click/focus, así que el texto seleccionado por el triple-click no se reemplaza: los dígitos tecleados se acumulan sobre el valor previo en vez de sustituirlo. Corregido borrando con Backspace antes de teclear el valor nuevo; quedó documentado como un comportamiento real de ese componente a tener en cuenta en futuras pruebas automatizadas de este tipo de campos.
+
+## Decisión Final y Justificación
+
+Prioridad invertida en el backend (manual gana si existe) en vez de agregar un nuevo campo "modo" en la base de datos -- el valor `tasa_manual` ya captura exactamente "la última elección del usuario" (se sobreescribe con cada guardado, sea tecleado a mano o vía el botón "Usar tasa BCV oficial" que también persiste como manual), así que no hacía falta una columna adicional para expresar la intención.
+
+## Resultado
+
+Éxito. Verificado en vivo con datos reales de la empresa 194 (Desarrollo).
+
+## Verificación
+
+1. Confirmado por SQL directo que `catalogo_monedas.tasa_manual` para VES quedó en 900.00 tras guardar desde el widget (antes del fix, permanecía en NULL siempre).
+2. `GET /tasas-cambio` (probado con fetch real autenticado) devolvió `{"codigo":"VES","tasa":900,"fuente":"manual"}` -- antes del fix habría devuelto 779.95 (BCV) pese a la configuración manual.
+3. Confirmado en el store del navegador que `login.tasas.VES` y `login.tasas.bolivar` quedan sincronizados en el mismo valor (900), cerrando la discrepancia entre el total de la orden y el cálculo de pagos.
+
+## Logro Conseguido
+
+La tasa que el usuario elige para trabajar (BCV o manual) ahora se respeta de forma consistente en TODOS los cálculos de la orden -- total y conversión de pagos -- en vez de que el sistema de pagos ignorara silenciosamente esa elección.
