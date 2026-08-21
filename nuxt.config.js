@@ -120,6 +120,7 @@ rif: 'J-00000000-0', */
     { src: "~plugins/nuxt-quill-plugin", ssr: false },
     { src: "~/plugins/apexcharts.js", ssr: false },
     { src: "~/plugins/vuex-persist.js", ssr: false },
+    { src: "~/plugins/chunk-reload-toast.js", mode: "client" },
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
