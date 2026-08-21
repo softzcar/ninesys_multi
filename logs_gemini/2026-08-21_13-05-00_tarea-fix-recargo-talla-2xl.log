@@ -1,0 +1,54 @@
+# Bitácora de Trabajo - Fix recargo por talla no se aplicaba con tallas nombradas "2XL" (número antes de XL)
+
+Fecha: 2026-08-21
+Hora: 13:05:00
+Proyecto: Frontend (app_multi)
+
+## Solicitud del Usuario
+
+"He creado la talla 2XL para la empresa 207, al usarla en crear una nueva orden NO me está sumando los dos dólares al precio... si elijo XL sí funciona, suma 1 dólar."
+
+## Tarea Realizada
+
+Se encontró la causa exacta en `nueva.vue` y `presupuesto.vue` (duplicada en 4 lugares, 2 por archivo):
+
+```js
+const esTallaXL = nombreTalla.toUpperCase().startsWith("XL");
+```
+
+`"2XL".startsWith("XL")` es `false` (empieza con "2", no con "XL"), así que el recargo nunca se activaba para tallas con el número ANTES de "XL". Para "XL" solo, sí funciona porque literalmente empieza con "XL" -- coincide exactamente con el síntoma reportado.
+
+Se confirmó contra la base de datos real de la empresa 207 (Postgres, Desarrollo) que su talla es literalmente `"2XL"` (número antes). Se confirmó también que la empresa 194 usa la convención opuesta (`"XL2"`, `"XL3"`, número después) -- por eso ese bug nunca se había notado ahí: `"XL2".startsWith("XL")` sí es `true`, así que 194 nunca sufrió este síntoma pese a tener el mismo código.
+
+Corregido a `.includes("XL")`, que funciona para ambas convenciones de nombrado sin romper ninguna de las dos.
+
+## Archivos Modificados
+- `components/ordenes/nueva.vue` (2 ocurrencias: líneas 1243 y 1893)
+- `components/ordenes/presupuesto.vue` (2 ocurrencias: líneas 1115 y 1563)
+
+## Commits Relacionados
+- app_multi: `4fa2224` (rama `refactor/modular-routes`)
+
+## Inconvenientes y Desafíos
+
+Antes de asumir que el fix general serviría igual para todas las empresas, se consultó la base de datos real de 194 (no solo la 207 reportada) y se descubrió que usa una convención de nombrado de tallas XL distinta e inconsistente entre empresas ("XL2" vs "2XL") -- sin esa verificación cruzada se habría podido introducir una regresión en 194 al corregir el bug de 207 con un fix mal pensado (ej. usar `endsWith` en vez de `includes`).
+
+## Decisión Final y Justificación
+
+`.includes("XL")` en vez de `.startsWith("XL")` o `.endsWith("XL")` -- es la única opción que cubre ambas convenciones reales encontradas en producción sin necesitar detectar cuál convención usa cada empresa.
+
+## Herramienta(s) Utilizada(s)
+
+Verificación de la función corregida mediante un script Node.js aislado, probando contra los 3 patrones reales (2XL, XL2, XL solo) y tallas no-XL, antes de desplegar. No se hizo clic en vivo en la interfaz de la empresa 207 específicamente por no tener credenciales de esa empresa a mano en este momento; se documenta esta limitación de la verificación de forma explícita.
+
+## Resultado
+
+Éxito. Los 4 puntos corregidos y desplegados en Desarrollo.
+
+## Verificación
+
+Lógica corregida verificada contra los 3 patrones reales de nombrado de tallas XL encontrados en las bases de datos de 207 y 194, más tallas no-XL (S, M, L, Unica), todos con el resultado correcto.
+
+## Logro Conseguido
+
+El recargo por talla XL/2XL/3XL... ahora funciona independientemente de si la empresa nombra sus tallas con el número antes o después de "XL" -- corregido para las 2 convenciones reales que ya coexisten hoy en el sistema (207 y 194), no solo para el caso puntual reportado.
