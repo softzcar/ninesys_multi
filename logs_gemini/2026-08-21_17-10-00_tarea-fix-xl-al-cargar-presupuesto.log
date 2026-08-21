@@ -1,0 +1,50 @@
+# Bitácora de Trabajo - Recargo por talla XL no se calculaba al cargar un presupuesto guardado en "crear nueva orden"
+
+Fecha: 2026-08-21
+Hora: 17:10:00
+Proyecto: Frontend (app_multi)
+
+## Solicitud del Usuario
+
+"Hay un presupuesto guardado, lo he cargado para crear una nueva orden a partir de él, pero al llegar a los productos tengo tallas 2XL pero no la refleja en el precio... si selecciono la talla directamente del select de tallas sí recalcula el monto correctamente pero de entrada no calcula el excedente para las tallas [N]XL." Tras el fix, pidió también revisar el mismo caso al cargar desde el botón "Cargar Orden no Asignada".
+
+## Investigación
+
+Ambos archivos (`nueva.vue` y `presupuesto.vue`) tienen DOS funciones distintas de carga de un pedido/presupuesto existente:
+
+1. `manejarOrdenCargada()` -- usada por el botón "Cargar Orden no Asignada" (componente `cargarOrdenesNoAsignadas.vue`). Esta función YA calculaba correctamente el excedente XL al mapear los productos (incluye el mismo `.includes("XL")` corregido hoy más temprano), y ya derivaba `original_selected_price` restando el excedente y el precio de atributos del precio final -- diseño correcto, sin cambios necesarios aquí.
+
+2. `cargarPresupuestoEmitido()` -- usada por "Cargar Orden o Presupuesto" (el botón que usó el usuario). Esta función NUNCA inicializaba `item.xl` ni derivaba `original_selected_price` -- simplemente copiaba `precio_unitario` tal cual a `precio` y a `original_selected_price`, sin ningún cálculo de talla. El excedente solo se aplicaba si el usuario reseleccionaba la talla manualmente (lo cual sí dispara `recalcularSegunTalla`, ya corregido hoy).
+
+## Tarea Realizada
+
+Se replicó en `cargarPresupuestoEmitido()` (en ambos archivos) el mismo patrón ya usado en `manejarOrdenCargada()`: calcular `xl` a partir de la talla cargada (`dataTallas`), calcular el precio de atributos, y derivar `original_selected_price = precio - xl - attributesPrice` (con respaldo al precio completo si el resultado es negativo/cero). Se agregó también `xl: xl` al objeto de producto devuelto, que antes faltaba por completo.
+
+Se verificó explícitamente que "Cargar Orden no Asignada" (`manejarOrdenCargada`) ya funcionaba bien en ambos archivos -- confirmado leyendo el código completo, sin necesidad de ningún cambio ahí.
+
+## Archivos Modificados
+- `components/ordenes/nueva.vue`
+- `components/ordenes/presupuesto.vue`
+
+## Commits Relacionados
+- app_multi: `e70b083` (rama `refactor/modular-routes`)
+
+## Inconvenientes y Desafíos
+
+**Limitación real a comunicar al usuario**: este fix corrige el CÁLCULO al cargar de aquí en adelante -- no corrige presupuestos ya guardados ANTES de hoy (incluyendo el mismo presupuesto usado en el reporte), cuyo `precio_unitario` histórico para tallas XL puede haber quedado guardado SIN el recargo (por el bug ya corregido hoy en `recalcularSegunTalla`, presente también en el momento de crear ese presupuesto). Matemáticamente, restar y volver a sumar el mismo excedente calculado no cambia el precio final ya guardado (`precio - xl + xl = precio`) -- por diseño, este fix no reescribe datos históricos, solo dejaba de inicializar `item.xl` en `undefined`.
+
+## Decisión Final y Justificación
+
+Replicar el patrón ya existente y probado (`manejarOrdenCargada`) en vez de diseñar un cálculo nuevo -- mismo criterio, mismo comportamiento esperado entre ambas formas de cargar un pedido existente.
+
+## Resultado
+
+Éxito (con la limitación de datos históricos documentada arriba).
+
+## Verificación
+
+Se probó la lógica exacta en un script Node.js aislado con 3 escenarios: talla sin recargo (S), talla 2XL con precio ya correcto (recargo incluido), y talla 2XL con precio histórico sin recargo (el caso real reportado) -- confirmando que `xl` se calcula correctamente en los 3 casos, y que para presupuestos futuros (creados con precio ya correcto) el precio se refleja bien desde la carga.
+
+## Logro Conseguido
+
+Los presupuestos creados de aquí en adelante (ya con el recargo XL correctamente calculado en su origen) mostrarán el precio correcto desde el momento en que se cargan para convertirlos en orden -- cerrando la última pieza del bug de tallas XL/2XL encontrado hoy.
