@@ -39,7 +39,7 @@ export const actions = {
     },
 
     getDataCategories({ commit }, data) {
-        commit("dataCategories", data)
+        commit("setDataCategories", data)
     },
 
     getDolar({ commit }, monto) {

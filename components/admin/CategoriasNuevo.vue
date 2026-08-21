@@ -1,6 +1,17 @@
 <template>
-    <div>
-        <b-button class="mb-4" variant="primary" @click="$bvModal.show(modal)">
+    <div class="d-inline-block">
+        <b-button
+            v-if="iconOnly"
+            variant="primary"
+            size="sm"
+            v-b-tooltip.hover
+            title="Nueva Categoría"
+            aria-label="Nueva Categoría"
+            @click="$bvModal.show(modal)"
+        >
+            <b-icon icon="plus-lg"></b-icon>
+        </b-button>
+        <b-button v-else class="mb-4" variant="primary" @click="$bvModal.show(modal)">
             <b-icon icon="plus-lg"></b-icon> Nueva Categoría
         </b-button>
 
@@ -39,6 +50,12 @@
 
 <script>
 export default {
+    props: {
+        iconOnly: {
+            type: Boolean,
+            default: false,
+        },
+    },
     data() {
         return {
             form: {

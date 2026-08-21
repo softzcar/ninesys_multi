@@ -108,13 +108,16 @@
                     label="Categoría:"
                     label-for="select-category"
                   >
-                    <b-form-select
-                      id="select-category"
-                      v-model="form.category"
-                      :options="catagoriesSelect"
-                      size="sm"
-                      class="mt-3"
-                    ></b-form-select>
+                    <div class="d-flex align-items-center mt-3">
+                      <b-form-select
+                        id="select-category"
+                        v-model="form.category"
+                        :options="catagoriesSelect"
+                        size="sm"
+                        class="mr-2"
+                      ></b-form-select>
+                      <admin-CategoriasNuevo icon-only @reload="fetchCategories" />
+                    </div>
                     <b-alert
                       :show="showPriceError"
                       variant="danger"
@@ -317,7 +320,20 @@ export default {
         }, */
   },
 
+  created() {
+    this.fetchCategories();
+  },
+
   methods: {
+    async fetchCategories() {
+      try {
+        const res = await this.$axios.get(`${this.$config.API}/categories`);
+        this.$store.dispatch("comerce/getDataCategories", res.data);
+      } catch (err) {
+        console.error("Error cargando categorías:", err);
+      }
+    },
+
     updatePrices(newPrices) {
       this.form = {
         ...this.form,
