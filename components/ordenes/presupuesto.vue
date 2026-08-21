@@ -1307,6 +1307,25 @@ export default {
         const productosArr = Array.isArray(data.productos) ? data.productos : [];
         this.form.productos = productosArr.map(p => {
           const precio = parseFloat(p.precio_unitario) || 0;
+          const idTalla = p.id_size ? Number(p.id_size) : (p.talla ? Number(p.talla) : null);
+
+          // Calcular el excedente por talla XL -- sin esto, item.xl quedaba
+          // sin inicializar y el excedente no se reflejaba hasta que el
+          // usuario reseleccionaba la talla manualmente.
+          let xl = 0;
+          if (idTalla) {
+            const tallaSeleccionada = this.$store.state.comerce.dataTallas.find(
+              (t) => t.value === idTalla
+            );
+            if (tallaSeleccionada) {
+              const nombreTalla = tallaSeleccionada.text;
+              const esTallaXL = nombreTalla.toUpperCase().includes("XL");
+              if (esTallaXL) {
+                const numeroTalla = nombreTalla.toUpperCase().replace("XL", "");
+                xl = numeroTalla === "" ? 1 : parseInt(numeroTalla) || 0;
+              }
+            }
+          }
 
           // Buscar el objeto de atributo si existe
           let atributos_seleccionados = [];
@@ -1316,6 +1335,11 @@ export default {
               atributos_seleccionados.push(attrObj);
             }
           }
+          const attributesPrice = atributos_seleccionados.reduce((total, attr) => {
+            return total + (parseFloat(attr.precio) || 0);
+          }, 0);
+
+          const original_selected_price = precio - xl - attributesPrice;
 
           return {
             item: p._id, // Usar el ID del registro en la tabla presupuestos_productos
@@ -1325,10 +1349,11 @@ export default {
             cantidad: p.cantidad,
             // Forzamos Number para que coincida con los value de los selectores (IDs)
             tela: p.id_tela ? Number(p.id_tela) : (p.tela ? Number(p.tela) : null),
-            talla: p.id_size ? Number(p.id_size) : (p.talla ? Number(p.talla) : null),
+            talla: idTalla,
             corte: p.corte || "No aplica",
+            xl: xl,
             precio: precio,
-            original_selected_price: precio,
+            original_selected_price: original_selected_price > 0 ? original_selected_price : precio,
             diseno: false,
             atributos_seleccionados: atributos_seleccionados
           };
