@@ -15,7 +15,7 @@
 export default ({ app }) => {
   if (typeof window === 'undefined') return
 
-  const POLL_MS = 3 * 60 * 1000 // cada 3 minutos
+  const POLL_MS = 45 * 1000 // cada 45 segundos -- ventana corta a propósito: reduce (sin eliminar del todo) el margen en el que el usuario podría toparse con el reload silencioso de Nuxt antes de ver este aviso
   let currentBuildId = null
   let toastShown = false
 
