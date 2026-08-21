@@ -1,0 +1,39 @@
+# Bitácora de Trabajo - La tasa manual ajustada no se aplicaba en la misma sesión de la orden (había que salir y volver a entrar)
+
+Fecha: 2026-08-21
+Hora: 16:50:00
+Proyecto: Frontend (app_multi)
+
+## Solicitud del Usuario
+
+Tras el fix anterior (tasa manual prevalece sobre BCV, ver bitácora `2026-08-21_16-30-00`), el usuario reportó un caso concreto sin resolver: mientras crea una orden, si necesita ajustar la tasa manualmente justo antes de registrar un pago en Bolívares, debería poder hacerlo en la misma interfaz y usarla de inmediato en ese mismo paso -- sin tener que salir de la orden y rehacer los pasos previos (cliente/productos) solo para que la tasa nueva se aplique.
+
+## Investigación
+
+El fix anterior sincronizaba correctamente `catalogo_monedas.tasa_manual` en la base de datos al guardar desde el widget (`formMonedas.vue`), pero no refrescaba el valor **en memoria** (`store.state.login.tasas`) que `MetodosPagoDinamico.vue` lee en vivo para calcular la conversión de pagos. Ese valor en memoria solo se carga una vez, en segundo plano, al montar el menú principal (`cargarTasasPorCodigo()` disparado desde `MenuLoader.vue`) -- ajustar la tasa después no lo volvía a disparar, dejando el cálculo de pagos con el valor viejo hasta una recarga completa de página.
+
+## Tarea Realizada
+
+`formMonedas.vue`, método `persistirTasas()`: tras sincronizar con `catalogo_monedas` (fix anterior), se agrega `await this.$store.dispatch('login/cargarTasasPorCodigo')` -- refresca `login.tasas` en el mismo momento, dentro de la misma sesión de la orden en curso.
+
+## Archivos Modificados
+- `components/formMonedas.vue`
+
+## Commits Relacionados
+- app_multi: `08b1fc8` (rama `refactor/modular-routes`)
+
+## Decisión Final y Justificación
+
+Reutilizar la acción ya existente `cargarTasasPorCodigo()` (la misma que usa la carga inicial en segundo plano) en vez de escribir una lógica de refresco distinta -- mismo contrato, mismo endpoint, cero código nuevo de fetching.
+
+## Resultado
+
+Éxito.
+
+## Verificación
+
+Probado en vivo, en la misma pestaña, sin ninguna navegación: se cambió la tasa manual de 900 a 950 vía el widget, y de inmediato (mismo instante, sin recargar) `store.state.login.tasas.VES` reflejó 950. Se repitió el proceso para restaurar el valor real (900) que el usuario tenía configurado, dejando los datos de la empresa 194 tal como estaban antes de la prueba.
+
+## Logro Conseguido
+
+El usuario ahora puede ajustar la tasa manual en el mismo paso de pago de una orden en curso y usarla de inmediato, sin perder el progreso ya hecho en los pasos previos de esa misma orden.
