@@ -366,7 +366,7 @@
                                   <template #cell(talla)="data">
                                     <b-form-select :disabled="data.item.diseno"
                                       v-model="form.productos[data.index].talla"
-                                      :options="$store.state.comerce.dataTallas" @change="
+                                      :options="tallasConNoAplica" @change="
                                         recalcularSegunTalla(
                                           data.index,
                                           form.productos[data.index],
@@ -378,7 +378,7 @@
                                   <template #cell(tela)="data">
                                     <b-form-select :disabled="data.item.diseno"
                                       v-model="form.productos[data.index].tela"
-                                      :options="$store.state.comerce.dataTelas"></b-form-select>
+                                      :options="telasConNoAplica"></b-form-select>
                                   </template>
 
                                   <template #cell(atributo)="data">
@@ -684,6 +684,14 @@ export default {
     },
     myCustomers() {
       return this.$store.state.comerce.dataCustomers || [];
+    },
+    // "No aplica" como opción sintética -- no muta dataTallas/dataTelas reales,
+    // igual que "cortes" ya hace con su propia opción "No aplica" hardcodeada.
+    tallasConNoAplica() {
+      return [{ value: "No aplica", text: "No aplica" }, ...this.$store.state.comerce.dataTallas];
+    },
+    telasConNoAplica() {
+      return [{ value: "No aplica", text: "No aplica" }, ...this.$store.state.comerce.dataTelas];
     },
     /* tableClass() {
             return {
@@ -1134,11 +1142,11 @@ export default {
             cod: apiProd.cod,
             producto: apiProd.name,
             existencia: fullProduct ? fullProduct.stock_quantity : "N/A",
-            tela: apiProd.id_tela || null,
+            tela: apiProd.id_tela || (apiProd.tela === "No aplica" ? "No aplica" : null),
             atributos_seleccionados: atributos_seleccionados,
             cantidad: apiProd.cantidad,
             corte: apiProd.corte || "No aplica",
-            talla: apiProd.id_talla || null,
+            talla: apiProd.id_talla || (apiProd.talla_raw === "No aplica" ? "No aplica" : null),
             colores: [],
             xl: xl,
             categoria: fullProduct
@@ -1307,7 +1315,9 @@ export default {
         const productosArr = Array.isArray(data.productos) ? data.productos : [];
         this.form.productos = productosArr.map(p => {
           const precio = parseFloat(p.precio_unitario) || 0;
-          const idTalla = p.id_size ? Number(p.id_size) : (p.talla ? Number(p.talla) : null);
+          const idTalla = p.id_size
+            ? Number(p.id_size)
+            : (p.talla === "No aplica" ? "No aplica" : (p.talla ? Number(p.talla) : null));
 
           // Calcular el excedente por talla XL -- sin esto, item.xl quedaba
           // sin inicializar y el excedente no se reflejaba hasta que el
@@ -1348,7 +1358,9 @@ export default {
             existencia: 0,
             cantidad: p.cantidad,
             // Forzamos Number para que coincida con los value de los selectores (IDs)
-            tela: p.id_tela ? Number(p.id_tela) : (p.tela ? Number(p.tela) : null),
+            tela: p.id_tela
+              ? Number(p.id_tela)
+              : (p.tela === "No aplica" ? "No aplica" : (p.tela ? Number(p.tela) : null)),
             talla: idTalla,
             corte: p.corte || "No aplica",
             xl: xl,
