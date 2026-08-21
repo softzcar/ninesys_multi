@@ -197,6 +197,27 @@ export default {
           });
         }
 
+        // Sincronizar también con catalogo_monedas (sistema nuevo), que es de
+        // donde MetodosPagoDinamico.vue lee la tasa para convertir pagos --
+        // sin esto, la tasa elegida aquí nunca llegaba a ese cálculo (bug
+        // real reportado 2026-08-21: se cobraba a la tasa BCV en vez de a la
+        // tasa manual configurada). Best-effort: si la moneda todavía no
+        // existe en catalogo_monedas para esta empresa, el endpoint no falla,
+        // solo no hace nada -- no debe bloquear el guardado ya exitoso arriba.
+        const CODIGO_ISO_POR_MONEDA = { bolivar: 'VES', peso_colombiano: 'COP' };
+        await Promise.all(
+          monedasActualizadas
+            .filter((m) => CODIGO_ISO_POR_MONEDA[m.moneda] && m.valor)
+            .map((m) => {
+              const paramsIso = new URLSearchParams();
+              paramsIso.append('codigo', CODIGO_ISO_POR_MONEDA[m.moneda]);
+              paramsIso.append('tasa', m.valor);
+              return this.$axios
+                .post('/monedas/establecer-tasa-por-codigo', paramsIso)
+                .catch((err) => console.error(`Error sincronizando tasa de ${m.moneda} en catalogo_monedas:`, err));
+            })
+        );
+
       } catch (error) {
         console.error('Error al persistir tasas:', error);
         this.$bvToast.toast('Error al guardar la tasa en el servidor.', {
