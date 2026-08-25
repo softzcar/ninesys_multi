@@ -1286,31 +1286,40 @@ export default {
         if (data.id_wp) {
           const customer = await this.fetchCustomerById(data.id_wp);
           if (customer) {
-            this.form.nombre = customer.first_name;
-            this.form.apellido = customer.last_name;
-            this.form.cedula = customer.cedula;
+            // Guard contra null/'none' -- customers.first_name/last_name/address
+            // permiten NULL en BD; sin esto, JS asigna null literal, que al
+            // reenviarse via URLSearchParams se serializa como el texto "null"
+            // (mismo patrón de guard ya usado en onPhoneBlur).
+            this.form.nombre = customer.first_name && customer.first_name !== 'none' ? customer.first_name : '';
+            this.form.apellido = customer.last_name && customer.last_name !== 'none' ? customer.last_name : '';
+            this.form.cedula = customer.cedula && customer.cedula !== 'none' ? customer.cedula : '';
             this.form.telefono = this.formatPhoneNumber(customer.phone);
-            this.form.email = customer.email;
-            this.form.direccion = customer.address;
+            this.form.email = customer.email && customer.email !== 'none' ? customer.email : '';
+            this.form.direccion = data.cliente_direccion
+              || (customer.address && customer.address !== 'none' ? customer.address : '');
             this.form.geografia = {
               idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
               idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
               idCiudad: customer.id_catalogo_ciudad ? Number(customer.id_catalogo_ciudad) : null,
             };
-            this.query2 = `${customer.id} | ${customer.first_name} ${customer.last_name} - ${this.form.telefono}`;
+            this.query2 = `${customer.id} | ${this.form.nombre} ${this.form.apellido} - ${this.form.telefono}`;
           } else {
             // Fallback si no se encuentra en el store
             this.form.nombre = data.cliente_nombre;
             this.form.cedula = data.cliente_cedula;
+            this.form.direccion = data.cliente_direccion || '';
           }
         } else {
+          // Sin id_wp (presupuesto no vinculado a un cliente registrado) --
+          // usar los datos denormalizados propios del presupuesto.
           this.form.nombre = data.cliente_nombre;
           this.form.cedula = data.cliente_cedula;
+          this.form.direccion = data.cliente_direccion || '';
         }
 
         this.form.obs = data.observaciones;
         this.form.total = data.pago_total;
-        
+
         // Mapear productos
         const productosArr = Array.isArray(data.productos) ? data.productos : [];
         this.form.productos = productosArr.map(p => {
@@ -2024,11 +2033,11 @@ export default {
           this.enableControl = true;
 
           this.form.id = customer.id;
-          this.form.nombre = customer.first_name;
-          this.form.cedula = customer.cedula;
-          this.form.apellido = customer.last_name;
+          this.form.nombre = customer.first_name && customer.first_name !== 'none' ? customer.first_name : '';
+          this.form.cedula = customer.cedula && customer.cedula !== 'none' ? customer.cedula : '';
+          this.form.apellido = customer.last_name && customer.last_name !== 'none' ? customer.last_name : '';
           this.form.telefono = this.formatPhoneNumber(customer.phone);
-          this.form.direccion = customer.address;
+          this.form.direccion = customer.address && customer.address !== 'none' ? customer.address : '';
           this.form.geografia = {
             idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
             idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
@@ -2039,11 +2048,11 @@ export default {
            * son asignados por el sistema
            * en caso de no haber proporcionado un email
            * al momento de enviar el fromulario */
-          let exp = customer.email.split("none_");
+          let exp = (customer.email || "").split("none_");
           if (exp[0] === "none_") {
             this.form.email = "";
           } else {
-            this.form.email = customer.email;
+            this.form.email = customer.email || "";
           }
         } else {
           this.clearStep1();
@@ -2085,10 +2094,10 @@ export default {
             this.enableControl = true;
 
             this.form.id = customer.id;
-            this.form.nombre = customer.first_name;
-            this.form.apellido = customer.last_name;
+            this.form.nombre = customer.first_name && customer.first_name !== 'none' ? customer.first_name : '';
+            this.form.apellido = customer.last_name && customer.last_name !== 'none' ? customer.last_name : '';
             this.form.telefono = this.formatPhoneNumber(customer.phone);
-            this.form.direccion = customer.address;
+            this.form.direccion = customer.address && customer.address !== 'none' ? customer.address : '';
             this.form.geografia = {
               idPais: customer.id_catalogo_pais ? Number(customer.id_catalogo_pais) : null,
               idEstado: customer.id_catalogo_estado ? Number(customer.id_catalogo_estado) : null,
@@ -2099,11 +2108,11 @@ export default {
              * son asignados por el sistema
              * en caso de no haber proporcionado un email
              * al momento de enviar el fromulario */
-            let exp = customer.email.split("none_");
+            let exp = (customer.email || "").split("none_");
             if (exp[0] === "none_") {
               this.form.email = "";
             } else {
-              this.form.email = customer.email;
+              this.form.email = customer.email || "";
             }
           } else {
             this.clearStep1();
@@ -2230,21 +2239,37 @@ export default {
           const currCustomer = clientesEncontrados.find(
             (el) => el.phone === telefono
           );
-          this.form.id = currCustomer.id;
+          if (currCustomer) {
+            this.form.id = currCustomer.id;
+          }
         }
       } catch (err) {
         console.log("Error al crear/actualizar cliente", err);
-        let errorHtml = "<p>No se pudo conectar con el servidor, revise su conexiona inernet, los datos del cliente no han sido guardados</p>";
-        if (err.response?.data?.error === 'phone_duplicate') {
+        const errorType = err.response?.data?.error;
+        if (errorType === 'phone_duplicate' || errorType === 'cedula_duplicate') {
           const cust = err.response.data.customer;
-          errorHtml = `<p>El número de teléfono ya está registrado al cliente <strong>${cust.first_name} ${cust.last_name}</strong> (ID: ${cust.id}).</p>`;
+          const motivo = errorType === 'phone_duplicate' ? 'El número de teléfono' : 'La cédula';
+          try {
+            await this.$confirm(
+              `<p>${motivo} ya está registrado al cliente <strong>${cust.first_name} ${cust.last_name}</strong> (ID: ${cust.id}).</p><p>¿Desea usar ese cliente ya registrado en vez de crear uno nuevo?</p>`,
+              "Cliente ya registrado",
+              "question"
+            );
+            // Confirmado: reintentar como actualización sobre el cliente existente
+            this.form.id = cust.id;
+            ok = await this.updateCustomer();
+            return ok;
+          } catch (cancelado) {
+            ok = false;
+          }
+        } else {
+          this.$fire({
+            title: "Error",
+            type: "warning",
+            html: "<p>No se pudo conectar con el servidor, revise su conexiona inernet, los datos del cliente no han sido guardados</p>",
+          });
+          ok = false;
         }
-        this.$fire({
-          title: err.response?.data?.error === 'phone_duplicate' ? "Teléfono Duplicado" : "Error",
-          type: "warning",
-          html: errorHtml,
-        });
-        ok = false;
       } finally {
         this.loading.show = false;
         console.log(`Terminada al carga de Cliente`);
