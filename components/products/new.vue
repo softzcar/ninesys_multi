@@ -59,6 +59,16 @@
             </b-form-group>
 
             <b-form-group>
+              <b-form-checkbox v-model="form.es_servicio_de_impresion" :value="1" :unchecked-value="0"
+                @change="onEsImpresionChange">
+                Es una Impresión
+              </b-form-checkbox>
+              <small class="text-muted">
+                Marque esta opción si el producto solo se imprime y se entrega así -- no pasa por estampado ni ningún otro paso de producción, y no lleva talla, corte ni tela.
+              </small>
+            </b-form-group>
+
+            <b-form-group>
               <b-form-checkbox v-model="form.producto_fisico" :value="1" :unchecked-value="0"
                 @change="onProductoFisicoChange">
                 Producto Físico
@@ -74,11 +84,15 @@
             </b-form-group>
 
             <b-form-group v-if="form.producto_fisico === 1">
-              <b-form-checkbox v-model="form.requiere_talla_corte_tela" :value="1" :unchecked-value="0">
+              <b-form-checkbox v-model="form.requiere_talla_corte_tela" :value="1" :unchecked-value="0"
+                :disabled="form.es_servicio_de_impresion === 1">
                 Requiere Talla, Corte y Tela
               </b-form-checkbox>
               <small class="text-muted">
                 Desmarque si el producto se entrega tal cual se imprime, sin confeccionarse como prenda (ej. impresión DTF standalone, sin talla/corte/tela).
+              </small>
+              <small v-if="form.es_servicio_de_impresion === 1" class="text-warning">
+                <br />Un producto marcado "Es una Impresión" nunca lleva talla, corte ni tela
               </small>
             </b-form-group>
 
@@ -140,6 +154,7 @@ export default {
         prices: [],
         producto_fisico: 1, // Por defecto activado (físico)
         es_diseno: 0, // Por defecto desactivado (no es diseño)
+        es_servicio_de_impresion: 0, // Por defecto desactivado (no es solo impresión)
         requiere_talla_corte_tela: 1, // Por defecto activado (comportamiento actual)
         stock_quantity: 0,
       },
@@ -190,6 +205,13 @@ export default {
       }
     },
 
+    onEsImpresionChange() {
+      // Un producto que solo se imprime nunca lleva talla/corte/tela.
+      if (this.form.es_servicio_de_impresion === 1) {
+        this.form.requiere_talla_corte_tela = 0;
+      }
+    },
+
     onSubmit() {
       let ban = true;
       let msg = "";
@@ -230,6 +252,7 @@ export default {
       data.set("sku", this.form.sku);
       data.set("producto_fisico", this.form.producto_fisico);
       data.set("es_diseno", this.form.es_diseno);
+      data.set("es_servicio_de_impresion", this.form.es_servicio_de_impresion);
       data.set("requiere_talla_corte_tela", this.form.requiere_talla_corte_tela);
       data.set("stock_quantity", this.form.stock_quantity);
       if (reactivarId) {
@@ -356,6 +379,7 @@ export default {
         prices: [],
         producto_fisico: 1, // Por defecto físico al resetear
         es_diseno: 0,
+        es_servicio_de_impresion: 0,
         stock_quantity: 0,
       };
       // Reset new state
