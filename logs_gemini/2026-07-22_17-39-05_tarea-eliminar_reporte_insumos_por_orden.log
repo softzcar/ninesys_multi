@@ -1,0 +1,39 @@
+- **Solicitud del Usuario:** "antes de irnos vamos a eliminar también el reporte de 'Insumos por orden' que tampoco es útil ya del sidebar y la página" (continuación de la solicitud previa de eliminar el link "Insumos" del sidebar).
+- **Fecha y Hora:** 2026-07-22 17:39:05
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/sidebars/SidebarAdmin.vue` (link eliminado)
+    - `pages/inventario/reportes/orden/index.vue` (página eliminada)
+    - `components/inventario/reporteInsumosOrden.vue` (componente huérfano eliminado)
+- **Commits Relacionados:**
+    - Frontend: 3f793d6 (checklist, pendiente de sesión anterior), 75e2580 (eliminación del reporte)
+- **Acción Realizada:**
+    Antes de eliminar nada, se verificó el uso del endpoint backend que consume la página (`/reporte/insumos-cosumidos-por-orden`) en el resto del código, siguiendo el criterio ya establecido en la sesión ("verificar uso antes de arreglar/eliminar"). Se encontró que el mismo endpoint SÍ es usado por otros dos componentes activos (`ReporteCostosProduccionTintas.vue` y `ReporteCostosDeProduccionInsumos.vue`, del módulo "Reporte de Costos de Producción"), por lo que el backend NO se tocó.
+
+    Se eliminó:
+    1. El `<li>` del sidebar con el link a `/inventario/reportes/orden` ("Insumos por Orden").
+    2. La página `pages/inventario/reportes/orden/index.vue` completa (vía `git rm`), que arrastró consigo la eliminación automática del directorio vacío `pages/inventario/reportes/orden/`.
+    3. `components/inventario/reporteInsumosOrden.vue`, un componente del mismo tema ("Reporte de insumos y productos orden") encontrado huérfano durante la verificación -- no referenciado por ningún import ni tag en todo el proyecto (`grep` sin resultados), evidentemente reemplazado hace tiempo por la lógica inline que tenía la página recién eliminada.
+
+- **Inconvenientes y Desafíos:**
+    Al commitear, un `git add` de un archivo distinto (el checklist de la tarea anterior, `docs/revision_postgre_modulo_administracion.md`) arrastró sin querer los dos `git rm` que ya estaban en el índice desde antes, mezclando ambos cambios en el commit 3f793d6. Se corrigió dejando ese commit como está (documenta correctamente el checklist, aunque también incluye las eliminaciones) y creando un commit adicional (75e2580) solo para el cambio del sidebar, con su propio mensaje descriptivo de la eliminación completa del reporte.
+
+- **Decisión Final y Justificación:**
+    Se eliminó también el componente huérfano `reporteInsumosOrden.vue` (no solicitado explícitamente, pero directamente relacionado y ya identificado como código muerto durante la verificación previa a la eliminación), en vez de dejarlo -- criterio de limpieza ya establecido en la sesión: si no hay ninguna referencia en el código, se elimina en vez de mantenerlo.
+
+- **Herramienta(s) Utilizada(s):** `Bash` (`grep` para verificar uso del endpoint y del componente huérfano antes de eliminar, `git rm`, `git diff`, `git commit`, `curl` para verificación final), `Edit`, `node --check` (validación de sintaxis del sidebar tras la edición), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo, ejecutado en segundo plano dado el tiempo de build de Nuxt >120s).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Tras el despliegue a Contabo Dev, se confirmó:
+    - `curl -s -o /dev/null -w "%{http_code}" https://app.nineteengreen.com/inventario/reportes/orden/` devuelve `404` (la página ya no existe, Nuxt no la generó).
+    - En el log de compilación de Nuxt (`nuxt generate`), la ruta `/inventario/reportes/orden` ya no aparece en la lista de "Generated route", mientras que rutas relacionadas como `/inventario/reportes/producto` y `/inventario/reportes/movimientos` sí siguen generándose con normalidad.
+    - En el navegador (Chrome, sesión conectada, tras recarga forzada sin caché), se listaron todos los links del sidebar bajo `/inventario/reportes/*`: solo quedan "Reporte de Inventario", "Reporte de Movimientos" y "Productos" -- ni "Insumos" (eliminado en la tarea anterior) ni "Insumos por Orden" aparecen.
+
+- **Logro Conseguido:**
+    Se completó la limpieza de dos reportes obsoletos del sidebar de Administración > Reportes en la misma sesión (Insumos e Insumos por Orden), incluyendo la eliminación del código muerto asociado (página y componente huérfano), sin afectar el endpoint backend compartido que otras pantallas activas siguen necesitando.
+
+- **Observaciones:** Con esto se da por cerrada la sesión de trabajo del día 2026-07-22, que cubrió la auditoría completa de `/reporte-eficiencia-empleados` (9 bugs corregidos) y la limpieza de dos reportes obsoletos del sidebar.
+
+- **Respuesta de Claude:** Se eliminó el reporte "Insumos por Orden" completo: el link del sidebar, la página `/inventario/reportes/orden` y un componente huérfano del mismo reporte que ya no se usaba en ningún lugar. Se verificó primero que el endpoint backend que usaba esta página sigue siendo necesario para otras dos pantallas activas (Reporte de Costos de Producción), por lo que no se tocó. Verificado en vivo: la ruta ahora da 404 y el link ya no aparece en el sidebar.

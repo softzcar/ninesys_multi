@@ -1,0 +1,20 @@
+
+- Solicitud del Usuario: Optimizar comunicación entre la app frontend y el servicio msg-ninesys, reduciendo llamadas innecesarias al servicio WhatsApp.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/checkConnection.vue
+- Acción Realizada:
+    1. Análisis del componente checkConnection.vue (822 líneas) para identificar patrones de polling.
+    2. Identificados buenas prácticas ya implementadas: polling solo con modal abierto, visibilitychange, beforeDestroy.
+    3. Identificado problema: polling continuo cuando `ws_ready=true` (innecesario, el estado es estable).
+    4. Cambio 1: Modificado `longInterval` de 30000ms a 60000ms (60 segundos).
+    5. Cambio 2: Modificado `restartPolling()` para NO hacer polling cuando `ws_ready=true && !error`.
+       - Antes: Polling cada 30s cuando conectado.
+       - Después: Sin polling cuando conectado (solo verificación al abrir modal).
+    6. Discusión sobre WebSockets como alternativa futura al polling.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `view_file`, `write_to_file`
+- Resultado: Éxito
+- Verificación:
+    - Cambios aplicados correctamente según diff.
+    - Sintaxis verificada por IDE (sin errores en el archivo).
+- Observaciones de Gemini: La optimización reduce significativamente las llamadas al servicio cuando ya está conectado (de 2/minuto a 0/minuto). Para una optimización mayor en el futuro, se recomienda migrar de polling a WebSockets para comunicación en tiempo real.
+- Respuesta de Gemini: Optimización de polling implementada. WebSockets recomendado como mejora futura.

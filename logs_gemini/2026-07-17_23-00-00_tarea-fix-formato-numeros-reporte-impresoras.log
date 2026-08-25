@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** En "Reporte de Impresoras", al mostrar las recargas de una impresora, la columna "Consumido Ciclo (ml)" mostraba números crudos sin formatear (ej. "87.26999999999995") en vez del formato limpio usado en la columna "Ajuste/Desperdicio" (ej. "1,100.00 ml").
+- **Fecha y Hora:** 2026-07-17 23:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/admin/ReporteImpresoras.vue
+- **Commits Relacionados:**
+    - Frontend: 9b1ed30
+    - Backend: N/A
+- **Acción Realizada:**
+  1. Se identificó que la tabla de "Recargas de Tinta" está anidada dentro del slot `row-details` de la tabla principal de impresoras. En ese contexto anidado, BootstrapVue no logra resolver correctamente el `formatter: "formatNumber"` (referencia por nombre de texto a un método) contra los métodos del componente `ReporteImpresoras` — el valor se muestra sin formatear, cayendo silenciosamente al valor crudo.
+  2. Se confirmó el patrón comparando contra las columnas que SÍ funcionaban ("Total en Tanque", "Ajuste/Desperdicio"): ambas usan una plantilla `#cell()` explícita que llama a `formatNumber(data.value)` directamente en el template, lo cual sí resuelve correctamente sin importar el anidamiento (no depende del mecanismo de lookup-por-nombre de BootstrapVue).
+  3. Se detectó que el mismo bug afectaba también, de forma menos visible, a "Cantidad Insumo (ml)" y "Restante Previo (ml)" — se veían "bien" en la captura del usuario solo porque sus valores de prueba eran números enteros redondos (1000, 100, 200), sin decimales que delataran la falta de formato.
+  4. Se reemplazaron las 3 columnas afectadas (`cantidad`, `nivel_tanque_previo`, `consumido_en_ciclo`) por plantillas `#cell()` explícitas, replicando el mismo patrón ya usado y funcional en `restante_post_recarga`/`desperdicio_ajuste`. Se removió el `formatter: "formatNumber"` (ahora redundante/inefectivo) de la definición de esos campos.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se corrigieron las 3 columnas con el mismo bug subyacente (no solo la reportada explícitamente) porque es el mismo defecto exacto, y dejar 2 de 3 sin corregir habría sido una solución a medias con el mismo problema reapareciendo tan pronto se probaran esas columnas con datos no redondos.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep para localizar el patrón de formatter en el componente).
+- **Resultado:** Éxito (pendiente confirmación visual del usuario en navegador)
+- **Verificación:** Revisión de código confirmando que las 4 columnas numéricas de la tabla de recargas ahora usan el mismo patrón de formateo explícito (`#cell()` + `formatNumber()`), consistente entre sí.
+- **Logro Conseguido:** Corregido un bug de presentación (números crudos con precisión flotante visible) en el reporte de impresoras, afectando 3 columnas simultáneamente con una sola causa raíz diagnosticada.
+- **Observaciones de Claude:** Este es un patrón de BootstrapVue a tener en cuenta a futuro: `formatter: "nombreDeMetodo"` (referencia por string) no es confiable dentro de tablas anidadas en slots `row-details` -- preferir siempre una plantilla `#cell()` explícita en esos casos.
+- **Respuesta de Claude:** Corregido y desplegado a Contabo Dev; pendiente confirmación del usuario en navegador.

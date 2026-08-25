@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Corregir el cálculo del salario en el reporte (mensual vs periodo) y unificar etiquetas de piezas.
+- Archivos Involucrados: components/admin/PagosReporteEmpleado.vue, components/admin/PagosVendedorResumen.vue
+- Acción Realizada: 
+    - Implementada lógica de periodo salarial (semanal/quincenal). 
+    - Cambiada etiqueta 'Total Productos' a 'Total Piezas'.
+    - Corregida legibilidad de alerta de salario.
+    - Se añadió el cálculo de 'Total a Pagar' para que muestre el monto esperado incluso antes de procesar el pago.
+- Herramienta(s) Utilizada(s): multi_replace_file_content, run_command
+- Resultado: Éxito
+- Verificación: Visualización coherente del salario calculado y totales esperados en el modal de reporte.
+- Observaciones de Gemini: El reporte ahora es una copia fiel de lo que el empleado espera cobrar según su configuración.
+- Respuesta de Gemini: Interfaz actualizada con cálculos de periodos y totales unificados.

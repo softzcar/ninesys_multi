@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Corregir errores en la consola: 1. Propiedad duplicada "ordenesLength" en activas.vue. 2. Error TypeError: toFixed of undefined en abono.vue.
+- Archivos Involucrados: 1. /home/developer/Escritorio/niesys/app_multi/components/ordenes/activas.vue
+2. /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+- Acción Realizada: 1. Se eliminó la propiedad "ordenesLength" de data() en activas.vue ya que estaba duplicada como computed. 2. Se blindaron las llamadas a `toFixed` en abono.vue usando `parseFloat(val || 0)` para evitar cierres inesperados por datos nulos o indefinidos en el historial.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión del código y eliminación de redundancias. Los blindajes de `toFixed` aseguran que la tabla de histórico no crashee incluso si faltan campos en los objetos de respuesta.
+- Observaciones de Gemini: El error de `toFixed` era crítico ya que impedía renderizar el modal de pagos por completo.
+- Respuesta de Gemini: He corregido la duplicidad en `activas.vue` y el error de `toFixed` en `abono.vue`.

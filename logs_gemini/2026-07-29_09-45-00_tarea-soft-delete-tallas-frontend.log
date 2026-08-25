@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** "Debemos evitar que se rompan luego las consultas! de manera que debemos implementar soft-delete y al momento que el usuario solicite eliminar una talla mostramos la advertencia mostrando si la talla está en uso... de igual manera al crear una nueva talla debemos verificar si esta talla existe ya sea activa o con estatus eliminada, si había sido eliminada previamente informar al usuario que la talla había sido eliminada y será reactivada." Seguido de la pregunta de verificación: "¿Verificaste que al momento de reactivar una talla recuperemos el campo `Porcentaje de variación`?"
+- **Fecha y Hora:** 2026-07-29 09:45:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `pages/tallas/index.vue`
+    - `components/admin/TallasNuevo.vue`
+- **Commits Relacionados:**
+    - Frontend: `2f06897`, `e94fa12`
+- **Acción Realizada:**
+    Tras auditar `Varios > Tallas` y encontrar que `/sizes/eliminar` era un DELETE físico sin ninguna protección (ver bitácora de backend), y con el backend ya migrado a soft-delete + endpoint `GET /sizes/{id}/uso` + respuesta 409 con reactivación, se implementaron 2 piezas de UI:
+
+    1. `pages/tallas/index.vue` (`deleteTalla`): antes de mostrar el confirm, se consulta `GET /sizes/{id}/uso` y se arma un mensaje dinámico. Si la talla no está en uso, confirm simple ("no tiene ningún producto, orden ni presupuesto asociado"). Si está en uso, mensaje de advertencia (⚠️) detallando cuántas líneas de órdenes, presupuestos, registros de eficiencia teórica y asignaciones de Ficha Técnica la referencian, sugiriendo explícitamente usar "Editar" en vez de "Eliminar" si el objetivo es solo corregir un dato.
+
+    2. `components/admin/TallasNuevo.vue` (`guardarTalla`): replicado el patrón ya usado en `CategoriasNuevo.vue` -- si el backend responde 409 con `eliminado_existente`, se muestra un `$confirm` ofreciendo reactivar. Corrección posterior (a partir de la pregunta del usuario): el 409 ahora también trae el `variation_percentage` original, que se precarga en `this.form.variation_percentage` ANTES de mostrar el confirm (para que el mensaje lo muestre y para que la reactivación lo envíe), evitando que la reactivación pise el valor calibrado original con el 0 por defecto del formulario de creación.
+
+- **Inconvenientes y Desafíos:**
+    La herramienta de automatización del navegador volvió a tener el mismo desajuste intermitente de sesiones anteriores (el tab quedaba reportando `chrome://newtab` pese a que la navegación se confirmaba) -- en esta ocasión se determinó, con ayuda del usuario, que el patrón se dispara cuando la ventana de Brave queda sin foco/visible entre turnos; se resolvió simplemente confirmando que la ventana siguiera abierta y reintentando `tabs_context_mcp`.
+
+    El primer intento de despliegue del fix de recuperación de variación falló por un timeout de SSH transitorio al VPS de desarrollo (sin relación con el código); el código ya estaba commiteado y pusheado antes del intento de despliegue, así que no hubo riesgo de pérdida -- se reintentó el mismo script y completó sin errores en el segundo intento.
+
+- **Decisión Final y Justificación:** Se decidió que la reactivación aplique automáticamente el porcentaje de variación recuperado (no solo mostrarlo informativamente) -- es el comportamiento menos sorpresivo: si el usuario quiere un valor distinto, puede cancelar el diálogo de confirmación y editarlo manualmente en el formulario (que ya queda precargado con el valor recuperado) antes de volver a guardar.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check`, `git diff`/`commit`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__navigate`/`computer` (verificación visual completa del ciclo crear→eliminar→advertencia de uso→recrear→reactivar con recuperación de variación→limpieza, con una talla de prueba dedicada, sin tocar ninguna de las 19 tallas reales de la empresa).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Verificado visualmente en vivo, de punta a punta: (1) al intentar eliminar la talla real "02" (en uso: 65 líneas de órdenes + 133 de Ficha Técnica), el modal mostró el mensaje de advertencia completo y detallado, cancelado sin eliminar; (2) creada talla de prueba "TEST_QA3" con 42.5% de variación; (3) eliminada (sin uso, confirm simple correcto); (4) al reintentar crearla con el campo de variación en 0, apareció el diálogo "Ya existe una talla eliminada llamada 'TEST_QA3' (con un 42.5% de variación guardado). ¿Desea reactivarla conservando ese porcentaje?" -- con el campo del formulario ya actualizado a 42.5 visible detrás del modal; (5) tras confirmar, la talla reapareció en el listado con exactamente 42.50%, no 0; (6) limpieza final eliminando la talla de prueba.
+
+- **Logro Conseguido:** El módulo `Varios > Tallas` queda con un ciclo de vida (crear/editar/eliminar/reactivar) seguro y consistente con el resto del sistema (mismo patrón que Categorías y Departamentos), sin riesgo de romper reportes ni perder datos de calibración al gestionar tallas.
+
+- **Observaciones:** Ver bitácoras complementarias en `ninesys-api/logs_gemini/` para el detalle del backend (soft-delete, endpoint de uso, y el fix de recuperación de variación).
+
+- **Respuesta de Claude:** Se implementó la advertencia de uso antes de eliminar una talla y el flujo de reactivación al crear una talla ya eliminada, incluyendo la recuperación automática de su porcentaje de variación original (corregido tras la pregunta de verificación del usuario, que expuso que inicialmente se perdía). Verificado visualmente en el navegador con una talla de prueba, sin afectar ninguna talla real.

@@ -1,0 +1,20 @@
+# LOG DE TAREA: Reconfiguración de Filtro Fijo y Buscador Scrolleable en Móvil
+
+**Fecha:** 2026-06-26 14:36:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha ajustado de forma definitiva el diseño del dashboard de empleados (`/empleados/dashboard`) en su versión móvil:
+1. **Filtro Local Fijo:** La barra blanca con el input de filtrado local (`v-model="filter"` con placeholder `"Filtrar Orden"`) y el botón `<admin-WsSendMsgCustomInterno />` para enviar mensajes al personal se ha vuelto a configurar como **fijo** en la parte superior, justo debajo de la barra de menú azul móvil.
+2. **Buscador General Scrolleable:** El componente de búsqueda de órdenes general en la base de datos (`<buscar-BarraDeBusqueda />`) y el botón correcto de WhatsApp (`<admin-WsSendMsgCustomInterno />`) se insertaron al principio de la sección scrolleable (`.dashboard-content-area`) en móviles (`d-lg-none`). Esto permite que este buscador se desplace hacia arriba de manera natural junto a las tarjetas de tareas.
+3. **MenuLoader Oculto en Móviles:** Se envolvió el componente `<menus-MenuLoader />` en `dashboard.vue` con `d-none d-lg-block` para evitar la renderización del buscador duplicado en la parte superior.
+4. **Scroll Interno SPA Reactivado:** Se restauró el comportamiento de scroll controlado en móviles con `height: calc(100vh - 125px) !important` en `.dashboard-content-area` y `overflow: hidden` en el `body`, garantizando que la barra azul y el filtro superior permanezcan fijos de forma rígida y sin saltos táctiles.
+
+## Archivos Modificados
+- [dashboard.vue](file:///home/developer/Escritorio/niesys/app_multi/pages/empleados/dashboard.vue)
+- [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- La aplicación compila sin errores en Nuxt.
+- Los cambios se sincronizaron con éxito en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `ninesys-hub/bin/deploy.sh` (Opción 2).

@@ -1,0 +1,23 @@
+- Solicitud del Usuario: El usuario reportó que el botón 'Imprimir' en el modal de detalles de pago de 'Planilla de Pagos' estaba imprimiendo una tabla de datos en lugar del recibo de pago con la maquetación correcta. Solicitó buscar la lógica implementada y corregirlo.
+
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosConfirmacionModal.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/reportes/ReportePagoVendedor.vue
+
+- Acción Realizada:
+    1.  Se analizó el flujo de datos desde `PagosConfirmacionModal` hasta `PagosVendedorResumen` y finalmente `ReportePagoVendedor`.
+    2.  Se detectó que `ReportePagoVendedor.vue` contenía solo una tabla HTML simple, sin la estructura de un recibo.
+    3.  Se modificó `PagosConfirmacionModal.vue` para pasar las propiedades de desglose de pago (bonus, descuentos, salario, comisión) al componente `PagosVendedorResumen`.
+    4.  Se actualizó `PagosVendedorResumen.vue` para recibir estas nuevas propiedades y pasarlas encapsuladas en `datosReporte` hacia el componente de reporte.
+    5.  Se reescribió completamente `ReportePagoVendedor.vue` implementando una maquetación CSS/HTML profesional de Recibo de Pago, incluyendo encabezado de empresa, información del empleado, columnas de Ingresos y Deducciones, totales netos y líneas de firma, manteniendo la tabla de detalles en una sección inferior o página siguiente.
+
+- Herramienta(s) Utilizada(s): `view_file`, `grep_search`, `git log`, `replace_file_content`, `multi_replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: Se verificó el código fuente. `PagosVendedorResumen` ahora inyecta los datos completos (salario, comisiones, bonos, descuentos) en `ReportePagoVendedor`. `ReportePagoVendedor` ahora renderiza un layout de recibo ("receipt-box") con estilos específicos para impresión (`@media print`), mostrando el desglose financiero correcto en lugar de solo listar órdenes.
+
+- Observaciones de Gemini: La lógica del recibo parecía haber sido sobreescrita o nunca implementada completamente en el componente actual. Se optó por una reimplementación robusta del diseño del recibo aprovechando los datos ya calculados en el modal de confirmación.
+
+- Respuesta de Gemini: He restaurado y mejorado la lógica de generación del recibo de pago. Ahora, al hacer clic en "Imprimir" dentro de los detalles del pago, se generará un formato de recibo profesional con el desglose de Salario Base, Comisiones, Bonos y Descuentos, seguido del total neto y las líneas para firmas. La tabla de detalles de órdenes se mantiene como anexo al final del documento.

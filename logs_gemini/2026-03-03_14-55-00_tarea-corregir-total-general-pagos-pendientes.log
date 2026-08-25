@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Corregir que el "Total General" se vuelve $0.00 al pulsar el botón "Pagos Pendientes".
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+- Acción Realizada: 
+    1. Se inspeccionó el método `reloadMe` que se llama al pulsar "Pagos Pendientes".
+    2. Se detectó que estaba llamando a la función `totalPagos` enviándole las anteriores variables separadas (`this.pagosResumen`, `this.pagosResumenVendedores`, `this.pagosResumenDiseno`) en lugar de la nueva variable unificada (`this.pagosResumenUnificado`).
+    3. Se modificó la llamada a `this.totalPagos(this.pagosResumenUnificado)` en la línea que recalcula el `totalCancelado`.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`.
+- Resultado: Éxito
+- Verificación: Se revisó la nueva sintaxis para asegurar compatibilidad con la función `totalPagos`.
+- Observaciones de Gemini: Un detalle menor derivado de la refactorización anterior de unificación, pero crucial para la experiencia de usuario.
+- Respuesta de Gemini: Se notificó al usuario la corrección exitosa para que pueda realizar la validación conjuntamente con el procesamiento masivo de pagos.

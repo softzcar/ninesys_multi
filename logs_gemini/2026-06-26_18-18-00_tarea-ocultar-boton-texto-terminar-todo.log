@@ -1,0 +1,23 @@
+# LOG DE TAREA: Ocultación Visual del Botón de Texto "Terminar Todo" en el Dashboard de Empleados
+
+**Fecha:** 2026-06-26 18:18:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha solucionado una duplicidad de acciones de terminación en la sección "EN PROCESO" del dashboard de empleados:
+
+1. **Análisis Técnico y UX:**
+   - La tarjeta de tareas en curso contaba con el botón circular de la derecha (el del check verde) y con el botón de texto "Terminar Todo" (en la barra inferior, al lado de "PAUSAR"). Ambos cumplían el mismo propósito.
+   - El botón circular de la derecha dispara la acción simulando un click en el botón de texto (`data-testid="btn-terminar-todo"`) en el DOM.
+   - Para no alterar la lógica interna y evitar romper la simulación del click, se optó por ocultar el botón de texto de manera únicamente visual, manteniéndolo presente en el DOM.
+
+2. **Modificación Realizada:**
+   - En `/components/empleados/SseOrdenesAsignadasModalExtra.vue`, se modificó el estilo del `span` que contiene el botón de texto para pasar de `display: inline-block;` a `display: none;`.
+   - Esto hace desaparecer físicamente el botón de texto de la tarjeta de empleados de manera que el usuario final no vea dos botones redundantes, pero permitiendo que el botón del check verde (que es el estándar en las tarjetas del dashboard) siga llamando a la acción de terminación sin problemas.
+
+## Archivos Modificados
+- **Frontend:** [SseOrdenesAsignadasModalExtra.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue)
+
+## Verificación y Despliegue
+- Las modificaciones se compilaron y se desplegaron en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

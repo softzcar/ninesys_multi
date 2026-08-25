@@ -1,0 +1,17 @@
+- **Solicitud del Usuario:** Como parte de la implementación de zona horaria por país de la empresa (ver bitácora del backend, misma jornada), el usuario pidió una solución robusta que también cubriera el cálculo de fechas en el frontend, no solo la escritura de timestamps en el backend.
+- **Fecha y Hora:** 2026-08-03 15:45:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/admin/asistenciasInputHora.vue
+    - components/produccionsse/asistenciasRegistro.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:** Un agente de exploración (parte del diseño del plan) encontró que `mixins/mixin-time.js` ya lee correctamente `dataEmpresa.timezone` del store (con fallback a `America/Caracas`), pero 2 archivos tenían `"America/Caracas"` hardcodeado en 4 sitios distintos (uno vía `Intl.DateTimeFormat`, otro vía Luxon `DateTime.now().setZone(...)`), sin pasar por el store en absoluto. Reemplazados los 4 por `this.$store?.state?.login?.dataEmpresa?.timezone || "America/Caracas"`, mismo patrón exacto ya usado en `mixin-time.js`.
+- **Inconvenientes y Desafíos:** Ninguno técnico. El hallazgo real (que `dataEmpresa.timezone` estaba vacío incluso para la empresa real) se corrigió del lado del backend (`auth.php`, ver bitácora de ninesys-api) en la misma tarea -- sin ese fix, este cambio de frontend habría seguido funcionando solo por el fallback a Caracas, no por el mecanismo real.
+- **Decisión Final y Justificación:** Se mantuvo el mismo fallback (`|| "America/Caracas"`) en vez de dejar el campo sin default -- si algún día `dataEmpresa.timezone` llega vacío por cualquier motivo, el comportamiento sigue siendo el de hoy (Venezuela), nunca un error visible al usuario.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Ambos archivos parsean sin errores de sintaxis. Verificado en el backend (ver bitácora de ninesys-api) que `dataEmpresa.timezone` ahora sí llega resuelto correctamente desde el login, con una simulación reversible completa (Caracas → país de prueba con zona Bogotá → Caracas de vuelta) contra la 194 real en Desarrollo, sin dejar rastro.
+- **Logro Conseguido:** Cierra el último frente pendiente (frontend) de la solución de zona horaria por país -- ya no queda ningún punto del sistema (ni backend ni frontend) con Venezuela hardcodeada como asunción fija, todo se resuelve dinámicamente desde el país configurado de la empresa.
+- **Observaciones:** Ninguna pendiente para esta tarea puntual.
+- **Respuesta de Claude:** Corregidos los 2 últimos archivos de frontend que tenían la zona horaria de Venezuela fija en el código -- ahora leen la zona horaria real de la empresa desde el store, mismo patrón ya usado correctamente en otro lugar del código. Con esto, la solución de zona horaria por país queda completa de punta a punta (backend + frontend).

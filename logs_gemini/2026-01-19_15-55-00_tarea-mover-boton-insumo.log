@@ -1,0 +1,7 @@
+- Solicitud del Usuario: Mover el botón "Crear Nuevo Insumo" a la parte superior derecha, junto al label de "Seleccione Insumo Base".
+- Archivos Involucrados: `components/admin/AsignacionDeInsumosAProductosTab.vue`.
+- Acción Realizada: Se eliminó el botón de su posición original (debajo de los botones de carga masiva) y se reinsertó dentro del slot `#label` del `b-form-group` del select de insumo base, utilizando `d-flex justify-content-between` para alinearlo a la derecha.
+- Herramienta(s) Utilizada(s): `replace_file_content`.
+- Resultado: Éxito (teórico).
+- Verificación: Revisión del código. El botón ahora comparte línea con la etiqueta del input.
+- Respuesta de Gemini: Confirmación del cambio.

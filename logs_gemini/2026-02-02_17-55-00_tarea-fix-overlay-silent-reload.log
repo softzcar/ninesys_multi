@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Quejarse de bloqueo persistente.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+- Acción Realizada: Se identificó que la llamada a `reloadMe()` dentro del flujo de éxito del pago activaba incondicionalmente el `overlay` de carga (`this.overlay = true`).
+    Debido a que el navegador reduce la prioridad de los scripts de la pestaña en segundo plano cuando hay una ventana hija con un diálogo modal (impresión), la promesa de recarga de datos tardaba en resolverse, dejando el overlay "pegado" en la interfaz.
+    Se modificó el método `reloadMe` para aceptar un parámetro `showOverlay` (por defecto `true`).
+    Se actualizó la llamada en `onPagoExitoso` para usar `this.reloadMe(false)`, permitiendo que los datos se actualicen en segundo plano sin bloquear la UI con un spinner.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó la firma del método `reloadMe` y la llamada en `onPagoExitoso`.
+- Observaciones de Gemini: Esta solución ataca la causa raíz del bloqueo visual (el overlay explícito) en lugar de intentar luchar contra el comportamiento de priorización de procesos del navegador.
+- Respuesta de Gemini: Confirmación de que el overlay ya no se activará al imprimir.

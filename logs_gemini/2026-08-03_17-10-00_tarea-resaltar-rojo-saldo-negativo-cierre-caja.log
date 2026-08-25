@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** El usuario notó que Retiros resalta en rojo los saldos negativos (Pesos, dato histórico de abril) pero Cierre de Caja no, pese a mostrar el mismo dato -- pidió aplicar el mismo resaltado en ambas pantallas.
+- **Fecha y Hora:** 2026-08-03 17:10:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/comercializacion/cierre-de-caja.vue
+- **Commits Relacionados:**
+    - Frontend: `258ee21`
+- **Acción Realizada:** Agregada la misma clase condicional `text-danger` (cuando `parseFloat(total) < 0`) ya usada en `retiros/index.vue`, aplicada al `b-list-group-item` de "Disponible para cerrar".
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Cambio puramente visual, mismo patrón exacto que ya existía en Retiros -- sin necesidad de tocar lógica ni backend.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Componente sin errores de sintaxis.
+- **Logro Conseguido:** Consistencia visual entre las 2 pantallas que comparten el mismo concepto de saldo por moneda.
+- **Observaciones:** Ninguna.
+- **Respuesta de Claude:** Agregado el mismo resaltado en rojo para saldos negativos en Cierre de Caja, igual que ya tenía Retiros.

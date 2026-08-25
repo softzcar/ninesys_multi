@@ -1,0 +1,43 @@
+- **Solicitud del Usuario:** Fase 3 de la auditoría del Reporte de Costos de Producción: "tenemos los gastos donde tenemos switches, verificar que al utilizarlos los datos y montos sean correctos".
+- **Fecha y Hora:** 2026-07-27 12:05:59
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosProduccion.vue` (`totalGastosPorTipoUSD`)
+    - `components/admin/GastosFijos.vue`, `GastosVariables.vue`, `GastosAdicionales.vue` (selector de moneda)
+- **Commits Relacionados:**
+    - Frontend: `f0a9bd6`
+- **Acción Realizada:**
+    Se verificó primero la mecánica de los 5 switches de "Incluir Gastos" (Fijos, Variables, Adicionales, Remanentes, Mant. Impresoras): activar/desactivar cada uno correctamente muestra/oculta su columna y su valor en `costo_total`/`ganancia` -- la lógica de distribución (total del gasto en el período ÷ productos totales del período × productos de cada orden) es coherente.
+
+    Al revisar la conversión de moneda para gastos registrados en algo distinto a USD, se encontraron 2 bugs:
+    1. **Dirección de conversión invertida**: `totalGastosPorTipoUSD()` hacía `g.total * tasa` para "convertir a USD". Se confirmó con datos reales que `tasas.bolivar = 650` representa "650 bolívares = 1 USD" (mismo significado usado consistentemente en `abono.vue`/`abonos.vue`/`cierre-de-caja.vue`, donde SIEMPRE se multiplica USD × tasa para ir HACIA la moneda local). Para ir de moneda local a USD hace falta dividir, no multiplicar.
+    2. **Selector de moneda inconsistente**: los 3 formularios de creación de gastos (`GastosFijos.vue`, `GastosVariables.vue`, `GastosAdicionales.vue`) ofrecían `['USD', 'VES', 'COP', 'bolivar']` -- tres códigos ISO en mayúscula más una cuarta opción en español/minúscula. `getTasaKey()` en el reporte solo reconoce `'VES'`/`'BS'` como bolívares; si el usuario seleccionaba la opción `'bolivar'` del propio formulario, el reporte caía al fallback `|| 'dolar'` y trataba el gasto como si ya estuviera en USD (tasa=1, sin ninguna conversión).
+
+    Se confirmó con una consulta a la base de datos que **ningún gasto real registrado hoy usa una moneda distinta a USD** (ni en plantillas fijas `gastos` ni en el histórico `gastos_registros`), así que el impacto en datos actuales es cero -- pero el formulario ya permitía crear gastos en otras monedas, dejando esta combinación de bugs lista para producir cifras muy erróneas en cuanto se registrara el primero.
+
+    Se presentaron los hallazgos al usuario, quien pidió corregir ambos: se cambió `g.total * tasa` por `g.total / tasa` en `totalGastosPorTipoUSD()`, y se estandarizaron los 3 selectores a solo códigos ISO (`['USD', 'VES', 'COP']`), eliminando la opción ambigua.
+
+- **Inconvenientes y Desafíos:**
+    Para verificar el bug y el fix sin insertar datos falsos en la base de datos real, se simuló un gasto de prueba de Bs 10.000 directamente en el estado del componente Vue en el navegador (reemplazando temporalmente `costosOperativos.gastos_por_tipo`, restaurado inmediatamente después de leer el resultado). El primer intento de simular la tasa de bolívar asignando `window.__comp.tasas = {...}` directamente falló silenciosamente (sin error, pero sin efecto): `tasas` es un `computed` mapeado desde Vuex (`mapState`), de solo lectura -- hubo que usar el mutation real del store (`this.$store.commit('login/setTasa', ...)`) para que la simulación reflejara el estado real de la aplicación.
+
+- **Decisión Final y Justificación:**
+    Se optó por estandarizar el selector de moneda a solo códigos ISO (eliminando `'bolivar'`) en vez de agregar `'bolivar'` como alias reconocido dentro de `getTasaKey()` -- evita mantener dos formas distintas de referirse a la misma moneda en el sistema, y es consistente con que las otras opciones del propio selector ya usaban códigos ISO.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check`, `Bash` (`git diff`, `git commit`, `grep` para localizar el patrón de selector en los 3 formularios y confirmar que ninguno tenía 'bolivar' como valor por defecto, `ssh`/`psql` para consultar la tasa real de la empresa 194 y confirmar que no hay gastos reales en otra moneda), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__javascript_tool` (simulación del bug con datos ficticios sin tocar la base de datos real, antes y después del fix), `AskUserQuestion` (para confirmar el alcance del fix con el usuario antes de aplicarlo).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Antes del fix, se simuló un gasto de Bs 10.000 con `moneda: 'bolivar'`: el resultado fue `10000` sin ninguna conversión (confirmando el bug 2, ya que 'bolivar' no coincide con ninguna clave de `getTasaKey` y cae al fallback de tratarlo como USD).
+
+    Tras aplicar y desplegar ambos fixes, se repitió la simulación en la página real ya con el código corregido, esta vez con `moneda: 'VES'` (código ISO ahora correctamente ofrecido por el formulario): resultado `15.384615384615385`, coincidiendo exactamente con el cálculo esperado (`10000 / 650`).
+
+    Se verificó también en vivo, navegando a `/empresa/gastos-variables` y abriendo el modal "Nueva Plantilla": el `<select id="moneda-var">` ahora solo ofrece `["USD","VES","COP"]`, sin la opción `'bolivar'`.
+
+- **Logro Conseguido:**
+    Se corrigió una combinación de bugs de manejo de moneda que, aunque sin impacto en los datos actuales, habría producido cifras completamente erróneas en el Reporte de Costos de Producción en cuanto se registrara el primer gasto real en bolívares o pesos colombianos -- encontrado proactivamente durante la auditoría sistemática, antes de que afectara a un usuario real.
+
+- **Observaciones:**
+    Al revisar `GastosAdicionales.vue` se notó que su fecha por defecto (`fecha_de_gasto: new Date().toISOString().substring(0, 10)`) usa el mismo patrón de `.toISOString()` para formatear una fecha local que causó el bug de zona horaria corregido antes en `setDefaultDates()` de `ReporteCostosProduccion.vue` (commit `02e733b`, misma sesión). No se tocó en esta tarea por estar fuera de alcance (Fase 3 es específicamente sobre gastos con switches, no sobre fechas), pero queda como hallazgo a considerar en una futura revisión de `GastosAdicionales.vue` o de otros componentes con el mismo patrón.
+
+- **Respuesta de Claude:** Se verificó la mecánica de los switches de gastos (funciona correctamente) y se encontraron dos bugs latentes en el manejo de monedas distintas a USD: la conversión a dólares multiplicaba en vez de dividir por la tasa de cambio, y el selector de moneda en los 3 formularios de gastos ofrecía una opción ('bolivar') que el reporte no reconocía, tratándola silenciosamente como USD. Ninguno de los dos afecta los datos actuales (no hay gastos reales en otra moneda), pero ambos se corrigieron antes de que se manifestaran. Verificado en vivo simulando un gasto de prueba de Bs 10.000, sin tocar la base de datos real: de $10.000 (sin conversión, bug) a $15,38 (correcto).

@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Al revisar "Inventario -> Gestión de Inventario" (Postgres dev, empresa 194), al crear un nuevo insumo el formulario pide un valor "Rendimiento"; se indicó el valor `1` pero la validación mostró "El campo Rendimiento no puede ser cero" a pesar de que el input mostraba "1". Se pidió también revisar si "Editar Insumo" tiene el mismo bug.
+- **Fecha y Hora:** 2026-07-17 12:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/inventario/InsumoNuevo.vue
+  - components/inventario/InsumoEditar.vue (verificado, sin bug)
+  - components/CampoDecimal.vue (solo lectura/diagnóstico)
+- **Commits Relacionados:**
+    - Frontend: 5ef9464
+    - Backend: N/A
+- **Acción Realizada:**
+  1. Se ubicó el campo "Rendimiento (Mts/Kg)" en `InsumoNuevo.vue`, implementado con `<campo-decimal v-model="form.rendimiento">` — el componente piloto de input decimal "estilo bancario" (los dígitos entran desde la derecha, la máscara siempre mantiene 2 decimales; para que el valor final sea "1.00" hay que escribir "100", no "1").
+  2. Se confirmó que este componente es apropiado para campos monetarios (Costo, Precio por Metro) pero NO para "Rendimiento", que es un factor de conversión simple (no dinero) donde el usuario espera escribir el número tal cual.
+  3. Se verificó `InsumoEditar.vue` (modal de edición): usa un `<b-form-input type="number" step="0.10">` plano para el mismo campo, y NO tiene ninguna validación de "no puede ser cero" en su `guardarInsumo()` — confirmado que el modal de edición NO tiene este bug (nunca fue migrado a CampoDecimal).
+  4. Se corrigió `InsumoNuevo.vue` revirtiendo el campo Rendimiento de `<campo-decimal>` a `<b-form-input type="number" min="0" step="0.10">`, exactamente el mismo patrón ya usado (y funcionando) en `InsumoEditar.vue` para este campo.
+- **Inconvenientes y Desafíos:** La reproducción exacta paso-a-paso de qué secuencia de teclas deja `form.rendimiento` en `0` no se verificó de forma determinista (no se llegó a probar en navegador real por no tener credenciales de sesión a mano en este segmento), pero el diagnóstico de causa raíz es sólido: cualquier interacción natural de "escribir 1" con una máscara que shiftea dígitos desde la derecha con 2 decimales fijos no produce el valor `1` que el usuario espera, y es fácil terminar en `0` (ej. si se intenta corregir con Backspace tras ver un resultado inesperado). El componente es simplemente la herramienta equivocada para este campo.
+- **Decisión Final y Justificación:** Se revirtió puntualmente solo el campo Rendimiento (no Costo ni Precio por Metro, que sí son dinero y donde CampoDecimal sigue siendo apropiado), replicando el patrón ya usado y libre de bugs en `InsumoEditar.vue`, en vez de intentar "arreglar" CampoDecimal para tolerar ambos casos de uso (monetario y factor simple) con una prop adicional — cambio no solicitado y fuera de alcance.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep para localizar usos de `rendimiento`/`campo-decimal` en ambos modales).
+- **Resultado:** Éxito
+- **Verificación:** Revisión de código confirmando que el nuevo input coincide exactamente con el patrón de `InsumoEditar.vue` (campo equivalente, sin bug reportado ahí). Pendiente que el usuario confirme en navegador que "Nuevo Insumo" ahora acepta `Rendimiento = 1` sin el error de validación.
+- **Logro Conseguido:** Corregido un bug de UX/validación que bloqueaba la creación de insumos nuevos (flujo crítico de Inventario) en el ambiente de prueba Postgres.
+- **Observaciones de Claude:** Este hallazgo es relevante para la migración piloto de CampoDecimal (`project_input_decimal_bancario` en memoria): confirma que el componente NO debe aplicarse indiscriminadamente a cualquier campo numérico decimal, solo a campos genuinamente monetarios. Vale la pena revisar los otros 2 archivos piloto (`AsignacionDePreciosForm.vue`, `presupuesto.vue`) para confirmar que todos sus usos de CampoDecimal son campos de dinero reales y no otro caso de "factor" mal migrado.
+- **Respuesta de Claude:** Corregido el campo Rendimiento en "Nuevo Insumo"; confirmado que "Editar Insumo" no tiene este bug (usa un input distinto). Pendiente de confirmación visual del usuario.

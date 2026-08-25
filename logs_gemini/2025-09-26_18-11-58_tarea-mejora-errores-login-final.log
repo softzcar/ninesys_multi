@@ -1,0 +1,8 @@
+- Solicitud del Usuario: [crea un log con esta parte terminada]
+- Archivos Involucrados: ["/home/developer/Escritorio/niesys/app_multi/components/login/form.vue"]
+- Acción Realizada: [Se refactorizó el manejo de errores del formulario de login en `components/login/form.vue`. Se identificó que la API respondía con códigos de error HTTP (401 para credenciales inválidas, 403 para configuración incompleta), lo que causaba que la lógica de error en el bloque `.then()` nunca se ejecutara. La solución fue mover toda la lógica de manejo de errores al bloque `.catch()`. Este bloque fue reescrito para inspeccionar el objeto de error de Axios: primero comprueba si la respuesta contiene `company_full_config: false` para mostrar una alerta de configuración requerida; si no, comprueba si contiene un `msg` para mostrar un error de credenciales; y finalmente, si no encuentra ninguno, muestra un error de conexión genérico. Adicionalmente, el bloque `.then()` fue limpiado para contener únicamente la lógica del flujo de login exitoso.]
+- Herramienta(s) Utilizada(s): [default_api.replace]
+- Resultado: [Éxito]
+- Verificación: [El usuario confirmó que los mensajes de error específicos de la API ahora se muestran correctamente.]
+- Observaciones de Gemini: [La solución robustece el login al manejar los errores a nivel de protocolo HTTP, que es la práctica estándar, en lugar de solo a nivel de lógica de aplicación dentro de una respuesta exitosa.]
+- Respuesta de Gemini: [Hecho. El log ha sido creado.]

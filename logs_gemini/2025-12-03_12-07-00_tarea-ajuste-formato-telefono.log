@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Modificar la validación para que el teléfono guardado NO incluya el signo `+` (ej: `58414...` en lugar de `+58414...`), ya que el sistema de mensajería no lo soporta.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/mixins/phoneValidation.js
+- Acción Realizada: Se modificó la función `validateAndFormatPhone` en el mixin para aplicar `.replace('+', '')` al resultado formateado.
+- Herramienta(s) Utilizada(s): `replace_file_content`.
+- Resultado: Éxito
+- Verificación: Se actualizó el `walkthrough.md` indicando que el resultado esperado ahora es el número sin el signo `+`.
+- Observaciones de Gemini: El cambio fue directo y mantiene la validación robusta de `libphonenumber-js` pero ajusta la salida al requerimiento específico del cliente.
+- Respuesta de Gemini: He realizado el ajuste. Ahora el sistema valida el número correctamente pero elimina el signo `+` al final, guardando el formato `584147307169` compatible con tu sistema de mensajería.

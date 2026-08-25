@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Arreglar que el valor del remanente no se guardaba (se ponía en 0).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    - Se descubrió que existía un bloque de lógica "Legacy" ("Case 1") más abajo en el archivo que chequeaba `isset($miInsumo['remanente'])`.
+    - Como el frontend envía `remanente: 0`, ese bloque Legacy se ejecutaba SIEMPRE, *después* de mi bloque de `auto_remanente`.
+    - Resultado: Mi bloque guardaba el valor correcto (ej: 5.5). Milisegundos después, el bloque Legacy lo sobreescribía con 0.
+    - Corrección: Se protegió el bloque Legacy con `if (!$auto_active && ...)` para que SOLO se ejecute si NO estamos en modo auto-remanente.
+- Herramientas Utilizadas: `view_file` (investigación), `replace_file_content`.
+- Resultado: El valor calculado ya no será sobreescrito.
+- Verificación: Despliegue pendiente.
+- Observaciones de Gemini: Este era el verdadero bug "escondido" que invalidaba el arreglo anterior.
+- Respuesta de Gemini: Bug de sobreescritura corregido.

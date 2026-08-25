@@ -1,0 +1,8 @@
+- Solicitud del Usuario: vamos a poner una leyenda explicativa de la inmterpretacion de los colores que hemos imple,entado en la parte ssuperior de la tabla
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionInsumosProductosV2.vue
+- Acción Realizada: Se insertó un bloque HTML (div) sobre la tabla `<b-table>` que contiene la leyenda. Se utilizaron componentes nativos de Bootstrap e iconos/estilos para representar el cuadro verde (bg-success) y el texto rojo (text-danger) con sus respectivas explicaciones.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se maquetó la leyenda usando clases utilitarias de Bootstrap (`d-flex`, `align-items-center`, `mr-2`, etc.) para asegurar que se visualice correctamente alineada y con el espaciado adecuado.
+- Observaciones de Gemini: La leyenda es una mejora de usabilidad crucial para que el usuario entienda intuitivamente el significado de los indicadores visuales.
+- Respuesta de Gemini: He añadido la leyenda explicativa en la parte superior de la tabla. Muestra qué significa el cuadro verde ("Con Insumos Asignados") y el texto rojo "0 min" ("Tiempo No Asignado").

@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** Tras la auditoría que confirmó que el historial de tinta (`tintas`/`tintas_recargas`) de una impresora eliminada es relevante para el reporte de costos de producción, el usuario aprobó implementar soft delete con un nuevo estado `'eliminada'` (ver log espejo en ninesys-api para el detalle completo de la auditoría de FK).
+- **Fecha y Hora:** 2026-07-17 18:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/admin/ImpresoraEditar.vue
+  - pages/impresoras/gestion/index.vue
+- **Commits Relacionados:**
+    - Frontend: 4e98395
+    - Backend: 1b63c19, e6a4dc7 (ver log en ninesys-api)
+- **Acción Realizada:**
+  1. `ImpresoraEditar.vue`: se agregó `{ value: 'eliminada', text: 'Eliminada' }` a las opciones del select de estado, para poder revertir manualmente el soft delete (volver una impresora eliminada a 'Activa') desde el propio formulario de edición.
+  2. `pages/impresoras/gestion/index.vue`:
+     - `getImpresoras()` ahora pide `?incluirEliminadas=1` — es el único consumidor de `GET /impresoras` en toda la app que necesita verlas, para poder listarlas y reactivarlas.
+     - La columna "Estado" muestra un badge gris "Eliminada" para esas filas; el resto de la fila se atenúa (`text-muted`) vía `:tbody-tr-class`.
+     - El botón de eliminar (ícono de basura) se oculta para impresoras ya eliminadas (no tiene sentido "eliminar" algo ya eliminado); el botón de editar se mantiene siempre visible, siendo el único camino para reactivarlas.
+     - El texto de confirmación al eliminar se actualizó para aclarar el nuevo comportamiento: "Se marcará como eliminada y dejará de aparecer en los selectores activos, pero su historial de consumo y recargas de tinta se conserva."
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se decidió que `gestion/index.vue` sea el ÚNICO consumidor frontend que pasa `incluirEliminadas=1` — todos los demás (recarga de tintas, servicio, asignación de empleados, dashboard de tinta actual) siguen llamando a `GET /impresoras` sin parámetros, heredando automáticamente la exclusión por defecto del backend sin necesitar ningún cambio de código en esos archivos.
+- **Herramienta(s) Utilizada(s):** Read, Edit.
+- **Resultado:** Éxito
+- **Verificación:** Ciclo completo verificado en vivo junto con el backend (ver log en ninesys-api): eliminar → persiste con estado 'eliminada' → desaparece de listados operativos → reaparece en gestión con `incluirEliminadas=1` → reversible vía edición manual de estado.
+- **Logro Conseguido:** La pantalla de Gestión de Impresoras refleja correctamente el nuevo modelo de soft delete: las impresoras dadas de baja quedan visualmente distinguidas, no interfieren con el uso operativo diario, y son recuperables sin tocar la base de datos directamente.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Implementado y desplegado a Contabo Dev junto con el fix de backend correspondiente.

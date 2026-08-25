@@ -1,0 +1,8 @@
+- Solicitud del Usuario: [crear un log para la tarea de gestión de monedas]
+- Archivos Involucrados: ["/home/developer/Escritorio/niesys/app_multi/components/empresa/configuracionWizard.vue", "/home/developer/Escritorio/niesys/app_multi/components/empresa/MonedasManager.vue"]
+- Acción Realizada: [Se implementó el cuarto paso ("Monedas") del wizard de configuración. Se creó un nuevo componente dedicado (`MonedasManager.vue`) para encapsular la lógica de añadir y eliminar monedas. Este componente muestra una tabla con las monedas activas y un formulario para añadir nuevas. Se implementó una regla para que la moneda "dólar" sea fija y no se pueda eliminar. El nuevo componente se integró en el wizard principal, emitiendo la lista de monedas actualizada al componente padre.]
+- Herramienta(s) Utilizada(s): [write_file, replace]
+- Resultado: [Éxito]
+- Verificación: [El usuario confirmó que la interfaz para añadir y eliminar monedas funciona como se esperaba.]
+- Observaciones de Gemini: [La creación de un componente hijo específico para esta funcionalidad sigue las buenas prácticas, haciendo el código más modular, reutilizable y fácil de mantener.]
+- Respuesta de Gemini: [Hecho. El log ha sido creado.]

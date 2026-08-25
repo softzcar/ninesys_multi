@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Asegurar que el input de detalle de descuento exista, sea obligatorio y se envíe a la API en `abono.vue`.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+- Acción Realizada:
+    1. Se verificó que el input y el envío a la API ya estaban implementados (pasos anteriores).
+    2. Se detectó que faltaba la validación en el método `hacerAbono` (que impide la ejecución si faltan datos).
+    3. Se agregó la validación: si `valueDescuento > 0` y `valueDescuentoDetalle` está vacío, mostrar alerta y detener.
+    4. Se agregó el reseteo de `valueDescuentoDetalle` tras un abono exitoso.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó el código insertado.
+- Observaciones de Gemini: El usuario percibía que "no teníamos el input" posiblemente porque al no ser obligatorio, el flujo permitía ignorarlo. Ahora es estricto.
+- Respuesta de Gemini: Validación agregada. Ahora el detalle es estrictamente obligatorio.

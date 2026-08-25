@@ -1,0 +1,10 @@
+- Solicitud del Usuario: Adecuar la terminología visual cambiando "Rollo" por "Insumo", ya que la funcionalidad aplica a cualquier tipo de material, no solo a rollos.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada:
+    1. Se actualizó el `aria-label` y `title` del botón a "Terminar insumo".
+    2. Se modificó el mensaje del modal de confirmación a "¿Desea terminar el insumo seleccionado?" y el título a "Terminar Insumo".
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisado en código. Los textos ahora son genéricos y adecuados para cualquier departamento o tipo de insumo.
+- Observaciones de Gemini: Cambio cosmético que mejora la consistencia semántica de la aplicación.
+- Respuesta de Gemini: He actualizado los textos para que digan "Insumo" en lugar de "Rollo", tanto en el botón como en la confirmación.

@@ -1,0 +1,8 @@
+- Solicitud del Usuario: En la empresa ID 174, orden 9, asignada a empleado Impresión y Empleado Estampado (con permiso de Impresión). Al iniciar la orden con el usuario de Estampado, la orden desaparece de "En Curso".
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: Se identificó que el componente filtraba las órdenes en curso del departamento "Impresión" si tenían registros en la tabla `tintas` (`el.en_tintas === 0`). Como el otro empleado ya había generado registros de tintas (o existían registros previos), la condición fallaba para el segundo empleado, ocultando la orden. Se eliminó esta restricción (`el.en_tintas === 0`) tanto en `dataTableEnCurso` como en `filterOrder`.
+- Herramienta(s) Utilizada(s): view_file, grep_search, run_command (mysql CLI), replace_file_content
+- Resultado: Éxito. La orden debería ser visible ahora independientemente de si ya existen registros de tintas (siempre que el empleado actual no haya terminado su parte).
+- Verificación: Se verificó en base de datos que existían registros de tintas para la orden 9 con otro empleado, lo que confirmaba la hipótesis del filtrado incorrecto.
+- Observaciones de Gemini: El flag `en_tintas` es un conteo global de registros de tintas para la orden. Usarlo como filtro de visibilidad personal es incorrecto en un entorno multi-empleado.
+- Respuesta de Gemini: He corregido el problema en el componente de órdenes asignadas. La orden desaparecía porque el sistema detectaba que ya había tintas registradas (posiblemente por el otro empleado) y ocultaba la orden incorrectamente. He eliminado esa restricción para que la orden permanezca visible en "En Curso" hasta que tú termines tu parte.

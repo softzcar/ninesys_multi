@@ -1,0 +1,34 @@
+LOG DE TAREA: Implementación y Refinamiento del Reporte General de Inventario
+FECHA: 2026-03-14
+ESTADO: COMPLETADO
+
+DESCRIPCIÓN:
+Se ha desarrollado e implementado un nuevo sistema de reportes para el inventario general, optimizado para la gestión operativa por departamentos.
+
+LOGROS TÉCNICOS:
+
+1. BACKEND (API):
+   - Creación del endpoint `GET /inventario/reportes/general`.
+   - Implementación de lógica de filtrado dinámico por departamento.
+   - Optimización de la consulta para obtener departamentos únicos con stock disponible (Filtros Dinámicos).
+   - Inclusión del campo `_id` (ID del Insumo) como dato primordial en la respuesta.
+   - Resolución de colisión de rutas con `/api/inventario/{departamento}` mediante reubicación estratégica en el archivo de rutas.
+
+2. FRONTEND (VUE/NUXT):
+   - Creación de la página `pages/inventario/reportes/general/reporte.vue`.
+   - Implementación de `b-form-radio-group` para selección rápida de departamentos (Botones Dinámicos).
+   - Integración de búsqueda rápida local sobre los resultados cargados.
+   - Adición de la columna ID al inicio de la tabla.
+
+3. IMPRESIÓN Y ESTANDARIZACIÓN:
+   - Creación del componente `components/reportes/ReporteInventarioGeneral.vue`.
+   - Implementación de un resumen de encabezado con: Departamento, Fecha, Total Ítems, Stock Total y Valor Total del Inventario.
+   - Estandarización del método de impresión utilizando la utilidad `PrintService`, asegurando apertura en nueva pestaña con barra de herramientas (Imprimir/Cerrar).
+   - Creación de un workflow oficial en `.agent/workflows/imprimir-reporte.md` para guiar futuras implementaciones de impresión.
+
+4. DESPLIEGUE:
+   - Sincronización exitosa en los servidores de DESARROLLO (Hostinger) y PRODUCCIÓN (Contabo).
+   - Verificación de la integridad de los datos en ambos entornos.
+
+NOTAS FINALES:
+El reporte ahora permite una visión clara y filtrada del estado del inventario, facilitando la auditoría de materiales por áreas específicas de producción.

@@ -1,0 +1,9 @@
+- **Solicitud del Usuario:** "/plan ok alica la solución para las nuevas empresas, para la esta empresa y la empresa 194 tmbién"
+- **Diagnóstico Realizado:**
+  - Cuando se intenta crear un insumo que ya existe en el catálogo, la API responde HTTP 409. El frontend debe procesar esa respuesta capturando `existing_item` para auto-seleccionar el insumo en lugar de fallar de forma abrupta.
+- **Acciones Realizadas:**
+  1. **Frontend Vue (`app_multi/components/admin/AsignacionDeInsumosAProductosTab.vue`)**:
+     - En el manejador `.catch(err)` del método `crearInsumo()`, si `err.response.status === 409` contiene `existing_item`, se añade la opción al selector si no está variante y se asigna `this.selectedInsumoBase = existId`.
+     - Muestra una notificación tipo `info`: *"El insumo ya existía en el catálogo y ha sido seleccionado automáticamente."*
+- **Verificación:**
+  - Código probado en caliente (hot reload) en el servidor de desarrollo, sin compilar bundles de producción (`npm run build` / `nuxt build`), según la regla `GEMINI.md`.

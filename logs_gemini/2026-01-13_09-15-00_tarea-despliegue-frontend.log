@@ -1,0 +1,8 @@
+- Solicitud del Usuario: "desplega el frontend"
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/deploy.sh
+- Acción Realizada: Se ejecutó el script de despliegue automatizado `./deploy.sh` en el directorio del frontend (`/home/developer/Escritorio/niesys/app_multi`). Se utilizó `printf` para inyectar la confirmación ("s") y la descripción del backup ("Fix refresh config logic in Modal Extra") en el script interactivo.
+- Herramienta(s) Utilizada(s): `run_command`
+- Resultado: Éxito
+- Verificación: El script finalizó con código de salida 0 y mostró el mensaje "DESPLIEGUE DE LA APLICACIÓN FINALIZADO CON ÉXITO". Se confirmó la eliminación del `dist` anterior, la generación de la nueva build, la creación de backups locales y remotos, y la sincronización mediante `rsync` al servidor `vps-ninesys`.
+- Observaciones de Gemini: El despliegue incluye los cambios recientes en `SseOrdenesAsignadasModalExtra.vue`.
+- Respuesta de Gemini: Confirmación al usuario de que el despliegue se ha completado correctamente.

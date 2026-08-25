@@ -1,0 +1,15 @@
+- Solicitud del Usuario: Refactorizar la solución de impresión para reutilizar código.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/utils/PrintService.js (NUEVO)
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosDisenioResumen.vue
+- Acción Realizada:
+    1.  Se creó `utils/PrintService.js` encapsulando toda la lógica de estilos, iconos SVG, botón manual y auto-cierre.
+    2.  Se refactorizaron los 3 componentes eliminando ~150 líneas de código duplicado en total.
+    3.  Ahora cada componente simplemente llama a `PrintService.imprimir(titulo, contenido)`.
+- Herramienta(s) Utilizada(s): `write_to_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de código estática. Se confirmó que los componentes importan y usan el servicio correctamente.
+- Observaciones de Gemini: El código ahora es mucho más mantenible. Cualquier cambio futuro en el diseño de impresión se hará solo en `PrintService.js`.
+- Respuesta de Gemini: Confirmación de refactorización completada.

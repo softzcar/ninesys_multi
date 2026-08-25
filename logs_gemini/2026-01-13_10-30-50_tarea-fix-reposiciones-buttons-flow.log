@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Corregir el flujo de visualización de botones en reposiciones. El botón 'Terminar Todo' no debe verse si la reposición no se ha iniciado.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/manufacturing.php
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada:
+    1. Se modificó la consulta de `reposiciones` en el backend para incluir el campo `progreso` desde la tabla `lotes_detalles_empleados_asignados`.
+    2. Se actualizó el mapper `dataTableReposiciones` en el frontend para incluir este campo `progreso`.
+    3. Se agregaron condicionales `v-if` en el template para mostrar 'Iniciar' solo si el progreso NO es 'en curso' ni 'pausada', y mostrar 'Terminar/Pausar' solo si el progreso ES 'en curso' o 'pausada'.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó la lógica y corresponde con lo esperado: antes de iniciar solo se ve 'Iniciar', después de iniciar se ven las opciones de control.
+- Respuesta de Gemini: Corrección aplicada, ahora los botones dependen del estado de la reposición.

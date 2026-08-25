@@ -1,0 +1,11 @@
+- Solicitud del Usuario: El usuario reportó que al abrir el modal y recibir estado PAUSED, la interfaz se quedaba colgada en "Cargando..." indefinidamente. Al hacer clic en Activar funcionaba, pero el estado inicial era confuso.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/checkConnection.vue
+- Acción Realizada: 
+    - Se modificó el método `updateState` para interceptar explícitamente `status === 'PAUSED'`.
+    - Se asigna `ws.error = "Servicio pausado temporalmente"`, lo que obliga a la UI a mostrar el bloque de alerta (b-alert) en lugar del spinner de carga indefinida.
+    - Se muestra el mensaje detallado del backend en `ws.details`.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito.
+- Verificación: Revisión de código. Ahora el bloque `v-if="ws.error"` capturará este estado.
+- Observaciones de Gemini: Mejora de usabilidad para evitar incertidumbre en el usuario cuando se activan los límites de tasa (rate limits) del backend.
+- Respuesta de Gemini: Notificación al usuario de que la corrección visual está lista.

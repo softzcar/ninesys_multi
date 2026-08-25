@@ -1,0 +1,37 @@
+- **Solicitud del Usuario:** Implementar el componente WaConfiguracion.vue para la página /whatsapp/configuracion que estaba vacía. Esta página debe permitir configurar los parámetros globales de IA de la empresa.
+- **Fecha y Hora:** 2026-04-13 12:00:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - app_multi/components/whatsapp/WaConfiguracion.vue (NUEVO)
+    - app_multi/pages/whatsapp/configuracion.vue (ya existía, referenciaba <whatsapp-WaConfiguracion /> sin que el componente existiera)
+- **Commits Relacionados:**
+    - Frontend: pendiente en rama actual
+    - Backend: N/A (endpoints ya existen: GET/PUT /ai/settings/:companyId, POST /ai/toggle/:companyId)
+- **Acción Realizada:**
+    1. Creado componente WaConfiguracion.vue que consume la tabla wa_ai_settings (singleton por empresa) a través de los endpoints REST ya implementados en msg_ninesys (Fase 8).
+    2. Secciones implementadas:
+       - **Switch global IA** (enabled): toggle maestro que usa POST /ai/toggle/:companyId con efecto inmediato sin necesidad de guardar. Incluye badge visual Activo/Inactivo.
+       - **Modelo de IA**: selector de proveedor (gemini/anthropic) y modelo (gemini-2.5-flash, 2.0-flash, 1.5-pro), slider de temperatura (0-1, step 0.05), input de max_tokens (100-4096).
+       - **Prompt del Sistema (global)**: textarea para el prompt base que se usa cuando no hay agente específico asignado.
+       - **Base de Conocimiento (global)**: textarea JSON con validación en tiempo real (borde rojo si el JSON es inválido, feedback visual).
+       - **Opciones adicionales**: checkbox switch para respond_in_groups (responder en grupos WhatsApp).
+    3. Detección de cambios pendientes: snapshot del estado original al cargar, computed `hasChanges` que compara campo por campo. El botón "Guardar" se deshabilita si no hay cambios. Botón "Descartar" recarga desde el backend.
+    4. El toggle global (enabled) se aplica instantáneamente vía POST separado sin necesidad del botón guardar — es la UX esperada para un interruptor maestro. Los demás campos requieren guardar explícito vía PUT.
+    5. Manejo de errores: estado de carga con spinner, alert de error con botón reintentar, toasts para éxito/error en guardado y toggle.
+- **Inconvenientes y Desafíos:**
+    - Ninguno. Los endpoints backend ya estaban implementados y probados desde Fase 8 y Fase A. Solo faltaba el componente frontend.
+- **Decisión Final y Justificación:**
+    - **Toggle global instantáneo vs parte del formulario**: Decisión de UX — el interruptor maestro de IA debe tener efecto inmediato (un usuario que apaga la IA no quiere tener que recordar hacer click en "Guardar"). Usa un endpoint POST separado que ya existía.
+    - **Validación JSON inline para knowledge_base**: feedback visual instantáneo (state binding) para que el usuario sepa si su JSON es válido antes de intentar guardar. Previene 400 del backend.
+    - **respond_in_groups incluido aunque el backend lo ignora**: la columna existe en wa_ai_settings y el PUT /ai/settings ya la persiste. Cuando el backend cablee la lógica (actualmente hardcoded skip en maybeAutoReply), el frontend ya estará listo sin cambios.
+    - **Mismo patrón de modelOptions que WaAgentes**: consistencia visual. El usuario ve los mismos modelos en ambas páginas.
+    - **Sin handoff_rules en esta versión**: el campo existe en DB pero el backend no implementa handoff automático. Añadirlo al form sería confuso porque no tendría efecto. Se añadirá cuando se implemente la funcionalidad.
+- **Herramienta(s) Utilizada(s):** Write, Read, Grep.
+- **Resultado:** Éxito.
+- **Verificación:**
+    - Componente creado y referenciado correctamente por pages/whatsapp/configuracion.vue (que ya tenía <whatsapp-WaConfiguracion />).
+    - Pendiente verificación visual en navegador tras levantar dev server.
+- **Logro Conseguido:** La página /whatsapp/configuracion ahora tiene un panel completo para gestionar la configuración global de IA de la empresa. Cubre todos los campos editables de wa_ai_settings excepto handoff_rules (pendiente de implementación backend).
+- **Referencias de Sesión (Contexto):** El backend (msg_ninesys) implementó los endpoints en Fase 8 (log 2026-04-08_00-00-00). Los agentes individuales tienen su CRUD en /whatsapp/agentes (WaAgentes.vue). Esta configuración global es la capa base que los agentes heredan.
+- **Observaciones de Gemini:** N/A — sesión ejecutada por Claude Opus 4.6.
+- **Respuesta de Claude:** Componente WaConfiguracion.vue creado. Pendiente levantar dev server y verificar visualmente.

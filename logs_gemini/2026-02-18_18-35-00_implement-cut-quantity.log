@@ -1,0 +1,16 @@
+
+- Solicitud del Usuario: Mostrar la cantidad real cortada desde la tabla `inventario_corte`.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado y Desplegado)
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/CorteItemView.vue (Modificado)
+- Acción Realizada:
+    - Backend: Se actualizó la consulta SQL en `/production/corte/orden-detalles/{id}` para hacer un `LEFT JOIN` con `inventario_corte` y calcular `COALESCE(SUM(ic.cantidad), 0) as cantidad_cortada`.
+    - Frontend: Se actualizó `CorteItemView.vue` para leer `cantidad_cortada` directamente de la respuesta de la API en lugar de calcularlo localmente o usar el campo `corte` de la orden de producción (que podría estar desactualizado o ser estático).
+    - Despliegue: Se desplegaron los cambios al VPS.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (git, ssh)
+- Resultado: Éxito
+- Verificación:
+    - Despliegue exitoso en VPS.
+    - La consulta SQL es correcta según el esquema de `inventario_corte`.
+- Observaciones de Gemini:
+    - Ahora el campo "Cortado" reflejará la suma real de los registros de inventario de corte para ese producto, permitiendo ver el progreso real. Si no hay registros, mostrará 0 como se solicitó.

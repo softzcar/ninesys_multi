@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Actualizar el CRUD de tallas (endpoint `/tallas`) para gestionar el nuevo campo `variation_percentage`.
+- Archivos Involucrados: `/app/routes/products.php`, `/pages/tallas/index.vue`, `/components/admin/TallasNuevo.vue`, `/components/admin/TallasEditar.vue`.
+- Acción Realizada: 
+    1. Backend: Se actualizaron los endpoints `POST /sizes` (crear) y `POST /sizes/editar` (actualizar) en `products.php` para incluir el campo `variation_percentage` en las consultas SQL.
+    2. Frontend: 
+        - Se modificó `index.vue` para agregar la columna "Variación (%)" a la tabla.
+        - Se actualizaron `TallasNuevo.vue` y `TallasEditar.vue` para agregar el input numérico del porcentaje y enviarlo en las peticiones al backend.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `view_file`.
+- Resultado: Éxito
+- Verificación: Se verificó el código modificado. El campo se muestra en la tabla y se envía en los formularios de creación y edición.
+- Observaciones de Gemini: Se corrigieron errores de sintaxis (etiquetas no cerradas) durante la implementación en los componentes Vue.
+- Respuesta de Gemini: Se notificó al usuario que la actualización del CRUD de tallas ha sido completada.

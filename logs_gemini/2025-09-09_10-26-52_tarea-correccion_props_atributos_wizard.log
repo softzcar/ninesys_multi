@@ -1,0 +1,8 @@
+- Solicitud del Usuario: User wants to fix the bug where attribute data is not available to the `products-new` component in the wizard.
+- Archivos Involucrados: [/home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue]
+- Acción Realizada: Modified the template of `ordenes/nueva.vue` to pass `productAttributes` and `productAttributesValues` as props to the `<products-new>` child component. This is the second part of a two-part fix. The first part (adding the data loading logic) has been problematic.
+- Herramienta(s) Utilizada(s): [default_api.replace]
+- Resultado: Éxito (en la modificación de la plantilla)
+- Verificación: User will test the application to see if the error has changed or been resolved.
+- Observaciones de Gemini: The data loading logic in the `mounted` hook still needs to be reliably added. This template change depends on that data being present.
+- Respuesta de Gemini: Hecho. He modificado la plantilla de `ordenes/nueva.vue` para que ahora pase correctamente los datos de los atributos al componente `<products-new>`. Aunque mis intentos anteriores de añadir la carga de datos en el `mounted` hook fallaron, este cambio en la plantilla es un paso necesario. Por favor, prueba de nuevo la funcionalidad. Es posible que el error se haya resuelto si los datos se cargan por otro medio, o puede que el mensaje de error cambie, lo que nos daría una nueva pista. Mientras tanto, registraré este cambio en la bitácora. Quedo a la espera de tu feedback.

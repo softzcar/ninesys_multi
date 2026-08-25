@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Error "Cannot read properties of undefined (reading 'terminar')" al renderizar/terminar insumos.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se identificó que la columna 'id' (donde agregué el checkbox) carecía del `v-if="form[row.index]"` que protege a las otras columnas. Esto causaba el crash si el índice dejaba de existir temporalmente durante actualizaciones de la tabla.
+    - Se corrigió el atributo `primary-key`: de `:primary-key="form.id"` (indefinido) a `primary-key="id"` (string correcto).
+    - Se cambió el modelo del checkbox de `form[row.index].terminar` (riesgoso) a `row.item.terminar` (referencia directa al objeto fila).
+    - Se añadió el `v-if` de protección.
+- Herramientas Utilizadas: `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: El error de consola debe desaparecer y la funcionalidad de terminar debe completarse sin interrupciones.
+- Observaciones de Gemini: El error impedía que el script continuara hacia la segunda petición (terminar), explicando por qué solo se registraba el consumo.
+- Respuesta de Gemini: Bug corregido. UI robustecida.

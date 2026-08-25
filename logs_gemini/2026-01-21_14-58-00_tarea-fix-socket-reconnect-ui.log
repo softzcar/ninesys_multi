@@ -1,0 +1,11 @@
+- Solicitud del Usuario: El usuario reportó que los botones de mensajes deberían deshabilitarse al reiniciar/desconectar y que el botón "Activar" no funcionaba (sin actividad) tras un reinicio, mostrando mensajes contradictorios.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/checkConnection.vue
+- Acción Realizada: 
+    1. Se implementó la clase CSS `.disabled-wrapper` para bloquear visual y funcionalmente los botones de envío de mensajes cuando `ws.ws_ready` es falso.
+    2. Se modificó el método `activateWhatsapp` para detectar si el socket está desconectado e invocar `initSocket()` automáticamente, seguido de un reintento de emisión del evento 'activate'.
+    3. Se actualizó el listener `disconnect` del socket para limpiar `ws.details` y establecer explícitamente el estado de error, eliminando la ambigüedad en la UI.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó que el código incluye ahora la lógica de reconexión y las clases de estilo apropiadas. La funcionalidad de auto-reconexión debería resolver el problema de inactividad del botón "Activar".
+- Observaciones de Gemini: El problema raíz era que el cliente Socket.io se desconectaba (posiblemente por timeout) y la interfaz no intentaba reconectar automáticamente al pulsar los botones de acción, quedándose en un estado "zombie". La nueva lógica fuerza la reconexión.
+- Respuesta de Gemini: Se notificó al usuario que los cambios están aplicados localmente y se solicitó permiso para desplegar.

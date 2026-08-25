@@ -1,0 +1,70 @@
+- Solicitud del Usuario: En la página `/comercializacion/ordenes` en el wizard, en el paso "Pago y asignación", el formulario estaba calculando los bolívares con la tasa del BCV (349.93) en lugar de la tasa manual configurada en administración (400.00). Solicitud de revisar cuándo se carga esta información (login o carga de página), identificar por qué se estaba usando la tasa incorrecta, y arreglar el flujo para que use la tasa manual.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/menus/MenuLoader.vue
+  * /home/developer/Escritorio/niesys/app_multi/store/login.js
+  * /home/developer/Escritorio/niesys/app_multi/components/formMonedas.vue
+  * /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+  * /home/developer/.gemini/antigravity/brain/d86d4a77-c125-431b-910d-716edb63ba46/task.md
+  * /home/developer/.gemini/antigravity/brain/d86d4a77-c125-431b-910d-716edb63ba46/implementation_plan.md
+
+- Acción Realizada:
+  1. **Investigación del Problema**:
+     - Identifiqué que existían dos valores diferentes para la tasa del bolívar:
+       * Tasa Manual (BD): 400.00 en `tipos_de_monedas`
+       * Tasa BCV (API): 349.93 obtenida automáticamente
+     - Tracé el flujo completo de carga de tasas:
+       * Login → `setDataEmpresa` carga tasas desde BD correctamente
+       * `MenuLoader.vue::mounted` llamaba `cargarTasasAutomaticas()` 
+       * Esta función sobrescribía `state.tasas.bolivar` con tasa BCV
+       * Los cálculos en `nueva.vue` usaban `this.tasas.bolivar` (valor sobrescrito)
+     
+  2. **Solución Implementada (Opción A - Aprobada por Usuario)**:
+     - Comenté el bloque completo de carga automática en `MenuLoader.vue` (líneas 259-283)
+     - Agregué documentación detallada explicando por qué se comentó
+     - Ahora las tasas se cargan ÚNICAMENTE desde BD vía `setDataEmpresa`
+     - La tasa BCV se sigue mostrando en `formMonedas.vue` como referencia
+     - Pero los cálculos usarán solo la tasa manual de BD
+     
+  3. **Flujo Corregido**:
+     - Login → Carga tasas desde BD (400.00)
+     - No hay sobrescritura por API
+     - Cálculos usan tasa manual correctamente
+     - Administrador puede actualizar tasa en `formMonedas.vue`
+     - Los cambios persisten en BD vía `/configuracion/monedas`
+
+  4. **Documentación**:
+     - Creé `task.md` con checklist detallado
+     - Creé `implementation_plan.md` con análisis y dos opciones
+     - Documenté flujo ANTES y DESPUÉS del fix en `task.md`
+     - Commit descriptivo con contexto completo
+
+- Herramienta(s) Utilizada(s): 
+  * `view_file` - Para examinar componentes y store
+  * `grep_search` - Para localizar usos de tasas en el código
+  * `replace_file_content` - Para comentar carga automática y actualizar docs
+  * `write_to_file` - Para crear artifacts de planificación
+  * `run_command` - Para git add y commit
+
+- Resultado: Éxito
+
+- Verificación:
+  * Código modificado exitosamente en `MenuLoader.vue`
+  * Commit creado: "Fix: Usar tasa manual de BD en lugar de tasa BCV para cálculos"
+  * Se requiere verificación manual por parte del usuario:
+    1. Desplegar la aplicación con el cambio
+    2. Iniciar sesión con usuario de Administración
+    3. Ir a `/comercializacion/ordenes`
+    4. Crear orden de prueba con total $10.00
+    5. En "Pago y asignación", verificar que cálculos usen tasa 400.00
+    6. Resultado esperado: Bs. 4,000.00 (no Bs. 3,499.30)
+
+- Observaciones de Gemini:
+  * El problema fue causado por un diseño donde las tasas automáticas (APIs) sobrescribían las tasas manuales (BD)
+  * La solución elegida (Opción A) es simple y directa: solo usar tasas de BD
+  * Se consideró Opción B (separar tasas de referencia vs operativas) pero se descartó por complejidad
+  * La tasa BCV aún se obtiene y muestra en `formMonedas.vue` vía metadata, pero solo como referencia
+  * El sistema ahora tiene una única fuente de verdad: la base de datos
+  * La funcionalidad de edición manual y persistencia ya existía y funciona correctamente
+
+- Respuesta de Gemini: He corregido el problema de cálculo de bolívares. El sistema estaba usando la tasa BCV (349.93) de la API en lugar de la tasa manual configurada (400.00) porque la carga automática sobrescribía el valor de BD. Comenté la carga automática en MenuLoader.vue para que las tasas se carguen únicamente desde la base de datos. Ahora todos los cálculos usarán la tasa manual. He creado el commit con los cambios. Por favor verifica que funcione correctamente creando una orden de prueba y confirmando que los cálculos en bolívares usen la tasa de 400.00.

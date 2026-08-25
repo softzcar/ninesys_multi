@@ -1,0 +1,26 @@
+- **Solicitud del Usuario:** En la página /inventario/reportes/movimientos, mostrar la columna Nro de orden con componente LinkSearch, moverla a la primera columna, y ordenar por fecha/hora. Luego se debe mantener o reordenar el orden al aplicar filtros.
+- **Fecha y Hora:** 2026-03-31 18:10:15
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - /home/developer/Escritorio/niesys/app_multi/pages/inventario/reportes/movimientos/index.vue
+- **Commits Relacionados:**
+  - Frontend: N/A (cambios locales)
+  - Backend: N/A
+- **Acción Realizada:**
+  - Se ajustó `fields` para que la primera columna sea `id_orden` y `id_insumo` segunda.
+  - Se integró el componente `LinkSearch` para `id_orden`.
+  - Se configuró orden inicial (`sortBy: 'moment'`, `sortDesc: false`) y reordenamiento al filtrar en `itemsFiltrados`.
+  - Se corrigió el error de sintaxis eliminando el arreglo duplicado de `fields`.
+- **Inconvenientes y Desafíos:**
+  - Existía un bloque duplicado de `fields` que provocó un error de parseo Babel. Se eliminó y quedó sintaxis valida.
+- **Decisión Final y Justificación:**
+  - Se mantuvo la lógica de filtrado de `responsable` e `id_insumo`, reforzando la ordenación en la capa de presentación para garantizar consistencia.
+- **Herramienta(s) Utilizada(s):** read_file, replace_string_in_file.
+- **Resultado:** Éxito.
+- **Verificación:** Inspección de código y snapshots del UI (captura gráfica confirmada por el usuario) con orden correcto y filtro funcionando.
+- **Logro Conseguido:** Mejora UX en el reporte de movimientos con búsqueda precisa y orden cronológico fijo.
+- **Referencias de Sesión (Contexto):**
+  - Task: N/A
+  - Walkthrough: N/A
+- **Observaciones de Gemini:** Implementación confirmada en código y no requiere deploy inmediato.
+- **Respuesta de Gemini:** He creado el log de tarea con los cambios completados.

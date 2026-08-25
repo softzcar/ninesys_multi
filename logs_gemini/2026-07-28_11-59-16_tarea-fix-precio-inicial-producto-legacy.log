@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** "si corrige los 3 pero sospecho que `getAllProducts()` si esta usando `products.price` es probable que no se este usando en la api ya... ?" -- confirmar y corregir los 3 usos de `product.price` (legacy) detectados en la auditoría de factibilidad de eliminar la columna `products.price`.
+- **Fecha y Hora:** 2026-07-28 11:59:16
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/ordenes/nueva.vue`
+    - `components/ordenes/presupuesto.vue`
+    - `components/produccion/NewStockOrderModal.vue`
+- **Commits Relacionados:**
+    - Frontend: `74e4412`
+- **Acción Realizada:**
+    Se confirmó, con una búsqueda exhaustiva de `.price` sobre TODO `app_multi` (no solo los archivos ya sospechados), que estos 3 son los ÚNICOS lugares del frontend que leen `product.price` (el campo legacy que devuelve `GET /products` junto al array correcto `product.prices`). En los 3 casos, `product.price` se usaba para inicializar el precio de la línea de producto (`precio`/`original_selected_price`) al agregarlo a una orden, presupuesto o pedido de stock, ANTES de que el usuario elija un precio real del desplegable (`loadProductPrices`, que sí usa `product.prices` correctamente).
+
+    Se cambiaron las 3 asignaciones para tomar el primer precio de `product.prices` (mismo criterio ya usado en el desplegable y en el fix del backend de hoy), con fallback a `0` si el producto no tiene ningún precio cargado:
+    ```js
+    precio: product.prices && product.prices.length ? Number(product.prices[0].price) : 0,
+    ```
+
+- **Inconvenientes y Desafíos:** Ninguno. Al ser el mismo patrón ya usado por `loadProductPrices` (que ya lee `product.prices`), el cambio es de bajo riesgo -- no se introduce ninguna fuente de datos nueva, solo se deja de leer un campo que ya no se actualiza.
+
+- **Decisión Final y Justificación:**
+    Se aplicó el mismo criterio de "primer precio por `_id`" en los 3 lugares, en vez de, por ejemplo, dejar el precio inicial en 0 siempre -- así el comportamiento no empeora para los pocos productos que hoy dependían (por coincidencia) de tener `products.price` poblado, y mejora para el resto (antes mostraban $0 como precio inicial, ahora muestran el precio real "Precio X 1" o el que corresponda).
+
+- **Herramienta(s) Utilizada(s):** `Bash` (`grep` exhaustivo sobre `app_multi` completo para confirmar que no quedaba ningún otro consumidor de `product.price`), `Edit`, `node --check` (extracción y validación del bloque `<script>` de cada `.vue`), `git diff`/`commit`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__javascript_tool` (verificación en vivo invocando `loadProduct` directamente sobre la instancia Vue en producción de prueba).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Tras el despliegue, se invocó `loadProduct('1 | Alas')` directamente sobre la instancia Vue de `components/ordenes/nueva.vue` cargada en `https://app.nineteengreen.com/comercializacion/ordenes/`: el producto "Alas" (que en `products_prices` tiene un único precio de $30, "Precio X 1") quedó agregado a la orden con `precio: 30` y `original_selected_price: 30` -- confirmando que el precio inicial ahora viene de `products_prices` y no del campo legacy.
+
+- **Logro Conseguido:**
+    Se eliminó el último punto de lectura con impacto real de `products.price` en todo `app_multi`, dejando la columna verificablemente huérfana en ambos lados (lectura y escritura) -- listo para que el usuario decida cuándo planificar su eliminación del esquema de Postgres (y del MySQL de producción, y de la plantilla `create_new_company_api_emp_N.sql`).
+
+- **Observaciones:** Ver bitácora complementaria en `ninesys-api/logs_gemini/` para el fix del backend (`precio_venta` del Reporte de Desviación de Costos) y la auditoría completa de escritura/lectura de `products.price`.
+
+- **Respuesta de Claude:** Confirmado: `product.price` (legacy) solo se leía en estos 3 componentes en todo el frontend. Corregidos para usar el primer precio de `product.prices` (products_prices), igual que ya hacía el desplegable de precios. Verificado en vivo agregando un producto real a una orden: el precio inicial ahora es el correcto ($30) en vez de vacío/$0.

@@ -1,0 +1,10 @@
+- Solicitud del Usuario: El usuario reportó que los botones de mensajes no se deshabilitaban inmediatamente al hacer clic en "Reiniciar" o "Desconectar", permaneciendo activos durante el proceso.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/checkConnection.vue
+- Acción Realizada: 
+    - Se actualizó la condición de la clase `:class="{ 'disabled-wrapper': ... }"` para incluir `|| isActionLoading`.
+    - Esto asegura que tan pronto como se inicia una acción (isActionLoading = true), los botones de mensajes se bloquean visualmente, sin esperar a que cambie el estado `ws_ready` desde el servidor.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de código. La variable `isActionLoading` se activa en `performRestartClient` y `performDisconnectClient`, lo que disparará inmediatamente el estilo de deshabilitado.
+- Observaciones de Gemini: Ajuste de UX necesario para dar feedback inmediato al usuario y evitar condiciones de carrera.
+- Respuesta de Gemini: Se notificó al usuario sobre la corrección y ser reafirmó la solicitud de despliegue.

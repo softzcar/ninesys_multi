@@ -1,0 +1,35 @@
+- Solicitud del Usuario: Varias solicitudes relacionadas con el componente `components/ordenes/nueva.vue` y el endpoint `/ordenes/nueva/sport`.
+- Archivos Involucrados:
+    - `/home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue`
+    - (Análisis de código PHP proporcionado por el usuario, no un archivo del proyecto)
+- Acción Realizada:
+    1.  **Análisis Inicial y Corrección de Lógica de Endpoint (Intento 1):**
+        *   Se analizó el funcionamiento de los radio buttons 'Fábrica'/'Tienda' y su impacto en la propiedad `endpoint`.
+        *   Se corrigió la lógica condicional en el método `changeCategory` para asegurar que `this.endpoint` se estableciera correctamente según la selección y el estado de edición de la orden.
+        *   **Cambios:** Modificación de la estructura `if/else if` en `changeCategory` para usar `this.editingOrderId` y asignar el endpoint correcto (`/ordenes/nueva/custom` o `/ordenes/nueva/sport`).
+    2.  **Depuración y Corrección de Endpoint Hardcodeado en `finishOrder`:**
+        *   Se identificó que el método `finishOrder` estaba utilizando un endpoint hardcodeado (`/ordenes/nueva/custom`) ignorando la propiedad `this.endpoint`.
+        *   **Cambios:** Se modificó el método `finishOrder` para que utilizara la propiedad `this.endpoint` del componente en lugar de una constante local hardcodeada.
+    3.  **Corrección de Reseteo de Endpoint en `clearForm`:**
+        *   Se detectó que el método `clearForm` reiniciaba `this.endpoint` a `/ordenes/nueva/custom` cada vez que se limpiaba el formulario.
+        *   **Cambios:** Se comentó la línea que realizaba este reseteo en `clearForm` para mantener el valor de `this.endpoint` establecido por `changeCategory`.
+    4.  **Actualización de Existencia de Productos en UI:**
+        *   Se añadió una llamada a `this.loadDataProductos()` dentro del método `finishOrder` (en el bloque de éxito) para recargar los datos de los productos y reflejar los cambios de stock en la interfaz de usuario después de una orden exitosa.
+    5.  **Análisis de Lógica de Stock en Backend (PHP):**
+        *   Se analizó el código PHP proporcionado por el usuario para el endpoint `/ordenes/nueva/sport`.
+        *   Inicialmente se identificó una posible inversión en la lógica de stock (`+` en lugar de `-`), pero el usuario aclaró que se trataba de una orden de producción, confirmando que la suma es el comportamiento deseado.
+        *   Se señalaron otras áreas de mejora (vulnerabilidad a inyección SQL, decodificación JSON redundante).
+    6.  **Implementación de Checkbox "Guardar en Stock":**
+        *   Se añadió la propiedad `guardarStock` al objeto `form` en la sección `data()`.
+        *   Se insertó un `b-form-checkbox` en la plantilla (`components/ordenes/nueva.vue`) con el label "Guardar en Stock", vinculado a `form.guardarStock`.
+        *   Se configuró el checkbox para que estuviera deshabilitado si `categoriaDeLaORden` no es 'custom' (Fábrica).
+        *   Se añadió lógica en `changeCategory` para deseleccionar automáticamente `form.guardarStock` si `categoriaDeLaORden` cambia a 'sport' (Tienda).
+        *   Se implementó el envío condicional del valor de `guardar_stock` en el método `finishOrder`, solo si `categoriaDeLaORden` es 'custom'.
+- Herramienta(s) Utilizada(s): `default_api.read_file`, `default_api.replace`, `default_api.search_file_content`, `default_api.write_file`.
+- Resultado: Éxito en todas las tareas implementadas y verificadas.
+- Verificación:
+    *   Confirmación del usuario de que las órdenes "Tienda" se envían al endpoint correcto.
+    *   Confirmación del usuario de que la existencia de productos se actualiza correctamente en la UI.
+    *   Verificación manual de la implementación del checkbox y su lógica en el código.
+- Observaciones de Gemini: La depuración fue compleja debido a la naturaleza distribuida de la lógica (componente, mixins, backend) y la necesidad de obtener el código fuente exacto en cada paso. La comunicación con el usuario fue clave para aclarar la lógica de negocio del stock.
+- Respuesta de Gemini: Se proporcionaron las confirmaciones y explicaciones de cada paso, y se solicitó verificación del usuario tras cada cambio crítico.

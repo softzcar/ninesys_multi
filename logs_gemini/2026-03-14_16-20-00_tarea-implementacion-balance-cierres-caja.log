@@ -1,0 +1,19 @@
+TAREA: Implementación de Balance de Cierres de Caja
+FECHA: 2026-03-14
+
+DESCRIPCIÓN:
+Se ha desarrollado un nuevo módulo de auditoría llamado "Balance de cierres" que permite comparar el saldo teórico de caja contra los retiros físicos reales realizados por los vendedores.
+
+CAMBIOS BACKEND:
+- Creado endpoint `/balance-de-cierres/{inicio}/{fin}/{id_vendedor}` en `finance.php`.
+- Implementada lógica SQL con subconsultas para recuperar el Fondo Anterior, Recaudado y Tasas Históricas de cada cierre.
+
+CAMBIOS FRONTEND:
+- Creada página `balance-cierres.vue` con soporte multi-moneda (USD, COP, BS).
+- Implementada columna consolidada "Total Retirado USD" usando tasas de cambio del momento del cierre.
+- Agregadas tarjetas de resumen de diferencias (Faltantes/Sobrantes) con indicadores de color.
+- Restringido acceso al módulo solo para departamento de Administración (ID 7) usando `currentDepartamentId` de Vuex.
+
+DESPLIEGUE:
+- Cambios confirmados y subidos al repositorio central.
+- Sincronización manual realizada en el servidor VPS Hostinger (api.nineteengreen.com).

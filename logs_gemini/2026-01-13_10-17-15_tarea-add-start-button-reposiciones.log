@@ -1,0 +1,10 @@
+- Solicitud del Usuario: En la sección 'Reposiciones' del dashboard de empleados, no se muestra el botón para iniciar la tarea, aunque si aparecen las reposiciones asignadas.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada:
+    1. Se agregó la columna con el botón 'Iniciar' en la tabla de `Reposiciones` dentro del template.
+    2. Se implementó el método `iniciarReposicion` en los métodos del componente, el cual invoca `registrarEstado` pasando `es_reposicion: true`.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión del código para confirmar que el botón llama al nuevo método y que el nuevo método utiliza la lógica existente de registro de estado.
+- Observaciones de Gemini: Dado que las reposiciones tienen un flujo distinto al de las órdenes normales, se tuvo cuidado de no depender de listas de órdenes normales que podrían no contener la reposición.
+- Respuesta de Gemini: Botón 'Iniciar' agregado a la sección de Reposiciones.

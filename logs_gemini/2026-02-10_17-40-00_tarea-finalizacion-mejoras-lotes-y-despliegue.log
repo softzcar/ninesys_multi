@@ -1,0 +1,22 @@
+- Solicitud del Usuario: Mejora de la sección "Lotes en proceso" y modal "Finalizar lote": añadir botón de material estimado, usar buscador predictivo (TypeHead) para insumos y permitir asignar consumos a órdenes específicas.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/InsumoTypeHead.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteModal.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteCorteModal.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteImpresionModal.vue
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/manufacturing.php
+- Acción Realizada: 
+    - Integración del botón de consulta de insumos estimados en la lista de órdenes de lotes activos.
+    - Creación del componente `InsumoTypeHead.vue` con soporte para SKU, ID y nombre.
+    - Implementación de lógica de selección de órdenes múltiples por cada línea de consumo en los modales de finalización.
+    - Refactorización completa de los endpoints `/finalizar-departamento`, `/finalizar-impresion` y `/finalizar-corte` en el backend para respetar la distribución de consumo segmentada por órdenes.
+    - Despliegue exitoso tanto del backend como del frontend al VPS.
+- Herramienta(s) Utilizada(s): `write_to_file`, `replace_file_content`, `run_command`, `send_command_input`.
+- Resultado: Éxito
+- Verificación: 
+    - Verificación técnica de los cambios en el código local.
+    - Ejecución exitosa de los scripts de despliegue (`deploy.sh` y comandos SSH para backend).
+    - El backend fue actualizado en el VPS mediante `git pull` tras resolver conflictos locales en el servidor remoto.
+- Observaciones de Gemini: La implementación de la distribución controlada en el backend soluciona el problema de la distribución proporcional ciega, permitiendo que un mismo lote tenga consumos de diferentes rollos/telas asignados a órdenes específicas.
+- Respuesta de Gemini: ¡Listo! El despliegue ha finalizado correctamente. Ahora el panel de empleados cuenta con las mejoras solicitadas: consulta de materiales estimados en lotes activos, buscador predictivo de insumos y asignación precisa de materiales a órdenes específicas dentro de los lotes.

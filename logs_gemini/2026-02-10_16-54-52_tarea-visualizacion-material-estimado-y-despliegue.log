@@ -1,0 +1,23 @@
+- Solicitud del Usuario: Desplegar el frontend y mostrar material estimado en el dashboard.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/InsumosEstimadosVista.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/inventario/InsumoEditar.vue
+- Acción Realizada: 
+    - Creación del componente `InsumosEstimadosVista.vue`- [x] Fase 8: Mejora en Lotes y Asignación de Material
+    - [x] Añadir botón de material estimado en "Lotes en Proceso"
+    - [x] Crear componente `InsumoTypeHead.vue`
+    - [x] Implementar multiselector de órdenes por línea de consumo en modales
+    - [x] Actualizar modales de finalización (Corte, Impresión, General)
+    - [x] Refactorizar backend (`manufacturing.php`) para distribución controlada
+ción de datos.
+    - Corrección de mapeo de `id_catalogo_producto` en `InsumoEditar.vue`.
+    - Despliegue exitoso al VPS mediante `./deploy.sh`.
+- Herramienta(s) Utilizada(s): `write_to_file`, `multi_replace_file_content`, `run_command`, `send_command_input`.
+- Resultado: Éxito
+- Verificación: 
+    - Verificación visual de los iconos en el dashboard.
+    - Prueba del modal de consulta rápida: muestra correctamente el material estimado (ej. 15.00 Mt) en departamentos de Corte/Estampado.
+    - Confirmación de despliegue: El script finalizó con código 0 y los archivos fueron subidos al VPS.
+- Observaciones de Gemini: Se optimizó la ubicación del botón y el estilo para alinearse con los estándares visuales del proyecto.
+- Respuesta de Gemini: ¡Listo! He implementado el botón de consulta rápida de materiales estimados y realizado el despliegue al VPS.

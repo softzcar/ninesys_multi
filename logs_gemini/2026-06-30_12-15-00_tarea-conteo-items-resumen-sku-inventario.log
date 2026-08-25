@@ -1,0 +1,10 @@
+- Solicitud del Usuario: Corregir el modal "Resumen de Inventario Agrupado por SKU" en la página `/inventario/gestion` que mostraba 102 ítems para el SKU `TIN-SUBLIMACION-1000` a pesar de que el stock acumulado ya era de 0.00 ML.
+- Archivos Involucrados: app_multi/components/inventario/ResumenSkuModal.vue
+- Acción Realizada:
+  1. Se analizó el componente `ResumenSkuModal.vue` y se identificó que la propiedad computada `resumenData` realizaba un agrupamiento sumando y contando todas las filas de inventario devueltas por la API, incluyendo aquellas con cantidad en `0.00` o saldo negativo (que corresponden a registros históricos de botes de tinta ya consumidos y marcados como terminados).
+  2. Se modificó el reductor de la propiedad computada `resumenData` para que ignore/omita todos los registros con `cantidad <= 0`.
+  3. Esto corrige de raíz el conteo de ítems y la suma de stock en el resumen agrupado, de forma que solo se computen y muestren los ítems que realmente poseen stock disponible en la empresa actual.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content, default_api.write_to_file
+- Resultado: Corrección del frontend completada con éxito. El SKU ahora mostrará correctamente 0 ML y 0 ítems en stock, o no se listará si no hay existencias físicas reales, evitando confundir al usuario con registros históricos vacíos.
+- Verificación: El código del reductor de Vue fue modificado para aplicar el filtro `if (cantidad <= 0) return acc;` en el acumulador.
+- Observaciones de Gemini: Esta solución es la más robusta ya que el inventario consolidado debe reflejar existencias activas reales y no acumular conteos de recipientes históricos ya vaciados.

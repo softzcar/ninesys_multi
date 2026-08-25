@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** Tras confirmar que el widget ya se ve en una sola línea, el usuario aclaró que la fusión título+widget en la misma fila (aplicada en cierre-de-caja.vue) NO es el patrón correcto -- pidió que en TODAS las páginas el widget aparezca en su propia línea, debajo del título, igual que en `/comercializacion/ordenes` (Nueva Orden).
+- **Fecha y Hora:** 2026-08-04 11:42:37
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/comercializacion/cierre-de-caja.vue
+    - pages/comercializacion/abonos.vue
+    - pages/comercializacion/retiros/index.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:** Revertida la fusión de la tarea anterior en los 3 archivos que la tenían -- vuelven a tener el `<h1>` en su propia `b-row`, y el widget en una `b-row` separada debajo, envuelto en `<div class="d-flex justify-content-end">` (sin offset). Se confirmó primero (grep) que `nueva.vue`, `presupuesto.vue` y `abono.vue` no tienen ningún `<h1>` cerca del widget -- ya estaban en el patrón "propia línea" de forma natural, así que quedan como referencia consistente sin necesidad de tocarlos.
+- **Inconvenientes y Desafíos:** Ninguno técnico -- fue revertir un cambio reciente ante feedback directo del usuario, no un nuevo diagnóstico.
+- **Decisión Final y Justificación:** El patrón final y consistente en las 6 páginas: título (cuando existe) en su propia fila, widget de tasas debajo en su propia fila, alineado a la derecha, sin offsets de grilla. El componente `formMonedas.vue` en sí (barra horizontal compacta) y el wrapper `d-flex justify-content-end` de ancho completo (de la primera ronda de esta tarea) se mantienen sin cambios -- solo se revirtió la fusión de la ronda anterior.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `grep` (confirmar que nueva.vue/presupuesto.vue/abono.vue no tienen título cerca), verificación de sintaxis con `vue-template-compiler` + `@babel/core`, `nuxt generate` local completo antes de desplegar.
+- **Resultado:** Éxito.
+- **Verificación:** Los 3 componentes sin errores de sintaxis. Build local completo sin errores. Pendiente confirmación visual final del usuario.
+- **Logro Conseguido:** Las 6 páginas quedan visualmente consistentes entre sí (mismo patrón: título arriba, widget compacto debajo a la derecha), cerrando definitivamente el pendiente de layout de `formMonedas.vue`.
+- **Observaciones:** Ninguna pendiente relacionada a este componente.
+- **Respuesta de Claude:** Revertida la fusión -- el widget vuelve a estar debajo del título en su propia línea, igual en las 6 páginas, sin espacio vacío reservado por grilla.

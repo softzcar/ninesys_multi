@@ -1,0 +1,73 @@
+- Solicitud del Usuario: Corregir el problema de guardado de insumos al crear un nuevo producto desde la página /productos/gestion. El problema incluía: 1) cambiar variant del botón "Nuevo Producto" a "primary", 2) modificar el warning de comisiones que tenía un link incorrecto que llevaba a /comisiones-productos, 3) los insumos NO se guardaban cuando se asignaban desde el modal de creación de producto (aunque SÍ funcionaba correctamente desde /insumos-productos), 4) eliminar el botón duplicado "+ Insumos" de la parte inferior ya que se puso dentro del alert warning.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/products/new.vue
+
+- Acción Realizada:
+  1. **UI/UX - Botón "Nuevo Producto"**: Agregado `variant="primary"` al botón en línea 3-6 de new.vue para hacerlo más visible
+  
+  2. **UI/UX - Warning de Comisiones**: Modificado el alert warning (líneas 76-92):
+     - Eliminado el `<router-link>` que llevaba incorrectamente a `/comisiones-productos`
+     - Agregado texto informativo: "También debe asignar los insumos necesarios para la fabricación de este producto"
+     - Agregado botón "+ Insumos" centrado con `variant="primary"` y `@click="$refs.insumosAssignment.showModal()"`
+     - Agregado `ref="insumosAssignment"` al componente AsignacionDeInsumosAProductos (línea 97)
+  
+  3. **Corrección del Problema de Guardado**: 
+     - Identificada la causa raíz: el backend devuelve `{ product: { _id: 123, ... } }` pero el componente AsignacionDeInsumosAProductosTab.vue esperaba `item.cod` (no `item._id`)
+     - Al crear producto, `newlyCreatedProduct` solo tenía `_id`, causando que `this.idprod` fuera `undefined` en el componente de asignación
+     - Solución implementada en línea 297-298:
+     ```javascript
+     // Mapear _id a cod para compatibilidad con AsignacionDeInsumosAProductos
+     this.newlyCreatedProduct.cod = this.newlyCreatedProduct._id;
+     ```
+  
+  4. **Eliminación de Botón Duplicado**: Agregado `style="display: none;"` al componente AsignacionDeInsumosAProductos (línea 99) para ocultar su botón interno ya que ahora se usa el botón del warning. El componente sigue funcional para mostrar el modal cuando se invoca programáticamente.
+
+- Herramienta(s) Utilizada(s): `view_file`, `grep_search`, `view_code_item`, `multi_replace_file_content`, `replace_file_content`, `write_to_file`, `run_command`
+
+- Resultado: Éxito
+
+- Verificación: 
+  1. **Cambios aplicados correctamente** en el archivo new.vue mediante inspección de código
+  2. **Probado por el usuario**: Confirmó que los insumos ahora SÍ se guardan correctamente al crear un producto nuevo y asignar insumos desde el modal
+  3. **UI mejorada**: Solo hay un botón visible "+ Insumos" (dentro del warning) eliminando duplicación visual
+  4. **Estructura de datos correcta**: El objeto newlyCreatedProduct ahora tiene tanto `_id` como `cod`, permitiendo compatibilidad con todos los componentes
+  5. **Endpoint funcional**: POST /insumos-productos recibe correctamente el `id_product` y guarda las asignaciones
+
+- Observaciones de Gemini: 
+  * **Causa raíz muy específica**: Discrepancia entre nombres de propiedades (_id vs cod) entre backend y frontend
+  * **Solución elegante**: Solo una línea de mapeo (`cod = _id`) resolvió el problema principal
+  * **Mejoras UX significativas**: Eliminado link confuso, centralizada funcionalidad en un solo botón visible y bien ubicado
+  * **Componente reutilizado correctamente**: AsignacionDeInsumosAProductos funciona en ambos contextos (/insumos-productos y crear producto)
+  * **Sin breaking changes**: La solución es retrocompatible y no afecta otros flujos
+  * **Documentación completa**: Se crearon task.md, implementation_plan.md y walkthrough.md con análisis técnico detallado
+  * **Usuario validó exitosamente**: Confirmó que el problema de guardado está resuelto
+
+- Respuesta de Gemini: ¡Excelente! La tarea ha sido completada exitosamente. Los cambios aplicados fueron:
+
+**✅ Problema Principal RESUELTO:**
+- Los insumos ahora se guardan correctamente al crearlos desde el modal de "Nuevo Producto"
+- Causa: Faltaba mapear `_id` a `cod` en el producto recién creado
+- Solución: Una línea de código que asegura compatibilidad
+
+**✅ Mejoras UI/UX Implementadas:**
+- Botón "Nuevo Producto" con variant="primary" (azul, más visible)
+- Warning mejorado con información clara
+- Botón "+ Insumos" bien ubicado dentro del warning
+- Eliminado botón duplicado de la parte inferior
+
+**✅ Validación del Usuario:**
+- Confirmó que los insumos se guardan correctamente
+- UI más limpia sin duplicación de botones
+- Flujo de trabajo mejorado y más intuitivo
+
+**📁 Archivo Modificado:**
+- components/products/new.vue (5 cambios aplicados)
+
+**📚 Documentación Creada:**
+- Implementation Plan con análisis técnico
+- Task List con seguimiento de tareas
+- Walkthrough completo con diagramas y evidencia visual
+- 2 logs: uno inicial (14:58:37) y este final (15:09:14)
+
+¡Todo listo y funcionando! 🎉

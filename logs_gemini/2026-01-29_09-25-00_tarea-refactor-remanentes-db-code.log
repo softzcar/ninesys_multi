@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Eliminar campo 'remanente' de tabla 'inventario' y crear nueva tabla 'inventario_remanentes' como fuente de verdad. Actualizar DBs 163 y 174, actualizar template SQL, y adaptar frontend/backend para manejar múltiples motivos y observaciones.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/public/model/create_new_company_api_emp_N.sql
+    - /home/developer/Escritorio/niesys/app_multi/components/inventario/InsumoTerminar.vue
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/migrate_remanentes.sql (Temporal)
+- Acción Realizada:
+    1. Verifiqué existencia de DB 174 y 163.
+    2. Creé script de migración SQL (`migrate_remanentes.sql`) para crear tabla `inventario_remanentes`, migrar datos existentes y eliminar columna `remanente`.
+    3. Ejecuté migración en `api_emp_174` y `api_emp_163` via SSH.
+    4. Modifiqué `create_new_company_api_emp_N.sql` eliminando columna `remanente` y añadiendo definición de `inventario_remanentes`.
+    5. Refactoricé endpoint `update-insumo` en `inventory.php` para usar `INSERT INTO inventario_remanentes` en lugar de `UPDATE inventario SET remanente`. Implementé lógica para motivo automático "Consumo Total" y manual.
+    6. Actualicé componente Vue `InsumoTerminar.vue` agregando campos Motivo (Select) y Observación (Textarea) y enviándolos al backend.
+- Herramienta(s) Utilizada(s): `run_command`, `multi_replace_file_content`, `replace_file_content`.
+- Resultado: Éxito
+- Verificación:
+    - Ejecución exitosa de scripts SQL en VPS.
+    - Revisión de código modificado muestra la lógica correcta de INSERT.
+    - Template SQL actualizado correctamente.
+- Observaciones de Gemini: La migración fue exitosa y se preservaron los datos existentes (aunque solo había 1 registro por empresa). La estructura ahora soporta historial completo de remanentes.
+- Respuesta de Gemini: Confirmación de cambios realizados en DBs y código.

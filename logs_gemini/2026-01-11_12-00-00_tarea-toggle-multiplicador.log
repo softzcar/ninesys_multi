@@ -1,0 +1,79 @@
+- Solicitud del Usuario: Mejorar lógica del botón multiplicador para permitir eliminarlo cuando ya está aplicado y evitar confusión al clonar filas
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  Modificado método `aplicarMultiplicadorProducto()` para implementar toggle completo:
+  
+  **Comportamiento anterior:**
+  - Amarillo: No aplicado
+  - Click → Aplicar → Verde
+  - Click en verde → Toast "ya aplicado" (sin acción)
+  
+  **Comportamiento nuevo:**
+  - Amarillo (warning): No aplicado
+  - Click en amarillo → Confirmar aplicación → Precio * (1 + mult/100) → Verde
+  - Click en verde → Confirmar eliminación → Precio / (1 + mult/100) → Amarillo
+  
+  **Lógica implementada:**
+  1. Detectar si `item.multiplicador_aplicado === true`
+  2. Si true: Mostrar modal de eliminación (variant danger)
+     - Preview: Precio actual vs precio sin multiplicador  
+     - Calcular: `precio_actual / (1 + multiplicador/100)`
+     - Actualizar precio y flag a false
+     - Toast success con antes/después
+  3. Si false: Mostrar modal de aplicación (variant success)
+     - Misma lógica original de aplicación
+  4. Ambos casos: Recalcular totales automáticamente
+
+- Herramienta(s) Utilizada(s): view_file, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Cálculo matemático correcto para reversiónón (división por factor)
+  - Modal de eliminación con variant danger
+  - Modal de aplicación con variant success
+  - Toast notifications para ambos casos
+  - Flag se actualiza correctamente en ambas direcciones
+  - Totales se recalculan en ambos casos
+  - Al clonar, flag sigue reseteándose a false (línea 2831)
+
+- Observaciones de Gemini:
+  La funcionalidad ahora es completa y simétrica:
+  - Aplicar: `precio * (1 + mult/100)`
+  - Eliminar: `precio / (1 + mult/100)` 
+  
+  El botón funciona como un toggle visual:
+  - 🟡 Amarillo = Sin multiplicador (puede aplicar)
+  - 🟢 Verde = Con multiplicador (puede eliminar)
+  
+  Al clonar productos:
+  - El flag se resetea a `false` (línea 2831 de duplicateItem)
+  - El precio se copia tal cual está (puede incluir multiplicador)
+  - El usuario debe aplicar el multiplicador nuevamente si lo desea en el clon
+  
+  Esto previene confusión porque el botón siempre refleja el estado real.
+
+- Respuesta de Gemini:
+  Funcionalidad toggle completa implementada:
+  
+  **✅ Estados del botón:**
+  - Amarillo: Multiplicador NO aplicado → Click para aplicar
+  - Verde: Multiplicador APLICADO → Click para eliminar
+  
+  **✅ Confirmaciones:**
+  - Aplicar: Modal success con preview de precio incrementado
+  - Eliminar: Modal danger con preview de precio original
+  
+  **✅ Cálculos:**
+  - Aplicación: Precio × (1 + mult%)
+  - Eliminación: Precio ÷ (1 + mult%)
+  
+  **✅ Al clonar:**
+  - Flag resetea a false → Botón amarillo
+  - Precio se copia sin cambios
+  - Usuario puede re-aplicar si desea
+  
+  **Listo para testing completo** 🎉

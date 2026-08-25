@@ -1,0 +1,21 @@
+
+- Solicitud del Usuario: Implementar flujo de Corte para ajustes de cantidad y ordenes de stock
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/CorteItemView.vue (Nuevo)
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue (Modificado)
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/asignacionDeCorteGrupal.vue (Modificado)
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado)
+- Acción Realizada:
+    - Creado componente `CorteItemView.vue` que permite visualizar productos de una orden, ajustar cantidades cortadas (input) y crear ordenes de stock si hay excedentes.
+    - Integrado `CorteItemView.vue` en `SseOrdenesAsignadasV4.vue` reemplazando `linkSearch` para el departamento de Corte en la tabla "En Curso".
+    - Integrado `CorteItemView.vue` en `asignacionDeCorteGrupal.vue` para que los encargados puedan gestionar ajustes.
+    - Agregado endpoint `GET /production/corte/orden-detalles/{id}` en el backend para servir los datos necesarios al componente.
+    - Corregido error de linter (`withJson`) en `production.php`.
+- Herramienta(s) Utilizada(s): `write_to_file`, `replace_file_content`, `view_file`
+- Resultado: Éxito
+- Verificación:
+    - Se verificó la existencia del endpoint de detalles de orden.
+    - Se revisó la lógica de creación de orden de stock.
+    - Se integró el componente en las vistas solicitadas.
+- Observaciones de Gemini:
+    - La creación de la orden de stock la deja en estado inicial (Por Asignar). Esto es correcto para que entre en el flujo regular, aunque podría requerir "saltar" pasos si ya está cortada. Por ahora se mantiene simple.

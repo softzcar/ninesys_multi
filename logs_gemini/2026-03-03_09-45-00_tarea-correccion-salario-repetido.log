@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Resolver error de salario que se repite en departamentos como diseñadores o vendedores en la planilla de pagos.
+- Archivos Involucrados: app_multi/components/admin/PagosEmpleados.vue
+- Acción Realizada: Se modificó el cálculo de 'pagosResumenVendedores' y 'pagosResumenDiseno' para detectar si el empleado ya cobró salario en la lista principal (Empleados), estableciendo el `salarioPago = 0` para estas segundas apariciones, previniendo visualización e inserción doble.
+- Herramienta(s) Utilizada(s): view_file, grep_search, multi_replace_file_content
+- Resultado: Éxito
+- Verificación: Revisión a fondo de la UI de totales y el endpoint del backend para certificar que el frontend le va a mandar 0 en salario pero la comisión intacta.
+- Observaciones de Gemini: El componente de Modal de pagos gestionará automáticamente ese "0" mostrando solo las comisiones que corresponden o mostrando "Salario ya pagado" si no hay comisión.
+- Respuesta de Gemini: El error fue resuelto en PagosEmpleados.vue, ahora puedes previsualizar y validar en tu entorno local.

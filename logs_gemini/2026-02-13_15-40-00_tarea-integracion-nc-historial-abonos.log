@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Incluir las notas de crédito en el historial de la orden (tabla superior).
+- Archivos Involucrados: 1. /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php
+2. /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+- Acción Realizada: 1. Se modificó el endpoint `/ordenes/abono-detale/{id}` para realizar un UNION entre `metodos_de_pago` y `abonos` (NC y Descuentos), proporcionando un historial unificado y detallado. 2. Se actualizó el componente `abono.vue` para usar `dataTable.items` (datos frescos del servidor) en lugar del prop `item` (datos potencialmente incompletos).
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se implementaron identificadores únicos en la consulta SQL para evitar conflictos de llaves en Vue y se verificó la lógica de los slots en el frontend.
+- Observaciones de Gemini: El uso de UNION permite mantener el detalle de métodos de pago (efectivo, etc.) mientras se integran las NCs y Descuentos en la misma vista cronológica.
+- Respuesta de Gemini: He integrado las Notas de Crédito y Descuentos en el historial de la orden.

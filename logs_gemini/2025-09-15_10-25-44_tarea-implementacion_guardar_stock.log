@@ -1,0 +1,9 @@
+- Solicitud del Usuario: "vmaos a trbajar con el componente @components/ordenes/nueva.vue Vamos a incluir en elnvío de da datos a `/ordenes/nueva/custom` el dato `guardar_stock` que estamos enviando en `/ordenes/nueva/sport` de la misma manera" y "también te informo que ya está funcionanco correctamente la implementacion de `guardar_stock` en @components/ordenes/nueva.vue para que loa ctualces en los logs".
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue (modificado)
+- Acción Realizada: Se modificó el método `finishOrder` en el componente `nueva.vue`. Se eliminó la condición que restringía el envío del parámetro `guardar_stock` solo a las órdenes de tipo 'custom'. Con este cambio, el parámetro `guardar_stock` ahora se envía en las peticiones para ambos tipos de órdenes ('custom' y 'sport').
+- Herramienta(s) Utilizada(s): default_api.read_file, default_api.replace.
+- Resultado: Éxito.
+- Verificación: El usuario confirmó verbalmente que la implementación de `guardar_stock` funciona correctamente después del cambio realizado.
+- Observaciones de Gemini: La solicitud del usuario se basaba en una premisa incorrecta sobre el funcionamiento existente, pero el objetivo final era claro. Se ajustó el código para que el parámetro `guardar_stock` se envíe incondicionalmente, satisfaciendo el requerimiento del usuario de que el campo se envíe para todas las categorías de órdenes.
+- Respuesta de Gemini: "Listo. He modificado el componente para eliminar la restricción. Ahora, el dato `guardar_stock` se incluirá en el envío de datos para ambos tipos de órdenes, 'custom' y 'sport'."

@@ -1,0 +1,17 @@
+- **Solicitud del Usuario:** Tras confirmar que USD ya resolvía automáticamente (1.150109999994658) con Euro como base, el usuario pidió: "lo que son demasiados decimales!!! manejemos 4 decimales como en la página a ver si no se rompe nada".
+- **Fecha y Hora:** 2026-07-31 17:00:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/empresa/MonedasManager.vue
+    - components/ordenes/MetodosPagoDinamico.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:** Redondeo puramente de presentación a 4 decimales (`Number(valor).toFixed(4)`), sin tocar el cálculo real: (1) nuevo método `formatearTasa()` en `MonedasManager.vue`, usado en el badge de la tabla (`tasaTexto()`) y al precargar el input de edición inline (`iniciarEdicionTasa()`); (2) en `MetodosPagoDinamico.vue`, el `<small>(tasa: ...)</small>` junto al nombre de la moneda también usa `.toFixed(4)`. La división real que convierte montos a la moneda base (`equivalenteEnBase()`) sigue usando el valor completo sin redondear -- el usuario pidió explícitamente verificar "que no se rompa nada", por eso el redondeo se limitó a los puntos de solo-lectura, nunca al valor que efectivamente participa en el cálculo.
+- **Inconvenientes y Desafíos:** Ninguno. Se aplicó una sola función de formato en `MonedasManager.vue` para evitar repetir `.toFixed(4)` en 2 sitios de allí.
+- **Decisión Final y Justificación:** El input de edición de tasa (`tasaEnEdicion`) también se precarga ya redondeado a 4 decimales -- si el administrador reabre para editar una tasa automática ya vista, ve el mismo número que aparecía en el badge, no el valor crudo con muchos decimales.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Ambos SFC parsean sin errores. Pendiente desplegar a Desarrollo y confirmación visual del usuario.
+- **Logro Conseguido:** Cierra el último detalle de presentación reportado en esta ronda de pruebas del rediseño de monedas -- la tasa automática triangulada (que puede traer muchos decimales por la división de punto flotante) ahora se muestra limpia, sin arriesgar la precisión real usada en los cálculos de pago.
+- **Observaciones:** Pendiente desplegar frontend a Contabo Dev.
+- **Respuesta de Claude:** Redondeada la tasa a 4 decimales en los 2 lugares donde se muestra (Gestor de Monedas y modal de pagos) -- solo en la presentación, el cálculo real de conversión sigue usando el valor completo. Desplegando a Desarrollo.

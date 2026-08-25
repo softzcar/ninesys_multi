@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** En `/impresoras/servicios/`, el modal "Editar Registro de Servicio Técnico" mostraba solo el título la primera vez que se abría (sin ningún control del formulario); cerrarlo y reabrirlo sí mostraba el formulario correctamente. Adicionalmente, la columna "Fecha" de la tabla mostraba un valor mal formateado: "17 00:00:00/07/2026".
+- **Fecha y Hora:** 2026-07-17 22:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/impresoras/ServicioEditar.vue
+  - pages/impresoras/servicios/index.vue
+  - mixins/mixins.js (solo lectura/diagnóstico)
+- **Commits Relacionados:**
+    - Frontend: d8f79e0
+    - Backend: N/A
+- **Acción Realizada:**
+  1. **Modal vacío al primer abrir:** se identificó que `ServicioEditar.vue` solo inicializaba su formulario (`initForm()`) en el evento `@show` del `b-modal`. El padre (`editServicio()`) asigna la prop `servicio` (`selectedServicio`) y llama a `$bvModal.show(...)` en líneas consecutivas — si la propagación reactiva de la prop hacia el hijo no alcanza a completarse antes de que el modal dispare su evento `show`, `initForm()` corre con el valor viejo de la prop (`null` la primera vez), dejando `form = null` y el `<b-form v-if="form">` sin renderizar nada. Se corrigió agregando un `watch` sobre la prop `servicio` (`immediate: true`) que reconstruye el formulario en cuanto la prop realmente cambia, desacoplando la inicialización del timing exacto del modal (se dejó `@show="initForm"` como respaldo inofensivo, ya que `initForm()` es idempotente).
+  2. **Formato de fecha incorrecto:** se rastreó `formatDate()` en `mixins/mixins.js` — divide la fecha por `"-"` esperando un string simple `"YYYY-MM-DD"`. `fecha_servicio`/`proxima_fecha` llegan del backend como datetime completo (`"YYYY-MM-DD HH:mm:ss"`), y al dividir por `"-"` sin descartar antes la hora, el tercer segmento queda como `"17 00:00:00"` en vez de `"17"`, produciendo el resultado mal formateado observado. Se agregó `formatFecha(value)` en la página (recorta la hora con `.split(' ')[0]` antes de delegar en `formatDate()` del mixin), y se cambiaron ambas celdas de la tabla (`fecha_servicio`, `proxima_fecha`) para usarla.
+- **Inconvenientes y Desafíos:** Ninguno técnico. Se confirmó, de paso, que el propio `initForm()` YA recortaba correctamente la hora al poblar los inputs del formulario de edición (`.split(' ')[0]`) — el bug de formato solo afectaba a la columna de la TABLA, no al formulario de edición en sí.
+- **Decisión Final y Justificación:** Se prefirió el `watch` sobre la prop en vez de forzar un `await this.$nextTick()` en el padre antes de `$bvModal.show()`, porque resuelve el problema de raíz dentro del propio componente reutilizable (`ServicioEditar.vue`), sin depender de que cada lugar que lo use recuerde aplicar el mismo parche de timing.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep para localizar `formatDate`/`formatDateTimeCustom` en el mixin compartido y confirmar la causa exacta del formato mal producido).
+- **Resultado:** Éxito (pendiente confirmación visual del usuario en navegador)
+- **Verificación:** Revisión de código confirmando que el `watch` con `immediate:true` se dispara de forma determinista al cambiar la prop (cada llamada a `editServicio()` crea un objeto nuevo vía `JSON.parse(JSON.stringify(item))`, garantizando que Vue detecte el cambio incluso al re-editar el mismo registro). Formato de fecha verificado manualmente contra la cadena reportada por el usuario ("2026-07-17 00:00:00" → "17/07/2026" con el fix, en vez de "17 00:00:00/07/2026").
+- **Logro Conseguido:** Corregidos ambos bugs reportados en la pantalla de Servicio Técnico de Impresoras, cerrando la revisión completa de esta página.
+- **Observaciones de Claude:** El patrón "@show inicializa form desde una prop que se actualiza justo antes de mostrar el modal" es un candidato a bug recurrente en otros modales de edición de la app que sigan el mismo patrón -- no se auditó el resto de la aplicación por estar fuera del alcance de lo reportado.
+- **Respuesta de Claude:** Ambos bugs corregidos y desplegados a Contabo Dev; pendiente confirmación del usuario en navegador.

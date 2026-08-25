@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Mejorar Buscar y LinkSearch
+en la parte superior de la aplicacion tenemos un input para buscar las ordenes por su ID, cuando muestra el resultado, este se muestra en la páginaprincipal de la aplicación reemplazando el contenido que se está mostrando en ese momento, necesitamos que el resultado que genere la busqueda se muestre en un modal para evitar perder eltrabao que se esté haciendo en la aplicacion en ese momento
+- **Fecha y Hora:** 2026-03-07 17:21:44
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/components/buscar/BarraDeBusqueda.vue](file:///home/developer/Escritorio/niesys/app_multi/components/buscar/BarraDeBusqueda.vue), [/home/developer/Escritorio/niesys/app_multi/components/linkSearch.vue](file:///home/developer/Escritorio/niesys/app_multi/components/linkSearch.vue)
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** Se ha modificado el componente `BarraDeBusqueda.vue` para que la función `search()` no realice una navegación a la página `/buscar/_id`. En su lugar, se ha implementado un `b-modal` de tamaño `xl` que se activa al realizar la búsqueda. Dentro del modal se inyecta el componente `buscar-resultado`, pasando el ID de la orden capturado en el input. Esto permite visualizar el detalle de cualquier orden sin recargar la página ni perder el estado del trabajo actual del usuario.
+- **Inconvenientes y Desafíos:** Ninguno significativo. La estructura de `buscar-resultado.vue` ya estaba preparada para recibir un ID por props, lo que facilitó la integración en el modal.
+- **Decisión Final y Justificación:** Se optó por usar un modal XL para mantener la consistencia con el componente `linkSearch.vue` y asegurar que toda la información del reporte de la orden (productos, observaciones, imágenes) sea legible sin necesidad de desplazamientos horizontales excesivos.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `run_command`, `view_file`
+- **Resultado:** Éxito
+- **Verificación:** Se verificó la lógica en el componente `BarraDeBusqueda.vue`. Al llamar a `search()`, ahora se establece `showResultado = true` y se invoca `$bvModal.show(modalId)`, lo cual dispara la carga asíncrona de los datos de la orden dentro del modal. Se comprobó que el ID de la orden se limpia del input tras abrir el modal para dejarlo listo para una nueva búsqueda.
+- **Logro Conseguido:** Mejora significativa en la experiencia de usuario (UX) al permitir búsquedas de órdenes rápidas sin interrumpir el flujo de trabajo actual en cualquier módulo del sistema.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/dd038054-c1a3-48b8-802f-975bdac1df66/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/dd038054-c1a3-48b8-802f-975bdac1df66/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** El proceso técnico consistió en refactorizar la navegación router-push hacia un disparador de modal Bootstrap Vue, encapsulando el componente de resultados existente.
+
+- **Observaciones de Gemini:** La solución es limpia y aprovecha componentes ya existentes en el ecosistema del proyecto.
+- **Respuesta de Gemini:** Se ha actualizado el buscador de la parte superior para que ahora abra un modal con el detalle de la orden en lugar de navegar a otra página. Con esto, podrás buscar cualquier orden sin perder el trabajo que estés realizando en ese momento. LinkSearch ya funcionaba con esta lógica de modal, por lo que ahora ambos son consistentes.

@@ -1,0 +1,14 @@
+- Solicitud del Usuario: El remanente no se actualizaba (quedaba en 0) al terminar el insumo.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    - Se identificó un error de lógica ("Condición de Carrera" secuencial): El código original ponía la `cantidad = 0` (por ser `tipo='fin'`) ANTES de intentar leer la cantidad actual para guardarla como remanente. Resultado: Remanente = 0.
+    - Se reordenó el bloque de código:
+        1. Primero: Si es `auto_remanente`, lee la cantidad actual (restante tras el consumo) y la guarda en `remanente`.
+        2. Segundo: Si es `fin`, pone la `cantidad` en 0.
+    - Se eliminó el bloque de código redundante que causaba el error original.
+- Herramientas Utilizadas: `replace_file_content` (intento fallido), `run_command` (sed).
+- Resultado: Éxito
+- Verificación: Revisión de código lógica. Primero guarda, luego borra.
+- Observaciones de Gemini: El orden de operaciones en scripts de actualización de base de datos es crítico.
+- Respuesta de Gemini: Lógica de backend corregida.

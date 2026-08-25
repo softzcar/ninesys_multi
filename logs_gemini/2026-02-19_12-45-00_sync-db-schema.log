@@ -1,0 +1,18 @@
+
+- Solicitud del Usuario: Sincronizar cambios de base de datos en todas las empresas (163, 171, 174) y el template SQL.
+- Archivos Involucrados:
+    - Base de Datos empresa 163 (Prod)
+    - Base de Datos empresa 171 (Test)
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/public/model/create_new_company_api_emp_N.sql (Modificado)
+- Acción Realizada:
+    - Análisis: El cambio en la tabla `inventario_corte` (columna `estado`) debe replicarse en todos los entornos para evitar errores futuros.
+    - Solución:
+        1. Se ejecutó `ALTER TABLE ...` en las bases de datos `api_emp_163` y `api_emp_171`.
+        2. Se actualizó el script `create_new_company_api_emp_N.sql` para que las nuevas empresas nazcan con la estructura correcta.
+    - Despliegue: Comandos directos en VPS.
+- Herramienta(s) Utilizada(s): `run_command`, `replace_file_content`
+- Resultado: Éxito.
+- Verificación:
+    - Comandos ssh retornaron exit code 0.
+- Observaciones de Gemini:
+    - Base de datos lista para soportar el nuevo flujo.

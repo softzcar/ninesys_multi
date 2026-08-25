@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** Probando el modal "Abono a la Orden [id]" (`components/ordenes/abono.vue`, el más usado del sistema), el usuario envió un monto sin el detalle de referencia y reportó: "el comportamiento de la interfaz es confuso, debe validar que todos los datos estén correctos antes de mostrar el confirm del resumen de los pagos y descuentos".
+- **Fecha y Hora:** 2026-08-03 20:45:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/ordenes/abono.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. **Causa exacta confirmada leyendo el flujo completo:** la validación de referencia obligatoria (agregada hoy más temprano) se había conectado dentro de `abonar()` -- pero el botón real ("Abonar") llama primero a `hacerAbono()`, que arma y muestra el resumen (`this.$confirm("Verifique los datos: abono: X, descuento: Y", "Abono", "info")`) y solo llama a `abonar()` DESPUÉS de que el usuario confirma ese resumen. El usuario veía el resumen, lo confirmaba, y solo ENTONCES aparecía el error de referencia faltante -- exactamente el comportamiento confuso reportado.
+    2. **Movida la validación al lugar correcto:** `hacerAbono()` ya tenía este mismo patrón para otras 2 validaciones (detalle de descuento, detalle de nota de crédito) -- ambas ANTES de armar/mostrar el resumen. Se agregó la validación de referencia en el mismo punto, con el mismo estilo (`this.$fire(...)` + `return`), consistente con las otras 2 ya existentes en esa misma función.
+    3. **La validación dentro de `abonar()` (agregada antes) se dejó intacta** como red de seguridad adicional -- ya no debería dispararse en el flujo normal (el usuario nunca llega al resumen con datos inválidos), pero no hace daño dejarla.
+    4. **Revisado el otro botón del componente ("Enviar Saldo")** para descartar que tuviera el mismo problema -- es una función completamente distinta (enviar un recordatorio de saldo pendiente por WhatsApp al cliente), no llama a `abonar()`/`hacerAbono()` en absoluto, no necesitaba el fix.
+- **Inconvenientes y Desafíos:** Ninguno técnico. El patrón exacto (validar antes de armar el mensaje de confirmación) ya existía en el mismo archivo para 2 casos parecidos -- se replicó ese mismo estilo en vez de inventar uno nuevo.
+- **Decisión Final y Justificación:** Se mantiene el guard duplicado (en `hacerAbono()` y en `abonar()`) en vez de eliminar el de `abonar()` -- barato de mantener, y protege ante cualquier futuro código que llame a `abonar()` directamente sin pasar por `hacerAbono()`.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `grep`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito (pendiente confirmación visual del usuario).
+- **Verificación:** Script sin errores de sintaxis. Confirmado por `grep` que el botón real ("Abonar") llama a `hacerAbono()` (no directamente a `abonar()`), y que el flujo de validación ahora corre antes del `$confirm`.
+- **Logro Conseguido:** Cierra la última pieza de UX confusa en la validación de referencia obligatoria -- el usuario ahora ve el error INMEDIATAMENTE al intentar enviar, sin tener que confirmar un resumen que de todas formas iba a ser rechazado.
+- **Observaciones:** Pendiente que el usuario confirme desde el navegador.
+- **Respuesta de Claude:** Movida la validación de referencia obligatoria al punto correcto en `abono.vue` -- ahora corre ANTES de mostrar el resumen de confirmación (mismo lugar donde ya se validaban descuento/nota de crédito), en vez de después de que el usuario confirma. El botón "Enviar Saldo" (WhatsApp) es una función distinta, no necesitaba el cambio.

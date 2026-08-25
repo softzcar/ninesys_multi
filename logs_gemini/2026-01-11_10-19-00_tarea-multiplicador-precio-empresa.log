@@ -1,0 +1,52 @@
+- Solicitud del Usuario: Implementar multiplicador de precio que se pueda guardar a nivel de empresa, diferente del multiplicador informativo existente
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/Antigravity/ninesys-apidev/public/model/create_new_company_api_emp_N.sql
+  - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/auth.php
+  - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/config.php
+  - /home/developer/Escritorio/niesys/app_multi/components/admin/MultiplicadorPrecio.vue
+
+- Acción Realizada:
+  1. Agregado campo `multiplicador_precio DECIMAL(5,2) NOT NULL DEFAULT 0.00` a la tabla config de empresa 170 vía SSH
+  2. Actualizado el archivo SQL template (create_new_company_api_emp_N.sql) para incluir el nuevo campo en CREATE TABLE e INSERT statements
+  3. Modificado el endpoint /login en auth.php para incluir multiplicador_precio en las consultas SELECT de config (líneas 120, 178, 268)
+  4. Agregado multiplicador_precio a los objetos datos_personalizacion que se envían al frontend en ambos flujos (config incompleta y completa)
+  5. Corregido error de sintaxis en auth.php línea 274 (corchete duplicado)
+  6. Creado componente Vue MultiplicadorPrecio.vue con:
+     - Formulario para actualizar el multiplicador (0-100%)
+     - Vista previa con ejemplo de cálculo
+     - Validación de entrada
+     - Integración con Vuex (mapState)
+  7. Creado endpoint POST /config/multiplicador-precio en config.php con:
+     - Validación de datos (rango 0-100)
+     - Autenticación vía header Authorization
+     - Actualización en base de datos de la empresa
+     - Manejo de errores completo
+
+- Herramienta(s) Utilizada(s): run_command (SSH), replace_file_content, multi_replace_file_content, write_to_file, sed, view_file
+
+- Resultado: Éxito
+
+- Verificación: 
+  - Campo multiplicador_precio creado exitosamente en api_emp_170.config
+  - SQL template actualizado con el nuevo campo
+  - Endpoint /login modificado para incluir multiplicador_precio en respuesta
+  - Componente admin creado con validación y ejemplo funcional
+  - Endpoint backend creado con validación completa
+  - Método goUpdate corregido a goQuery en línea 704
+  - No se modificó la implementación del multiplicador informativo existente en nueva.vue (como solicitó el usuario)
+
+- Observaciones de Gemini: 
+  Esta implementación crea una NUEVA propiedad (multiplicador_precio) que es independiente del multiplicador informativo existente en el wizard. El multiplicador de empresa se guarda en la base de datos y está disponible en Vuex vía datos_personalizacion.multiplicador_precio. Esto permite tener un valor predeterminado a nivel de empresa sin interferir con la funcionalidad informativa actual.
+
+- Respuesta de Gemini: 
+  He completado la infraestructura backend y el componente de administración para el multiplicador de precio a nivel de empresa:
+  
+  ✅ Base de datos: Campo agregado a tabla config (empresa 170 y template SQL)
+  ✅ Backend: Login endpoint actualizado para incluir multiplicador_precio
+  ✅ Backend: Nuevo endpoint POST /config/multiplicador-precio para actualización
+  ✅ Frontend: Componente MultiplicadorPrecio.vue creado
+  
+  Pendiente: Integrar el componente al sidebar de administradores
+  
+  IMPORTANTE: No modifiqué el multiplicador informativo existente en nueva.vue. Esta es una nueva propiedad independiente que se guarda en datos_personalizacion.multiplicador_precio.

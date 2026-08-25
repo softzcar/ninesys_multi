@@ -1,0 +1,15 @@
+- Solicitud del Usuario: Cierre y documentación final de la corrección "Terminar Insumo" y filtros de inventario.
+- Archivos Involucrados:
+    - Frontend: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+    - Backend: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas (Resumen Global):
+    1.  **Backend (Race Condition & Overwrite):** Se detectó y corrigió que un bloque de código antiguo ("Legacy") sobreescribía el valor del remanente (`cantidad`) con 0 justo después de que la nueva lógica lo guardaba correctamente. Se aplicó un guardia (`!$auto_active`).
+    2.  **Backend (Unificación):** Se replicó la lógica correcta de `auto_remanente` y `update_success` en los departamentos de Corte y Estampado, que carecían de ella.
+    3.  **Frontend (Robustez):** Se eliminó la validación estricta de `res.data.update_success` que a veces impedía el envío de la señal de terminación. El frontend ahora confía en el éxito HTTP (200 OK) del consumo.
+    4.  **Backend (Filtro):** Se actualizó el endpoint `/insumos` para ocultar automáticamente items con `cantidad <= 0`.
+    5.  **Seguridad:** Se relajó la comparación de tipos (`== 'true'`) para evitar fallos por parseo de JSON/FormData.
+- Herramientas Utilizadas: `replace_file_content`, `run_command`, `ssh`.
+- Resultado: Éxito total. El flujo de trabajo "Consumir -> Terminar -> Guardar Remanente" funciona correctamente y sin "zombies" (valores en 0).
+- Verificación: Despliegue en VPS `apidev` confirmado. Log verificado.
+- Observaciones de Gemini: Ha sido una depuración profunda que reveló deuda técnica crítica (código legacy conflictivo). El sistema es mucho más robusto ahora.
+- Respuesta de Gemini: Tarea finalizada y logueada.

@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Asegurar que los montos mostrados en la tabla del reporte de pagos (cada fila) correspondan únicamente al monto proporcional de la categoría seleccionada y no al total bruto de la orden.
+- **Fecha y Hora:** 2026-03-10 15:15:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/pages/comercializacion/reportes/pagos-abonos.vue](file:///home/developer/Escritorio/niesys/app_multi/pages/comercializacion/reportes/pagos-abonos.vue)
+- **Commits Relacionados:**
+    - Frontend: 16288e9
+    - Backend: N/A
+- **Acción Realizada:** Se refactorizó la propiedad computada `pagosFiltrados` en el componente de Vue. Anteriormente, el cálculo proporcional por categoría solo se aplicaba al gran total del reporte. Con este cambio, cada objeto `pago` inyecta dinámicamente dos nuevos campos: `montoAjustadoLocal` y `montoAjustadoUsd`, los cuales calculan la proporción del abono que corresponde estrictamente a la categoría filtrada. Se actualizaron las celdas de la tabla para priorizar estos montos ajustados sobre los montos brutos almacenados en la base de datos.
+- **Inconvenientes y Desafíos:** Ninguno relevante, se trató de una mejora de precisión lógica tras la validación visual en entorno de pruebas.
+- **Decisión Final y Justificación:** Inyectar los montos calculados directamente en la lista filtrada permite que la tabla de BootstrapVue se actualice automáticamente sin necesidad de lógica compleja en los templates de las celdas.
+- **Herramienta(s) Utilizada(s):** `multi_replace_file_content`, `run_command`, `git`.
+- **Resultado:** Éxito
+- **Verificación:** Verificación visual de la lógica matemática en el código y confirmación del usuario tras pruebas en el VPS.
+- **Logro Conseguido:** Máxima precisión en el reporte de pagos por categoría; ahora tanto los totales como el detalle fila a fila reflejan la realidad contable de la categoría seleccionada.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/1104d98c-63de-4a2a-b238-627d61a27530/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/1104d98c-63de-4a2a-b238-627d61a27530/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** Los links anteriores son temporales. Para que la información sea PERMANENTE y aparezca en los reportes, **DEBES** detallar todo el proceso técnico en 'Acción Realizada', 'Verificación' e 'Inconvenientes'. No te limites a poner "ver walkthrough".
+
+- **Observaciones de Gemini:** N/A
+- **Respuesta de Gemini:** Se ha corregido la visualización de los montos en la tabla para que sean proporcionales a la categoría seleccionada.

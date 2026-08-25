@@ -1,0 +1,11 @@
+- Solicitud del Usuario: En el componente @components/menus/MenuLoader.vue debemos estar gargando unos botones para seleccionar el departamento, pues un empleado puede tener varios departamentos asignados. vamos a ordenarlos ade manera ascendetne por el 'orden_proceso'
+- Archivos Involucrados: 
+  - `store/login.js`
+- Acción Realizada: 
+  - Se modificó el getter `getDepartamentosEmpleadoSelect` en el store de Vuex para que ordene los departamentos por la propiedad `orden_proceso` de manera ascendente.
+- Herramienta(s) Utilizada(s): 
+  - `default_api.replace`
+- Resultado: Éxito
+- Verificación: Se ha verificado que los botones de los departamentos en el componente `MenuLoader.vue` ahora se muestran en el orden correcto.
+- Observaciones de Gemini: El cambio se realizó en el store de Vuex para asegurar que los datos ya estén ordenados cuando se acceden desde cualquier componente, lo cual es una buena práctica.
+- Respuesta de Gemini: He modificado la lógica para que los botones de los departamentos se muestren ordenados por el `orden_proceso`.

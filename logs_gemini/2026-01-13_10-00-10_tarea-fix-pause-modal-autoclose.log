@@ -1,0 +1,10 @@
+- Solicitud del Usuario: Corregir comportamiento del modal de pausas que permanecía abierto y cambiaba de estado automáticamente (mostrando 'Reanudar' después de pausar y viceversa).
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/pausasEmpleados.vue
+- Acción Realizada: 
+    1. Se agregó `this.$bvModal.hide(this.modal)` en los métodos `iniciarPausa` y `postReanudar` para cerrar el modal después de una acción exitosa.
+    2. Se agregó un `watch` sobre la propiedad `pausas` para actualizar dinámicamente el estado del botón (`btnText`) y otras variables (`hayPausas`, `disableMe`) cuando los props cambian.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de código para asegurar que el cierre del modal ocurre en los bloques `then` de las promesas y que el watcher replica la lógica de inicialización.
+- Observaciones de Gemini: Esto soluciona la confusión visual donde el usuario veía el formulario contrario inmediatamente después de realizar una acción.
+- Respuesta de Gemini: El modal ahora se cierra automáticamente al completar la acción, y el botón de la interfaz se actualiza correctamente.

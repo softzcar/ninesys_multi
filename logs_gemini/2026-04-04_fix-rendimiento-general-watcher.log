@@ -1,0 +1,23 @@
+# Tarea: Fix Barra de Eficiencia en Dashboard Empleados
+**Fecha:** 2026-04-04
+**Componente:** `app_multi/components/empleados/RendimientoGeneral.vue`
+**Estado:** En progreso
+
+## 1. Problema Identificado
+La barra de eficiencia del empleado en `/empleados/dashboard` no se mostraba. El contenedor (`b-alert`) se renderizaba pero vacío: sin texto, sin barras, sin spinner.
+
+## 2. Causa Raíz (Fase 1)
+Un bug de timing introducido por la refactorización del 2026-04-01 (centralización de `reloadMe()` en `SseOrdenesAsignadasV4.vue`).
+
+Tras la refactorización, `fetchEfficiency()` se ejecuta DESPUÉS de cargar las órdenes (dentro del `.then()` de `getOrdenesAsignadas()`), no en paralelo como antes. Esto causa que `loadingEfficiency = true` y el cambio de `ordenes` (que alterna el `v-if`/`v-else`) se procesen en el mismo tick de Vue.
+
+La segunda instancia de `RendimientoGeneral` se creaba con `isLoading = true` desde el inicio, pero el watcher de `isLoading` no tenía `immediate: true`, por lo que `hasRequestedReporteData` nunca se ponía en `true`. El resultado: contenedor vacío permanente.
+
+### Solución aplicada
+Se cambió el watcher de `isLoading` en `RendimientoGeneral.vue` de formato simple a formato objeto con `immediate: true`.
+
+## 3. Problema Pendiente (Fase 2)
+Tras el fix, el componente ahora muestra "Sin datos de tiempo", lo que confirma que el ciclo de vida del watcher funciona. Sin embargo, la API SÍ retorna datos de eficiencia pero el componente no los renderiza en las barras. Se requiere investigar la estructura de datos que devuelve el endpoint `POST /reports/manufacturing-time` para determinar por qué `reporteData` no pasa las condiciones de renderizado.
+
+## Archivos Modificados
+- `app_multi/components/empleados/RendimientoGeneral.vue`: watcher `isLoading` → `immediate: true`

@@ -1,0 +1,25 @@
+- Solicitud del Usuario: [Analizar la funcionalidad de 'Pausa' existente para tareas individuales y diseñar un plan para implementarla en los lotes de producción completos.]
+- Archivos Involucrados: ["/home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue", "app/routes.php"]
+- Acción Realizada: [Se analizó el endpoint `POST /pausas` y el componente `SseOrdenesAsignadasV4.vue`. Se determinó que la pausa de una tarea individual actualiza el estado de la orden a 'pausada' y crea un registro en la tabla `lotes_detalles_empleados_asignados_pausas`. Basado en esto, se elaboró un plan de acción para la funcionalidad de lotes.]
+- Herramienta(s) Utilizada(s): ["default_api.run_shell_command"]
+- Resultado: [Éxito]
+- Verificación: [El plan de acción fue presentado al usuario y aceptado para su implementación en la siguiente sesión de trabajo.]
+- Observaciones de Gemini: [La funcionalidad de pausa para lotes es un requerimiento crítico para manejar imprevistos en producción. El plan propuesto es sólido y reutiliza la lógica existente.]
+- Plan de Acción para Mañana: [
+    1. **Frontend (`SseOrdenesAsignadasV4.vue`):**
+        - Añadir un botón de "Pausar Lote" en la tarjeta de "Lotes en Proceso" (visible si el lote está 'en_curso').
+        - El botón cambiará a "Reanudar Lote" si el lote está 'pausado'.
+        - El botón "Pausar" solicitará un motivo.
+        - Se crearán los métodos `pausarLote(lote)` y `reanudarLote(lote)`.
+
+    2. **Backend (`routes.php`):
+        - Crear el endpoint `POST /lotes/{id}/pausar`:
+            - Recibirá un `motivo`.
+            - Actualizará el estado de todas las órdenes del lote a 'pausada'.
+            - Creará registros de pausa en `lotes_detalles_empleados_asignados_pausas` para cada tarea activa del lote.
+            - Actualizará el estado del lote principal en `empleados_lotes_fabricacion` a 'pausado'.
+        - Crear el endpoint `POST /lotes/{id}/reanudar`:
+            - Actualizará el estado de todas las órdenes del lote a 'activa'.
+            - Cerrará los registros de pausa abiertos para ese lote (actualizando `pausa_fin`).
+            - Actualizará el estado del lote principal a 'en_curso'.
+]

@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Corregir que la validación de stock no se aplique a órdenes de Fábrica en comercialización, sólo a las de Tienda.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada: Se modificó la función `validar_stock_disponible()` en `nueva.vue` para que retorne `true` de inmediato cuando el campo `categoriaDeLaORden` tiene el valor `'custom'` (que representa "Fábrica"). De esta forma, el modal no verificará en el backend stock disponible si la orden está categorizada para manufactura directa.
+- Herramienta(s) Utilizada(s): view_file, grep_search, replace_file_content
+- Resultado: Éxito
+- Verificación: Verificación por código donde se interrumpe la ejecución del API call si es Factory/Custom. Queda a discreción del usuario y el servidor local levantar y verificar con `npm run dev`.
+- Observaciones de Gemini: El flujo original forzaba la validación siempre, mitigándolo solo para opciones específicas mediante condicionales en iteración; bloquear la entrada directamente es la forma más limpia de aislar el flujo. No procedí a despliegue a producción ya que el manual de instrucciones dicta realizar pruebas de frontend localmente antes que en el VPS.
+- Respuesta de Gemini: Confirmado e implementado. El proceso para hacer nuevas órdenes detectará si es Fábrica y automáticamente omitirá la verificación de existencia, pasando derecho a la siguiente pestaña.

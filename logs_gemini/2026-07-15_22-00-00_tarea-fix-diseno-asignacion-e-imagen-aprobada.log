@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** Revisión de "Diseños -> Asignación": se reportó un warning de Vue en consola al asignar un diseñador, y que al eliminar una asignación el modal no se cerraba ni recargaba la tabla (a diferencia de guardar). Después se reportó que el modal "Imagen de la orden" no mostraba la imagen recién subida como aprobada, a pesar de que el modal de subida sí la mostraba correctamente.
+- **Fecha y Hora:** 2026-07-15 22:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/diseno/reasignacionSelect.vue
+  - components/disenosse/asignacionDisenadores.vue
+  - components/diseno/viewImage.vue
+  - components/diseno/asignacion.vue
+  - components/ordenes/activas.vue
+  - components/ordenes/resumenSemanal.vue
+  - components/produccion/controlDeProduccion.vue
+  - components/produccion/controlDeProduccionDetalles.vue
+  - components/produccion/controlDeProduccionDetallesEditor.vue
+  - components/produccionsse/ordenesConDeuda.vue
+  - components/produccionsse/ordenesTodas.vue
+  - components/empleados/SseOrdenesAsignadasV5.vue
+  - components/buscar/resultado.vue
+- **Commits Relacionados:**
+    - Frontend: 493da65
+    - Backend: N/A
+- **Acción Realizada:**
+  1. El warning de consola ("Property idorden is not defined") se debía a que `asignacionDisenadores.vue` pasaba `:idorden="row.item.idorden"` a `reasignacionSelect.vue`, pero este último nunca declaraba `idorden` en su lista de `props`. Se agregó la prop faltante.
+  2. Al eliminar un diseñador asignado (`deleteDisenador`), el flujo nunca cerraba el modal ni emitía `reload` hacia la tabla padre, a diferencia del flujo de guardar (`closeModal()`). Se agregó la llamada a `closeModal()` en el éxito de la eliminación.
+  3. Se rastreó por qué "Imagen de la orden" no mostraba el diseño aprobado: el CDN distingue variantes de imagen por sufijo de archivo según el parámetro `aprobada` (`-a` para la aprobada, sin sufijo para la variante genérica/propuesta). `viewImage.vue` nunca enviaba ese parámetro. Se agregó un prop `aprobada` (Boolean, default `false`, sin romper usos existentes) y se activó específicamente en los puntos donde corresponde ver el diseño final aprobado: Asignación de Diseños, Órdenes en Curso, Resumen Semanal, 3 variantes de Control de Producción, Órdenes con Deuda, Todas las Órdenes, el dashboard SSE de empleados (4 ocurrencias) y la búsqueda universal de órdenes (`linkSearch`/`buscar/resultado.vue`).
+  4. Se investigaron con un subagente los ~22 puntos de uso de este componente en toda la app para determinar cuáles estaban realmente vivos (11 resultaron código muerto/huérfano, no se tocaron) y decidir caso por caso si debían mostrar la imagen aprobada. Se dejó deliberadamente sin cambios `disenosse/asignados.vue` (cola de trabajo propia del diseñador, donde el diseño normalmente aún no está aprobado).
+- **Inconvenientes y Desafíos:** El alcance de "dónde más aplica este mismo bug" resultó mucho mayor de lo esperado (22 usos del componente en toda la app); se resolvió con una investigación estructurada antes de tocar código, para no aplicar el cambio a ciegas en contextos donde no correspondía (ej. la cola de trabajo del diseñador).
+- **Decisión Final y Justificación:** Se usó un prop opcional con default `false` (comportamiento anterior preservado) en vez de cambiar el comportamiento por defecto del componente, para no arriesgar una regresión en los ~11 usos no revisados o en el caso deliberadamente excluido.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (curl para verificar compilación), Agent (subagente Explore para auditar los 22 puntos de uso del componente y su condición live/dead), AskUserQuestion (para confirmar los 2 casos ambiguos: búsqueda universal de órdenes y resumen semanal).
+- **Resultado:** Éxito
+- **Verificación:** Usuario confirmó en navegador que la asignación de diseñador (Maru a la orden 6158) y la eliminación funcionan correctamente sin warnings, y que la imagen aprobada ya se muestra en Asignación de Diseños y en Órdenes en Curso.
+- **Logro Conseguido:** Sección Diseños (Asignación, Terminados, Aprobación) revisada y funcionando completa; corregido un bug de visualización de imagen que afectaba potencialmente a 8 pantallas distintas de la aplicación.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Corregido y verificado en tiempo real junto con el usuario, con confirmación explícita de alcance para los casos ambiguos antes de aplicar cambios.

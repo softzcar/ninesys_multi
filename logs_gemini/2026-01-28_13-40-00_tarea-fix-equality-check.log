@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Investigar fallo en lógica de terminación en Impresión.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    - Se detectó que la comparación estricta `=== 'true'` podría estar fallando si el framework parseaba el JSON como boolean `true` (sin comillas) o si `FormData` incluía caracteres ocultos.
+    - Se relajó la comparación a `== 'true'` en los 3 bloques (Impresión, Corte, Estampado). Esto hace que `true` (bool) y `"true"` (string) sean válidos.
+    - Se desplegó el cambio a VPS.
+- Herramientas Utilizadas: `multi_replace_file_content`, `run_command` (git, ssh).
+- Resultado: Backend robustecido.
+- Verificación: Prueba del usuario pendiente. 
+- Observaciones de Gemini: En PHP/Slim, el body puede venir parseado de formas sutilmente distintas dependiendo del Content-Type exacto enviado por Axios/Nginx. La comparación laxa es más segura aquí.
+- Respuesta de Gemini: Check relajado y desplegado.

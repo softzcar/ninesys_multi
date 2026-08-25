@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** El usuario notó que "Total Efectivo" en `/comercializacion/reporte-de-caja` ($3.366,11) no coincidía con el "disponible" de Dólares en Retiros/Cierre de Caja ($2.000,32), sospechando que el reporte mezclaba efectivo con digital.
+- **Fecha y Hora:** 2026-08-03 17:25:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/comercializacion/reporte-de-caja.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. **Descartada la hipótesis del usuario, con evidencia:** revisado el backend (`GET /reporte-de-caja`) -- "efectivo" y "digital" son arrays completamente separados, nunca se mezclan en ningún cálculo. No hay bug de mezcla físico/digital.
+    2. **Causa real encontrada, con una prueba directa contra la lógica exacta del endpoint (script temporal en el servidor, no solo lectura de código):** "Total Efectivo" combina TODAS las monedas activas (convertidas correctamente a la moneda base con su propia tasa histórica por fila) menos TODOS los retiros, dentro del **rango de fechas pedido** (1 julio - hoy). El "disponible" de Retiros/Cierre de Caja es el saldo de **una sola moneda** (Dólares) acumulado **desde siempre** (sin filtro de fecha -- ese empleado nunca ha hecho un cierre de caja real, hay datos desde abril). Son 2 preguntas legítimamente distintas, no un error de cálculo -- no debían coincidir. No se pudo lograr una reconciliación numérica exacta porque el usuario seguía probando en vivo mientras se verificaba (los montos cambiaban entre una consulta y la siguiente).
+    3. **Mejora de UX implementada** (pedida explícitamente por el usuario tras la explicación): agregado un desglose "Neto {moneda} (efectivo − retiros de esta moneda)" debajo del total de cada moneda en la sección Efectivo -- usa un nuevo método `totalRetirosPorMoneda()` que filtra `dataReport.retiros` por nombre de moneda. Aclarado también el título de "Total Efectivo" para indicar explícitamente que combina todas las monedas convertidas, con una nota explicando que no es comparable directo contra el saldo de Retiros/Cierre.
+- **Inconvenientes y Desafíos:** No se pudo verificar una coincidencia numérica exacta entre mis cálculos manuales y el resultado del endpoint real -- los datos cambiaban en tiempo real porque el usuario seguía probando activamente mientras se investigaba. Se resolvió verificando la lógica/fórmula (correcta, con conversión de moneda apropiada) en vez de perseguir un número exacto que de todas formas seguiría cambiando.
+- **Decisión Final y Justificación:** Se mantuvo "Total Efectivo" como estaba (combinado, útil como panorama general) y se agregó el desglose por moneda como información ADICIONAL, en vez de reemplazar el total combinado -- ambas vistas son útiles para preguntas distintas.
+- **Herramienta(s) Utilizada(s):** `Read`, `ssh`, `psql`, script PHP temporal replicando la lógica exacta del endpoint (eliminado al terminar), `Edit`, `AskUserQuestion` (para confirmar si el usuario quería el desglose antes de implementarlo), verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Componente sin errores de sintaxis. Lógica del backend revisada línea por línea confirmando que no mezcla efectivo/digital en ningún punto.
+- **Logro Conseguido:** Cierra la confusión real detectada en las pruebas de reportes -- ahora el reporte deja explícito qué representa cada número, evitando que se interprete "Total Efectivo" como si fuera comparable al saldo disponible de una sola moneda.
+- **Observaciones:** Ninguna pendiente para esta tarea puntual.
+- **Respuesta de Claude:** No había ningún bug de mezcla efectivo/digital -- son 2 métricas distintas (rango de fechas + todas las monedas combinadas, vs. saldo acumulado de una sola moneda desde siempre). Agregado un desglose "Neto" por moneda en el reporte para que quede claro, tal como pediste.

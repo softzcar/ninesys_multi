@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Es quela palabra saldo la empleamos para manejos de dinero me confunde... cambienos esa descripcion para lago ams especifico que se entineda mejor
+- **Fecha y Hora:** 2026-03-08 12:05:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/components/impresoras/TintasActualReporte.vue]
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** Se modificaron las etiquetas de las columnas que utilizaban la palabra "Saldo" o "Disponible" para usar un lenguaje más propio del inventario de insumos físicos. En la tabla principal, "Tinta Disponible" ahora es "Tinta en Tanque". En el modal de histórico, "Saldo Total" ahora es "Tinta en Tanque (Histórica)". Esto elimina la ambigüedad con términos contables/financieros.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** El término "Tinta en Tanque" es mucho más descriptivo para el personal operativo que maneja las impresoras, ya que indica físicamente el estado del suministro.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `write_to_file`
+- **Resultado:** Éxito
+- **Verificación:** Revisión visual de los encabezados de las tablas en el código fuente del componente.
+- **Logro Conseguido:** Mejora en la precisión del lenguaje del sistema, alineándolo con el contexto operativo del cliente y evitando confusiones.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/4c288c8e-dbff-429d-af3d-d91cd2d42cad/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/4c288c8e-dbff-429d-af3d-d91cd2d42cad/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** Este cambio de nombres ha sido aplicado de forma consistente en todas las vistas afectadas.
+
+- **Observaciones de Gemini:** Escuchar el lenguaje del usuario es fundamental para que el software sea intuitivo.
+- **Respuesta de Gemini:** ¡Tienes toda la razón! El término "Saldo" es muy financiero. He renombrado las columnas a **"Tinta en Tanque"** en el reporte principal y **"Tinta en Tanque (Histórica)"** en el modal. Así queda mucho más claro que nos referimos al insumo físico.

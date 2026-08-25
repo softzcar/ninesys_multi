@@ -1,0 +1,14 @@
+
+- Solicitud del Usuario: Corregir error `Data truncated for column 'estado'` al guardar ajuste de corte.
+- Archivos Involucrados:
+    - Base de Datos empresa 174 (Tabla `inventario_corte`)
+- Acción Realizada:
+    - Análisis: La columna `estado` estaba definida como ENUM('disponible', 'procesado') (o similar), lo que impedía insertar el valor 'por_cortar'.
+    - Solución: Se ejecutó `ALTER TABLE inventario_corte MODIFY COLUMN estado ENUM('por_cortar', 'cortada', 'disponible', 'procesado') NOT NULL DEFAULT 'por_cortar'`.
+    - Despliegue: Comando directo en VPS.
+- Herramienta(s) Utilizada(s): `run_command` (mysql)
+- Resultado: En espera de confirmación (comando en ejecución).
+- Verificación:
+    - El próximo intento de guardar ajuste no debería dar error de truncado.
+- Observaciones de Gemini:
+    - Se procede a planificar el flujo "Smart Save" solicitado.

@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Implementar conversión universal de insumos (tipo_insumo) - Fase 3: Frontend UI.
+- Archivos Involucrados:
+    - app_multi: `components/inventario/InsumoNuevo.vue`, `components/inventario/InsumoEditar.vue`, `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+- Acción Realizada:
+    - CRUD Admin: Actualización de formularios de creación y edición para permitir la selección manual del `tipo_insumo`.
+    - Modal de Empleados: Refactorización de propiedades computadas y validaciones en `SseOrdenesAsignadasModalExtra.vue` para que el placeholder y las unidades (Kg/Mt) sean dinámicos según el tipo de material seleccionado por el empleado.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Pruebas visuales en los componentes para asegurar que el reseteo de formularios y la visualización de stock disponible funcionan según lo esperado.
+- Observaciones de Gemini: El frontend ahora ofrece una experiencia consistente para el empleado sin importar en qué departamento esté trabajando con telas.
+- Respuesta de Gemini: Interfaz de usuario actualizada y vinculada correctamente con la nueva lógica del backend.

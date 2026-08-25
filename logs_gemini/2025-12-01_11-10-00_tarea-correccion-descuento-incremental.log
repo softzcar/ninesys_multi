@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Cambiar la lógica de descuento a incremental (sumar en lugar de reemplazar) e inicializar el campo de descuento en 0 en el formulario de edición.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php
+- Acción Realizada:
+    1. Frontend: Se cambió la inicialización de `this.form.descuento` a `0` en `manejarOrdenCargada`.
+    2. Backend: Se modificó el `UPDATE` de `ordenes` para usar `pago_descuento = pago_descuento + ...`.
+    3. Backend: Se eliminó el cálculo de diferencia y se inserta directamente el valor recibido en la tabla `abonos`.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó la lógica en ambos archivos. Ahora el sistema permite agregar descuentos adicionales sin sobrescribir el historial.
+- Observaciones de Gemini: Esta lógica es más intuitiva para el usuario que desea "agregar" un descuento a una orden ya existente.
+- Respuesta de Gemini: Correcciones aplicadas. El sistema ahora maneja los descuentos de forma incremental.

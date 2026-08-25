@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Corregir errores Vue "method not defined" y mostrar checkbox "Terminar".
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se eliminó del template la referencia residual al modal antiguo `modal-terminar-insumo`, el cual invocaba métodos (`handleTerminarConfirm`, `loadRemanente`) que ya habían sido eliminados del script.
+    - Se añadió `{ key: "terminar", label: "Terminar" }` al array `campos`, habilitando la columna de visualización para el checkbox.
+- Herramientas Utilizadas: `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: Los warnings de consola deberían desaparecer y la tabla debe mostrar la columna de checkboxes.
+- Observaciones de Gemini: La persistencia de código "muerto" en el template es una causa común de errores post-refactorización.
+- Respuesta de Gemini: Errores corregidos y columna visible.

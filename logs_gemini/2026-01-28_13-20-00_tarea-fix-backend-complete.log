@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Investigar y solucionar por qué no se terminaba el insumo en Ciertos Departamentos (Corte/Estampado) ni se guardaba remanente.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    - Se identificó que la lógica de backend tenía ramificaciones por departamento (`if Estampado`, `elseif Corte`, `else Default`).
+    - El parche anterior solo se aplicó al bloque `else` (Default/Impresión).
+    - Se aplicó la corrección (`auto_remanente` + flag `update_success`) a los bloques `Estampado` y `Corte`.
+    - CRITICO: Se detectó y eliminó un código heredado REDUNDANTE en el bloque `Corte` que re-actualizaba el inventario después de terminarlo, efectivamente deshaciendo la acción de ponerlo en 0. Esto explicaba por qué en Corte jamás se terminaba.
+    - Se limpió código duplicado accidentalmente en una edición previa.
+- Herramientas Utilizadas: `replace_file_content` (varias veces), `sed`.
+- Resultado: Lógica unificada para todos los departamentos.
+- Verificación: Revisión de código muestra consistencia en los 3 bloques.
+- Observaciones de Gemini: El código heredado tenía inconsistencias graves entre departamentos. Ahora está normalizado para esta función.
+- Respuesta de Gemini: Backend corregido integralmente.

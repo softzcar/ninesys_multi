@@ -1,0 +1,40 @@
+# Log de Tareas: Optimización y Unificación de Reporte de Mano de Obra
+Fecha: 2026-04-04
+
+## Objetivo
+Resolver la inconsistencia donde la columna "Costo M. O." mostraba `$ 0.00` a pesar de que el modal de detalle contenía datos válidos de pagos y salarios por tiempo.
+
+## Lógica de Cálculo Implementada
+
+### 1. Comisiones y Pagos (Backend)
+- **Origen**: Tabla `pagos` de la base de datos de la empresa.
+- **Cálculo**: Se suma el `monto_pago` de todos los registros vinculados a la `id_orden`. 
+- **Ajuste**: Se restan los adelantos de salarios ya pagados (`pagos_salarios`) para evitar duplicidad si el empleado tiene un salario base.
+- **Dato Crudo**: Llega al frontend en la propiedad `costo_mano_de_obra`.
+
+### 2. Salarios por Tiempo (Frontend - Mixin)
+- **Origen**: Tablas `lotes_detalles_empleados_asignados` y configuración de empresa.
+- **Cálculo**:
+    - Se identifica cada tarea realizada por los empleados en la orden.
+    - Se cruza el tiempo de inicio y fin con el **Horario Laboral** de la empresa (mañana/tarde) usando `mixin-time.js`.
+    - Se multiplica el tiempo efectivo trabajado por el `precio_hora` configurado para cada empleado.
+- **Dato Calculado**: Se genera dinámicamente en el frontend como `salario_invertido`.
+
+### 3. Monto en el Enlace (Unificación)
+- **Fórmula**: `Total = costo_mano_de_obra (Backend) + salario_invertido (Calculado Localmente)`.
+- **Ubicación**: El componente `ReporteCostosProduccionLabor.vue` ahora realiza este cálculo en tiempo real. 
+- **Consistencia**: Al usar la misma función del mixin que usa el modal detalledo, se garantiza que el monto del link y el total del modal sean idénticos al 100%.
+
+## Tareas Técnicas Completadas
+
+### Backend
+- [x] Refactorización de `reports.php`: Simplificación de la consulta `pagosSql` con prefijos de base de datos (`$companyDB.`) para asegurar la carga masiva de comisiones.
+
+### Frontend
+- [x] **Mixin de Tiempo**: Añadida protección contra `salario_tipo` indefinido.
+- [x] **Componente Padre**: Refactorizado `getReport` para procesar datos antes de asignarlos, asegurando reactividad en Vue.
+- [x] **Parseo de Horario**: Añadido `JSON.parse` defensivo. Si el horario laboral llega de VUEX como texto (JSON String), el sistema lo convierte automáticamente para que el cálculo no sea 0.
+- [x] **Componente Hijo**: Implementada propiedad computada `totalManoObra` que suma localmente ambas partes (API + Locales).
+
+## Resultado Final
+La columna "Costo M. O." ahora refleja la realidad financiera de la producción, integrando tanto los pagos directos como el costo de horas hombre invertidas.

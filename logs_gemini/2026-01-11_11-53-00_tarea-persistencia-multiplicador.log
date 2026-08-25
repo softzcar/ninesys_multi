@@ -1,0 +1,46 @@
+- Solicitud del Usuario: Hacer que el multiplicador de precio persista al recargar la página
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/plugins/vuex-persist.js
+  - /home/developer/Escritorio/niesys/app_multi/store/login.js
+
+- Acción Realizada:
+  1. Identificado que el dato se carga correctamente en login pero se pierde al recargar
+  2. Encontrado plugin existente `vuex-persist.js` que maneja persistencia de Vuex en localStorage
+  3. Agregado `datos_personalizacion` a la lista de campos que se restauran al cargar la app (línea 23)
+  4. Agregado `datos_personalizacion` a la lista de campos que se guardan en localStorage (línea 44)
+  5. El plugin ahora guarda/restaura todo el objeto datos_personalizacion, incluyendo multiplicador_precio
+
+- Herramienta(s) Utilizada(s): find_by_name, grep_search, view_file, multi_replace_file_content, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Plugin vuex-persist.js actualizado con datos_personalizacion en restauración y guardado
+  - El objeto completo se persiste en localStorage bajo la key 'ninesys_vuex_v1'
+  - Al recargar la página, el plugin restaura automáticamente los datos
+  - Mutación setDatosPersonalizacion se mantiene simple (sin código redundante)
+
+- Observaciones de Gemini:
+  La aplicación ya tenía un sistema de persistencia bien estructurado en `plugins/vuex-persist.js`. Solo faltaba agregar `datos_personalizacion` a la lista de campos que se persisten. El plugin usa un approach selectivo (solo guarda lo necesario) en lugar de guardar todo el state, lo cual es una buena práctica.
+  
+  El flujo ahora es:
+  1. Usuario hace login → backend envía multiplicador_precio
+  2. Frontend commit setDatosPersonalizacion → plugin detecta mutación
+  3. Plugin guarda datos_personalizacion en localStorage
+  4. Usuario recarga página → plugin restaura desde localStorage
+  5. Multiplicador disponible inmediatamente en wizard
+
+- Respuesta de Gemini:
+  Persistencia implementada. El multiplicador de precio ahora sobrevive recargas de página.
+  
+  **Flujo de datos:**
+  - Login: Backend → Vuex → localStorage (automático)
+  - Reload: localStorage → Vuex (automático)
+  
+  **Para probar:**
+  1. Recarga la página (F5)
+  2. Ve a admin/multiplicador-precio
+  3. El valor debe seguir visible
+  4. Crea orden nueva
+  5. El botón calculator debe funcionar inmediatamente

@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Tras corregir que Euro mostrara su input en Retiros, el usuario notó que el resumen decía "EURO: 0.00" pero igual se mostraba el input para retirar Euros -- pidió agregar un aviso (warning/info) que indique que no hay fondos de esa moneda, si no existía ya algo así.
+- **Fecha y Hora:** 2026-08-03 16:50:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/ordenes/MetodosPagoDinamico.vue (componente compartido)
+    - pages/comercializacion/retiros/index.vue
+    - pages/comercializacion/cierre-de-caja.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. **Confirmado que no existía nada parecido** -- el componente ya tenía el patrón exacto necesario para esto (deshabilitar input + `b-alert` cuando la tasa no está disponible), solo faltaba la misma idea aplicada a "saldo disponible".
+    2. **Implementado como prop opcional** en `MetodosPagoDinamico.vue` (`saldosPorMoneda`, mapa `{nombreMoneda: saldo}`) en vez de hardcodear la lógica en cada pantalla -- el componente se usa en 6 lugares, pero el concepto de "saldo disponible" solo aplica a 2 (Retiros y Cierre de Caja, que sacan dinero; Abono/Nueva Orden/etc. reciben dinero, no aplica). Si el consumidor no pasa el prop (los otros 4 usos), el comportamiento no cambia en absoluto -- si una moneda no aparece como clave del mapa, no se restringe.
+    3. Nuevo método `sinSaldoDisponible(moneda)`: `true` solo si la moneda SÍ aparece en el mapa Y su saldo es `<= 0`. Conectado en 3 lugares: el nuevo `b-alert` (mismo estilo que el de tasa faltante, pero variant "info"), el `:disabled` del input (combinado con la condición de tasa ya existente), y de forma defensiva en `obtenerPagos()`/`obtenerPorMoneda()` (igual patrón que la tasa: nunca se envía un pago de una moneda sin saldo, aunque el input estuviera deshabilitado).
+    4. **Conectado en los 2 consumidores reales** (Retiros y Cierre de Caja): cada uno ya tenía su propio arreglo con el saldo real por moneda (`caja` en Retiros, `saldoPorMoneda` en Cierre de Caja) -- se agregó un computed que lo transforma al mapa `{nombre: saldo}` que espera el prop nuevo, sin tener que cambiar la fuente de datos existente.
+- **Inconvenientes y Desafíos:** Ninguno técnico. Se aplicó también a Cierre de Caja aunque el usuario solo reportó el problema en Retiros -- mismo componente, mismo riesgo (una moneda con saldo 0 mostraría su input igual ahí), corregirlo en los 2 a la vez evita repetir la misma tarea cuando el usuario llegue a probar esa pantalla.
+- **Decisión Final y Justificación:** Se usó `nombre` de la moneda como clave del mapa (no `codigo`) porque es lo que ya usan ambos consumidores en sus propias estructuras de datos (`caja[].moneda`, `saldoPorMoneda[].nombre`) -- evita tener que cruzar contra un id o código adicional.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `grep`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Los 3 archivos parsean sin errores de sintaxis. Pendiente confirmación visual del usuario.
+- **Logro Conseguido:** Cierra el ciclo completo de la Sección C -- ahora el sistema avisa proactivamente (antes de que el usuario intente escribir un monto) cuando una moneda no tiene fondos, en vez de solo rechazar el envío al final. Implementado una sola vez en el componente compartido, disponible para cualquier pantalla futura con el mismo concepto de "saldo disponible".
+- **Observaciones:** Ninguna pendiente para esta tarea puntual.
+- **Respuesta de Claude:** Agregado el aviso que pediste -- ahora, cuando una moneda no tiene saldo disponible (como Euro en 0), el input queda deshabilitado con un mensaje explicando que no hay fondos, en vez de dejarte escribir un monto que se rechazaría al enviar. Implementado en el componente compartido y aplicado tanto en Retiros como en Cierre de Caja (mismo riesgo ahí, aunque no lo habías probado todavía).

@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** "Despliega las cards a Dev" (orden explícita para llevar el rediseño de cards del dashboard de departamentos, ya commiteado localmente en 75ebed9, al servidor de Desarrollo Contabo).
+- **Fecha y Hora:** 2026-07-07 14:30:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** Todo el build de app_multi (npm run generate); específicamente el commit 75ebed9 (components/empleados/SseOrdenesAsignadasV5.vue y 9 archivos relacionados).
+- **Commits Relacionados:**
+    - Frontend: 75ebed9 (pusheado a origin en esta tarea)
+    - Backend: N/A
+- **Acción Realizada:**
+  1. Verificación previa: git status mostró 3 archivos con cambios SIN commitear ajenos a esta tarea (components/inventario/ResumenSkuModal.vue, components/ordenes/abono.vue, pages/comercializacion/abonos.vue) — estos últimos dos son el rename de "Abono a orden"->"Abono Orden" que se decidió NO tocar por causa raíz no confirmada (ver bitácora 2026-07-07_14-15). Como el script de deploy de frontend (`ninesys-hub/bin/deploy.sh`) construye con `npm run generate` desde el WORKING TREE LOCAL completo (no solo lo commiteado), estos cambios se habrían colado en el build sin querer.
+  2. `git stash push` selectivo de esos 3 archivos (mensaje descriptivo para poder identificarlos luego).
+  3. Ejecutado `ninesys-hub/bin/deploy.sh` opción 2 (Desarrollo Contabo): build + rsync. Resultado: "✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO".
+  4. Verificado que el script de frontend NO hace push de git (a diferencia de deploy_backend.sh) — la rama local quedó 4 commits adelante de origin (75ebed9 + 3 commits previos de CRM del 2026-07-03 que tampoco estaban pusheados: e0feaeb, 7ace587, c18f2b1). Se revisaron esos 3 commits (mensajes claros, fechas consistentes, trabajo legítimo) y se pusheron junto con el propio, amparado en la autorización permanente de push a esta rama (CLAUDE.md de app_multi).
+  5. `git stash pop` para restaurar los 3 archivos ajenos apartados — siguen sin commitear en el working tree local, intactos, sin desplegar.
+- **Inconvenientes y Desafíos:** Ninguno bloqueante. El único punto de cuidado fue no dejar que el WIP ajeno (rename de abono) se colara en el build de Dev sin haber sido decidido.
+- **Decisión Final y Justificación:** Apartar con stash antes de construir, replicando el mismo patrón usado en el despliegue de producción del BCV en esta misma sesión larga (ya validado como seguro). Pushear los commits pendientes de CRM junto con el de cards porque ya estaban commiteados localmente, con mensajes claros, y la autorización de push a esta rama es permanente.
+- **Herramienta(s) Utilizada(s):** Bash (git status/stash/push/log, deploy.sh)
+- **Resultado:** Éxito.
+- **Verificación:** Salida del script terminó con "✅ DESPLIEGUE EN DESARROLLO (Contabo) FINALIZADO CON ÉXITO". git push confirmó `48b7b53..75ebed9 refactor/modular-routes -> refactor/modular-routes`. git status final confirma que solo quedan sin commitear los 3 archivos ajenos ya conocidos (ResumenSkuModal.vue, abono.vue, abonos.vue) + docs/ sin trackear.
+- **Logro Conseguido:** El rediseño de cards del dashboard de departamentos (material visible arriba, acción/piezas abajo, sección renombrada) está ahora en Desarrollo (app.nineteengreen.com), listo para que el equipo de producción lo pruebe en el entorno real antes de ir a producción.
+- **Referencias de Sesión (Contexto):** Ver project_dashboard_cards_y_pendientes_abono.md (memoria persistente). Commit de cards: 75ebed9. Bitácora de implementación: 2026-07-07_13-40-00.
+- **Observaciones de Gemini:** PENDIENTE: despliegue a producción, bajo orden explícita del usuario (aún no dada para esta feature). Recordatorio para futuros deploys de frontend: siempre verificar git status y apartar con stash cualquier WIP ajeno antes de correr deploy.sh, porque el build toma el working tree completo, no solo lo commiteado.
+- **Respuesta de Gemini:** Cards desplegadas en Desarrollo (Contabo). Aparté con cuidado el WIP ajeno (rename de abono sin confirmar) antes de construir, y lo restauré después sin tocarlo. También quedaron pusheados 3 commits previos de CRM que estaban pendientes. Falta tu orden para llevarlo a producción.

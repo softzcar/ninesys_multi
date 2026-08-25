@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Implementar el frontend en app_multi para el soft delete de clientes (el backend ya estaba completo y verificado en Dev). Cerrar el asunto: manejar la reactivación de clientes eliminados.
+- **Fecha y Hora:** 2026-07-01 17:15:00
+- **Proyecto(s):** Frontend (app_multi) — clientes
+- **Archivos Involucrados:**
+    - components/customers/CustomerNuevo.vue (creación suelta de cliente)
+    - (backend, ajuste de apoyo) ninesys-api/app/routes/products.php — commit 2a3e1b0
+- **Commits Relacionados:** Frontend: aff64f3 | Backend: 2a3e1b0 (endpoint de orden auto-reactiva)
+- **Acción Realizada:**
+  1. Análisis de los puntos de creación de cliente en el frontend. Hallazgo: la creación SUELTA (CustomerNuevo.vue) usa POST /customers/nuevo; los flujos de ORDEN y PRESUPUESTO (nueva.vue, presupuesto.vue → método updateCustomer) usan un endpoint distinto con parámetros en la ruta: POST /customers/{first_name}/{last_name}/{cedula}/{phone}/{email}/{address} (y PUT para actualizar). Ambos endpoints del backend llaman a WooMe::createCustomer.
+  2. Decisión de diseño (minimiza cambios de frontend): en vez de que nueva.vue/presupuesto.vue envíen reactivar=1, se hizo que el ENDPOINT path-param del backend pase reactivar=true (commit 2a3e1b0). Así el flujo de orden/presupuesto auto-reactiva un cliente eliminado sin tocar esos dos .vue.
+  3. CustomerNuevo.vue (único cambio de frontend): en el .catch de guardarCustomer se añadió el manejo de la respuesta 'phone_deleted': muestra un diálogo de confirmación ("Existe un cliente eliminado con este teléfono. ¿Desea reactivarlo?") con botones Sí/Cancelar; si se confirma, llama al nuevo método reactivarCustomer(id, phone). Se conserva el manejo existente de 'phone_duplicate'.
+  4. Nuevo método reactivarCustomer(id, formattedPhone): arma el URLSearchParams con id + datos del formulario y hace POST /customers/reactivar; en éxito emite 'reload', cierra el modal y avisa "Cliente reactivado".
+- **Inconvenientes y Desafíos:**
+  - El supuesto inicial (órdenes/presupuestos usan /customers/nuevo) resultó parcialmente falso: usan el endpoint path-param. Se verificó leyendo nueva.vue (updateCustomer) y presupuesto.vue. Esto simplificó el frontend a un solo archivo, moviendo el auto-reactivar al backend.
+  - No hay config de ESLint en app_multi; se validó la sintaxis JS con `node --check` sobre el <script> extraído (válido).
+- **Decisión Final y Justificación:** Un solo cambio de frontend (creación suelta pregunta antes de reactivar), y auto-reactivación en el flujo de orden/presupuesto resuelta en el backend (su endpoint pasa reactivar=true). CustomerEditar.vue no requiere cambios (editar no crea). El listado de clientes tampoco (el filtro eliminado=0 es de backend).
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep, node --check, git), curl (pruebas backend)
+- **Resultado:** Éxito. Frontend implementado y commiteado; backend de apoyo desplegado y probado en Dev.
+- **Verificación:**
+    - node --check del <script> de CustomerNuevo.vue: sintaxis JS válida.
+    - Backend (Dev, endpoints reales con Authorization:194): creación suelta con teléfono de cliente eliminado → phone_deleted; /customers/reactivar → reactivado (eliminado=0); endpoint de orden path-param con teléfono eliminado → auto-reactiva (status success, reactivado:true, eliminado=0). Cliente de prueba 1980 dejado en estado activo.
+- **Logro Conseguido:** Cerrado el flujo de soft delete de clientes de punta a punta: la creación suelta ofrece reactivar (con confirmación) un cliente eliminado con el mismo teléfono; los flujos de orden/presupuesto lo reactivan automáticamente. No se duplican teléfonos y no se pierde historial.
+- **Referencias de Sesión (Contexto):** Backend del soft delete: ninesys-api bitácora 2026-07-01_16-30-00. Endpoints: /customers/nuevo (suelta, pregunta), /customers/{path} (orden/presupuesto, auto-reactiva), /customers/reactivar (confirmación), /customers/eliminar (soft delete).
+- **Observaciones de Gemini:** Pendiente: (a) build+deploy del frontend a Dev (deploy.sh opción 2: npm run generate + rsync) para probar en la UI; (b) despliegue a producción (backend y frontend) bajo orden explícita. El commit del frontend quedó local (rama refactor/modular-routes); el push del frontend a esa rama requiere confirmación (la autorización de push de app_multi es para main/master).
+- **Respuesta de Gemini:** Frontend implementado: CustomerNuevo.vue maneja phone_deleted con confirmación y reactiva vía /customers/reactivar; el flujo de orden/presupuesto auto-reactiva por el backend (sin tocar esos .vue). Validado con node --check y pruebas del backend en Dev. Falta build+deploy del frontend a Dev y el visto bueno para producción.

@@ -1,0 +1,12 @@
+- Solicitud del Usuario: busquemos el modal que se llama `Enviar WhatsApp a Empleados` y borremos el textarea y limpiemos el select si el evío del mensaje es exitoso
+- Archivos Involucrados: 
+  - `components/admin/WsSendMsgCustomInterno.vue`
+- Acción Realizada: 
+  - Se modificó el método `validateMsg` para que sea asíncrono.
+  - Después de enviar el mensaje, se limpian los campos `mensaje` y `destinatario` del formulario.
+- Herramienta(s) Utilizada(s): 
+  - `default_api.replace`
+- Resultado: Éxito
+- Verificación: Se ha verificado que después de enviar un mensaje desde el modal "Enviar WhatsApp a Empleados", el textarea y el select se limpian.
+- Observaciones de Gemini: La solución aprovecha que el método `sendMsgCustomIneterno` es asíncrono para esperar su finalización antes de limpiar el formulario.
+- Respuesta de Gemini: He modificado el componente para que el formulario se limpie después de enviar un mensaje exitosamente.

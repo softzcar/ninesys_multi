@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Actualizar repositorios y desplegar backend.
+- Archivos Involucrados: VPS
+- Acción Realizada: Backend actualizado via SSH (git pull). Frontend intentado via SSH (falló, no es repo git).
+- Resultado: Backend actualizado. Frontend requiere despliegue local via deploy.sh.
+- Verificación: Salida de comandos SSH.
+- Respuesta de Gemini: Confirmación parcial e instrucción para Frontend.

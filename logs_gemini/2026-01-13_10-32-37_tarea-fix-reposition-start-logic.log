@@ -1,0 +1,7 @@
+- Solicitud del Usuario: Corregir que al iniciar una reposición no se actualizaba el botón a 'Terminar' porque no existía registro de progreso.
+- Archivos Involucrados: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/manufacturing.php
+- Acción Realizada: Se modificó la lógica de `/registrar-paso-empleado` (tipo 'inicio') para verificar primero si existe un registro en `lotes_detalles_empleados_asignados`. Si no existe (común en reposiciones), se inserta nuevo registro con progreso 'en curso'. Si existe, se actualiza. También se corrigió el UPDATE para incluir `id_departamento`.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de lógica. Ahora debería crearse el registro necesario para que el frontend detecte el estado 'en curso'.
+- Respuesta de Gemini: Backend actualizado para soportar inicio de tareas/reposiciones sin asignación previa.

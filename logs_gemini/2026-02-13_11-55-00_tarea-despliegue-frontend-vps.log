@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Desplegar el frontend al VPS
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+    - /home/developer/Escritorio/niesys/app_multi/pages/inventario/gestion/index.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/produccionsse/AsignacionMasiva.vue
+    - /home/developer/Escritorio/niesys/app_multi/deploy.sh
+- Acción Realizada: 
+    1. Se comitearon y pushearon los cambios pendientes del frontend (Notas de Crédito y otras mejoras anteriores).
+    2. Se ejecutó la transpilación Nuxt.js (`npm run generate`) exitosamente.
+    3. Se realizó un backup local de la nueva transpilación.
+    4. Se realizó un backup remoto de la versión actual en el VPS.
+    5. Se sincronizaron los archivos mediante `rsync` al directorio de producción en el VPS.
+    6. Se realizó la limpieza de backups locales antiguos.
+- Herramienta(s) Utilizada(s): `git`, `rsync`, `ssh`, `npm`, `run_command`
+- Resultado: Éxito
+- Verificación: 
+    - El proceso de rsync confirmó la transferencia de archivos al VPS.
+    - Se verificó la creación de los backups locales y remotos.
+- Observaciones de Gemini: El script interactivo se bloqueó en la entrada de datos (read), por lo que los pasos de backup remoto y rsync se completaron manualmente siguiendo la lógica del mismo script.
+- Respuesta de Gemini: El frontend ha sido desplegado exitosamente en el VPS. La funcionalidad de Notas de Crédito ya está disponible en producción.

@@ -1,0 +1,26 @@
+# TAREA: Fijar Buscador en Móvil y Mostrar Nombre del Departamento
+# FECHA: 2026-06-26 11:59:15
+# AUTOR: AI coding assistant (Gemini/Antigravity)
+
+## DESCRIPCIÓN DE LA TAREA:
+1. Reemplazar el nombre de la empresa por el nombre del departamento del empleado en la cabecera móvil (junto al menú hamburguesa).
+2. Fijar la barra de búsqueda y el botón de WhatsApp (fixed) justo debajo del header de la barra móvil sin solaparse, y hacerlo adaptable al sidebar de escritorio de forma responsiva.
+3. Buscar las credenciales de "danuil" en el VPS Contabo de desarrollo para la empresa 194.
+
+## ARCHIVOS MODIFICADOS:
+- **[app_multi/layouts/default.vue](file:///home/developer/Escritorio/niesys/app_multi/layouts/default.vue)**
+  - Se mapeó `dataUser` del store `login`.
+  - Se implementó la propiedad computada `displayDepartament` que prioriza el departamento actual del store, o bien el departamento del perfil del empleado, con fallback secundario a la empresa.
+  - Se actualizó la plantilla de la cabecera móvil para renderizar `displayDepartament`.
+- **[app_multi/components/empleados/SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)**
+  - Se ajustaron las reglas CSS de `.fixed-top-header` en escritorio para que tenga `left: 260px;` (y `left: 70px;` cuando `.sidebar-collapsed` está activo), evitando superposiciones con el sidebar lateral.
+  - En la sección `@media (max-width: 991.98px)` se fijó `.fixed-top-header` a `top: 56px !important;` y `left: 0 !important;` para posicionarla exactamente debajo del menú burger de forma fija.
+  - Se ajustó el `.dashboard-v2-container` con `padding-top: 125px !important;` en móviles para evitar que el buscador tape el contenido superior.
+
+## BÚSQUEDA DE CREDENCIALES:
+- Se accedió por SSH al servidor de desarrollo remoto `vps-contabo-dev`.
+- Se consultó la tabla `empresas_usuarios` de la base de datos `api_empresas` para la empresa 194.
+- Se localizaron con éxito las credenciales del usuario:
+  - **Email:** `danuiljimenez255@gmail.com`
+  - **Nombre:** `danuil`
+  - **Password:** `123`

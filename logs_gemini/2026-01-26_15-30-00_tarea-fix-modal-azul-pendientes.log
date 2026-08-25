@@ -1,0 +1,8 @@
+- Solicitud del Usuario: El modal azul aún mostraba datos incorrectos en la lista de Reposiciones Pendientes.
+- Archivos Involucrados: components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: Se detectó que el fix anterior se aplicó solo a la tabla "En Curso". Se replicó la inclusión del prop `:detalles-externos` en la tabla "Reposiciones Pendientes".
+- Herramienta(s) Utilizada(s): replace_file_content, git push
+- Resultado: Éxito. Ahora todas las instancias del botón azul (Ojo) tienen la corrección aplicada.
+- Verificación: Frontend push.
+- Observaciones de Gemini: Siempre verificar todas las ocurrencias del componente al hacer refactorizaciones en views grandes.
+- Respuesta de Gemini: Fix replicado en lista de pendientes.

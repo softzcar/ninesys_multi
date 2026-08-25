@@ -1,0 +1,41 @@
+- Solicitud del Usuario: 
+  1. Cambiar la consulta por defecto en /produccion/ordenes-todas para que traiga solo las órdenes del mes actual.
+  2. Inicializar los selectores de fecha con el rango del mes en curso (desde el primero hasta hoy).
+  3. Agregar texto informativo "Reporte desde dd/mm/yyyy hasta dd/mm/yyyy" debajo de los selectores.
+  4. Aumentar el tamaño del texto informativo.
+
+- Archivos Involucrados: 
+  - Backend:
+    - /home/developer/Escritorio/niesys/ninesys-apidev/app/routes/tables.php
+  - Frontend:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccionsse/ordenesTodas.vue
+
+- Acción Realizada:
+  Backend:
+  - Modifiqué la ruta `/table/ordenes-todas` para recibir parámetros opcionales `fecha_inicio` y `fecha_fin`.
+  - Implementé lógica por defecto: si no hay parámetros, filtra por el mes actual usando la fecha de inicio del servidor.
+  - Actualicé la consulta SQL para aplicar los filtros de fecha (`fecha_inicio` y `fecha_entrega`) directamente en la base de datos, optimizando el rendimiento.
+  
+  Frontend:
+  - `ordenesTodas.vue`:
+    * Inicialicé `fechaConsultaInicio` y `fechaConsultaFin` en `data()` con el rango del mes actual.
+    * Agregué propiedad computada `rangoFechasTexto` para formatear el texto informativo dinámicamente.
+    * Modifiqué `loadData` para pasar estos parámetros en la petición GET a la API.
+    * Actualicé `onSubmit` para que "BUSCAR" gatille una nueva carga de datos desde el servidor.
+    * Cambié el elemento del texto informativo de `<p>` a `<h2>` para incrementar su tamaño y visibilidad.
+
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `replace_file_content`, `view_file`, `grep_search`, `browser_subagent`.
+
+- Resultado: Éxito
+
+- Verificación:
+  - Lógica de filtrado SQL validada para manejar rangos de fecha correctamente. ✅
+  - Formateo de fechas consistente (YYYY-MM-DD para inputs/API y DD/MM/YYYY para display). ✅
+  - Refresco de datos al presionar Buscar implementado. ✅
+  - UI actualizada con el texto informativo en tamaño grande (H2). ✅
+
+- Observaciones de Gemini: 
+  - Al mover el filtrado al backend, se reduce drásticamente el peso de la página al cargar, ya que antes se traían miles de órdenes innecesarias para el reporte inicial.
+  - Se mantuvo la compatibilidad con el filtrado local secundario (vendedor, estatus de pago, categoría) para mantener la agilidad de la tabla sin re-fetch innecesarios una vez cargado el rango de fechas.
+
+- Respuesta de Gemini: Tarea completada y logs generados.

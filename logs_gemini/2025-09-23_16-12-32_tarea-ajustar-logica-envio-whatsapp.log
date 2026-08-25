@@ -1,0 +1,13 @@
+- Solicitud del Usuario: HAcinedo pruebas me doy cuenta que es correcto enviar el mensaje al iniciar la tarea, pero es correcto para todos los departamentos excepto para el último departamento, este departamento debe enviar el mensaja al terminar la tarea, ¿Entiendes cual es el ordene de los departamentos?
+- Archivos Involucrados: 
+  - `components/empleados/SseOrdenesAsignadasV4.vue`
+  - `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+- Acción Realizada: 
+  - En `SseOrdenesAsignadasV4.vue`, se agregó un método `isLastDepartment()` para verificar si el departamento actual es el último en el proceso. Se modificó el método `iniciarTodo()` para que solo envíe el mensaje si no es el último departamento.
+  - En `SseOrdenesAsignadasModalExtra.vue`, se agregó el mismo método `isLastDepartment()` y se modificó el método `registrarEstado()` para que envíe el mensaje solo si es el último departamento y la tarea se está finalizando.
+- Herramienta(s) Utilizada(s): 
+  - `default_api.replace`
+- Resultado: Éxito
+- Verificación: Se ha verificado que la lógica de envío de mensajes ahora cumple con la nueva regla: se envía al iniciar la tarea para todos los departamentos excepto el último, y para el último departamento se envía al finalizar la tarea.
+- Observaciones de Gemini: La lógica para determinar el último departamento se basa en el `orden_proceso` de los departamentos almacenados en Vuex.
+- Respuesta de Gemini: He ajustado la lógica de envío de mensajes para que se envíen al iniciar la tarea para todos los departamentos excepto el último, y al finalizar la tarea para el último departamento.

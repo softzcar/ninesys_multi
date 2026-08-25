@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Que si no hay datos de insumos disponibles (material estimado 0) en el modal de terminar orden, no se muestre el botón de agregar insumos ni sea requerido.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada: Se modificó `SseOrdenesAsignadasModalExtra.vue` para agregar la condición `&& materialEstimadoPorCatalogo.length > 0` tanto en la visualización de los inputs de material (línea 208) como en la lógica de validación `validateForm` (línea 877). Esto asegura que si el sistema no reporta insumos estimados, el usuario pueda terminar la orden sin bloquearse por validaciones de material inexistente.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`, `grep_search`
+- Resultado: Éxito
+- Verificación: Se verificó la sintaxis del código Vue modificado. Se analizó el backend en `manufacturing.php` (endpoint `/registrar-paso-empleado`) confirmando que la finalización de pasos no depende obligatoriamente de registrar movimientos de inventario, por lo que no hay repercusiones negativas en la integridad de la orden o el flujo de trabajo, más allá de la correcta omisión del consumo de materiales.
+- Observaciones de Gemini: El análisis del backend confirmó que es seguro omitir el envío de datos de insumos en estos casos.
+- Respuesta de Gemini: Se realizaron los cambios en el componente Vue. Se confirmó que no hay repercusiones negativas en el backend, ya que el registro de paso ("fin") es independiente del consumo de insumos.

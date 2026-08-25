@@ -1,0 +1,23 @@
+- Solicitud del Usuario: En el endpoint `/empleados/dashboard` cuando el departamento es `Estampado` y se hace click en el botón `Terminar Todo`, se muestra un modal que proporciona información sobre el material, donde no se está mostrando el dato `Material Estimado (Sistema)`
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+
+- Acción Realizada:
+  1. Identificado que el componente modal `SseOrdenesAsignadasModalExtra.vue` utilizaba el prop `dataInsumos` en sus computed properties (`dataInsumosFiltrado`, `materialEstimadoDepartamento`, `materialEstimadoPorCatalogo`) para calcular el material estimado, pero no lo declaraba en su lista de props
+  2. Agregado el prop `dataInsumos` a la lista de props en `SseOrdenesAsignadasModalExtra.vue` (línea 1457)
+  3. Agregado el binding `:datainsumos="dataInsumos"` en la invocación del modal en la sección de Reposiciones (línea 204) de `SseOrdenesAsignadasV4.vue`
+  4. Agregado el binding `:datainsumos="dataInsumos"` en la invocación del modal en la sección En Curso (línea 305) de `SseOrdenesAsignadasV4.vue`
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`, `view_file`, `grep_search`, `find_by_name`
+
+- Resultado: Éxito
+
+- Verificación: Los cambios se compilaron sin errores. El servidor de desarrollo continúa ejecutándose correctamente. Se requiere verificación manual del usuario navegando a `/empleados/dashboard`, iniciando sesión con un usuario del departamento de Estampado, y verificando que el modal "Terminar Todo" muestre correctamente el valor en "Material Estimado (Sistema)" con cantidad y unidad (ej: "8.00 Kg de Tela Algodón")
+
+- Observaciones de Gemini: El problema era simple pero crítico: el prop `dataInsumos` se utilizaba en los computed properties pero nunca se declaró en la lista de props ni se pasó desde el componente padre. Esto causaba que `dataInsumos` siempre fuera `undefined`, haciendo que todos los cálculos de material estimado devolvieran valores vacíos o arrays vacíos. Al agregar la declaración del prop y pasar los datos desde el padre, ahora el componente puede acceder correctamente a la información de `product_insumos_asignados` y calcular el material estimado por catálogo y departamento.
+
+- Respuesta de Gemini: He completado el arreglo del modal de Estampado. El problema era que faltaba declarar el prop `dataInsumos` en el componente modal y también faltaba pasarlo desde el componente padre. Ahora el modal debería mostrar correctamente el "Material Estimado (Sistema)" cuando hagas clic en "Terminar Todo". Los cambios se compilaron sin errores.
+
+Te recomiendo verificar el funcionamiento navegando a `/empleados/dashboard` con un usuario del departamento de Estampado y probando con una orden que tenga insumos asignados. El modal debería mostrar el valor del material estimado con su unidad de medida correspondiente.

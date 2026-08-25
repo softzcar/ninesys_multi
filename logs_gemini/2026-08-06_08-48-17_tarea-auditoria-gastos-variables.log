@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Continuar la auditoría de "Gastos" con la siguiente sub-sección: Gastos Variables, esperando el mismo comportamiento/rigor ya aplicado en Gastos Fijos.
+- **Fecha y Hora:** 2026-08-06 08:48:17
+- **Proyecto(s):** Frontend (app_multi) -- sin cambios de backend (ya compartido con Gastos Fijos).
+- **Archivos Involucrados:**
+    - components/admin/GastosVariables.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. Confirmado que Gastos Variables usa exactamente la misma tabla y los mismos endpoints que Gastos Fijos (`GET/POST/PUT/DELETE /gastos`, distinguidos solo por `tipo='variable'` filtrado en el frontend) -- por lo tanto los 5 hallazgos ya corregidos hoy en el backend (whitelist de columnas, soft-delete, `GET /uso`, auditoría, reactivación de duplicados, validación cross-tenant del Wizard) ya aplican aquí automáticamente, sin necesidad de tocar el backend.
+    2. Pero `components/admin/GastosVariables.vue` es un componente FRONTEND separado (mismo patrón que Gastos Fijos, código duplicado no compartido) que nunca recibió las mejoras de UX que sí se agregaron a `GastosFijos.vue`: no consultaba el uso antes de eliminar, no enviaba `id_usuario`/`nombre_usuario` para la auditoría, y no manejaba el 409 de reactivación al recrear un nombre duplicado. Corregido replicando exactamente los mismos cambios: `confirmDelete()` ahora consulta `GET /gastos/{id}/uso`, muestra aviso si hay pagos históricos, y envía datos de auditoría en el DELETE; `createGasto()` ahora captura el 409 (`eliminado_existente`) y ofrece reactivar en vez de duplicar.
+    3. Confirmado que `pages/empresa/gastos-variables.vue` usa el mismo patrón de acceso (`dataUser.departamento === 'Administración'`) que `gastos-fijos.vue` -- consistente, sin cambios necesarios.
+- **Inconvenientes y Desafíos:** Ninguno. Al verificar en vivo con curl se detectó un error propio (olvidé incluir `monto=0` en la primera llamada de prueba, ya que el formulario real de Gastos Variables sí lo envía por defecto aunque el campo no se muestre en la UI) -- corregido el comando de prueba, no era un bug real del sistema.
+- **Decisión Final y Justificación:** Réplica exacta del patrón ya validado en `GastosFijos.vue`, sin variaciones -- mismo criterio de consistencia ya aplicado entre Tallas/Telas.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`, `curl` (verificación end-to-end completa con `tipo=variable`: crear → uso → eliminar → recrear con mismo nombre → 409 → reactivar), `nuxt generate` local completo antes de desplegar.
+- **Resultado:** Éxito.
+- **Verificación:** Ciclo completo verificado en vivo contra el servidor real con datos 100% desechables (`tipo=variable`), limpiado sin dejar rastro -- solo queda el único Gasto Variable real de la empresa ("IVA") intacto, y la fila "Internet" que el propio usuario recreó en su prueba anterior, sin tocar.
+- **Logro Conseguido:** Gastos Variables queda con el mismo nivel de robustez (soft-delete, auditoría, prevención de duplicados) que Gastos Fijos, sin haber requerido ningún cambio de backend adicional.
+- **Observaciones:** Detalle de diseño NO corregido (fuera de alcance, no forma parte de los hallazgos de seguridad/integridad auditados): el modal de Gastos Variables no expone un selector de "Estatus" (activo/inactivo) en la UI, a diferencia de Gastos Fijos -- toda plantilla variable queda siempre `estatus='activo'` por defecto sin forma de desactivarla temporalmente desde la interfaz. Señalado para una futura revisión de paridad de funcionalidad si el usuario lo considera necesario.
+- **Respuesta de Claude:** Aplicadas las mismas 2 mejoras de Gastos Fijos (aviso de uso + auditoría al eliminar, reactivación al recrear un duplicado) a Gastos Variables -- el backend ya estaba compartido y corregido. Verificado en vivo con el mismo ciclo completo.

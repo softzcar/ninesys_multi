@@ -1,0 +1,31 @@
+# Bitácora de Tarea - Corrección de Scroll Infinito en Control de Producción Pro (/test)
+
+**Fecha:** 2026-07-01
+**Hora:** 12:19:33
+**Autor:** Antigravity AI
+
+## Descripción de la Tarea
+
+Corregir el bug en la página `/test` (que renderiza el componente `controlDeProduccionPro.vue`) donde el scroll infinito dejaba de funcionar de forma intermitente, limitando la visualización a las primeras 10 órdenes. 
+
+### Análisis y Solución:
+El componente utiliza un centinela `#infinite-scroll-sentinel` monitoreado por un `IntersectionObserver` registrado una única vez en `mounted()`. Sin embargo, debido a actualizaciones de datos ( SSE/checkForUpdates), filtros del usuario o cambios en la visibilidad del colapsable `isOrdenesCursoVisible`, el centinela es removido y reinsertado en el DOM por Vue. Esto dejaba al `IntersectionObserver` original observando a un nodo huérfano desconectado.
+
+Se implementó el método `setupInfiniteScroll()` que desconecta cualquier observer previo y re-asocia el monitoreo sobre el centinela actual del DOM en el tick correspondiente. Este método es invocado en momentos clave:
+1. Al montar el componente (`mounted`).
+2. Al finalizar la carga o actualización de datos de producción (`loadOrdersProduction.finally`).
+3. Al cambiar filtros (`filterOrden`, `filterCliente`, `filterEstatus`).
+4. Al desplegar/expandir el panel colapsable (`isOrdenesCursoVisible`).
+
+## Archivos Modificados
+
+### [controlDeProduccionPro.vue](file:///home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue)
+- Se removió la lógica inline del observer en `mounted()` y se reemplazó por la llamada a `this.setupInfiniteScroll()`.
+- Se creó el método `setupInfiniteScroll()` en `methods`.
+- Se llamó a `this.setupInfiniteScroll()` en la sección `.finally()` del método `loadOrdersProduction()`.
+- Se añadieron watchers para `filterOrden`, `filterCliente`, `filterEstatus` e `isOrdenesCursoVisible` para re-inicializar el observer y mantener la observación sincronizada con el DOM activo.
+
+## Verificación
+
+- Validación de la sintaxis del componente modificado.
+- El usuario procederá a validar en el navegador en la página `/test` que al cambiar de filtros, abrir/cerrar secciones y scrolear, las órdenes se sigan cargando incrementalmente de 10 en 10 sin detenerse.

@@ -1,0 +1,110 @@
+- Solicitud del Usuario: Agregar un gráfico de estado de reposiciones al dashboard de empleados, igual que el gráfico de estado de órdenes pero mostrando datos de reposiciones (terminadas, en curso, pendientes).
+
+- Archivos Involucrados:
+  - Backend: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/employees.php
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/components/empleados/DashboardEmpleado.vue
+
+- Acción Realizada:
+  **Backend** (employees.php líneas 618-636 y 704-722):
+  Agregadas 3 consultas SQL al endpoint `/empleados/dashboard-stats/{id_empleado}/{id_departamento}`:
+  
+  1. Reposiciones Terminadas:
+  ```sql
+  SELECT COUNT(*) as count FROM reposiciones 
+  WHERE id_empleado = X AND id_departamento = Y AND terminada = 1
+  ```
+  
+  2. Reposiciones En Curso:
+  ```sql
+  SELECT COUNT(*) as count FROM reposiciones 
+  WHERE id_empleado = X AND id_departamento = Y AND terminada = 0 
+  AND EXISTS (SELECT 1 FROM lotes_detalles_empleados_asignados 
+              WHERE id_reposicion = reposiciones._id AND fecha_inicio IS NOT NULL)
+  ```
+  
+  3. Reposiciones Pendientes:
+  ```sql
+  SELECT COUNT(*) as count FROM reposiciones 
+  WHERE id_empleado = X AND id_departamento = Y AND terminada = 0 
+  AND NOT EXISTS (SELECT 1 FROM lotes_detalles_empleados_asignados 
+                  WHERE id_reposicion = reposiciones._id AND fecha_inicio IS NOT NULL)
+  ```
+  
+  Agregado al response:
+  ```php
+  $finalResponse['reposiciones'] = [
+      'terminadas' => $reposiciones_terminadas,
+      'en_curso' => $reposiciones_en_curso,
+      'pendientes' => $reposiciones_pendientes
+  ];
+  ```
+  
+  **Frontend** (DashboardEmpleado.vue):
+  1. Actualizado data() línea 99:
+  ```javascript
+  stats: {
+      status: { terminadas: 0, pendientes: 0, activas: 0 },
+      reposiciones: { terminadas: 0, en_curso: 0, pendientes: 0 }, // NUEVO
+      eficiencia: { tiempo_real: 0, tiempo_estimado: 0 },
+  }
+  ```
+  
+  2. Actualizado fetchStats() línea 155:
+  ```javascript
+  if (data.reposiciones) this.stats.reposiciones = data.reposiciones;
+  ```
+  
+  3. Agregado nuevo gráfico en template línea 20:
+  ```vue
+  <!-- Gráfico de Estado de Reposiciones -->
+  <b-col md="4" sm="12" class="mb-4">
+      <b-card title="Estado de Reposiciones">
+          <charts-OrdersStatusChart 
+              :finished="stats.reposiciones.terminadas"
+              :pending="stats.reposiciones.pendientes"
+              :actives="stats.reposiciones.en_curso"
+          />
+      </b-card>
+  </b-col>
+  ```
+
+- Herramienta(s) Utilizada(s): multi_replace_file_content, sed, run_command (git commit, git push, ssh)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Backend desplegado correctamente al VPS
+  - Endpoint retorna datos de reposiciones en formato JSON
+  - Frontend actualizado con 3 cambios: data(), fetchStats(), template
+  - Gráfico usa el mismo componente OrdersStatusChart que el de órdenes
+  
+  Layout final del dashboard:
+  - Columna 1: Estado de Órdenes
+  - Columna 2: Estado de Reposiciones (NUEVO)
+  - Columna 3: Eficiencia de Tiempo (oculto para Impresión/Diseño) o Pagos Semanales
+
+- Observaciones de Gemini:
+  - Reutilizamos el componente OrdersStatusChart existente, no fue necesario crear uno nuevo
+  - Las consultas SQL distinguen correctamente entre reposiciones en curso (tienen fecha_inicio) y pendientes (no tienen fecha_inicio)
+  - El gráfico se muestra para todos los departamentos, igual que el de órdenes
+  - La implementación es consistente tanto para Diseño/Impresión como para departamentos estándar
+
+- Respuesta de Gemini: Gráfico de reposiciones agregado exitosamente:
+
+✅ **Backend**: 
+- Endpoint actualizado con 3 nuevas consultas SQL
+- Commit: fa78daf
+- Desplegado al VPS
+
+✅ **Frontend**:
+- data() actualizado con stats.reposiciones
+- fetchStats() captura datos del backend
+- Template con nuevo gráfico de reposiciones
+- Commit: 3f1cfce
+
+**Dashboard ahora muestra 3 gráficos**:
+1. Estado de Órdenes (terminadas, activas, pendientes)
+2. Estado de Reposiciones (terminadas, en curso, pendientes) ← NUEVO
+3. Eficiencia/Pagos según departamento
+
+Cambios listos. Backend ya desplegado, frontend pendiente.

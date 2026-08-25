@@ -1,0 +1,68 @@
+# BITÁCORA DE TAREA
+Fecha: 2026-06-26
+Hora inicio: 15:28 (UTC-4)
+Hora fin: 15:41 (UTC-4)
+Responsable: Antigravity AI
+
+## DESCRIPCIÓN DE LA TAREA
+
+Se realizaron dos correcciones críticas de UI en la vista móvil del dashboard de empleados:
+
+### Problema 1: Buscador de órdenes tapado por el header fijo en móvil
+El `<buscar-BarraDeBusqueda />` insertado en la zona scrolleable (`.dashboard-content-area`)
+quedaba invisible porque el `padding: 0 !important` en `.dashboard-v2-container` (mobile)
+sobrescribía el `padding-top: 69px` que se intentaba usar para compensar el header fijo.
+Resultado: el contenido del área scrolleable empezaba justo detrás del header fijo de 69px,
+haciendo invisible el buscador y el inicio del contenido.
+
+### Problema 2: El spinner `<b-overlay>` no cubría las pestañas ni el panel de resumen
+El componente `<b-overlay :show="loadingOrders">` comenzaba DESPUÉS del panel de resumen
+de métricas (tabs "Órdenes/Revisiones" y contadores: 0 completadas, 0 en proceso...).
+Esto causaba que se mostraran datos en cero mientras se cargaban las órdenes.
+
+---
+
+## CAMBIOS REALIZADOS
+
+### Archivo: `components/empleados/SseOrdenesAsignadasV5.vue`
+
+#### Cambio 1 - Reubicación del `<b-overlay>` (Template)
+- **Antes:** `<b-overlay>` abría en la línea ~128, después del bloque de lotes activos.
+- **Ahora:** `<b-overlay>` abre en la línea 67, ANTES de las pestañas de navegación.
+- **Efecto:** El overlay cubre: pestañas (Órdenes/Revisiones) + panel de resumen 
+  (Completadas/En Proceso/Pendientes/Urgentes) + lista de tareas.
+
+#### Cambio 2 - Corrección CSS del área scrolleable en móvil
+- **Antes (problemático):**
+  ```css
+  .mobile-internal-scroll .dashboard-v2-container {
+    padding-top: 69px !important; /* ← era ignorado */
+    padding: 0 !important;        /* ← sobreescribía todo */
+  }
+  ```
+- **Ahora (corregido):**
+  ```css
+  .mobile-internal-scroll .dashboard-v2-container {
+    padding: 0 !important; /* sin padding-top inútil */
+  }
+  .mobile-internal-scroll .dashboard-content-area {
+    margin-top: 69px !important; /* desplaza el área scrolleable debajo del header fijo */
+  }
+  ```
+- **Efecto:** El área de scroll empieza visualmente justo debajo del header fijo de 69px,
+  haciendo visible el `<buscar-BarraDeBusqueda />` y el inicio del contenido.
+
+---
+
+## DESPLIEGUE
+- **Servidor:** vps-contabo-dev (Desarrollo)
+- **Método:** `ninesys-hub/bin/deploy.sh` opción 2 (solo desarrollo)
+- **Resultado:** ✅ DESPLIEGUE EN DESARROLLO FINALIZADO CON ÉXITO
+- **Archivos sincronizados:** 775 archivos via rsync (~13.18 MB)
+
+---
+
+## VERIFICACIÓN
+- Build de Nuxt ejecutado correctamente antes del rsync al servidor.
+- Sin errores en la compilación.
+- El servidor de desarrollo ya refleja los cambios.

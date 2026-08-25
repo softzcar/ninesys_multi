@@ -1,0 +1,54 @@
+- Solicitud del Usuario: Refinar la vista de pagos en /empleados/pagos para:
+  1. No mostrar comisiones si el empleado tiene solo salario (usar salario_tipo como bandera)
+  2. Mostrar el tipo de compensación del empleado con un badge visible
+  3. Mostrar "SALARIO PENDIENTE" en lugar de "SALARIO FIJO"
+
+- Archivos Involucrados:
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/components/empleados/TablaDePagos.vue
+
+- Acción Realizada:
+  **Computed Properties agregados**:
+  - debesMostrarSalario(): Retorna true si salario_tipo es "Salario" o "Salario más Comisión"
+  - debesMostrarComisiones(): Retorna true si salario_tipo es "Comisión" o "Salario más Comisión"
+  - tipoCompensacion(): Retorna configuración del badge con:
+    * "Salario": { texto: 'Salario Fijo', variant: 'warning', icono: '💰' }
+    * "Comisión": { texto: 'Por Comisión', variant: 'success', icono: '📈' }
+    * "Salario más Comisión": { texto: 'Salario + Comisión', variant: 'info', icono: '💼' }
+
+  **Template modificado**:
+  - Agregado badge de tipo de compensación después del título "RELACIÓN DE PAGOS"
+  - Cambiada condición del salario: ahora usa `v-if="debesMostrarSalario && parseFloat(salarioFijo) > 0"`
+  - Cambiado texto de "SALARIO FIJO" a "SALARIO PENDIENTE"
+  - Envueltas las secciones de comisiones (terminadas y pendientes) en `<template v-if="debesMostrarComisiones">`
+
+- Herramienta(s) Utilizada(s): multi_replace_file_content, replace_file_content, run_command (git commit)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Los cambios se aplicaron correctamente sin errores de compilación
+  - El diff muestra los 4 cambios esperados:
+    1. ✅ Badge agregado con íconos y colores según tipo
+    2. ✅ Salario solo se muestra si debesMostrarSalario es true
+    3. ✅ Texto cambiado a "SALARIO PENDIENTE"
+    4. ✅ Comisiones envueltas en template condicional
+  - Commit realizado exitosamente
+
+- Observaciones de Gemini:
+  - La lógica ahora es clara: si salario_tipo="Salario", NO se muestran comisiones
+  - Si salario_tipo="Comisión", NO se muestra salario
+  - Si salario_tipo="Salario más Comisión", se muestran ambos
+  - El badge proporciona feedback visual inmediato del tipo de compensación
+  - Pendiente: implementar lógica para mostrar solo el salario pendiente (no pagado) consultando la tabla pagos_salarios
+
+- Respuesta de Gemini: Implementación completada exitosamente. La interfaz ahora:
+
+✅ Muestra un badge de tipo de compensación con ícono y color distintivo
+✅ Oculta las comisiones para empleados con solo "Salario"
+✅ Oculta el salario para empleados con solo "Comisión"
+✅ Muestra ambos para empleados con "Salario más Comisión"
+✅ Dice "SALARIO PENDIENTE" en lugar de"SALARIO FIJO"
+
+Para ver los cambios en acción, debes desplegar el frontend con ./deploy.sh
+
+En un refinamiento futuro se puede implementar la lógica para verificar si el salario del período actual ya fue pagado consultando la tabla pagos_salarios.

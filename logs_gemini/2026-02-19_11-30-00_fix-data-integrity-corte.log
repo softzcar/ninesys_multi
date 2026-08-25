@@ -1,0 +1,17 @@
+
+- Solicitud del Usuario: Corregir integridad de datos en `inventario_corte` (llenar campos NULL) y cambiar flujo de "Orden de Stock".
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado y Desplegado)
+- Acción Realizada:
+    - Análisis: Los campos `talla`, `tela`, `corte` se insertaban como NULL porque no se leían de ninguna parte. El estado `procesado` era confuso.
+    - Solución:
+        1. Al recibir un ajuste, se consulta la tabla `ordenes_productos` usando el ID recibido.
+        2. Se extraen `talla`, `tela`, `corte`.
+        3. Se insertan en `inventario_corte` con el nuevo estado `'por_cortar'`.
+    - Despliegue: Se desplegaron los cambios al VPS.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command`
+- Resultado: Éxito.
+- Verificación:
+    - Se espera que al "Guardar Ajustes" en el frontend, la base de datos se llene correctamente.
+- Observaciones de Gemini:
+    - El usuario solicitó también un rediseño mayor del flujo de "Crear Orden de Stock". Eso se abordará en la siguiente tarea.

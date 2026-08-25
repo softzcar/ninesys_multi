@@ -1,0 +1,31 @@
+- **Solicitud del Usuario:** "Sigamos con Telas... procedamos la revisión de la misma manera... hacemos que la interfaz se comporte de la misma manera, haz las mismas pruebas." Seguido de "Sí, corrige todo."
+- **Fecha y Hora:** 2026-07-29 10:35:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `pages/telas.vue`
+    - `components/admin/TelasNuevo.vue`
+    - `components/admin/TelasEditar.vue`
+- **Commits Relacionados:**
+    - Frontend: `9513dde`
+- **Acción Realizada:**
+    Mismo patrón ya aplicado en Tallas:
+    1. `pages/telas.vue` (`deleteTela`): antes de mostrar el confirm, consulta `GET /telas/{id}/uso` y arma un mensaje dinámico (simple si no está en uso, con detalle de líneas de órdenes/presupuestos si sí lo está, sugiriendo "Editar" en vez de "Eliminar").
+    2. `components/admin/TelasNuevo.vue`: se encontraron y corrigieron 2 bugs de copiar/pegar heredados de un componente de empleados: `resetForm()` reasignaba `this.form` a campos completamente ajenos (`username`, `password`, `nombre`, `email`, `acceso`, `comision`, `departamento`), perdiendo el campo `tela` y rompiendo la reactividad de Vue para crear una segunda tela sin recargar la página; `onReset()` tenía el mismo problema. Ambos corregidos para solo resetear `form.tela`. Se agregó además el manejo del 409 (`eliminado_existente`) con `$confirm` para ofrecer reactivar, igual que `TallasNuevo.vue`/`CategoriasNuevo.vue`.
+    3. `components/admin/TelasEditar.vue`: actualizado para usar el nuevo endpoint `POST /telas/editar` (body con `id`/`tela`) en vez del anterior `POST /telas/{_id}/{tela}` (nombre de la tela viajando en la URL).
+
+- **Inconvenientes y Desafíos:**
+    La verificación visual en el navegador fue especialmente accidentada esta vez: (1) el mismo desajuste intermitente de sesiones anteriores (tab reportando `chrome://newtab`), resuelto confirmando que Brave estuviera abierto; (2) tras crear una tela de prueba, la lista se reordenó/reflowó y un click por coordenadas fijas terminó cayendo sobre el botón de eliminar de "SUPER POLY 1.48" (una tela REAL con 176 líneas de órdenes) en vez de la tela de prueba -- se canceló el diálogo a tiempo sin llegar a eliminarla, confirmado después vía API que quedó intacta; (3) el diálogo de confirmación quedó "pegado" sin responder a más clicks por coordenadas (posible congelamiento del renderer, confirmado por un timeout de `Runtime.evaluate` inmediatamente después) -- se resolvió removiendo el elemento del DOM vía `javascript_tool` (sin invocar el botón "OK", de forma segura) y recargando la página; (4) para el resto de la verificación se usó la herramienta `find` para obtener referencias de elemento precisas en vez de coordenadas de píxeles, lo que sí funcionó de forma confiable.
+
+- **Decisión Final y Justificación:** Ante los problemas repetidos de click-por-coordenadas en una lista que se reordena dinámicamente, se cambió de estrategia a mitad de la verificación: usar `find` (referencias de elemento por descripción) en vez de coordenadas fijas, evitando el riesgo de volver a hacer click sobre la fila equivocada.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check`, `git diff`/`commit`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__navigate`/`computer`/`find`/`javascript_tool` (verificación visual, con recuperación de un estado de diálogo colgado).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Verificado visualmente en vivo: (1) creada la tela "TEST_QA_TELA'S BRAVE" con apóstrofe -- sin error, aparece correctamente en el listado; (2) al intentar eliminar (por error) la tela real "SUPER POLY 1.48", el modal mostró la advertencia completa y correcta ("176 línea(s) de producto en órdenes... es mejor usar Editar"), cancelado sin eliminar, confirmado intacta después vía API; (3) eliminada correctamente la tela de prueba (sin uso, mensaje simple), confirmado que desaparece del listado. El flujo de edición y reactivación se verificó de forma exhaustiva vía `curl` (ver bitácora de backend) dado que el navegador quedó inestable tras el punto (3).
+
+- **Logro Conseguido:** El módulo `Varios > Telas` queda con el mismo ciclo de vida seguro y consistente ya implementado en Tallas (crear/editar/eliminar/reactivar con advertencias), además de corregir 2 bugs de reactividad heredados que afectaban la usabilidad del formulario de creación.
+
+- **Observaciones:** Ver bitácora complementaria en `ninesys-api/logs_gemini/` para el detalle de la inyección SQL corregida en el backend, y para la nota sobre el hallazgo sistémico en otros módulos (pendiente como próxima tarea).
+
+- **Respuesta de Claude:** Se implementó la advertencia de uso antes de eliminar y el flujo de reactivación al crear una tela ya eliminada (mismo patrón que Tallas), y se corrigieron 2 bugs de reactividad en el formulario de creación heredados de un componente de empleados. Verificado en vivo en el navegador (con una recuperación necesaria de un diálogo colgado) y de forma exhaustiva vía API.

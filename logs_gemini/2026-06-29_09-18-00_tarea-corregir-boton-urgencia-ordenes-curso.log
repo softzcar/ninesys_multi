@@ -1,0 +1,22 @@
+# LOG DE TAREA: Corrección del Botón de Urgencia (Asterisco) en Órdenes en Curso
+
+**Fecha:** 2026-06-29 09:18:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha solucionado el problema por el cual el botón de urgencia (asterisco) de las órdenes en curso en la página `/test` (Control de producción) aparecía activado (color rojo/danger) por defecto para órdenes que no eran urgentes.
+
+1. **Corrección de Validación de Tipo**:
+   - En [prioridadSwitch.vue](file:///home/developer/Escritorio/niesys/app_multi/components/inventario/prioridadSwitch.vue), se eliminó la validación estricta de string (`this.item.prioridad === "0"`) en el montaje y en el watch de la variable `verify`. Como `prioridad` es un valor numérico (`0`) o `null`/`undefined` devuelto por la API, la validación estricta fallaba, forzando al componente a interpretar la orden como urgente de forma incorrecta.
+2. **Reestructuración Reactiva**:
+   - Se removió el hook `mounted()` y la variable redundante `verify` en `data()` y `watch`.
+   - Se añadió un watch con `immediate: true` sobre `item.prioridad` que utiliza `parseInt()` para determinar reactivamente si la orden es urgente (`parseInt(newVal) === 1`) o no, adaptándose correctamente a cualquier tipo de dato (string, number, null).
+   - Se simplificó el método `changeStatus()` y `updatePrioridad()`.
+
+## Archivos Modificados
+- **Frontend:**
+  - [prioridadSwitch.vue](file:///home/developer/Escritorio/niesys/app_multi/components/inventario/prioridadSwitch.vue)
+
+## Verificación y Despliegue
+- El usuario probó los cambios aplicados en el servidor de desarrollo local de forma satisfactoria, confirmando que las órdenes no urgentes muestran el asterisco en color gris (desactivado) por defecto y cambian correctamente al activarse.

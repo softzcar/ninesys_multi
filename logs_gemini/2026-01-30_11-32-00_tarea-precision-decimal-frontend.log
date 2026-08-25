@@ -1,0 +1,53 @@
+- Solicitud del Usuario: Implementar cambio en el frontend para que use 4 decimales en cálculos internos y solo muestre 2 decimales al usuario, eliminando errores de redondeo al enviar datos al backend.
+
+- Archivos Involucrados:
+  - `/home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue`
+  - `/home/developer/Escritorio/niesys/app_multi/mixins/mixins.js`
+
+- Acción Realizada:
+  1. **Análisis del código**:
+     - Se identificaron las funciones `totalAbono()` (línea 738) y `updateMontoAbono()` (línea 877) que usaban `.toFixed(2)`
+     - Se verificó que el template usa `moneyFormatter()` para mostrar valores al usuario
+     - Se confirmó que `moneyFormatter()` en `mixins.js` (línea 493-500) usa `Intl.NumberFormat` con formato USD que automáticamente muestra 2 decimales
+  
+  2. **Modificaciones realizadas**:
+     - **`totalAbono()` (línea 738)**: Cambiado de `.toFixed(2)` a `.toFixed(4)` para cálculos internos
+     - **`updateMontoAbono()` (línea 877)**: Cambiado de `.toFixed(2)` a `.toFixed(4)` para cálculos internos
+     - La función `calculated()` mantiene `.toFixed(2)` ya que se usa directamente para mostrar al usuario
+  
+  3. **Resultado**:
+     - Los cálculos internos ahora usan 4 decimales de precisión
+     - El valor enviado al backend (`form.abono`) tendrá 4 decimales
+     - La interfaz seguirá mostrando 2 decimales al usuario gracias a `moneyFormatter()`
+     - Ejemplo: Si el cálculo interno da 405.1094, se guardará como "405.1094" en lugar de "405.11"
+
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `view_file`, `grep_search`
+
+- Resultado: Éxito
+
+- Verificación:
+  - Se modificaron exitosamente ambas funciones para usar `.toFixed(4)`
+  - Se confirmó que `moneyFormatter()` formatea automáticamente a 2 decimales para visualización
+  - El template usa `moneyFormatter()` en todos los badges, list-groups y tablas para mostrar valores monetarios
+  - La función `calculated()` mantiene `.toFixed(2)` para visualización directa
+  
+  **Prueba conceptual:**
+  ```javascript
+  // Antes (con .toFixed(2)):
+  (70540 / 353) + (74106 / 361) = 405.109... → "405.11"
+  
+  // Ahora (con .toFixed(4)):
+  (70540 / 353) + (74106 / 361) = 405.109... → "405.1098"
+  
+  // Visualización al usuario (con moneyFormatter):
+  moneyFormatter(405.1098) → "$405.11"
+  ```
+
+- Observaciones de Gemini:
+  - La solución es completa: backend con 4 decimales + frontend con 4 decimales + visualización con 2 decimales
+  - No se requieren cambios adicionales en el template ya que ya usa `moneyFormatter()`
+  - La función `Intl.NumberFormat` es estándar de JavaScript y formatea correctamente a 2 decimales para USD
+  - Los cambios son retrocompatibles; los valores existentes con 2 decimales seguirán funcionando
+  - **Importante**: Para que los cambios surtan efecto, el frontend debe ser transpilado con `npm run generate`
+
+- Respuesta de Gemini: Se implementó exitosamente la mejora de precisión decimal en el frontend. Las funciones `totalAbono()` y `updateMontoAbono()` ahora usan `.toFixed(4)` para cálculos internos mientras que la interfaz sigue mostrando 2 decimales al usuario gracias a `moneyFormatter()`. Esto complementa los cambios de base de datos realizados anteriormente, completando la solución end-to-end para eliminar errores de redondeo en pagos.

@@ -1,0 +1,73 @@
+- Solicitud del Usuario:
+  El proceso de reordenamiento de filas en el endpoint `/test` (Control de Producción)
+  generaba una llamada API individual por cada orden al arrastrar una fila. Con una lista
+  larga de órdenes, esto saturaba el servidor Contabo con múltiples peticiones simultáneas
+  a `/ordenes/actualizar-fila` y múltiples llamadas redundantes a `/sse/produccion`,
+  causando que el proceso fallara. Se solicitó analizar la situación y optimizar la lógica.
+
+- Archivos Involucrados:
+  - Backend:
+    - /home/developer/Escritorio/niesys/ninesys-api/app/routes/production.php
+  - Frontend:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+
+- Acción Realizada:
+
+  1. ANÁLISIS DEL PROBLEMA:
+     - El método `afterDrag` iteraba con `forEach` llamando `updateFilaOren()` una vez por orden,
+       generando N peticiones POST a `/ordenes/actualizar-fila`.
+     - Adicionalmente, se llamaba a `initTiemposDeProduccion()` sin esperar respuesta del servidor,
+       generando condiciones de carrera y llamadas redundantes a `/sse/produccion`.
+
+  2. BACKEND — Nuevos endpoints batch (production.php):
+     - Se agregó `POST /ordenes/actualizar-filas-batch`: acepta un JSON array con todos los
+       pares {id_orden, orden_fila} y los actualiza en una sola transacción MySQL.
+     - Se agregó `POST /reposiciones/actualizar-filas-batch`: misma lógica para reposiciones.
+     - Se usó lectura de raw body (`$request->getBody()` + `json_decode`) porque Slim PHP
+       no parsea automáticamente `application/json` con `getParsedBody()`.
+     - Ambos endpoints retornan `{"success": true}` o `{"success": false, "message": "..."}`.
+     - Se utilizan transacciones MySQL: si falla cualquier UPDATE, se hace rollback completo.
+
+  3. FRONTEND — Refactorización de controlDeProduccionPro.vue:
+     - Se eliminaron los métodos `updateFilaOren` y `updateFilaReposicionNueva`.
+     - `afterDrag` y `afterDragRep` ahora envían UN solo POST con el array completo al
+       endpoint batch, con `Content-Type: application/json`.
+     - El refresco de datos (`loadOrdersProduction`) solo se ejecuta si el servidor responde
+       con `success: true`, eliminando condiciones de carrera.
+     - En caso de error, se muestra un `$bvToast` con mensaje informativo al usuario.
+     - Se agregó el estado `isReordering` (booleano) con un `b-overlay` en ambas listas
+       draggables (órdenes y reposiciones) que muestra "Guardando nuevo orden..." con spinner
+       verde durante el proceso.
+     - El drag queda bloqueado mientras `isReordering === true` (`:disabled="isReordering"`).
+
+  4. FIX ADICIONAL:
+     - Primera versión del endpoint retornaba `{"success":false,"message":"Payload vacío"}`.
+     - Causa: Slim no parsea application/json con getParsedBody(). Fix: leer cuerpo raw
+       con `(string) $request->getBody()` y luego `json_decode`.
+
+  5. DESPLIEGUE:
+     - Backend (production.php): commits 82ef6ce y 6d612e4 desplegados en Hostinger
+       (vps-ninesys) y Contabo (vps-contabo) vía git reset --hard.
+     - Frontend: build con `npm run generate` + rsync a ambos servidores.
+
+- Herramienta(s) Utilizada(s): `view_file`, `grep_search`, `run_command`, `multi_replace_file_content`,
+  `replace_file_content`, `send_command_input`, git, bash (deploy_backend.sh, deploy.sh).
+
+- Resultado: Éxito ✅
+
+- Verificación:
+  - Probado en Hostinger (api.nineteengreen.com): endpoint retorna {"success":true}. ✅
+  - Al arrastrar una orden: se realiza 1 sola petición al batch endpoint. ✅
+  - Al confirmar éxito: se hace 1 sola llamada a /sse/produccion. ✅
+  - Overlay con spinner aparece durante el reordenamiento. ✅
+  - Desplegado en Contabo (producción). ✅
+
+- Reducción de carga:
+  - Antes: N peticiones a /ordenes/actualizar-fila + N llamadas a /sse/produccion.
+  - Ahora: 1 petición al batch + 1 llamada a /sse/produccion (condicional).
+
+- Observaciones:
+  - Los endpoints legacy /ordenes/actualizar-fila y /reposiciones/actualizar-fila se
+    mantienen en orders.php pero ya no son utilizados por el frontend actualizado.
+  - La transacción MySQL garantiza integridad: si falla algún UPDATE, se revierte todo
+    el lote y el usuario recibe un mensaje de error claro.

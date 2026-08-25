@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Corregir datos faltantes en la orden #21 (creada con el método anterior defectuoso) para eliminar errores de visualización.
+- Archivos Involucrados: Base de datos en VPS (api_emp_174.ordenes)
+- Acción Realizada: Se ejecutó un script SQL en el VPS para actualizar la orden #21. Se buscaron las fechas de la orden padre vinculada y se asignaron a `fecha_inicio` y `fecha_entrega`. Se inicializaron `pago_abono`, `pago_total` y `pago_descuento` en 0.
+- Herramienta(s) Utilizada(s): ssh, mysql
+- Resultado: Éxito
+- Verificación: La consulta SQL confirmó que la orden #21 en la base de datos `api_emp_174` ahora tiene fechas válidas (2026-02-12 / 2026-02-19).
+- Observaciones de Gemini: La orden se encontraba en el entorno de desarrollo (174). El script SQL manejó la búsqueda de la orden padre y la actualización en una sola operación.
+- Respuesta de Gemini: He corregido los datos de la orden #21 en el servidor. Ahora tiene asignadas las fechas de su orden original y los montos de pago inicializados, por lo que debería visualizarse correctamente sin errores.

@@ -1,0 +1,32 @@
+# Log de Tarea: Configuración Sidebar y Gastos Fijos
+Fecha: 2026-03-21 10:31
+
+## Objetivo
+Crear una acceso directo a la gestión de Gastos Fijos en el sidebar y asegurar la consistencia de datos entre esta nueva página y el Asistente de Configuración (Wizard).
+
+## Cambios Realizados
+
+### 1. Sidebar (Administrador)
+- Se modificó `components/sidebars/SidebarAdmin.vue`.
+- El ítem "Configuración" se convirtió en un submenú desplegable.
+- Se añadieron dos sub-ítems:
+    - **Configuración de Empresa**: Enlace al wizard (`/empresa/configuracion`).
+    - **Gastos Fijos**: Enlace a la nueva página dedicada (`/empresa/gastos-fijos`).
+
+### 2. Nueva Página de Gastos Fijos
+- Se creó `pages/empresa/gastos-fijos.vue`.
+- Utiliza la infraestructura existente de `admin/GastosFijos.vue` para proporcionar un CRUD completo con acceso restringido a Administración.
+
+### 3. Sincronización y Mejoras en el Wizard
+- **Sincronización API**: Se actualizó `ConfiguracionWizard.vue` para que realice una petición `GET` a `/gastos` al inicializarse, asegurando que los gastos creados fuera del wizard se reflejen en él.
+- **Funcionalidad de Edición**: Se añadió capacidad de edición en `GastosManager.vue` (el componente del wizard), igualando la funcionalidad de la página independiente.
+- **Persistencia Inmediata**: Se cambió la lógica de `GastosManager.vue` para realizar llamadas directas a la API (`POST`, `PUT`, `DELETE`) en tiempo real, garantizando que los cambios se guarden instantáneamente y no solo al finalizar el paso del asistente.
+
+## Archivos Afectados
+- `app_multi/components/sidebars/SidebarAdmin.vue`
+- `app_multi/pages/empresa/gastos-fijos.vue` [NUEVO]
+- `app_multi/components/empresa/configuracionWizard.vue`
+- `app_multi/components/empresa/GastosManager.vue`
+
+## Resultado
+Los administradores ahora tienen una forma rápida de gestionar gastos fijos desde el sidebar, con una experiencia de usuario coherente y datos siempre sincronizados entre el wizard y la página de gestión.

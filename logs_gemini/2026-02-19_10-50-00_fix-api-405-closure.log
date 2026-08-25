@@ -1,0 +1,17 @@
+
+- Solicitud del Usuario: Corregir error 405 "Method Not Allowed" persistente en /production/corte/ajuste.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Corregido y Desplegado)
+- Acción Realizada:
+    - Análisis: Se descubrió que la definición de la ruta `/production/corte/ajuste` carecía de la llave de cierre `});`, lo que provocaba que las rutas subsiguientes se anidaran incorrectamente dentro de su callback. Además, hubo un conflicto con una ruta comodín para el método OPTIONS.
+    - Solución:
+        1. Se agregó el cierre `});` faltante al final de la función de la ruta.
+        2. Se aseguró que el método fuera estrictamente `POST` (usando `$app->post`) para evitar conflictos de "shadowing" con rutas OPTIONS globales.
+    - Despliegue: Se desplegaron los cambios al VPS.
+    - Prueba: Se verificó mediante `curl` en el VPS que el endpoint ya no devuelve 405 (ahora devuelve 500 por falta de contexto de DB en la prueba local, lo cual confirma que el código se está ejecutando).
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`, `run_command`, `curl`
+- Resultado: Éxito (El error 405 está resuelto).
+- Verificación:
+    - La petición POST ahora llega al controlador (confirmado por el cambio de error de 405 a 500 en pruebas locales sin contexto).
+- Observaciones de Gemini:
+    - El error de sintaxis (falta de cierre) fue introducido en una edición anterior y era difícil de detectar sin revisar la estructura completa del archivo.

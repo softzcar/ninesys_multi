@@ -1,0 +1,37 @@
+- **Solicitud del Usuario:** "Empieza solo con la caja HORAS, y luego el modal para dejar todo listo, una cosa a la vez." Tras confirmar en la Fase 1 que la caja "HORAS" ya mostraba el número correcto, el usuario aprobó el disparador del modal: "Al hacer clic en la caja '375.32 HORAS'" (de entre las opciones presentadas: clic en la caja completa vs. un botón/ícono nuevo).
+- **Fecha y Hora:** 2026-07-22 17:04:19
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/empleados/ReporteEficienciaEmpleados.vue` (caja de HORAS clickeable, registro del modal)
+    - `components/empleados/HorasTrabajadasDetalleModal.vue` (nuevo)
+- **Commits Relacionados:**
+    - Frontend: 8914008
+    - Backend: 1ded6ae (ver bitácora correspondiente en `ninesys-api/logs_gemini/`)
+- **Acción Realizada:**
+    Se creó el componente `HorasTrabajadasDetalleModal.vue`: recibe como prop `tareas` (el array `ordenesSemana`, ya poblado desde la Fase 1) y `modal-id`. Muestra una tabla paginada (15 filas por página, usando `b-pagination` de BootstrapVue) con columnas Orden (reutilizando `linkSearch`, auto-importado por Nuxt), Fecha Inicio, Fecha Fin (formateadas con `moment`), Duración (método `formatDuration` adaptado del ya existente en `EficienciaDetalleModal.vue`, con formato compacto: `Xd Xh Xm` / `Xh Xm` / `Xm Xs` / `Xs` según la magnitud) y Monto. La columna "Estado de Pago" muestra un `<b-badge>` variante `success` con texto "Pagado" si `fecha_pago` tiene valor, o variante `warning` con "Pendiente de pago" si no -- usando directamente los campos `monto_pago`/`fecha_pago`/`estatus_pago` que el backend ya expone desde el commit 1ded6ae.
+
+    En `ReporteEficienciaEmpleados.vue`: se agregó `@click="abrirModalHoras"` y la clase `horas-trabajadas-item` (con `cursor: pointer` en el `<style scoped>`) al `<b-list-group-item>` que muestra "{{horasTrabajadas}} HORAS", se importó y registró el nuevo modal, se agregó el método `abrirModalHoras()` (abre el modal vía `this.$bvModal.show(...)`), y se instanció `<HorasTrabajadasDetalleModal :tareas="ordenesSemana" modal-id="horas-trabajadas-detalle-modal" />` junto a los otros dos modales existentes de este componente.
+
+- **Inconvenientes y Desafíos:**
+    Tras el primer despliegue a Contabo Dev, el clic en la caja de HORAS no producía ningún efecto visible y `document.querySelector('.horas-trabajadas-item')` devolvía `null` en el navegador -- el bundle JS seguía siendo el anterior a pesar de haber navegado a la URL de nuevo. Se diagnosticó como caché de navegador del bundle estático (Nuxt genera archivos con hash, pero el navegador pudo haber cacheado el `index.html`/manifest apuntando a los chunks viejos). Se resolvió forzando `location.reload(true)` vía `javascript_tool`, tras lo cual la clase nueva sí apareció en el DOM.
+
+- **Decisión Final y Justificación:**
+    Se optó por reutilizar exactamente la clave `ordenesSemana` ya presente en `data()` del componente padre (poblada por el fetch existente a `resp.data.ordenes_semana`) como prop del nuevo modal, sin introducir un fetch adicional -- el backend ya devuelve todo lo necesario (incluido el estado de pago) en la misma llamada que alimenta la caja de horas.
+
+- **Herramienta(s) Utilizada(s):** `Write`, `Edit`, `node --check` (validación de sintaxis de ambos archivos), `Bash` (`git diff`, `git commit`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo, ejecutado en segundo plano por exceder el timeout de 120s del build de Nuxt), `mcp__claude-in-chrome__*` (javascript_tool para inspeccionar el DOM y forzar recarga sin caché, computer/screenshot para verificación visual).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Verificado en vivo en el navegador (Chrome, sesión conectada), tras forzar recarga sin caché:
+    1. Empleado "danuil - Corte" (empleado 588, departamento 3): clic en "459.63 HORAS" abrió el modal mostrando 269 tareas paginadas (15 por página), con datos coincidentes con lo verificado en `psql` en la fase de backend (ej. orden 6156: 38s, $0.44, "Pendiente de pago"; orden 6141: 8h 51m == 31900 segundos). Todas las filas visibles mostraron el badge amarillo "Pendiente de pago", consistente con que ninguna de sus tareas recientes tiene `fecha_pago` registrada.
+    2. Empleado "Maru - Impresión" (empleado 3, departamento 1): clic en "107.48 HORAS" abrió el modal mostrando el badge verde "Pagado" en todas las filas visibles de la primera página, coincidiendo con los 93 registros con `fecha_pago` poblada confirmados previamente en `psql` para esta combinación.
+    3. Se inspeccionó directamente `this.ordenesSemana` en la instancia Vue del navegador (vía `javascript_tool`) para confirmar que el conteo de tareas pagadas (93 de 269) coincidía exactamente entre frontend, backend y base de datos.
+
+- **Logro Conseguido:**
+    Se completó la funcionalidad de dos fases solicitada por el usuario: la caja "HORAS TRABAJADAS" (rota desde tiempo indeterminado, ver Fase 1) ahora no solo muestra el número correcto sino que permite auditar el detalle de cada tarea terminada junto con su estado de pago real, sin mezclar ambas dimensiones (tiempo trabajado vs. pago) en el mismo número -- exactamente el diseño que el usuario propuso y confirmó durante la conversación.
+
+- **Observaciones:**
+    El problema de caché de bundle JS tras el deploy es una fuente de falsos negativos al verificar en vivo inmediatamente después de un despliegue -- vale la pena, en futuras verificaciones similares, recordar hacer `location.reload(true)` (o el equivalente Ctrl+Shift+R que el usuario ya usa manualmente) antes de concluir que un cambio de frontend no se aplicó.
+
+- **Respuesta de Claude:** Se implementó el modal de detalle de horas trabajadas: al hacer clic en la caja de HORAS se abre una tabla paginada con cada tarea terminada (orden, fechas, duración, monto) y un badge "Pagado"/"Pendiente de pago" según corresponda. Verificado en vivo con dos empleados reales: uno con todas sus tareas pendientes de pago y otro con tareas ya pagadas, confirmando que ambos estados se muestran correctamente.

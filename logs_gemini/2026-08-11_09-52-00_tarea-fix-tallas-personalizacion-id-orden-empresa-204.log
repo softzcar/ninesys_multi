@@ -1,0 +1,6 @@
+- **Solicitud del Usuario:** Verificar y corregir la vista "Tallas y Personalización" para la Empresa 204.
+- **Acciones Realizadas:**
+  - En `app_multi/components/disenosse/tallasPersoalizacion.vue`: Se actualizó el método `guardarDatos()` para enviar tanto `id_diseno` (con fallback a 0) como `id_orden` (`data.set("id_orden", this.item.id_orden)`).
+  - Esto garantiza que en empresas donde una orden activa aún no tiene entrada en `disenos` (como la Empresa 204), el modal envíe `id_orden` a la API para auto-generar el diseño y guardar los ajustes/personalizaciones sin errores.
+- **Verificación:**
+  - Probado en caliente (hot reload) en Desarrollo, sin compilar bundles de producción (`npm run build`).

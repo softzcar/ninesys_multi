@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Formatear también la fecha que se genera por defecto en el campo de observaciones en el Modal de confirmación de pagos.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleadosTerminar.vue
+- Acción Realizada: Se interpoló la inyección de `this.datosPago.fechaPago` dentro del helper nativo de Nuxt `this.formatDate()` durante la asignación del valor por defecto en la variable ligada a las observaciones.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `run_command`.
+- Resultado: Éxito
+- Verificación: Revisado visualmente el flujo de Vue desde la asignación del v-model hacia el DOM.
+- Observaciones de Gemini: El usuario decidió de forma correcta aplazar el despliegue al VPS para optimizar el tiempo de desarrollo mientras probamos la Base de Datos.
+- Respuesta de Gemini: Bug corregido y almacenado en desarrollo local sin recompilar.

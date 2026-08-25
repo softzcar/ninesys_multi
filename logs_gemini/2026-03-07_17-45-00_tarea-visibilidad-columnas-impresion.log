@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Mostrar todas las columnas en la previsualización de impresión (faltaban Precio y Total).
+- **Fecha y Hora:** 2026-03-07 17:45:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/components/buscar/resultado.vue](file:///home/developer/Escritorio/niesys/app_multi/components/buscar/resultado.vue)
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** Se ha eliminado la clase `hideMe` de las etiquetas `th`, `td` y contenedores `div` que estaban ocultando la información financiera (Precio Unitario, Total por Producto, Abono, Descuentos, Restante y Total de la Orden) durante la impresión. Esta clase estaba forzando un `display: none` en el contexto de impresión, lo que impedía que el reporte fuera idéntico al modal.
+- **Inconvenientes y Desafíos:** Ninguno. Se identificó rápidamente que la lógica de "hiding" heredada en el componente estaba entrando en conflicto con el requerimiento de visibilidad total solicitado por el usuario.
+- **Decisión Final y Justificación:** Eliminar la clase `hideMe` de estos elementos específicos es la solución más directa para garantizar que el reporte impreso contenga toda la información relevante, manteniendo la seguridad de los datos mediante el `v-if` que ya controla el acceso según el departamento del usuario.
+- **Herramienta(s) Utilizada(s):** `multi_replace_file_content`, `view_file`
+- **Resultado:** Éxito
+- **Verificación:** Se verificó el archivo `resultado.vue`. Las etiquetas vinculadas a montos financieros ya no poseen la clase `hideMe`. Al ser invocada la función `imprimir()`, estos elementos ahora formarán parte del DOM impreso, respetando la maquetación horizontal previamente establecida.
+- **Logro Conseguido:** Reporte impreso completo y 100% fiel a lo que el usuario ve en pantalla (modal), incluyendo todos los detalles económicos de la orden.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/dd038054-c1a3-48b8-802f-975bdac1df66/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/dd038054-c1a3-48b8-802f-975bdac1df66/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** La eliminación de la clase de ocultamiento garantiza que la paridad entre "lo que se ve" y "lo que se imprime" sea absoluta en este reporte.
+
+- **Observaciones de Gemini:** Se recomienda al usuario verificar que los roles de usuario que NO deberían ver precios sigan funcionando correctamente, ya que el `v-if` basado en departamento sigue activo pero la clase CSS de ocultamiento manual ha sido removida.
+- **Respuesta de Gemini:** Se han habilitado las columnas de **Precio**, **Total** y el resumen de **Pagos** en la impresión. El problema era una clase CSS llamada `hideMe` que ocultaba estos datos específicamente al imprimir. Ahora el reporte impreso mostrará exactamente la misma información que ves en el modal.

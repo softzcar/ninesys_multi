@@ -1,0 +1,24 @@
+- Solicitud del Usuario: Corregir la visualización en pantallas de 1080px de ancho, donde la tabla se veía cortada o desordenada.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+
+- Acción Realizada:
+  1. Análisis del Problema:
+     - El grid fijo de escritorio requiere ~940px + espacio flexible para columnas variables. En una pantalla de 1080px (y más si hay sidebar), el espacio no es suficiente, causando que las columnas se aplasten.
+
+  2. Solución Aplicada:
+     - Se aumentó el breakpoint de la media query de `991px` a `1350px`.
+     - Esto significa que todas las pantallas con ancho menor a 1350px (incluyendo 1080px, 1280px, 1366px) usarán automáticamente la **Vista de Tarjetas**.
+
+- Herramienta(s) Utilizada(s): 
+  * `replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: 
+  * El código compila correctamente.
+  * Lógicamente, al ampliar el rango, dispositivos como tablets horizontales y laptops pequeñas se beneficiarán del diseño vertical (tarjetas) que es mucho más seguro y legible en espacios reducidos.
+
+- Observaciones de Gemini:
+  * Es común que diseños de data-grid complejos requieran resoluciones muy altas (>1400px) para ser funcionales. Para todo lo demás, la vista de lista/tarjeta es superior en UX.

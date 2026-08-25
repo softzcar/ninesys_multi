@@ -1,0 +1,49 @@
+- Solicitud del Usuario: Implementar control de acceso por departamento para el componente de edición de estados:
+  - Administración: TODOS los estados
+  - Producción: Todos MENOS Cancelada y Entregada
+  - Comercialización: SOLO Entregada
+
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/editar.vue
+
+- Acción Realizada:
+  - Corregí el método `mounted()` del componente editar.vue
+  - Antes (incorrecto):
+    * Producción: Tenía acceso a "cancelada" y "terminada" ❌
+    * "Comecialización" (typo): Tenía acceso a "cancelada" y otros estados ❌
+    * No había fallback para otros departamentos
+  
+  - Ahora (correcto):
+    * Producción: Solo puede seleccionar "En espera", "Activa", "Pausada", "Terminada" ✅
+    * Comercialización: Solo puede seleccionar "Entregada" ✅ (corregido typo)
+    * Administración: Puede seleccionar TODOS los estados ✅
+    * Fallback: Otros departamentos solo verán el estado actual (sin cambios)
+  
+  - Mejoré legibilidad del código:
+    * Declaré variable `departamento` para evitar repetir `this.$store.state.login.dataUser.departamento`
+    * Agregué comentarios explicativos para cada departamento
+    * Formato multilínea para mejor lectura
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `grep_search`, `view_file`
+
+- Resultado: Éxito
+
+- Verificación:
+  Backend ya tiene validaciones:
+  - Comercialización intentando entregar orden no terminada → Error "Debe marcar la orden como terminada primero" ✅
+  - Bloqueo cancelada→terminada ✅
+  
+  Frontend listo para testing:
+  - Producción NO verá opciones "Cancelada" ni "Entregada"
+  - Comercialización SOLO verá opción "Entregada"
+  - Si intenta entregar orden no terminada, recibirá validación del backend
+  
+  Para verificar: Usuario debe recargar aplicación Nuxt e iniciar sesión con usuarios de cada departamento para confirmar que ven solo las opciones permitidas.
+
+- Observaciones de Gemini: 
+  - El código ya tenía filtrado por departamento pero estaba mal configurado desde antes
+  - Corregí typo "Comecialización" → "Comercialización"
+  - La validación backend para "entregada" ya existe y seguirá funcionando
+  - Agregué fallback defensivo para departamentos no contemplados
+
+- Respuesta de Gemini: (Ver mensaje final al usuario)

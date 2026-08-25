@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Corregir la lectura de observaciones adicionales, ya que el endpoint devuelve `observaciones` (plural) y no `observacion`.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/ordenes/cargarOrdenesNoAsignadas.vue
+- Acción Realizada: Se actualizó el mapeo en `cargarOrdenCompleta` para usar `o.observaciones` en lugar de `o.observacion`.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó el cambio en el código. Esto debería permitir que las observaciones se concatenen correctamente y aparezcan en el formulario.
+- Observaciones de Gemini: Error menor de nomenclatura corregido rápidamente gracias al feedback del usuario con la respuesta JSON real.
+- Respuesta de Gemini: Corrección aplicada. Ahora el sistema leerá correctamente la propiedad `observaciones` de la respuesta de la API.

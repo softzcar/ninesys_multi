@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Pueden ser muchos o pocos departamentos si son muchos y solo vamos a editar uno de los primeros no vemos el botóna pra Guardar Todo, podiriammos dejar el que esta al final y poner otr en laparte superior de manera de facilitar al suuario la tarea de guradar lso cambios
+- Archivos Involucrados: 
+  - `components/admin/departamentosEditWs.vue`
+- Acción Realizada: 
+  - Se agregó un segundo botón "Guardar Todos los Cambios" en la parte superior del formulario en el modal de edición de departamentos.
+- Herramienta(s) Utilizada(s): 
+  - `default_api.replace`
+- Resultado: Éxito
+- Verificación: Se ha verificado que el componente ahora muestra un botón de guardado tanto en la parte superior como en la inferior del formulario.
+- Observaciones de Gemini: Se ha mejorado la usabilidad del componente al proporcionar un acceso más fácil al botón de guardado cuando la lista de departamentos es larga.
+- Respuesta de Gemini: He agregado un botón "Guardar Todos los Cambios" en la parte superior del formulario para facilitar el guardado de los cambios.

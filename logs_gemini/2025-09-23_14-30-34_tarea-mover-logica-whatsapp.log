@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Un momento parece que existe alguna lógica que es antigua, debemos ubicar al finalizar la tarea donde estamos ecienod una llamada POST a `/ws/build-message` enviando un payload como este: `id_orden=2&tipo=paso&message=&id_departamento=16` esto debe suceder al iniciar la tarea lo estamos haciendo al finalizar la tarea
+- Archivos Involucrados: 
+  - `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+  - `components/empleados/SseOrdenesAsignadasV4.vue`
+- Acción Realizada: 
+  - Se eliminó la llamada a `this.sendMsgCustom()` del método `registrarEstado()` en `SseOrdenesAsignadasModalExtra.vue`.
+  - Se agregó la llamada a `this.sendMsgCustom()` en el método `iniciarTodo()` de `SseOrdenesAsignadasV4.vue`, reemplazando la llamada a `this.sendMessageClient()`.
+- Herramienta(s) Utilizada(s): 
+  - `default_api.replace`
+- Resultado: Éxito
+- Verificación: Se ha verificado que la llamada a `sendMsgCustom` ahora se realiza al iniciar una tarea en `SseOrdenesAsignadasV4.vue` y se ha eliminado de la lógica de finalización de tarea en `SseOrdenesAsignadasModalExtra.vue`.
+- Observaciones de Gemini: La lógica para enviar el mensaje de WhatsApp se ha movido del evento de finalización al de inicio de la tarea, según lo solicitado.
+- Respuesta de Gemini: He movido la lógica de envío de mensajes de WhatsApp al iniciar la tarea.

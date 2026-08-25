@@ -1,0 +1,8 @@
+- Solicitud del Usuario: vamos a desplegar el frotend en el servidor de desarrollo papa probar el despliegue
+- Archivos Involucrados: . (Proyecto app_multi)
+- Acción Realizada: Ejecución del script deploy.sh seleccionando la opción 2 (Pruebas - Hostinger). El proceso incluyó limpieza de dist, npm run generate, backup remoto y rsync.
+- Herramienta(s) Utilizada(s): run_command, send_command_input
+- Resultado: Éxito
+- Verificación: Log de despliegue confirma "FINALIZADO CON ÉXITO".
+- Observaciones de Gemini: El despliegue de frontend permite ahora probar la visualización correcta de los estatus de las órdenes sincronizados previamente.
+- Respuesta de Gemini: El despliegue del frontend al servidor de desarrollo (Hostinger) se ha completado satisfactoriamente.

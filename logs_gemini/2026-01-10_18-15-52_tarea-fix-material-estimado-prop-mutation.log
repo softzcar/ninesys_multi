@@ -1,0 +1,41 @@
+- Solicitud del Usuario: En el endpoint `/empleados/dashboard` cuando el departamento es `Estampado` y se hace click en el botón `Terminar Todo`, se muestra un modal que proporciona información sobre el material, donde no se está mostrando el dato `Material Estimado (Sistema)`. Además, el label y el valor debían aparecer en la misma línea.
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+
+- Acción Realizada:
+  1. Agregado el prop `dataInsumos` a la lista de props en `SseOrdenesAsignadasModalExtra.vue`
+  2. Agregado el binding `:datainsumos="dataInsumos"` en las secciones de Reposiciones y En Curso en `SseOrdenesAsignadasV4.vue`
+  3. Reorganizado el template para mostrar"Material Estimado (Sistema):" y su valor en la misma línea
+  4. Agregado caso fallback (`v-else`) con información de debug cuando no hay datos
+  5. Eliminado declaración duplicada de `dataInsumos` en la sección `data()` que causaba warning de Vue
+  6. Creado `dataInsumosLocal` en data() para almacenar insumos cargados del API localmente
+  7. Creado computed property `dataInsumosComputed` que combina datos del prop (desde padre) con datos locales (del API)
+  8. Actualizado método `getEficienciaEstimada()` para usar `dataInsumosLocal` en lugar de mutar directamente el prop
+  9. Actualizado computed properties `dataInsumosFiltrado`, `materialEstimadoDepartamento`, y `materialEstimadoPorCatalogo` para usar `dataInsumosComputed`
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`, `view_file`, `grep_search`, `find_by_name`
+
+- Resultado: Éxito
+
+- Verificación: Requiere verificación manual del usuario. Los cambios se compilaron sin errores. El usuario debe recargar completamente la página (Ctrl+Shift+R) y abrir el modal "Terminar Todo" en el departamento de Estampado para verificar que:
+  1. No aparecen warnings de Vue en la consola
+  2. El modal muestra "Material Estimado (Sistema): X.XX Kg de [Material]" en una sola línea
+  3. Los datos de material estimado se calculan correctamente
+
+- Observaciones de Gemini: El problema tenía múltiples capas:
+  - Faltaba declarar y pasar el prop `dataInsumos`
+  - El formato del template separaba el label y el valor en líneas diferentes
+  - Había una declaración duplicada de `dataInsumos` (como prop y como data property)
+  - La función `getEficienciaEstimada` mutaba directamente el prop, lo cual Vue no permite
+  
+  La solución final implementa un patrón robusto donde:
+  - `dataInsumos` (prop) contiene datos pasados desde el componente padre
+  - `dataInsumosLocal` (data) contiene datos cargados localmente del API
+  - `dataInsumosComputed` (computed) combina ambas fuentes, priorizando el prop si existe
+  - Todos los computed properties usan `dataInsumosComputed` para acceder a los datos
+
+- Respuesta de Gemini: He completado todos los arreglos necesarios para el modal de Estampado. El problema principal era la mutación directa del prop `dataInsumos` en la función `getEficienciaEstimada`, lo cual Vue no permite. Ahora el sistema maneja correctamente dos fuentes de datos de insumos: los que vienen del componente padre (prop) y los que se cargan localmente del API.
+
+Por favor, recarga completamente la página y prueba abriendo el modal "Terminar Todo" en Estampado. Deberías ver el material estimado en una sola línea sin warnings de Vue en la consola.

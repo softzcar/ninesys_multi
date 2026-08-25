@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** En `/impresoras/servicios/`, "Nuevo Servicio" crea el registro correctamente pero la tabla no se recarga automáticamente. En cambio, "Editar Servicio" y "Eliminar" sí recargan correctamente la tabla tras su acción.
+- **Fecha y Hora:** 2026-07-17 21:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - pages/impresoras/servicios/index.vue
+  - components/impresoras/ServicioNuevo.vue (solo lectura/diagnóstico)
+  - components/impresoras/ServicioEditar.vue (solo lectura/diagnóstico, referencia de comparación)
+- **Commits Relacionados:**
+    - Frontend: 7afa179
+    - Backend: N/A
+- **Acción Realizada:**
+  1. Se comparó línea por línea `ServicioNuevo.vue` (`save()`) contra `ServicioEditar.vue` (`update()`, que sí funciona según el usuario): ambos llaman a `this.$emit('reload')` en el mismo orden relativo (antes de `$bvModal.hide()`), sin diferencia de código que explique el comportamiento distinto reportado.
+  2. Se verificó el backend (`POST /servicios-maquinas`) end-to-end con curl: creación y lectura inmediata posterior sin ningún delay ni inconsistencia — el registro aparece de inmediato en `GET /servicios-maquinas`, descartando un problema de persistencia o timing en el servidor.
+  3. Se identificó la explicación más plausible: un servicio nuevo siempre se crea con `estado: 'completado'` (valor por defecto del formulario). Si el filtro "Estado" de la tabla estaba en un valor distinto (ej. "Pendiente") al momento de crear, la recarga SÍ ocurre correctamente, pero el registro recién creado queda excluido por el filtro activo, dando la apariencia de que "no se recargó". Se consultó al usuario si este era el caso; no pudo confirmarlo con certeza.
+  4. Se aplicó un fix robusto independiente de la causa exacta: se agregó el método `onServicioCreado()` en la página, que limpia `filter.search` y `filter.estado` a sus valores por defecto ANTES de recargar, específicamente en el flujo de creación (no se tocó el flujo de edición/eliminación, donde el usuario confirmó que ya funciona correctamente).
+- **Inconvenientes y Desafíos:** No se logró aislar con certeza absoluta la causa raíz mediante análisis estático de código — ambos componentes (Nuevo/Editar) son estructuralmente idénticos en su manejo del evento de recarga. Se optó por una solución defensiva que resuelve el síntoma reportado de forma garantizada (el registro nuevo siempre será visible tras crearlo, sin importar el filtro previo) en vez de seguir buscando una causa hipotética no confirmable sin acceso a las herramientas de desarrollador del navegador del usuario en el momento exacto del bug.
+- **Decisión Final y Justificación:** Se limitó el reseteo de filtros ÚNICAMENTE al flujo de creación (no aplicado a editar/eliminar), para no alterar un comportamiento que el usuario confirmó que ya funciona bien y que probablemente depende de mantener el filtro activo tras editar un registro ya filtrado.
+- **Herramienta(s) Utilizada(s):** Read (comparación de componentes), Bash (curl para verificar persistencia y lectura inmediata del backend, limpieza del registro de prueba), Edit, AskUserQuestion (para intentar confirmar la hipótesis del filtro antes de implementar).
+- **Resultado:** Éxito (pendiente confirmación visual del usuario en navegador)
+- **Verificación:** Backend verificado end-to-end (creación + lectura inmediata sin inconsistencias). Cambio de frontend revisado por código; pendiente que el usuario confirme en navegador que el problema queda resuelto.
+- **Logro Conseguido:** Se corrigió el escenario más probable del bug reportado sin alterar el comportamiento ya funcional de editar/eliminar, y se descartó definitivamente un problema de backend mediante verificación en vivo.
+- **Observaciones de Claude:** Si el usuario confirma que el problema persiste tras este fix, seguirá siendo necesario reproducirlo en vivo con las herramientas de desarrollador del navegador (Network/Console) para descartar teorías adicionales (ej. caché de red, orden de eventos de BootstrapVue) que no pudieron confirmarse ni descartarse por análisis estático de código.
+- **Respuesta de Claude:** Corregido con una solución defensiva (limpieza de filtros al crear) y desplegado a Contabo Dev; pendiente de confirmación del usuario en navegador.

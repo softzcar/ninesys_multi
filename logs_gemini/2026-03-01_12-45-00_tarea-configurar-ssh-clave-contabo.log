@@ -1,0 +1,22 @@
+- Solicitud del Usuario: Configurar el acceso SSH por clave al VPS de Contabo igual que Hostinger (sin contraseña).
+
+- Archivos Involucrados:
+  - `~/.ssh/config`
+  - `~/.ssh/id_ed25519_vps.pub`
+  - Archivo remoto: `/root/.ssh/authorized_keys` en Contabo (217.216.95.32)
+
+- Acción Realizada:
+  1. Se detectó que la directiva `Password` agregada previamente al `~/.ssh/config` causaba error de configuración inválida → se eliminó con `sed -i`.
+  2. Se actualizó el bloque `vps-contabo` en `~/.ssh/config` para apuntar a `~/.ssh/id_ed25519_vps` con `IdentitiesOnly yes`, igual que `vps-ninesys`.
+  3. Se copió la clave pública `id_ed25519_vps.pub` al archivo `/root/.ssh/authorized_keys` del VPS de Contabo vía SSH con contraseña (solo esta vez).
+  4. Se verificó el acceso sin contraseña con `ssh vps-contabo "echo 'ACCESO SIN CONTRASEÑA OK' && uptime"` → ✅ exitoso.
+
+- Herramienta(s) Utilizada(s): `run_command`, `send_command_input`
+
+- Resultado: Éxito
+
+- Verificación: Comando `ssh vps-contabo "echo 'ACCESO SIN CONTRASEÑA OK' && uptime"` ejecutado sin pedir contraseña. Salida: `ACCESO SIN CONTRASEÑA OK` + datos de uptime del servidor.
+
+- Observaciones de Gemini: El `~/.ssh/config` quedó con la misma estructura para ambos VPS (Hostinger y Contabo), usando la misma clave `id_ed25519_vps`. El `deploy.sh` ahora puede ejecutarse completamente sin intervención manual en la fase de SSH/rsync.
+
+- Respuesta de Gemini: SSH por clave configurado en Contabo. El alias `vps-contabo` funciona igual que `vps-ninesys` sin requerir contraseña.

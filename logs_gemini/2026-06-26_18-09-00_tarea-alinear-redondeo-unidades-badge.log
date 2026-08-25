@@ -1,0 +1,23 @@
+# LOG DE TAREA: Corrección de Redondeo de Unidades en el Badge para Consistencia con Modal de Piezas
+
+**Fecha:** 2026-06-26 18:09:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha corregido una discrepancia de redondeo entre el badge de piezas de la tarjeta y el modal de asignación de piezas del dashboard de empleados:
+
+1. **Causa del Problema:**
+   - La orden **5467** cuenta con tres productos cuyas cantidades asignadas tienen fracciones/decimales: *34.5* (Servicio Sublimación), *2.0* (Impresión DTF) y *5.2* (Sublimación por Metros).
+   - El backend redondea matemáticamente cada asignación a nivel de producto (`round(cantidad_asignada, 0)`), arrojando *35*, *2* y *5* respectivamente, lo que suma un total de **42 piezas**.
+   - El frontend realizaba un truncamiento con `parseInt()` sobre cada producto antes de sumarlos (*34*, *2* y *5*), arrojando incorrectamente un total de **41 piezas**.
+
+2. **Solución Aplicada:**
+   - Se reemplazó el uso de `parseInt(item.unidades)` por `Math.round(parseFloat(item.unidades))` dentro de las acumulaciones en las propiedades computadas `dataTableEnCurso` y `dataTablePendiente` del componente `/components/empleados/SseOrdenesAsignadasV5.vue`.
+   - Esto garantiza que el frontend y el backend utilicen exactamente el mismo criterio de redondeo matemático estándar, haciendo que ambos conteos coincidan de forma consistente en **42 piezas** para la orden 5467.
+
+## Archivos Modificados
+- **Frontend:** [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Los archivos se compilaron exitosamente y se desplegaron en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

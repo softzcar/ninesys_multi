@@ -1,0 +1,25 @@
+# Bitácora de Tarea - Departamento Reactivo en la Relación de Pagos
+
+**Fecha:** 2026-07-01
+**Hora:** 16:46:00
+**Autor:** Antigravity AI
+
+## Descripción de la Tarea
+
+Corregir el bug donde al cambiar de rol/departamento activo en el panel lateral de la aplicación, la página `/relacion-de-pagos` no actualizaba reactivamente la variable de departamento. Esto impedía visualizar el salario pendiente (como en el caso de Maru al pasar de "Montar Tallas" a "Diseño").
+
+### Solución:
+- En [TablaDePagos.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/TablaDePagos.vue), se eliminó la inicialización estática de `departamento` en `data()`.
+- Se definió `departamento` como una propiedad computada reactiva que lee `this.$store.state.login.currentDepartament`.
+- Se simplificó `mounted()` para usar la nueva propiedad reactiva `this.departamento` en su condicional de tipo de reporte.
+- Esto asegura que al alternar entre departamentos en el selector del panel lateral, toda la vista (columnas de tablas, cálculos de totales y renderizado de salario) se redibuje y actualice de forma 100% reactiva.
+
+## Archivos Modificados
+
+### [TablaDePagos.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/TablaDePagos.vue)
+- Mover variable `departamento` de `data` a `computed`.
+- Usar `this.departamento` en `mounted()`.
+
+## Verificación
+- Confirmación de sintaxis.
+- El usuario podrá alternar en caliente el departamento del selector lateral (e.g. entre Montar Tallas y Diseño) y ver cómo el salario pendiente ($30.00) y el badge del tipo de compensación ("Salario + Comisión") se muestran reactivamente en la interfaz.

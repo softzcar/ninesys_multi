@@ -1,0 +1,44 @@
+- Solicitud del Usuario: Implementar funcionalidad de "Nota de Crédito" en el frontend del modal de Abono a la Orden (abono.vue).
+
+- Archivos Involucrados:
+  Frontend:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+
+- Acción Realizada:
+  1. Template - Estado actual: 
+     - Añadida fila condicional "Notas de Crédito" con estilo text-danger y prefijo "+" visble solo si nota_credito > 0
+  
+  2. Template - Formulario:
+     - Añadida sección "Nota de Crédito" debajo de "Descuento" con inputs para monto y detalle
+     - Solo visible para departamento 'Administración' (mismo bloque condicional que descuento)
+  
+  3. Data:
+     - Añadido nota_credito: 0 a dataCalc
+     - Añadidos valueNotaCredito: 0 y valueNotaCreditoDetalle: "" a data()
+  
+  4. Computed calculated():
+     - Actualizada fórmula: total - abonado - descuento - nuevoAbono - nuevoDescuento + notaCredito + nuevaNotaCredito
+     - Agregada lógica para leer nota_credito existente del dataCalc y nueva del formulario
+  
+  5. Método hacerAbono():
+     - Añadida validación: detalle obligatorio cuando nota de crédito > 0
+     - Añadido tmpNotaCredito a la validación de montos vacíos
+     - Mensaje de confirmación incluye nota de crédito cuando aplica
+     - Reset de valueNotaCredito y valueNotaCreditoDetalle después de abonar
+  
+  6. Método abonar():
+     - Añadido envío de notaCredito y notaCreditoDetalle en URLSearchParams
+     - Reset de valueNotaCredito y valueNotaCreditoDetalle en respuesta exitosa
+
+- Herramienta(s) Utilizada(s): multi_replace_file_content, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación: Revisión de código verificando consistencia entre datos enviados al backend y lo esperado por el endpoint POST /orden/abono. La validación de detalle obligatorio es consistente con el patrón usado para descuentos.
+
+- Observaciones de Gemini: 
+  - El formulario de nota de crédito queda dentro del mismo bloque v-if de Administración que el descuento, por lo que solo es visible para administradores.
+  - El computed calculated() ahora refleja correctamente el saldo en tiempo real incluyendo las notas de crédito existentes y las que se están ingresando.
+  - Las páginas activas.vue no necesitaron cambios ya que no hacen cálculos locales de saldo.
+
+- Respuesta de Gemini: Se completó la implementación frontend de las notas de crédito en abono.vue.

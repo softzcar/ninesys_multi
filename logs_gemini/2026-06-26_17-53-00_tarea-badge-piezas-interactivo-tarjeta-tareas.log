@@ -1,0 +1,29 @@
+# LOG DE TAREA: Badge de Piezas Interactivo en Tarjetas de Tareas
+
+**Fecha:** 2026-06-26 17:53:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha mejorado la interfaz de usuario (UX) del dashboard de empleados para unificar el indicador de piezas y el botón de desglose del material estimado, eliminando redundancias visuales:
+
+1. **Badge Interactivo (`pzas-badge`):**
+   - El badge que muestra la cantidad de piezas (ej: `6pzas`) en la parte superior/media de la tarjeta de tarea ahora es interactivo (`@click`).
+   - Se aplicaron estilos CSS de micro-interacción: cursor en formato `pointer`, efecto hover con cambio sutil de fondo, borde y una micro-escala (`transform: translateY(-1px)`) con transición fluida.
+   - Al hacer click sobre el badge, este dispara programáticamente la apertura del modal con el desglose de insumos estimados de la orden.
+
+2. **Componente `InsumosEstimadosVista` Reutilizado:**
+   - Se añadió la prop `hideButton` al componente `/components/empleados/InsumosEstimadosVista.vue` para poder controlar condicionalmente la visualización de su botón circular original de la fila inferior.
+   - En `SseOrdenesAsignadasV5.vue`, se configuró este componente con `:hideButton="true"` y se le asignó una referencia dinámica (`:ref="'insumos-' + id_orden"`).
+   - Se implementó el método `abrirDetalleMaterial(idorden)` en `SseOrdenesAsignadasV5.vue` que accede a la referencia correspondiente del componente y ejecuta su función `openModal()`.
+
+3. **Limpieza Visual de la Fila de Acciones:**
+   - Al unificar la interactividad en el badge superior de piezas, se removió el botón circular redundante con el icono de la caja (`box-seam`) de la barra inferior de acciones secundarias de la tarjeta de tarea en todas las secciones (Urgentes, En Proceso y Pendientes de ambas pestañas).
+
+## Archivos Modificados
+- **Frontend:**
+  - [InsumosEstimadosVista.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/InsumosEstimadosVista.vue)
+  - [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Los archivos se compilaron exitosamente y se desplegaron en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

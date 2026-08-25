@@ -1,0 +1,42 @@
+- **Solicitud del Usuario:** Implementar el componente WaConexion.vue para la página /whatsapp/conexion que estaba vacía. Esta página debe mostrar el estado de la conexión WhatsApp, el código QR para vincular, acciones de gestión y salud del servicio.
+- **Fecha y Hora:** 2026-04-13 12:30:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - app_multi/components/whatsapp/WaConexion.vue (NUEVO)
+    - app_multi/pages/whatsapp/conexion.vue (ya existía, referenciaba <whatsapp-WaConexion /> sin que el componente existiera)
+- **Commits Relacionados:**
+    - Frontend: pendiente en rama actual
+    - Backend: N/A (endpoints ya existen: GET /session-info/:companyId, GET /ws-info/:companyId, GET /qr/64/:companyId, POST /restart/:companyId, DELETE /disconnect/:companyId, GET /health, GET /ready)
+- **Acción Realizada:**
+    1. Creado componente WaConexion.vue que combina HTTP polling inicial + Socket.IO en tiempo real para mantener el estado de la conexión siempre actualizado.
+    2. Secciones implementadas:
+       - **Estado de la conexión**: badge con color según estado (READY=verde, INITIALIZING/REQUIRES_QR=amarillo/info, ERROR/DEGRADED/DISCONNECTED=rojo, NOT_REGISTERED/PAUSED=gris). Muestra número vinculado, nombre push y último contacto cuando está en READY. Alertas para último error (estados ERROR/DEGRADED/DISCONNECTED) y mensaje especial para DEGRADED (reconexión agotada).
+       - **Código QR**: sección visible solo cuando el estado es NOT_REGISTERED/INITIALIZING/REQUIRES_QR. Muestra la imagen QR base64 que llega via evento Socket.IO 'qr', con spinner mientras se prepara y contador de intentos (qr_attempts).
+       - **Acciones**: tres botones — Reiniciar conexión (POST /restart), Desvincular sesión (DELETE /disconnect con confirmación modal), Actualizar estado (refresca HTTP). Cada botón muestra spinner durante la operación y se deshabilitan mutuamente para evitar acciones concurrentes. Descripción de cada acción debajo de los botones.
+       - **Salud del servicio**: consume GET /health (uptime) y GET /ready (estado global + circuit breaker IA) sin autenticación (son endpoints públicos). Muestra badge Operativo/Degradado, uptime formateado (s/m/h/d) y estado del circuit breaker de Gemini (closed=verde, half-open=amarillo, open=rojo).
+    3. Eventos Socket.IO escuchados:
+       - `qr`: actualiza imagen QR y estado a REQUIRES_QR
+       - `ready`: limpia QR, pone READY, recarga info completa via HTTP para obtener phone/pushname
+       - `status`: actualiza estado y mensaje de error
+       - `disconnected`: pone DISCONNECTED, limpia QR
+       - `error`: actualiza último error
+    4. Todos los listeners se registran con referencia nombrada (_onQr, _onReady, etc.) para limpieza correcta en beforeDestroy y para evitar duplicados al re-montar.
+    5. Los endpoints /health y /ready se consumen con $axios directo (no $wsApi) porque no requieren JWT. Se construye la URL a partir de $wsApi.defaults.baseURL.
+- **Inconvenientes y Desafíos:**
+    - Los endpoints /health y /ready no requieren autenticación JWT, pero $wsApi inyecta el header Authorization automáticamente. Solución: usar $axios base para esas dos llamadas concatenando la baseURL manualmente.
+    - El evento 'ready' de Socket.IO no trae phone_number/pushname — solo {ws_ready: true}. Solución: al recibir 'ready', se hace un fetchSessionInfo() adicional via HTTP para obtener los datos completos de la sesión.
+- **Decisión Final y Justificación:**
+    - **Confirmación modal para Desvincular**: es una acción destructiva (borra credenciales, requiere nuevo QR scan). El reinicio no requiere confirmación porque conserva el vínculo.
+    - **Sección QR condicionada a estados iniciales**: no mostrarla cuando está READY/ERROR/DEGRADED evita confusión visual. Si el usuario necesita un nuevo QR, debe desvincular primero.
+    - **Salud del servicio en esta página**: es el lugar natural — el admin que gestiona la conexión WhatsApp es quien necesita ver si el servicio está degradado o si el circuit breaker de Gemini se abrió.
+    - **Mismo patrón de Socket.IO que WaInbox**: subscribe al room company-<id>, listeners con filtro de companyId, teardown en beforeDestroy. Consistencia entre componentes.
+    - **formatUptime adaptativo**: muestra segundos/minutos/horas/días según la magnitud, sin librerías externas.
+- **Herramienta(s) Utilizada(s):** Write, Read, Grep.
+- **Resultado:** Éxito.
+- **Verificación:**
+    - Componente creado y referenciado correctamente por pages/whatsapp/conexion.vue (que ya tenía <whatsapp-WaConexion />).
+    - Pendiente verificación visual en navegador tras levantar dev server.
+- **Logro Conseguido:** La página /whatsapp/conexion ahora tiene un panel completo para gestionar la conexión WhatsApp: estado en tiempo real, código QR para vincular, acciones de reinicio/desvinculación, y monitoreo de salud del servicio msg_ninesys.
+- **Referencias de Sesión (Contexto):** El backend (msg_ninesys) expone los endpoints desde Fases 4-5 (conexión Baileys) y Fase 9.4 (salud/observabilidad). El frontend consume $wsApi (plugin whatsapp.js) y $wsSocket (plugin socket.client.js) ya configurados.
+- **Observaciones de Gemini:** N/A — sesión ejecutada por Claude Opus 4.6.
+- **Respuesta de Claude:** Componente WaConexion.vue creado. Pendiente levantar dev server y verificar visualmente.

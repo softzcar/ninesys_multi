@@ -1,0 +1,11 @@
+- Solicitud del Usuario: En la página `/test`, cambiar la funcionalidad de recarga de tabla. En lugar de ocultar la tabla y mostrar una alerta "Cargando Ordenes...", se debe usar un overlay que mantenga la tabla visible (detrás) y muestre el mensaje de carga, evitando el "salto" visual.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue`
+- Acción Realizada: Se reemplazó la estructura `v-if="isLoading" ... v-else` por un componente `<b-overlay>` que envuelve la tabla de órdenes.
+    - Se configuró el overlay con `opacity="0.6"`, `spinner-variant="success"` y un slot personalizado con un spinner y el texto "Cargando Ordenes...".
+    - Se ajustó la lógica para mostrar la alerta "No hay ordenes" solo si `items.length === 0` Y `!isLoading`.
+    - Se cerró el tag `</b-overlay>` al final del bloque de la tabla.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó la estructura del código para asegurar que el overlay envuelve correctamente el contenedor y que las condiciones `v-if/v-else` manejan adecuadamente los estados de "Cargando", "Vacío" y "Con Datos".
+- Observaciones de Gemini: El cambio estabiliza la interfaz de usuario al evitar que el contenido principal (la tabla) desaparezca durante las actualizaciones de datos en segundo plano.
+- Respuesta de Gemini: Se ha implementado el overlay de carga para la tabla de órdenes en `/test`. Ahora la tabla permanece visible con una capa superpuesta durante la recarga.

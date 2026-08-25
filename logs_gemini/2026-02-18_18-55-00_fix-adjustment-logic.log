@@ -1,0 +1,20 @@
+
+- Solicitud del Usuario: Explicar flujo de datos (y validación implícita de la lógica de "Guardar").
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado y Desplegado)
+- Acción Realizada:
+    - Backend: Se modificó el endpoint `/production/corte/ajuste`.
+    - Lógica Anterior: Insertaba un nuevo registro en `lotes_corte_ajustes` (tabla incorrecta para el contador de avance) o insertaba ciegamente en `inventario_corte` (lo que duplicaría sumas si se edita varias veces).
+    - Lógica Nueva: 
+        1. Recibe la cantidad total "Cortado" desde el frontend.
+        2. Elimina (`DELETE`) cualquier registro previo de ese producto en esa orden dentro de `inventario_corte`.
+        3. Inserta (`INSERT`) e nuevo valor.
+    - Esto garantiza que el campo "Avance" (que es un `SUM` de esta tabla) siempre refleje el valor exacto que el usuario ve en el input "Cortado".
+    - Despliegue: Se desplegaron los cambios al VPS.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación:
+    - Al guardar "5", Avance será 5.
+    - Al cambiar a "7" y guardar de nuevo, Avance será 7 (y no 12).
+- Observaciones de Gemini:
+    - Esta corrección era vital. Sin ella, cada "Guardar" hubiera inflado incorrectamente el avance.

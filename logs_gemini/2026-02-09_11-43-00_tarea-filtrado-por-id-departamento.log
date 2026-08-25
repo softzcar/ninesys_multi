@@ -1,0 +1,49 @@
+- Solicitud del Usuario: Cambiar el filtrado de estados por departamento para usar IDs de departamento en lugar de nombres, ya que los IDs son estándar y no editables en el sistema.
+
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/editar.vue
+
+- Acción Realizada:
+  - Reemplacé la comparación directa por nombre de departamento por un mapeo nombre→ID
+  - IDs de departamentos estándar (consultados de BD empresa 174):
+    * ID 5 = Administración
+    * ID 6 = Comercialización (y "Comecialización" con typo)
+    * ID 8 = Producción
+  
+  - El código ahora:
+    1. Lee el nombre del departamento de `dataUser.departamento`
+    2. Lo mapea a su ID usando un objeto `DEPT_IDS`
+    3. Compara usando el ID en lugar del nombre
+  
+  - Ventajas:
+    * Más robusto: evita problemas de encoding, mayúsculas/minúsculas, espacios
+    * Maneja el typo "Comecialización" automáticamente (lo mapea al ID 6)
+    * IDs son estándar y no editables según especificación del usuario
+  
+  - Logs de debugging mantienen información tanto del nombre como del ID
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (mysql queries), `grep_search`
+
+- Resultado: Éxito
+
+- Verificación:
+  - Código actualizado en local
+  - IDs de departamentos confirmados desde BD:
+    * api_emp_174.departamentos: IDs 1-8 con nombres
+    * api_empresas.empresas_usuarios: campo `departamento` (nombre, no ID)
+  
+  - Para verificar funcionamiento:
+    1. Usuario debe reiniciar servidor Nuxt
+    2. Recargar navegador completamente
+    3. Iniciar sesión con usuario de Comercialización
+    4. Intentar editar estado de orden
+    5. En consola ver: "DEBUG: ID de departamento: 6"
+    6. Debe ver SOLO opción "Entregada"
+
+- Observaciones de Gemini:
+  - La tabla `empresas_usuarios` NO tiene columna `id_departamento`, solo `departamento` (nombre)
+  - Por eso el mapeo nombre→ID se hace en el frontend
+  - El typo "Comecialización" está presente en la BD de departamentos (ID 6)
+  - Implementé manejo de ambas versiones (con y sin typo) en el mapeo
+
+- Respuesta de Gemini: (Ver mensaje final al usuario)

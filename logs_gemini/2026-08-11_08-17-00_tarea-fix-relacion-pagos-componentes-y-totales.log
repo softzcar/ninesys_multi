@@ -1,0 +1,9 @@
+- **Solicitud del Usuario:** Auditoría de la interfaz de usuario en el módulo Relación de Pagos (`TablaDePagos.vue` y `TablaDePagosReporte.vue`).
+- **Diagnóstico Realizado:**
+  - `TablaDePagosReporte.vue` (componente administrativo) no capturaba `datos_empleado` ni contemplaba las reglas de totalización por tipo de compensación (`Salario Fijo`, `Comisión`, `Salario + Comisión`), provocando discrepancias y valores `$0.00` o `NaN`.
+  - El formateador de minutos `tiempoTranscurridoEnMinutos` podía fallar ante fechas con espacio simple `"YYYY-MM-DD HH:MM:SS"`.
+- **Acciones Realizadas:**
+  1. En `TablaDePagosReporte.vue`: Se agregó `datosEmpleado` a `data()`, se capturó en `getOrdenesAsignadas()`, se añadieron las propiedades computadas `salarioFijo`, `debesMostrarSalario`, `debesMostrarComisiones`, `tipoCompensacion`, `totalComisionesTerminadas` y `totalComisionesPendientes`, y se actualizó la plantilla para mostrar los mismos badges y desgloses que `TablaDePagos.vue`.
+  2. En `TablaDePagos.vue` y `TablaDePagosReporte.vue`: Se hizo robusto el parser en `tiempoTranscurridoEnMinutos` reemplazando espacios por `'T'` e ignorando resultados `NaN`.
+- **Verificación:**
+  - Probado en caliente (hot reload) en el servidor de desarrollo, sin compilar bundles de producción (`npm run build` / `nuxt build`), según la regla `GEMINI.md`.

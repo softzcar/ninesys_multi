@@ -1,0 +1,14 @@
+- Solicitud del Usuario: en la página `/empleados/planilla-de-pagos` al terminar un pago usanod el modal que se abre al hacer click en el nobre del empleado tenemos la opción de "Imprimir" AL dedcirle que queremos imprimir nos mustra correctamente el dialogo de selecionar la improesora, pero si hacemos click fuera de ese dialogo este dialogo pasa a segundo plano quedando la aplicacion en primer plano pero no podemos interactuar con ella pues el dialogo de seleccionar imporesora sigue abierto en segundo plano. ¿Que laternativas tenemos para prevenir esta situión?
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+- Acción Realizada: Se modificó la lógica de impresión en los componentes afectados. Anteriormente, se abría una nueva ventana con dimensiones específicas (`width=800,height=600`) y se ordenaba su cierre automático (`window.close()`) inmediatamente después de llamar a `print()`. Esto causaba que, si el usuario interactuaba fuera del diálogo de impresión, la ventana emergente perdiera el foco y quedara "oculta" en segundo plano, bloqueando la interacción con la aplicación principal.
+    
+    La solución implementada consiste en:
+    1. Eliminar las restricciones de tamaño de la ventana para que se abra en una nueva pestaña del navegador (`window.open("", "_blank")`), lo cual es un comportamiento más estándar y gestionable por el usuario.
+    2. Comentar la instrucción `newWindow.close()` y aumentar ligeramente el timeout. Esto mantiene la pestaña de recibo abierta, permitiendo al usuario cerrarla manualmente cuando lo desee, evitando así que el diálogo de impresión quede "huerfano" o inaccesible en segundo plano.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó el código modificado para asegurar que `window.open` ya no incluye parámetros de dimensiones y que `newWindow.close()` está comentado. Esto garantiza que el recibo se abra en una pestaña persistente.
+- Observaciones de Gemini: Esta solución mejora la UX al dar control al usuario sobre el cierre de la pestaña de impresión y evita el estado de bloqueo de la UI.
+- Respuesta de Gemini: Se ha modificado el comportamiento del botón "Imprimir". Ahora, el recibo se abrirá en una nueva pestaña completa del navegador y esta no se cerrará automáticamente. Esto permite que, si haces click fuera del diálogo de impresión, simplemente cambies de pestaña en lugar de perder una ventana emergente en segundo plano. Podrás cerrar la pestaña del recibo manualmente una vez hayas terminado de imprimir.

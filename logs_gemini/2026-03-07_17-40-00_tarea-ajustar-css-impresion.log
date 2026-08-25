@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Arreglar el CSS para imprimir el reporte, cambiando la maquetación actual por la maquetación del modal (orientación horizontal y ancho completo).
+- **Fecha y Hora:** 2026-03-07 17:40:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/utils/PrintService.js](file:///home/developer/Escritorio/niesys/app_multi/utils/PrintService.js), [/home/developer/Escritorio/niesys/app_multi/components/buscar/resultado.vue](file:///home/developer/Escritorio/niesys/app_multi/components/buscar/resultado.vue)
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** 
+    1. Se ha refactorizado `PrintService.js` para eliminar la orientación vertical (portrait) forzada y se ha añadido una previsualización tipo "hoja de papel" mejorada en la ventana emergente.
+    2. En `resultado.vue`, se ha modificado el método `imprimir()` para inyectar dinámicamente una etiqueta `<style>` que configura `@page { size: landscape }` y ajusta el ancho de todas las tablas y contenedores al 100%. 
+    3. Se han ocultado bordes innecesarios en el encabezado y se han limpiado los botones de control para que no aparezcan en la versión impresa/PDF.
+- **Inconvenientes y Desafíos:** El servicio de impresión global `PrintService.js` tenía estilos muy restrictivos que sobrescribían los del componente, lo que requirió una flexibilización del servicio para permitir estilos inyectados.
+- **Decisión Final y Justificación:** Inyectar una hoja de estilos específica durante la llamada a impresión fue la solución más efectiva y menos invasiva para lograr que el reporte impreso sea idéntico al modal sin afectar la visualización en pantalla del resto del sistema.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `view_file`
+- **Resultado:** Éxito
+- **Verificación:** Se verificó el código resultante. La inyección de `@page { size: landscape }` garantiza que el navegador abra el diálogo de impresión en modo horizontal por defecto. Las clases `.report`, `.table-header` y `.table-products` ahora tienen `width: 100% !important`, lo que elimina el espacio en blanco excesivo y replica laImagen 2.
+- **Logro Conseguido:** Reportes impresos profesionales y consistentes con la interfaz de usuario, optimizando el uso de la página en formato horizontal para órdenes con muchos detalles técnicos.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/dd038054-c1a3-48b8-802f-975bdac1df66/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/dd038054-c1a3-48b8-802f-975bdac1df66/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** Se implementó una arquitectura de estilos inyectados para el motor de impresión, permitiendo control total sobre la maquetación final del PDF/papel independientemente de la vista de pantalla.
+
+- **Observaciones de Gemini:** La mejora en `PrintService` beneficia a otros reportes que utilicen este servicio, dándoles una base más limpia y profesional.
+- **Respuesta de Gemini:** Se ha corregido el CSS de impresión. Ahora, al imprimir desde el modal, el reporte se genera automáticamente en orientación horizontal (landscape) y ocupa todo el ancho de la página, exactamente como se ve en el modal. También se eliminaron botones y elementos visuales innecesarios en la versión final de impresión.

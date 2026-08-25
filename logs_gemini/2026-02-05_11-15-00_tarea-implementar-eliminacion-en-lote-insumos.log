@@ -1,0 +1,15 @@
+- Solicitud del Usuario: En la página `/insumos-productos` tenemos nuestro botón para asiganción de insumos [+ Insumos] este botón abre un modal donde asignamos insumos y tiempo Promedio al producto por departamento, en la parte inferior tenemos la sección "Insumos Asigandos" en esa tabla tenemos en la última columna el botón para elimnar un insumo, esto funciona correctamente, el nuevo requerimiento consiste en implementar un Check para seleccionar varios items y poderlos eliminar en una sola acción. Vamos a implementarlo y para evitar modificar el backend vamosa reutilizar el endpoint que ya funciona y lo que haremos es enviar a eliminar tantos items como se seleccionen, de esta manera simplificamos la implementación. Lo que si debemo hacer es recibir alguna verificacion de item eliminado y de haber un error notificarlo y recargar la interfaz en caso que ya no se esté haciendo.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionDeInsumosAProductosTab.vue`
+- Acción Realizada: Implementación de eliminación en lote de insumos asignados. Se realizaron los siguientes cambios:
+    1. Se agregó el estado `selectedItems` para rastrear los IDs seleccionados.
+    2. Se actualizó el array `fields` para incluir la columna `select`.
+    3. Se implementaron las propiedades computadas `allSelected` e `indeterminate` para el estado del checkbox maestro.
+    4. Se implementaron los métodos `toggleSelectAll` (selección masiva) y `deleteSelectedInsumos` (eliminación en lote).
+    5. El método `deleteSelectedInsumos` itera sobre los IDs seleccionados y realiza peticiones DELETE al endpoint existente.
+    6. Se actualizó la interfaz de la tabla con checkboxes y un botón de "Eliminar Seleccionados" dinámico.
+    7. Se corrigieron errores de sintaxis introducidos durante la edición del objeto `data()`.
+- Herramienta(s) Utilizada(s): `view_file`, `multi_replace_file_content`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión técnica del código implementado. Se confirmó que la lógica de selección afecta solo a los items filtrados y que el proceso de borrado dispara la recarga de datos.
+- Observaciones de Gemini: La implementación es poco invasiva y reutiliza la lógica de backend actual como se solicitó. Se aseguró que la selección se limpie tras cada recarga.
+- Respuesta de Gemini: He finalizado la implementación de la eliminación en lote de insumos. Ahora la tabla de "Insumos Asignados" cuenta con una columna de selección y un botón dinámico para borrar múltiples elementos a la vez, reutilizando el endpoint de eliminación individual. Se ha verificado que la interfaz se refresca automáticamente tras la acción.

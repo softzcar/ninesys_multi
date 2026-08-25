@@ -1,0 +1,33 @@
+- Solicitud del Usuario: Corregir error al ingresar a presupuestos desde el menú
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/pages/comercializacion/presupuesto/index.vue
+
+- Acción Realizada:
+  Corregido error en línea 18 del archivo index.vue donde había una referencia incorrecta a `dataUseraccessModule.accessData.id_modulo` que debía ser `this.accessModule.accessData.id_modulo`
+
+- Herramienta(s) Utilizada(s):
+  - view_file (para revisar los archivos de presupuesto/index.vue y ordenes/index.vue)
+  - replace_file_content (para corregir la línea con el error)
+  - write_to_file (para crear log)
+
+- Resultado: Éxito
+
+- Verificación:
+  El error en consola era:
+  ```
+  Property or method "dataUseraccessModule" is not defined on the instance but referenced during render
+  TypeError: Cannot read properties of undefined (reading 'accessData')
+  ```
+  
+  Se identificó que en la línea 18 se hacía referencia a `dataUseraccessModule` que no existe.
+  Comparando con ordenes/index.vue (líneas 10-11), se confirmó que debía ser `accessModule`.
+  Se corrigió cambiando `dataUseraccessModule.accessData.id_modulo` por `this.accessModule.accessData.id_modulo`
+
+- Observaciones de Gemini:
+  - Este error probablemente se introdujo en alguna edición manual anterior del archivo
+  - El archivo ya tenía el mixin `mixinLogin` que proporciona `accessModule` via computed property
+  - Ahora ambas condiciones en v-if usan correctamente `this.accessModule.accessData.id_modulo`
+
+- Respuesta de Gemini:
+  Error corregido. El archivo presupuesto/index.vue ahora hace referencia correcta a `accessModule` en lugar de `dataUseraccessModule`. La página de presupuestos debería cargar correctamente.

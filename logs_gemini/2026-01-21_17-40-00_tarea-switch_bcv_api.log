@@ -1,0 +1,8 @@
+- Solicitud del Usuario: cambiar la fuente de datos de nuestra implementacion para traer el dolar BCV desde `https://bcv.justcarlux.dev/api/v1/rates` en lugar de `ve.dolarapi.com`.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/plugins/currency-rates.js`
+- Acción Realizada: Se modificó la función `obtenerIndicadoresVenezuela` en el plugin `currency-rates.js`. Se agregó una llamada a la nueva API para obtener la tasa BCV. Se mantuvo la llamada a la API anterior como respaldo para la tasa Paralela y para robustez. Se actualizó la lógica de extracción de datos para adaptarse al formato JSON de la nueva API (`response.rates.usd` para BCV).
+- Herramienta(s) Utilizada(s): `grep_search`, `read_file`, `replace_file_content`, `run_command` (para pruebas).
+- Resultado: Éxito
+- Verificación: Se creó un script de prueba `test_currency.mjs` que importó la función modificada y ejecutó la consulta. El resultado mostró que la tasa BCV se obtuvo correctamente (347.2631) desde la nueva fuente, y la tasa Paralela se obtuvo de la fuente anterior.
+- Observaciones de Gemini: La nueva API parece ser más confiable para el dato BCV. Se implementó una lógica de fallback donde si no se encuentra el paralelo, se usa el BCV (o se intenta obtener de la vieja API) para evitar errores fatales en la aplicación, aunque en este caso la vieja API respondió con el paralelo correctamente.
+- Respuesta de Gemini: He actualizado el componente `plugins/currency-rates.js` para usar la nueva API `bcv.justcarlux.dev` para la tasa BCV. La integración fue exitosa y verificada mediante un script de prueba, confirmando que se obtiene el valor correcto (e.g. 347.2631). Las tasas paralelas se siguen obteniendo de la fuente anterior cuando es posible.

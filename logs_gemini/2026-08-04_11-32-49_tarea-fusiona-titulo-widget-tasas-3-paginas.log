@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Tras el deploy anterior, el usuario reportó (captura anotada "ESPACIO VACÍO") que `/comercializacion/cierre-de-caja` seguía viéndose con una franja vacía a la izquierda del widget de tasas, pese al fix ya aplicado.
+- **Fecha y Hora:** 2026-08-04 11:32:49
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/formMonedas.vue
+    - pages/comercializacion/cierre-de-caja.vue
+    - pages/comercializacion/abonos.vue
+    - pages/comercializacion/retiros/index.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. Descartada una falla de deploy o caché antes de tocar código: se verificó por SSH directo en el servidor de Desarrollo que el HTML generado (`/home/app.nineteengreen.com/public_html/comercializacion/cierre-de-caja/index.html`, timestamp reciente) YA NO tenía ninguna clase `offset-md-9`/`offset-lg-9`/`offset-xl-9` -- confirma que el fix anterior sí estaba desplegado y el problema reportado era real, no una versión vieja en caché.
+    2. Causa real: en `cierre-de-caja.vue` (y, se confirmó, también en `abonos.vue` y `retiros/index.vue`), el `<h1>` del título vive en una `b-row` separada de la fila del widget de tasas -- al quitar el offset, la fila del widget queda técnicamente sin columnas vacías reservadas, pero SIGUE siendo una fila propia, ancha, con el widget compacto anclado a la derecha -- el espacio a su izquierda sigue leyéndose como "vacío" porque literalmente no hay nada más en esa fila.
+    3. Corregido fusionando título y widget en la MISMA fila: `<div class="d-flex justify-content-between align-items-start flex-wrap"><h1>...</h1><form-monedas /></div>` -- el título queda a la izquierda, el widget a la derecha, compartiendo el espacio real en vez de cada uno con su propia fila. `flex-wrap` permite que el widget baje a una segunda línea en pantallas angostas, en vez de encimarse con el título.
+    4. Ajuste necesario en `formMonedas.vue`: su contenedor raíz tenía `width: 100%` fijo (agregado en el rediseño anterior) -- eso forzaba al widget a ocupar toda la fila SIEMPRE, rompiendo la fusión con el título (lo empujaba a su propia línea de todas formas). Quitado el `width: 100%` (se deja solo `max-width: 100%` para evitar desbordes) -- como elemento de bloque normal sigue llenando su contenedor cuando está solo, pero como ítem de flex ahora se ajusta a su propio contenido cuando comparte fila con el título.
+- **Inconvenientes y Desafíos:** El primer fix (quitar el offset) era necesario pero incompleto -- resolvía la reserva de columnas vacías del sistema de grillas, pero no la causa más profunda (título y widget en filas separadas). Se verificó primero en servidor antes de asumir que el código estaba mal, para no repetir trabajo a ciegas.
+- **Decisión Final y Justificación:** Se aplicó la fusión SOLO en las 3 páginas que efectivamente tienen un `<h1>` justo antes del widget en su propia fila (`cierre-de-caja.vue`, `abonos.vue`, `retiros/index.vue`) -- `nueva.vue` y `presupuesto.vue` no tienen ese patrón (el widget es lo primero en la página, sin título compitiendo por la fila), así que no lo necesitaban.
+- **Herramienta(s) Utilizada(s):** `ssh` + `grep` (verificación directa en servidor antes de tocar código), `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`, `nuxt generate` local completo antes de desplegar.
+- **Resultado:** Éxito.
+- **Verificación:** Los 4 componentes sin errores de sintaxis. Build local completo sin errores. Pendiente confirmación visual del usuario.
+- **Logro Conseguido:** Elimina la causa real y completa del espacio vacío (no solo el síntoma de columnas de grilla reservadas) en las 3 páginas donde título y widget competían por espacio.
+- **Observaciones:** Se corrigió también un efecto colateral del rediseño anterior (`width: 100%` fijo en `formMonedas.vue`) que hubiera bloqueado esta misma fusión en cualquier página futura que quisiera aplicarla.
+- **Respuesta de Claude:** El problema real era que el título y el widget estaban en filas separadas -- ya no se reservaba espacio de grilla, pero seguía viéndose vacío porque no había nada más en esa fila. Corregido poniendo el título y el widget en la misma línea (título a la izquierda, tasas a la derecha), que se reorganiza en pantallas angostas.

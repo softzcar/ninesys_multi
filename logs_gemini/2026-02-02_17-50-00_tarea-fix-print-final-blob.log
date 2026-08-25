@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Quejarse de que la interfaz sigue bloqueada hasta que se imprime o cancela.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosDisenioResumen.vue
+- Acción Realizada: Se reemplazó el uso de `window.document.write` por la creación de un `Blob` de tipo `text/html` y la navegación a una URL generada con `URL.createObjectURL(blob)`.
+    Además, se fuerza explícitamente la desconexión de la ventana nueva con `newWindow.opener = null`.
+    Esto asegura que la nueva ventana corra en un contexto lo más aislado posible del hilo principal de la aplicación, evitando que el diálogo de impresión (que es modal a nivel de pestaña) bloquee el loop de eventos de la ventana padre.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó el código y se confirmó que ahora se usa `Blob` y `opener = null`.
+- Observaciones de Gemini: Esta es la técnica más robusta para evitar bloqueos por `window.print()` en navegadores modernos.
+- Respuesta de Gemini: Confirmación final del cambio a Blob URL para aislamiento total del proceso.

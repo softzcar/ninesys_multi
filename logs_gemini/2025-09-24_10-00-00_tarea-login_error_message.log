@@ -1,0 +1,21 @@
+- Solicitud del Usuario: [vamos a revisar nuestro archivo @mixins/mixin-login.js cuando recibimos `data->access:false` también podemos recibir un mensaje, si se recibe ese mensaje hay que mostrarlo, este es un ejemplo de una respuesta con esas características: `{
+  "msg": "El email emp_wiz_01 @email.com no está registrado en el sistema.",
+  "data": {
+    "access": false,
+    "id_empleado": null,
+    "departamento": null,
+    "nombre": null,
+    "username": null,
+    "email": null,
+    "comision": 0,
+    "acceso": 0,
+    "orden_proceso": 0
+  }
+}`]
+- Archivos Involucrados: [/home/developer/Escritorio/niesys/app_multi/components/login/form.vue]
+- Acción Realizada: [Se modificó el componente `form.vue` en la sección de login para que al recibir una respuesta con `access: false` se muestre el mensaje de error que retorna la API.]
+- Herramienta(s) Utilizada(s): [`default_api.replace`]
+- Resultado: [Éxito]
+- Verificación: [Se verificó que el código se haya modificado correctamente en el archivo `components/login/form.vue`.]
+- Observaciones de Gemini: [Inicialmente se pensó que la lógica estaba en `mixin-login.js` pero al analizar el código se encontró que la llamada a la API y la gestión de la respuesta se encuentra en `components/login/form.vue`.]
+- Respuesta de Gemini: [He modificado el componente de inicio de sesión para que muestre el mensaje de error específico de la API cuando el acceso es denegado. Por favor, verifica que el comportamiento sea el esperado.]

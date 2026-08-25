@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Ok funciona, pero se ve raro el badget dentro dle input-group vamos a hacer se vea solo el badget al ado del input
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionMasivaModal.vue`
+- Acción Realizada: Refinamiento técnico final de la UI del modal de asignación masiva.
+    1. Se desmanteló el `b-input-group` para el campo de cantidad base.
+    2. Se implementó una estructura basada en `d-flex` y `align-items-center`.
+    3. El badge de modo ahora se sitúa externamente al input, eliminando el borde gris del grupo de entrada.
+    4. Se añadió `white-space: nowrap` al badge para asegurar que el texto no se rompa en múltiples líneas.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión del template resultante. Se confirmó que la alineación es correcta y que el badge mantiene su visibilidad y dinamismo fuera del contenedor del input.
+- Observaciones de Gemini: Este cambio proporciona una estética mucho más limpia y profesional, siguiendo la tendencia de diseño moderna donde los indicadores no están atrapados dentro de los campos de entrada.
+- Respuesta de Gemini: He realizado el ajuste final en la posición del badge. Ahora se encuentra fuera del grupo de entrada, alineado a la derecha del input de cantidad. Esto elimina el borde de fondo gris y hace que la interfaz se vea mucho más aireada y profesional.

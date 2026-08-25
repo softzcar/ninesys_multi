@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Frustración porque la interfaz sigue bloqueada por el navegador.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosDisenioResumen.vue
+- Acción Realizada: Se ha eliminado el script de auto-impresión (`window.onload... window.print()`) de las ventanas emergentes.
+    En su lugar, se ha añadido un botón HTML visible "🖨️ IMPRIMIR RECIBO" en la parte superior del documento generado.
+    Este botón permite que el usuario inicie la impresión manualmente.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito (técnico). Se espera éxito funcional.
+- Verificación: Se verificó que el script de automatización haya sido reemplazado por elementos del DOM pasivos (botón), rompiendo así la cadena de ejecución que el navegador usa para agrupar los procesos y bloquear la UI principal.
+- Observaciones de Gemini: El bloqueo de UI por `window.print()` es un comportamiento conocido y difícil de mitigar en navegadores modernos cuando se intenta automatizar. La interacción manual (clic del usuario en la nueva ventana) es la única garantía de 100% aislamiento.
+- Respuesta de Gemini: Explicación de que el problema es del navegador y propuesta de la solución de "Botón Manual" como arreglo definitivo.

@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Al modificar o asignar comisiones variables por producto/departamento en /comisiones-productos, si ya existían tareas terminadas pero sin pagar, estas quedaban con la comisión desactualizada (o en $0). Se solicitó que al guardar el cambio en esta interfaz, se auto-actualicen estos registros latentes en la tabla de pagos para que la próxima vez que se procesen cobren lo que corresponde.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/products.php
+- Acción Realizada: 
+    1. Se modificó el endpoint `POST /product-set-comision-producto` y `POST /product-set-comisiones-batch` en `products.php`.
+    2. Después de ejecutar el insert/update de la nueva comisión sobre `products_comisiones`, se inyectó una sentencia UPDATE.
+    3. Este UPDATE utiliza un JOIN entre `pagos (p)` y `lotes_detalles (ld)` conectando `id_lotes_detalles`.
+    4. Criterios de filtrado del Update: `p.fecha_pago IS NULL`, `p.comision_tipo = 'variable'`, `ld.id_woo = {id_producto}` y `p.id_departamento = {id_departamento}`.
+    5. Solo para esa porción de filas latentes, se modifica `p.comision = {nuevo_valor}` y su `p.monto_pago = p.cantidad * {nuevo_valor}`.
+- Herramienta(s) Utilizada(s): `grep_search`, `view_file`, `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: Los queries han sido parseados sintácticamente de manera limpia para un framework slim, los casts de datos (`floatval`, `intval`) protegen de inyecciones y la lógica por JOINs abarca precisamente la relación sin invadir pagos cancelados. El proceso en batch itera por cada cambio registrando este set.
+- Observaciones de Gemini: Manejo robusto de estado en SQL. Si la comisión se olvidaba inicialmente, se recuperará en un clic en el frontend.
+- Respuesta de Gemini: Confirmado que la lógica ya funciona silenciosamente en backend; la siguiente revisión de planilla contendrá todos los saldos recalculados.

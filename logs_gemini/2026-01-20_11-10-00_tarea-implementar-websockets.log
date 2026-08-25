@@ -1,0 +1,46 @@
+- Solicitud del Usuario: Implementar WebSockets para reemplazar polling en el servicio de WhatsApp (msg-ninesys)
+
+- Archivos Involucrados:
+  Backend (VPS):
+    - /home/ozcar/msg-ninesys/websocket.js (NUEVO)
+    - /home/ozcar/msg-ninesys/app.js (MODIFICADO)
+    - /home/ozcar/msg-ninesys/controllers/whatsappController.js (MODIFICADO)
+  Frontend (app_multi):
+    - plugins/socket.client.js (NUEVO)
+    - nuxt.config.js (MODIFICADO)
+    - components/checkConnection.vue (MODIFICADO)
+
+- Acción Realizada:
+  1. Backend:
+     - Instalado socket.io en el VPS
+     - Creado módulo websocket.js con Server de Socket.io
+     - Modificado app.js para usar http.createServer con WebSocket
+     - Agregada función getClientStatus al controller
+     - Agregados emits de WebSocket en eventos qr, ready, disconnected
+  
+  2. Frontend:
+     - Instalado socket.io-client
+     - Creado plugin socket.client.js para inyectar $socket en Nuxt
+     - Registrado plugin en nuxt.config.js
+     - Modificado checkConnection.vue:
+       - Agregadas variables useWebSocket y socketConnected
+       - Agregados métodos initSocket, setupSocketListeners, disconnectSocket
+       - Modificado onModalShow para usar WebSocket primero con fallback a polling
+       - Modificado onModalHide para limpiar conexiones
+
+- Herramienta(s) Utilizada(s): run_command, write_to_file, replace_file_content, multi_replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Backend inicia correctamente: "[WS] Servidor WebSocket inicializado"
+  - Frontend compila sin errores: "Client: Compiled successfully in 33.62s"
+  - Sesiones registradas de forma diferida (LAZY)
+
+- Observaciones de Gemini:
+  - La implementación usa WebSocket como método primario con fallback a polling
+  - Las sesiones no se inicializan automáticamente, solo cuando se solicita
+  - Commit previo guardado localmente (a6daa91) pero no pusheado por falta de credenciales
+
+- Respuesta de Gemini:
+  WebSockets implementados en backend y frontend. La aplicación ahora usa comunicación en tiempo real.

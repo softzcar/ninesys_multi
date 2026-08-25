@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Análisis de abonos y descuentos en las compras y si afectan correctamente las comisiones del vendedor, además verificar la consulta SQL.
+- Archivos Involucrados: `app/routes.php` (backend)
+- Acción Realizada: Se inspeccionaron los endpoints `/orden/nueva` y `/orden/abono` para visualizar el cálculo de `monto_pago` insertado en la tabla `pagos` para los vendedores. Se volvió a inspeccionar la consulta SQL expuesta en el `/pagos/vendedor/{id}` para determinar bugs de JOIN.
+- Herramienta(s) Utilizada(s): `view_file`
+- Resultado: Éxito
+- Verificación: Lectura estricta del código PHP ejecutado en el backend y cómo impactan en la BD.
+- Observaciones de Gemini:
+   1. **Sí, las comisiones se guardan y reflejan.** Por cada abono, se hace un `INSERT INTO pagos` y la sumatoria en el front es correcta.
+   2. **No, los descuentos no afectan la comisión.** La fórmula es `(abono * comision / 100)`. Si hay un descuento, el vendedor recibe menos comisión implícitamente porque un descuento reduce el abono que hace el cliente.
+   3. **Bugs en el SQL de `/relacion-de-pagos`:** 
+      - El JOIN con `abonos` genera un producto cartesiano que `GROUP BY a._id` colapsa, pero causa que las fechas mostradas en pantalla sean inexactas (suele mostrar la fecha del primer abono para todos los pagos asociados a la orden).
+      - El `LEFT JOIN metodos_de_pago` tiene una cláusula `OR a.id_metodos_de_pago IS NULL` que para el primer pago de la orden genera un bloqueo de base de datos porque cruza con TODA la tabla de métodos de pago, retornando un método aleatorio a la vista.
+- Respuesta de Gemini: (Explicación detallada de cómo se calcula y el estado de la consulta devuelta por chat)

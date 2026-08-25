@@ -1,0 +1,25 @@
+- Solicitud del Usuario: En la página /empleados/dashboard, en la sección "En Curso", el botón "Terminar Todo" abre un modal que muestra la sección de ingreso de material consumido incluso cuando el producto de la orden no tiene material asignado para el departamento actual (Corte). Solo se debe solicitar material si algún producto de la orden requiere material para el departamento que está terminando la tarea.
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+
+- Acción Realizada:
+  Se identificó que la causa raíz estaba en la lógica de "departamentos hermanos" dentro del computed `dataInsumosFiltrado`. Esta lógica incluye insumos del departamento Estampado (id=2) cuando el departamento activo es Corte. En la BD de empresa 174, el "Producto de pruebas 05" (id_woo=6) solo tiene insumos configurados en `product_insumos_asignados` para id_departamento=1 (Impresión) y id_departamento=2 (Estampado), no para id_departamento=3 (Corte). Al incluir los insumos de Estampado como propios de Corte, `materialEstimadoPorCatalogo.length` era > 0, lo que activaba `showSelect = true` en `evaluateShowSelect()` y mostraba la sección de material.
+
+  Se realizaron dos cambios en `SseOrdenesAsignadasModalExtra.vue`:
+
+  1. Se añadió un nuevo computed `dataInsumosFiltradoEstricto` (después del computed `dataInsumosFiltrado` existente) que filtra los insumos usando SOLO el `id_departamento` exacto del empleado actual, sin aplicar la lógica de departamentos hermanos.
+
+  2. Se modificó el método `evaluateShowSelect()` para que la detección automática use `dataInsumosFiltradoEstricto` en lugar de `materialEstimadoPorCatalogo`. Ahora la sección de material solo se muestra cuando hay insumos configurados específicamente para el departamento actual.
+
+  El computed `dataInsumosFiltrado` original se conservó intacto ya que se usa para mostrar el resumen de material y la asignación de rollos, donde la lógica hermana puede ser válida.
+
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: Pendiente de prueba manual. En la BD confirmado que el producto id_woo=6 NO tiene insumos para id_departamento=3 (Corte). Con el nuevo computed estricto, `dataInsumosFiltradoEstricto` devolverá array vacío para ese caso, por lo que `showSelect` permanecerá `false` y la sección de material no se mostrará.
+
+- Observaciones de Gemini: Se tomó la decisión de mantener el `dataInsumosFiltrado` original con su lógica hermana para preservar el comportamiento en otros contextos (visualización del resumen). Solo se cambia la lógica de activación del formulario. El fallback a la configuración global (`sys_mostrar_rollo_en_empleado_corte`) sigue intacto para casos donde la sección se desea mostrar aun sin insumos asignados explícitamente.
+
+- Respuesta de Gemini: Se corrigió el bug en el frontend. El modal "Terminar Todo" ya no mostrará la sección de ingreso de material cuando el producto de la orden no tenga insumos configurados para el departamento actual (Corte). El cambio agrega un computed `dataInsumosFiltradoEstricto` que filtra sin la lógica de hermanos, y lo usa en `evaluateShowSelect()`.

@@ -1,0 +1,12 @@
+- Solicitud del Usuario: ok en esas implementaciones debemos mejorar la comunicación con el usuario en caso que ocurra algun error al recibir o enviar datos, me he dado cuenta que la api generó un error y nuestra app se quedó pegada con el 'overlay = true' y no hizo mas nada, vamos a mejorar este aspecto
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/pages/tallas/index.vue
+  - /home/developer/Escritorio/niesys/app_multi/pages/atributos-productos.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/admin/TallasEditar.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/admin/AtributosEditar.vue
+- Acción Realizada: Se mejoró el manejo de errores en los CRUDs de Tallas y Atributos de Productos. Se añadieron bloques `.catch` a las llamadas de API que no los tenían (específicamente en los métodos de eliminación) y se estandarizó el uso de notificaciones `this.$bvToast` para todos los errores, asegurando que el `overlay` de carga siempre se oculte y que el usuario reciba una notificación visual del problema.
+- Herramienta(s) Utilizada(s): default_api.read_file, default_api.replace
+- Resultado: Éxito
+- Verificación: Se aplicaron reemplazos de código en 4 archivos para mejorar la robustez de las llamadas a la API y la retroalimentación al usuario.
+- Observaciones de Gemini: Se detectó una inconsistencia en el manejo de errores (algunos usaban `$fire`, otros `$bvToast`, y otros no tenían manejo). La estandarización a `$bvToast` mejora la consistencia de la experiencia de usuario. Es una buena práctica a mantener en futuras implementaciones.
+- Respuesta de Gemini: ¡Listo! He mejorado el manejo de errores en los CRUDs de Tallas y Atributos. Ahora, si ocurre un error en la comunicación con la API, el overlay desaparecerá y se mostrará una notificación de error al usuario.

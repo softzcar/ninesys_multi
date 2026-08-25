@@ -1,0 +1,15 @@
+- Solicitud del Usuario:
+    1. Error 500 "getaddrinfo for none failed" (sospecha de header Authorization incorrecto).
+    2. "Al crear la orden correctamente no sucede nada en la interfaz".
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/NewStockOrderModal.vue
+- Acción Realizada:
+    1. Se corrigió el header Authorization en `handleSubmit` para usar `this.$store.state.login.dataEmpresa.id` (igual que en `getProducts`), lo cual permite al backend conectar a la BD de la empresa correcta.
+    2. Se reemplazó el uso de `this.$toast` (que aparentemente no se mostraba bien o pasaba desapercibido) por `this.$fire` (SweetAlert), proporcionando un feedback visual claro y bloqueante de éxito o error.
+    3. Se aseguró que el modal se cierre (`localShow = false`) tras la confirmación de éxito.
+    4. Se subieron los cambios al repositorio.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command`
+- Resultado: Éxito
+- Verificación: Revisado código para asegurar coincidencia con backend response structure (`status: 'success'`).
+- Observaciones de Gemini: El uso de `this.$fire` es consistente con otros componentes como `nueva.vue`.
+- Respuesta de Gemini: Se han aplicado ambas correcciones (header y feedback visual). El usuario debe redesplegar el frontend.

@@ -1,0 +1,24 @@
+- Solicitud del Usuario: 
+  - Corregir el script de despliegue `/home/developer/Escritorio/niesys/ninesys-hub/bin/deploy.sh` que presentaba errores de "package.json not found" (ENOENT) al ser ejecutado desde el HUB de desarrollo.
+
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/deploy.sh (Archivo fuente modificado)
+  - /home/developer/Escritorio/niesys/ninesys-hub/bin/deploy.sh (Enlace simbólico)
+
+- Acción Realizada:
+  - Se diagnosticó que el script fallaba porque `npm` intentaba ejecutarse en el directorio del enlace simbólico (`ninesys-hub/bin/`) en lugar del directorio raíz del frontend (`app_multi/`).
+  - Se implementó una lógica de resolución de ruta absoluta al inicio del script `deploy.sh` utilizando `readlink -f` para garantizar que el `cd` siempre apunte al directorio real del proyecto.
+  - Se verificó la corrección ejecutando el script desde la ubicación del hub y confirmando que la compilación de Nuxt se inicia correctamente.
+
+- Herramienta(s) Utilizada(s): `view_file`, `run_command`, `replace_file_content`.
+
+- Resultado: Éxito ✅
+
+- Verificación:
+  - Ejecución remota/local desde symlink operativa. ✅
+  - Limpieza de `dist/` y `npm run generate` funcionando. ✅
+
+- Observaciones de Gemini: 
+  - La robustez del script ahora permite su ejecución desde cualquier punto del sistema de archivos, manteniendo la consistencia de las rutas relativas para rsync y backups.
+
+- Respuesta de Gemini: Log de reparación de ruta de despliegue generado.

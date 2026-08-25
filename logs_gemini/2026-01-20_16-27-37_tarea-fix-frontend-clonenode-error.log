@@ -1,0 +1,22 @@
+- Solicitud del Usuario: en la pagina `/comercializacion/ordenes` la interfaz me muestra un error que ves en la imagen y en la consola tengo estos errreos `a1cc39f.js:1 Fallo en la carga de datos iniciales: TypeError: e.cloneNode is not a function`
+
+- Archivos Involucrados: 
+    - `/home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue`
+
+- Acción Realizada: 
+    - Se analizó el stack trace y el código fuente, identificando que el error `TypeError: e.cloneNode is not a function` ocurría dentro de la librería SweetAlert2 (`this.$fire`) cuando se le pasaba un objeto de error (tipo Error o AxiosError) directamente a la propiedad `html`.
+    - Se utilizó `multi_replace_file_content` para modificar 7 ocurrencias en el archivo `components/ordenes/nueva.vue` (en los métodos `loadDataCustomers`, `loadDataTallas`, `loadDataTelas`, `loadDataProductos`, `loadProductAttributes`, `loadDataCategories`, `loadDataComercializacion`).
+    - Se reemplazó `html: err` por `html: \`<p>${err.message || err}</p>\`` para asegurar que se pase una cadena de texto a la librería.
+
+- Herramienta(s) Utilizada(s): `view_file`, `find`, `multi_replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: 
+    - Se verificó mediante lectura del archivo que todas las instancias problemáticas de `html: err` dentro de los bloques `.catch()` fueron reemplazadas por la versión segura que convierte el error a string. Esto asegura que si una petición falla, se muestre el mensaje de error en lugar de provocar un crash en la interfaz.
+
+- Observaciones de Gemini: 
+    - El error original de la "carga de datos iniciales" estaba siendo enmascarado por este crash en el manejo de la excepción. Ahora el usuario podrá ver cuál es el error real (probablemente un 500 o timeout en alguna de las APIs llamadas en `mounted`).
+
+- Respuesta de Gemini: 
+    - He corregido el error en `components/ordenes/nueva.vue`. El problema era que el sistema intentaba mostrar un objeto de error técnico directamente en una ventana emergente, lo que causaba el fallo `cloneNode`. He corregido el código para que extraiga y muestre el mensaje de texto del error. Por favor recargue la página; es probable que ahora vea un mensaje de error más descriptivo sobre qué dato falló al cargar (Clientes, Tallas, Productos, etc.), lo cual nos permitirá diagnosticar el problema de fondo si persiste.

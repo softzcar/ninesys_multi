@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Verificar la exactitud de "Balance de Pagos y Abonos" (tarjetas resumen y desglose por método de pago) y agregarle filtros por moneda y método de pago. Por separado, se pidió crear un reporte granular de transacciones de caja tras descubrir que el detalle de un "Otro Abono" no aparecía en ningún reporte existente.
+- **Fecha y Hora:** 2026-07-15 20:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/buscar/resultado.vue
+  - pages/comercializacion/reportes/pagos-abonos.vue
+  - pages/comercializacion/reporte-de-caja-transacciones.vue (nuevo)
+  - components/sidebars/SidebarAdmin.vue
+  - components/sidebars/SidebarComercializacion.vue
+- **Commits Relacionados:**
+    - Frontend: 0a623b8, 06899e7
+    - Backend: 0fc0421 (endpoint nuevo en ninesys-api)
+- **Acción Realizada:**
+  1. Se encontró un bug de cálculo real en `linkSearch` (`buscar/resultado.vue`): la fórmula de "RESTA" (saldo pendiente) no incluía la nota de crédito de la orden en absoluto, aunque el backend ya la calculaba y enviaba (`pago_nota_credito`). Por coincidencia numérica en el caso probado (orden 6185) el resultado daba $0.00, ocultando un saldo real de $20.00. Se corrigió sumando `pago_nota_credito` (misma convención de signo ya usada en `ordenes/abono.vue` y en el backend de `tables.php`), y se agregó una línea "NOTA DE CRÉDITO" visible en el modal.
+  2. El mismo bug de signo existía en "Balance de Pagos y Abonos": se restaba la nota de crédito en vez de sumarla, lo que además hacía que el resultado negativo se redondeara silenciosamente a $0 (ocultando el saldo real). Se corrigió con la misma fórmula, se separó `total_nota_credito` de `total_descuento` en los cálculos internos, y se agregó una columna "Nota de Crédito" visible en la tabla con su total en el pie.
+  3. Se agregaron filtros interactivos por moneda y método de pago a "Balance de Pagos y Abonos", generados dinámicamente a partir de los resultados cargados.
+  4. Se creó la página `reporte-de-caja-transacciones.vue`: listado línea por línea de movimientos de caja (fecha, monto, moneda, tipo, detalle, empleado) con filtros de fecha/moneda/tipo, consumiendo el nuevo endpoint de backend `/reporte-de-caja-transacciones`.
+- **Inconvenientes y Desafíos:** El primer intento de ubicar la nueva página de transacciones en `pages/comercializacion/reporte-de-caja/transacciones.vue` colisionó con el archivo ya existente `reporte-de-caja.vue`, generando una ruta anidada de Nuxt que nunca renderizaba (el padre no tenía `<nuxt-child/>`). Se resolvió moviendo la página a una ruta plana `reporte-de-caja-transacciones.vue`.
+- **Decisión Final y Justificación:** Se verificó matemáticamente con varias órdenes reales (6185, 6074, 6063, 6014, 5918, 5856) que la fórmula corregida (`total - descuento - abono + nota_credito`) coincide en todos los casos con lo mostrado en "Órdenes en Curso", confirmando que es la fórmula canónica correcta del negocio.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Write, Bash (curl para verificación en vivo, psql para cálculos de referencia), AskUserQuestion (para confirmar si se debía mostrar el saldo "actual" o histórico en Reporte de Caja, tema relacionado).
+- **Resultado:** Éxito
+- **Verificación:** Usuario confirmó en navegador que la orden 6185 muestra correctamente $20.00 de saldo pendiente en ambas vistas tras el fix, y que los nuevos filtros funcionan.
+- **Logro Conseguido:** Corregido un bug de cálculo financiero real que subestimaba el saldo pendiente de cobro en dos pantallas distintas de la aplicación; agregado un reporte de transacciones de caja que antes no existía en ninguna forma.
+- **Observaciones de Claude:** El mismo patrón de bug (signo de nota_credito invertido) apareció en dos componentes independientes que replicaban la misma fórmula manualmente sin compartir código -- candidato a extraer a un helper común en una futura refactorización, no realizada hoy por estar fuera de alcance.
+- **Respuesta de Claude:** Corregido y verificado en tiempo real junto con el usuario.

@@ -1,0 +1,8 @@
+- **Solicitud del Usuario:** Desplegar los cambios de `app_multi` hacia el servidor de desarrollo (`vps-contabo-dev` - `https://app.nineteengreen.com`).
+- **Acciones Realizadas:**
+  1. Se ejecutó el script oficial de despliegue `/home/developer/Escritorio/niesys/ninesys-hub/bin/deploy.sh` (Opción 2 - Desarrollo).
+  2. Transpilación limpia `npm run generate` completada para el entorno `DESARROLLO (Contabo)`.
+  3. Sincronización remota `rsync` hacia `/home/app.nineteengreen.com/public_html/` finalizada con éxito.
+- **Verificación:**
+  - `curl -I "https://app.nineteengreen.com"` retorna HTTP 200 OK.
+  - El servidor de desarrollo ya cuenta con el fix del encabezado `Authorization` en `axios-interceptor.js`.

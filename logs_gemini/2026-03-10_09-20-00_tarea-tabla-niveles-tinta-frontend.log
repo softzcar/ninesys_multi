@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Mostrar una tabla fija con los niveles de tinta (C, M, Y, K, W) y consumo estimado debajo del select de seleccionar impresora.
+- **Fecha y Hora:** 2026-03-10 09:20:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [components/admin/RecargaTintas.vue]
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** 
+    1. Se implementó una tabla reactiva en el componente de recarga de tintas que se activa al seleccionar una impresora.
+    2. Se añadieron métodos para obtener datos de la API filtrados por equipo (`fetchInkLevels`).
+    3. Se crearon badges visuales para los colores C, M, Y, K y W.
+    4. Se integró lógica para ocultar el color Blanco (W) si la impresora seleccionada no lo soporta (basado en tecnología CMYK vs CMYKW).
+- **Inconvenientes y Desafíos:** Asegurar que el cambio del ID de impresora limpiare correctamente los datos previos si la consulta fallaba o si no había impresora seleccionada.
+- **Decisión Final y Justificación:** Se eligió una tabla compacta sobre el resto del formulario para proporcionar contexto inmediato al operador sin interrumpir el flujo de recarga.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `multi_replace_file_content`
+- **Resultado:** Éxito
+- **Verificación:** Pruebas visuales locales confirmaron que la tabla aparece al seleccionar impresora y muestra "0.00" si no hay datos históricos.
+- **Logro Conseguido:** Mejora significativa en la UX de recarga de consumibles mediante feedback en tiempo real.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/f95b857c-df55-407e-88a0-1657bd0b03da/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/f95b857c-df55-407e-88a0-1657bd0b03da/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** La tabla usa estilos premium (badges) consistentes con el resto de la aplicación.
+- **Observaciones de Gemini:** La reactividad de Vue facilitó la integración del watcher para recargas de datos asíncronas.
+- **Respuesta de Gemini:** Formulario de recarga mejorado con tabla informativa de niveles y consumo.

@@ -1,0 +1,88 @@
+- Solicitud del Usuario: Corregir problema visual del switch - cuando se bloquea la desactivación de la última moneda activa, el switch queda visualmente desactivado aunque la lógica funciona correctamente.
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/pages/monedas.vue (MODIFICADO)
+
+- Acción Realizada:
+  1. PROBLEMA IDENTIFICADO POR EL USUARIO:
+     - La validación funciona: última moneda NO se desactiva
+     - El toast aparece correctamente
+     - El badge muestra "Activa" correctamente
+     - PERO: El switch visual queda en posición OFF (generando confusión)
+     - Si usuario hace clic nuevamente, vuelve a mostrar toast (más confusión)
+  
+  2. INTENTO 1 - $forceUpdate() (FALLIDO):
+     - Agregado this.$forceUpdate() antes del return
+     - RESULTADO: No funciona, switch permanece desactivado
+     - RAZÓN: $forceUpdate() no es suficiente con componentes BootstrapVue
+  
+  3. INTENTO 2 - $nextTick() (FALLIDO):
+     - Cambiado a this.$nextTick(() => { this.monedas = [...this.monedas] })
+     - RESULTADO: Tampoco funciona, switch sigue desactivado
+     - RAZÓN: Re-asignar array no fuerza re-render del checkbox en BootstrapVue
+  
+  4. SOLUCIÓN FINAL - Dynamic Key (EXITOSO):
+     - Agregado tableKey: 0 en data()
+     - Agregado :key="tableKey" en <b-table>
+     - Al bloquear: this.tableKey++
+     - RESULTADO: ✅ Switch vuelve a posición ON inmediatamente
+     - RAZÓN: Cambiar key fuerza destrucción y re-creación completa de la tabla
+  
+  5. IMPLEMENTACIÓN:
+     - Template: <b-table :key="tableKey">
+     - Data: tableKey: 0
+     - Método toggleActivo:
+       * Validación pasa (solo 1 activa)
+       * Muestra toast
+       * Incrementa tableKey++
+       * Return (no ejecuta resto)
+     - Tabla se re-renderiza completamente
+     - Todos los switches reflejan estado real
+
+- Herramienta(s) Utilizada(s):
+  - multi_replace_file_content (para modificar template, data y método)
+  - replace_file_content (intentos previos)
+
+- Resultado: Éxito
+
+- Verificación:
+  - PRUEBA FINAL DEL USUARIO:
+    * Desactivó todas las monedas excepto una
+    * Intentó desactivar la última moneda activa
+    * Toast apareció correctamente
+    * Switch PERMANECIÓ EN POSICIÓN ON (visual correcto)
+    * Badge muestra "Activa" (estado correcto)
+    * NO hay confusión visual
+  
+  - COMPORTAMIENTO ESPERADO:
+    * Click 1: Toast + Switch ON (bloqueado)
+    * Click 2: Toast + Switch ON (sigue bloqueado, correcto)
+    * Activar otra moneda → ahora puede desactivar la primera
+  
+  - CÓDIGO FINAL:
+    * Template: :key="tableKey" fuerza re-render
+    * Data: tableKey contador incremental
+    * toggleActivo: tableKey++ cuando bloquea
+    * Estado y vista sincronizados perfectamente
+
+- Observaciones de Gemini:
+  - El problema era específico de BootstrapVue y su manejo de checkboxes
+  - :checked (one-way binding) no sincroniza automáticamente hacia atrás
+  - $forceUpdate() no funciona bien con componentes de terceros
+  - $nextTick() + re-asignación tampoco es suficiente
+  - La solución con :key es la más robusta porque:
+    * Destruye completamente el componente
+    * Lo re-crea desde cero con estado fresco
+    * Garantiza sincronización perfecta
+    * Es el approach recomendado por Vue.js para estos casos
+  - Este patrón puede usarse en cualquier componente similar con problemas de sync
+  - Key dinámica tiene costo de performance pero imperceptible en esta tabla pequeña
+
+- Lecciones Aprendidas:
+  - Componentes de UI libraries tienen su propio manejo de estado
+  - Cuando :checked no sincroniza, usar :key dinámica
+  - Incrementar key es más confiable que $forceUpdate()
+  - Siempre probar visualmente, no solo lógicamente
+
+- Respuesta de Gemini:
+  Problema del switch visual corregido exitosamente usando key dinámica en la tabla. Ahora cuando el usuario intenta desactivar la última moneda activa, el switch permanece visualmente en posición ON, coincidiendo con el estado real y el badge "Activa". Se eliminó completamente la confusión visual. La solución usa :key="tableKey" que se incrementa cuando se bloquea la acción, forzando una re-renderización completa de la tabla y garantizando sincronización perfecta entre estado y vista.

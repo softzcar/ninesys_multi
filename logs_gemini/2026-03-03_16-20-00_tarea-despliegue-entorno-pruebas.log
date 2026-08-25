@@ -1,0 +1,13 @@
+- Solicitud del Usuario: ¿Has desplegado el backend en Hostinger para probarlo? No lo despleguemos en Contabo, recuerda que Contabo es producción.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/
+    - /home/developer/Escritorio/niesys/app_multi/
+- Acción Realizada: 
+    1. Se hizo commit y push de las últimas mejoras (`payments.php`, `products.php`) a GitHub en la rama `refactor/modular-routes` del backend.
+    2. Se ejecutó remotamente `git fetch y pull` en el VPS Hostinger (entorno de pruebas) sobre su ruta `/home/api.nineteengreen.com/public_html`.
+    3. Se ejecutó el script local `./deploy.sh`, seleccionando la Opción 2 para apuntar las APIs ambientales al entorno de Pruebas y enviar la compilación (dist) por rsync a `app.nineteengreen.com`.
+- Herramienta(s) Utilizada(s): `run_command`, `send_command_input`.
+- Resultado: Éxito
+- Verificación: Los logs de `git pull` en el VPS mostraron avance "Fast-forward". La salida de `deploy.sh` completó `nuxt generate` y subió `12.7 MB` de estáticos por rsync al servidor, declarando "DESPLIEGUE FINALIZADO CON ÉXITO".
+- Observaciones de Gemini: El despliegue abarcó tanto Frontend como Backend, emparejando ambos a la misma versión integral de las planillas de pagos y salarios administrativos unificados listos para Control de Calidad por el usuario.
+- Respuesta de Gemini: Ambos repositorios (Frontend por Nuxt-Generate y Backend por Git-Pull) fueron actualizados y desplegados exitosamente sobre el entorno de Pruebas (Hostinger - `nineteengreen.com`).

@@ -1,0 +1,15 @@
+LOG DE CAMBIOS - BITÁCORA DE TAREAS
+
+Fecha/Hora: 2026-07-03 16:41:00
+Tarea: Maquetación avanzada de tiempos, estados y diferenciación de iconos del dashboard de empleados.
+
+Descripción de los Cambios:
+1. SseOrdenesAsignadasV5.vue (Maquetación y Botón de Unidades):
+   - Se movió el badge de tiempo estimado (`time-badge` con la hora de entrega) a la fila inferior de información (`info-bottom-row`), posicionándose exactamente al lado del pill de estado (ej: "Urgente", "En proceso", "Pendiente").
+   - Se removió el texto "pzas" del badge de unidades de la tarjeta de acuerdo al requerimiento visual.
+   - Se transformó el badge de unidades (`pzas-badge`) en un `<b-button>` con la clase `.btn-pzas-badge` para que se maqueta e integre idéntico al resto de botones secundarios en la barra de acciones.
+   - Añadidos estilos específicos para `.btn-pzas-badge` para asegurar la correcta legibilidad de la cantidad de piezas y su responsividad en dispositivos móviles (previniendo que se oculte el texto por herencia).
+
+2. viewImage.vue & viewImageRevision.vue (Diferenciación de Iconos):
+   - Se modificó el icono del botón que abre la imagen de diseño, cambiándolo de `file-image` (que se asemejaba a un ojo) al icono `image` para representar inequívocamente una imagen/diseño gráfico.
+   - De esta manera, el botón de imagen de diseño (icono de paisaje fotográfico `image`) se diferencia perfectamente del botón de detalles de producción (icono de ojo `eye`).

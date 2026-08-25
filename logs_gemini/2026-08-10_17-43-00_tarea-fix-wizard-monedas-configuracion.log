@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** "/plan En la aplicacion setup_company cuando estamos configurando una nueva empresa se queda en el apartado de monedas hace poco se reprogramó como se manejan las monedas... Entiendes que me refiero al Wizard que corre en setup.nineteengreen.com ?"
+- **Diagnóstico Realizado:**
+  - El portal `setup.nineteengreen.com` (`setup_company`) permite crear empresas asignando un email vía `POST /setup/user`, el cual genera la base de datos `api_emp_{N}` pero deja `id_pais` en `null` y `catalogo_monedas` vacío.
+  - Al iniciar sesión por primera vez con las credenciales entregadas, `app_multi` despliega el "Asistente de Configuración de Ninesys" (`configuracionWizard.vue`).
+  - Al cargar el wizard, `MonedasManager.vue` se montaba inicialmente con `dataEmpresa.id_pais` en `null`, dejando arreglos vacíos de monedas y monedas soportadas.
+  - En el Paso 3 ("Datos de la Empresa"), al seleccionar el país y guardar, la API persigue `id_pais` y siembra automáticamente la moneda base por defecto (USD) en `catalogo_monedas`.
+  - Sin embargo, `MonedasManager.vue` no contaba con un `watch` sobre `dataEmpresa.id_pais` ni un refresco al cambiar de paso, por lo que al avanzar al Paso 4 ("Monedas") la pantalla continuaba mostrando la tabla y el desplegable vacíos.
+  - Al intentar avanzar al Paso 5 ("Horario Laboral"), la validación `monedasActuales.length > 0` bloqueaba al usuario impidiendo continuar.
+- **Archivos Modificados:**
+  1. `app_multi/components/empresa/MonedasManager.vue`:
+     - Agregado método `reloadAll()` para cargar monedas de la empresa, monedas soportadas y tasas de cambio en paralelo.
+     - Agregado `watch` sobre `$store.state.login.dataEmpresa.id_pais` para ejecutar `reloadAll()` cuando cambie el país de la empresa.
+     - Actualizado `mounted()` para usar `reloadAll()`.
+  2. `app_multi/components/empresa/ConfigMonedasForm.vue`:
+     - Agregada referencia `ref="monedasManager"` al componente `monedas-manager`.
+     - Implementado método `refreshData()` que invoca `reloadAll()` de `MonedasManager`.
+  3. `app_multi/components/empresa/configuracionWizard.vue`:
+     - Modificado `validateEmpresaStep()` para que, al guardar exitosamente los datos del Paso 3, invoque `this.$refs.monedasForm.refreshData()` y actualice automáticamente la lista de monedas y monedas soportadas antes de ingresar al Paso 4.
+     - Modificado `validateMonedasStep()` para sincronizar `this.monedasData` con `this.$refs.monedasForm.monedasActuales`, asegurando que los pasos subsiguientes (como Gastos Fijos) dispongan de la lista actualizada.
+- **Verificación:**
+  - Código auditado con `git diff`, sintaxis limpia sin errores.
+  - Cumplidas las reglas críticas de desarrollo: NO se realizó ningún build de producción (`npm run build` / `nuxt build`).

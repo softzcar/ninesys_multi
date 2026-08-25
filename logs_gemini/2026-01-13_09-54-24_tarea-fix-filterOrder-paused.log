@@ -1,0 +1,8 @@
+- Solicitud del Usuario: En la pagina `/empleados/dashboard` al pausar una orden, esta desaparecía de la lista y no se mostraba el botón para reanudar.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: Se actualizó el método `filterOrder` en `SseOrdenesAsignadasV4.vue` para incluir también órdenes con `status === 'pausada'`. Esto, en conjunto con la modificación previa a `dataTableEnCurso`, asegura coherencia en el flujo de datos hacia el modal de acciones.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de código para confirmar que el filtro ahora permite órdenes pausadas.
+- Observaciones de Gemini: Esta segunda modificación refuerza la corrección asegurando que si la lógica del modal dependiera de los items filtrados, estos estarían disponibles.
+- Respuesta de Gemini: Corrección completa aplicada a componentes de visualización y filtrado.

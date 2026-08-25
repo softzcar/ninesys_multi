@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Resolver la Orden 3191 de Maru que mostraba $0 y tenía 16 duplicados "vacíos" generados por un bug de la API anterior, así como reformar el recálculo retroactivo.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/products.php
+- Acción Realizada: 
+    1. Se borraron vía sentencia MySQL SSH los 16 tickets de pago variables viejos y corruptos de "Montar Tallas" e "Impresión" para Maru en api_emp_163 y se inyectaron 2 tickets base en $0 para relanzarlos al recálculo.
+    2. Se refactorizó la sentencia UPDATE en products.php introduciendo Subconsultas correlacionadas `SUM()` que calculan la sumatoria usando la nueva tarifa, uniéndose con la tabla `ordenes_productos` para sumar de todos los productos y se cubrió el caso del Excedente de Corte con validaciones de "Salarios_tipo".
+- Herramienta(s) Utilizada(s): `run_command`, `multi_replace_file_content`, `write_to_file`.
+- Resultado: Éxito
+- Verificación: Se ejecutó manual y preliminarmente la sentencia del Mega Update sobre la base de datos de Pruebas. Transformó los tickets insertados en $0.00 a exactamente $32.00 (1.6 commission * 20 products), validando que la conjunción y sumatoria por lote respeta la tarifa combinada.
+- Observaciones de Gemini: El rediseño estructural del query abarca un cálculo compuesto total evitando tener un ticket por producto individual, acoplándose al nuevo modelo de pago unificado de la Planilla y librándolo de errores pasados.
+- Respuesta de Gemini: El ticket de actualización en masa fue parcheado y el servidor Hostinger está asimilando la nueva reestructuración de Backend.

@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Corregir error "TypeError: Cannot read properties of null (reading 'split')" al visualizar órdenes de stock, asignando fechas de la orden original e inicializando pagos en cero.
+- Archivos Involucrados: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php
+- Acción Realizada: Se modificó el endpoint `/production/corte/crear-orden-stock-manual`. Se actualizó la consulta `INSERT INTO ordenes` para incluir `fecha_inicio` y `fecha_entrega` (copiadas de la orden original) y establecer `pago_abono`, `pago_total`, `pago_descuento` en 0.
+- Herramienta(s) Utilizada(s): view_file, repalce_file_content
+- Resultado: Éxito
+- Verificación: Revisión de código para asegurar que los parámetros coinciden con los marcadores de posición en la consulta SQL y que la lógica cumple con los requisitos del usuario.
+- Observaciones de Gemini: El error ocurría porque el frontend no enviaba fechas para este tipo de órdenes y la base de datos no tenía valores por defecto, resultando en NULL. La solución de heredar fechas mantiene la consistencia con la orden padre.
+- Respuesta de Gemini: He aplicado la corrección en `production.php`. Las nuevas órdenes de stock ahora heredarán la `fecha_inicio` y `fecha_entrega` de la orden original, y los montos de pago se inicializarán en 0. Por favor, verifica creando una nueva orden de stock.

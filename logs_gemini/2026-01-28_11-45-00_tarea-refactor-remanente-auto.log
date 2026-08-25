@@ -1,0 +1,23 @@
+- Solicitud del Usuario: Refactorizar flujo de Terminación de Materiales:
+    1. Modal de empleados debe ser solo de confirmación (sin input de remanente).
+    2. El cálculo del remanente debe ser automático en backend (lo que sobre = remanente).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    1. Backend:
+        - Se implementó lógica para `auto_remanente`: Si es `true`, busca la cantidad actual en la DB, la guarda en `remanente` y luego pone `cantidad` a 0.
+        - Se prioriza `remanente` explícito (para futuro uso admin) sobre `auto_remanente`.
+    2. Frontend:
+        - `SseOrdenesAsignadasModalExtra.vue`:
+            - Se modificó el modal `batchItems` para eliminar inputs y mostrar solo una lista de confirmación.
+            - Se actualizó `handleBatchTerminarConfirm` para enviar `auto_remanente: true` en lugar de leer valores manuales.
+            - Se actualizó la firma de `postInventarioMovimientos` para aceptar el nuevo flag.
+- Herramientas Utilizadas: `replace_file_content`, `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación:
+    - Al marcar "Terminar" y enviar, debe salir un modal con la lista de items.
+    - Al confirmar, backend debe recibir dos peticiones: una de consumo y luego una de fin con auto_remanente.
+    - El inventario final debe quedar en 0 y el remanente debe ser igual a (Cantidad Inicial - Consumo).
+- Observaciones de Gemini: Flujo simplificado exitosamente para reducir errores de input humano en planta.
+- Respuesta de Gemini: Refactorización completada. Modal simplificado y cálculo automático activado.

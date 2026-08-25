@@ -1,0 +1,24 @@
+# Tarea de Optimización de Filtrado: Dashboard Empleados (SseOrdenesAsignadasV4.vue)
+Fecha: 2026-04-01 18:16
+Model: Antigravity (Deepmind)
+
+## Problema Identificado
+El Dashboard de Empleados presentaba un fallo donde el buscador manual (input) no encontraba órdenes que no hubieran sido cargadas inicialmente por el scroll infinito. Además, al intentar corregirlo inicialmente, se rompió la funcionalidad del scroll infinito.
+
+## Solución Técnica Implementada (Réplica de /test)
+Se adoptó el patrón exitoso de `/test` (`ControlDeProduccionPro.vue`) con las siguientes mejoras:
+
+1.  **Refactorización de Computadas (Filtrar -> Recortar)**:
+    - Se crearon propiedades `...Filtradas` que escanean el arreglo total de datos (Orden y Cliente).
+    - Las propiedades `...Visibles` ahora realizan el `.slice()` sobre estas listas filtradas.
+    - Esto permite que cualquier búsqueda devuelva resultados instantáneos de todo el set de datos.
+2.  **Reparación del Scroll Infinito (v-show)**:
+    - Se cambió el uso de `v-if` por `v-show` en los sentinels de IntersectionObserver.
+    - Esto garantiza que el navegador mantenga la vigilancia del scroll incluso al filtrar y limpiar la búsqueda.
+3.  **Encabezados Reactivos**:
+    - Se actualizaron los títulos de las tarjetas ("Total X") para que reflejen el número de coincidencias del filtro en tiempo real.
+4.  **Limpieza de Tags**:
+    - Se corrigió un error de sintaxis en el template (`b-row`, `b-alert` unclosed tags) derivado de una limpieza manual previa.
+
+## Resultado
+Dashboard 100% funcional, con búsqueda global operativa y scroll infinito estable.

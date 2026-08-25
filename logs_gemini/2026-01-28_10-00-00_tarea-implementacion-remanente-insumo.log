@@ -1,0 +1,20 @@
+- Solicitud del Usuario: Implementar registro de "Materia Restante" (Excedente/Retazo) al terminar un insumo.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/public/model/create_new_company_api_emp_N.sql
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    1. Base de Datos:
+        - Se agregó la columna `remanente` (DECIMAL 10,2) a la tabla `inventario` en las bases de datos `api_emp_174` y `api_emp_163`.
+        - Se actualizó el archivo `.sql` plantilla para que nuevas empresas incluyan este campo.
+    2. Frontend:
+        - Se implementó un modal `modal-terminar-insumo` que solicita la "Cantidad Restante" al usuario.
+        - Se modificó la lógica de `terminarRollo` para abrir este modal en lugar del `confirm` simple.
+        - Se actualizó el envío de datos a la API para incluir el campo `remanente`.
+    3. Backend:
+        - Se modificó el endpoint `/update-insumo` para detectar y guardar el valor `remanente` en la tabla `inventario`.
+- Herramientas Utilizadas: `run_command` (MySQL), `replace_file_content`, `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: Se verificó la estructura de la tabla, la sintaxis del frontend y el manejo de parámetros en el backend.
+- Observaciones de Gemini: Esta funcionalidad permite un cálculo más preciso de la eficiencia al considerar el material que sobró (retazos reutilizables o merma no consumida) en lugar de asumir consumo total.
+- Respuesta de Gemini: Funcionalidad completa. Base de datos actualizada, modal implementado y backend listo para recibir el dato.

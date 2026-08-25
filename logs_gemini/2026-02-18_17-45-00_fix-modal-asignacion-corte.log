@@ -1,0 +1,17 @@
+
+- Solicitud del Usuario: El modal de "Asignar Personal" (Lotes) no mostraba la tabla de productos ni permitía ajustes en la pestaña de "Corte".
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccionsse/asignar.vue (Modificado)
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/CorteItemView.vue (Modificado)
+- Acción Realizada:
+    - Se modificó `CorteItemView.vue` para soportar un modo `embedded` (incrustado), que muestra la tabla y el botón de guardar directamente sin necesidad de abrir otro modal.
+    - Se modificó `asignar.vue` para importar `CorteItemView` e inyectarlo en la pestaña de "Corte".
+    - Se creó una propiedad computada `uniqueOrderIds` en `asignar.vue` para agrupar los productos por orden y mostrar una tabla por orden dentro del lote.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación:
+    - Se integró la lógica visual solicitada.
+    - El componente ahora carga los detalles de corte al montarse (en modo embedded).
+    - Se mantiene la funcionalidad original de asignación de empleados.
+- Observaciones de Gemini:
+    - Esto permite al Jefe de Producción ver "lo solicitado vs lo cortado" y realizar ajustes antes o durante la asignación de personal.

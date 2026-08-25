@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Corregir el paso de datos al modal del botón azul, ya que `detalles_externos` no estaba funcionado.
+- Archivos Involucrados: 
+    - components/produccion/controlDeProduccionDetallesEditor.vue
+    - components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: 
+    1. Se renombró la prop `detalles_externos` a `detallesExternos` (camelCase) para cumplir con las convenciones de Vue.js de propiedades reactivas.
+    2. Se actualizó el HTML del padre para usar `:detalles-externos` (kebab-case).
+- Herramienta(s) Utilizada(s): replace_file_content, git push
+- Resultado: Éxito. La convención correcta asegura que Vue vincule la variable sin perder reactividad.
+- Verificación: Frontend push.
+- Observaciones de Gemini: Vue.js transforma automáticamente kebab-case en HTML a camelCase en JS, usar snake_case en props suele causar problemas.
+- Respuesta de Gemini: Corrección de nomenclatura aplicada y desplegada.

@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Mejorar la funcionalidad "Terminar Insumo" con experiencia de usuario avanzada y lógica de negocio estricta.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    1. Frontend (Mejoras UX):
+        - Se añadió un botón "Cargar Restante" (icono flecha abajo) dentro del modal para rellenar automáticamente la cantidad actual disponible del insumo.
+        - Se implementó la lógica `loadRemanente` que busca el insumo y calcula la cantidad (considerando metros para Estampado).
+        - Se cambió el botón de acción del modal a "Terminar" (rojo/danger).
+        - Se añadió una confirmación intermedia (`this.$confirm`) mostrando: "Consumido: X | Remanente: Y".
+    2. Backend (Lógica de Negocio):
+        - Se agregó una validación explícita para `tipo == 'fin'`.
+        - Si el tipo es 'fin', se fuerza `cantidad = 0` en la tabla `inventario`, indicando que el insumo se agotó o cerró, independiente del cálculo matemático de consumo.
+- Herramientas Utilizadas: `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación:
+    - El backend ahora pone en cero el stock al terminar.
+    - El frontend permite cargar el saldo restante con un clic.
+    - El usuario tiene una doble confirmación clara de los datos críticos antes de enviarlos.
+- Observaciones de Gemini: Esta implementación reduce errores manuales al permitir la carga automática del remanente y asegura la integridad del inventario al forzar el cierre en el backend.
+- Respuesta de Gemini: He aplicado las mejoras. El modal ahora tiene el botón de carga rápida, validación de datos final en un confirm y el backend cierra el stock a 0 correctamente.

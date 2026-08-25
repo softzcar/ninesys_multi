@@ -1,0 +1,10 @@
+- Solicitud del Usuario: Arreglar error en botón "Terminar Rollo" (envío de string completo en lugar de ID) y deshabilitar el botón cuando no hay insumo seleccionado.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada: 
+    1. Se añadió `:disabled="!row.item.select"` al botón para bloquearlo si el campo está vacío.
+    2. Se modificó el método `terminarRollo` para que extraiga el ID (split por '|') antes de llamar a `postInventarioMovimientos`.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó el código modificado. El botón ahora depende reactivamente de la selección del usuario y el payload enviado a la API será solo el ID numérico, evitando el error SQL en el backend.
+- Observaciones de Gemini: Esta corrección previene errores críticos de base de datos y mejora la UX al guiar al usuario a seleccionar un insumo obligatoriamente.
+- Respuesta de Gemini: He aplicado las correcciones. El botón ahora se deshabilita si no hay selección y el método extrae correctamente el ID antes de enviarlo.

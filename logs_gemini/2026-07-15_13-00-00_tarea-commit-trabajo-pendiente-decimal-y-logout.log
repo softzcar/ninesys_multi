@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** Al cierre de la jornada de revisión del módulo Administración, se pidió asegurar que todos los commits necesarios quedaran hechos. Se detectó que trabajo previo (componente CampoDecimal y fix de limpieza de sesión al logout) llevaba días en el working tree sin commitear.
+- **Fecha y Hora:** 2026-07-15 13:00:00 (commiteado retroactivamente; el trabajo en sí es de una sesión anterior, iniciada 2026-07-09 según log `2026-07-09_18-31-00_tarea-input-decimal-bancario-EN-CURSO.log`)
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/CampoDecimal.vue (nuevo)
+  - components/admin/AsignacionDePreciosForm.vue
+  - components/inventario/InsumoNuevo.vue
+  - components/inventario/ResumenSkuModal.vue
+  - components/ordenes/presupuesto.vue
+  - pages/logout.vue
+  - store/login.js
+  - components/layout/AppSidebar.vue
+- **Commits Relacionados:**
+    - Frontend: 6148262, cde32d2, 76f2dba
+    - Backend: N/A
+- **Acción Realizada:** Se revisó el diff de cada archivo pendiente para confirmar que el trabajo estaba completo y coherente (no a medio terminar) antes de commitear. Se agruparon en 3 commits temáticos: (1) componente CampoDecimal y su aplicación en los 4 formularios de montos, (2) limpieza completa de sesión en `logout.vue`/`store/login.js` (desregistro de Service Workers, borrado de caches, reseteo íntegro del estado de Vuex, no solo `dataUser`/`token`), (3) el mismo fix aplicado al botón "Salir" del sidebar (`AppSidebar.vue`), que usaba una ruta distinta y quedó desincronizado del fix anterior.
+- **Inconvenientes y Desafíos:** El primer intento de commit del punto (3) agrupó accidentalmente archivos de otra tarea (Retiros) por un `git add` mal encadenado; se detectó por el mensaje no coincidir con el `--stat` del commit y se corrigió con `git reset --soft HEAD~1` (nada se había subido aún) antes de rehacer el commit correctamente separado.
+- **Decisión Final y Justificación:** Se decidió commitear este trabajo carryover en vez de descartarlo o dejarlo pendiente indefinidamente, ya que el código estaba completo y funcional, y dejarlo sin commitear lo hace "inútil" según la política del proyecto.
+- **Herramienta(s) Utilizada(s):** Bash (git add, git commit, git reset --soft, git diff --stat), Read.
+- **Resultado:** Éxito
+- **Verificación:** `git status --short` limpio tras cada commit; se revisó `git show --stat` de cada commit para confirmar que el conjunto de archivos coincidía exactamente con lo descrito en el mensaje.
+- **Logro Conseguido:** Trabajo previo finalizado y puesto en git; ya no hay riesgo de perderlo, y queda desplegable.
+- **Observaciones de Claude:** Para el futuro: verificar `git status` al cierre de cada sesión, no solo al final del día, para evitar acumulación de trabajo sin commitear.
+- **Respuesta de Claude:** Se informó al usuario que se detectó y resolvió este backlog como parte del cierre de la jornada.

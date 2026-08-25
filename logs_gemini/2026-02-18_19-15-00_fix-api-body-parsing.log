@@ -1,0 +1,17 @@
+
+- Solicitud del Usuario: Corregir error 400 "Faltan datos requeridos" al guardar ajustes de corte.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado y Desplegado)
+- Acción Realizada:
+    - Análisis: Se detectó que `getParsedBody()` de Slim devolvía un array vacío a pesar de que el cliente enviaba JSON correcto. Esto puede deberse a configuración del servidor (LiteSpeed/Apache) o middleware.
+    - Debugging: Se verificó mediante logs que `php://input` sí contenía el JSON crudo correcto.
+    - Solución: Se implementó un "fallback" en el endpoint `/production/corte/ajuste`. Si `$data` está vacío, se lee manualmente `php://input` y se decodifica con `json_decode`.
+    - Limpieza: Se eliminaron los logs de debug temporales.
+    - Despliegue: Se desplegaron los cambios al VPS.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`, `run_command` (curl, ssh, git)
+- Resultado: Éxito (teórico, pendiente de confirmación de usuario).
+- Verificación:
+    - El comando `curl` local en el VPS confirmó que el cuerpo llegaba pero no se parseaba.
+    - El fallback debería capturar ese cuerpo crudo.
+- Observaciones de Gemini:
+    - Este tipo de problemas con BodyParsing en ciertos entornos de hosting es común. El fallback es una solución robusta.

@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** En "Recarga de Tintas": (1) no permitir recargar más ml que el stock disponible; (2) el input "Nivel actual en tanque (ml)" parecía ignorarse al mostrar el nivel resultante; (3) ¿existe un reporte de discrepancias entre lo calculado y lo reportado físicamente? (ver log espejo en ninesys-api para el diagnóstico completo, incluyendo la validación de stock en backend).
+- **Fecha y Hora:** 2026-07-17 19:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/admin/RecargaTintas.vue
+- **Commits Relacionados:**
+    - Frontend: fcb3090
+    - Backend: 3824226, aff6726 (ver log en ninesys-api)
+- **Acción Realizada:**
+  1. Se confirmó que la tabla "Estado Actual de Tanques" de este componente mostraba `tinta_restante_total_ml` (un acumulado histórico puro que nunca usa la corrección física `nivel_tanque_previo`) en vez de `tinta_restante_ultima_recarga_ml` (el campo correcto, que sí incorpora la última corrección física ingresada). Se corrigió el binding a este último.
+  2. Se agregó una columna nueva "Desperdicio (Ciclo Ant.)", usando el campo `desperdicio_ciclo_pasado_ml` que el backend ya calculaba (diferencia entre lo esperado por recarga+consumo del ciclo anterior y lo realmente reportado como nivel físico) pero que esta pantalla no mostraba — resaltado en rojo cuando es positivo (hay pérdida/derrame), replicando el mismo estilo visual ya usado en el "Reporte de Tintas Actuales" (`TintasActualReporte.vue`), que sí lo mostraba correctamente.
+  3. Se agregó el método `getInkLevelRaw()` (devuelve el valor numérico crudo, sin formatear) necesario para la comparación `> 0` en el binding de clase CSS, complementando al ya existente `getInkLevelValue()` (que devuelve el string formateado a 2 decimales).
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se agregó la columna de desperdicio directamente en esta pantalla (en vez de solo remitir al usuario al reporte separado) porque los datos ya se estaban obteniendo en la misma llamada a la API (`/impresoras-tintas-actual/{id}`) que alimenta esta tabla — mostrarlo aquí le da al empleado que hace la recarga visibilidad inmediata de cualquier discrepancia grande ANTES de completar el formulario, que es exactamente el momento en que más importa (para poder investigar un posible derrame antes de registrar la recarga).
+- **Herramienta(s) Utilizada(s):** Read, Edit.
+- **Resultado:** Éxito
+- **Verificación:** Revisión de código confirmando que ambos campos (`tinta_restante_ultima_recarga_ml`, `desperdicio_ciclo_pasado_ml`) ya vienen en la respuesta de `/impresoras-tintas-actual/{id}` que este componente ya consume (`fetchInkLevels`), sin necesitar ninguna llamada nueva a la API. Pendiente confirmación visual del usuario en navegador.
+- **Logro Conseguido:** La pantalla de Recarga de Tintas ahora muestra el nivel de tanque real (respetando correcciones físicas) y expone directamente la métrica de desperdicio/discrepancia que el usuario buscaba, sin necesitar navegar a otro reporte.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Corregido y desplegado a Contabo Dev junto con el fix de validación de stock en el backend.

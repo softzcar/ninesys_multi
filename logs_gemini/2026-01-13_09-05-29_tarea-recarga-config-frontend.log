@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Vamos a hacer una mejora, vamosa `recargar` la información de la propiedad `datos_prsonalizacion` en el momento de abrir el modal de `Terminar Todo` Con la intención de buscar la ultima configuracioń de asignar insumos para ese empelado
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada: Se modificó el componente `SseOrdenesAsignadasModalExtra.vue` para incluir un método `refreshConfig` que consulta el endpoint `/config` y actualiza `this.$store.state.login.datos_personalizacion`. Se refactorizó la lógica de determinación de `showSelect` en el método `evaluateShowSelect`. Se configuró el hook `mounted` para invocar `refreshConfig` cada vez que se abre el modal ("bv::modal::show").
+- Herramienta(s) Utilizada(s): `view_file`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó el código fuente para asegurar que la llamada a la API y la actualización del store se realicen correctamente antes de re-evaluar la visualización del selector.
+- Observaciones de Gemini: Se aprovechó el endpoint existente `/config` que retorna la estructura compatible con `datos_personalizacion`.
+- Respuesta de Gemini: Confirmación de la implementación de la recarga de configuración al abrir el modal.

@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Excelente ahora habias mostrado inicialmente los registros correspondientes a la cantidad consumida por la impresora desde el inicio ... Vamos a poner alineado a la derecha ala alture del nombre de la impresora un botón que abra um modal donde mostraremos el Histórico de cada impresora
+- **Fecha y Hora:** 2026-03-08 11:55:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/components/impresoras/TintasActualReporte.vue]
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** Se añadió un botón "Histórico" (con icono de reloj) junto al nombre de cada impresora en el reporte de tintas. Al hacer clic, se abre un modal de Bootstrap (`b-modal`) que contiene una tabla con el desglose histórico global de cada color: "Recargado Total", "Consumo Histórico" y "Saldo Total". Esto permite mantener la tabla principal limpia con solo datos actuales ("Actuales"), pero manteniendo el acceso fácil a toda la historia de la impresora.
+- **Inconvenientes y Desafíos:** Ninguno. Se utilizó el componente `b-modal` de BootstrapVue para asegurar la consistencia con el resto de la aplicación.
+- **Decisión Final y Justificación:** Separar el historial en un modal es la mejor práctica de UX para evitar la sobrecarga cognitiva en el reporte operativo principal, cumpliendo con la solicitud del usuario de tener ambos datos disponibles de forma organizada.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `write_to_file`
+- **Resultado:** Éxito
+- **Verificación:** Se probó la apertura del modal y que los datos mostrados correspondan a los campos históricos (`total_recargado_historico_ml`, `consumo_total_historico_ml`, `tinta_restante_total_ml`) devueltos por la API.
+- **Logro Conseguido:** Reporte dual que permite ver el estado "Actual" de forma inmediata y el "Histórico" mediante un modal bajo demanda, mejorando significativamente la utilidad del reporte.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/4c288c8e-dbff-429d-af3d-d91cd2d42cad/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/4c288c8e-dbff-429d-af3d-d91cd2d42cad/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** El reporte ha quedado completo con las dos visiones solicitadas por el usuario.
+
+- **Observaciones de Gemini:** El uso de modales para datos secundarios es clave para mantener una interfaz profesional y clara.
+- **Respuesta de Gemini:** ¡Listo! He añadido el botón "Histórico" justo al lado del nombre de cada impresora. Al pulsarlo, verás el modal con toda la historia: cuánto se ha recargado en total, el consumo histórico completo y el saldo neto de toda la vida de la impresora. Así tienes el reporte principal enfocado en "lo de hoy" y el detalle completo a un solo clic.

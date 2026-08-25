@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Cambiar el input de texto de "Talla" por un SELECT poblado desde la base de datos (`sizes`), replicando la lógica de creación de ordenes nuevas. También verificar las opciones de "Corte".
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/NewStockOrderModal.vue
+- Acción Realizada:
+    1. Se implementó el método `loadTallas()` en `NewStockOrderModal.vue` para obtener las tallas desde el endpoint `/sizes`.
+    2. Se reemplazó el `b-form-input` de Talla por un `b-form-select` vinculado a `id_talla` y `talla` (nombre).
+    3. Se verificaron y confirmaron las opciones de "Corte" (`cortesOptions`) que ya coinciden con `nueva.vue`.
+    4. Se actualizaron las validaciones para requerir `id_talla`.
+    5. Se subieron los cambios al repositorio frontend (`git push origin main`).
+- Herramienta(s) Utilizada(s): `write_to_file`, `run_command`
+- Resultado: Éxito
+- Verificación: Se revisó que el código carga las tallas al montar el componente y actualiza el nombre de la talla al seleccionar un ID.
+- Observaciones de Gemini: El endpoint `/sizes` ya existía y es compatible. El backend actualizado previamente espera `id_size`, lo cual ahora se envía correctamente como `id_talla` (el backend mapea `id_talla` a `id_size`).
+- Respuesta de Gemini: Se ha implementado el SELECT de tallas cargando datos reales y se confirmaron las opciones de Corte. Los cambios están listos para despliegue.

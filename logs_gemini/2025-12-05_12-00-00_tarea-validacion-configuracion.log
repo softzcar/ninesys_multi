@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Aplicar la misma validación de teléfono en el formulario de `/configuracion`.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/empresa/configuracionWizard.vue
+    - /home/developer/Escritorio/niesys/app_multi/mixins/phoneValidation.js
+- Acción Realizada: 
+    1. Se integró el mixin `phoneValidation` en `configuracionWizard.vue`.
+    2. Se implementó el método `handlePhoneBlur` para validar y formatear el teléfono al salir del campo.
+    3. Se añadió lógica inteligente para manejar la UI dividida (Select de País + Input de Teléfono): el sistema valida la combinación completa y, si es válida, actualiza ambos campos automáticamente.
+    4. Se actualizaron las validaciones de los pasos "Datos del Administrador" y "Datos de la Empresa" para usar la validación robusta.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (para tests).
+- Resultado: Éxito
+- Verificación: Se creó y ejecutó `test-config-validation.js` simulando los casos de uso (número local, número completo pegado, cambio de país). Todos los tests pasaron.
+- Observaciones de Gemini: La implementación respeta la UI existente (separación de código de país) pero asegura que los datos guardados sean válidos y consistentes.
+- Respuesta de Gemini: He aplicado la validación en la página de configuración. Ahora, tanto el teléfono del administrador como el de la empresa se validan y formatean automáticamente. Además, el sistema es capaz de detectar si el usuario pega un número completo (con código de país) en el campo y lo ajusta correctamente en la interfaz.

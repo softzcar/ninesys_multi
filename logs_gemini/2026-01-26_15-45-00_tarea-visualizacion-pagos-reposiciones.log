@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Los pagos por mano de obra de reposiciones no se veían reflejados/desglosados en el modal de pagos a empleados.
+- Archivos Involucrados:
+    - Backend: app/routes/payments.php
+    - Frontend: components/admin/PagosVendedorResumen.vue
+- Acción Realizada:
+    1.  Se modificó `payments.php` para incluir `id_reposicion` en las consultas de pagos pendientes (Fixed, Variable, Percentage).
+    2.  Se modificó `PagosVendedorResumen.vue` para agrupar los pagos considerando `id_reposicion` como clave única combinada con `id_orden`. Esto evita que el pago de la reposición se fusione visualmente con el pago de la orden original.
+    3.  Se añadió un badge "Reposición" en la tabla de detalles.
+- Herramienta(s) Utilizada(s): replace_file_content, git push
+- Resultado: Éxito. Ahora el usuario podrá distinguir qué pagos corresponden a reposiciones en la planilla.
+- Verificación: Backend y Frontend push.
+- Observaciones de Gemini: El flujo de datos de nómina depende de la API `/pagos/semana/empleados` que ahora expone correctamente el atributo identificador.
+- Respuesta de Gemini: Fix implementado. Pagos de reposiciones ahora se listan por separado.

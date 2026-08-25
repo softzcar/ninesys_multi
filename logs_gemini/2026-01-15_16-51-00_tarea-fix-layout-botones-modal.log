@@ -1,0 +1,66 @@
+- Solicitud del Usuario: Arreglar el layout de los botones en el modal de detalles de orden. Los botones (ícono ojo, "Ver original", "Productos") se amontonaban verticalmente cuando se mostraba la tabla de productos.
+
+- Archivos Involucrados:
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/components/produccion/controlDeProduccionDetallesEditor.vue
+
+- Acción Realizada:
+  Reemplacé los 3 divs con class="floatme" que contenían cada botón por separado, con un contenedor flex único que mantiene todos los botones en una línea horizontal:
+  
+  **Antes** (líneas 12-44):
+  ```vue
+  <div class="floatme">
+    <diseno-viewImage :id="idorden" />
+  </div>
+  <div class="floatme">
+    <b-button v-b-toggle.collapse-1>Ver original</b-button>
+    <b-collapse id="collapse-1">...</b-collapse>
+  </div>
+  <div class="floatme">
+    <b-button v-b-toggle.collapse-2>Productos</b-button>
+    <b-collapse id="collapse-2">...</b-collapse>
+  </div>
+  ```
+  
+  **Después**:
+  ```vue
+  <div class="d-flex flex-wrap gap-2 mb-3" style="gap: 0.5rem;">
+    <diseno-viewImage :id="idorden" />
+    <b-button v-b-toggle.collapse-1>Ver original</b-button>
+    <b-button v-b-toggle.collapse-2>Productos</b-button>
+  </div>
+  
+  <!-- Collapses fuera del contenedor flex -->
+  <b-collapse id="collapse-1">...</b-collapse>
+  <b-collapse id="collapse-2">...</b-collapse>
+  ```
+
+- Herramienta(s) Utilizada(s): replace_file_content, run_command (git commit)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Los botones ahora están en un contenedor flexbox con `d-flex flex-wrap`
+  - Se mantienen en línea horizontal y se adaptan a pantallas pequeñas con flex-wrap
+  - Los collapses están fuera del contenedor flex para que se desplieguen correctamente debajo
+  - El espaciado entre botones es consistente con `gap: 0.5rem`
+
+- Observaciones de Gemini:
+  - El problema era que class="floatme" probablemente usa CSS float que causaba el apilamiento vertical
+  - Usar flexbox es una solución moderna y responsive
+  - Los collapses se movieron fuera del contenedor flex para que se desplieguen correctamente debajo de los botones
+  - flex-wrap asegura que en pantallas muy pequeñas los botones se adapten sin romperse
+
+- Respuesta de Gemini: Layout de botones corregido exitosamente:
+
+✅ Botones se mantienen horizontales usando flexbox
+✅ Diseño responsive con flex-wrap para pantallas pequeñas  
+✅ Espaciado consistente entre botones
+✅ Collapses se despliegan correctamente debajo
+
+Ahora el modal muestra:
+```
+[Ícono ojo] [Ver original] [Productos]  ← Botones en línea horizontal
+[Tabla de productos al abrir collapse]   ← Se despliega debajo sin afectar layout
+```
+
+Cambio listo. Pendiente de despliegue junto con las mejoras de pagos.

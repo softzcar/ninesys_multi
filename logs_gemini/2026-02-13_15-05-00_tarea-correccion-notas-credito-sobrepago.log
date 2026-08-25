@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Analizar el error al devolver $100 mediante Nota de Crédito en una orden con sobrepago ($400). Mejorar interfaz para ser más clara en sobrepagos.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+- Acción Realizada: 1. Se modificó la validación en `hacerAbono` para permitir Notas de Crédito y operaciones que reduzcan el sobrepago. 2. Se implementaron etiquetas dinámicas ("Sobrepago" en color warning vs "Resta") para mejorar la claridad de la interfaz.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de la lógica de cálculo y visualización en el componente Vue.
+- Observaciones de Gemini: Se resolvió la confusión de la "Resta negativa" y el bloqueo injusto de devoluciones.
+- Respuesta de Gemini: He corregido el error en las devoluciones (Notas de Crédito) y mejorado la interfaz para casos de sobrepago.

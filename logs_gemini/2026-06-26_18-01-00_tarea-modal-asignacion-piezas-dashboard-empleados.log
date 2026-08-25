@@ -1,0 +1,28 @@
+# LOG DE TAREA: Modal de Asignación de Piezas al Clicquear el Badge en el Dashboard de Empleados
+
+**Fecha:** 2026-06-26 18:01:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha corregido y ajustado el comportamiento interactivo del badge de cantidad de piezas (`pzas-badge`) en el dashboard de empleados (`/empleados/dashboard`):
+
+1. **Sustitución de Componentes:**
+   - En lugar de abrir el modal de **Material Estimado** (`InsumosEstimadosVista`), el click sobre el badge de piezas ahora despliega directamente el modal de **Asignación de Piezas del Empleado** (`MiAsignacionVista`), que es exactamente la sección de desglose mostrada en `linkSearch`.
+   - Se instanció el componente `<empleados-MiAsignacionVista>` en todas las secciones de la pestaña Órdenes y Revisiones (Urgente, En Proceso, Pendientes) utilizando la prop `:idempleado="emp"` (pasando el ID del empleado activo logueado) e `:hideButton="true"` para evitar renderizar el botón redundante en la fila de acciones secundarias.
+
+2. **Refactorización de Referencias y JS:**
+   - Se modificó la referencia de los componentes en el template a `:ref="'asignacion-' + id_orden"`.
+   - Se renombró el método disparador a `abrirAsignacionPiezas(idorden)`, el cual obtiene la referencia `asignacion-ID` y ejecuta su método `openModal()` de manera consistente.
+   - En `MiAsignacionVista.vue`, se integró la prop `hideButton` de tipo `Boolean` (por defecto `false`) y se envolvió el botón `<b-button>` clásico con un `v-if="!hideButton"` para soportar este flujo de ocultación.
+
+3. **Consistencia Visual:**
+   - Se actualizó el tooltip visual del badge interactivo de piezas en el HTML a: `v-b-tooltip.hover title="Ver Asignación de Piezas"`.
+
+## Archivos Modificados
+- **Frontend:**
+  - [MiAsignacionVista.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/MiAsignacionVista.vue)
+  - [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Las modificaciones se compilaron y sincronizaron con éxito en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

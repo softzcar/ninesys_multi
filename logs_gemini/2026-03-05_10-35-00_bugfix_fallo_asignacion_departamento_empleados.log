@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** El usuario reportó que la empleada Eneida en la Planilla de Pagos aparece correctamente en 'Costura' en el servidor de Desarrollo (BD clonada), pero extrañamente aparece en el departamento de 'Ventas' en el VPS de Producción.
+- **Fecha y Hora:** 2026-03-05 10:35:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** 
+  - `components/admin/PagosEmpleados.vue`
+- **Commits Relacionados:**
+  - Frontend: commit reciente local en `main` (mensaje: "fix(pagos): unassigned employees default to 'Producción' instead of 'Ventas' on payment dashboard")
+  - Backend: N/A
+- **Acción Realizada:** 
+  - Se verificó la Base de Datos central (`api_empresas.empresas_usuarios`) en ambos servidores. Se descubrió que en la Base de Datos Local, Eneida estaba guardada con el departamento 'Costura', pero en Producción aún estaba como `NULL`.
+  - Se inspeccionó cómo el frontend maneja departamentos `NULL` que llegan del Endpoint de "Empleados de Producción".
+  - Se detectó un error lógico en la regla de _fallback_ en `PagosEmpleados.vue` que decía: `curr.origen === 'Diseñador' ? 'Diseño' : 'Ventas'`. Esta regla ignoraba silenciosamente a los empleados operacionales y los re-clasificaba masivamente como "Ventas".
+  - Se reescribió la expresión por una triple anidación que asigne correctamente: Diseñador -> "Diseño", Vendedor -> "Ventas", y de resto -> "Producción".
+- **Inconvenientes y Desafíos:** Entender por qué en un entorno fallaba y en otro no, considerando que las bases de datos "habían sido clonadas". La clave fue notar que la Base de Datos Central `api_empresas` no siempre se sobrescribe entre empresas, por lo que los valores de perfiles son distintos y disparaban la condición falsa del Frontend (NULL values triggering).
+- **Decisión Final y Justificación:** Limpiar la asignación estática ternaria defectuosa en el Frontend en lugar de forzar un departamento desde Base de Datos, previniendo que futuras contrataciones "en blanco" inyecten nuevos empleados a la lista de asesores de ventas por error.
+- **Herramienta(s) Utilizada(s):** `run_command` (MySQL y Git SSH), `grep_search`, `multi_replace_file_content`.
+- **Resultado:** Éxito
+- **Verificación:** Se inyectó la corrección JavaScript a `PagosEmpleados.vue` y se mandó el commit al repositorio remoto. Ahora, un empleado operacional genérico bajo "Administrativo o sin tareas" sin departamento preasignado, reflejará de forma coherente su departamento base neutro ('Producción').
+- **Logro Conseguido:** Consistencia entre los entornos de despliegue al manejar vacíos orgánicos (NULL) en las asignaciones de departamento de recursos humanos.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/72fdc126-34ec-4ea4-b3f3-3be096126eef/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/72fdc126-34ec-4ea4-b3f3-3be096126eef/walkthrough.md)
+- **Observaciones de Gemini:** La regla original causó el bug porque asumía el escenario binario "Si no es diseño, forzosamente es Ventas", desconociendo la rama general de Producción.
+- **Respuesta de Gemini:** Bug diagnosticado y resuelto en el Frontend. Eneida y cualquier otro administrativo sin departamento pasarán a "Producción" como etiqueta paraguas, eliminando la aparición fantasma dentro de Vendedores.

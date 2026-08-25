@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Conectar PC Manjaro a la red local con Windows, instalar y configurar el software de red necesario (grupo de trabajo "nineteen", red local tipo 192.168.0.X) para exponer puertos y permitir el descubrimiento. Cambiar el nombre de dominio local a uno más corto (`ninesys.local`).
+- Archivos Involucrados: /etc/samba/smb.conf, /etc/hosts
+- Acción Realizada: Instalación de paquetes `wsdd` y `nss-mdns` usando `pacman`. Creación de la configuración básica de Samba en `/etc/samba/smb.conf` asignando el grupo de trabajo (workgroup) a `nineteen`. Habilitación e inicio de los servicios del sistema `avahi-daemon`, `wsdd`, `smb` y `nmb`. Apertura de puertos en firewalld (80, 3000, 3001, mdns, samba, 5357/tcp, 3702/udp) y recarga del firewall. Cambio del hostname del sistema a `ninesys` mediante `hostnamectl`. Mapeo del nuevo dominio corto `ninesys.local` a `127.0.0.1` en `/etc/hosts` para evitar conflictos de difusión multicast y reinicio de `avahi-daemon`.
+- Herramienta(s) Utilizada(s): `default_api.run_command`, `default_api.write_to_file`
+- Resultado: Éxito
+- Verificación: `hostnamectl` confirma que el hostname actual es `ninesys`. El alias responde localmente a `ninesys.local`.
+- Observaciones de Gemini: Cambiar el hostname garantiza que el alias mDNS corto e internacionalmente compatible se anuncie automáticamente en la intranet como `ninesys.local`.
+- Respuesta de Gemini: Confirmación de la aplicación de los cambios de hostname a ninesys.local.

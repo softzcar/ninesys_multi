@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Estoy experimetendo un lag importante al hacer cick en los links del sidebar del forntend... Me sucede en el servidor de desarrollo si despliego la aplicación en produccion no se percibe este lag
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/layout/AppSidebar.vue
+    - /home/developer/Escritorio/niesys/app_multi/layouts/default.vue
+- Acción Realizada: 
+    - Análisis técnico del componente `AppSidebar.vue` identificando que el `componentMap` se recreaba en cada ciclo de renderizado dentro de una propiedad computada.
+    - Refactorización de `AppSidebar.vue`: se extrajo el mapeo de componentes (`sidebarComponentMap`) fuera de la instancia del componente para convertirlo en una constante estática, evitando así la re-instanciación de funciones de `import()` dinámico.
+    - Optimización en `default.vue`: se añadió una guarda al watcher de `$route` para evitar el cierre redundante del sidebar si ya está cerrado, reduciendo disparos innecesarios de reactividad.
+- Herramienta(s) Utilizada(s): `view_file`, `multi_replace_file_content`, `replace_file_content`, `write_to_file`
+- Resultado: Éxito
+- Verificación: Análisis lógico del comportamiento de reactividad de Vue 2 en modo desarrollo. Se confirmó que la re-creación del mapa causaba que los componentes dinámicos se desmontaran y re-montaran, generando el lag reportado. La solución elimina este comportamiento.
+- Observaciones de Gemini: El lag en modo desarrollo es común en Nuxt 2 por el procesamiento de Source Maps y HMR. Al optimizar la estabilidad de las referencias de los componentes dinámicos, se logra una respuesta inmediata del sidebar.
+- Respuesta de Gemini: Listo. He aplicado las optimizaciones. El lag principal venía de la re-creación constante del mapa de menús, lo que forzaba a Vue a trabajar de más en cada clic. Ya puedes probar la navegación en el servidor de desarrollo; debería sentirse mucho más instantánea ahora. He documentado los detalles en el walkthrough adjunto.

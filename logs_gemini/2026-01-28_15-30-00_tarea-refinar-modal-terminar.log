@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Refinar el modal "Terminar Insumo" (Admin).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/inventario/InsumoTerminar.vue
+    - /home/developer/Escritorio/niesys/app_multi/pages/inventario/gestion/index.vue
+- Acciones Realizadas:
+    1.  **InsumoTerminar.vue:**
+        - Se eliminó el campo "Observación".
+        - Se agregó la prop `cantidadActual`.
+        - Se muestra `cantidadActual` en el alerta de advertencia.
+        - Se añadió un botón "Cargar Actual" (icono arrow-down) en el input group del remanente.
+    2.  **Gestion/Index.vue:**
+        - Se actualizó el uso del componente para pasar `:cantidadActual="data.item.cantidad"`.
+- Resultado: Modal optimizado para verificación visual y carga rápida.
+- Respuesta de Gemini: Cambios de UI/UX aplicados.

@@ -1,0 +1,25 @@
+- Solicitud del Usuario: Cambiar el tema de la vista móvil de oscuro a claro, ya que la aplicación no implementa modo oscuro.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+
+- Acción Realizada:
+  1. Modificación de CSS (@media max-width: 991px):
+     - Fondo de tarjeta: De `#2a2a2a` (oscuro) a `#fff` (blanco) con sombra sutil.
+     - Bordes: De `#4e5d6c` (gris azulado oscuro) a `#ddd` (gris claro suave).
+     - Separadores: De `#444` a `#eee`.
+     - Texto: Color explicito `#333` (gris muy oscuro) para legibilidad sobre fondo blanco.
+     - Resaltado de Cliente: Fondo `#f8f9fa` (gris muy tenue) en lugar de `#313131`.
+     - Handle (Barra superior): Se mantuvo en `#375a7f` para conservar la identidad visual de la cabecera original.
+
+- Herramienta(s) Utilizada(s): 
+  * `replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: 
+  * El código CSS es válido.
+  * Los colores ahora son coherentes con un tema "Light" estándar (Bootstrap default style), manteniendo el acento verde `#00bc8c` que funciona bien en ambos fondos.
+
+- Observaciones de Gemini:
+  * Es importante recordar que aunque el tema global sea claro, a veces se usan componentes oscuros por contraste. Sin embargo, en formularios o listas de datos extensas, el fondo claro suele ser preferido por legibilidad en móviles.

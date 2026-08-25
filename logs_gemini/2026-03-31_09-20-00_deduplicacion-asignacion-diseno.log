@@ -1,0 +1,26 @@
+# Tarea: Optimización y Deduplicación de /diseno/asignacion
+Fecha: 2026-03-31
+
+## Estado Anterior
+- El componente `asignacion.vue` realizaba una llamada redundante al endpoint `/empleados`.
+- El estado de los empleados estaba duplicado entre la data local del componente y el store de Vuex.
+- Se detectaba una latencia alta en el servidor (corregida previamente en el backend).
+
+## Acciones Realizadas
+1. **Refactorización de asignacion.vue**:
+   - Eliminación del método `getEmpleados()` y su llamada en `loadAll()`.
+   - Eliminación de la propiedad local `empleados` (duplicada).
+   - Actualización de todas las propiedades computadas (`filteredDatax`, `designerOptions`, `sellerOptions`) para usar el store (`this.$store.state.disenos.empleados`).
+2. **Consolidación de Datos**:
+   - Se unificó el flujo de datos para que el store sea la única fuente de verdad.
+   - Ahora solo se realiza una petición (`/disenos`) que ya contiene toda la información necesaria.
+
+## Resultados
+- Reducción del número de peticiones de red al cargar la página.
+- Mejora en la mantenibilidad del código al eliminar estado duplicado.
+- Reducción de carga en el servidor de producción.
+
+## Archivos Involucrados
+- `app_multi/components/diseno/asignacion.vue`
+- `app_multi/store/disenos.js`
+- `ninesys-api/app/routes/employees.php` (optimización SQL previa)

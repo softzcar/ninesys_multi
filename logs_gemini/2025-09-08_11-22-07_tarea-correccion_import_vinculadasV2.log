@@ -1,0 +1,8 @@
+- Solicitud del Usuario: corrije ese error que me comentas
+- Archivos Involucrados: [/home/developer/Escritorio/niesys/app_multi/components/ordenes/vinculadasV2.vue]
+- Acción Realizada: Se añadió la importación y el registro local del componente `linkSearch.vue` dentro de `vinculadasV2.vue` para seguir las buenas prácticas de Vue y prevenir posibles errores de componentes no encontrados.
+- Herramienta(s) Utilizada(s): [default_api.replace]
+- Resultado: Éxito
+- Verificación: El archivo fue modificado y ahora contiene la importación y el registro del componente.
+- Observaciones de Gemini: Esta corrección mejora la robustez y mantenibilidad del componente.
+- Respuesta de Gemini: Listo. He corregido el componente `vinculadasV2.vue`. Ahora importa y registra localmente el componente `linkSearch`, lo que lo hace más robusto y previene posibles errores. Procedo a registrar esta corrección en la bitácora. ¿Hay algo más que necesites?

@@ -1,0 +1,92 @@
+- Solicitud del Usuario: Refinar la vista de pagos en /empleados/pagos para mostrar correctamente el tipo de compensación del empleado, ocultar comisiones cuando no aplican, mostrar "SALARIO PENDIENTE", y calcular el salario según el periodo de pago configurado.
+
+- Archivos Involucrados:
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/components/empleados/TablaDePagos.vue
+
+- Acción Realizada:
+  **1. Computed Properties Agregados**:
+  - `debesMostrarSalario()`: Retorna true si salario_tipo es "Salario" o "Salario más Comisión"
+  - `debesMostrarComisiones()`: Retorna true si salario_tipo es "Comisión" o "Salario más Comisión"
+  - `tipoCompensacion()`: Retorna objeto con configuración del badge (texto, variant, icono)
+  
+  **2. Modificación del Template**:
+  - Agregado badge de tipo de compensación visible después del título
+  - Condicionada sección de salario con `v-if="debesMostrarSalario && parseFloat(salarioFijo) > 0"`
+  - Cambiado texto de "SALARIO FIJO" a "SALARIO PENDIENTE"
+  - Envueltas secciones de comisiones en `<div v-if="debesMostrarComisiones">`
+  
+  **3. Modificación de Columnas en Tablas**:
+  - Removida columna de comisiones ($) de la definición inicial de fields.pendientes y fields.terminadas
+  - Agregada condicionalmente usando `if (this.debesMostrarComisiones) { fields.push(...) }`
+  
+  **4. Cálculo de Total Corregido**:
+  ```javascript
+  total() {
+    let total = 0;
+    if (this.debesMostrarSalario) {
+      total += parseFloat(this.salarioFijo);
+    }
+    if (this.debesMostrarComisiones) {
+      total += parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
+    }
+    return total.toFixed(2);
+  }
+  ```
+  
+  **5. Cálculo de Salario por Periodo**:
+  ```javascript
+  salarioFijo() {
+    const montoBase = parseFloat(this.datosEmpleado.salario_monto || 0);
+    const periodo = (this.datosEmpleado.salario_periodo || 'mensual').toLowerCase();
+    
+    let divisor = 1; // Mensual por defecto
+    if (periodo === 'semanal') divisor = 4;
+    else if (periodo === 'quincenal') divisor = 2;
+    
+    const montoPeriodo = montoBase / divisor;
+    return montoPeriodo.toFixed(2);
+  }
+  ```
+
+- Herramienta(s) Utilizada(s): multi_replace_file_content, replace_file_content, run_command (git commit), sed
+
+- Resultado: Éxito
+
+- Verificación:
+  - Para empleado con salario_tipo="Salario", salario_monto=400, salario_periodo="Semanal":
+    * Badge muestra: "💰 Salario Fijo"
+    * Salario muestra: "SALARIO PENDIENTE (SEMANAL) $100.00" (400/4)
+    * NO se muestran líneas de comisiones
+    * NO se muestran columnas de $ en tablas
+    * Total muestra: "$100.00"
+  
+  - Para empleado con salario_tipo="Comisión":
+    * Badge muestra: "📈 Por Comisión"
+    * NO se muestra línea de salario
+    * Se muestran comisiones y columnas de $
+    * Total suma solo comisiones
+  
+  - Para empleado con salario_tipo="Salario más Comisión":
+    * Badge muestra: "💼 Salario + Comisión"
+    * Se muestran ambas secciones
+    * Total suma salario + comisiones
+
+- Observaciones de Gemini:
+  - La interfaz ahora es completamente dinámica según el tipo de compensación
+  - El cálculo de salario por periodo es preciso y se ajusta automáticamente
+  - La visibilidad condicional mejora significativamente la UX
+  - Pendiente: implementar lógica para mostrar solo salario pendiente (no pagado) consultando tabla pagos_salarios
+
+- Respuesta de Gemini: Refinamiento completo de vista de pagos implementado exitosamente con 8 commits:
+  
+**Commits realizados**:
+- 3d36750: Agregados computed properties y cálculos de comisiones separados
+- 677dc8d: Template actualizado con badge y visibilidad condicional
+- d6c7c3d: Fix de template con div en lugar de template para v-if
+- 3ef4683: Columnas de tablas condicionales según salario_tipo
+- d42932a: Fix de sintaxis en columnas condicionales
+- 9804ed8: Salario calculado según periodo de pago
+- 1f0b981: Total calculado correctamente según salario_tipo
+- de6015d: Layout de botones modal arreglado con flexbox
+
+**Cambios listos para despliegue**.

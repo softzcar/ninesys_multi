@@ -1,0 +1,60 @@
+- Solicitud del Usuario: Corregir el problema de guardado de insumos al crear un nuevo producto desde la página /productos/gestion. El problema incluía: 1) cambiar variant del botón "Nuevo Producto" a "primary", 2) modificar el warning de comisiones que tenía un link incorrecto, 3) los insumos no se guardaban cuando se asignaban desde el modal de creación de producto (funcionaba correctamente desde /insumos-productos).
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/products/new.vue
+
+- Acción Realizada:
+  1. **UI/UX - Botón "Nuevo Producto"**: Agregado `variant="primary"` al botón en línea 3-6 de new.vue
+  
+  2. **UI/UX - Warning de Comisiones**: Modificado el alert warning (líneas 142-172):
+     - Eliminado el `<router-link>` que llevaba incorrectamente a `/comisiones-productos`
+     - Agregado texto informativo: "También debe asignar los insumos necesarios para la fabricación de este producto"
+     - Agregado botón "+ Insumos" centrado con `variant="primary"` y `@click="$refs.insumosAssignment.showModal()"`
+     - Agregado `ref="insumosAssignment"` al componente AsignacionDeInsumosAProductos
+  
+  3. **Corrección del Problema de Guardado**: Identificada la causa raíz - el backend devuelve `{ product: { _id: 123, ... } }` pero el componente AsignacionDeInsumosAProductosTab.vue espera `item.cod` (no `item._id`). Solución implementada en línea 295:
+     ```javascript
+     // Mapear _id a cod para compatibilidad con AsignacionDeInsumosAProductos
+     this.newlyCreatedProduct.cod = this.newlyCreatedProduct._id;
+     ```
+
+- Herramienta(s) Utilizada(s): `view_file`, `grep_search`, `view_code_item`, `multi_replace_file_content`, `replace_file_content`, `write_to_file`
+
+- Resultado: Éxito
+
+- Verificación: Cambios aplicados correctamente en el archivo new.vue. Se verificó mediante inspección de código que:
+  1. El botón "Nuevo Producto" ahora tiene variant="primary"
+  2. El warning muestra correctamente el botón de insumos en lugar del link incorrecto
+  3. El componente AsignacionDeInsumosAProductos tiene la referencia necesaria para ser invocado
+  4. El objeto newlyCreatedProduct ahora tiene la propiedad `cod` mapeada desde `_id`, lo cual permite que el guardado de insumos funcione correctamente al enviar `id_product` al endpoint POST /insumos-productos
+
+  **Falta verificación manual**: El usuario debe probar creando un producto nuevo y asignando insumos para confirmar que el guardado funciona correctamente.
+
+- Observaciones de Gemini: 
+  * El problema era muy específico: discrepancia entre nombres de propiedades (_id vs cod) entre el objeto devuelto por el backend y el esperado por el componente frontend
+  * La solución fue mínimamente invasiva: solo agregar una línea de mapeo
+  * Los cambios de UI mejoran significativamente la experiencia del usuario al eliminar navegación innecesaria y centralizar la funcionalidad
+  * El componente AsignacionDeInsumosAProductos es reutilizado correctamente, solo faltaba el mapeo de datos
+  * Se creó documentación completa: task.md e implementation_plan.md
+
+- Respuesta de Gemini: He corregido el problema de guardado de insumos al crear productos nuevos. Los cambios aplicados fueron:
+
+**Mejoras UI/UX:**
+- ✅ Botón "Nuevo Producto" ahora tiene variant="primary" (más visible)
+- ✅ Warning de comisiones mejorado: eliminado link incorrecto a `/comisiones-productos`
+- ✅ Agregado botón "+ Insumos" centrado en el warning para mejor accesibilidad
+
+**Corrección del Problema Principal:**
+- ✅ **Causa raíz identificada**: El backend devuelve `_id` pero el componente esperaba `cod`
+- ✅ **Solución**: Mapeo de `_id` a `cod` en el producto recién creado (línea 295)
+- ✅ Ahora los insumos se guardarán correctamente al usar el modal desde creación de producto
+
+**Próximo paso:** Por favor prueba el flujo completo:
+1. Ir a `/productos/gestion`
+2. Hacer click en "Nuevo Producto" (ahora con estilo primary)
+3. Crear un producto nuevo
+4. En el warning, usar el botón "+ Insumos" para asignar insumos
+5. Guardar las asignaciones
+6. Verificar en `/insumos-productos` que los insumos aparezcan correctamente
+
+Si encuentras algún problema durante las pruebas, avísame con detalles específicos.

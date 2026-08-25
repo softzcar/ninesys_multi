@@ -1,0 +1,36 @@
+- **Solicitud del Usuario:** "/plan probemos la opcion 1 entonces" -- seguido de "ok procedamos a restaurar la version de producciona la version estable respaldada"
+
+- **Fecha y Hora:** 2026-08-10 16:53:00
+
+- **Proyecto(s):** Frontend (`app_multi`) en Producción (`vps-contabo-prod`)
+
+- **Archivos Involucrados:**
+  - Archivos estáticos en `/home/app.nineteencustom.com/public_html/` (`vps-contabo-prod`)
+  - Archivo de respaldo: `/home/app.nineteencustom.com/backup_app_2026-08-10_14-45-47.tar.gz`
+
+- **Commits Relacionados:** N/A (restauración de compilación previa vía backup tar.gz)
+
+- **Acción Realizada:**
+  1. Se verificó primeramente por SSH el contenido y fechas de los backups automáticos del Frontend generados en `vps-contabo-prod`.
+  2. Se identificó el respaldo de seguridad `backup_app_2026-08-10_14-45-47.tar.gz` tomado a las 14:45 de hoy, inmediatamente antes del despliegue que desincronizó la versión del frontend con la API de Producción.
+  3. Se creó un respaldo preventivo adicional (`backup_app_2026-08-10_pre_rollback.tar.gz`) del estado desplegado a las 16:03.
+  4. Se vació el directorio público `/home/app.nineteencustom.com/public_html/` y se descomprimió el respaldo comprimido de las 14:45.
+  5. Se comprobó mediante `ls -la` en el servidor la restauración limpia de las carpetas y archivos estáticos (`index.html`, `200.html`, `comercializacion`, `admin`, etc.).
+
+- **Inconvenientes y Desafíos:** Ninguno. La extracción fue limpia e inmediata.
+
+- **Decisión Final y Justificación:** Se ejecutó la Opción 1 aprobada por el usuario para devolver la aplicación de Producción a su estado estable previo en menos de 1 minuto, eliminando la incompatibilidad de las llamadas automáticas a `/tasas-cambio` sin requerir una ventana de mantenimiento en la base de datos ni tocar el backend de Producción.
+
+- **Herramienta(s) Utilizada(s):** `Bash` (`ssh`, `tar`, `rm`, `ls`).
+
+- **Resultado:** Éxito.
+
+- **Verificación:**
+  - Comando `tar` ejecutado sin errores.
+  - Verificado el árbol de archivos en `/home/app.nineteencustom.com/public_html/`.
+
+- **Logro Conseguido:** Producción volvió a su versión anterior del frontend completamente funcional y estable, erradicando el error HTTP 405 reportado por el usuario.
+
+- **Observaciones:** Cuando se decida llevar la nueva versión del frontend a Producción, se deberán portar previamente las rutas `/tasas-cambio` y `/monedas` al backend de Producción (Opción 2) o realizar la migración a PostgreSQL (Opción 3).
+
+- **Respuesta:** Se restauró con éxito el respaldo previo del Frontend en Producción (`app.nineteencustom.com`).

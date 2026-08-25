@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Mover checkbox "Terminar" junto al botón de eliminar y agregar etiqueta "Terminar Material".
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se eliminó la definición de columna `terminar` del array `campos`.
+    - Se modificó el template `#cell(id)` para incluir un contenedor flex (`d-flex align-items-center`).
+    - Se colocó el checkbox al lado del botón de eliminar (trash icon).
+    - Se agregó dentro del checkbox un `<span>` con el texto "Terminar Material", estilizado en rojo negrita (`text-danger`, `font-weight: bold`) para resaltar la acción destructiva.
+- Herramientas Utilizadas: `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: Visualmente el checkbox ahora aparece a la derecha del botón de borrar en la misma celda, con su etiqueta explicativa.
+- Observaciones de Gemini: Esta disposición ahorra espacio horizontal y agrupa las acciones de gestión del ítem (borrar de la lista vs terminar en inventario).
+- Respuesta de Gemini: UI actualizada según mockup verbal del usuario.

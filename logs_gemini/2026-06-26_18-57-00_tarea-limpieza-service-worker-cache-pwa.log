@@ -1,0 +1,21 @@
+# LOG DE TAREA: Implementar Limpieza Automática de Service Worker y Caché de PWA
+
+**Fecha:** 2026-06-26 18:57:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha implementado un mecanismo de limpieza automática de Service Workers y Cache Storage del navegador al cargar la aplicación, para solucionar de raíz problemas de persistencia de caché de PWA en móviles y asegurar la propagación instantánea de los cambios de desarrollo.
+
+1. **Desregistro de Service Workers y Limpieza de Caché:**
+   - En [default.vue](file:///home/developer/Escritorio/niesys/app_multi/layouts/default.vue), se agregó el gancho de ciclo de vida `mounted()` con lógica para:
+     - Consultar todos los Service Workers registrados mediante `navigator.serviceWorker.getRegistrations()` y desregistrarlos llamando a `unregister()`.
+     - Eliminar todos los almacenes de caché registrados en el navegador con `caches.delete(name)` para forzar al navegador a descargar los archivos estáticos (JS, CSS, HTML) directamente de la red.
+
+## Archivos Modificados
+- **Frontend:**
+  - [default.vue](file:///home/developer/Escritorio/niesys/app_multi/layouts/default.vue)
+
+## Verificación y Despliegue
+- Los cambios se commitearon y subieron a la rama `refactor/modular-routes`.
+- Se lanzó la compilación y sincronización con el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

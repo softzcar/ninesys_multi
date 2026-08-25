@@ -1,0 +1,20 @@
+# LOG DE TAREA: Reestructuración de Órdenes Urgentes en Dashboard de Empleados
+
+**Fecha:** 2026-06-26 16:56:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha reestructurado la lógica y la interfaz visual para la gestión y visualización de las órdenes catalogadas como **URGENTES** (`prioridad > 0`) en el dashboard de empleados:
+1. **Sección URGENTES (Pendientes):** Se ha implementado una sección colapsable al principio de la pestaña "ÓRDENES". Esta sección muestra únicamente aquellas órdenes que son urgentes pero que aún **no se han iniciado** (sin fecha de inicio asignada).
+2. **Urgentes en Proceso:** Una vez que el empleado inicia una orden urgente, esta desaparece del contenedor superior colapsable de "URGENTES" y se traslada automáticamente a la sección **"EN PROCESO"**, mostrándose al principio de la lista.
+3. **Estilos Visuales (UX):** Las tarjetas de órdenes urgentes activas/en proceso reciben la clase CSS `urgent-card` (borde rojo de advertencia) y se les añade un pill o badge dinámico con el texto "Urgente" en color rojo de alta visibilidad.
+4. **Consistencia en Pestaña REVISIONES:** Se replicó exactamente el mismo comportamiento, clases y badges de "Urgente" en proceso en la sección de revisión de la pestaña **REVISIONES** (`revisionsInProcess`).
+5. **Estadísticas de Resumen (`summaryStats`):** Se adaptó el conteo del resumen de la cabecera para que `urgentes` contabilice de forma precisa solo las órdenes urgentes pendientes por iniciar.
+
+## Archivos Modificados
+- [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Modificaciones sincronizadas en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `ninesys-hub/bin/deploy.sh` (Opción 2 - Frontend).
+- Validación de base de datos en desarrollo: Se actualizó de manera manual y segura la prioridad de las órdenes de prueba **5423** y **5506** (de 0 a 1) en la base de datos `api_emp_194` del servidor de desarrollo para habilitar su visualización y pruebas de flujo completas.

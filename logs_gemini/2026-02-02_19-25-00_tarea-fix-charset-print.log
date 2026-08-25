@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Corregir la visualización de acentos y caracteres especiales (ñ) en la ventana de impresión.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/utils/PrintService.js
+- Acción Realizada:
+    1.  Se agregó `<meta charset="UTF-8">` al encabezado del HTML generado en `PrintService.js`.
+    2.  Se especificó `{ type: 'text/html; charset=utf-8' }` en la construcción del Blob.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de código. Se espera que los caracteres se rendericen correctamente en la nueva ventana generada por el Blob.
+- Observaciones de Gemini: Los Blobs creados localmente a menudo necesitan una declaración explícita del charset para que el navegador los interprete correctamente como UTF-8.
+- Respuesta de Gemini: Confirmación de la corrección de codificación.

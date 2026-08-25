@@ -1,0 +1,24 @@
+TAREA: Sincronización de Filtros de Estado de Pago (Orden 3900)
+FECHA: 2026-03-22
+SISTEMA: Frontend (app_multi)
+
+PROBLEMA:
+La orden ID 3900 aparecía incorrectamente en el filtro "Sobrepagadas" (Overpaid) a pesar de tener un saldo pendiente de $59.70 dolares. Esto causaba confusión entre el listado general y el modal de abonos.
+
+ANÁLISIS:
+- El modal utiliza el endpoint `/ordenes/abono/{id}` que consulta la tabla contable `abonos` (Fuente de verdad).
+- El filtro de la tabla en `activas.vue` recalculaba el saldo restando los pagos físicos de la tabla `metodos_de_pago` directamente.
+- Existía una discrepancia entre ambas tablas (posible arqueo manual o fallo de sincronización antiguo), donde el cliente tenía más pagos físicos registrados que abonos contables aplicados.
+
+CAMBIOS REALIZADOS:
+- Se modificó `app_multi/components/ordenes/activas.vue`.
+- Se reemplazó el cálculo manual del frontend por el uso directo del campo `saldo_pendiente`.
+- Se corrigieron los errores de Vue: `Computed property "totalRows" / "ordenesLength" was assigned to but it has no setter` al convertirlas en propiedades de `data`.
+
+REPOSITORIO:
+- Frontend: Commit 6124939 (Push realizado a origin main)
+- Backend: Sin cambios requeridos.
+
+VERIFICACIÓN:
+- Orden 3900 ahora se clasifica como "Pendiente" y muestra su deuda real de $59.70.
+- El filtro "Sobrepagadas" ahora solo muestra órdenes con saldo negativo real.

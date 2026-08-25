@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Alinear botón de imagen al lado del número de orden en modal de diseñadores.
+- Archivos Involucrados: components/admin/PagosVendedorResumen.vue
+- Acción Realizada: Se modificó el template para usar flexbox () y colocar el botón junto al número de orden.
+- Resultado: Diseño visual corregido según imagen de referencia.
+- Verificación: Despliegue en frontend completado.
+- Respuesta de Gemini: Notificación de ajuste visual.

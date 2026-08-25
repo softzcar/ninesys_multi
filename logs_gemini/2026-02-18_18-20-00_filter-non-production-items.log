@@ -1,0 +1,15 @@
+
+- Solicitud del Usuario: Filtrar "Diseño Gráfico" y productos no físicos en el modal de asignación de Corte.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado y Desplegado)
+- Acción Realizada:
+    - Se modificó la consulta SQL en el endpoint `/production/corte/orden-detalles/{id}`.
+    - Se añadió `LEFT JOIN products` y las condiciones `AND p.fisico = 1` y `AND (p.es_diseno = 0 OR p.es_diseno IS NULL)`.
+    - Se desplegaron los cambios al VPS.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (git, ssh)
+- Resultado: Éxito
+- Verificación:
+    - Despliegue exitoso en VPS.
+    - El usuario debería dejar de ver "Diseño Gráfico" en la lista de items para cortar.
+- Observaciones de Gemini:
+    - Esta corrección alinea la vista de Corte con la lógica de producción real, evitando confusión al asignar tareas sobre items intangibles.

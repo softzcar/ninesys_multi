@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Refinar la lógica de habilitación del botón "Terminar Rollo" para asegurar que solo se active cuando hay un insumo seleccionado y validado (certeza del ID), y desactivarlo si el usuario escribe texto no válido.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada:
+    1. Se agregó la propiedad `validInsumo` a los objetos del formulario (iniciada en `false`).
+    2. Se modificó el método `loadInsumos` (llamado al seleccionar del Typeahead) para establecer `validInsumo = true`.
+    3. Se añadió un listener `@input` en el Typeahead para establecer `validInsumo = false` si el usuario modifica el texto (pierde la certeza de la selección).
+    4. Se actualizó el botón para usar `:disabled="!row.item.validInsumo"`.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: La lógica garantiza que el botón solo esté activo tras una selección explícita del catálogo y se desactive ante cualquier modificación manual que pueda invalidar el ID.
+- Observaciones de Gemini: Esta implementación cumple estrictamente con el requisito de "certeza" del ID antes de permitir el envío.
+- Respuesta de Gemini: He implementado la validación estricta usando una bandera `validInsumo`. El botón se activa solo al seleccionar y se desactiva si se escribe en el campo.

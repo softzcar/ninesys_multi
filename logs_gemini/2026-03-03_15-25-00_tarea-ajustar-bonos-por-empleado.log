@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Interpretar los montos ingresados en el modal masivo de pagos como "monto por empleado" en lugar de dividir el monto total.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleadosTerminar.vue
+- Acción Realizada: 
+    1. Se modificó la lógica en `PagosEmpleadosTerminar.vue` para que la función `calcularTotalBonos` y `calcularTotalDescuentos` multiplique el monto ingresado en la interfaz por la cantidad de empleados a quienes se les pagará.
+    2. Se actualizó la compilación de la carga `pagosData` en el método `procesarPagos` para evitar dividir los bonos y descuentos entre `countEmpleados`, de forma que cada empleado reciba la cuota íntegra asignada en la interfaz.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: La estructura de payloads se comprobó garantizando que ahora cada empleado en el backend recibe la cifra completa ingresada por el usuario en el frontend, permitiendo al backend subdividirla correctamente por sus órdenes.
+- Observaciones de Gemini: El flujo actual ahora asume consistentemente el modelo "monto x empleado", evitando fragmentaciones no deseadas.
+- Respuesta de Gemini: Se le explicó al usuario la corrección implementada en frontend y cómo el backend requiere dividir operativamente la cifra entre las órdenes del propio empleado para mantener coherencia en la BD.

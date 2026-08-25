@@ -1,0 +1,66 @@
+- Solicitud del Usuario: Continuar con el frontend de la funcionalidad "Convertir Presupuesto a Orden"
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/presupuesto.vue (modificado)
+  - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php (endpoint backend)
+
+- Acción Realizada:
+  1. Agregadas variables de estado en data():
+     - presupuestoCargadoId: null (almacena ID del presupuesto cargado)
+     - modoConversion: false (indica si está en modo conversión)
+     - formConversion: {} (formulario con datos de pago)
+  
+  2. Agregado botón "Convertir a Orden":
+     - Visible condicionalmente con v-if="presupuestoCargadoId !== null"
+     - Variant warning con ícono b-icon-arrow-right-circle
+     - Llama a método iniciarConversionAOrden()
+  
+  3. Creado modal "modal-conversion-pago":
+     - Formularios para dólares (efectivo, zelle, banesco panamá)
+     - Formularios para pesos (efectivo, pago móvil)
+     - Campo de descuento
+     - Resumen con cálculo de abono y restante
+     - Botones de cancelar y confirmar
+  
+  4. Agregados computed properties:
+     - calculoAbonoConversion: suma todos los métodos de pago ingresados
+     - calculoRestanteConversion: calcula resta (total - abono - descuento)
+  
+  5. Agregados métodos JavaScript:
+     - iniciarConversionAOrden(): limpia formConversion, activa modoConversion, abre modal
+     - cancelarConversion(): resetea estado de conversión, limpia formConversion
+     - confirmarConversion(): valida pagos, llama endpoint backend, maneja respuesta, redirige
+
+- Herramienta(s) Utilizada(s):
+  - replace_file_content (para agregar variables y botón)
+  - write_to_file (para crear modal, computed y methods en archivos temp)
+  - run_command (sed para insertar modal y métodos en el archivo)
+  - multi_replace_file_content (para actualizar task.md)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Variables de estado agregadas correctamente en línea 653-654
+  - Botón insertado en la sección de botones principales (línea ~122)
+  - Modal insertado después del modal de órdenes guardadas (línea ~46)
+  - Computed properties insertados en sección computed (línea ~1007)
+  - Métodos insertados en sección methods (línea ~1166)
+  - Formulario formConversion agregado en data() con todos los campos necesarios
+  - Validación de al menos un método de pago implementada
+
+- Observaciones de Gemini:
+  - La funcionalidad permite editar el presupuesto antes de convertir (Opción B del usuario)
+  - El descuento es independiente del presupuesto (se ingresa nuevo en el modal)
+  - No se vincula presupuesto con orden en BD (según especificación del usuario)
+  - El botón solo aparece cuando presupuestoCargadoId tiene valor (presupuesto cargado)
+  - El modal incluye resumen en tiempo real de abono y resta
+  - Al confirmar conversión, se limpia formulario y resetea estado
+  - Usa tasas del store de Vuex para cálculos de conversión
+
+- Próximos pasos:
+  - Modificar método loadFormGuardadas() para detectar si es presupuesto finalizado
+  - Establecer presupuestoCargadoId cuando se carga presupuesto desde tabla "presupuestos"
+  - Probar flujo completo: crear presupuesto → guardar → cargar → convertir a orden
+
+- Respuesta de Gemini:
+  Funcionalidad "Convertir Presupuesto a Orden" implementada exitosamente en el frontend. Se agregó botón condicional, modal completo con formularios de pago, computed properties para cálculos y tres métodos para gestionar el flujo de conversión. El usuario puede ahora cargar un presupuesto, editarlo si es necesario, agregar datos de pago y convertirlo en una orden de producción completa.

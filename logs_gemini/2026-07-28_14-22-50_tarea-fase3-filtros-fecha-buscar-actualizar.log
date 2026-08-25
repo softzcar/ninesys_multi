@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** "Si, sigamos con la fase 3" (Reporte de Desviación de Costos: filtros de fecha + input Buscar + botón Actualizar).
+- **Fecha y Hora:** 2026-07-28 14:22:50
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosProductos.vue`
+- **Commits Relacionados:**
+    - Frontend: `9a4fa3a` (fechas por defecto), `70e4e28` (limpiar filtro al cambiar de vista)
+- **Acción Realizada:**
+    **Hallazgo #1 -- fechas por defecto desplazadas cerca de medianoche:** se detectó que `data()` calculaba las fechas por defecto con `new Date().toISOString().split("T")[0]`, el mismo bug de zona horaria ya corregido en `ReporteCostosProduccion.vue` (`.toISOString()` convierte a UTC; en America/Caracas, UTC-4, cualquier hora local entre ~20:00 y 23:59 cruza al día siguiente en UTC). Se corrigió con una función local `toFechaLocal()` autocontenida dentro de `data()` (usando `getFullYear()`/`getMonth()`/`getDate()`), evitando depender del orden de inicialización de Vue (métodos vs. data) al no delegar a un method externo.
+
+    **Hallazgo #2 -- filtro de búsqueda persiste al cambiar de vista, vaciando la tabla sin explicación:** se verificó en vivo (instrumentando la instancia Vue) que escribir en "Buscar" NO dispara peticiones a la API (el filtrado es 100% client-side vía un `computed` puro `filteredData`, arquitectura distinta a `ReporteCostosProduccion.vue` que sí tenía el bucle de reactividad -- aquí no aplica ese patrón). Sin embargo, al buscar un producto específico (ej. "Franela Sublimada") en la vista "Por Productos" y cambiar a "Por Categorías", el texto de búsqueda quedaba aplicado contra los NOMBRES DE CATEGORÍA (que nunca van a coincidir con un nombre de producto) -- dejando la tabla y las 4 KPI cards completamente vacías/en $0.00 sin ninguna indicación al usuario de que el filtro heredado era la causa. Confirmado visualmente con captura de pantalla antes del fix.
+
+    Se corrigió agregando `this.tableFilter = ""` y `this.selectedFilterProduct = null` al watcher de `viewMode`, antes de disparar `fetchData()`.
+
+- **Inconvenientes y Desafíos:** Ninguno significativo. Se verificó explícitamente que el botón "Actualizar" (`fetchData(true)`) resuelve el `overlay` a `false` correctamente (no queda colgado), y que la selección exacta vía typeahead (`onTypeaheadHit`) filtra correctamente a 1 solo resultado.
+
+- **Decisión Final y Justificación:**
+    Se optó por limpiar el filtro en vez de, por ejemplo, mantenerlo y mostrar un mensaje de "sin resultados" -- limpiar el filtro es el comportamiento menos sorprendente: el usuario ve inmediatamente los datos de la nueva vista, en vez de tener que darse cuenta de que debe borrar manualmente el campo de búsqueda para ver algo.
+
+- **Herramienta(s) Utilizada(s):** `mcp__claude-in-chrome__javascript_tool` (instrumentación de `fetchData` para confirmar 0 llamadas durante tipeo, simulación de escritura letra por letra, prueba de `onTypeaheadHit`, reproducción del bug de filtro heredado y verificación del fix), `mcp__claude-in-chrome__computer` (captura de pantalla del bug reproducido), `Edit`, `node --check`, `git diff`/`commit`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Tras desplegar el fix de fechas, se confirmó vía `javascript_tool` que `filters` calcula `{"inicio":"2026-06-28","fin":"2026-07-28"}` coincidiendo con la fecha local del sistema.
+    Tras desplegar el fix de filtro heredado, se reprodujo la secuencia completa en vivo: `tableFilter="Franela Sublimada"` en vista Productos → cambio a vista Categorías → `tableFilter` se limpia automáticamente a `""` y las 8 categorías reales se muestran completas (antes: 0 resultados).
+
+- **Logro Conseguido:**
+    Se completó la Fase 3 de la auditoría del Reporte de Desviación de Costos, corrigiendo 2 bugs de filtros: uno ya conocido de este proyecto (fechas por defecto en zona horaria) y uno nuevo específico de este reporte (filtro de búsqueda no se limpia al alternar entre "Por Productos" y "Por Categorías", dejando la vista vacía de forma confusa).
+
+- **Observaciones:** Se descartó, por diseño ya seguro, la posibilidad de un bucle de reactividad como el de `ReporteCostosProduccion.vue` -- este componente no usa las props nativas de filtrado de `b-table` (`:filter`/`:filter-included-fields`), sino un `computed` puro derivado de `tableFilter`, inmune a ese patrón de bug. Continúa la Fase 4 (tabla + modal "Tallas").
+
+- **Respuesta de Claude:** Se corrigieron 2 bugs en la Fase 3: las fechas por defecto se desplazaban un día cerca de medianoche (mismo bug ya corregido en el otro reporte de costos), y el filtro de búsqueda no se limpiaba al cambiar entre "Por Productos"/"Por Categorías", dejando la tabla y las KPI cards vacías sin explicación cuando el texto buscado no coincidía con ningún nombre de categoría. Ambos verificados en vivo tras el despliegue.

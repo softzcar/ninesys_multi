@@ -1,0 +1,8 @@
+- Solicitud del Usuario: El id de la emprsa estaba harcodeado al traer los productos en @[../../niesys/app_multi/components/buscar/BusquedaHistoricoModal.vue] lo he arreglado vamos a actualizar nuestro respositorio
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/buscar/BusquedaHistoricoModal.vue
+- Acción Realizada: Se reemplazó el ID de empresa harcodeado '1' por `this.$store.state.login.dataEmpresa.id` en los headers de autorización de las peticiones a `/buscar/{id}` y `/ordenes-observaciones/{id}`. Se realizó un commit con el mensaje "fix: remove hardcoded company id in BusquedaHistoricoModal" y se hizo push al repositorio.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (git)
+- Resultado: Éxito
+- Verificación: Se verificó el contenido del archivo modificado para asegurar que el reemplazo fue correcto. Se verificó el estado de git y la salida del push.
+- Observaciones de Gemini: El cambio asegura que la búsqueda en el histórico funcione para la empresa logueada actualmente en lugar de estar fija a la empresa 1.
+- Respuesta de Gemini: He corregido el ID de empresa harcodeado en `BusquedaHistoricoModal.vue` utilizando `this.$store.state.login.dataEmpresa.id`. Los cambios han sido confirmados y subidos al repositorio correctamente.

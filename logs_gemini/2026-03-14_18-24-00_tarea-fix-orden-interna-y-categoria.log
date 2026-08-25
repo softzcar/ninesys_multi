@@ -1,0 +1,35 @@
+- Solicitud del Usuario: 
+  1. Corregir error 500 al crear una orden interna (Relacionado con categorías de producto faltantes).
+  2. Solucionar problema de visualización de productos en el componente nueva.vue al cargar borradores de órdenes internas.
+
+- Archivos Involucrados: 
+  - Backend:
+    - /home/developer/Escritorio/niesys/ninesys-apidev/app/routes/orders.php
+  - Frontend:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  Backend:
+  - `orders.php`:
+    * Se agregó una validación robusta para el campo `categoria` en el payload de creación de órdenes. 
+    * Se utiliza `isset` y `!empty` para prevenir el error "Undefined array key 'categoria'".
+    * Se implementó un valor por defecto (0) en caso de que la categoría no esté presente, asegurando que la consulta SQL de inserción sea válida.
+  
+  Frontend:
+  - `nueva.vue`:
+    * Se ajustó el método para cargar borradores de órdenes internas, asegurando que el tipo de borrador se preserve al eliminarlo (`_tipo_borrador`).
+    * Se mejoró la lógica de carga de precios: ahora se identifica si un precio cargado desde un borrador no existe en las opciones actuales y se agrega dinámicamente con la etiqueta "(Precio cargado)".
+    * Se optimizó el manejo de `product_categories` para evitar errores de renderizado cuando los datos vienen de fuentes externas o borradores antiguos.
+
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `view_file`, `git`, `grep_search`.
+
+- Resultado: Éxito
+
+- Verificación:
+  - Pruebas de creación de órdenes internas exitosas sin errores 500. ✅
+  - Visualización de precios y categorías correcta al retomar borradores. ✅
+
+- Observaciones de Gemini: 
+  - El error de la categoría era persistente debido a que algunas órdenes (especialmente las internas o las cargadas vía Excel/Woo) no siempre traían el objeto de categoría completo en el payload de guardado.
+
+- Respuesta de Gemini: Log de corrección de orden interna y error de categoría generado.

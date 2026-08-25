@@ -1,0 +1,51 @@
+- **Solicitud del Usuario:**
+    1. "ok ahora vamos a la pagina `/reporte-eficiencia-empleados` Aqui vamos a verificar al igual que en los reportes ateriores que los datos que s estan mostando al usuarios ean correctos, de nuevo empezamos por verificar que la infromación que nos llega de la API es correcta y luego que le estemos procesando y mostrando correctamente en app_multi (ninesys) En esta pagina tenemos us SELECT que nos permite 'seleccionar' un empelado, fuciona aparentemente bien pero ese SELECT cocupa TODO EL ANCHO DE LA PANTALLA en vista de escritoro! es riduclo y poco usale, maquetalo de manera elagante, bnita y funcional."
+    2. "OK entonces aplica los fixes para los bugs que has detectado" (tras reportarse bug de eficiencia de tiempo inflada 60x)
+    3. "Si aditalo tabien por favor debemos asegurarnos de mosatrar datso reales" (auditar también columna EFICIENCIA INSUMOS)
+- **Fecha y Hora:** 2026-07-22 15:31:55
+- **Proyecto(s):** Frontend (Ambos, ver también log correspondiente en ninesys-api)
+- **Archivos Involucrados:**
+    - `components/empleados/ReporteEficienciaEmpleados.vue`
+    - `components/EficienciaDetalleModal.vue`
+    - `pages/reporte-eficiencia-empleados/index.vue` (solo lectura, sin cambios)
+- **Commits Relacionados:**
+    - Frontend: 8e456aa (layout del select), fcab278 (fix eficiencia tiempo 60x + modal minutos), b898e9f (N/A en vez de 0%)
+    - Backend: a5771ee (ver log correspondiente en ninesys-api)
+- **Acción Realizada:**
+
+    **1. Layout del selector de empleado:** el `<b-form-select>` ocupaba el 100% del ancho en escritorio (sin `<b-col>` que lo constriñera). Se envolvió en `<b-row class="mb-4 justify-content-center"><b-col cols="12" md="6" lg="4">` con `<b-form-group>` y label, y se agregó una clase `.empleado-select` con `border-radius`, `box-shadow` y transición en `:focus`, dando un aspecto centrado y proporcional en desktop mientras conserva el ancho completo en móvil.
+
+    **2. Bug de inflación 60x en EFICIENCIA TIEMPO:** `calcularEficiencia(orden)` dividía `orden.tiempo_empleado` entre 60 asumiendo (erróneamente) que `tiempo_estimado_de_produccion` estaba en minutos. Se verificó vía consulta directa a Postgres Dev que `products_tiempos_de_produccion.tiempo` está en SEGUNDOS (120 seg/unidad para producto 21/departamento 1; 120 × 19 unidades = 2280 = el valor exacto de `tiempo_estimado_de_produccion` devuelto por la API para la orden 5708) -- es decir, ambos valores (`tiempo_estimado_de_produccion` y `tiempo_empleado`) ya vienen en segundos desde el backend. Se eliminó la división errónea entre 60. Verificado en vivo: la orden 5708 pasó de mostrar 70515% a 1175.26%.
+
+    En el mismo commit, se corrigió `EficienciaDetalleModal.vue`: el campo "Tiempo Estimado" mostraba el valor crudo en segundos con la etiqueta hardcodeada " minutos". Se reemplazó por `formatDuration(orden.tiempo_estimado_de_produccion)`, reutilizando el mismo método ya usado correctamente para "Tiempo Empleado" (que sí trata su entrada como segundos).
+
+    **3. Auditoría de EFICIENCIA INSUMOS + honestidad de datos (0% vs N/A):** se rastreó el origen de `calcularEficienciaInsumos()` hasta el backend (`orders.php`, ver log de ninesys-api para el fix de `consumo_real_total`). Adicionalmente, se detectó que tanto `calcularEficiencia()` como `calcularEficienciaInsumos()` retornaban `0` (numérico) en sus guardas de "sin datos" (tiempo/consumo real ausente o cero), lo cual el template mostraba como "0%" -- un valor indistinguible de una eficiencia real pésima. Mismo patrón ya corregido antes en esta sesión para `eficiencia_tiempo`/`eficiencia_material` en el Reporte General de Eficiencia (`reports.php`), donde se estableció el criterio de usar `'N/A'` en vez de `0`/`100` cuando no hay denominador real.
+
+    Se aplicó el mismo criterio aquí: las 3 guardas de "sin datos" (una en `calcularEficiencia()`, dos en `calcularEficienciaInsumos()`) ahora retornan `'N/A'` en vez de `0`. El template de ambas columnas (`#cell(eficiencia)` y `#cell(eficiencia_insumos)`) se ajustó para agregar el sufijo `%` condicionalmente (`{{ valor }}{{ valor !== 'N/A' ? '%' : '' }}`), evitando mostrar literalmente "N/A%".
+
+- **Inconvenientes y Desafíos:**
+    - El navegador Chrome (extensión MCP) se desconectó temporalmente tras el primer despliegue del fix de layout; se reportó al usuario y se continuó con investigación de backend mientras se reconectaba.
+    - El `<b-form-select>` es un elemento nativo del sistema operativo -- los popups de opciones no son capturables por screenshot. Se resolvió interactuando directamente vía `javascript_tool`: `document.querySelectorAll('select')` reveló que existían DOS `<select>` en la página (índice 0 = selector de módulo del sidebar, índice 1 = el selector real de empleado con 28 opciones), y se estableció `.value` + `dispatchEvent(new Event('change'))` sobre el índice correcto para disparar el handler `@change` de Vue de forma confiable.
+
+- **Decisión Final y Justificación:**
+    Se prioriza siempre mostrar `'N/A'` en vez de `0` o `100` cuando no existe un dato real subyacente para el cálculo de un porcentaje de eficiencia -- criterio ya establecido y reutilizado consistentemente en esta sesión de auditoría de reportes, evitando que la ausencia de datos se confunda visualmente con una medición real negativa.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check` (validación de sintaxis del bloque `<script>` extraído), `Bash` (`git diff`, `git commit`, `curl`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__*` (navigate, javascript_tool, computer/screenshot) para verificación visual en vivo.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    - Layout: confirmado visualmente en navegador -- el select ahora aparece centrado y de ancho proporcional (no ocupa toda la pantalla) en vista de escritorio.
+    - Eficiencia tiempo: orden 5708 pasó de 70515% (bug) a 1175.26% (correcto) tras el fix, verificado en vivo en el navegador.
+    - Eficiencia insumos + N/A: tras desplegar el fix de backend (a5771ee, ver log de ninesys-api) y este fix de frontend (b898e9f) a Contabo Dev, se recargó la página, se reseleccionó "yamir caicedo - Impresión" (id 28, departamento 1) vía `javascript_tool`, y se extrajo el contenido de la tabla:
+      - Orden 6018: EFICIENCIA INSUMOS = 155.50% (13.14 estimado / 8.45 real × 100, coincide con datos reales corregidos).
+      - Orden 6028: EFICIENCIA INSUMOS = 11.10% (4 estimado / 36.02 real × 100, coincide).
+      - Se confirmó además, mediante extracción de todas las filas de la tabla vía JS, que múltiples órdenes sin datos reales (ej. 5873, 6142, 6145, 6146, 6147, 6148, 6152) ahora muestran "N/A" en la columna EFICIENCIA INSUMOS (y en algunos casos también en EFICIENCIA TIEMPO, ej. orden 6147) en vez de "0%", y que no queda ninguna fila mostrando un "0%" desnudo.
+
+- **Logro Conseguido:**
+    Se completó la auditoría íntegra de la página `/reporte-eficiencia-empleados`: selector de empleado rediseñado (usabilidad), corrección de una inflación de 60x en el cálculo de eficiencia de tiempo, corrección de una etiqueta incorrecta ("minutos" en vez de segundos) en el modal de detalle, y eliminación de valores "0%" engañosos en ambas columnas de eficiencia (tiempo e insumos), reemplazados por "N/A" cuando no hay datos reales -- garantizando que todo lo mostrado al usuario en esta página refleje datos reales y honestos.
+
+- **Observaciones:**
+    Con esto, todos los bugs detectados en `/reporte-eficiencia-empleados` durante esta ronda de auditoría quedan corregidos, commiteados, desplegados a Contabo Dev y verificados en vivo con datos reales de producción clonada (empresa 194). Pendiente: marcar el ítem correspondiente en el checklist `docs/revision_postgre_modulo_administracion.md` si el usuario confirma que esta página se considera cerrada.
+
+- **Respuesta de Claude:** Se completó la auditoría de `/reporte-eficiencia-empleados`: se rediseñó el selector de empleado (antes ocupaba todo el ancho en desktop), se corrigió una inflación de 60x en "EFICIENCIA TIEMPO" (unidades segundos vs minutos mal asumidas), se corrigió una etiqueta incorrecta en el modal de detalle, y se corrigió tanto el backend (consumo_real_total inflado por rendimiento aplicado fuera de contexto) como el frontend (0% engañoso reemplazado por N/A) de la columna "EFICIENCIA INSUMOS". Todo verificado en vivo contra datos reales en Contabo Dev.

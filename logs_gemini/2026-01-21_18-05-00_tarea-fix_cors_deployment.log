@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Corregir error de CORS al consumir la API del BCV desde la app y redesplegar.
+- Archivos Involucrados: `app/routes.php` (Backend), `plugins/currency-rates.js` (Frontend).
+- Acción Realizada:
+    1.  Se creó un endpoint proxy en el backend (`/bcv-rates`) en `routes.php` para consumir la API externa `https://bcv.justcarlux.dev/api/v1/rates` y devolver la respuesta con cabeceras CORS permisivas.
+    2.  Se desplegó el backend actualizado en el VPS.
+    3.  Se actualizó el plugin `currency-rates.js` en el frontend para obligar el uso de `https://apidev.nineteengreen.com/bcv-rates` como fuente de datos para el BCV, evitando llamadas directas a la API externa desde el navegador (lo que causaba el error CORS).
+    4.  Se redesplegó el frontend utilizando `./deploy.sh`.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (git, ssh, deploy.sh), `send_command_input`.
+- Resultado: Éxito.
+- Verificación: El despliegue finalizó correctamente. El backend ahora sirve de intermediario para la tasa BCV, y el frontend consume este endpoint, resolviendo el bloqueo por CORS.
+- Observaciones de Gemini: Se forzó la URL del backend en producción incluso para desarrollo local según indicación del usuario, para asegurar consistencia en la prueba.
+- Respuesta de Gemini: He solucionado el error de CORS implementando un proxy en el backend (`/bcv-rates`) y actualizando el frontend para usarlo. He desplegado exitosamente tanto el backend como el frontend actualizados.

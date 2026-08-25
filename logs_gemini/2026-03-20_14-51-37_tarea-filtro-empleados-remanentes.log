@@ -1,0 +1,29 @@
+- Solicitud del Usuario: En la página /administradores/inventario/remanentes añadir un filtro por empleados que unicamente muestre los empleados que aparecen en la tabla, similar a la página /diseno/asignacion.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/pages/administradores/inventario/remanentes.vue
+
+- Acción Realizada:
+  1. Implementada lógica de filtrado por empleado en el componente GestionRemanentes.vue.
+  2. Agregado b-form-select al área de filtros para seleccionar el empleado.
+  3. Ajustadas las columnas de los filtros (md="2" y md="3") para que todos quepan en una sola fila (Estado, Desde, Hasta, Buscar, Empleado).
+  4. Creada computed property `empleadosOpciones` que extrae nombres únicos de la lista de remanentes actual.
+  5. Creada computed property `remanentesFiltrados` que aplica el filtro de empleado localmente sobre los datos cargados.
+  6. Actualizada la <b-table> para usar `remanentesFiltrados` como origen de datos.
+  7. Modificado el método `cargarRemanentes` para resetear el filtro de empleado (`filtroEmpleado = null`) al cargar nuevos datos (paginación o búsqueda global) para evitar estados vacíos confusos.
+
+- Herramienta(s) Utilizada(s): view_file, grep_search, write_to_file, replace_file_content, multi_replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  * El select de empleados se puebla dinámicamente con los nombres presentes en la tabla.
+  * Al seleccionar un empleado, la tabla se filtra instantáneamente mostrando solo sus registros.
+  * Al cambiar de página o realizar una búsqueda global, el filtro se limpia y se actualizan las opciones del select.
+  * El diseño de los filtros se mantiene en una sola fila coherente.
+
+- Observaciones de Gemini:
+  * Dado que la tabla usa paginación en el backend, un filtro de empleado "global" requeriría cambios en la API. Sin embargo, siguiendo el requerimiento "que aparezcan en la tabla" y el ejemplo de "asignación", se optó por un filtro local reactivo que mejora la experiencia de usuario inmediata sin sobrecargar el servidor.
+  * Se ajustaron los anchos de columna de Bootstrap (md="2" y md="3") para optimizar el espacio horizontal en el panel de filtros.
+
+- Respuesta de Gemini: Se implementó con éxito el filtro por empleado en la gestión de remanentes. El filtro es dinámico y reactivo, permitiendo filtrar los 20 registros de la página actual de forma instantánea. Se integró perfectamente en la interfaz de filtros existente, manteniendo la estética y funcionalidad original del sistema.

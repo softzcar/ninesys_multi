@@ -1,0 +1,12 @@
+- **Solicitud del Usuario:** "/plan HE creado ahora el mnuevo insumo desde el modal Asignación De Insumos he obtenido como respuesta {"response":{"insert_id":"9"},"data":[{"_id":9,"nombre":"Papel DTF","moment":"2026-08-10 18:20:15.394621"}]} pero NO se actualizó en las opciones del modal Seleccione Insumo Base:"
+- **Diagnóstico Realizado:**
+  - Al crear un insumo desde el modal `modal-crear-insumo-${iddep}` en `AsignacionDeInsumosAProductosTab.vue`, el backend respondía correctamente HTTP 200 con el objeto devuelto `_id: 9` y `nombre: "Papel DTF"`.
+  - El componente emitía `reload` para notificar al componente raíz, pero la propiedad reactiva `this.selectedInsumoBase` (del componente tab) se mantenía en `null`, dejando visible la opción genérica *"Seleccione un insumo"*.
+- **Acciones Realizadas:**
+  1. **Actualización de Componente Vue (`app_multi/components/admin/AsignacionDeInsumosAProductosTab.vue`)**:
+     - En el callback `.then((res) => ...)` del método `crearInsumo()`, se extraen `newId` y `newName` de la respuesta del servidor.
+     - Se agrega automáticamente el objeto `{ value: newId, text: newName }` al arreglo `this.selectinsumos` si no estaba presente.
+     - Se actualiza `this.selectedInsumoBase = newId`, logrando que el selector de insumo base se seleccione e identifique automáticamente tras el guardado.
+- **Verificación:**
+  - Verificada la sintaxis del componente en Vue 2.
+  - Los cambios se prueban en caliente (hot reload) a través del servidor de desarrollo sin ejecutar compilación de producción (`npm run build` / `nuxt build`), en estricto cumplimiento de `GEMINI.md`.

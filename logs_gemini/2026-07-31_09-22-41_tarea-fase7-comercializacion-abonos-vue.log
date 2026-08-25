@@ -1,0 +1,28 @@
+- **Solicitud del Usuario:** "Continuemos" -- siguiente formulario de la Fase 7 tras `retiros/index.vue`: `pages/comercializacion/abonos.vue` ("Otros Abonos").
+- **Fecha y Hora:** 2026-07-31 09:22:41
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/comercializacion/abonos.vue
+- **Commits Relacionados:**
+    - Frontend: pendiente de commit al cierre de la jornada
+    - Backend: N/A (sin cambios; usa `/otro-abono`, ya migrado y con el fix de detalle aplicado en la tarea anterior de hoy)
+- **Acción Realizada:**
+    1. **Diagnóstico:** el archivo tiene DOS formularios de pago reales y separados (no uno, y no un residuo muerto como en tareas anteriores):
+        - `form` (sección principal, motivo "Otro"): visible siempre, postea a `/otro-abono` sin `id_orden` vía `enviarAbono()`.
+        - `abonoOrderForm` (modal "Abono a Orden Específica", activado por el selector "Tipo de abono" → "Abono a órdenes"): busca una orden por número (`GET /buscar/{id}`), luego postea a `/otro-abono` CON `id_orden` vía `sendOrderAbono()`.
+      Ambos migrados a `<ordenes-metodos-pago-dinamico>` (dos instancias independientes, `ref="metodosPago"` y `ref="metodosPagoModal"`, cada una con su propio `pagosDinamicos`/handler de `change`).
+    2. **Cambio de UX deliberado, no oculto:** los campos viejos de Pesos/Bolívares pedían el monto ya "en equivalente USD" y la app hacía la conversión inversa (multiplicar por tasa) antes de enviarlo -- un patrón invertido respecto al resto del sistema (donde se ingresa el monto real en la moneda local y se muestra el equivalente en la moneda base). El componente dinámico usa el patrón estándar (monto real en moneda local, equivalente mostrado debajo) -- consistente con `abono.vue`/`nueva.vue`/`presupuesto.vue`/`retiros/index.vue`, ya migrados.
+    3. **Limpieza de código muerto adicional:**
+        - Un bloque completo de ~140 líneas de HTML comentado (una versión vieja y duplicada del modal, ya reemplazada por la versión activa) eliminado del template.
+        - `mounted()` llamaba a `getDataCierre()` (`GET /cierre-de-caja/{id_empleado}`) y guardaba el resultado en `this.pagos` -- un campo nunca declarado en `data()` ni usado en ningún lugar del template, confirmado 100% muerto. Eliminado junto con el `mounted()` hook completo (también quitaba un flash de overlay de carga sin ningún propósito visible).
+        - Computeds muertos eliminados: `totalDolares`, `totalPesos`, `totalBolivares`, `totalAbono` (formulario principal), `totalDolaresModal`, `totalPesosModal`, `totalBolivaresModal` (modal) -- reemplazados por el total que ya calcula el componente dinámico.
+        - Métodos muertos eliminados: `updateMontoAbono()`, `showConversionToast()`, `calculateAbonoModalTotal()`.
+    4. `enviarAbono()`/`sendOrderAbono()`: reemplazado el bloque de 9 `data.set("montoXXX", ...)` por `data.set("pagos", JSON.stringify(...))` en cada uno; mantenida intacta la lógica de validación existente (abono≠0, detalle no vacío, tipoAbono seleccionado) y el flujo de apertura del modal (`if tipoAbono === "abono_orden"`).
+- **Inconvenientes y Desafíos:** Ninguno nuevo -- el bug de detalle perdido (`??` vs string vacío) que afecta a `/otro-abono` ya se había encontrado y corregido en la tarea anterior de hoy (mientras se migraba `retiros/index.vue`), anticipando exactamente este momento.
+- **Decisión Final y Justificación:** Se migraron ambos formularios en la misma tarea (en vez de solo el principal) porque comparten el mismo componente/endpoint y dejar uno sin migrar habría significado mantener dos convenciones de captura de pago simultáneas en el mismo archivo. Se aprovechó el paso para eliminar la llamada muerta a `/cierre-de-caja` -- no es parte del alcance de pagos, pero elimina una petición HTTP innecesaria en cada carga de esta página, sin riesgo (resultado confirmado sin ningún consumidor).
+- **Herramienta(s) Utilizada(s):** `Edit`, `Read`, `npm run generate`, `deploy.sh` (opción 2, Desarrollo Contabo), `curl`, `psql` vía SSH (orden desechable, verificación, limpieza).
+- **Resultado:** Éxito
+- **Verificación:** Build sin errores reales. Probados en vivo AMBOS flujos: (1) formulario principal, USD/Efectivo, sin orden -- `metodos_de_pago`/`caja` correctos con `id_orden=0`; (2) modal de orden específica, VES/Efectivo sobre una orden desechable (`_id=999004`) -- `metodos_de_pago`/`caja`/`abonos` correctos, con el abono ya convertido a moneda base (15.00, no el monto crudo de bolívares). Datos de prueba eliminados y verificados en 0 filas.
+- **Logro Conseguido:** Los dos flujos de "Otros Abonos" (general y por orden específica) migrados al catálogo dinámico en la misma tarea, cerrando además un patrón de UX inconsistente (captura "al revés" en Pesos/Bolívares) que solo existía en este archivo. Van 5 de los 7+1 formularios reales migrados y verificados en vivo.
+- **Observaciones:** Ninguna pendiente nueva sobre este archivo.
+- **Respuesta de Claude:** `comercializacion/abonos.vue` tenía 2 formularios de pago reales (general y "abono a orden específica" vía modal) -- ambos migrados al componente dinámico. De paso se corrigió un patrón de UX invertido exclusivo de este archivo y se eliminó una llamada API muerta en `mounted()`. Verificado en vivo con USD y VES en ambos flujos. Sigue: revisar si queda algo pendiente de la lista original o pasar a Fase 8.

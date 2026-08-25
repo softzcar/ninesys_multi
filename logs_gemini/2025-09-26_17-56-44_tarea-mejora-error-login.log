@@ -1,0 +1,8 @@
+- Solicitud del Usuario: [Crear un log para la mejora del manejo de errores en el login]
+- Archivos Involucrados: ["/home/developer/Escritorio/niesys/app_multi/components/login/form.vue"]
+- Acción Realizada: [Se mejoró el manejo de errores en el formulario de login. Se identificó que los intentos de login fallidos devolvían un error HTTP 401, lo que activaba el bloque `.catch()` de la llamada a la API, el cual solo mostraba un error genérico. Se refactorizó el bloque `.catch()` para que inspeccione el objeto de error de Axios, extraiga el mensaje específico enviado por la API desde `error.response.data.msg` y lo muestre al usuario.]
+- Herramienta(s) Utilizada(s): [default_api.read_file, default_api.replace]
+- Resultado: [Éxito]
+- Verificación: [El usuario confirmó que ahora se muestran correctamente los mensajes de error específicos de la API (ej: "Los datos de acceso proporcionados no son correctos") en lugar del error genérico de conexión.]
+- Observaciones de Gemini: [La solución consistió en mover la lógica de interpretación de mensajes de error del bloque `.then()` al `.catch()`, que es el lugar correcto para manejar respuestas de la API con códigos de estado de error como el 401.]
+- Respuesta de Gemini: [Hecho. El log ha sido creado.]

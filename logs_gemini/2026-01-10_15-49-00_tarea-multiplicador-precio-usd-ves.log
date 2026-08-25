@@ -1,0 +1,130 @@
+- Solicitud del Usuario: Implementar multiplicador de precios USD→VES en wizard de órdenes con margen de reposición y redondeo psicológico
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  1. Implementación del multiplicador de precios:
+     a) Data object agregado (líneas 875-886):
+        - multiplicador: { precioUSD: 0, margen: 0, redondear: true }
+        - opcionesMargen: array con 4 opciones (0%, 1%, 2%, 3%)
+     
+     b) Método calcularPrecioVES() agregado (líneas 1080-1118):
+        - Obtiene tasa BCV del store: this.tasas.bolivar
+        - Aplica margen de reposición: tasaBCV × (1 + margen/100)
+        - Calcula precio VES: precioUSD × tasaConMargen
+        - Redondeo psicológico opcional: Math.ceil(precioVES)
+        - Formatea como moneda venezolana: Intl.NumberFormat('es-VE')
+     
+     c) Computed property resultadoMultiplicador (líneas 1049-1066):
+        - Usa automáticamente form.total como precioUSD
+        - Llama a calcularPrecioVES() con configuración del usuario
+        - Retorna objeto con: valorVES, valorFormateado, tasaAplicada, tasaBCV
+     
+     d) UI Template agregado (líneas 383-413):
+        - Ubicación: Después del resumen TOTAL/ABONO/DESC/RESTA
+        - Input readonly mostrando form.total (no editable)
+        - Selector de margen de reposición
+        - Toggle de redondeo psicológico
+        - Panel de resultados con conversión en tiempo real
+  
+  2. Reposicionamiento del multiplicador:
+     - Movido desde línea 599 (al final de tab Pago) a línea 383
+     - Ahora aparece justo después del resumen de totales
+     - Más visible y contextual para el vendedor
+  
+  3. Auto-sincronización con total de orden:
+     - Campo precio USD usa :value="form.total" (readonly)
+     - Computed property usa parseFloat(this.form.total)
+     - Actualización reactiva automática cuando cambian productos
+  
+  4. Problema detectado y documentado:
+     - Tasa BCV mostraba 0.00 Bs/$
+     - Causa: this.tasas.bolivar no cargada en Vuex store
+     - TAREA MANUAL del usuario: Arregló problema en el servidor
+     - Solución aplicada por usuario: Configuración de tasa BCV en servidor
+     - Resultado: Multiplicador ahora muestra tasa correcta
+
+- Herramienta(s) Utilizada(s): 
+  * write_to_file (para crear artifacts)
+  * replace_file_content (intentos fallidos por whitespace)
+  * sed (para insertar código HTML)
+  * view_file, view_code_item, grep_search (navegación de código)
+
+- Resultado: Éxito
+
+- Verificación:
+  1. Código JavaScript verificado:
+     - ✅ Data object con multiplicador y opcionesMargen
+     - ✅ Método calcularPrecioVES con todas las features solicitadas
+     - ✅ Computed property usando form.total automáticamente
+  
+  2. UI verificada:
+     - ✅ Posicionada correctamente después de totales (línea 383)
+     - ✅ Input precio USD readonly, no editable
+     - ✅ Selector de margen funcional (0-3%)
+     - ✅ Toggle de redondeo funcional
+     - ✅ Panel de resultados con formato venezolano
+  
+  3. Funcionalidad del multiplicador:
+     - ✅ Es INFORMATIVO (no llena campos de pago automáticamente)
+     - ✅ Muestra "cuánto sería en VES si cobro todo en bolívares"
+     - ✅ El vendedor decide si usar el monto sugerido o no
+     - ✅ Actualización reactiva cuando cambia form.total
+  
+  4. Problema de tasa BCV:
+     - ⚠️ Inicialmente mostraba Bs. 0 por tasa no cargada
+     - ✅ Usuario arregló problema del servidor manualmente
+     - ✅ Multiplicador ahora funciona correctamente
+
+- Observaciones de Gemini:
+  El multiplicador implementado es una herramienta de REFERENCIA no un sistema de conversión automática de pagos. Esto es importante porque:
+  
+  1. Flujo de uso correcto:
+     - Sistema calcula total en USD
+     - Multiplicador MUESTRA equivalente sugerido en VES
+     - Vendedor VE el monto y DECIDE cómo cobrar
+     - Vendedor INGRESA manualmente en campos de pago
+  
+  2. NO es conversión automática porque:
+     - El vendedor puede cobrar mixto (USD + VES + Pesos)
+     - Puede cobrar todo en USD (ignora el multiplicador)
+     - Puede aplicar descuentos/redondeos manuales
+     - El cliente puede pagar con múltiples métodos
+  
+  3. Challenges de implementación:
+     - Problemas con replace_file_content por whitespace exacto
+     - Solución: usar sed para insertar código HTML directamente
+     - Múltiples iteraciones para reposicionar correctamente
+  
+  4. Margen de reposición (feature solicitada):
+     - Protege contra fluctuación cambiaria entre venta y reposición
+     - Ejemplo: con margen 2%, tasa 36.50 → tasa aplicada 37.23
+     - Vendedor puede elegir 0% si prefiere tasa exacta BCV
+  
+  5. Redondeo psicológico (feature solicitada):
+     - Math.ceil() redondea siempre hacia arriba
+     - Facilita dar cambio/sencillo en transacciones efectivo
+     - Ejemplo: 744.60 Bs → 745 Bs
+     - Activado por default, puede desactivarse
+  
+  6. Problema de tasa BCV en store:
+     - this.tasas.bolivar depende de configuración de empresa
+     - Debe estar activa la moneda y cargada la tasa
+     - El usuario tuvo que arreglar esto manualmente en servidor
+     - Documenté soluciones en multiplicador_explicacion.md
+
+- Respuesta de Gemini:
+  He implementado exitosamente el multiplicador de precios USD→VES con todas las características solicitadas:
+  
+  ✅ Conversión automática usando tasa BCV del store Vuex
+  ✅ Margen de reposición configurable (0%, 1%, 2%, 3%)
+  ✅ Redondeo psicológico opcional con Math.ceil()
+  ✅ Formato venezolano con Intl.NumberFormat
+  ✅ Ubicado estratégicamente después del resumen de totales
+  ✅ Auto-sincronizado con form.total (no editable manualmente)
+  ✅ Actualización reactiva en tiempo real
+  
+  El multiplicador es una herramienta INFORMATIVA que muestra al vendedor "cuánto sería en Bolívares si cobra toda la orden en VES". El vendedor decide si usar ese monto o no, ingresándolo manualmente en los campos de pago.
+  
+  Nota: Detecté que la tasa BCV mostraba 0.00 Bs/$ por un problema de carga en el store. El usuario arregló este problema manualmente en el servidor y ahora el multiplicador funciona correctamente.

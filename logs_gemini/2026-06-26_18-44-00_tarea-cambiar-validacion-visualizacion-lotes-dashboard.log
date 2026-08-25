@@ -1,0 +1,20 @@
+# LOG DE TAREA: Cambiar Validación de Visualización del Contenedor de Lotes en Móvil
+
+**Fecha:** 2026-06-26 18:44:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha corregido el comportamiento de la barra inferior flotante de creación e inicio de lotes (`bottom-batch-bar`) en el dashboard de empleados para evitar que se muestre cuando el empleado tiene seleccionada una única orden.
+
+1. **Ajuste de Validación Visual:**
+   - En [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue), se cambió la directiva de renderizado `v-if="ordenesSeleccionadas.length > 0"` a `v-if="ordenesSeleccionadas.length > 1"`.
+   - Con este cambio, el contenedor flotante inferior solo se renderizará en pantalla cuando se seleccionen **dos (2) o más órdenes**, evitando que la barra se muestre vacía o con una sola orden (donde no tiene sentido práctico crear un lote).
+
+## Archivos Modificados
+- **Frontend:**
+  - [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Los cambios se commitearon y subieron a la rama `refactor/modular-routes`.
+- Se lanzó la compilación y sincronización con el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

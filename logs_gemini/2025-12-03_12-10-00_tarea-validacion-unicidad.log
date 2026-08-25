@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Verificar e implementar la validación de unicidad para evitar teléfonos repetidos en el sistema.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada: Se reimplementó el método `phoneExist` en `nueva.vue`. Ahora busca el teléfono (ya formateado) en la lista de clientes (`this.myCustomers`). Si encuentra una coincidencia y no es el mismo cliente que se está editando, marca error.
+- Herramienta(s) Utilizada(s): `replace_file_content`.
+- Resultado: Éxito
+- Verificación: Se actualizó el `walkthrough.md` con un paso específico para probar la unicidad ingresando un número duplicado.
+- Observaciones de Gemini: La validación es robusta porque compara números ya normalizados (formato E.164 sin +), evitando falsos negativos por diferencias de formato (ej: 0414 vs 58414).
+- Respuesta de Gemini: He activado y corregido la validación de unicidad. El sistema ahora verifica si el número formateado (ej: `58414...`) ya existe en la base de datos de clientes. Si intentas registrar un número duplicado, te mostrará el nombre del cliente que ya lo posee y no te permitirá continuar.

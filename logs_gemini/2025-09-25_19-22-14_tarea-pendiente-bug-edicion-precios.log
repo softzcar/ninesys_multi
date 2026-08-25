@@ -1,0 +1,12 @@
+- Solicitud del Usuario: [crear un log con esta tarea pendiente]
+- Archivos Involucrados: ["pages/productos/gestion.vue", "components/products/ProductEditar.vue", "components/admin/AsignacionDePrecios.vue", "components/admin/AsignacionDePreciosForm.vue"]
+- Acción Realizada: [Se intentó depurar un bug complejo donde al editar un precio existente, se crea un duplicado en lugar de actualizarse. El proceso involucró múltiples pasos:
+    1. Se simplificó la lógica en `AsignacionDePrecios.vue` y `AsignacionDePreciosForm.vue` para eliminar la generación de IDs aleatorios en el frontend.
+    2. Se corrigió la lógica de envío final en `ProductEditar.vue` para enviar `id: null` para precios nuevos y el `id` existente para los precios guardados.
+    3. Se corrigieron inconsistencias en los nombres de las propiedades (`description` vs `descripcion`) en varios componentes.
+    4. Se implementó una estrategia de `:key` dinámico en `gestion.vue` para forzar la re-creación del componente de edición y evitar problemas de estado "estancado".]
+- Herramienta(s) Utilizada(s): [read_many_files, read_file, replace]
+- Resultado: [Parcial]
+- Verificación: [El usuario confirma que el bug principal (envío de `id: null` para precios existentes) sigue ocurriendo.]
+- Observaciones de Gemini: [Tarea pendiente. A pesar de múltiples correcciones que solucionaron bugs secundarios (inconsistencias de nombres, estado estancado, errores de tipeo), el problema principal persiste. La causa raíz es que el `id` de un precio existente se pierde o se vuelve `null` en algún punto del flujo de datos entre los tres componentes anidados, antes de la transformación final del payload. El próximo paso requerirá una depuración más exhaustiva para identificar el punto exacto de la corrupción de datos.]
+- Respuesta de Gemini: [Listo. El log ha sido creado en formato corto.]

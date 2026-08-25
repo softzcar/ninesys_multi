@@ -1,0 +1,24 @@
+- Solicitud del Usuario: En la página `/empleados/dashboard` Tenemos nuestras tareas "En Curso" al hacer click en el botón "Terminar Todo" nos abre un modal donde si el empleado tiene habilitado cargar material se muestra un botón para agregar el material utilizado, ahí hay un `typeHead` donde buscamos el material, en este momento estamos viendo correctamente el ID del item de inventario y el nombre del insumo, ahora debemos añadir al lado la cantidad de material disponible de cada item de inventario, con la unidad asignada al material, por ejemplo "234 | Papel de sublimación 42 Mt" o "561 | Tela Atlética 12 Kg"
+
+- Archivos Involucrados: 
+  * /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+
+- Acción Realizada: Modifiqué el computed `dataSearchInsumo` en el componente `SseOrdenesAsignadasModalExtra.vue` (líneas 494-498) para incluir la cantidad disponible y la unidad de medida de cada item de inventario. El cambio fue en la línea del return, de:
+  `return \`${el._id} | ${el.insumo}\`;`
+  a:
+  `return \`${el._id} | ${el.insumo} ${el.cantidad} ${el.unidad}\`;`
+
+- Herramienta(s) Utilizada(s): `replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: El cambio se realizó correctamente en el archivo. El typeahead ahora mostrará el formato: "ID | Nombre Cantidad Unidad" (ejemplo: "234 | Papel de sublimación 42 Mt" o "561 | Tela Atlética 12 Kg"). Para verificar completamente el funcionamiento, se debe:
+  1. Recargar la aplicación en el navegador
+  2. Iniciar sesión como empleado con permisos para cargar material
+  3. Navegar a /empleados/dashboard
+  4. Iniciar una tarea y hacer clic en "Terminar Todo"
+  5. En el modal, agregar material y verificar que el typeahead muestra la cantidad disponible y unidad
+  
+- Observaciones de Gemini: El cambio fue muy simple ya que el endpoint `/insumos` ya devuelve todos los campos necesarios (cantidad y unidad) de la tabla inventario. Solo fue necesario modificar el computed para mapear estos campos adicionales en el string de visualización.
+
+- Respuesta de Gemini: He modificado el computed `dataSearchInsumo` para mostrar la cantidad disponible y la unidad. Ahora el typeahead mostrará el formato: "234 | Papel de sublimación 42 Mt". El cambio está listo para probarse en el navegador.

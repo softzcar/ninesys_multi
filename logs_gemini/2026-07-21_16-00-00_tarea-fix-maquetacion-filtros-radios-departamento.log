@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** "he probado la pagina `/insumos-productos` esta funcionando correctamente, solo tenemos el mismo detalle de maquetacoin de los radio de el tiltro por departamento en este caso que tambien se sale de la interfaz, arreglemos eso" -- seguido de: "en la pagina `/empleados/gestion` te quedaron alrevés, los filtros del lado contrario, se ve mejor como lo acabas de hacer en este momento, entonces asegurate que en la pagina `/empleados/gestion` se vea igual que como lo acabas de maquetar" -- y luego: "en la pagina `/comisiones-productos/` todo funciona correctamente, solo maquetemos los filtros igual que en las paginas anteriores por favor"
+- **Fecha y Hora:** 2026-07-21 16:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - components/admin/AsignacionInsumosProductosV2.vue
+  - pages/empleados/gestion/index.vue
+  - components/admin/ComisionesProductos.vue
+- **Commits Relacionados:**
+    - Frontend: dea8cf5, 9e7e3b3, 1ce826c
+    - Backend: N/A
+- **Acción Realizada:** Se repitió, en tres pantallas distintas del módulo de administración, el mismo fix ya aplicado previamente en Gestión de Empleados (commit `0d9e24c` de una tarea anterior): el `btn-group` de Bootstrap que usa `b-form-radio-group` en modo `buttons` no hace `flex-wrap` por defecto, así que cuando hay más de unos pocos departamentos/opciones, los botones se cortan horizontalmente en vez de apilarse.
+  1. **`/insumos-productos`** (`AsignacionInsumosProductosV2.vue`): se agregó la clase `filtro-departamento-buttons` (con `flex-wrap: wrap` y `margin-bottom` en los botones) al `b-form-radio-group` de "Filtrar por departamento".
+  2. **`/empleados/gestion`**: el usuario señaló que, comparado con el nuevo orden usado en Insumos de Productos (buscador de texto primero, radios de departamento después), esta página tenía el orden invertido (radios primero, buscador después). Se invirtió el orden de las dos columnas para que coincidan.
+  3. **`/comisiones-productos/`** (`ComisionesProductos.vue`): tenía tres filtros en filas separadas (buscador de texto en fila propia con `offset-lg`, select de departamento en fila propia, radios de "tipo de producto" en fila propia sin flex-wrap). Se reorganizó para que el buscador de texto y los radios de "tipo de producto" queden lado a lado en la misma fila (mismo patrón que las dos pantallas anteriores), con el mismo `flex-wrap` aplicado a los radios. El select de departamento (no es un `b-form-radio-group`, es un dropdown nativo sin riesgo de desborde) se dejó en su propia fila debajo.
+- **Inconvenientes y Desafíos:** Ninguno significativo -- es la tercera repetición del mismo patrón ya validado, cambia solo la estructura de columnas de cada página según cuántos otros filtros coexistan en la misma fila.
+- **Decisión Final y Justificación:** Se mantuvo exactamente el mismo nombre de clase CSS (`filtro-departamento-buttons`) y el mismo bloque de estilos en las tres pantallas, para no introducir variaciones innecesarias de un fix ya probado -- facilita reconocerlo y mantenerlo consistente si en el futuro se decide moverlo a una clase global compartida.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep para localizar el fix original de referencia en git log), node --check, git, deploy.sh.
+- **Resultado:** Éxito
+- **Verificación:** Cada uno de los tres fixes fue desplegado a Contabo Dev inmediatamente después de aplicarse; el usuario confirmó explícitamente cada uno antes de pasar al siguiente ("ok exelente!" tras Insumos de Productos, aprobación implícita al pasar a probar Categorías tras Comisiones de Productos).
+- **Logro Conseguido:** Se eliminó una inconsistencia de maquetación (radios de filtro desbordándose fuera del contenedor) que se repetía en tres pantallas distintas del módulo de administración, unificando además el orden visual de los filtros (buscador de texto primero, filtro por categoría/departamento después) en las cuatro pantallas que ya comparten este patrón (Gestión de Empleados, Insumos de Productos, Comisiones de Productos, y la ya corregida en una tarea anterior).
+- **Observaciones de Claude:** Ninguna adicional.
+- **Respuesta de Claude:** Se aplicó el mismo fix de flex-wrap (ya usado en Gestión de Empleados) a los filtros de radio-botones de Insumos de Productos y Comisiones de Productos, y se unificó el orden de columnas (buscador primero, radios después) en Gestión de Empleados para que coincida con el resto. Desplegado en Contabo Dev y confirmado por el usuario en cada caso.

@@ -1,0 +1,11 @@
+- Solicitud del Usuario: y el pago de diseÑadores tamién?
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosDisenioResumen.vue
+- Acción Realizada: Se identificó que, aunque el componente principal `PagosEmpleados.vue` maneja cierta lógica de impresión para diseñadores, existe un componente específico `PagosDisenioResumen.vue` que tiene su propia lógica de impresión. Se modificó este componente para alinear el comportamiento con los demás tipos de pago.
+    1. Se eliminó la restricción de tamaño de la ventana (`width=800,height=600`) al usar `window.open` para permitir que se abra en una nueva pestaña.
+    2. Se comentó la instrucción `newWindow.close()` para evitar el cierre automático de la pestaña después de imprimir.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó el código modificado en `PagosDisenioResumen.vue` y se confirmó que ahora utiliza `window.open('', '_blank')` y tiene la llamada a `newWindow.close()` comentada, asegurando que la pestaña permanezca abierta.
+- Observaciones de Gemini: Es importante mantener la consistencia en el comportamiento de la impresión en todos los módulos (Empleados, Vendedores, Diseñadores).
+- Respuesta de Gemini: Confirmación de que se aplicó el cambio también para diseñadores.

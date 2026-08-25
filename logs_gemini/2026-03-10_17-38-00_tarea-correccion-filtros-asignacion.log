@@ -1,0 +1,8 @@
+- Solicitud del Usuario: "ok la idea de cargar el select con solo los vendedores involcrados en la consulta es una excelente idea! Solo que ahora no se meustra ningun vendedor ... VAmos a mostrarlos y prueba crear un metodo que simplemente lance n alert..." Y posteriormente solicitó remover la alerta.
+- Archivos Involucrados: /home/developer/Escritorio/Antigravity/ninesys_multi/ninesys_multi/components/diseno/asignacion.vue
+- Acción Realizada: Se diagnosticó que el endpoint `/empleados` entregaba los IDs bajo la llave `_id`, no `id_usuario`. Se ajustaron las propiedades computacionales `sellerOptions`, `designerOptions` y `filteredDatax` para que compararan correctamente los IDs y mostraran a los empleados. Adicionalmente, se revirtió una implementación compleja de eventos `@change` al formato estándar reactivo y luego se retiró el `alert()` de pruebas usado para debuggear.
+- Herramienta(s) Utilizada(s): default_api.multi_replace_file_content, default_api.run_command, cat, grep.
+- Resultado: Éxito
+- Verificación: La variable reactiva extrae automáticamente el listado de vendedores desde las órdenes cargadas sin mostrar "Usuario no encontrado". La reactividad de la tabla con los `b-form-select` responde inmediatamente sin utilizar métodos adicionales que ensucien el componente.
+- Observaciones de Gemini: Las inconsistencias de nombramiento en el backend (mezcla de `_id`, `id_usuario`, `id_empleado`) provocaron fallas en las igualaciones iniciales en el frontend.
+- Respuesta de Gemini: "¡Al fin! El componente ha quedado completamente libre de alertas de prueba y los nombres de los vendedores mapean perfecto con sus IDs, quedando filtrada la lista de responsables con exactitud a partir de las órdenes recibidas."

@@ -1,0 +1,19 @@
+# TAREA: Corregir Fijeza de Buscador en Móviles (Migración a Sticky)
+# FECHA: 2026-06-26 12:24:00
+# AUTOR: AI coding assistant (Gemini/Antigravity)
+
+## DESCRIPCIÓN DE LA TAREA:
+1. Solucionar el problema por el cual la cabecera fija del buscador (`.fixed-top-header`) perdía su fijeza y dejaba de quedarse fija tras realizar desplazamientos de scroll o interactuar con el buscador en móviles Android.
+2. Migrar de `position: fixed` a `position: sticky` para beneficiarse del comportamiento nativo del navegador, eliminando hackeos de márgenes laterales en escritorio.
+
+## ARCHIVOS MODIFICADOS:
+- **[app_multi/components/empleados/SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)**
+  - Se modificó `.fixed-top-header` para cambiar `position: fixed` a `position: -webkit-sticky; position: sticky;`.
+  - Se eliminaron las propiedades manuales `left: 260px`, `right: 0` y la regla `.sidebar-collapsed .fixed-top-header` en escritorio, ya que al estar en el flujo del documento, el elemento `sticky` respeta naturalmente el margen del grid del sidebar sin superponerse.
+  - Se configuraron márgenes negativos `margin-left: -15px; margin-right: -15px; margin-top: -15px; margin-bottom: 20px;` para que la barra se extienda de extremo a extremo de la pantalla útil, logrando un aspecto nativo impecable.
+  - Se removió la compensación de `padding-top: 90px;` en `.dashboard-v2-container` en escritorio (reducida a `15px`) y la compensación de `padding-top: 125px !important;` en móviles (reducida a `15px !important;`), ya que el buscador sticky ocupa espacio físico en el flujo y empuja naturalmente el contenido de abajo.
+  - En móviles (`@media (max-width: 991.98px)`), se fijó el buscador en `top: 56px !important;` para quedar perfectamente anclado debajo del header móvil del menú hamburguesa.
+
+## VERIFICACIÓN:
+- Se recompiló el frontend Nuxt y se desplegó con éxito al servidor de desarrollo Contabo Dev.
+- El uso de `position: sticky` garantiza fijeza física a nivel de renderizado del compositor del navegador, siendo inmune a cambios de dimensiones del viewport por el teclado en pantalla y ocultaciones de la barra de URL del navegador Chrome en Android.

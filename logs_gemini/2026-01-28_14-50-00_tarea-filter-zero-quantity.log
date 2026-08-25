@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Filtrar insumos con cantidad 0 en el dashboard de empleados.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    - Se modificó la consulta SQL del endpoint `GET /insumos`.
+    - Cambio: `SELECT * FROM inventario ORDER BY insumo ASC` -> `SELECT * FROM inventario WHERE cantidad > 0 ORDER BY insumo ASC`.
+- Herramientas Utilizadas: `replace_file_content`.
+- Resultado: El listado de insumos ahora oculta aquellos que no tienen stock.
+- Verificación: Revisión de código y despliegue pendiente.
+- Observaciones de Gemini: Cambio solicitado por usabilidad.
+- Respuesta de Gemini: Filtro aplicado.

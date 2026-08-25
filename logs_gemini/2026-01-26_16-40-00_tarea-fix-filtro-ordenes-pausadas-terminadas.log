@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Orden 3640 aparece con botones deshabilitados y estado 'pausada' en el dashboard de empleados, a pesar de que el usuario indica que ya estaba terminada (o deshabilitada).
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: Se identificó que la orden 3640 tiene fecha_terminado registrada (trabajo finalizado) pero status='pausada'. La lógica anterior del filtro 'En Curso' permitía mostrar órdenes pausadas sin verificar si ya estaban terminadas, causando que aparecieran en la lista como 'bloqueadas' (por ser pausadas por otro departamento/admin). Se modificó la lógica de los filtros en dataTableEnCurso para excluir explícitamente cualquier orden que tenga fecha_terminado != null, independientemente de su estado de pausa.
+- Herramienta(s) Utilizada(s): multi_replace_file_content
+- Resultado: Éxito
+- Verificación: Revisión de código lógica. El filtro ahora exige `el.fecha_terminado == null` en todas las ramas lógicas de 'En Curso'.
+- Observaciones de Gemini: La confusión del usuario provenía de ver una orden que ya había terminado (según BD) pero que reapareció en su lista 'En Curso' al ser pausada globalmente. Al ocultarla, se alinea la vista con el estado real de 'trabajo pendiente' (que es nulo para esa orden).
+- Respuesta de Gemini: Se ha corregido el filtro en el dashboard para que las órdenes ya terminadas no aparezcan en la lista "En Curso" aunque estén pausadas globalmente. Esto debería hacer desaparecer la orden 3640 de su lista, ya que el sistema registra que usted la terminó correctamente a las 19:22.

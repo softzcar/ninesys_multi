@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Estandarizar la visualización del histórico de pagos (/historico-de-pagos) para que sea consistente con la planilla de pagos, permitiendo ver detalles y generar recibos impresos con el nuevo formato.
+
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/payments.php
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosHistoricoModal.vue (NUEVO)
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosHistorico.vue
+
+- Acción Realizada:
+    1.  Backend: Se modificó la ruta `/pagos/historico/{semana}` en `payments.php` para incluir consultas adicionales a las tablas `pagos_salarios`, `pagos_abonos` y `pagos_descuentos`. Estos datos se adjuntan a la respuesta JSON.
+    2.  Frontend: Se creó el componente `PagosHistoricoModal.vue`, una versión read-only del modal de confirmación de pagos, diseñado para mostrar el resumen financiero y facilitar la impresión del recibo mediante `admin-pagos-vendedor-resumen`.
+    3.  Frontend: Se actualizó `PagosHistorico.vue` para procesar los nuevos datos del backend y reemplazar los componentes de resumen anteriores (`admin-PagosVendedorResumen`, `admin-PagosEmpleadoResumen`) con el nuevo `PagosHistoricoModal`. Se implementaron métodos para filtrar y calcular salarios, bonos, descuentos y comisiones por empleado.
+
+- Herramienta(s) Utilizada(s): `grep_search`, `view_file`, `run_command` (SSH mysql), `replace_file_content`, `multi_replace_file_content`, `write_to_file`.
+
+- Resultado: Éxito
+
+- Verificación: Se verificó el código del backend para asegurar la correcta sintaxis SQL y la estructura JSON. Se verificó el código frontend para asegurar que las props se pasan correctamente al modal y que el modal integra la funcionalidad de impresión.
+
+- Observaciones de Gemini: La solución reutiliza la lógica de impresión reparada anteriormente. Se tuvo cuidado de manejar los datos históricos que no siempre tienen la misma granularidad que el proceso de pago en vivo, agregando consultas específicas para reconstruir el desglose.
+
+- Respuesta de Gemini: He completado la estandarización de la página de Histórico de Pagos. Ahora utiliza el mismo formato de visualización y permite imprimir los recibos detallados (sin la tabla de órdenes, como se solicitó) para cualquier pago histórico, obteniendo los datos reales de salarios, bonos y descuentos desde la base de datos.

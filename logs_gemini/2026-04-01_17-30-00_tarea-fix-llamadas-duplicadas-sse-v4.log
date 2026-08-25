@@ -1,0 +1,40 @@
+# Log de Tarea: Optimización de Carga y Eliminación de Llamadas Duplicadas
+**Fecha:** 2026-04-01
+**Componente:** `app_multi/components/empleados/SseOrdenesAsignadasV4.vue`
+**Estado:** Finalizado
+
+## 1. Problema Identificado
+Al cargar el dashboard de empleados (`/empleados/dashboard`), se observaba en el Network tab que las peticiones a los endpoints principales (`proyeccion-entrega`, `manufacturing-time`, `insumos`, `lotes/activos`, etc.) se ejecutaban exactamente dos veces.
+
+Esto causaba:
+- Sobrecarga innecesaria en el servidor API.
+- Mayor latencia en la renderización inicial del componente.
+- Posibles condiciones de carrera (race conditions) en el estado local de Vue.
+
+## 2. Causa Raíz
+La causa era una duplicidad de responsabilidades entre el hook de ciclo de vida `mounted()` y el método `reloadMe()`. 
+
+- `mounted()` ejecutaba individualmente todas las llamadas de inicialización.
+- `reloadMe()` (que se dispara por diversos eventos de componentes hijos como `@reload` o `@reload_this`) realizaba casi el mismo set de llamadas.
+- Durante el montaje, se disparaban ambos flujos casi en paralelo, duplicando el tráfico de red.
+
+## 3. Solución Implementada
+
+### A. Centralización de la Lógica (`reloadMe`)
+Se refactorizó el método `reloadMe()` para que sea una función `async` que use `Promise.all`. Esto asegura que todas las peticiones se lancen en paralelo de la forma más eficiente posible y que el componente sepa exactamente cuándo ha terminado la recarga completa.
+
+### B. Implementación de Guards (Semáforos)
+Se añadió la propiedad `isReloading` en `data()`. Antes de iniciar cualquier proceso de recarga, `reloadMe()` verifica este flag:
+- Si ya hay una recarga en curso, ignora la nueva petición.
+- Esto es crítico ya que el componente tiene más de 10 puntos donde componentes hijos pueden emitir eventos de recarga.
+
+### C. Refactorización de `mounted()`
+Se eliminaron todas las llamadas API directas de `mounted()`. Ahora el hook de montaje solo:
+1. Configura variables de UI (como `promptHTML`).
+2. Llama a `this.reloadMe()` una única vez.
+
+### D. Idempotencia en Scroll Infinito (`setupInfiniteScroll`)
+Se mejoró el método `setupInfiniteScroll()` para que, antes de inicializar nuevos `IntersectionObserver`, desconecte y limpie los observadores existentes en `this.loadingObservers`. Esto evita que se acumulen observadores duplicados sobre los mismos elementos HTML tras múltiples recargas.
+
+## 4. Resultado Final
+Las herramientas de desarrollo ahora muestran una carga limpia: una sola petición por cada recurso necesario. La estabilidad del componente ha mejorado y la carga en el servidor se ha reducido a la mitad para este módulo.

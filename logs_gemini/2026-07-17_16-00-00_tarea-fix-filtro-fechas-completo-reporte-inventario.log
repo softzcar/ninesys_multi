@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** El filtro de fechas del Reporte de Inventario seguía sin funcionar al probar en modo "Material en Stock" (backend arreglado antes solo para "Material Consumido"). Además, pidió que el rango implícito de 30 días con el que carga la página se refleje en los inputs "Desde"/"Hasta", en vez de quedar vacíos sin indicar qué período se está viendo realmente.
+- **Fecha y Hora:** 2026-07-17 16:00:00
+- **Proyecto(s):** Frontend (ver log espejo en ninesys-api para el detalle completo del fix de backend)
+- **Archivos Involucrados:**
+  - pages/inventario/reportes/general/reporte.vue
+- **Commits Relacionados:**
+    - Frontend: 6fcf9b5
+    - Backend: 9a4b2f4, de54918 (ver log en ninesys-api)
+- **Acción Realizada:**
+  1. Se agregó el método `calcularRango30Dias()`, que calcula "hoy" y "hace 30 días" en formato YYYY-MM-DD usando la zona horaria LOCAL del navegador (evitando el corrimiento de un día típico de `toISOString()`, que convierte a UTC).
+  2. Se llama este método tanto en `mounted()` (carga inicial) como en `resetFechas()` (botón "Últimos 30d"), asignando el resultado explícitamente a `fechaDesde`/`fechaHasta` ANTES de disparar `loadReport()`. Antes, ambos casos dejaban `fechaDesde`/`fechaHasta` en `null`, confiando en que el backend asumiera el default sin comunicarlo al usuario.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se calculó el rango en el cliente (en vez de pedirle al backend que lo devuelva en la respuesta) por ser más simple y no requerir cambios de contrato en la API; el cálculo es puramente de fecha de calendario, no depende de datos del servidor.
+- **Herramienta(s) Utilizada(s):** Read, Edit.
+- **Resultado:** Éxito
+- **Verificación:** Revisión de código; el computed `rangoFechasLabel` (que ya mostraba el rango como badge en el gráfico de papel) ahora mostrará siempre el rango real en vez de la etiqueta genérica "30d", confirmando visualmente el período aplicado. Pendiente confirmación del usuario en navegador.
+- **Logro Conseguido:** El usuario ahora puede ver, desde el primer momento en que carga la página, exactamente qué rango de fechas está viendo, y confirmar que ajustarlo realmente cambia los resultados (coordinado con el fix de backend que ahora sí filtra por fecha en ambos modos).
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Corregido y desplegado a Contabo Dev junto con el fix de backend correspondiente.

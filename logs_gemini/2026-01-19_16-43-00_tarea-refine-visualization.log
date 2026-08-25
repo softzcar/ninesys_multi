@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Quedemos con el VAriant Success para mostar los que ya tienen insumos asigandos y para el tiempo '0 min' no usamos el variant danger en celda sino en el texto, de manera que el texto sea lel que se muestre en rojo y no la celda
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionInsumosProductosV2.vue
+- Acción Realizada: Se modificó `AsignacionInsumosProductosV2.vue` para separar los indicadores visuales. Se eliminó la asignación de `danger` variant a la celda cuando el tiempo es '0 min'. En su lugar, se implementaron scoped slots dinámicos en la `<b-table>` para aplicar la clase `text-danger` al texto "0 min". Se mantuvo la asignación de `success` variant a la celda cuando existen insumos asignados.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó la implementación de los slots dinámicos y la lógica condicional de clases CSS. Ahora, una celda puede ser verde (si tiene insumos) y tener texto rojo (si el tiempo es 0 min) simultáneamente, sin conflictos visuales de fondo.
+- Observaciones de Gemini: La separación de preocupaciones visuales (texto vs fondo) mejora la claridad de la información presentada en la tabla.
+- Respuesta de Gemini: He aplicado los cambios solicitados. Ahora las celdas con insumos asignados tendrán fondo verde (Success). Si el tiempo es "0 min", el texto se mostrará en rojo y negrita, independientemente del color de fondo de la celda.

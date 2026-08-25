@@ -1,0 +1,11 @@
+TAREA: Agregar enlace a Reporte de Inventario en el Sidebar de Administración
+FECHA: 2026-03-14
+
+DESCRIPCIÓN:
+Se ha añadido un nuevo ítem de menú en el sidebar del administrador para facilitar el acceso rápido al reporte general de inventario.
+
+CAMBIOS FRONTEND:
+- Modificado `SidebarAdmin.vue`: Se añadió el enlace a `/inventario/reportes/general/reporte` dentro de la sección de Inventario.
+
+RESULTADO:
+Ahora el personal administrativo puede acceder directamente al reporte de inventario desde el menú lateral sin necesidad de navegaciones intermedias.

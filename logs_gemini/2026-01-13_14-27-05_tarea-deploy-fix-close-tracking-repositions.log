@@ -1,0 +1,11 @@
+- Solicitud del Usuario: El usuario notó que al crear una nueva reposición, esta aparecía como 'iniciada' automáticamente. Esto se debe a que las reposiciones comparten el estado de la 'Orden'.
+- Archivos Involucrados: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/manufacturing.php
+- Acción Realizada:
+    1. Se confirmó que el seguimiento es por Orden+Empleado, no por Reposición. Si la orden está activa, todas sus reposiciones se ven activas.
+    2. Se detectó que al 'Terminar' una reposición, NO se estaba cerrando el registro de seguimiento en `lotes_detalles_empleados_asignados`.
+    3. Se agregó la sentencia SQL para actualizar `progreso='terminada'` y `fecha_terminado=NOW()` al finalizar una reposición.
+    4. Se desplegaron los cambios al VPS.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `run_command` (git, ssh)
+- Resultado: Éxito
+- Verificación: Ahora, al terminar una reposición, el estado de la orden volverá a ser 'terminado' (o al menos no 'en curso'), permitiendo que futuras reposiciones muestren 'Iniciar' correctamente.
+- Respuesta de Gemini: Explicación y confirmación del despliegue del arreglo.

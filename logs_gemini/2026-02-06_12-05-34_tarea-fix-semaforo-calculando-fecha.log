@@ -1,0 +1,60 @@
+- Solicitud del Usuario: El componente progreso-tiempo-semaforo.vue en la página /test se queda mostrando "Calculando fecha..." en lugar de "Por asignar" cuando una orden no tiene personal asignado (caso de la orden ID 1 en empresa 174 recién reseteada).
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/progreso-tiempo-semaforo.vue (MODIFICADO)
+  - /home/developer/Escritorio/niesys/app_multi/mixins/procesamientoOrdenes.js (ANALIZADO)
+
+- Acción Realizada:
+  1. Análisis del problema:
+     - Identifiqué que la variable `isLoading` se inicializaba en `true` (línea 195)
+     - Solo se establecía en `false` dentro del computed `ordenReactiva` en dos lugares (líneas 275 y 294)
+     - Cuando una orden no tiene empleados asignados, el mixin `procesamientoOrdenes.js` filtra esas órdenes (línea 24: `.filter(item => parseInt(item.cant_empleados || 0) > 0)`)
+     - Esto causaba que `ordenReactiva` retornara `null` en la línea 268 SIN establecer `isLoading = false`
+     - Como `isLoading` permanecía en `true`, el computed `textButton()` retornaba "Calculando fecha..." (línea 320)
+  
+  2. Implementación del fix:
+     - Moví la asignación `this.isLoading = false` al inicio del computed `ordenReactiva()` (después de la línea 266)
+     - Eliminé las dos asignaciones duplicadas que estaban dentro de las condiciones (líneas 275 y 294)
+     - Agregué comentario explicativo: "Set isLoading to false at the start to ensure it's always updated"
+  
+  3. Impacto del cambio:
+     - Ahora `isLoading` siempre se establece en `false` cuando se evalúa `ordenReactiva`, independientemente del resultado
+     - Cuando `ordenReactiva` es `null` (orden sin asignar), `textButton()` correctamente retorna "POR ASIGNAR" (línea 323)
+     - El botón muestra la variante `light` (gris) correctamente (línea 316)
+
+- Herramienta(s) Utilizada(s):
+  - view_file_outline (analizar estructura del componente)
+  - view_file (examinar código completo del componente y mixin)
+  - grep_search (localizar el mixin procesamientoOrdenes.js)
+  - replace_file_content (aplicar el fix)
+  - write_to_file (crear plan de implementación y task.md)
+
+- Resultado: Éxito
+
+- Verificación:
+  - ✅ El usuario probó el fix en el servidor de desarrollo
+  - ✅ El componente ahora muestra "POR ASIGNAR" correctamente para órdenes sin personal asignado
+  - ✅ No muestra más "Calculando fecha..." indefinidamente
+  - ✅ El comportamiento para órdenes con personal asignado no se vió afectado
+  - ✅ El modal se abre correctamente mostrando el mensaje "La orden aún no tiene personal asignado o no se encuentra."
+
+- Observaciones de Gemini:
+  Este fue un bug sutil de estado en un computed property de Vue. El problema raíz era que las asignaciones de `isLoading = false` estaban condicionadas a que hubiera datos válidos, cuando en realidad debería establecerse siempre que se evalúe el computed, independientemente del resultado.
+  
+  La solución fue mover la asignación al inicio del método, garantizando que se ejecute en todos los casos posibles (orden encontrada, orden no encontrada, array vacío, etc.).
+  
+  Este tipo de bugs son comunes cuando se usa state mutable dentro de computed properties en Vue. Una mejor práctica sería evitar mutar state dentro de computeds, pero en este caso el fix mínimo era apropiado dado el contexto del código existente.
+
+- Respuesta de Gemini:
+  ✅ **Fix implementado y verificado exitosamente**
+  
+  **Problema resuelto:**
+  El componente semáforo ya no se queda en "Calculando fecha..." para órdenes sin personal asignado.
+  
+  **Cambio realizado:**
+  Moví `this.isLoading = false` al inicio del computed `ordenReactiva()` para garantizar que siempre se actualice, permitiendo mostrar "POR ASIGNAR" correctamente.
+  
+  **Archivos modificados:**
+  - `components/progreso-tiempo-semaforo.vue` (1 línea movida, 2 líneas eliminadas)
+  
+  El fix es quirúrgico y no afecta el comportamiento de órdenes con personal asignado. Probado exitosamente en desarrollo.

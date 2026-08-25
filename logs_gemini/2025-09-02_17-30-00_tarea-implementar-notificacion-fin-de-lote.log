@@ -1,0 +1,26 @@
+
+- Solicitud del Usuario: [Implementar una notificación al cliente via `sendMsgCustom` cuando un lote de producción es finalizado exitosamente. La notificación debe enviarse por cada orden individual dentro del lote, pasando el `id_orden`, el tipo `fin` y el `id_departamento` desde Vuex.]
+- Archivos Involucrados: [
+    "/home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue",
+    "/home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteCorteModal.vue",
+    "/home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteImpresionModal.vue",
+    "/home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteModal.vue"
+]
+- Acción Realizada: [El trabajo se dividió en dos fases principales: primero modificar los componentes hijos (los modales) y luego el componente padre que los invoca.
+
+    **Fase 1: Modificación de los 3 Componentes Modales** (FinalizarLoteCorteModal.vue, FinalizarLoteImpresionModal.vue, FinalizarLoteModal.vue)
+
+    1.  **Inyección de Mixin:** Se utilizó la herramienta `replace` para inyectar la importación del mixin de notificaciones (`import mixin from '~/mixins/mixins.js'`) y registrarlo en la sección `export default` de cada uno de los tres componentes. Esto dio acceso al método `sendMsgCustom`.
+    2.  **Declaración de Nueva Propiedad:** Se identificó que los modales no tenían conocimiento de las órdenes individuales dentro del lote. Para solucionar esto, se añadió una nueva propiedad `ordenes` al objeto `props` de cada modal. Se definió con `{ type: Array, default: () => [] }` para asegurar que el componente no falle si la prop no es pasada.
+    3.  **Implementación de la Lógica de Notificación:** Dentro del método `async enviarDatos()` de cada modal, se localizó el bloque `try...catch`. En la sección `try`, justo después de la llamada exitosa a `this.$fire({...})` que notifica al empleado, se insertó un bucle `this.ordenes.forEach(orden => { ... })`. Dentro de este bucle, se añadió la llamada final: `this.sendMsgCustom(orden.id_orden, 'fin', this.$store.state.login.currentDepartamentId)`. Esta llamada utiliza el `id_orden` de la iteración actual, el string estático `'fin'` y el ID del departamento obtenido del store de Vuex, cumpliendo con todos los requisitos de la solicitud.
+
+    **Fase 2: Modificación del Componente Padre (`SseOrdenesAsignadasV4.vue`)**
+
+    1.  **Paso de Propiedades:** Una vez que los modales estaban listos para recibir la lista de órdenes, se modificó el template del componente padre. Se localizaron las etiquetas de los tres modales (`<FinalizarLoteModal ... />`, `<FinalizarLoteImpresionModal ... />`, `<FinalizarLoteCorteModal ... />`).
+    2.  **Enlace de Datos:** A cada una de estas etiquetas, se le añadió el enlace de la nueva propiedad: `:ordenes="loteParaFinalizar.ordenes"`. Esto asegura que cuando se prepare un lote para ser finalizado, la lista completa de sus órdenes asociadas se pase al modal correspondiente.
+]
+- Herramienta(s) Utilizada(s): [`default_api.replace`, `default_api.write_file`]
+- Resultado: [Éxito]
+- Verificación: [La verificación funcional aún está pendiente. Los cambios se aplicaron correctamente a nivel de código fuente. El siguiente paso es ejecutar la aplicación y probar el flujo de finalización de un lote en los departamentos de Corte, Impresión y uno genérico. Se deberá monitorear la consola del navegador para detectar errores y la pestaña de Red (Network) para confirmar que se realizan las llamadas POST al endpoint `/ws/build-message` para cada orden del lote finalizado.]
+- Observaciones de Gemini: [La modificación fue compleja debido a la necesidad de coordinar cambios entre un componente padre y tres componentes hijos para establecer un nuevo flujo de datos (pasar la lista de órdenes). Se tuvo que ser muy específico con los bloques de código en la herramienta `replace` para evitar fallos por coincidencias múltiples. La lógica implementada asume que `loteParaFinalizar.ordenes` es un array de objetos que contienen la propiedad `id_orden`.]
+- Respuesta de Gemini: [¡Listo! He completado todas las modificaciones que solicitaste...]

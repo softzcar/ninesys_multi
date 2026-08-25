@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Resolver bug donde "Cargar Orden no Asignada" crea una nueva orden en lugar de editar.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada: Se modificó el método `manejarOrdenCargada` en `components/ordenes/nueva.vue` para actualizar explícitamente `this.endpoint` a la ruta de edición (`/ordenes/nueva/custom/edit` o `/ordenes/nueva/sport/edit`) cuando se carga una orden existente. Anteriormente, el endpoint permanecía en la ruta de creación por defecto.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó mediante revisión de código que la lógica ahora actualiza `this.endpoint` inmediatamente después de establecer `this.editingOrderId`. Esto asegura que al llamar a `finishOrder`, se utilice la URL correcta para la petición POST.
+- Observaciones de Gemini: El problema era que `changeCategory` (que actualiza el endpoint) no se llamaba al cargar la orden, y llamarlo habría borrado los productos. La solución directa de actualizar el endpoint en el método de carga es segura y efectiva.
+- Respuesta de Gemini: Se ha aplicado la corrección. Ahora, al cargar una orden no asignada, el sistema cambiará internamente al endpoint de edición, asegurando que los cambios se guarden sobre la orden existente en lugar de crear una nueva.

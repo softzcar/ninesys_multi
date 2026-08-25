@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Entonces is Tinta en tanque muestra la cantidad actual que debe tener el tanque para que le ponemos hsitórico?
+- **Fecha y Hora:** 2026-03-08 12:12:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/components/impresoras/TintasActualReporte.vue]
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** Se refinaron las etiquetas de las columnas para eliminar la palabra "Histórico" que causaba confusión al referirse a un nivel de tinta "actual". En la tabla principal, la columna ahora se llama "Tinta en Tanque (Actual)" (basada en la última recarga). En el modal, la columna ahora se llama "Nivel Total en Tanque" (basada en todo el historial). Esto diferencia claramente entre el saldo de la botella actual y el saldo global del equipo.
+- **Inconvenientes y Desafíos:** Ninguno. El feedback del usuario ayudó a encontrar términos más precisos administrativamente.
+- **Decisión Final y Justificación:** Eliminar el sufijo "(Histórico)" fue la decisión correcta ya que, aunque el cálculo use el historial, el valor resultante representa el estado del tanque en el presente.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `write_to_file`
+- **Resultado:** Éxito
+- **Verificación:** Validación de las etiquetas en el componente Vue y actualización de la documentación de la sesión.
+- **Logro Conseguido:** Interfaz mucho más profesional y terminología administrativa coherente, facilitando la toma de decisiones sobre recarga de tintas.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/4c288c8e-dbff-429d-af3d-d91cd2d42cad/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/4c288c8e-dbff-429d-af3d-d91cd2d42cad/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** Con este ajuste se cierra el ciclo de refinamiento de etiquetas solicitado por el usuario.
+
+- **Observaciones de Gemini:** La precisión en las etiquetas ahorra tiempo de explicación al usuario final.
+- **Respuesta de Gemini:** Tienes toda la razón, si es la cantidad que tiene el tanque HOY, la palabra "Histórico" sobra. He ajustado las etiquetas para que sean totalmente claras: En la tabla principal verás **"Tinta en Tanque (Actual)"** (que es lo que queda de la última recarga) y en el modal verás **"Nivel Total en Tanque"** (que es lo que debería haber sumando absolutamente todas tus recargas históricas). ¡Así no hay pérdida!

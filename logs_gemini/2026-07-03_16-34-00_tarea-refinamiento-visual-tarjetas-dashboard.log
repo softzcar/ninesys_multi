@@ -1,0 +1,13 @@
+LOG DE CAMBIOS - BITÁCORA DE TAREAS
+
+Fecha/Hora: 2026-07-03 16:34:00
+Tarea: Refinamiento visual de las tarjetas de tareas del dashboard de empleados.
+
+Descripción de los Cambios:
+1. SseOrdenesAsignadasV5.vue:
+   - Removido el badge de cantidad de piezas (`pzas-badge`) de la parte superior de la tarjeta.
+   - Ubicado el `pzas-badge` al final (parte inferior derecha) de la barra de acciones secundarias (`card-actions-bar`) mediante la clase de utilidad flexbox `ml-auto`, separándolo visualmente del resto de los botones para una mejor jerarquía de información.
+   - Reubicado el bloque de material estimado, eliminando la sección inferior dedicada en la tarjeta y moviéndolo a la fila superior (`info-top-row`), posicionándose al lado del tiempo estimado.
+   - Eliminado el texto estático e innecesario "Material Estimado:" para optimizar el espacio horizontal de la tarjeta.
+   - Reemplazado el icono informativo genérico por un icono más adecuado (`b-icon tag-fill`) para representar los insumos/etiquetas de materiales de la orden de forma elegante.
+   - Ajustada la clase CSS `.material-badge-inline` en la sección `<style scoped>` para alinearse correctamente en altura y espaciado con el badge del tiempo estimado.

@@ -1,0 +1,17 @@
+LOG DE CAMBIOS - BITÁCORA DE TAREAS
+
+Fecha/Hora: 2026-07-03 17:02:00
+Tarea: Incorporación del material estimado de la orden en el modal de asignación de piezas del empleado.
+
+Descripción de los Cambios:
+1. SseOrdenesAsignadasV5.vue (Inyección del Prop):
+   - Se añadió la propiedad `:material-estimado="calcularMaterialOrden(item.orden || item.id_orden)"` a las 6 llamadas del componente `<empleados-MiAsignacionVista>` en todas las variantes de las tarjetas de tareas de órdenes y revisiones.
+
+2. MiAsignacionVista.vue (Soporte del Prop):
+   - Se agregó la definición del prop `materialEstimado` (de tipo String con valor por defecto vacío) en el script.
+   - Se modificaron las 2 llamadas internas de `<AsignacionContenido>` (tanto en modo modal clásico como en modo embebido) para propagar este prop hacia el componente interno: `:materialEstimado="materialEstimado"`.
+
+3. MiAsignacionContenido.vue (Renderizado en Interfaz):
+   - Se agregó la recepción del prop `materialEstimado` en la definición de `props`.
+   - Se insertó un bloque condicional `<b-alert v-if="materialEstimado" show variant="info">` justo debajo de la cabecera de Departamento.
+   - El bloque cuenta con un diseño premium: fondo azul claro, borde izquierdo destacado en azul primario, icono de etiqueta (`tag-fill`) e información legible del material estimado.

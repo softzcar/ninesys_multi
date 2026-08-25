@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Investigar por qué un número de EEUU (19542259842) era marcado como inválido en el formulario de creación de orden.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/mixins/phoneValidation.js
+- Acción Realizada: Se modificó la función `validateAndFormatPhone` para que, si la validación inicial (con país por defecto VE) falla y el número no comienza con '+', se intente una segunda validación prependiéndole el '+'.
+- Herramientas Utilizada(s): `view_file`, `replace_file_content`.
+- Resultado: Éxito. La lógica ahora soporta validación implícita de números internacionales sin requerir que el usuario escriba el '+'.
+- Verificación: Revisión de código lógica.
+- Observaciones de Gemini: El uso de `libphonenumber-js` es robusto, pero la configuración por defecto limitaba la entrada flexible.
+- Respuesta de Gemini: Se notificará al usuario tras el despliegue.

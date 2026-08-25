@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Confirmar que "Gastos Fijos" (card 7) ya quedó cubierta por la auditoría del módulo de Gastos. Sobre "Resumen" (card 8): el usuario consideró que no debería ser una card más que hay que abrir, sino mostrarse directamente en la página principal de Configuración de Empresa; además, la sección "Opciones de visualización" dentro del Resumen no mostraba ninguna información real.
+- **Fecha y Hora:** 2026-08-06 16:20:00
+- **Proyecto(s):** Frontend (app_multi).
+- **Archivos Involucrados:** `pages/empresa/configuracion.vue`, `components/empresa/ConfigResumen.vue`.
+- **Commits Relacionados:**
+    - Frontend: `30bd17e`.
+- **Acción Realizada:**
+    1. Confirmado que "Gastos Fijos" (card legacy dentro de Configuración de Empresa, `ConfigGastosForm.vue`) apunta al mismo endpoint (`POST /configuracion/gastos`) ya reforzado durante la auditoría del módulo "Gastos" de esta sesión -- ya no confía en el payload del cliente para la tabla real `gastos`, solo refresca una caché central. No requiere auditoría adicional.
+    2. Diagnosticada la sección "Opciones de visualización" del Resumen (`ConfigResumen.vue`): era texto estático fijo (`<p>Opciones de visualización configuradas.</p>`), sin usar el prop `personalizacionData` que sí recibía. Corregido: ahora lista dinámicamente cada switch de Personalización (ya depurado de los 3 campos legacy en la tarea anterior) con su nombre formateado (misma función `formatSwitchLabel` que ya usa `ConfigPersonalizacionForm.vue`, para consistencia de etiquetas) y su estado real Sí/No con un badge.
+    3. Movido "Resumen" de ser una card más del menú de 8 opciones a mostrarse directamente en la vista principal de `/empresa/configuracion`, debajo del menú de tarjetas clicables, sin necesidad de un clic adicional. Eliminada la entrada `resumen` de `menuItems` y su bloque de sección individual (redundante tras el cambio).
+    4. Verificada la sintaxis de ambos archivos modificados con el chequeo local (`vue-template-compiler` + `@babel/core`). Commiteado y desplegado a Desarrollo.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se colocó el Resumen DEBAJO del menú de tarjetas (no arriba) para mantener el flujo natural: primero las acciones disponibles (tarjetas para editar cada aspecto), luego una vista general de solo lectura de todo lo ya configurado.
+- **Herramienta(s) Utilizada(s):** Lectura de código, chequeo de sintaxis Vue local, `deploy.sh`.
+- **Resultado:** Éxito.
+- **Verificación:** Sintaxis válida verificada en ambos archivos; desplegado en Desarrollo, pendiente confirmación visual del usuario.
+- **Logro Conseguido:** Se cierra por completo la auditoría de las 8 cards de "Configuración de la Empresa": el Resumen ahora es información útil siempre visible con datos reales, en vez de una card más que había que recordar abrir y que además mostraba un texto vacío de contenido real.
+- **Observaciones de Gemini:** Con esto queda cerrada toda la auditoría de "Configuración de la Empresa" (8/8 cards revisadas: Datos del Administrador, Datos de la Empresa, Monedas, Horario Laboral, Zona Horaria, Personalización, Gastos Fijos, Resumen).
+- **Respuesta de Claude:** Resumen movido a la página principal (visible sin clics extra) y sus "Opciones de Visualización" ahora muestran los switches reales de Personalización con su estado actual -- cierra la auditoría completa de las 8 cards.

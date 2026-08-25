@@ -1,0 +1,22 @@
+- Solicitud del Usuario: Implementar flujo de terminación de materiales por lotes (Batch) con validación de dos pasos.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    1. Backend (`inventory.php`):
+        - Se añadió la bandera `update_success` a la respuesta JSON para confirmar que la actualización de inventario (resta) fue exitosa.
+    2. Frontend (`SseOrdenesAsignadasModalExtra.vue`):
+        - UX: Se reemplazó el botón individual "Terminar Rollo" por una columna de Checkboxes "Terminar".
+        - UX: Se creó un nuevo modal "Terminar Materiales" que muestra un resumen de los ítems seleccionados y permite cargar sus remanentes de forma masiva.
+        - Lógica: Se reescribió el flujo de envío (`handleBatchTerminarConfirm`):
+            a. Itera sobre los ítems seleccionados.
+            b. **Paso 1:** Envía el consumo (`tipo='consumo'`) y espera la respuesta.
+            c. **Validación:** Verifica `res.data.update_success`.
+            d. **Paso 2:** Si y solo si el paso 1 fue exitoso, envía la señal de terminación (`tipo='fin'`, `remanente=X`) para cerrar el inventario a 0.
+- Herramientas Utilizadas: `replace_file_content`, `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación:
+    - Se verifica que el backend responda con el flag de éxito.
+    - Se asegura que no se envíe la señal de "fin" si el consumo falla, protegiendo la integridad de los datos.
+- Observaciones de Gemini: Esta implementación cumple estrictamente con el requisito de "Validar primero, terminar después", evitando inconsistencias donde el inventario quedaba en 0 sin haber registrado correctamente el consumo histórico.
+- Respuesta de Gemini: Funcionalidad Batch implementada. El sistema ahora permite marcar múltiples insumos, ingresar sus remanentes en un solo paso y procesa cada uno con una transacción segura de dos fases (Consumo -> Verificación -> Cierre).

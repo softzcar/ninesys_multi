@@ -1,0 +1,23 @@
+# LOG DE TAREA: Filtro de Órdenes Urgentes y Optimización de Legibilidad de Filtros
+
+**Fecha:** 2026-06-29 09:52:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha añadido un nuevo filtro de órdenes "URGENTES" en la barra lateral de filtros de órdenes en curso (página `/test`), y se ha corregido el problema de legibilidad del botón "POR ASIGNAR", eliminando la variante con borde amarillo transparente (`outline-warning`) por una sólida y con mejor contraste.
+
+1. **Nuevo Filtro "URGENTES"**:
+   - Se agregó el botón con `variant="danger"` (rojo, texto blanco) y se integró la lógica de filtrado reactiva en la propiedad computada `itemsFiltrados`. Filtra únicamente las órdenes donde `parseInt(item.prioridad) === 1`.
+   - Se vinculó en `isUserFiltering` y `clearFilters()` para bloquear el drag-and-drop y permitir resetear el filtro correctamente al presionar "Limpiar Filtros".
+2. **Mejora de Diseño y Contraste ("POR ASIGNAR")**:
+   - Se reemplazó `variant="outline-warning"` por `variant="warning"` sólido (fondo amarillo, texto negro, como en el estado mouseover/hover original). Esto resuelve el problema de legibilidad del texto en fondos claros.
+3. **Indicador de Estado Reactivo**:
+   - Para ambos botones se implementó un control de opacidad dinámico (`opacity: 0.6` inactivo, `opacity: 1` activo con sombra de enfoque `box-shadow`) que permite diferenciar fácilmente si los filtros están activos o apagados, manteniendo una interfaz moderna y sumamente premium.
+
+## Archivos Modificados
+- **Frontend:**
+  - [controlDeProduccionPro.vue](file:///home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue)
+
+## Verificación y Despliegue
+- Los cambios fueron aplicados y el código se encuentra listo en el entorno local para ser probado en caliente.

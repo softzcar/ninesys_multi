@@ -1,0 +1,18 @@
+- Solicitud del Usuario: Crear un reporte detallado de pago por empleado imprimible, disponible en la planilla de pagos y en el histórico, con ítems de comisión por orden y departamento, totales y datos de empresa.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/payments.php
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosReporteEmpleado.vue [NUEVO]
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosHistorico.vue
+- Acción Realizada: 
+    1. Backend: Nuevo endpoint GET /pagos/reporte-empleado/{id_empleado} con parámetros ?pendiente=1 o ?fecha_inicio=&fecha_fin=. Devuelve: datos de empresa (tabla config), empleado (api_empresas.empresas_usuarios), desglose de pagos con producto (join lotes_detalles→products), departamento con orden_proceso, totales de salario/comisión/bonos/descuentos.
+    2. Frontend: Nuevo componente PagosReporteEmpleado.vue con botón 📄, b-modal con tabla condensada y sección de totales. El botón Imprimir usa el PrintService.imprimir() existente.
+    3. Integrado en PagosEmpleados.vue (planilla, modo pendiente=true) y en los tres tipos del PagosHistorico.vue (con computed semanaInicio/semanaFin).
+    4. Backend desplegado en Hostinger vía git pull por SSH.
+    5. Frontend commiteado al repo local (pendiente de deploy al VPS cuando el usuario lo solicite).
+- Herramienta(s) Utilizada(s): view_file, replace_file_content, multi_replace_file_content, write_to_file, run_command.
+- Resultado: Éxito
+- Verificación: git push exitoso en ambos repos. Backend desplegado en VPS Hostinger con fast-forward.
+- Observaciones de Gemini: El campo `detalle` en la tabla pagos (VARCHAR 16) contiene el nombre del departamento, usado como clave para el join en la tabla `departamentos` y para obtener su `orden_proceso`.
+- Respuesta de Gemini: Implementación completa. El botón de reporte (ícono 📄) aparece junto al nombre del empleado en la planilla de pagos y en el histórico de pagos.
+EOF

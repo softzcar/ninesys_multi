@@ -1,0 +1,51 @@
+- Solicitud del Usuario: En el endpoint `/empleados/dashboard` cuando el departamento es `Estampado` y se hace click en el botón `Terminar Todo`, se muestra un modal que no estaba mostrando el dato `Material Estimado (Sistema)`. Adicionalmente, el label y el valor debían aparecer en la misma línea.
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+
+- Acción Realizada:
+  1. **Análisis inicial**: Identificado que el componente modal usaba `dataInsumos` en computed properties pero no lo declaraba como prop ni lo recibía del padre
+  2. **Primera corrección - Props**: Agregado `dataInsumos` a la lista de props en `SseOrdenesAsignadasModalExtra.vue` (línea 1468)
+  3. **Bindings del padre**: Agregado `:datainsumos="dataInsumos"` en `SseOrdenesAsignadasV4.vue` en dos lugares:
+     - Sección Reposiciones (línea 204)
+     - Sección En Curso (línea 305)
+  4. **Reorganización del template**: Modificado el HTML para mostrar el label "Material Estimado (Sistema):" y su valor en la misma línea (líneas 165-179)
+  5. **Fallback**: Agregado caso `v-else` para mostrar mensaje cuando no hay datos disponibles
+  6. **Fix declaración duplicada**: Eliminado `dataInsumos: []` de la sección `data()` que causaba warning "The data property 'dataInsumos' is already declared as a prop"
+  7. **Fix mutación de prop**: Creado `dataInsumosLocal` en data() para almacenar insumos cargados del API sin mutar el prop (línea 274)
+  8. **Computed unificador**: Creado `dataInsumosComputed` que combina datos del prop (padre) con datos locales (API), priorizando el prop (líneas 310-317)
+  9. **Actualización de métodos**: Modificado `getEficienciaEstimada()` para asignar a `dataInsumosLocal` en lugar de `dataInsumos` (línea 1353)
+  10. **Actualización de computed properties**: Cambiado `dataInsumosFiltrado`, `materialEstimadoDepartamento`, y `materialEstimadoPorCatalogo` para usar `dataInsumosComputed`
+  11. **Limpieza**: Eliminado información de debug del template
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`, `view_file`, `grep_search`, `find_by_name`
+
+- Resultado: Éxito
+
+- Verificación: El usuario confirmó que el modal funciona correctamente. Verificación exitosa en navegador:
+  - ✅ Sin warnings de Vue en la consola (eliminados "data property already declared as prop" y "avoid mutating a prop directly")
+  - ✅ El modal muestra "Material Estimado (Sistema): X.XX Kg de [Material]" en una sola línea
+  - ✅ Los datos de material estimado se calculan y muestran correctamente
+  - ✅ El formato es coherente con otros campos como "Material Utilizado"
+
+- Observaciones de Gemini: Este fix requirió resolver múltiples problemas en cascada:
+  
+  **Problema 1 - Prop faltante**: El prop no estaba declarado ni pasado, causando que `dataInsumos` fuera siempre `undefined`.
+  
+  **Problema 2 - Formato visual**: El label y valor estaban en elementos HTML separados (h6 + div/p), cuando debían estar juntos en el mismo párrafo.
+  
+  **Problema 3 - Declaración duplicada**: Al agregar el prop, descubrimos que ya existía `dataInsumos` en data(), violando las reglas de Vue.
+  
+  **Problema 4 - Mutación de prop**: La función `getEficienciaEstimada()` asignaba directamente a `this.dataInsumos`, lo cual Vue prohíbe porque los props son de solo lectura desde el componente hijo.
+  
+  **Solución arquitectónica**: Implementamos un patrón robusto donde:
+  - `dataInsumos` (prop): Datos pasados desde el padre cuando ya están disponibles en el contexto
+  - `dataInsumosLocal` (data): Datos cargados localmente del endpoint `/eficiencia-orden/{id}`
+  - `dataInsumosComputed` (computed): Combina ambas fuentes, priorizando el prop si existe
+  
+  Este patrón permite que el componente funcione en dos escenarios:
+  1. Cuando el padre ya tiene los datos de insumos y los pasa via prop
+  2. Cuando el componente necesita cargarlos por sí mismo del API
+
+- Respuesta de Gemini: Excelente! El modal de Estampado ahora funciona correctamente. Todos los warnings de Vue han sido eliminados y el "Material Estimado (Sistema)" se muestra en el formato correcto. El código ahora sigue las mejores prácticas de Vue para manejo de props y datos locales.

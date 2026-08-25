@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Agregar el componente `LinkSearch` en la sección de "Reposiciones" de la página `/test`, ubicándolo en el mismo sitio que en la sección de "Ordenes en curso" para mantener la consistencia al ver el ID de la orden.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue`
+- Acción Realizada:
+    1.  Se actualizó el encabezado de la columna de "Revisión" a "Orden" en la sección de reposiciones.
+    2.  Se insertó el componente `<link-search :id="el.id_orden" :key="el.id_orden" />` dentro del `b-list-group-item` correspondiente a la columna "Orden", justo antes del icono de estado de revisión.
+    3.  Se actualizó el atributo `data-label` de "Revisión" a "Orden" para la vista móvil.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó la inserción del componente y la corrección de los atributos `key` e `id` usando `el.id_orden`, coincidiendo con la estructura de datos disponible para reposiciones.
+- Observaciones de Gemini: Esto mejora la navegabilidad, permitiendo al usuario acceder rápidamente a los detalles de la orden asociada a una reposición, tal como lo hace en la lista principal de órdenes.
+- Respuesta de Gemini: Se ha insertado el componente LinkSearch en la columna de Orden de las Reposiciones.

@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Refrescar lista de empleados inmediatamente después de confirmar pago, sin esperar al diálogo de impresión.
+- Archivos Involucrados: components/admin/PagosEmpleados.vue
+- Acción Realizada: Se movió la llamada  al inicio de  y se agregó lógica de fallback en  para usar los datos guardados en memoria (), permitiendo imprimir el recibo aunque el empleado ya no esté visible en la tabla.
+- Resultado: Experiencia de usuario mejorada, el empleado desaparece instantáneamente al pagar.
+- Verificación: Despliegue en frontend completado.
+- Respuesta de Gemini: Notificación.

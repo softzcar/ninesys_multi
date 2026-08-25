@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Corregir visualización en el histórico (ID orden vacío, Vendedor vacío, error en Total $).
+- Archivos Involucrados: 1. /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php
+2. /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+- Acción Realizada: 1. En el backend, se estandarizaron TODOS los alias del UNION y se aplicaron LEFT JOINs para garantizar que la orden y el vendedor siempre tengan datos. Se agregaron prefijos 'P-', 'NC-' y 'D-' a los IDs para evitar conflictos de llaves en Vue. 2. En el frontend, se blindó `usdConverter` para manejar datos nulos/indefinidos y se actualizaron los slots y campos de la tabla para usar los nuevos alias. Se agregó resaltado azul para descuentos.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de la lógica de UNION y blindaje de conversiones numéricas. Se asegura que la columna "Orden" use el alias correcto para el componente linkSearch.
+- Observaciones de Gemini: La inconsistencia de alias entre las partes del UNION era la causa principal de los campos vacíos en el frontend.
+- Respuesta de Gemini: He corregido la alineación de datos en el historial. Ahora los IDs de orden y los nombres de los vendedores aparecen correctamente, y los errores de cálculo se han solucionado.

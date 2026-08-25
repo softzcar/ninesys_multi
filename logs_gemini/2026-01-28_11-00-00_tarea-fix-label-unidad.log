@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Corregir "conversión a Kilos" errónea en el input de material utilizado (Impresión).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se analizó la propiedad computada `placeholderInput`.
+    - Se encontró que retornaba el string fijo "Peso" para cualquier departamento que no fuera Estampado, lo cual causaba confusión visual (el usuario pensaba que el sistema pedía Kilos).
+    - Se refactorizó `placeholderInput` para ser dinámico: ahora toma la unidad del material estimado (`this.materialEstimadoDepartamento.unidad`) y muestra "Cantidad de [UNIDAD] utilizados".
+- Herramientas Utilizadas: `replace_file_content`.
+- Resultado: Éxito
+- Verificación: El input ahora mostrará "Cantidad de Metros utilizados" (u otra unidad correcta) en lugar de "Peso", alineándose con la visualización del material estimado.
+- Observaciones de Gemini: No había conversión matemática errónea en el frontend para Impresión, era un error semántico en la UI que inducía al usuario a creer que había un problema de unidades.
+- Respuesta de Gemini: Etiqueta corregida. Ahora el formulario solicita explícitamente la unidad correcta.

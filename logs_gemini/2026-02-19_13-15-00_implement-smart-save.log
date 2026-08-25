@@ -1,0 +1,18 @@
+
+- Solicitud del Usuario: Implementar flujo "Smart Save" para gestión de excedentes de corte (creación manual de items de stock).
+- Archivos Involucrados:
+    - Backend: `app/routes/production.php` (Nuevo endpoint `crear-orden-stock-manual`).
+    - Frontend: `components/produccion/NewStockOrderModal.vue` (Nuevo), `components/produccion/CorteItemView.vue` (Modificado).
+- Acción Realizada:
+    - Backend: Se creó endpoint para recibir lista manual de productos y generar orden interna vinculada.
+    - Frontend:
+        - Se creó Modal con formulario para añadir items (Nombre, Talla, Género, Cantidad).
+        - Se modificó la vista de item de corte para detectar excedentes al guardar.
+        - Se implementó confirmación: Si hay excedentes -> Preguntar -> Abrir Modal.
+    - Repositorios: Cambios comiteados y pusheados (Backend y Frontend). Backend actualizado en VPS.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `write_to_file`, `run_command` (git).
+- Resultado: Implementación completada.
+- Verificación:
+    - Pendiente despliegue de Frontend para pruebas funcionales.
+- Observaciones de Gemini:
+    - Se solicita autorización para ejecutar despliegue de frontend (`./deploy.sh`).

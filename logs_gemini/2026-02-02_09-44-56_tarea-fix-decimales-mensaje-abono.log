@@ -1,0 +1,74 @@
+- Solicitud del Usuario: Después de los cambios en el backend, el mensaje de WhatsApp al hacer un abono todavía mostraba el monto del abono con 4 decimales (ej: "1.0000") mientras que el saldo pendiente sí mostraba 2 decimales. El usuario solicita que el abono también se muestre con 2 decimales.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue (líneas 405-416, método computed msgWhatsAppAbono)
+
+- Acción Realizada:
+  1. Identifiqué que el mensaje de WhatsApp se construye en el FRONTEND en el componente `abono.vue`.
+  2. Localicé el método computed `msgWhatsAppAbono()` que construye el mensaje.
+  3. El mensaje usaba directamente `${this.form.abono}` sin formatear (contiene 4 decimales por cálculos internos).
+  4. Apliqué `.toFixed(2)` al valor del abono en ambas líneas del mensaje:
+     - Línea 408: Cuando el cliente cancela toda la deuda
+     - Línea 414: Cuando el cliente queda con saldo pendiente
+  5. El formato aplicado fue: `${parseFloat(this.form.abono).toFixed(2)}`
+  6. Hice commit y push a GitHub (commit edb9a42).
+
+- Herramienta(s) Utilizada(s): grep_search, view_file, replace_file_content, run_command (git)
+
+- Resultado: Éxito
+
+- Verificación:
+  1. Código modificado correctamente en `abono.vue` líneas 408 y 414.
+  2. Ambas variantes del mensaje ahora formatean el abono a 2 decimales.
+  3. El saldo pendiente (`this.calculated`) ya estaba formateado a 2 decimales y se mantiene igual.
+  4. Commit exitoso: `edb9a42` con mensaje descriptivo.
+  5. Push a GitHub exitoso: "main -> main".
+  6. El valor `this.form.abono` mantiene 4 decimales internamente para precisión.
+  7. Solo se formatea a 2 decimales para el mensaje de WhatsApp.
+
+- Observaciones de Gemini:
+  El fix requirió cambios en DOS lugares:
+  
+  **Backend (ya completado):**
+  - Archivo: `communications.php`
+  - Afecta: Mensajes tipo 'cobro' del endpoint `/ws/build-message`
+  - Variables: `pago_total`, `total_abonos`, `total_descuentos`, `deuda`
+  
+  **Frontend (este fix):**
+  - Archivo: `abono.vue`
+  - Afecta: Mensaje automático al hacer abono desde UI
+  - Variable: `this.form.abono`
+  
+  Ahora el mensaje será consistente:
+  - Antes: "Ha hecho un abono de **1.0000** a la orden 3746, le queda un saldo pendiente de **1.00** USD"
+  - Después: "Ha hecho un abono de **1.00** a la orden 3746, le queda un saldo pendiente de **1.00** USD"
+  
+  Los 4 decimales se mantienen en:
+  - Base de datos (campos DECIMAL(10,4))
+  - Cálculos internos del frontend (`this.form.abono`, `totalAbono()`)
+  - Endpoint POST `/orden/abono` (recibe y guarda con 4 decimales)
+  
+  Solo la PRESENTACIÓN usa 2 decimales:
+  - Mensajes de WhatsApp
+  - Interfaz de usuario (ya usa moneyFormatter)
+
+- Respuesta de Gemini:
+  ✅ Fix completo implementado en frontend
+  
+  **Cambio realizado:**
+  El monto del abono en mensajes de WhatsApp ahora muestra **2 decimales** consistentemente.
+  
+  **Ejemplo del mensaje corregido:**
+  - ❌ Antes: "Ha hecho un abono de **1.0000** a la orden 3746, le queda un saldo pendiente de 1.00 USD"
+  - ✅ Ahora: "Ha hecho un abono de **1.00** a la orden 3746, le queda un saldo pendiente de 1.00 USD"
+  
+  **Flujo completo corregido:**
+  1. **Backend** (`communications.php`): Mensajes de tipo 'cobro' formatean totales a 2 decimales ✅
+  2. **Frontend** (`abono.vue`): Mensaje automático al abonar formatea abono a 2 decimales ✅
+  
+  **Importante:**
+  - Los 4 decimales se mantienen en la base de datos y cálculos internos
+  - Solo los MENSAJES y la INTERFAZ muestran 2 decimales
+  - Esto asegura precisión en cálculos y legibilidad para el usuario
+  
+  Puedes probar haciendo un nuevo abono y el mensaje mostrará ambos montos con 2 decimales.

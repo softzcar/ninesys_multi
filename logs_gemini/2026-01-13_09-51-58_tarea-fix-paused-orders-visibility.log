@@ -1,0 +1,8 @@
+- Solicitud del Usuario: En la pagina `/empleados/dashboard` cuando las ordene están `En Curso` tenemos la opción de pausar al orden al hacer click en pausar la orden el estado de la orden esta cambia al status aprusada corectamente pero luego en la iterfaz no se muestra el boton para poder reanudar la tarea
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: Se modificaron los filtros de la propiedad computada `dataTableEnCurso` en `SseOrdenesAsignadasV4.vue` para incluir órdenes con `status === 'pausada'` además de aquellas con `progreso === 'en curso'`. Esto asegura que las órdenes pausadas permanezcan visibles en la lista 'En Curso', permitiendo al usuario acceder al botón de reanudar.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó el código modificado para asegurar que la condición `el.status === 'pausada'` se agregó correctamente a las ramas condicionales para los departamentos de Impresión, Estampado, Corte y otros.
+- Observaciones de Gemini: El problema se debía a que al pausar una orden, su status cambiaba a 'pausada' (lo cual es correcto en el backend), pero el frontend filtraba estrictamente por 'en curso', ocultando la fila y por ende el botón de reanudar.
+- Respuesta de Gemini: Se ha corregido el filtro en el componente para que las tareas pausadas se sigan mostrando en la lista 'En Curso', permitiendo así ver el botón de 'Reanudar'.

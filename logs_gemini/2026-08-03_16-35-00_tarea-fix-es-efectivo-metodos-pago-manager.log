@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** Tras el fix del resumen dinámico de caja en Retiros, el usuario compartió una captura mostrando que el formulario tiene inputs para Dólares, Bolívares y Pesos, pero NINGÚN input para Euro (ni siquiera un campo "Efectivo" debajo del nombre) pese a que el resumen ya mostraba correctamente "EURO: 0.00".
+- **Fecha y Hora:** 2026-08-03 16:35:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/admin/MetodosPagoManager.vue
+    - Datos: catalogo_metodos_pago (empresa 194, Desarrollo)
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. **Causa confirmada por datos:** el método "Efectivo" de Euro (creado hoy desde el Gestor de Monedas, durante las pruebas de la Sección A) tenía `es_efectivo = 0` en `catalogo_metodos_pago` -- la pantalla de Retiros usa `<ordenes-metodos-pago-dinamico solo-efectivo>`, que filtra los métodos a solo los marcados como efectivo real; con `es_efectivo=0`, el método quedaba completamente excluido del formulario (ningún input, ni siquiera deshabilitado).
+    2. **Causa raíz real, más allá del dato puntual:** `MetodosPagoManager.vue` (el único componente usado para crear métodos de pago desde el Gestor de Monedas nuevo, y también reutilizado en la página legada `pages/monedas.vue`) nunca tenía un checkbox para `es_efectivo` en su formulario de alta -- el campo simplemente nunca se enviaba al backend, que por defecto lo guarda en `0`. Cualquier método creado con este componente, sin importar el nombre que se le pusiera (incluso literalmente "Efectivo"), quedaba marcado como "no es efectivo" por defecto. Además, el componente solo tenía crear/eliminar -- no había ninguna forma de corregir el campo después del alta.
+    3. **Corregido el dato existente:** `catalogo_metodos_pago._id=11` (Efectivo/Euro) actualizado a `es_efectivo=1`.
+    4. **Corregido el componente:** agregado checkbox "Es efectivo" en el formulario de alta (enviado ahora en `guardarMetodo()`), y agregada una columna interactiva en la tabla (botón que alterna el valor vía `POST /metodos-pago/editar`, endpoint que ya soportaba este campo pero no se usaba desde aquí) -- para que cualquier método existente pueda corregirse sin necesitar acceso directo a la base de datos.
+- **Inconvenientes y Desafíos:** Ninguno técnico. Se verificó que `POST /metodos-pago/editar` ya soportaba `es_efectivo` en el backend (Fase 7 del rediseño) -- no hizo falta ningún cambio de backend, solo conectar el frontend a una capacidad que ya existía pero nunca se exponía desde este componente.
+- **Decisión Final y Justificación:** El checkbox nuevo se dejó sin marcar por defecto (igual que "Requiere referencia" ya hacía) -- no se intentó adivinar el valor correcto a partir del nombre escrito (ej. asumir que "Efectivo" en el nombre implica `es_efectivo=true`), para no repetir el mismo patrón de asumir en silencio que causó este bug -- el administrador debe marcarlo explícitamente.
+- **Herramienta(s) Utilizada(s):** `ssh`, `psql` (corrección puntual del dato), `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Dato corregido y confirmado por consulta directa. Componente sin errores de sintaxis.
+- **Logro Conseguido:** Cierra el hueco real que impedía retirar efectivo en Euro (y habría afectado a cualquier moneda futura cuyo método de pago se creara desde esta misma UI) -- el Gestor de Monedas nuevo ahora puede configurar completamente un método de pago (nombre, referencia, y si es efectivo real) sin depender de ediciones manuales en base de datos.
+- **Observaciones:** Este mismo componente se reutiliza en la página legada `pages/monedas.vue` -- el fix beneficia a ambos lugares por igual, sin haber tenido que duplicar el cambio.
+- **Respuesta de Claude:** El input de Euro no aparecía porque su método "Efectivo" (creado hoy) quedó marcado como "no es efectivo" por defecto -- el formulario de creación de métodos de pago nunca tuvo un campo para eso. Corregido el dato existente y agregado el campo al componente (con un botón para poder corregir métodos ya creados), así que este problema no debería repetirse con ninguna moneda futura.

@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Agregar un filtro adicional por ID del insumo en la página /inventario/reportes/movimientos del frontend, además de los existentes por SKU y NOMBRE.
+- **Fecha y Hora:** 2026-03-31 17:45:51
+- **Proyecto(s):** Frontend (app_multi), Backend (ninesys-api)
+- **Archivos Involucrados:** 
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/pages/inventario/reportes/movimientos/index.vue
+  - Backend: /home/developer/Escritorio/niesys/ninesys-api/app/routes/inventory.php
+- **Commits Relacionados:**
+  - Frontend: N/A (cambios locales)
+  - Backend: N/A (cambios locales)
+- **Acción Realizada:** 
+  - En el frontend: Agregué un nuevo campo de entrada para "ID del Insumo" en los filtros, con debounce y actualización automática. Ajusté el layout de columnas para acomodar el nuevo filtro. Agregué la propiedad de datos `searchIdInsumo` y la incluí en el método `loadReport` para enviar el parámetro `id_insumo` a la API. Actualicé `resetFilters` para limpiar el nuevo campo.
+  - En el backend: Modifiqué la ruta GET /inventario/reportes/movimientos para aceptar el parámetro `id_insumo` y agregué una condición WHERE para filtrar por `m.id_insumo = ?` cuando se proporciona.
+- **Inconvenientes y Desafíos:** Ninguno significativo. El layout se ajustó cambiando las clases de columna de md="3" a md="2" para los campos de insumo y responsable, permitiendo espacio para el nuevo campo.
+- **Decisión Final y Justificación:** Se agregó el filtro como un campo separado para mantener claridad, en lugar de combinarlo con el campo existente de Nombre/SKU. El backend filtra exactamente por ID, lo que permite búsquedas precisas.
+- **Herramienta(s) Utilizada(s):** replace_string_in_file para ediciones, read_file para revisión de código.
+- **Resultado:** Éxito - Los cambios se aplicaron correctamente en ambos proyectos.
+- **Verificación:** Los archivos se editaron sin errores de sintaxis. El layout del frontend se ajustó para incluir el nuevo filtro. La lógica del backend ahora soporta el parámetro id_insumo.
+- **Logro Conseguido:** Se implementó el filtro por ID del insumo, permitiendo búsquedas más específicas en el reporte de movimientos de inventario.
+- **Referencias de Sesión (Contexto):** 
+  - Task: N/A
+  - Walkthrough: N/A
+- **Observaciones de Gemini:** Los cambios son mínimos y no invasivos, siguiendo las reglas de no alterar funcionalidades existentes.
+- **Respuesta de Gemini:** Se ha agregado el filtro por ID del insumo en la página de reportes de movimientos, tanto en frontend como en backend.

@@ -1,0 +1,12 @@
+- Solicitud del Usuario: User reported that the "Categoría" select was not being populated in the new product component when used inside the "comercializacion/ordenes" wizard.
+- Archivos Involucrados: [/home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue]
+- Acción Realizada:
+    1. Analyzed the parent component `ordenes/nueva.vue`.
+    2. Discovered that it already contained a method `loadDataCategories` to fetch categories from the API and commit them to the Vuex store.
+    3. Identified that this method was not being called in the `mounted` lifecycle hook.
+    4. Added `this.loadDataCategories()` to the `Promise.all` array within the `mounted` hook to ensure the category data is loaded when the component initializes.
+- Herramienta(s) Utilizada(s): [default_api.replace, default_api.read_file]
+- Resultado: Éxito
+- Verificación: The code has been modified. The user will verify that the "Categoría" select in the child component is now populated correctly.
+- Observaciones de Gemini: The fix was simpler than anticipated, as the required data-fetching logic already existed but was not being invoked.
+- Respuesta de Gemini: Hecho. He añadido la llamada que faltaba en el `mounted()` del componente. Con este cambio, el componente `ordenes/nueva.vue` ahora cargará las categorías de productos al iniciarse, y el `select` de "Categoría" en el formulario para crear un nuevo producto debería poblarse correctamente. Procedo a registrar la tarea en la bitácora. Por favor, verifica que el bug esté solucionado.

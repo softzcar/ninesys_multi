@@ -1,0 +1,50 @@
+- Solicitud del Usuario: Ejecutar el deploy de la app al VPS para aplicar los cambios de precisión decimal implementados en el frontend.
+
+- Archivos Involucrados:
+  - Script de deploy: `/home/developer/Escritorio/niesys/app_multi/deploy.sh`
+  - Aplicación frontend completa transpilada
+  - VPS: `root@vps-ninesys:/home/app.nineteencustom.com/public_html`
+
+- Acción Realizada:
+  1. **Ejecución del script de deploy**:
+     - Se ejecutó `./deploy.sh` desde la raíz del proyecto frontend
+     - Se confirmó el despliegue con respuesta "s"
+  
+  2. **Proceso de deploy**:
+     - **Paso 1**: Eliminación del directorio `./dist` anterior ✅
+     - **Paso 2**: Generación de nueva transpilación con `npm run generate` ✅
+     - **Paso 3**: Creación de backup local en `./backups_transpilaciones/transpilacion_2026-01-30_11-38-00.tar.gz` ✅
+     - **Paso 4**: Creación de backup remoto en `/home/app.nineteencustom.com/backups_deploys/app_backup_2026-01-30_11-38-00` ✅
+     - **Paso 5**: Sincronización de archivos al VPS mediante `rsync` ✅
+       - Se transfirieron 722,654 bytes
+       - Tamaño total: 11,959,557 bytes
+       - Velocidad: 182,195.33 bytes/sec
+     - **Paso 6**: Limpieza de backups locales antiguos (conservando los últimos 12) ✅
+  
+  3. **Cambios desplegados**:
+     - Componente `abono.vue` con precisión de 4 decimales en cálculos internos
+     - Funciones `totalAbono()` y `updateMontoAbono()` usando `.toFixed(4)`
+     - Visualización manteniendo 2 decimales al usuario mediante `moneyFormatter()`
+
+- Herramienta(s) Utilizada(s): `run_command`, `send_command_input`, `command_status`
+
+- Resultado: Éxito
+
+- Verificación:
+  - Script de deploy completado exitosamente con código de salida 0
+  - Backup local creado: `./backups_transpilaciones/transpilacion_2026-01-30_11-38-00.tar.gz`
+  - Backup remoto creado: `/home/app.nineteencustom.com/backups_deploys/app_backup_2026-01-30_11-38-00`
+  - Archivos sincronizados al VPS: `root@vps-ninesys:/home/app.nineteencustom.com/public_html`
+  - Log detallado disponible en: `./logs_deploys/deploy_app_log_2026-01.log`
+  - Transpilación generada sin errores críticos (solo warnings deprecados esperados)
+  - Total de 11.9 MB desplegados al VPS
+
+- Observaciones de Gemini:
+  - El deploy incluyó todos los cambios de precisión decimal implementados
+  - Los backups automáticos garantizan poder revertir si es necesario
+  - La transpilación generó warnings deprecados conocidos (bootstrap, browserslist) que no afectan funcionalidad
+  - Los cambios de precisión decimal ahora están en producción
+  - Los empleados que usen el modal de pagos ahora enviarán valores con 4 decimales al backend
+  - La interfaz seguirá mostrando 2 decimales al usuario para mantener la experiencia de usuario
+
+- Respuesta de Gemini: Deploy completado exitosamente. La aplicación frontend con los cambios de precisión decimal (4 decimales en cálculos internos, 2 decimales en visualización) ha sido transpilada y desplegada al VPS. Los backups local y remoto fueron creados correctamente. Los cambios están ahora en producción en https://app.nineteencustom.com

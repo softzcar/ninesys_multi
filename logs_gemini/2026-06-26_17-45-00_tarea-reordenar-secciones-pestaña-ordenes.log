@@ -1,0 +1,24 @@
+# LOG DE TAREA: Reordenamiento de Secciones en la Pestaña Órdenes
+
+**Fecha:** 2026-06-26 17:45:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha reestructurado el orden visual en el que se presentan las secciones dentro del dashboard de empleados:
+
+1. **Reubicación de Lotes en Proceso:**
+   - La sección **"Lotes en Proceso"** (que anteriormente se ubicaba fuera de la navegación de pestañas y arriba de todo) fue trasladada al interior de la pestaña de **"ÓRDENES"** (`activeTab === 'ordenes'`).
+
+2. **Nuevo Flujo y Orden de Secciones:**
+   - De esta manera, el listado general de Órdenes ahora se muestra en el orden UX prioritario requerido:
+     1. **URGENTE** (Órdenes / revisiones urgentes pendientes).
+     2. **Lotes en Proceso**.
+     3. **EN PROCESO** (Tareas normales o urgentes en curso).
+     4. **PENDIENTES** (Tareas generales en espera).
+
+## Archivos Modificados
+- **Frontend:** [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- El frontend fue compilado internamente y los cambios se sincronizaron con éxito en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

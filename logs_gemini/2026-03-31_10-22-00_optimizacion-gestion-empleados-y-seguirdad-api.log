@@ -1,0 +1,34 @@
+- Solicitud del Usuario: 
+  1. Habilitar ordenamiento interactivo en la tabla de gestión de empleados (Columnas "Nombre" y "Usuario").
+  2. Optimizar la carga de datos para evitar llamadas duplicadas a la API y corregir el bloqueo del overlay.
+  3. Eliminar la exposición de consultas SQL en la respuesta de los endpoints de empleados por seguridad.
+
+- Archivos Involucrados: 
+  - Frontend:
+    - /home/developer/Escritorio/niesys/app_multi/pages/empleados/gestion/index.vue
+  - Backend:
+    - /home/developer/Escritorio/niesys/ninesys-api/app/routes/employees.php
+
+- Acción Realizada:
+  Frontend (`index.vue`):
+  - Se forzó la propiedad `sortable: true` en las columnas clave de la tabla de empleados.
+  - Se refactorizó totalmente el método `loadData()`, implementando un sistema de control de flujo basado en el flag `isFetching` que previene llamadas redundantes durante el "doble montaje" de Nuxt.
+  - Se saneó el template para asegurar la visibilidad inmediata de la tabla mediante una inicialización robusta de `dataTable`.
+  
+  Backend (`employees.php`):
+  - Se eliminaron las asignaciones a `$object['sql']` y `$object['sql_delete']` en los endpoints de obtención y edición de empleados.
+  - Se limpió la información técnica de SQL en las respuestas de error 500 para evitar fugas de información.
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`, `view_file`, `grep_search`.
+
+- Resultado: Éxito ✅
+
+- Verificación:
+  - Tabla de empleados visible y con ordenamiento funcional en local. ✅
+  - Reducción de llamadas a la API (una sola petición por arranque de componente). ✅
+  - Respuestas de red saneadas sin trazas SQL en el panel de Network. ✅
+
+- Observaciones de Gemini: 
+  - La inestabilidad anterior se debía a conflictos entre la variable global de deduplicación y el ciclo de vida del componente en Nuxt; el nuevo enfoque reactivo interno es mucho más estable.
+
+- Respuesta de Gemini: Log de optimización y seguridad de empleados generado exitosamente.

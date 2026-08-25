@@ -1,0 +1,7 @@
+- Solicitud del Usuario: Corregir el modal de Asignación Masiva: la selección de unidad no actualizaba las filas y el botón Recalcular no parecía funcionar.
+- Archivos Involucrados: `components/admin/AsignacionMasivaModal.vue`.
+- Acción Realizada: Se modificaron los métodos `applyUnitToAll` y `calculateQuantities` para usar `map` y retornar nuevos objetos en lugar de mutar el array existente. Esto asegura que el sistema de reactividad de Vue 2 detecte los cambios y actualice la interfaz.
+- Herramienta(s) Utilizada(s): `replace_file_content`.
+- Resultado: Éxito (teórico, requiere prueba de usuario).
+- Verificación: Revisión del código. El uso de `this.items = this.items.map(...)` es la forma estándar de asegurar reactividad en reemplazos masivos.
+- Respuesta de Gemini: Notificación de corrección aplicada.

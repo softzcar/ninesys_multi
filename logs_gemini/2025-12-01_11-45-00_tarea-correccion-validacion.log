@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Verificar por qué no se aplicaron los cambios de validación de descuento.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada:
+    1. Se detectó que se había insertado un método `finishOrder` duplicado en una ubicación incorrecta (línea 1651) en lugar de modificar el existente (línea 2665).
+    2. Se eliminó el método duplicado.
+    3. Se insertó la lógica de validación en el método `finishOrder` correcto.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó visualmente que ahora solo existe un `finishOrder` y contiene la validación al inicio.
+- Observaciones de Gemini: El error anterior se debió a una inserción ciega sin verificar la existencia previa del método en otra parte del archivo grande.
+- Respuesta de Gemini: Corrección aplicada. Ahora la validación debería funcionar correctamente en el formulario de orden.

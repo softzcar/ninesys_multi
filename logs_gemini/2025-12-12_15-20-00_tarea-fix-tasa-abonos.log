@@ -1,0 +1,22 @@
+- Solicitud del Usuario: verificar en la página `/reportes/pagos-abonos` la columna `Tasa` siempre muestra `1.00`.
+- Archivos Involucrados: 
+    - `/home/developer/Escritorio/niesys/app_multi/pages/comercializacion/reportes/pagos-abonos.vue`
+    - `/home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/finance.php`
+    - `/home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue`
+- Acción Realizada: Se corrigió `abono.vue` para enviar `this.tasas.bolivar` en lugar de `this.tasas.dolar` al pagar en Bolívares.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`.
+- Resultado: Éxito.
+- Verificación: Revisión de código. Se requiere prueba manual del usuario (nuevo abono).
+- Observaciones de Gemini: El error estaba en el envío de datos.
+- Respuesta de Gemini: He corregido el error en `components/ordenes/abono.vue`.
+- Acción Adicional: Se actualizaron 16 registros en la tabla `metodos_de_pago` de la base de datos `api_emp_152` para corregir la tasa de 1.00 a los valores correctos proporcionados por el usuario.
+- IDs Actualizados: 4401, 4399, 4398, 4397, 4396, 4395, 4393, 4392, 4389, 4388, 4387, 4386, 4385, 4384, 4383, 4381.
+- Acción Adicional: Se verificó la hora del VPS y se detectó que estaba en UTC. Se ejecutó `timedatectl set-timezone America/Caracas` para ajustar la zona horaria a Venezuela.
+- Hora Anterior: UTC (aprox 19:54)
+- Hora Actual: America/Caracas (aprox 15:55)
+- Observación Final: El usuario indicó que realizó el despliegue de la aplicación por su cuenta.
+- Estado Final: Tarea completada. Código corregido, base de datos actualizada, zona horaria ajustada.
+- Acción Adicional (Tanda 2): Se actualizaron 14 registros más en la tabla `metodos_de_pago` (incluidos los más recientes del 12/12) con las tasas proporcionadas mediante imagen.
+- IDs Actualizados: 4411, 4409, 4403, 4402, 4380, 4378, 4374, 4371, 4370, 4369, 4359, 4358, 4357, 4356.
+- Verificación Final: Se completó el barrido de tasas incorrectas en bolívares. No se detectaron errores en pesos.
+- Verificación Post-Cierre: Se ejecutó una consulta final COUNT(*) y devolvió 0. Confirmado que NO quedan pagos en Bolívares con Tasa 1.00.

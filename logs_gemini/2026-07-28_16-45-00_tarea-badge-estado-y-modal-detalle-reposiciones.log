@@ -1,0 +1,39 @@
+- **Solicitud del Usuario:** "Ok ya que puedo ver la información que me muestra vamos a hacer mejoras en este reporte, primero vamos a incluir en una columna el estado de la reposición, vamos a usar un badge de colores para indicar el estado, esta misma mejora visual la debemos implementar en ordenes en curso y todas las ordenes, hagámoslo de una vez. Luego en control de producción, tenemos secciones de reposiciones, donde al hacer click en la reposición podemos abrir un modal que nos muestra un resumen de esa reposición y las acciones que se pueden ejecutar sobre ella. Necesitamos implementar un modal similar que se abra con un botón y que solo muestre los detalles de la reposición, sin acciones. Únicamente vamos a asegurarnos que la información que mostremos incluya los dos detalles que puede contener una reposición, el detalle del emisor de la reposición y el detalle del jefe de producción que la aprueba."
+- **Fecha y Hora:** 2026-07-28 16:45:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/BadgeEstatusOrden.vue` (nuevo)
+    - `components/admin/reposicionesReporte.vue`
+    - `components/produccionsse/controlDeProduccionPro.vue`
+    - `components/produccionsse/ordenesTodas.vue`
+- **Commits Relacionados:**
+    - Frontend: `ff27b7c`
+- **Acción Realizada:**
+    Se creó un componente global reutilizable `BadgeEstatusOrden.vue` (archivo plano en la raíz de `components/`, auto-registrado por Nuxt como `<badge-estatus-orden>`) que recibe un prop `estatus` y renderiza un `b-badge` con color y etiqueta mapeados desde el valor normalizado (minúsculas) de `ordenes.status`: activa=azul, pausada=amarillo, en espera=gris, terminada=celeste, entregada=verde, cancelada=rojo, con respaldo `dark` para valores desconocidos. Se aplicó en los 3 lugares pedidos:
+    1. `reposicionesReporte.vue`: nueva columna "Estado" usando el campo `estatus_orden` que YA devolvía el backend (no requirió endpoint nuevo).
+    2. `controlDeProduccionPro.vue`, sección "Órdenes en curso": se reemplazó el texto plano `{{ el.estatus }}` por el badge.
+    3. `ordenesTodas.vue` ("Todas las Órdenes"): se agregó un `#cell(estatus)` template con el badge (antes se renderizaba como texto plano por defecto de `b-table`).
+
+    Para el modal de detalle, se agregó un botón "Ver" (columna nueva `ver_detalle`) en la tabla del Reporte de Reposiciones que abre un modal `modal-detalle-reposicion-info`, construido replicando el diseño informativo (tarjetas de "Información Básica", "Personas Involucradas", "Detalles del Producto", "Detalle de Solicitud (Emisor)" y "Detalle de Aprobación (Jefe de Producción)") del modal existente en `controlDeProduccionPro.vue`, pero SIN ninguno de los botones de acción de ese modal (no asignar empleado, no eliminar, no cola de departamentos) -- solo un botón "Cerrar". El modal consume directamente el objeto `data.item` de la fila de la tabla (sin llamada API adicional), ya que el endpoint `/reposiciones-reporte/{estatus_orden}` ya devuelve todos los campos necesarios (`producto`, `talla`, `corte`, `tela`, `unidades`, `empleado_emisor`, `empleado_asignado`, `detalle_emisor`, `detalle_encargado`, `estatus_orden`, `fecha_creacion`/`hora_creacion`).
+
+- **Inconvenientes y Desafíos:**
+    Al investigar qué datos había disponibles para el modal, se descubrió que el backend tenía un bug (`detalle_emisor` duplicando `detalle`) que habría hecho el modal mostrar el mismo texto en ambas tarjetas -- se coordinó el fix de backend primero (ver bitácora en `ninesys-api/logs_gemini/`) antes de completar esta tarea de frontend.
+
+    Durante la verificación en navegador, la herramienta de automatización tuvo un tab que se quedó "congelado" (timeout en `Runtime.evaluate`, navegaciones que no tomaban efecto) -- se resolvió cerrando la pestaña y abriendo una nueva, sin relación con el código desplegado.
+
+- **Decisión Final y Justificación:**
+    Se normalizó el estado a minúsculas dentro del componente badge (en vez de normalizar los datos en la base) para tolerar la inconsistencia de mayúsculas ya conocida en los datos reales (`'cancelada'` vs `'Cancelada'`), mostrando siempre una etiqueta limpia y consistente al usuario sin importar cómo esté guardado el valor.
+
+    Se reutilizó el dato ya presente en la fila de la tabla para el modal de detalle en vez de crear un endpoint dedicado -- menos invasivo, y el reporte ya trae toda la información necesaria.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Write`, `Edit`, `node --check` (validación de sintaxis de los 4 archivos `.vue` modificados/creados), `git diff`/`commit`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__navigate`/`computer`/`tabs_create_mcp`/`tabs_close_mcp` (verificación visual en las 3 pantallas).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Verificado visualmente en vivo tras el despliegue en las 3 pantallas: Reporte de Reposiciones (columna "Estado" con badges "Terminada"/"Activa" en los colores correctos), "Todas las Órdenes" (columna "Estatus" con badges "En Espera"/"Activa"), y la sección "Órdenes en curso" de Control de Producción (badge "Activa"). El modal de detalle de la reposición 83 (orden 6293) mostró correctamente: Estado de la Orden "Terminada", Emisor "Abraham", Empleado Asignado "Jesus", producto/talla/corte/tela, y las dos notas distintas (emisor con salto de línea "espalda L lujios y repuestos MB / SALIO CON UN PUNTO BLACO" vs. aprobación unida "espalda L lujios y repuestos MB SALIO CON UN PUNTO BLACO") -- coincidiendo exactamente con los datos reales de la tabla `reposiciones` verificados por `psql` antes del despliegue. Sin botones de acción, solo "Cerrar".
+
+- **Logro Conseguido:** El Reporte de Reposiciones ahora tiene indicador visual de estado (consistente con las otras 2 pantallas de órdenes) y un modal de detalle de solo lectura que expone correctamente ambas notas (emisor y jefe de producción) que antes solo eran visibles navegando manualmente a Control de Producción.
+
+- **Observaciones:** Ver bitácora complementaria en `ninesys-api/logs_gemini/` para el fix de backend (`detalle_emisor`) del que depende esta mejora.
+
+- **Respuesta de Claude:** Se agregó un badge de color por estado (reutilizable) en el Reporte de Reposiciones, en "Órdenes en curso" y en "Todas las Órdenes", y un modal de solo lectura en el Reporte de Reposiciones que muestra el detalle completo de cada reposición, incluyendo tanto la nota del emisor como la del jefe de producción que aprueba. Verificado en vivo en las 3 pantallas.

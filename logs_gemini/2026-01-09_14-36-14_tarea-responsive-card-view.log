@@ -1,0 +1,34 @@
+- Solicitud del Usuario: Implementar una solución responsiva para pantallas medianas y pequeñas (tablets/móviles) ya que la vista de tabla estricta se rompía o no cabía.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+
+- Acción Realizada:
+  1. Estrategia "Card View":
+     - Se optó por transformar la tabla en una lista de tarjetas para pantallas < 992px, manteniendo el grid estricto solo para escritorio.
+
+  2. Modificación de Template:
+     - Se agregaron atributos `data-label="..."` a cada `b-list-group-item` (ej: `data-label="Cliente"`, `data-label="Entrega"`). Esto permite que CSS acceda al nombre del campo.
+
+  3. Implementación CSS Responsivo (@media max-width: 991px):
+     - **Cabeceras Ocultas:** `.list-group-header { display: none; }`
+     - **Contenedor:** `.list-group-draggable` cambia a `flex-direction: column` y estilo de tarjeta (borde, fondo suave).
+     - **Filas/Celdas:** Los items ahora ocupan el 100% del ancho y se apilan.
+     - **Etiquetas:** Se usan pseudo-elementos `::before { content: attr(data-label); ... }` para mostrar el nombre del campo a la izquierda, en color verde `#00bc8c`.
+     - **Estilos Específicos:**
+       - El "Handle" se estilizó como una barra superior de la tarjeta.
+       - La columna "Progreso" se configuró para dar espacio completo al Chart y botones.
+       - El campo "Cliente" se resaltó con mayor tamaño y fondo diferenciado.
+
+- Herramienta(s) Utilizada(s): 
+  * `multi_replace_file_content` (para agregar data-labels)
+  * `replace_file_content` (para agregar CSS)
+
+- Resultado: Éxito
+
+- Verificación: 
+  * El código compila correctamente.
+  * La lógica de CSS asegura que en Desktop nada cambia (grid estricto), mientras que en Mobile se presenta una interfaz amigable y legible verticalmente.
+
+- Observaciones de Gemini:
+  * Esta técnica de "Table to Card" via CSS es muy eficiente porque no requiere duplicar HTML ni lógica JS compleja, solo recicla la estructura existente cambiándola visualmente.

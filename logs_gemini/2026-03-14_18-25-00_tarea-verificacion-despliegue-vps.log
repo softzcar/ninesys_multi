@@ -1,0 +1,28 @@
+- Solicitud del Usuario: 
+  1. Verificar el script de despliegue (`deploy.sh`) para asegurar que realice correctamente el `git pull` en el VPS de Hostinger y Contabo.
+  2. Sincronizar cambios faltantes detectados durante la verificación del despliegue.
+
+- Archivos Involucrados: 
+  - Infraestructura/Scripts:
+    - /home/developer/Escritorio/niesys/ninesys-apidev/ninesys-hub/bin/deploy.sh
+  - Backend (sincronizados):
+    - /home/developer/Escritorio/niesys/ninesys-apidev/app/routes/tables.php
+    - /home/developer/Escritorio/niesys/ninesys-apidev/app/routes/orders.php
+
+- Acción Realizada:
+  - Se auditó el script `deploy.sh` confirmando la correcta ejecución de comandos remotos vía SSH.
+  - Se realizó un "deployment sync" manual para incluir rutas y cambios en librerías que no se habían propagado correctamente en el último despliegue.
+  - Se verificó la conectividad con el VPS de Contabo tras el endurecimiento de seguridad (hardening) reciente.
+
+- Herramienta(s) Utilizada(s): `view_file`, `run_command`, `git`.
+
+- Resultado: Éxito
+
+- Verificación:
+  - Despliegue en producción sincronizado. ✅
+  - Script de despliegue operativo para ambos entornos (Hostinger/Contabo). ✅
+
+- Observaciones de Gemini: 
+  - Se recomendó al usuario mantener los scripts de despliegue actualizados para reflejar los cambios en la estructura de directorios del proyecto.
+
+- Respuesta de Gemini: Log de verificación de despliegue generado.

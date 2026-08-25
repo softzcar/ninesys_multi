@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** "El Fix quedó correcto. Cambiemos el label de ese input de 'Buscar por orden' a 'Filtrar por Orden' y procedamos con la fase dos entonces, filtros de fechas".
+- **Fecha y Hora:** 2026-07-27 11:40:07
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosProduccion.vue`
+- **Commits Relacionados:**
+    - Frontend: `bbc2983` (renombrar label), `02e733b` (fix zona horaria)
+- **Acción Realizada:**
+    1. Se renombró el label del input de "Buscar por Orden:" a "Filtrar por Orden:", a pedido del usuario (el input ya funciona como filtro, no como búsqueda remota).
+    2. Al iniciar la revisión de los filtros de fecha (Fase 2), se auditó `setDefaultDates()` (calcula el rango por defecto al montar el componente: lunes de la semana actual -> hoy) y se encontró un patrón de riesgo conocido: usaba `.toISOString().split("T")[0]` para obtener la fecha en formato `YYYY-MM-DD` a partir de un objeto `Date` construido en hora LOCAL. `.toISOString()` siempre convierte a UTC -- en zonas horarias con offset negativo (`America/Caracas`, UTC-4, confirmada como la zona horaria de la sesión de prueba), cualquier hora local entre aproximadamente las 20:00 y las 23:59 cruza al día siguiente al convertirse a UTC, desplazando la fecha calculada un día hacia adelante.
+    3. Se verificó el bug simulando el cálculo con horas fijas antes de tocar el código: a mediodía el cálculo era correcto, pero a las 23:30 de un lunes el resultado era "martes -> martes" en vez de "lunes -> lunes" (el día real); probado también con un domingo a las 23:30, con el mismo desplazamiento en ambas fechas del rango.
+    4. Se corrigió agregando un método `formatFechaLocal(date)` que arma el string `YYYY-MM-DD` directamente desde los componentes locales del objeto `Date` (`getFullYear()`, `getMonth()`, `getDate()`), sin pasar por conversión a UTC, y se reemplazaron ambos usos de `.toISOString()` en `setDefaultDates()` por este método. De paso se corrigió que `today.setDate(diff)` mutaba el objeto `today` original compartiendo referencia con `monday` (redundante y confuso, aunque no causaba un bug funcional en el código anterior) -- ahora se clona explícitamente antes de mutar.
+
+- **Inconvenientes y Desafíos:** Ninguno significativo -- el bug se diagnosticó de forma puramente analítica (revisando el código en busca de patrones de riesgo conocidos de manejo de fechas en JavaScript) antes de cualquier prueba en vivo, y se confirmó con una simulación aislada (sin necesitar esperar a que fuera realmente medianoche).
+
+- **Decisión Final y Justificación:**
+    Se implementó `formatFechaLocal()` como método reutilizable del propio componente en vez de una utilidad global o una librería de fechas nueva, siguiendo el criterio de cambio mínimo -- el componente no usa ninguna librería de manejo de fechas (no hay `moment`/`date-fns` importado aquí), y el patrón de formateo manual con `padStart` es suficiente y no introduce una dependencia nueva para un problema puntual.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check`, `Bash` (`git diff`, `git commit`, `grep` para confirmar que `.toISOString()` no se usaba en ningún otro lugar del mismo componente), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__javascript_tool` (simulación del bug ANTES del fix reproduciendo la lógica exacta con horas fijas, y verificación DESPUÉS del fix sobreescribiendo temporalmente el constructor global `Date` en la página real para forzar el escenario de medianoche sobre el código ya desplegado, restaurándolo al finalizar sin dejar efectos colaterales).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    - Label: confirmado en el DOM de la página en vivo (`document.body.innerText.includes('Filtrar por Orden')` = true; `'Buscar por Orden'` ya no aparece).
+    - Fix de fechas: antes de aplicar el fix, se simuló el cálculo con "ahora" fijado a lunes 27/07/2026 23:30 hora local, reproduciendo exactamente `setDefaultDates()`: resultado `inicio="2026-07-28"`, `fin="2026-07-28"` (incorrecto, un día adelantado). Tras aplicar el fix, desplegar, y sobreescribir temporalmente el constructor `Date` global de la página real (ya con el código corregido) para forzar el mismo escenario exacto (lunes 23:30 hora local), se llamó a `window.__comp.setDefaultDates()` directamente: resultado `inicio="2026-07-27"`, `fin="2026-07-27"` -- correcto, coincide con el día real simulado.
+
+- **Logro Conseguido:**
+    Se corrigió un bug de zona horaria que afectaba a cualquier usuario que abriera el Reporte de Costos de Producción en un horario nocturno específico (aprox. 8pm-medianoche, hora de Venezuela): el rango de fechas por defecto se cargaba silenciosamente un día adelantado, sin ningún indicio visual de que el rango mostrado no correspondía al esperado -- probablemente mostrando "sin datos" (fecha futura) o datos de un día distinto, fácil de no notar mientras se revisa un reporte de por sí complejo.
+
+- **Observaciones:**
+    Igual que con el bug anterior (`filter-included-fields`), este se encontró revisando patrones de código conocidos por ser propensos a errores (arrays/objetos literales inline en templates reactivos; `.toISOString()` para formatear fechas locales), no solo esperando a que el usuario reportara un síntoma. Vale la pena tener presente este mismo patrón de `.toISOString()` al auditar otros componentes del proyecto que manejen fechas por defecto o cálculos de "hoy"/"esta semana" en el frontend.
+
+- **Respuesta de Claude:** Se renombró el label del filtro a "Filtrar por Orden". Al auditar los filtros de fecha, se encontró y corrigió un bug de zona horaria en el cálculo del rango por defecto (lunes de esta semana -> hoy): usaba `.toISOString()` para formatear una fecha local, lo cual la desplaza un día hacia adelante en horario nocturno (aprox. 8pm-medianoche en Venezuela). Verificado simulando el escenario exacto antes y después del fix: de "martes->martes" (incorrecto) a "lunes->lunes" (correcto) para el mismo instante simulado.

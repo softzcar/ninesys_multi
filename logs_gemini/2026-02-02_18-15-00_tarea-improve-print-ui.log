@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Mejorar la estética de la nueva página de impresión y añadir funcionalidad de cierre automático.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosDisenioResumen.vue
+- Acción Realizada:
+    1.  **Estética:** Se inyectaron estilos CSS "estilo Bootstrap 4" directamente en el HTML de la página de impresión para que los botones se vean modernos y limpios, sin depender de librerías externas.
+    2.  **Iconos:** Se reemplazó el emoji por iconos SVG `inline` (de Bootstrap Icons: `printer-fill` y `x-circle-fill`) para asegurar una visualización profesional en cualquier dispositivo.
+    3.  **Botón Cancelar:** Se añadió un botón "Cancelar" que ejecuta `window.close()`.
+    4.  **Auto-cierre inteligente:** Se añadió un listener al evento `window.onafterprint`:
+        ```javascript
+        window.onafterprint = function() {
+            window.close();
+        };
+        ```
+        Esto detecta cuando el diálogo de impresión del sistema se cierra (ya sea porque se imprimió o se canceló desde el diálogo del sistema) y cierra automáticamente la pestaña temporal.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó el HTML inyectado en los tres archivos, confirmando que contiene los estilos CSS, los SVGs y el script de `onafterprint`.
+- Observaciones de Gemini: El evento `onafterprint` tiene buen soporte en navegadores de escritorio (Chrome/Firefox). En móviles (iOS Safari) su comportamiento puede variar, pero el usuario tendrá siempre el botón manual de "Cancelar" como respaldo.
+- Respuesta de Gemini: Confirmación de las mejoras de diseño y funcionalidad solicitadas.

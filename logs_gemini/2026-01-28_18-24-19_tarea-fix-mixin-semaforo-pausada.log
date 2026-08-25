@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Corregir datos de orden pausada en componente semaforo: en la pagina `/test` tenemos el componente semaforo: Cuando una orden está pausada el comonente semaforo no muestra el resumen de tareas.
+- Archivos Involucrados: [/home/developer/Escritorio/niesys/app_multi/mixins/procesamientoOrdenes.js]
+- Acción Realizada: Se modificó la función `procesarColaProduccion` para que el formateo de datos de las tareas (fechas, tiempos estimados y reales) ocurra antes del filtro que excluye a las órdenes pausadas del cálculo de tiempos de producción activos. Esto permite que el componente semáforo renderice correctamente la tabla de tareas con información histórica y estimada.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `view_file`
+- Resultado: Éxito
+- Verificación: Se verificó mediante análisis de código que las propiedades necesarias (`fecha_inicio_formateada`, etc.) ahora se asignan a todos los objetos de tarea antes de cualquier exclusión por estado de pausa.
+- Observaciones de Gemini: La corrección es mínimamente invasiva y asegura la integridad de los datos presentados en el frontend sin alterar la lógica de planificación de la producción.
+- Respuesta de Gemini: He implementado la corrección en el mixin `procesamientoOrdenes.js`. Ahora las órdenes pausadas mostrarán correctamente el resumen de tareas en el semáforo.

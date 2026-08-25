@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Investigar por qué el frontend NO envía la petición de terminación.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se eliminó la validación condicional `if (res.data.update_success)`. Se sospecha que esta bandera (bool) se pierde o es `false` en algunas respuestas de DB, bloqueando silenciosamente el segundo paso.
+    - Se dejó solo `if (res && res.data)`, lo cual es suficiente (si fallara, caería en el `catch`).
+    - Se añadieron `console.log` explicítos: "Finishing item ... automatically".
+- Herramientas Utilizadas: `replace_file_content`.
+- Resultado: Frontend forzado a enviar la terminación siempre que el consumo sea exitoso.
+- Verificación: Debes desplegar el frontend (`./deploy.sh`) o probar en local.
+- Observaciones de Gemini: Esta era la causa más probable del "silencio" del frontend.
+- Respuesta de Gemini: Check eliminado.

@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Resolver los puntos 6 y 7 de los pendientes del módulo de Administración: (6) agregar el selector de "Estatus" al modal de Gastos Variables (a diferencia de Gastos Fijos, no lo tenía), y (7) limpiar `pages/gastos-fijos.vue` (sin el prefijo `/empresa/`), señalado como posible código muerto.
+- **Fecha y Hora:** 2026-08-06 17:25:00
+- **Proyecto(s):** Frontend (app_multi).
+- **Archivos Involucrados:** `components/admin/GastosVariables.vue` (modificado); `pages/gastos-fijos.vue` (eliminado).
+- **Commits Relacionados:**
+    - Frontend: `a15778e`.
+- **Acción Realizada:**
+    1. Comparado `GastosFijos.vue` contra `GastosVariables.vue`: la tabla y la lógica de "Estatus" (badge, deshabilitar "Pagar" si inactivo) YA existían en ambos -- lo único que faltaba en Variables era el propio `<b-form-select>` en el modal de crear/editar para poder CAMBIAR el estatus. Agregado el mismo control ya usado en Gastos Fijos.
+    2. Verificado que "Gastos Adicionales" no necesita este mismo fix -- confirmado por grep que no tiene ningún concepto de "estatus" en absoluto, consistente con el hallazgo ya documentado de que es un tercer concepto sin "plantilla" recurrente detrás.
+    3. Confirmado por grep exhaustivo que `pages/gastos-fijos.vue` (sin `/empresa/`) no tiene ninguna referencia en sidebar, router-links, ni navegación programática en toda la aplicación -- es un duplicado huérfano de la página real (`pages/empresa/gastos-fijos.vue`), mismo contenido, misma lógica. Eliminado.
+    4. Verificada la sintaxis de `GastosVariables.vue` con el chequeo local. Desplegado a Desarrollo.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se replicó el control exacto ya usado en Gastos Fijos (mismas opciones, mismo estilo) por consistencia visual y de comportamiento entre los dos componentes hermanos.
+- **Herramienta(s) Utilizada(s):** `grep`, lectura de código, chequeo de sintaxis Vue local, `deploy.sh`.
+- **Resultado:** Éxito.
+- **Verificación:** Sintaxis válida verificada; desplegado en Desarrollo.
+- **Logro Conseguido:** Cerrados los puntos 6 y 7 de la lista de pendientes del módulo de Administración -- Gastos Variables ahora se puede desactivar temporalmente desde la interfaz igual que Gastos Fijos, y se eliminó una página duplicada sin uso.
+- **Observaciones de Gemini:** Con esto quedan resueltos los 4 pendientes que el usuario pidió abordar en esta ronda (3, 5, 6, 7). Quedan pendientes de decisión los puntos 1 (contraseñas en texto plano), 2 (editar orden "sport" rota) y 4 (motor de SQL generado por IA sin sandbox real).
+- **Respuesta de Claude:** Selector de Estatus agregado a Gastos Variables; página duplicada `pages/gastos-fijos.vue` eliminada tras confirmar por grep que no tenía ninguna referencia.

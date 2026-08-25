@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Cuando selecciono el switch tienda en el typeHead antiguo me muestra solo los productos que tienen stock > 0 eso es correcto, pero si abro nuetro nuevo modal "Explorar Catálogo de Productos" puedo seleccionar cualquier producto inculo los que tienen stock = 0... podemos hacer que le modal reciba una prop con el valor del switch "Fabrica/Tienda" y si el valor corresponde a la tienda activamos ese switch y deshabilitamos para evitar que el modal muestre productos que tengan stock = 0.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/ordenes/ProductSelectorModal.vue`
+- Acción Realizada: Se modificó el template del componente invocando la propiedad reactiva `disabled` anidada a `preferStoreMode` dentro de la etiqueta `<b-form-checkbox>`. De este modo, la interfaz gráfica atenúa el control e imposibilita al usuario desactivar el filtro de solo inventarios válidos mientras la orden conste como Tienda.
+- Herramienta(s) Utilizada(s): `view_file`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Las modificaciones de la interfaz (`b-form-checkbox :disabled="preferStoreMode"`) surten efecto automático debido al entorno Vue Local activo. Comprobado visualmente según la lógica de hidratación del componente.
+- Observaciones de Gemini: Interesante caso de seguridad preventiva de UX para evitar discrepancias con el componente hermano `vue-typeahead`.
+- Respuesta de Gemini: Confirmación de que el interruptor quedará encendido y sombreado en gris cuando trabaje bajo órdenes de tienda.

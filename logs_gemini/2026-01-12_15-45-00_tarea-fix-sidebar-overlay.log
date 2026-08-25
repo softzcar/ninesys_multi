@@ -1,0 +1,8 @@
+- Solicitud del Usuario: en el frontend al abrir el sidebar se mustra un overlay que impide la interaccion con la interfaz
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/layouts/default.vue
+- Acción Realizada: Se ajustaron los valores de `z-index` en `layouts/default.vue` para corregir el orden de apilamiento en la vista móvil. Se redujo el z-index del `.mobile-header` de 1040 a 1030 y el del `.sidebar-overlay` de 1045 a 1035. Esto asegura que el `AppSidebar` (que mantiene su z-index en 1040) quede por encima del overlay y sea interactuable.
+- Herramienta(s) Utilizada(s): `grep_search`, `view_file`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó mediante inspección de código que la jerarquía de z-index quedó correctamente establecida: Sidebar (1040) > Overlay (1035) > Header (1030), lo cual resuelve el bloqueo de interacción.
+- Observaciones de Gemini: El conflicto se debía a que el overlay tenía un z-index mayor (1045) que el sidebar (1040).
+- Respuesta de Gemini: He corregido el problema del overlay ajustando los z-index en `layouts/default.vue`. Ahora el sidebar (z-index 1040) está por encima del overlay (z-index 1035), permitiendo la interacción correcta.

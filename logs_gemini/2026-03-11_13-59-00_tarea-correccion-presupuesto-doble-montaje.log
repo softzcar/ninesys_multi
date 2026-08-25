@@ -1,0 +1,19 @@
+- Solicitud del Usuario: Corregir las llamadas duplicadas a la API y los errores de consola en la página /comercializacion/presupuesto. El componente `ordenes-presupuesto` se estaba montando dos veces al navegar a la ruta, causando dobles llamadas a los endpoints de la API. Adicionalmente, los errores de parseo de JSON en los borradores guardados generaban spam de alertas y errores en la consola.
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/pages/comercializacion/presupuesto/index.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/presupuesto.vue
+
+- Acción Realizada:
+  1. En `index.vue`: Se eliminó el `v-if` redundante en el `<b-container>` que duplicaba la condición de acceso ya evaluada en el `<div>` padre. Se envolvió `<ordenes-presupuesto />` en `<keep-alive>` para evitar que el componente sea destruido y re-montado cuando `accessModule` (propiedad computada reactiva del mixin de login) actualiza su valor durante la transición de navegación de la ruta — que era la causa raíz del doble montaje.
+  2. En `presupuesto.vue` (función `getOrdenesGuardadas`): Se refactorizó el manejo de errores de `JSON.parse()`. En lugar de lanzar una alerta `$fire()` por cada borrador corrupto individualmente (generando spam), ahora se acumulan los IDs de los borradores fallidos en un array `erroresIds` y se muestra una sola alerta consolidada al final del proceso. Los errores de consola se degradaron de `console.error` a `console.warn` para reducir la visibilidad.
+
+- Herramienta(s) Utilizada(s): `replace_file_content`, `view_file`
+
+- Resultado: Éxito
+
+- Verificación: El usuario confirmó que el texto de depuración `DEBUG_ANTIGRAVITY` apareció en la consola, lo que confirma que el servidor está sirviendo el código actualizado. Además, confirmó que las llamadas duplicadas a la API ya no suceden tras la corrección del `v-if` doble.
+
+- Observaciones de Gemini: La causa raíz del doble montaje era la combinación de: (a) el `v-if` en `index.vue` dependiente de `accessModule`, que es una computed property reactiva que se actualiza una vez que Vuex completa la carga del estado del login, y (b) las animaciones de transición de vue-router, que causan que el componente se monte durante la fase "leave" de la ruta anterior y luego se vuelva a montar cuando la computed property actualiza. `keep-alive` previene la destrucción del componente en este ciclo, manteniendo su estado y evitando el re-montaje.
+
+- Respuesta de Gemini: Correcciones aplicadas en el servidor activo (`/home/developer/Escritorio/niesys/app_multi/`): (1) `index.vue` usa ahora `keep-alive` para prevenir el doble montaje, (2) `presupuesto.vue` muestra una sola alerta consolidada para borradores corruptos.

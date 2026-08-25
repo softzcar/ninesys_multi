@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Reemplazar la fuente de la tasa (APIs de terceros) por el scraper oficial del BCV (bcv.org.ve). En el frontend: asegurar que al entrar a la pestaña 'Pago y asignación' del wizard de nueva orden la tasa se actualice, manteniendo los métodos de actualización existentes, y que TANTO administradores COMO vendedores (POS /comercializacion/ordenes) refresquen la tasa al ingresar (sospecha del usuario: a los vendedores NO se refrescaba). Verificar el script antes de implementar.
+- **Fecha y Hora:** 2026-07-02 12:30:00
+- **Proyecto(s):** Frontend (app_multi). (El backend /bcv-rates se documenta en ninesys-api/logs_gemini/2026-07-02_12-00-00_tarea-tasa-bcv-oficial-scraper.log)
+- **Archivos Involucrados:**
+    - components/menus/MenuLoader.vue
+    - components/ordenes/nueva.vue
+- **Commits Relacionados:** 48b7b53 (feat(tasa): refrescar tasa BCV para vendedores y al entrar a 'Pago y asignación'). Pusheado a origin/refactor/modular-routes.
+- **Acción Realizada:**
+  1. Bug admin-vs-vendedor (POS): en MenuLoader.vue el disparo de `login/cargarTasasAutomaticas` estaba condicionado (solo Administración / o si faltaban tasas). Se quitó ese gate: el bloque de refresco de tasa en segundo plano ahora se ejecuta para TODOS los usuarios (admins y vendedores). Se conservó `const isAdmin` solo para decidir si mostrar el Toast de advertencia (para no molestar a vendedores). Resultado: los vendedores también refrescan la tasa BCV de referencia al ingresar al POS.
+  2. Pestaña 'Pago y asignación' del wizard: en nueva.vue, el watcher de `tabIndex`, al llegar al índice 3 (esa pestaña), ahora dispara `this.$store.dispatch('login/cargarTasasAutomaticas', { forceUpdate: true })` para usar la tasa BCV actual en el momento del cobro. Se mantiene el resto de la lógica del watcher (texto del botón Siguiente/Finalizar).
+  3. Se mantienen intactos los métodos de actualización existentes: botón manual en formMonedas.vue (cargarAutomaticamente, forceUpdate:true) y la carga operativa desde la BD en login.js. El frontend ya priorizaba /bcv-rates como fuente, por lo que al cambiar el backend a la tasa oficial no hizo falta tocar currency-rates.js.
+- **Inconvenientes y Desafíos:**
+  - El primer deploy a Dev se cortó por timeout de 2 min (npm run generate tarda más); se re-ejecutó con más tiempo.
+  - Se confirmó que `apiBaseUrl = 'https://api.nineteengreen.com'` en currency-rates.js NO es un bug: es un default sobrescrito por `$config.API` según entorno (en el build de producción quedó horneado a api.nineteencustom.com).
+- **Decisión Final y Justificación:** Cambio mínimo y localizado. Quitar el gate en MenuLoader (no reintroducir condición por departamento) para que el refresco sea universal; usar forceUpdate:true al entrar a 'Pago y asignación' para garantizar la tasa vigente al cobrar.
+- **Herramienta(s) Utilizada(s):** Bash (node --check, git, deploy scripts), Read, Edit
+- **Resultado:** Éxito. node --check OK en ambos archivos. Desplegado a Dev y luego a PRODUCCIÓN (deploy.sh opción 1, build con env de producción + rsync). Build de prod verificado: 114 refs a api.nineteencustom; las 9 a nineteengreen son solo el default `$config.API || fallback` (no se usa en prod).
+- **Verificación:** Backend /bcv-rates en producción devuelve {"rates":{"usd":639.7029},"fuente":"bcv_oficial"} (caché 2.2s→0.5s). Frontend: refresco ahora universal (código) + tab 3 dispara la carga (código). Pendiente de validación visual del usuario en la UI de producción tras limpiar el Service Worker.
+- **Logro Conseguido:** Los vendedores (no solo administradores) refrescan la tasa BCV oficial al ingresar al POS, y la tasa se actualiza al entrar a 'Pago y asignación' del wizard de nueva orden.
+- **Referencias de Sesión (Contexto):** Acción store: login/cargarTasasAutomaticas. Puntos de despacho de tasa: MenuLoader.vue (ahora todos), formMonedas.vue (botón manual), nueva.vue (tab índice 3). Fuente backend: GET /bcv-rates (scraper oficial bcv.org.ve).
+- **Observaciones de Gemini:** Tras el deploy, el usuario debe hacer hard refresh / limpiar el Service Worker (PWA workbox) en producción para tomar el build nuevo. NOTA: se apartó con git stash un cambio ajeno sin commitear (components/inventario/ResumenSkuModal.vue) para NO enviarlo a producción, y se restauró tras el despliegue (sigue como WIP local).
+- **Respuesta de Gemini:** Frontend de la tasa BCV completo y en producción: refresco universal (admins + vendedores) en el POS y refresco al entrar a 'Pago y asignación'. Verifícalo en la UI tras limpiar el Service Worker.

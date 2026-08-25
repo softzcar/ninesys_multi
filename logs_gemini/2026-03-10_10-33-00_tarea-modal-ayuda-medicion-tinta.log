@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** ok en el formulario para recargar tintas en la pagina `/inventario/recarga-tintas` necesitamos poner un modal con ayuda... para ello necesitamos subir una imagen (la segunda imagen que re adjunto) para explicar al usuario como puede calcular el nivel de tinta restante en el tanque para que intrduzca el valor en el einput "Nivel actual en tanque (ml):"
+- **Fecha y Hora:** 2026-03-10 10:33:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [components/admin/RecargaTintas.vue]
+- **Commits Relacionados:**
+    - Frontend: N/A
+    - Backend: N/A
+- **Acción Realizada:** 
+    1. Se modificó el label del campo `prevLevel` en `RecargaTintas.vue` para incluir un slot dinámico con un botón de ayuda.
+    2. Se integró un modal de BootstrapVue (`b-modal`) que muestra una imagen instructiva sobre cómo medir el nivel de tinta con una cinta métrica.
+    3. Se configuró la ruta de la imagen como `/img/guia-medicion-tinta.jpg`.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Se usó un `template #label` para mantener el ícono de ayuda dentro del flujo semántico del formulario sin romper el layout responsivo.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `multi_replace_file_content`, `write_to_file`
+- **Resultado:** Éxito
+- **Verificación:** Revisión manual de la estructura de componentes y validación de las rutas de assets estáticos.
+- **Logro Conseguido:** Mejora en la precisión de los datos ingresados al sistema mediante asistencia visual interactiva para los operadores.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/34d25e35-4011-49ae-8318-04795f923d0b/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/34d25e35-4011-49ae-8318-04795f923d0b/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** El usuario debe subir la imagen manualmente al servidor/proyecto local.
+- **Observaciones de Gemini:** La implementación es limpia y no afecta la funcionalidad de guardado existente.
+- **Respuesta de Gemini:** Se ha implementado el modal de ayuda con la imagen instructiva en el formulario de recarga de tintas.

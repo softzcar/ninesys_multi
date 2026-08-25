@@ -1,0 +1,27 @@
+- Solicitud del Usuario: Desplegar la aplicación frontend en el nuevo VPS de Contabo usando deploy.sh.
+
+- Archivos Involucrados:
+  - `/home/developer/Escritorio/niesys/app_multi/deploy.sh`
+  - Backup local: `./backups_transpilaciones/transpilacion_2026-03-01_12-44-29.tar.gz`
+  - Backup remoto: `/home/app.nineteencustom.com/backups_deploys/app_backup_2026-03-01_12-44-30` (en Contabo)
+  - Destino: `root@vps-contabo:/home/app.nineteencustom.com/public_html`
+
+- Acción Realizada:
+  1. Se ejecutó `bash deploy.sh` en el directorio del proyecto frontend.
+  2. Se confirmó el deploy escribiendo 's'.
+  3. El script eliminó el directorio `./dist` anterior.
+  4. Se ejecutó `npm run generate` → compilación completada exitosamente.
+  5. Se creó backup local de la transpilación.
+  6. Se creó backup remoto en el VPS de Contabo.
+  7. Se subieron los archivos al VPS via rsync: `sent 847.018 bytes / received 98.058 bytes @ 378.030 bytes/sec` - 12.7MB de archivos estáticos con speedup de 13.44.
+  8. Se limpiaron backups locales antiguos (conserva 12).
+
+- Herramienta(s) Utilizada(s): `run_command`, `send_command_input`, `command_status`
+
+- Resultado: Éxito
+
+- Verificación: Script terminó con `exit code 0`. Mensaje final: `===== DESPLIEGUE DE LA APLICACIÓN FINALIZADO CON ÉXITO =====`. rsync completado correctamente con speedup de 13.44.
+
+- Observaciones de Gemini: El deploy incluye las actualizaciones previas: dominio de la API ahora apunta a `api.nineteengreen.com` en todos los archivos fuente. Los archivos se subieron exitosamente al directorio `/home/app.nineteencustom.com/public_html` del nuevo VPS de Contabo (217.216.95.32).
+
+- Respuesta de Gemini: Deploy completado exitosamente en Contabo. La app frontend está desplegada en `/home/app.nineteencustom.com/public_html` del VPS Contabo (217.216.95.32).

@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Arreglar la visualización en resoluciones de 1080px de ancho, donde la tabla rígida de escritorio se desordenaba por falta de espacio.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+
+- Acción Realizada:
+  1. Diagnóstico: Se determinó que el ancho fijo de las columnas de la tabla (~940px mínimo) no permitía una visualización correcta en pantallas de 1080px cuando se sumaba el sidebar y márgenes.
+  2. Solución: Se aumentó el breakpoint de la media query de `max-width: 991px` a `max-width: 1350px`.
+  3. Resultado: Ahora, cualquier dispositivo con ancho menor a 1350px (incluyendo los de 1080px, 1280px, etc.) mostrará automáticamente la **Vista de Tarjetas**, la cual está optimizada verticalmente y es totalmente legible.
+
+- Herramienta(s) Utilizada(s): 
+  * `replace_file_content`
+
+- Resultado: Éxito (Confirmado por el usuario: "Ha quedado bien!")
+
+- Verificación: 
+  * El usuario verificó en su resolución de 1080px.
+  * El código CSS aplica correctamente la transformación a tarjetas en el nuevo rango.
+
+- Observaciones de Gemini:
+  * El diseño "Card View" resultó ser una solución robusta no solo para móviles, sino para cualquier pantalla intermedia donde una tabla compleja con muchas columnas fijas no cabe cómodamente.

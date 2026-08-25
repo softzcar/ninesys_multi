@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Cambiar el icono del boton de finalziar rollo en el la pagina `/empleados/dashboard`. El icono actual (semáforo) no es intuitivo. Se solicita verificar que el cambio aplique para todos los departamentos.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada: Se modificó el botón que ejecuta `terminarRollo(row.index)`. Se reemplazó el ícono `<b-icon icon="stoplights">` por `<b-icon icon="slash-circle">`. Se actualizó el atributo `aria-label` de "Agregar insumo" a "Terminar rollo" y se añadió el atributo `title="Terminar rollo"`.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se confirmó mediante análisis del código que `SseOrdenesAsignadasModalExtra.vue` es un componente compartido utilizado en los modales de asignación de todos los departamentos configurados (Impresión, Estampado, Corte, etc.), por lo que el cambio es global. Se visualizó el archivo modificado para asegurar la correcta sintaxis.
+- Observaciones de Gemini: El cambio mejora la usabilidad al proveer un ícono más semántico (agotamiento de recurso) y corrige un problema de accesibilidad en la etiqueta aria.
+- Respuesta de Gemini: He cambiado el ícono del botón "Terminar Rollo" por un círculo tachado (`slash-circle`) y corregido su etiqueta. Confirmé que este cambio se aplica a todos los departamentos ya que utilizan el mismo componente compartido.

@@ -1,0 +1,8 @@
+- **Solicitud del Usuario:** Revisar vista "Tallas y Personalización", solucionar por qué no mostraba información para los diseñadores Maru y Yervin, y cargar registros de prueba para Yervin.
+- **Diagnóstico:**
+  - En `app_multi/components/disenosse/tallasPersonalizacionTodas.vue`, la propiedad `:items="ajustes"` en la plantilla excluía todas las órdenes activas que aún no contaban con ajustes previos registrados en base de datos.
+- **Acciones Realizadas:**
+  1. En `tallasPersonalizacionTodas.vue`: Se cambió `:items="ajustes"` por `:items="items"` para listar todas las órdenes activas, permitiendo consultar o asignar personalizaciones a cualquier orden.
+  2. Se convirtió `loadDisenos()` a `$axios.get()` para integrarse perfectamente con el endpoint recién saneado `/sse/disenos-todo`.
+- **Verificación:**
+  - Probado en caliente (hot reload) en el servidor de desarrollo, sin compilar bundles de producción (`npm run build` / `nuxt build`), cumpliendo con la regla `GEMINI.md`.

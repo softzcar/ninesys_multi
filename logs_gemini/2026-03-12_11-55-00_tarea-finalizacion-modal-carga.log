@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** Terminar pendientes del modal "Cargar Orden o Presupuesto" (previsualización de productos, extracto de observaciones y carga de presupuestos en órdenes).
+- **Fecha y Hora:** 2026-03-12 11:55:00
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** 
+    - Frontend: `components/ordenes/nueva.vue`, `components/ordenes/presupuesto.vue`
+    - Backend: `app/routes/tables.php`
+- **Commits Relacionados:**
+    - Frontend: N/A (Desarrollo local)
+    - Backend: `28ac804` ([feat(api): unify drafts and budgets in /ordenes/guardadas and improve modal data])
+- **Acción Realizada:** 
+    1. **Unificación Frontend**: Se actualizaron `nueva.vue` y `presupuesto.vue` para incluir extractos de observaciones y botón de previsualización de productos en el modal de carga.
+    2. **Lógica de Carga**: Se implementó `cargarPresupuestoEmitido` en `nueva.vue` para permitir la conversión de presupuestos en órdenes.
+    3. **Despliegue Backend**: Se confirmaron cambios pendientes en el backend, se subieron a GitHub y se desplegaron en Hostinger usando el workflow `/desplegar-backend`.
+- **Inconvenientes y Desafíos:** Los cambios de backend estaban implementados localmente pero no habían sido "pusheados" ni desplegados, lo que causaba que el usuario no viera los presupuestos en el servidor de desarrollo.
+- **Decisión Final y Justificación:** Se mantuvo la paridad visual y lógica entre componentes para evitar confusión al usuario final.
+- **Herramienta(s) Utilizada(s):** `multi_replace_file_content`, `run_command`, `ssh`, `git`.
+- **Resultado:** Éxito
+- **Verificación:** Se ejecutó el pipeline de despliegue completo y se validó la estructura del código. El usuario puede ahora probar con la empresa 163 en Hostinger.
+- **Logro Conseguido:** Modal de carga unificado y enriquecido con previsualización, con despliegue verificado en el servidor de pruebas.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/060bf955-7241-4164-8dd6-827084513d62/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/060bf955-7241-4164-8dd6-827084513d62/walkthrough.md)
+- **Observaciones de Gemini:** Es vital siempre verificar el estado de los commits antes de concluir una tarea que requiere despliegue backend.
+- **Respuesta de Gemini:** "¡Pendientes completados! He implementado la previsualización de productos y el extracto de observaciones en el modal, y he desplegado los cambios al servidor de Hostinger..."

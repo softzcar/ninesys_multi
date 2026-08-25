@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Resolver por qué sigue sin aparecer el botón de insumos en Corte después de la recarga.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada: 
+    - Se detectó un error de binding en `V4.vue` (`:datainsumos` vs `:data-insumos`).
+    - Se implementó la lógica de "Departamentos Hermanos" para que Corte pueda visualizar insumos asignados a Estampado (común para telas).
+    - Se añadió un watcher en el modal para asegurar que `showSelect` se recalcule tras la carga asíncrona de datos.
+    - Se actualizó `selectOptions` para permitir la selección cruzada entre Corte y Estampado.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: La lógica cubre ahora la discrepancia entre la asignación de base de datos (Dept 2) y el rol del usuario (Dept 3), además de asegurar la reactividad de la interfaz.
+- Observaciones de Gemini: La combinación de errores de nomenclatura (prop) y la naturaleza del flujo asíncrono impedían que la lógica previa surtiera efecto inmediato. Con estos cambios, la robustez es mucho mayor.
+- Respuesta de Gemini: He aplicado correcciones adicionales específicas para el departamento de Corte. Se corrigió un error en el envío de datos desde el componente padre y se añadió una lógica para que Corte comparta los materiales de Estampado, ya que las telas suelen estar bajo esa categoría. También aseguré que la interfaz se actualice instantáneamente al cargar los datos.

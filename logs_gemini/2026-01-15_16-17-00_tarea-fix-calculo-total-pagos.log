@@ -1,0 +1,68 @@
+- Solicitud del Usuario: Corregir el cálculo del total para que no sume comisiones cuando el empleado tiene solo "Salario" configurado. El total debe respetar el tipo de compensación:
+  - Salario: total = solo salario
+  - Comisión: total = solo comisiones
+  - Salario más Comisión: total = salario + comisiones
+
+- Archivos Involucrados:
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/components/empleados/TablaDePagos.vue
+
+- Acción Realizada:
+  Modifiqué el computed property `total()` para que calcule correctamente según el salario_tipo:
+  
+  ```javascript
+  total() {
+    let total = 0;
+    
+    // Agregar salario si el empleado tiene salario configurado
+    if (this.debesMostrarSalario) {
+      total += parseFloat(this.salarioFijo);
+    }
+    
+    // Agregar comisiones si el empleado tiene comisiones configuradas
+    if (this.debesMostrarComisiones) {
+      total += parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
+    }
+    
+    return total.toFixed(2);
+  }
+  ```
+  
+  También oculté la columna de $ en las tablas PENDIENTES y TERMINADOS cuando el empleado no gana comisiones.
+
+- Herramienta(s) Utilizada(s): replace_file_content, multi_replace_file_content, run_command (git commit)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Para empleado con salario_tipo="Salario" ($400 salario, sin comisiones):
+    * Antes mostraba: TOTAL $494.00 (sumaba comisiones incorrectamente)
+    * Ahora muestra: TOTAL $400.00 (solo el salario)
+  - Las columnas de comisiones ya no aparecen en las tablas para este tipo de empleado
+  - El badge muestra correctamente "💰 Salario Fijo"
+
+- Observaciones de Gemini:
+  - Ahora el sistema respeta completamente el salario_tipo en todos los cálculos:
+    * Badge visual
+    * Secciones del resumen (salario/comisiones)
+    * Columnas de las tablas
+    * Cálculo del total
+  - La interfaz es mucho más clara y precisa para cada tipo de empleado
+
+- Respuesta de Gemini: Corrección completada exitosamente:
+
+✅ TOTAL ahora calcula correctamente según salario_tipo:
+  - "Salario": solo suma el salario fijo
+  - "Comisión": solo suma comisiones
+  - "Salario más Comisión": suma ambos
+
+✅ Columnas de $ ocultas en tablas para empleados sin comisiones
+✅ Badge de tipo de compensación visible
+✅ Secciones de resumen condicionales según tipo
+
+Para empleados con solo salario, ahora la interfaz muestra únicamente:
+- Badge "💰 Salario Fijo"
+- Salario Pendiente: $400.00
+- Total: $400.00
+- Tablas sin columna de $
+
+Los cambios están listos para despliegue.

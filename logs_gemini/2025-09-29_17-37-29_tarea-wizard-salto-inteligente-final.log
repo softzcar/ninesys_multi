@@ -1,0 +1,14 @@
+- Solicitud del Usuario: [Crear un log para la implementación del 'Salto Inteligente' y los indicadores de error]
+- Archivos Involucrados: ["/home/developer/Escritorio/niesys/app_multi/store/login.js", "/home/developer/Escritorio/niesys/app_multi/components/login/form.vue", "/home/developer/Escritorio/niesys/app_multi/components/empresa/configuracionWizard.vue", "/home/developer/Escritorio/niesys/app_multi/components/empresa/MonedasManager.vue", "/home/developer/Escritorio/niesys/app_multi/components/empresa/HorarioLaboralEditor.vue", "/home/developer/Escritorio/niesys/app_multi/components/empresa/GastosManager.vue"]
+- Acción Realizada: [Se implementó la funcionalidad de 'Salto Inteligente' y los indicadores visuales de error en el asistente de configuración. El proceso incluyó:
+    1.  **Manejo de Timing:** Se resolvió un problema de reactividad usando `this.$nextTick()` en el componente de login para asegurar que el estado de Vuex se propague antes de crear el wizard.
+    2.  **Lógica de Salto:** Se añadió `startIndex` al wizard, que lee `configuracionFaltante` de la store y calcula el índice del primer paso con error.
+    3.  **Indicadores Visuales:** Se implementó un método `stepHasError` y `getStepTitle` para añadir un emoji de punto rojo (🔴) al título de las pestañas con errores.
+    4.  **Validación por Paso:** Se implementó validación robusta para los pasos "Datos del Administrador" y "Datos de la Empresa", incluyendo políticas de contraseña segura y validación de formatos. Si la validación es exitosa, se eliminan los errores correspondientes de la store.
+    5.  **UI/UX:** Se mejoró la maquetación, se añadieron listas completas de códigos de país, funcionalidad de mostrar/ocultar contraseña, y se tradujeron los botones de navegación del wizard.
+    6.  **Componentes de Gestión:** Se crearon e integraron componentes dedicados (`MonedasManager`, `HorarioLaboralEditor`, `GastosManager`) para manejar la lógica de sus respectivas pestañas.]
+- Herramienta(s) Utilizada(s): [google_web_search, run_shell_command, write_file, replace]
+- Resultado: [Éxito]
+- Verificación: [El usuario confirmó que el wizard se abre en el paso correcto, muestra los puntos rojos para los errores, y la funcionalidad general es la esperada.]
+- Observaciones de Gemini: [Esta tarea fue altamente iterativa y desafiante, involucrando depuración profunda de reactividad, limitaciones de librerías y construcción precisa de payloads. La solución final combina varias estrategias para lograr un wizard robusto y amigable.]
+- Respuesta de Gemini: [Hecho. El log ha sido creado.]

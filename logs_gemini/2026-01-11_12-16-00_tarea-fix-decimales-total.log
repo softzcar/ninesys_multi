@@ -1,0 +1,34 @@
+- Solicitud del Usuario: Limitar decimales en "TOTAL A PAGAR" a dos decimales
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  Aplicado formato `.toFixed(2)` a `form.total` en la visualización de "TOTAL A PAGAR" (línea 217):
+  - Antes: `{{ form.total }}` → Mostraba: 126.199999999999...
+  - Después: `{{ parseFloat(form.total || 0).toFixed(2) }}` → Muestra: 126.20
+
+- Herramienta(s) Utilizada(s): grep_search, view_file, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Formato aplicado correctamente
+  - parseFloat maneja casos edge (valores null/undefined)
+  - .toFixed(2) garantiza 2 decimales siempre
+  - Formato estándar de moneda
+
+- Observaciones de Gemini:
+  El problema era causado por acumulación de errores de punto flotante en JavaScript al sumar múltiples precios con decimales. La función `.toFixed(2)` convierte el número a string con exactamente 2 decimales, eliminando la precisión excesiva que causa confusión visual.
+  
+  Se usa `parseFloat(form.total || 0)` para asegurar que:
+  1. El valor sea numérico
+  2. Si es null/undefined, defaultea a 0
+  3. Luego se aplica .toFixed(2)
+
+- Respuesta de Gemini:
+  Formato de decimales corregido en TOTAL A PAGAR. Ahora muestra siempre 2 decimales para formato de moneda correcto.
+  
+  Ejemplo:
+  - Antes: $ 126.199999999999...
+  - Ahora: $ 126.20

@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Desplegar el Backend con corrección de error de remanente = 0.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php (y cambios remotos)
+- Acciones Realizadas:
+    - Se hizo commit local de `inventory.php` con el fix de orden lógico.
+    - Se hizo push a rama `refactor/modular-routes`.
+    - Se ejecutó script SSH remoto para hacer pull en VPS (`vps-ninesys`).
+- Herramientas Utilizadas: `run_command` (git, ssh).
+- Resultado: Éxito (Despliegue Confirmado).
+- Verificación: Output de `git pull` muestra "Fast-forward ... 1 file changed, 40 insertions(+)".
+- Observaciones de Gemini: El despliegue era necesario para que el usuario viera los cambios reflejados en el servidor de pruebas.
+- Respuesta de Gemini: Backend desplegado.

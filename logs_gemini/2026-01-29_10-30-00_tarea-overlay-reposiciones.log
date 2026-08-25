@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Aplicar el mismo recurso del overlay de carga en la sección de "Reposiciones" de la página `/test`, para mantener la consistencia visual y evitar saltos en la interfaz.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue`
+- Acción Realizada: Se replicó la lógica del overlay implementada anteriormente para las órdenes, ahora en la sección de reposiciones.
+    - Se eliminó el `v-if="isLoading"` que ocultaba el contenido.
+    - Se envolvió la sección en un `<b-overlay>` utilizando la variable `isLoading` (compartida).
+    - Se ajustó la alerta de "No hay reposiciones" para mostrarse solo cuando la lista está vacía y no se está cargando.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó el código para confirmar que ambos bloques (Órdenes y Reposiciones) usan ahora el mismo patrón de UX para la carga de datos.
+- Observaciones de Gemini: La experiencia de usuario es ahora más fluida y profesional al eliminar el "parpadeo" de las tablas durante las actualizaciones automáticas.
+- Respuesta de Gemini: Se ha aplicado el overlay de carga a la sección de Reposiciones en `/test`.

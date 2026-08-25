@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Vamos a trabajar en la pagina `/diseno/asignacion` en esta página tenemos que es posible mostrar una gran cantidad de ordenes, necesitamos poder 
+- ordenar la tabla desde los titulos de las columnas
+- poder filtrar por diseñador
+- poder filtrar por vendedor (el usuario que está registrado en el campo `responsable`)
+- Archivos Involucrados: `/home/developer/Escritorio/Antigravity/ninesys_multi/ninesys_multi/components/diseno/asignacion.vue`
+- Acción Realizada: Se habilitó el ordenamiento (`sortable: true`) en las columnas principales de la tabla de asignación. Se añadieron filtros `b-form-select` en la parte superior para Diseñador y Vendedor. Se implementó una propiedad computada `filteredDatax` que cruza los datos de las órdenes con los empleados para extraer el nombre del responsable y filtrar las órdenes según los selectores. Se añadió la columna "Vendedor" en la tabla para mejor visibilidad del filtro.
+- Herramienta(s) Utilizada(s): `default_api.multi_replace_file_content`, `default_api.view_file`, `default_api.grep_search`
+- Resultado: Éxito
+- Verificación: Se revisó la sintaxis en el componente Vue y se confirmó que las propiedades computadas manipulan los datos del store reactivo aplicando los filtros adecuadamente e inyectando el id del responsable como llave para buscar el nombre.
+- Observaciones de Gemini: El campo `responsable` en las órdenes corresponde al `id_empleado` (o `id_usuario`) del vendedor. Se debió hacer un mapeo contra la lista de `empleados` que ya proveía el store `disenos` para obtener los nombres legibles para los usuarios.
+- Respuesta de Gemini: He completado la implementación. Ahora la tabla en `/diseno/asignacion` permite ordenar por columnas y filtrarse tanto por diseñador asignado como por vendedor responsable, este último agregado como una columna nueva para visualizar el resultado del filtro.

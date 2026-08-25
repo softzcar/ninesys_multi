@@ -1,0 +1,12 @@
+- Solicitud del Usuario: El input de detalle de descuento no aparecía en la interfaz.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+- Acción Realizada:
+    1. Se identificó que el input tenía una condición `v-if="parseFloat(valueDescuento) > 0"`.
+    2. Como el valor inicial es 0, el input estaba oculto, lo que confundía al usuario.
+    3. Se eliminó el `v-if` para que el input de detalle esté siempre visible (dentro del bloque de administración), mejorando la UX y evitando problemas de reactividad.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó que el `v-if` fue eliminado del código.
+- Observaciones de Gemini: A veces la lógica de "mostrar solo si es necesario" causa fricción en la validación visual del usuario. Es mejor mostrar el campo si es relevante para el rol.
+- Respuesta de Gemini: Input hecho visible permanentemente.

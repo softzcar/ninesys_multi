@@ -1,0 +1,15 @@
+- Solicitud del Usuario: Implementar botón "Terminar Insumo" en la vista de administración (`/inventario/gestion`).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/inventario/InsumoTerminar.vue (NUEVO)
+    - /home/developer/Escritorio/niesys/app_multi/pages/inventario/gestion/index.vue
+- Acciones Realizadas:
+    - Se creó un nuevo componente `InsumoTerminar.vue` que encapsula la lógica de:
+        1.  Mostrar botón "X-Circle" (Terminar).
+        2.  Abrir modal que pide "Remanente" manual.
+        3.  Enviar payload seguro al backend: `tipo='fin'`, `remanente=<valor>`, `auto_remanente=false`.
+    - Se integró este componente en la tabla principal de gestión de inventario.
+- Herramientas Utilizadas: `write_to_file`, `replace_file_content`.
+- Resultado: Funcionalidad de terminación manual disponible para administradores.
+- Verificación: Pendiente despliegue frontend.
+- Observaciones de Gemini: Reutilización de la lógica backend "Case 1" (Remanente Manual).
+- Respuesta de Gemini: Componente creado e integrado.

@@ -1,0 +1,30 @@
+- Solicitud del Usuario: En la página /inventario/reportes/movimientos eliminar la seccion de gráficos y añadir un filtro por responsable que tome los nombres de los resultados de la tabla.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/pages/inventario/reportes/movimientos/index.vue
+
+- Acción Realizada:
+  1. Se eliminó la sección completa de gráficos (ColumnChart, PieChart, LineChart) y su lógica asociada (fetchChartsData, loadingCharts, chartData).
+  2. Se ajustaron los anchos de columna de los filtros (Desde: 2, Hasta: 2, Departamento: 2, Insumo: 3, Responsable: 3) para que quepan en una sola fila.
+  3. Se implementó el filtro por responsable:
+     - Añadido `filtroResponsable` al estado local.
+     - Creada computed property `responsableOpciones` que extrae nombres únicos de la columna "usuario_nombre" de los items cargados.
+     - Creada computed property `itemsFiltrados` que aplica el filtro de forma reactiva.
+     - Actualizada la <b-table> para usar `itemsFiltrados`.
+  4. Se añadió lógica en `loadReport` y `resetFilters` para resetear el filtro de responsable al recargar datos o limpiar filtros globales.
+
+- Herramienta(s) Utilizada(s): view_file, multi_replace_file_content, replace_file_content, write_to_file
+
+- Resultado: Éxito
+
+- Verificación:
+  * La sección de gráficos ya no se muestra ni se intenta cargar.
+  * El nuevo filtro "Responsable" aparece en el card de filtros.
+  * Al seleccionar un responsable, la tabla se filtra correctamente de forma instantánea.
+  * El diseño es responsivo y se mantiene en una sola fila para resoluciones de escritorio.
+  * El filtro se limpia correctamente al cambiar otros parámetros de búsqueda global.
+
+- Observaciones de Gemini:
+  * Al igual que en la página de remanentes, este filtro es local (sobre los resultados de la página/búsqueda actual), lo cual es ideal para una respuesta rápida sin necesidad de nuevas llamadas a la API, cumpliendo con el requisito de usar los nombres que aparecen en la tabla.
+
+- Respuesta de Gemini: Se modificó exitosamente el Reporte de Movimientos e Historial, eliminando la sección de gráficos y añadiendo un filtro dinámico por responsable. La interfaz ahora es más limpia y permite una segmentación rápida por usuario responsable del movimiento.

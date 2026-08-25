@@ -1,0 +1,18 @@
+# TAREA: Habilitar Instalabilidad de PWA (Instalar en Android/Chrome)
+# FECHA: 2026-06-26 12:07:30
+# AUTOR: AI coding assistant (Gemini/Antigravity)
+
+## DESCRIPCIÓN DE LA TAREA:
+1. Reactivar la PWA para permitir que la aplicación se instale en Android a través de Google Chrome, en lugar de solo permitir crear un acceso directo.
+2. Evitar problemas históricos de caché configurando la estrategia NetworkFirst de forma estricta y asegurando la actualización del Service Worker.
+
+## ARCHIVOS MODIFICADOS O PROCESADOS:
+- **[app_multi/nuxt.config.js](file:///home/developer/Escritorio/niesys/app_multi/nuxt.config.js)**
+  - Reemplazada la opción `workbox: false` de la sección `pwa` por una configuración completa de Workbox.
+  - Se configuró `clientsClaim: true` y `skipWaiting: true` para forzar la activación inmediata del service worker nuevo.
+  - Se estableció el `handler` en `NetworkFirst` por defecto, aplicando la estrategia `NetworkFirst` a través de `runtimeCaching` para todas las rutas (`/*`). De esta manera, si la app tiene conexión, siempre obtiene el frontend actualizado y nunca servirá recursos antiguos desde la caché.
+- **[app_multi/static/sw.js.backup](file:///home/developer/Escritorio/niesys/app_multi/static/sw.js.backup)**
+  - Se renombró el antiguo Service Worker autodestructivo `static/sw.js` para evitar que anulara el Service Worker dinámico de Workbox. Al no existir en `static/`, Nuxt PWA sirve dinámicamente el Service Worker válido de Workbox en `/sw.js`.
+
+## VERIFICACIÓN:
+- Con esta configuración, el Service Worker de Workbox se registrará con éxito y manejará el evento `fetch` de manera compatible con los requisitos de instalabilidad de PWA de Google Chrome, habilitando el botón/opción "Instalar aplicación" (Add to Home Screen - A2HS) en dispositivos Android.

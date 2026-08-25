@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Fixing toFixed Error (TypeError: resultado.toFixed is not a function en abono.vue)
+- Archivos Involucrados: [/home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue, /home/developer/Escritorio/niesys/app_multi/mixins/mixins.js]
+- Acción Realizada: Se identificó que la función `floatMe` del mixin devuelve un string, lo que causaba una concatenación de cadenas en lugar de una suma aritmética en la propiedad computada `calculated` de `abono.vue`. Se refactorizó `calculated` para usar `parseFloat` en todos los operandos y realizar el cálculo puramente numérico antes de aplicar `.toFixed(2)`. También se actualizó `msgWhatsAppAbono` para evitar errores similares.
+- Herramienta(s) Utilizada(s): `view_file`, `grep_search`, `multi_replace_file_content`, `write_to_file`
+- Resultado: Éxito
+- Verificación: Análisis estático del código y revisión de otros componentes (`resultado.vue`, `preview.vue`) que utilizan el mismo mixin para asegurar que no hubiera regresiones. Se confirmó que la lógica numérica ahora es robusta frente a entradas que puedan ser interpretadas como strings.
+- Observaciones de Gemini: El uso de funciones que mezclan formateo (toFixed) con lógica de negocio (floatMe) en mixins globales puede ser peligroso si no se tiene claro el tipo de retorno. Se recomienda separar las funciones de utilidad matemática de las de formateo visual.
+- Respuesta de Gemini: He corregido el error `TypeError` en el componente `abono.vue` asegurando que todos los cálculos de saldos se realicen como números antes de aplicar el formato de decimales. También verifiqué que esta corrección no afectara a otros componentes del sistema.

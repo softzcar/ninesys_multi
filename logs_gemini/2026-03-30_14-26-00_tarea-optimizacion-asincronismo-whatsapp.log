@@ -1,0 +1,35 @@
+# Tarea: Optimización de Asincronismo y Aislamiento del Servicio WhatsApp
+
+## Fecha: 2026-03-30
+## Hora: 14:26:00
+
+### Descripción del Problema
+Se detectó que la comunicación con el servicio de WhatsApp (`ws.nineteengreen.com`) estaba afectando el desempeño del frontend. Específicamente, el sistema parecía "bloquearse" o ralentizarse mientras esperaba respuestas de este servicio.
+
+### Análisis realizado
+1.  **Interceptor Global de Axios**: Se identificó que `plugins/axios-interceptor.js` manejaba la autenticación JWT para WhatsApp de forma síncrona en el flujo de peticiones globales, lo que bloqueaba cualquier petición a la API principal si el servicio de WhatsApp era lento.
+2.  **Acoplamiento de Instancia**: Todos los componentes compartían la misma instancia de `$axios`, heredando los tiempos de espera (30s) y la lógica de autenticación cruzada.
+3.  **Conexión de Socket Prematura**: El componente `checkConnection.vue` iniciaba la conexión de Socket.io inmediatamente al montarse en el menú principal, consumiendo recursos y conexiones innecesarias desde el inicio de la sesión.
+
+### Soluciones Implementadas
+1.  **Aislamiento con Instancia Dedicada (`$wsApi`)**:
+    *   Se creó el plugin `plugins/whatsapp.js` para instanciar un Axios independiente para WhatsApp.
+    *   Se movió toda la lógica de JWT (login/refresh) a esta instancia aislada.
+    *   Se estableció un timeout agresivo de 5 segundos para esta instancia, evitando esperas prolongadas.
+2.  **Refactorización de `checkConnection.vue`**:
+    *   Se cambió el uso de `$axios` global por la instancia aislada `$wsApi`.
+    *   Se implementó **Carga Bajo Demanda (Lazy Loading)** para el Socket.io: ahora solo se conecta cuando el usuario abre el modal de estado.
+    *   Se optimizó la verificación inicial del icono con un timeout de 3 segundos y sincronización de estado interna sin necesidad de socket.
+3.  **Optimización de Transportes**:
+    *   Se ajustó `plugins/socket.client.js` para priorizar `websocket` sobre `polling`.
+
+### Resultados
+*   La API principal (`api.nineteengreen.com`) ahora es totalmente independiente del estado del servicio de WhatsApp.
+*   El tiempo de carga inicial de la aplicación se redujo al eliminar la conexión de red inmediata al socket.
+*   El sistema es resiliente: si el servicio de WhatsApp cae, el frontend falla silenciosamente en 3 segundos sin degradar la experiencia del usuario en otros módulos.
+
+### Archivos modificados/creados
+- [NEW] `app_multi/plugins/whatsapp.js`
+- [MOD] `app_multi/nuxt.config.js`
+- [MOD] `app_multi/plugins/socket.client.js`
+- [MOD] `app_multi/components/checkConnection.vue`

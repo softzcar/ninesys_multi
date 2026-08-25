@@ -1,0 +1,19 @@
+# LOG DE TAREA: Corrección de Cabecera Móvil y Filtros de Búsqueda Local en el Panel de Empleados
+
+**Fecha:** 2026-06-26 14:27:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se han solucionado los problemas introducidos en el dashboard de empleados (`/empleados/dashboard`) relativos a elementos de interfaz incorrectos y comportamiento de filtros:
+1. **Placeholder del Filtro Superior:** Modificado de `"Buscar orden o cliente..."` a `"Filtrar Orden"`.
+2. **Eliminación del Filtro por Cliente:** Se restringió el filtrado local de las propiedades computadas para buscar únicamente por el número/ID de la orden (`item.orden`), eliminando la búsqueda por cliente ya que no es soportada en este modelo de datos.
+3. **Reemplazo del Botón de WhatsApp Inventado:** En la cabecera fija móvil, se eliminó el botón verde de WhatsApp que abría un enlace genérico de `wa.me` y se colocó en su lugar el componente oficial de mensajería interna `<admin-WsSendMsgCustomInterno />`.
+4. **Preservación del Buscador Inferior:** El buscador en base de datos (`<buscar-BarraDeBusqueda />`) y el botón verde de WhatsApp de la navbar de `MenuLoader.vue` se mantienen en la sección scrolleable sin alteraciones.
+
+## Archivos Modificados
+- [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- El código compila correctamente en Nuxt.
+- Se ha ejecutado el despliegue al servidor de desarrollo (Contabo Dev) a través del script centralizado `ninesys-hub/bin/deploy.sh` (Opción 2) de forma exitosa. Los cambios ya se encuentran activos en caliente en el servidor online.

@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Organizar mejor la planilla de pagos agrupando a todos los empleados en una sola lista con opción de filtrar por departamentos.
+- Archivos Involucrados: app_multi/components/admin/PagosEmpleados.vue, app_multi/components/admin/PagosEmpleadosTerminar.vue
+- Acción Realizada: Se modificó PagosEmpleados.vue para consolidar los tres arrays (vendedores, empleados, diseño) en una nueva computed property unificada. Se añadió un b-form-select para filtrar. Se actualizó la tabla principal para usar este resumen y se ajustaron las transferencias de arrays para el PagosConfirmacionModal de modo que combine los detalles de todas las comisiones.
+- Herramienta(s) Utilizada(s): view_file, multi_replace_file_content
+- Resultado: Éxito
+- Verificación: Se confirmó que el modal de confirmación ahora recibe el concentrado de todas las áreas de un mismo empleado como "detalles" y procesará salario y comisiones con toda la historia junta.
+- Observaciones de Gemini: La interfaz queda más limpia, y matemáticamente asegura que la información de roles mixtos coincida en la UI y el backend sin duplicar base salarial ni desordenar los orígenes de las comisiones.
+- Respuesta de Gemini: He unificado la planilla en una sola tabla principal con filtro por departamento. Puedes revisarlo ahora.

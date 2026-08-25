@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Implementar la función de imprimir usando el nuevo servicio en el último paso del wizard de órdenes (`/comercializacion/ordenes`).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada:
+    1.  Se localizó el componente `nueva.vue` responsable de la creación de órdenes.
+    2.  Se identificó la llamada a `this.printOrder("reporte")` dentro del método `guardarOrden`.
+    3.  Se importó `PrintService`.
+    4.  Se reemplazó la llamada legacy por `PrintService.imprimir()`.
+    5.  **Importante:** Se incluyó un bloque de estilos CSS (copiado de la lógica original) para garantizar que el reporte impreso mantenga su formato visual y la lógica de ocultar/mostrar precios según el departamento del usuario.
+- Herramienta(s) Utilizada(s): `list_dir`, `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de código. Se asegura que al confirmar la impresión tras crear una orden, se lance la ventana de impresión no bloqueante con los estilos correctos.
+- Observaciones de Gemini: La lógica de estilos era compleja (dependiente del departamento), por lo que se tuvo que reconstruir dinámicamente el string de estilos antes de pasarlo al servicio.
+- Respuesta de Gemini: Confirmación de la implementación en el wizard de órdenes.

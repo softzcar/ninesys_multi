@@ -1,0 +1,16 @@
+- Solicitud del Usuario: Asegurar que la columna 'Fecha Pago' en el histórico tenga el formato dd/mm/yyyy usando mixins.
+
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosHistorico.vue
+
+- Acción Realizada:
+    1.  Se verificó el archivo `mixins/mixins.js` y se identificó el método `formatTimestampDate` como el adecuado.
+    2.  Se modificó `PagosHistorico.vue` para utilizar este método en la columna `fecha_pago` de la tabla de Vendedores (que estaba comentada/inactiva) y se confirmó su uso en las otras tablas.
+
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`.
+
+- Resultado: Éxito
+
+- Verificación: Revisión de código confirms que `{{ formatTimestampDate(data.item.fecha_pago) }}` se usa en los templates.
+
+- Respuesta de Gemini: He aplicado el formato de fecha dd/mm/yyyy a todas las tablas del histórico de pagos utilizando el mixin correspondiente.

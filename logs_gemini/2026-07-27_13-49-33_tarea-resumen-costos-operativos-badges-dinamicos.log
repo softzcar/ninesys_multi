@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** "OK por ultimo en la parte inferior tenemos la sección `Resumen de Costos Operativos (Periodo Seleccionado)` vamos a verificar esos totales se muestren sean correctos" (última parte de la auditoría del Reporte de Costos de Producción, tras cerrar la verificación de las columnas con modal).
+- **Fecha y Hora:** 2026-07-27 13:49:33
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosProduccion.vue` (`totalGastosPorTipoUSD`, `totalRemanentesUSD`, `totalMantenimientoUSD`, template del panel "Resumen de Costos Operativos")
+- **Commits Relacionados:**
+    - Frontend: `cad5ad7`
+    - Backend: N/A
+- **Acción Realizada:**
+    Se inspeccionó el panel "Resumen de Costos Operativos" y sus 3 computed properties de origen. Se detectó que `totalGastosPorTipoUSD` (fijo/variable/adicional), `totalRemanentesUSD` y `totalMantenimientoUSD` sumaban SIEMPRE el total absoluto del período desde `costosOperativos` (backend), sin condicionar por `selectedExpenses` -- a diferencia de `reportTotals.gasto_fijo/variable/adicional/remanente/mantenimiento` y de `item.costo_total`/`item.ganancia` en `updateUnifiedColumns()`, que sí solo suman/incluyen el gasto cuando su switch en "Incluir Gastos" está activo. Esto hacía que el panel mostrara, por ejemplo, "Total Gastos Fijos: $2.200,00" y "Pérdidas por Remanentes: $75,15" con TODOS los switches apagados, mientras la "Utilidad Neta del Periodo" (`reportTotals.ganancia`) de la misma tarjeta no los restaba en absoluto -- dando la falsa impresión de que esos montos ya estaban descontados.
+
+    Se verificó la hipótesis en vivo, inyectando código en la instancia Vue del componente vía `javascript_tool`: con `selectedExpenses=[]`, `totalGastosPorTipoUSD.fijo=2200` y `totalRemanentesUSD=75.15` pero `reportTotals.gasto_fijo=0` y `reportTotals.gasto_remanente=0` -- confirmando la inconsistencia. Se presentó el hallazgo al usuario junto con 2 alternativas de corrección (badges dinámicos según switches, o Utilidad Neta siempre restando todo); el usuario eligió la primera, consistente con el criterio ya establecido en el resto del reporte de que los switches gobiernan qué se incluye.
+
+    Se corrigieron las 3 computed properties para que retornen 0 cuando su(s) switch(es) correspondiente(s) en `selectedExpenses` no estén activos, y se agregó `v-if="selectedExpenses.includes(tipo)"` al `v-for` de los badges de gasto fijo/variable/adicional en el template (Remanentes y Mantenimiento ya tenían `v-if="total... > 0"`, que ahora también los oculta correctamente al quedar en 0).
+
+- **Inconvenientes y Desafíos:** Ninguno significativo. Al gatear `totalGastosPorTipoUSD`/`totalRemanentesUSD`/`totalMantenimientoUSD` por switch, se verificó que no había ningún otro consumidor de esos 3 computed que dependiera de recibir el total absoluto sin filtrar (`costPerUnitByType` los usa para prorratear `item.gasto_fijo` etc., pero ese prorrateo ya estaba doblemente gateado a nivel de fila en `updateUnifiedColumns`, así que no hubo cambio de comportamiento en la tabla ni en las KPI cards, solo en este panel).
+
+- **Decisión Final y Justificación:**
+    Se optó por hacer dinámicos los 3 computed del panel (en vez de hacer que la Utilidad Neta siempre reste todos los gastos operativos, independientemente de los switches) para mantener consistencia con el criterio ya validado en Fases 3 y 4 de esta misma auditoría: los switches de "Incluir Gastos" gobiernan qué gastos se consideran en TODO el reporte (tabla, KPIs, gráfico de dona, y ahora también este panel). Cambiar la Utilidad Neta a "siempre restar todo" habría reintroducido una fuente de inconsistencia distinta (el resto del reporte seguiría siendo dinámico, pero este número no).
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `mcp__claude-in-chrome__javascript_tool` (verificación en vivo del bug antes del fix, inyectando `selectedExpenses` y leyendo los computed directamente de la instancia Vue), `mcp__claude-in-chrome__get_page_text` (verificación visual del panel renderizado tras el despliegue), `AskUserQuestion` (elección del criterio de corrección), `node --check`, `Bash` (`git diff`/`commit`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Tras el despliegue, se recargó la página y se repitió la prueba en vivo:
+    - Con `selectedExpenses=[]`: el panel ya no muestra ningún badge de gasto/remanente/mantenimiento, solo "Total Productos Fabricados" y "Utilidad Neta del Periodo: $19.309,21" (coincidiendo con `reportTotals.ganancia`, que tampoco resta esos gastos).
+    - Con `selectedExpenses=['fijo','remanente']`: el panel muestra "Total Gastos Fijos: $2.200,00" y "Pérdidas por Remanentes: $75,15", y la "Utilidad Neta del Periodo" baja a $17.033,65 -- coincidiendo con `reportTotals.ganancia` y con el "Total Costos" de las KPI cards ($9.695,35), confirmando que el panel y la Utilidad Neta ahora son consistentes entre sí en ambos estados.
+
+- **Logro Conseguido:**
+    Se cierra la auditoría íntegra del Reporte de Costos de Producción (4 fases + verificación de columnas con modal + este panel de resumen), eliminando la última fuente de números potencialmente engañosos del reporte: un panel que sugería gastos operativos ya descontados de la Utilidad Neta cuando en realidad no lo estaban.
+
+- **Observaciones:** Con esto queda formalmente completa la revisión de "Reporte de Costos" en `docs/revision_postgre_modulo_administracion.md`.
+
+- **Respuesta de Claude:** Se corrigió el panel "Resumen de Costos Operativos": antes mostraba siempre el total absoluto de gastos fijos/variables/adicionales/remanentes/mantenimiento del período, sin importar los switches de "Incluir Gastos", mientras la "Utilidad Neta" de la misma tarjeta solo restaba los que tenían su switch activo -- dando una impresión contradictoria. Ahora los badges del panel son dinámicos según los switches, igual que el resto del reporte. Verificado en vivo en ambos estados (switches apagados y encendidos), coincidiendo exactamente con la Utilidad Neta mostrada.

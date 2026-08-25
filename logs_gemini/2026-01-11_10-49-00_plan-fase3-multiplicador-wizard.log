@@ -1,0 +1,288 @@
+- Solicitud del Usuario: Crear log para documentar la siguiente fase de implementación del multiplicador de precio
+
+- Archivos Involucrados:
+  - Este log documenta el plan para la siguiente fase (no hay archivos modificados en esta tarea)
+
+- Acción Realizada:
+  Documentar el plan de implementación para usar el multiplicador de precio de empresa en el wizard de creación de órdenes
+
+- Herramienta(s) Utilizada(s): write_to_file
+
+- Resultado: Éxito
+
+- Verificación: Log creado con plan detallado de implementación
+
+- Observaciones de Gemini:
+  La funcionalidad base está completa:
+  ✅ Campo multiplicador_precio en tabla config
+  ✅ Endpoint POST /config/multiplicador-precio funcional
+  ✅ Componente admin MultiplicadorPrecio.vue integrado
+  ✅ Valor guardado en Vuex (datos_personalizacion.multiplicador_precio)
+  
+  La siguiente fase es opcional y consiste en usar este valor en el wizard de órdenes.
+
+- Respuesta de Gemini: Ver archivo de plan de implementación creado
+
+---
+
+# PLAN DE IMPLEMENTACIÓN - FASE 3: USO DEL MULTIPLICADOR EN WIZARD
+
+## Objetivo
+Usar el multiplicador de precio a nivel de empresa como valor predeterminado en el wizard de creación de órdenes, permitiendo que cada usuario lo modifique por orden si lo desea.
+
+## Estado Actual
+
+### ✅ Completado (Fase 1 y 2)
+1. **Base de datos**: Campo `multiplicador_precio` en tabla `config`
+2. **Backend**: Endpoint `/login` incluye el multiplicador en respuesta
+3. **Backend**: Endpoint `/config/multiplicador-precio` para actualizar
+4. **Frontend**: Componente admin `MultiplicadorPrecio.vue`
+5. **Vuex**: Valor disponible en `datos_personalizacion.multiplicador_precio`
+
+### 📊 Multiplicador Informativo Existente
+En `components/ordenes/nueva.vue` ya existe un multiplicador USD→VES informativo:
+- **Ubicación**: Tab "Pago y Abono" 
+- **Propósito**: Calcular conversión USD→VES en tiempo real
+- **Variables**:
+  - `multiplicador.margen` (% de margen)
+  - `multiplicador.redondear` (boolean)
+- **Función**: `calcularPrecioVES()`
+- **NO MODIFICAR**: Es solo informativo, no afecta el guardado
+
+## Propuesta de Implementación
+
+### Opción A: Prellenar Margen Predeterminado (RECOMENDADA)
+
+**Concepto**: Usar el `multiplicador_precio` de empresa como valor inicial del margen en el wizard.
+
+**Implementación**:
+```javascript
+// En nueva.vue - data()
+multiplicador: {
+  margen: 0,  // Se inicializará en mounted()
+  redondear: true
+}
+
+// En nueva.vue - mounted()
+mounted() {
+  // Cargar multiplicador de empresa como valor predeterminado
+  if (this.$store.state.login.datos_personalizacion?.multiplicador_precio) {
+    this.multiplicador.margen = parseFloat(
+      this.$store.state.login.datos_personalizacion.multiplicador_precio
+    )
+  }
+}
+```
+
+**Ventajas**:
+- ✅ No invasivo
+- ✅ Respeta el multiplicador informativo existente
+- ✅ Usuario puede modificar libremente por orden
+- ✅ Simple de implementar
+
+**Desventajas**:
+- ⚠️ Solo afecta la visualización, no el guardado
+- ⚠️ No persiste en la base de datos por orden
+
+---
+
+### Opción B: Agregar Campo a la Orden (MÁS COMPLEJA)
+
+**Concepto**: Guardar el multiplicador usado en cada orden.
+
+**Implementación**:
+
+#### 1. Base de Datos
+```sql
+-- Agregar campo a tabla ordenes (empresa 170)
+ALTER TABLE ordenes 
+ADD COLUMN multiplicador_aplicado DECIMAL(5,2) NULL 
+COMMENT 'Multiplicador de precio usado en esta orden (si aplica)'
+AFTER payment_type;
+
+-- Actualizar SQL template
+```
+
+#### 2. Backend - Endpoint de Creación de Órdenes
+```php
+// En routes/orders.php - POST /ordenes/nueva/custom o /sport
+// Agregar campo al INSERT:
+$multiplicador_aplicado = $data['multiplicador_aplicado'] ?? null;
+
+INSERT INTO ordenes (..., multiplicador_aplicado) 
+VALUES (..., ?)
+```
+
+#### 3. Frontend - nueva.vue
+```javascript
+// Agregar al objeto form
+form: {
+  // ... campos existentes
+  multiplicador_aplicado: null
+}
+
+// En submitForm() o guardarOrden()
+// Antes de enviar al backend:
+if (this.multiplicador.margen > 0) {
+  this.form.multiplicador_aplicado = this.multiplicador.margen
+}
+```
+
+#### 4. Visualización en /buscar y otras vistas
+```javascript
+// Mostrar multiplicador usado al cargar orden
+if (ordenData.multiplicador_aplicado) {
+  this.multiplicador.margen = ordenData.multiplicador_aplicado
+}
+```
+
+**Ventajas**:
+- ✅ Persistencia completa
+- ✅ Auditoría: se sabe qué multiplicador se usó en cada orden
+- ✅ Útil para reportes y análisis
+
+**Desventajas**:
+- ❌ Más cambios en base de datos
+- ❌ Mayor complejidad
+- ❌ Requiere actualizar múltiples endpoints
+
+---
+
+### Opción C: Solo Mostrar Referencia (MÍNIMO ESFUERZO)
+
+**Concepto**: Mostrar el multiplicador de empresa como referencia sin afectar funcionalidad.
+
+**Implementación**:
+```vue
+<!-- En nueva.vue - tab Pago -->
+<b-alert show variant="info" v-if="multiplicadorEmpresa > 0">
+  <b-icon icon="info-circle" />
+  Multiplicador de empresa configurado: {{ multiplicadorEmpresa }}%
+</b-alert>
+```
+
+```javascript
+computed: {
+  multiplicadorEmpresa() {
+    return this.$store.state.login.datos_personalizacion?.multiplicador_precio || 0
+  }
+}
+```
+
+**Ventajas**:
+- ✅ Cambio mínimo
+- ✅ Informativo sin complejidad
+
+**Desventajas**:
+- ❌ No tiene impacto funcional real
+
+---
+
+## Recomendación Final
+
+### 🎯 **Opción A** es la mejor para empezar:
+
+**Razón**: 
+1. **No invasiva**: No modifica la estructura de datos existente
+2. **Útil**: Prellenar ahorra tiempo al usuario
+3. **Flexible**: Usuario mantiene control total
+4. **Rápida**: Máximo 5 minutos de implementación
+
+**Si más adelante necesitas persistencia**, puedes implementar Opción B.
+
+---
+
+## Pasos de Implementación (Opción A)
+
+### 1. Modificar `nueva.vue`
+```javascript
+// En el hook mounted(), después de cargar datos existentes:
+mounted() {
+  // ... código existente ...
+  
+  // Prellenar multiplicador de empresa
+  this.cargarMultiplicadorEmpresa()
+},
+
+methods: {
+  // ... métodos existentes ...
+  
+  cargarMultiplicadorEmpresa() {
+    const multiplicadorEmpresa = this.$store.state.login.datos_personalizacion?.multiplicador_precio
+    if (multiplicadorEmpresa && multiplicadorEmpresa > 0) {
+      this.multiplicador.margen = parseFloat(multiplicadorEmpresa)
+    }
+  }
+}
+```
+
+### 2. (Opcional) Agregar Indicador Visual
+```vue
+<b-form-group label="Margen de Reposición:" label-for="input-margen">
+  <b-form-select 
+    id="input-margen" 
+    v-model="multiplicador.margen" 
+    :options="opcionesMargen" 
+  />
+  <b-form-text v-if="esMultiplicadorEmpresa">
+    <b-icon icon="building" variant="primary" />
+    Usando multiplicador de empresa
+  </b-form-text>
+</b-form-group>
+```
+
+```javascript
+computed: {
+  esMultiplicadorEmpresa() {
+    const multiplicadorEmpresa = this.$store.state.login.datos_personalizacion?.multiplicador_precio
+    return this.multiplicador.margen === parseFloat(multiplicadorEmpresa)
+  }
+}
+```
+
+### 3. Testing
+1. Login como administrador
+2. Configurar multiplicador (ej: 15%)
+3. Crear nueva orden
+4. Verificar que el margen se prellenó con 15%
+5. Modificar valor y confirmar que se puede cambiar
+6. Verificar cálculo USD→VES funciona correctamente
+
+---
+
+## Tiempo Estimado
+
+| Opción | Tiempo | Archivos |
+|--------|--------|----------|
+| **Opción A** | 10-15 min | 1 archivo (`nueva.vue`) |
+| **Opción B** | 1-2 horas | 5+ archivos (SQL, backend, frontend) |
+| **Opción C** | 5 min | 1 archivo (`nueva.vue`) |
+
+---
+
+## Consideraciones Adicionales
+
+### ⚠️ Importante
+- **NO modificar** el multiplicador informativo existente
+- **NO guardar** automáticamente - usuario debe tener control
+- **NO obligatorio** - si multiplicador empresa = 0, no prellenar
+
+### 🔄 Compatibilidad
+- Si orden se carga (cargar orden no asignada), usar multiplicador guardado en esa orden
+- Si es orden nueva, usar multiplicador de empresa
+- Si usuario cambia valor, respetar cambio
+
+### 📝 Documentación
+- Actualizar walkthrough con nueva funcionalidad
+- Crear log de implementación cuando se complete
+- Actualizar task.md con nuevo checklist
+
+---
+
+## Próximos Pasos
+
+1. ✅ **Decidir** qué opción implementar (recomendación: Opción A)
+2. ⏸️ **Implementar** según los pasos documentados
+3. ⏸️ **Probar** en desarrollo
+4. ⏸️ **Desplegar** si aplica (frontend no requiere despliegue manual)
+5. ⏸️ **Documentar** resultado final

@@ -1,0 +1,83 @@
+- Solicitud del Usuario: Agregar validación para evitar que se desactiven todas las monedas - siempre debe haber al menos una moneda activa.
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/pages/monedas.vue (MODIFICADO)
+
+- Acción Realizada:
+  1. PROBLEMA IDENTIFICADO:
+     - El usuario detectó que podía desactivar todas las monedas
+     - Esto es problemático porque el sistema necesita al menos una moneda activa
+     - Primera implementación causaba error de Vuex strict mode
+  
+  2. PRIMERA SOLUCIÓN (ERRÓNEA):
+     - Se agregó validación en método toggleActivo()
+     - Contaba monedas activas y bloqueaba si solo quedaba 1
+     - ERROR: Mutaba directamente moneda.activo = true (violación de Vuex strict mode)
+     - RESULTADO: App crasheaba con error "[vuex] do not mutate vuex store state outside mutation handlers"
+  
+  3. CORRECCIÓN FINAL:
+     - Cambió binding de v-model a :checked (one-way binding)
+     - Agregado handler @change manual con index
+     - Método toggleActivo ahora:
+       * Cuenta monedas activas: filter(m => m.activo).length
+       * Si moneda.activo === true Y monedasActivas === 1 → bloquear
+       * Crea copia del array: [...this.monedas]
+       * Crea copia del objeto: {...monedasCopy[index], activo: !...}
+       * Actualiza array local: this.monedas = monedasCopy
+       * Llama guardarMonedas() que actualiza Vuex correctamente
+  
+  4. VALIDACIÓN IMPLEMENTADA:
+     - Si solo 1 moneda activa → no permitir desactivarla
+     - Muestra toast: "Operación No Permitida: Debe haber al menos una moneda activa en el sistema"
+     - Moneda permanece activa (toggle no cambia)
+     - NO hay mutaciones directas de Vuex (usa copias locales)
+
+- Herramienta(s) Utilizada(s):
+  - replace_file_content (para modificar template y método)
+  - browser_subagent (para probar y verificar el fix)
+
+- Resultado: Éxito
+
+- Verificación:
+  - PRUEBA 1 - Solo Peso Mexicano activo:
+    * Intento de desactivar Peso Mexicano
+    * Toast apareció: "Debe haber al menos una moneda activa en el sistema"
+    * Moneda permaneció "Activa"
+    * NO crash de Vuex
+  
+  - PRUEBA 2 - Flujo Completo:
+    * Activé Dólar (2 monedas activas)
+    * Desactivé Peso Mexicano (permitido, Dólar quedó activa)
+    * Intenté desactivar Dólar (única activa) → BLOQUEADO
+    * Toast apareció nuevamente
+    * Dólar permaneció "Activa"
+  
+  - CONSOLA:
+    * Sin errores de Vuex
+    * Sin crashes de aplicación
+    * Operación fluida y estable
+  
+  - CÓDIGO:
+    * Template usa :checked y @change="toggleActivo(data.item, data.index)"
+    * toggleActivo recibe (moneda, index)
+    * Validación: if (moneda.activo && monedasActivas === 1) return
+    * Inmutabilidad: const monedasCopy = [...this.monedas]
+    * Actualización correcta: monedasCopy[index] = {...}
+
+- Observaciones de Gemini:
+  - El error original era clásico de Vuex: mutar state fuera de mutations
+  - La solución usa el patrón correcto: copiar → modificar → asignar
+  - El uso de :checked en lugar de v-model previene binding bidireccional problemático
+  - El index es necesario para ubicar exactamente qué elemento modificar
+  - La validación es simple pero efectiva: cuenta activos y bloquea si solo hay 1
+  - Esta validación se suma a la existente de "no eliminar dólar/bolívar"
+  - Juntas garantizan que siempre haya al menos una moneda disponible
+  - El usuario no puede dejar el sistema en estado inconsistente
+
+- Evidencias:
+  - Screenshot estado inicial: initial_currencies_state_1767991439840.png
+  - Screenshot validación con toast: validation_error_toast_1767991455752.png
+  - Grabación completa del test: validar_fix_vuex_1767991428749.webp
+
+- Respuesta de Gemini:
+  Validación de "al menos una moneda activa" implementada y verificada exitosamente. El sistema ahora previene que el usuario desactive todas las monedas, asegurando que siempre haya al menos una moneda disponible en el sistema. La implementación fue corregida para evitar mutaciones directas de Vuex, eliminando el crash que ocurría en la primera versión. El toggle funciona correctamente, muestra mensajes claros al usuario y mantiene la estabilidad de la aplicación.

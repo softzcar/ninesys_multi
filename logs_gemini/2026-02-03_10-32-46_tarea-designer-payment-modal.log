@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Arreglar modal de planilla de pagos para diseñadores (Imagen, Comisión, Columnas).
+- Archivos Involucrados: app/routes/payments.php, components/admin/PagosVendedorResumen.vue
+- Acción Realizada: Backend: Se agregaron campos , ,  a la consulta de diseñadores. Frontend: Se personalizó el modal para diseñadores (botón de imagen, columna ID revisión, ocultar cantidad, fix comisión).
+- Resultado: Modal adaptado correctamente al flujo de diseño.
+- Verificación: Cambios desplegados en refactor/modular-routes (Back) y main (Front).
+- Respuesta de Gemini: Notificación de cambios completados.

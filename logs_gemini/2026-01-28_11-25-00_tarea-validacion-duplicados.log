@@ -1,0 +1,16 @@
+- Solicitud del Usuario: Impedir selección duplicada del mismo insumo en el Typeahead.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se modificó el método `loadInsumos` (invocado al seleccionar en el Typeahead).
+    - Lógica añadida:
+        1. Al seleccionar un ítem, el código recorre `this.form` buscando si ese ID ya existe en otro índice.
+        2. Si encuentra duplicado:
+           - Muestra una alerta `$fire({ type: 'warning' })` indicando el error.
+           - Al cerrar la alerta, limpia la selección (`select = ''`) y marca el insumo como inválido.
+           - Esto obliga al usuario a volver a seleccionar un ítem diferente.
+- Herramientas Utilizadas: `replace_file_content`.
+- Resultado: Éxito
+- Verificación: Seleccionar el mismo ítem en dos filas debería bloquear la segunda selección y mostrar alerta.
+- Observaciones de Gemini: Esta validación es crucial para evitar conflictos de claves duplicadas en el envío y inconsistencias lógicas (ej: terminar el mismo rollo dos veces).
+- Respuesta de Gemini: Validación antidublicados implementada.

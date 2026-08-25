@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Mover/Agregar validación de detalle de descuento al método `step3()` en `nueva.vue`.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada:
+    1. Se identificó el método `step3()` como el responsable de validar el paso de pagos antes de la vista previa.
+    2. Se agregó la validación: si `descuento > 0` y `descuentoDetalle` está vacío, se impide avanzar y se muestra alerta.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó que la lógica se insertó en el flujo de validación de `step3`.
+- Observaciones de Gemini: El usuario tenía razón, la validación en `finishOrder` era tardía; `step3` es el lugar correcto para validar antes de confirmar.
+- Respuesta de Gemini: Validación movida a `step3()`. Ahora no dejará avanzar si falta el detalle.

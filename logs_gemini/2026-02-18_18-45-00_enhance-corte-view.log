@@ -1,0 +1,18 @@
+
+- Solicitud del Usuario: Añadir columna "Avance" y restaurar carga de valores por defecto en inputs de Corte.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/CorteItemView.vue (Modificado)
+- Acción Realizada:
+    - Frontend: 
+        1. Se añadió la columna "Avance" (antes de "Cortado") en la tabla (tanto modo embedded como modal) para mostrar la cantidad real registrada en BD (`cantidad_avance`).
+        2. Se actualizó la lógica en `fetchDetallesOrden`:
+           - `cantidad_avance`: Muestra valor real de BD.
+           - `cantidad_cortada` (Input): Si hay avance en BD (>0), toma ese valor. Si es 0 (nuevo corte), pre-carga la `cantidad` solicitada por defecto para facilitar la confirmación rápida ("Todo listo").
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación:
+    - El modal ahora debe mostrar la columna "Avance".
+    - Si el producto no se ha cortado, el input debe aparecer pre-llenado con la cantidad solicitada (facilitando el flujo).
+    - Si ya se cortó algo parcial (ej: 5 de 10), el input mostrará 5.
+- Observaciones de Gemini:
+    - Esta separación entre "Lo que dice la BD" (Avance) y "Lo que voy a guardar" (Input) es clave para evitar confusión y agilizar el trabajo del operario.

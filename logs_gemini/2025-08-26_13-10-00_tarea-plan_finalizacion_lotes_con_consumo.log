@@ -1,0 +1,103 @@
+- Solicitud del Usuario: Ok vamos a programar esta funcionalidad con este enfoque. por favor escribe un log especificando muy muy muy muy muy muy muy bien el plan de trabajo
+
+- Archivos Involucrados: 
+  - Backend: `app/routes.php` (o el archivo de rutas principal de la API).
+  - Frontend: 
+    - `components/empleados/SseOrdenesAsignadasV4.vue` (Componente principal que orquesta la acción).
+    - `components/empleados/FinalizarLoteModal.vue` (Nuevo componente a crear para la interfaz de usuario).
+
+- Acción Realizada: 
+  Se ha diseñado un plan de trabajo detallado para implementar la funcionalidad de "Finalización de Lote con Registro de Consumo". La acción consiste en la creación de este plan antes de la escritura de código. El plan se divide en dos fases principales: desarrollo del Backend y desarrollo del Frontend.
+
+  ---
+  ### **PLAN DE TRABAJO DETALLADO**
+  ---
+
+  #### **FASE 1: Desarrollo del Backend (API)**
+
+  El objetivo es robustecer la API para que maneje la nueva lógica de negocio de forma centralizada y eficiente.
+
+  **1.1. Creación del Nuevo Endpoint GET: `/lotes/{id}/resumen-consumo`**
+  *   **Archivo a Modificar:** `app/routes.php`.
+  *   **Propósito:** Endpoint de solo lectura para recolectar y calcular datos que se mostrarán en el modal de finalización antes de que el usuario interactúe con él.
+  *   **Lógica Detallada:**
+      a.  Definir una nueva ruta `GET` que acepte un `id` de lote.
+      b.  Dentro de la función, obtener el `id_lote` de los argumentos de la ruta.
+      c.  Instanciar la conexión a la base de datos (`$localConnection = new LocalDB();`).
+      d.  **Consulta 1: Obtener Órdenes del Lote.** Realizar una consulta a `empleados_lotes_fabricacion_items` para obtener todos los `id_orden` asociados al `id_lote` recibido.
+      e.  **Consulta 2: Calcular Consumo Previo.**
+          - **PUNTO CRÍTICO:** Se necesita la confirmación del usuario sobre el origen de los datos de "Papel Utilizado". La consulta asumirá que se debe buscar en `inventario_movimientos` un insumo específico (ej: `id_insumo` correspondiente al papel) para la lista de órdenes obtenida en el paso anterior.
+          - La consulta será similar a: `SELECT SUM(valor_final - valor_inicial) as total_papel FROM inventario_movimientos WHERE id_orden IN (...) AND id_insumo = [ID_DEL_PAPEL]`.
+      f.  **Respuesta:** Devolver un objeto JSON con los datos calculados. Ejemplo: `{ "total_papel_utilizado": 120.5 }`.
+      g.  Cerrar la conexión a la base de datos.
+
+  **1.2. Modificación del Endpoint POST: `/lotes/{id}/finalizar-departamento`**
+  *   **Archivo a Modificar:** `app/routes.php`.
+  *   **Propósito:** Evolucionar este endpoint para que sea el núcleo de la operación, aceptando el consumo total de material y distribuyéndolo proporcionalmente entre las órdenes del lote.
+  *   **Lógica Detallada:**
+      a.  **Adaptar Payload:** Modificar la lógica de recepción de datos para que espere un objeto `consumo_lote` en el cuerpo de la petición, conteniendo `id_insumo` y `cantidad_total`.
+      b.  **Iniciar Transacción:** Envolver toda la lógica en una transacción de base de datos para garantizar la atomicidad (o todo se hace, o nada se hace).
+      c.  **Obtener Datos para Distribución:**
+          i.  Obtener la lista de `id_orden` del lote.
+          ii.  Crear una consulta que, para esa lista de órdenes, obtenga la suma de `cantidad` de la tabla `ordenes_productos` para cada orden.
+          iii. Calcular el `gran_total_unidades_lote` (la suma de todas las unidades de todas las órdenes).
+      d.  **Actualizar Inventario Principal (Acción Única):**
+          i.  Ejecutar **una sola consulta `UPDATE`** en la tabla `inventario`.
+          ii.  La consulta restará la `cantidad_total` (del payload) al `stock` del `id_insumo` (del payload). Esto se ejecutará ANTES del bucle para asegurar que el stock se descuente correctamente una sola vez.
+      e.  **Bucle de Finalización por Orden:**
+          i.  Iterar sobre cada `id_orden` del lote.
+          ii. **Calcular Consumo Proporcional:** `consumo_estimado = (unidades_de_la_orden / gran_total_unidades_lote) * consumo_lote.cantidad_total`.
+          iii. **Insertar Movimiento de Inventario:** Replicar la lógica de `/inventario-movimientos/empleados/update-insumo` para hacer un `INSERT` en la tabla `inventario_movimientos`. Este registro guardará el `consumo_estimado` para la orden actual.
+          iv. **Ejecutar Lógica de Finalización Existente:** Reutilizar el código ya desarrollado para:
+              - Actualizar el `paso` en la tabla `lotes`.
+              - Calcular la comisión e `INSERT`ar el registro en la tabla `pagos`.
+              - Actualizar el `progreso` a 'terminada' en `lotes_detalles` y `lotes_detalles_empleados_asignados`.
+      f.  **Finalizar Transacción:** Si el bucle se completa sin errores, hacer `COMMIT` a la transacción. Si ocurre algún error, hacer `ROLLBACK`.
+      g.  Devolver una respuesta de éxito o error.
+
+  #### **FASE 2: Desarrollo del Frontend (Vue.js)**
+
+  El objetivo es crear una interfaz de usuario clara que guíe al empleado a través del nuevo flujo de finalización.
+
+  **2.1. Creación del Nuevo Componente: `components/empleados/FinalizarLoteModal.vue`**
+  *   **Propósito:** Será la interfaz dedicada para que el usuario registre el consumo total del lote.
+  *   **Estructura y Lógica:**
+      a.  **Props:** Aceptará `loteId`, `totalPapelUtilizado` y una lista de `insumos` (para el selector de tela).
+      b.  **UI (Interfaz de Usuario):**
+          - Un título claro, como "Finalizar Lote #X".
+          - Un campo de texto no editable para mostrar el `totalPapelUtilizado`.
+          - Un `b-form-select` para que el usuario elija el rollo de tela (`id_insumo`).
+          - Un `b-form-input` de tipo numérico para que ingrese la `cantidad_total` de tela consumida.
+          - Un botón "Confirmar y Finalizar", que estará deshabilitado si los campos de entrada no están completos.
+      c.  **Método de Finalización:**
+          - Al hacer clic en "Confirmar y Finalizar", este método construirá el payload JSON (con `id_empleado`, `id_departamento` y el objeto `consumo_lote`).
+          - Realizará la petición `POST` al endpoint `/lotes/{loteId}/finalizar-departamento`.
+          - En caso de éxito, emitirá un evento `@lote-finalizado` y se cerrará.
+          - En caso de error, mostrará una notificación al usuario.
+
+  **2.2. Modificación del Componente Padre: `components/empleados/SseOrdenesAsignadasV4.vue`**
+  *   **Propósito:** Orquestar el nuevo flujo.
+  *   **Lógica del Método `finalizarLotePorDepartamento(loteId)`:**
+      a.  Este método será reescrito.
+      b.  Mostrará un overlay de carga.
+      c.  Hará una petición `GET` al nuevo endpoint `/lotes/{loteId}/resumen-consumo`.
+      d.  Cuando reciba la respuesta, almacenará el `total_papel_utilizado` en una variable local.
+      e.  Abrirá el nuevo modal `FinalizarLoteModal.vue`, pasándole los datos necesarios a través de `props`.
+  *   **Manejo de Eventos:**
+      a.  El componente escuchará el evento `@lote-finalizado` emitido por el modal.
+      b.  Cuando reciba el evento, ejecutará su método `reloadMe()` para actualizar toda la interfaz.
+
+- Herramienta(s) Utilizada(s): 
+  - `default_api.write_file`
+
+- Resultado: 
+  - Éxito
+
+- Verificación: 
+  - Se ha creado un archivo de log en la ruta `/logs_gemini/` con el plan de trabajo detallado. El contenido del archivo refleja con extrema precisión los pasos acordados para la implementación de la nueva funcionalidad.
+
+- Observaciones de Gemini: 
+  - El plan es exhaustivo y aborda las complejidades de la lógica de negocio, como la distribución proporcional del consumo y la necesidad de una operación atómica en la base de datos. La pregunta sobre el origen de los datos de "Papel Utilizado" es crucial y deberá ser resuelta antes de la implementación del backend para evitar suposiciones incorrectas.
+
+- Respuesta de Gemini: 
+  - De acuerdo. He preparado un plan de trabajo extremadamente detallado como me solicitaste, siguiendo la estructura de bitácora definida. Este plan nos servirá como guía precisa para la implementación. Procedo a crear el archivo de log con el plan.

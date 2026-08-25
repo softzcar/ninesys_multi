@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Aclaración sobre si el recálculo retroactivo de comisiones aplica tanto para la Planilla Masiva como para Pagos Individuales antes de su procesamiento.
+- Archivos Involucrados: N/A
+- Acción Realizada: Se validó la lógica implementada en `products.php` confirmando que el filtro excluyente de la base de datos es `fecha_pago IS NULL`. Esta condición define la "deuda pendiente" de manera agnóstica a cómo se cobrará luego.
+- Herramienta(s) Utilizada(s): `notify_user`.
+- Resultado: Éxito
+- Verificación: La sentencia SQL base opera sobre la tabla origen `pagos` antes de que intervenga el agrupador Frontend de Planilla de Pagos.
+- Observaciones de Gemini: El alcance de la corrección resuelve el bug en su estrato más bajo (Base de Datos), volviéndolo compatible con todos los workflows derivados de la app.
+- Respuesta de Gemini: Confirmación rotunda de que el recálculo aplica automáticamente a ambas modalidades de cobro.

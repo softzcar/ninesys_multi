@@ -1,0 +1,7 @@
+- Solicitud del Usuario: El frontend seguía mostrando 'Iniciar' en lugar de 'Terminar' para reposiciones ya iniciadas. Se identificó que la consulta SQL podría estar devolviendo NULL o un registro antiguo.
+- Archivos Involucrados: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/manufacturing.php
+- Acción Realizada: Se modificó la subconsulta SQL de `reposiciones` para agregar `ORDER BY _id DESC LIMIT 1`.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Esto asegura que siempre se obtenga el último registro de progreso creado (el más reciente), evitando que registros antiguos de tareas terminadas oculten el nuevo registro 'en curso'.
+- Respuesta de Gemini: Corrección de precisión SQL aplicada.

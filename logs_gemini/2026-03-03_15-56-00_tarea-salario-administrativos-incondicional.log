@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Los empleados que ya les ha sido pagado el salario deben aparecer de todas formas en la planilla de pago con el mensaje 'Salario pagado', para que no genere la duda de que el sistema los omitió.  
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/payments.php
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosConfirmacionModal.vue
+- Acción Realizada: 
+    1. Se quitó de la consulta `$sql_administrativo` (en `GET /pagos/semana/empleados`) la condición que excluía a quienes no debían salario la semana/quincena en curso. Se recuperaron las métricas `ultima_semana_pagada` y `ultimo_anio_pagado` directamente en este query.
+    2. Se reemplazó en el datatable de `PagosEmpleados.vue` el componente Modal interactivo por spans de texto informativos ("Salario Pagado", o "Sin comisiones") si las deudas de comisiones y salario del empleado son estrictamente 0.00.
+    3. Para cerrar fugas, se inhabilitó el botón ok de pago manual (`Confirmar y Procesar Pago`) en el componente `PagosConfirmacionModal.vue` si su variable bindeada `totalFinal` registra menos o igual de cero.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content` y `view_file`.
+- Resultado: Éxito
+- Verificación: Los datos en la consulta raw SQL confirman que empleados con salario base siempre saldrán, los cálculos de `debePagarSalario` del Store de Vuejs decidirán cuanta deuda transferirle, si envía `0`, el span estático sobreescribirá la llamada al Componente Modal, previniendo procesamientos no deseados y disipando incertidumbre.
+- Observaciones de Gemini: Excelente acotación en UX/UI para transparentar la planilla.
+- Respuesta de Gemini: Confirmado el cambio. Listo para verificar y continuar con la Orden 3.

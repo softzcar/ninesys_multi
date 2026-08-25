@@ -1,0 +1,63 @@
+- Solicitud del Usuario: Implementar botón para aplicar multiplicador de precio a productos individuales en el wizard
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  1. Agregado botón con icono calculator en la columna "acciones" de los productos (línea 322-329)
+  2. Implementado método `aplicarMultiplicadorProducto()` que:
+     - Obtiene multiplicador de empresa desde Vuex (datos_personalizacion.multiplicador_precio)
+     - Valida que exista multiplicador configurado
+     - Verifica que no se haya aplicado previamente al mismo producto
+     - Muestra confirmación modal con preview del nuevo precio
+     - Calcula nuevo precio: `precio_original * (1 + multiplicador/100)`
+     - Actualiza precio del producto en el array
+     - Marca producto con flag `multiplicador_aplicado = true`
+     - Llama a `montoTotalOrden()` para recalcular totales automáticamente
+  3. Implementadas notificaciones toast:
+     - Success: Cuando se aplica correctamente (muestra precio antes/después)
+     - Warning: Si no hay multiplicador configurado
+     - Info: Si ya fue aplicado previamente  
+     - Danger: Si hay error en la aplicación
+  4. Variant del botón cambia automáticamente:
+     - Warning (amarillo): Estado inicial, multiplicador no aplicado
+     - Success (verde): Multiplicador ya aplicado a este producto
+  5. Tooltip informativo en el botón
+  6. Corregido error de sintaxis en variable `nuevoPrecio`
+
+- Herramienta(s) Utilizada(s): grep_search, view_file, replace_file_content, sed
+
+- Resultado: Éxito
+
+- Verificación:
+  - Botón agregado correctamente en columna acciones entre duplicar y eliminar
+  - Método implementado con todas las validaciones
+  - Modal de confirmación configurado
+  - Toast notifications para todos los casos
+  - Flag `multiplicador_aplicado` previene aplicación múltiple
+  - Variant condicional según estado
+  - Error de sintaxis corregido
+
+- Observaciones de Gemini:
+  La implementación es no invasiva y se integra perfectamente con la lógica existente:
+  - No modifica estructura de datos existente (solo agrega flag opcional)
+  - Usa `montoTotalOrden()` existente para recálculo automático
+  - El precio multiplicado se guarda directamente en `item.precio`
+  - Al guardar la orden, debería almacenarse el precio ya multiplicado en BD (a verificar en testing)
+  - El botón es independiente por producto, permitiendo aplicar selectivamente
+
+- Respuesta de Gemini:
+  Implementación completa del botón multiplicador. Características:
+  
+  ✅ **Botón con icono calculator** en columna acciones
+  ✅ **Confirmación previa** con preview de precios
+  ✅ **Validaciones completas**: multiplicador disponible, no aplicado previamente
+  ✅ **Estados visuales**: variant warning→success al aplicar
+  ✅ **Notificaciones toast** para todos los escenarios
+  ✅ **Recálculo automático** de totales
+  ✅ **Prevención de aplicación múltiple** con flag
+  
+  **Pendiente testing manual para verificar:**
+  - Recálculo de totales funciona correctamente
+  - Precio multiplicado se guarda en BD
+  - Aplicación selectiva a múltiples productos

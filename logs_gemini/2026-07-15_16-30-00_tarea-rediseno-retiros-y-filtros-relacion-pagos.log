@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** Mejorar la interfaz de "Retiros" (formulario y reporte mezclados en una sola página muy larga, con scroll excesivo y espacio vacío) y agregar filtros interactivos de moneda/método de pago en "Relación de Pagos", siguiendo el mismo patrón de filtros dinámicos ya usado en `/comercializacion/ordenes/activas`.
+- **Fecha y Hora:** 2026-07-15 16:30:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - pages/comercializacion/retiros/index.vue
+  - pages/comercializacion/retiros/reporte.vue (nuevo)
+  - components/sidebars/SidebarAdmin.vue
+  - components/sidebars/SidebarComercializacion.vue
+  - components/vendedores/TablaDePagosVendedor.vue
+- **Commits Relacionados:**
+    - Frontend: bed8618
+    - Backend: e872b4e (en ninesys-api, exponer cliente_nombre/metodo_pago)
+- **Acción Realizada:**
+  1. Se separó el "Reporte de Retiros" (selector de fechas + tabla histórica) de la página de retiro de efectivo en sí, creando `retiros/reporte.vue` como página independiente con filtro de fecha (default últimos 30 días) y enlace propio en ambos sidebars.
+  2. `retiros/index.vue` quedó simplificado: solo carga el saldo de caja actual (necesario para validar montos), ya no el reporte histórico. Se reordenó el formulario: montos por moneda -> detalle del retiro -> total y botón RETIRAR al final, en vez del orden original (botón y detalle antes de los montos).
+  3. `TablaDePagosVendedor.vue`: se agregó columna de cliente junto al número de orden, y filtros interactivos (radio buttons) por moneda y por método de pago, generados dinámicamente a partir de los valores presentes en los resultados cargados (mismo patrón de `ordenes/activas.vue`).
+- **Inconvenientes y Desafíos:** El primer intento de crear la página de transacciones de caja (en una tarea posterior relacionada) usando un directorio anidado bajo una ruta que ya existía como archivo (`reporte-de-caja.vue` + `reporte-de-caja/`) causó que Nuxt tratara la nueva página como ruta hija sin `<nuxt-child/>` en el padre, por lo que nunca se renderizaba (mismo patrón de riesgo a tener en cuenta para futuras páginas nuevas bajo rutas existentes).
+- **Decisión Final y Justificación:** Se adoptó consistentemente el orden "datos primero, confirmación al final" en formularios de una sola acción (Retiros, y luego también Otros Abonos), por ser el flujo más natural de izquierda a derecha / arriba a abajo para el usuario.
+- **Herramienta(s) Utilizada(s):** Read, Write, Edit, Bash (curl para verificar compilación del dev server).
+- **Resultado:** Éxito
+- **Verificación:** Verificado en navegador por el usuario tras cada cambio; retiros de $3, $100 y $29 probados con éxito tras corregir además un bug de cálculo de saldo en el backend (ver log de backend del mismo día).
+- **Logro Conseguido:** Interfaz de Retiros reorganizada y usable en desktop sin scroll excesivo; Relación de Pagos ahora permite filtrar por moneda y método de pago con datos reales.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Cambios aplicados y verificados en tiempo real junto con el usuario.

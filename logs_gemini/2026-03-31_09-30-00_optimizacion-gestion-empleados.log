@@ -1,0 +1,26 @@
+# LOG DE TAREA: Optimización de Gestión de Empleados y Tabla
+
+**Fecha:** 2026-03-31 09:30:00
+**ID de Conversación:** 61b61c27-5d26-4666-bedb-4f03b689b77e
+
+## Descripción de la Tarea
+Optimización de la página `/empleados/gestion/` para eliminar llamadas redundantes a la API y habilitar el ordenamiento de columnas en la tabla de empleados.
+
+## Cambios Realizados
+
+### Backend (ninesys-api)
+- [employees.php](file:///home/developer/Escritorio/niesys/ninesys-api/app/routes/employees.php): Se añadió la propiedad `sortable => true` a los campos `nombre` y `username` en la respuesta del endpoint `/empleados`.
+
+### Frontend (app_multi)
+- [index.vue](file:///home/developer/Escritorio/niesys/app_multi/pages/empleados/gestion/index.vue):
+    - Se implementó una bandera `isFetching` en `loadData()` para evitar peticiones API simultáneas y redundantes.
+    - Se simplificó el hook `mounted()` para centralizar la carga de datos.
+    - Se añadió `primary-key="_id"` al componente `<b-table>` para estabilizar el estado de los componentes hijos tras el reordenamiento.
+    - Se añadieron trazas de depuración para verificar el flujo de carga.
+
+## Verificación
+- Se verificó que los componentes `AdminEmpleadoNuevo` y `AdminEmpleadoEditar` no realizan peticiones API de carga propias, eliminando así la redundancia detectada por el usuario.
+- El ordenamiento de la tabla ahora es funcional para las columnas especificadas.
+
+## Estado
+**COMPLETADO** (Despliegue a Producción en curso)

@@ -1,0 +1,8 @@
+- Solicitud del Usuario: el pago de la orden se generó pero yo lo eliminé. ok reforcemos tambien la seguridad al momenot de hacer click en el botón que envia los datos apra terminar al orden apra evcitar cualquier interaccion con lainterfaz hasta que el servidor responda.
+- Archivos Involucrados: `components/empleados/SseOrdenesAsignadasModalExtra.vue`
+- Acción Realizada: Se modificaron las funciones `terminarRollo`, `terminarTodo`, `postInventarioMovimientos` y `registrarEstado` para establecer las propiedades `this.overlay = true;` y `this.ButtonDisabled = true;` antes de las peticiones a la API REST, y reestableciéndolos a `false` en el bloque `.finally()` de Axios. Esto bloquea totalmente la interfaz del usuario hasta que el servidor responde a la última acción pedida en el formulario de la UI.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Las promesas de Axios ahora mutan el estado reactivo del componente de Vue, logrando que los overlays prevengan interacciones accidentales de "Terminar Rollo", o multi-pagos de "Terminar Todo" durante cuellos de botella de red.
+- Observaciones de Gemini: El incidente reportado por el usuario no era un bug lógico de cruce de datos en backend, sino un error de UI en frontend que posibilitó el envío duplicado de IDs a la API, insertando pagos dobles, sumado a un bug visual que escondía órdenes adyacentes al hacer reload del listado.
+- Respuesta de Gemini: Excelente. He agregado las protecciones solicitadas. Por favor ejecuta pruebas y confirma la desaparición de las anomalías de pagos duplicados.

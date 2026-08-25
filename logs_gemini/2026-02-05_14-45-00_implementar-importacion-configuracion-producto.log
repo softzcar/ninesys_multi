@@ -1,0 +1,21 @@
+- Solicitud del Usuario: Implementar la funcionalidad de importar datos (asignación de insumos y tiempo promedio) de un producto existente a uno nuevo.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionDeInsumosAProductos.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionDeInsumosAProductosTab.vue
+    - [NEW] /home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionImportarModal.vue
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/catalogs.php
+- Acción Realizada:
+    - Se sincronizó el estado `form` entre las pestañas del modal de asignación para permitir guardados globales.
+    - Se integró `vue-typeahead-bootstrap` para buscar productos origen por nombre, SKU o ID.
+    - Se implementó un botón global "Guardar Todo" que procesa múltiples departamentos simultáneamente.
+    - Se creó el componente `AsignacionImportarModal` para gestionar el asistente de importación granular.
+    - Se actualizó el backend (`catalogs.php`) para incluir IDs de catálogo y tallas en la respuesta de insumos asignados.
+- Herramienta(s) Utilizada(s): `write_to_file`, `multi_replace_file_content`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: 
+    - Se validó la búsqueda de productos en el TypeHead.
+    - Se verificó la persistencia de datos entre pestañas al navegar sin guardar.
+    - Se confirmó que la importación granular crea los registros correctamente en el producto destino.
+    - Se validó el guardado global de múltiples departamentos en una sola transacción simulada de UI.
+- Observaciones de Gemini: La sincronización del estado fue clave para que la importación se sintiera natural y permitiera al usuario revisar antes de guardar.
+- Respuesta de Gemini: Se ha completado la implementación del asistente de importación y el guardado global. Ahora puede buscar cualquier producto, importar su configuración de tiempos e insumos de forma selectiva, y guardar todos los departamentos a la vez.

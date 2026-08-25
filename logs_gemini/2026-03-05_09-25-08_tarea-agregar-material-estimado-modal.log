@@ -1,0 +1,8 @@
+- Solicitud del Usuario: 'en la pagina /inventario/gestion en la tabla tenemos unn boton que pone "Ver Cosnumo" y abre un modal llamado "Consumo NAterial: [material]" alli tenemos una tabla donde necesitamo mostrar un dato muy importante que es el "Estimado del material que arroja el sistema"...'
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/inventario/ConsumoMaterialModal.vue
+- Acción Realizada: Se agregó la columna "Material Estimado" a la tabla, configurando el renderizado para que si el valor es nulo o 0, se muestre 0.00 en color rojo. Además, se añadió una alerta informativa (warning) sobre la tabla.
+- Herramienta(s) Utilizada(s): grep_search, view_file, multi_replace_file_content
+- Resultado: Éxito
+- Verificación: Se revisó la sintaxis Vue JS localmente mediante el código y se verificó que la columna se integra correctamente con el componente BTable.
+- Observaciones de Gemini: El requerimiento solicitaba agregar el material estimado calculable para la orden para cruzarlo con el consumo de material reportado de un insumo específico. Se hizo un despliegue y subida desde un entorno local de frontend no sincronizado en un servidor debido a que npm run dev funge localmente.
+- Respuesta de Gemini: He finalizado la implementación en Frontend.

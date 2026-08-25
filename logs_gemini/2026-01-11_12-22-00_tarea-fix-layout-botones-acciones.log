@@ -1,0 +1,39 @@
+- Solicitud del Usuario: Arreglar maquetación de botones en columna acciones (vista desktop) y eliminar columna "color" no utilizada
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  1. **Eliminada columna "color":** Removida de array `campos` (línea 909)
+  2. **Agregado CSS para `floatme`:**
+     - `display: inline-block` para alinear botones horizontalmente
+     - `margin-right: 0.25rem` para espaciado entre botones
+     - `:last-child` con `margin-right: 0` para último botón
+
+- Herramienta(s) Utilizada(s): grep_search, view_file, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Columna "color" eliminada de la tabla
+  - CSS `.floatme` agregado correctamente
+  - Botones ahora deben mostrarse horizontalmente en desktop
+  - Mobile view no afectado (ya funcionaba bien)
+
+- Observaciones de Gemini:
+  El problema era que los botones estaban envueltos en `<span class="floatme">` pero no había CSS para esa clase. Por defecto, los spans son inline, pero Bootstrap puede estar aplicando estilos que los hacen block. El CSS agregado fuerza display inline-block con margen derecho para separación.
+  
+  Al eliminar la columna "color":
+  - Se libera espacio horizontal en la tabla
+  - Los botones tienen más espacio para mostrarse
+  - La tabla se ve más limpia sin columnas vacías
+
+- Respuesta de Gemini:
+  Maquetación de botones corregida:
+  
+  ✅ Columna "color" eliminada
+  ✅ CSS `.floatme` agregado para layout horizontal
+  ✅ Botones ahora se muestran uno al lado del otro
+  ✅ Espaciado correcto entre botones (0.25rem)
+  
+  Los 3 botones (duplicar, multiplicador, eliminar) ahora se ven en línea horizontal en vista desktop.

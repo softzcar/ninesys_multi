@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Continuar la Fase 7 tras completar el backend genérico de pagos ("resuelto de raíz"): construir el componente dinámico de métodos de pago del lado del frontend, capaz de generar el payload `pagos` que ya aceptan los 6 endpoints.
+- **Fecha y Hora:** 2026-07-30 17:15:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - store/login.js
+    - components/menus/MenuLoader.vue
+    - components/ordenes/MetodosPagoDinamico.vue (nuevo)
+- **Commits Relacionados:**
+    - Frontend: 8cddf39 (refactor/modular-routes)
+    - Backend: ver bitácoras de ninesys-api (Fase 7 backend)
+- **Acción Realizada:**
+    1. `store/login.js`: nueva acción `cargarTasasPorCodigo()` -- llama a `GET /tasas-cambio` (Fase 3) y agrega cada tasa a `state.tasas` con clave ISO (`tasas.USD`, `tasas.VES`, `tasas.COP`) usando la mutación `setTasa` YA existente, sin tocar ni un solo lugar de los ~80 que leen las claves legadas en español (`tasas.dolar`, `tasas.bolivar`, `tasas.peso_colombiano`). Ambos vocabularios conviven en el mismo objeto `state.tasas`.
+    2. `MenuLoader.vue`: dispara `login/cargarTasasPorCodigo` en el mismo bloque diferido (3s) donde ya se disparaba la carga legada, de forma totalmente aditiva -- una llamada más, sin alterar la existente.
+    3. `components/ordenes/MetodosPagoDinamico.vue` (nuevo): carga `GET /monedas` + `GET /metodos-pago` reales al montar, y por cada moneda activa renderiza sus métodos activos -- un campo de monto siempre, y un campo de referencia SOLO si `requiere_referencia` es verdadero (dato real del catálogo, no una lista de excepciones hardcodeada). Muestra el equivalente en moneda base en vivo usando `tasas[codigo]` (las tasas ISO cargadas en el paso 1). Al cambiar cualquier campo, emite un evento `change` con `{pagos, totalEnBase}`, donde `pagos` ya tiene el formato exacto (`[{id_metodo_pago, monto, detalle, tasa}]`) que esperan los 6 endpoints genéricos del backend.
+- **Inconvenientes y Desafíos:** El componente se construyó y se verificó por sintaxis (`eslint`) y compilación (`npm run generate`), pero **todavía no está integrado en ningún formulario real** (`abono.vue`, `nueva.vue`, etc.) -- por lo tanto no se pudo probar de punta a punta en un flujo real de captura de pago. Se decidió detenerse en este punto para reportar al usuario antes de tocar el primer formulario en producción real (`abono.vue`, el modal "Abono a la Orden" más usado del sistema), dado el volumen de cambios ya realizado en esta sesión y la imposibilidad de verificar visualmente en navegador.
+- **Decisión Final y Justificación:** Separar "construir el componente" de "integrarlo en un formulario real" en 2 pasos verificables por separado, siguiendo el mismo criterio de todas las fases anteriores (nunca un cambio grande sin punto de verificación). El componente en sí no tiene ningún efecto en producción todavía (código muerto hasta que algo lo importe), así que desplegarlo ahora es de riesgo cero.
+- **Herramienta(s) Utilizada(s):** `Write`, `Edit`, `npx eslint`, `deploy.sh` (opción 2, Desarrollo Contabo -- build + rsync).
+- **Resultado:** Éxito (parcial -- construido y verificado por sintaxis/build, integración con formulario real pendiente)
+- **Verificación:** `npx eslint` sin errores sobre los 3 archivos. `npm run generate` completó sin fallos reales. Deploy a `vps-contabo-dev` finalizado con éxito.
+- **Logro Conseguido:** Existe ahora, por primera vez, un componente de frontend que arma un pago dirigido 100% por el catálogo real de la empresa (sin ningún campo `montoDolaresEfectivo` hardcodeado), listo para conectarse al backend genérico ya probado. Falta el paso de integrarlo en un formulario real y validar el flujo de punta a punta.
+- **Observaciones de Gemini:** N/A (sesión con Claude Code).
+- **Respuesta de Gemini:** Componente dinámico construido y desplegado (sin uso todavía, riesgo cero). Reportado al usuario antes de integrar el primer formulario real, dado el volumen de trabajo de la sesión.

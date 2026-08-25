@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Ok vamos a revisar algo en la pagina `/test` en la 'columna' Vinc. estamos mostrando las ordenes vinculadas... debemos mostrar en las ordens hijas la orden padre tambien pues ne realidad ambas estan vinculadas.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+- Acción Realizada: Se modificó la función `filterVinculadas(id_orden)` en el componente `controlDeProduccionPro.vue` para que sea bidireccional. Ahora filtra registros donde la orden sea padre O hija, y mapea el resultado para devolver siempre el ID del "otro" extremo de la vinculación bajo la clave `id_child`, manteniendo compatibilidad con `vinculadasV2.vue`.
+- Herramienta(s) Utilizada(s): `grep_search`, `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión de la lógica del mapa: `id_child: el.id_father == id_orden ? el.id_child : el.id_father`. Si la orden actual es el padre, muestra al hijo. Si es el hijo, muestra al padre.
+- Observaciones de Gemini: El cambio se realizó en el componente SSE de producción pro. No se realizó despliegue automático del frontend siguiendo las reglas del proyecto.
+- Respuesta de Gemini: ✅ Vincularización bidireccional implementada. Ahora las órdenes "hijas" también mostrarán a su orden "padre" en la columna Vinc.

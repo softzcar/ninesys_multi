@@ -1,0 +1,17 @@
+- **Solicitud del Usuario:** En "Catálogo de Colores" (`/impresoras/colores/`), crear un color con código "K" (ya existente) mostraba el toast de éxito pero no aparecía en la tabla (ver log espejo en ninesys-api para el diagnóstico completo y el fix de backend).
+- **Fecha y Hora:** 2026-07-17 20:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - pages/impresoras/colores.vue
+- **Commits Relacionados:**
+    - Frontend: 87e2d57
+    - Backend: 433fe25, 30ee171 (ver log en ninesys-api)
+- **Acción Realizada:** Con el backend ahora devolviendo el status HTTP correcto (409) en vez de un 200 engañoso, se actualizaron los bloques `catch` de `saveNewColor()` y `updateColor()` para leer `error.response.data.message` (el mensaje real que arma el backend, ej. "Ya existe un color/canal con el código K") y mostrarlo en el toast de error, en vez del texto genérico fijo que se mostraba antes.
+- **Inconvenientes y Desafíos:** Ninguno — el fix de frontend fue trivial una vez corregido el backend, ya que la estructura `try/catch` ya existía correctamente, solo nunca se activaba porque el backend no fallaba con el status HTTP adecuado.
+- **Decisión Final y Justificación:** No fue necesario agregar validación adicional en el frontend (ej. revisar duplicados localmente antes de enviar) — con el backend respondiendo correctamente, el flujo de error ya construido en el componente funciona sin cambios estructurales.
+- **Herramienta(s) Utilizada(s):** Read, Edit.
+- **Resultado:** Éxito
+- **Verificación:** Verificado en conjunto con el backend (ver log en ninesys-api): intento de duplicado devuelve 409 con mensaje claro, capturado correctamente por el `catch` del frontend.
+- **Logro Conseguido:** El usuario ahora recibe feedback preciso y accionable cuando intenta crear un código de color duplicado, en vez de un falso mensaje de éxito que ocultaba el problema real.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Corregido y desplegado a Contabo Dev junto con el fix de backend correspondiente.

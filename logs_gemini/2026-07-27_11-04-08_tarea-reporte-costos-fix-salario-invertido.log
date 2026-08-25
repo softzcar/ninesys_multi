@@ -1,0 +1,35 @@
+- **Solicitud del Usuario:** Continuación de la auditoría del Reporte de Costos de Producción (fase 1: verificación de datos de la API). Tras reportar el hallazgo de que el costo de mano de obra excluía por completo a empleados asalariados que sí trabajaron tareas rastreadas, el usuario pidió: "Vamos a dejar lista la inclusión del salario antes de continuar con la siguiente fase, procede a aplicar el fix".
+- **Fecha y Hora:** 2026-07-27 11:04:08
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosProduccion.vue` (método `updateUnifiedColumns`)
+- **Commits Relacionados:**
+    - Frontend: `123329f`
+- **Acción Realizada:**
+    Se corrigió `updateUnifiedColumns()` para sumar `item.salario_invertido` (ya calculado en `getReport()` vía `calcularCostoSalariosOrden` del mixin `mixin-time.js`, pero descartado sin usarse en ningún total) al costo de mano de obra mostrado. Se reemplazó además el patrón autorreferencial confuso que había antes (`costo_mano_de_obra_actual = Number(item.costo_mano_de_obra_total || 0)`, leyendo su propio campo de salida de la llamada anterior para decidir el valor de la llamada actual) por una suma directa y explícita: `costo_mano_de_obra_api + salario_invertido`.
+
+    No se requirió ningún cambio de backend: `costo_hora_empleado`, `tareas_data` y `empleados_asignados` (los tres insumos que necesita `calcularCostoSalariosOrden`) ya venían en la respuesta de la API desde antes -- simplemente no se estaban aprovechando.
+
+- **Inconvenientes y Desafíos:** Ninguno -- el cálculo (`calcularCostoSalariosOrden`/`calcularHorasLaboradasReales`) ya estaba escrito y probado implícitamente (se ejecutaba sin errores en cada carga del reporte, solo que su resultado se tiraba), así que la tarea fue de "conectar" un cálculo ya existente, no de escribir uno nuevo desde cero.
+
+- **Decisión Final y Justificación:**
+    Se sumó `salario_invertido` a `costo_mano_de_obra_api` en vez de reemplazarlo, porque ambos cubren componentes de costo distintos y no se solapan: `costo_mano_de_obra_api` incluye comisiones (empleados con `salario_tipo` que no es exactamente `'Salario'`) y el prorrateo de salario de empleados sin ninguna tarea rastreada en el período; `salario_invertido` cubre específicamente el costo por horas de empleados con `salario_tipo` que contiene "Salario" (incluye tanto `'Salario'` puro como `'Salario más Comisión'`) que sí trabajaron tareas rastreadas en esa orden -- un empleado con "Salario más Comisión" legítimamente puede tener ambos componentes de costo simultáneamente (su comisión ya contada en `costo_mano_de_obra_api`, más una porción de su salario base vía `salario_invertido`), no hay doble conteo.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check` (validación de sintaxis), `Bash` (`git diff`, `git commit`, `ssh`/`psql` para verificar el origen del bug en `manufacturing.php` y confirmar el alcance con datos reales antes de aplicar el fix, `curl` para obtener el JSON crudo de la API de prueba), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__javascript_tool` para verificación en vivo manipulando directamente la instancia Vue del componente.
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Se identificó primero la causa raíz en el backend (`ninesys-api/app/routes/manufacturing.php:1792-1793`: `if ($salario_tipo === 'Salario') $total_monto_pago = 0;`) y se confirmó con datos reales que el empleado "Abraham" (id 655, $60/semana) trabajó 230 órdenes en el rango de prueba (2026-07-01 a 2026-07-22) con sus 274 registros de `pagos` en `$0.00` sin excepción (`SELECT COUNT(*) FILTER (WHERE monto_pago=0)` = 274 de 274).
+
+    Tras aplicar el fix y desplegar a Contabo Dev, se verificó en vivo en el navegador (Chrome, sesión conectada) manipulando directamente la instancia Vue del componente:
+    - Orden 6301 (con Abraham entre los empleados asignados): `costo_mano_de_obra` (API) = 0.8751..., `salario_invertido` = 0.02 (coincide con el cálculo manual esperado: ~3 minutos de tarea × $0.375/hora ≈ $0.019), `costo_mano_de_obra_total` = 0.90 -- suma correcta.
+    - A nivel de todo el reporte (414 órdenes): la suma de `salario_invertido` en todas las filas = **$282.92**, presente en 168 de las 414 órdenes -- monto que antes del fix era completamente invisible en el reporte. `reportTotals.costo_mano_de_obra_total` ya refleja este monto en el total general.
+
+- **Logro Conseguido:**
+    Se corrigió una omisión real y significativa (≈$283 en el rango de prueba de 22 días, para una sola empresa) en el costo de mano de obra reportado, que a su vez afectaba directamente el "Costo Total" y la "Ganancia" calculados para cada orden y para el reporte completo -- sin necesidad de tocar el backend, reutilizando un cálculo que ya existía en el código pero nunca se conectó a la salida visible.
+
+- **Observaciones:**
+    Este hallazgo se originó durante la verificación sistemática de datos de la API (fase 1 del plan de auditoría del Reporte de Costos de Producción, pedido explícitamente por el usuario antes de continuar con las fases de filtros y gastos). Sigue pendiente investigar el bug reportado por el usuario de que el buscador "Buscar por Orden" cuelga la aplicación (fase 2 del plan).
+
+- **Respuesta de Claude:** Se corrigió el cálculo de costo de mano de obra en el Reporte de Costos de Producción: ahora incluye el costo real de empleados asalariados que trabajaron tareas rastreadas (antes ausente por completo, ya que su pago se registra en $0 al no cobrar comisión). Se reutilizó un cálculo que ya existía en el código pero nunca se conectaba al total mostrado -- no requirió cambios de backend. Verificado en vivo: suma $282.92 al costo de mano de obra en el rango de prueba, en 168 de 414 órdenes.

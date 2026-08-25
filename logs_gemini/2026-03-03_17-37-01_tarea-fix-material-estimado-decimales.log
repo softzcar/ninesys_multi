@@ -1,0 +1,11 @@
+- Solicitud del Usuario: en el dashborad de empleados al hacer click en el botón "terminar todo", en la empresa 163 en el servidor de desarrollo el empleado ID 588 tiene tres ordens en curso, la orden ID 4118 muestra correctamente la cantidad de material estimado (img 1) pero la orden 4113 mestra 0.00 en el material  estimado (img 2)  ¿Que está sucediendo?
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/FinalizarLoteModal.vue
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/InsumosEstimadosVista.vue
+- Acción Realizada: Se identificó que el producto de la orden 4113 tenía `0.8` unidades. En el frontend se usaba `parseInt(item.unidades)` para sanitizar el dato, provocando que se redondeara a `0` y por ende el material estimado fuese `0.00`. Se reemplazó `parseInt(item.unidades)` por `parseFloat(item.unidades)` en las computadas correspondientes para preservar los decimales en las transacciones de material por metros.
+- Herramienta(s) Utilizada(s): `grep_search`, `run_command` (mysql queries), `view_file`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se implementaron y reemplazaron las instancias de `parseInt(item.unidades)` correctamente en los 3 archivos. Se solicitó al usuario que pruebe el dashboard en su ambiente local dev abriendo las órdenes 4118 y 4113 en "Datos Extra Estampado" para constatar que ahora 4113 muestra `0.80 Mt`.
+- Observaciones de Gemini: El parseInt truncaba los decimales asilando los escenarios donde las unidades ingresadas eran menos de 1 (ej. pedidos cortados por metro en Sublimación). Un reemplazo rápido pero que impacta de manera directa en el registro de inventarios.
+- Respuesta de Gemini: He realizado los cambios en el código para utilizar `parseFloat` en lugar de `parseInt` a la hora de procesar el número de unidades de una orden. Ahora los cálculos del material estimado mantendrán y usarán los valores por debajo de 1, evitando que muestre `0.00`. Te pido que verifiques en el dashboard para asegurar que todo funciona a la perfección.

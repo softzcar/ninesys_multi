@@ -1,0 +1,17 @@
+LOG DE CAMBIOS - BITÁCORA DE TAREAS
+
+Fecha/Hora: 2026-07-03 10:16:00
+Tarea: Corrección de unidades de medida (papel/tela), visualización de estimados y simplificación de textos en dashboard de empleados.
+
+Descripción de los Cambios:
+1. SseOrdenesAsignadasV5.vue:
+   - Modificado el método `loadDataInsumos` para obtener también los IDs de órdenes pertenecientes a lotes activos (`lotesActivos`). Esto asegura que cuando un empleado abre el modal para finalizar un lote, se carguen correctamente todos los estimados de insumos de las órdenes que componen el lote, incluso si alguna de ellas ha sido terminada manualmente (como el caso reportado de la orden 5683 en la empresa 194 de producción).
+
+2. FinalizarLoteModal.vue:
+   - Se ajustó el resumen superior de consumo previo de lote para que muestre "Tela Utilizada (calculada): X.XX Mt" en lugar de "Papel Utilizado (calculado): X.XX m²" cuando el departamento no sea el de Impresión (es decir, cuando es Estampado o Corte).
+   - Se habilitó la sección "Resumen de Material" para cada orden de forma permanente al activar el switch "Registrar Consumo". Si la orden no cuenta con insumos estimados en el backend para este departamento, ahora se renderiza un fallback que dice "No hay datos de insumos disponibles" en lugar de ocultar la sección.
+   - Se quitó la alerta general superior de "Material(es) del Catálogo Seleccionado(s) por Vendedor" para simplificar la interfaz.
+
+3. SseOrdenesAsignadasModalExtra.vue:
+   - Se eliminó la alerta azul de "Tela Seleccionada por Vendedor" de la orden individual.
+   - Se simplificó la presentación del material estimado por catálogo quitando la palabra "de" para colocar el nombre del catálogo entre paréntesis (ej: "38.34 Mt (DRY FIT 1.60)" en lugar de "38.34 Mt de DRY FIT 1.60").

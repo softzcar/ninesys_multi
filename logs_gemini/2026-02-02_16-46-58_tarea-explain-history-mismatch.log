@@ -1,0 +1,4 @@
+- Solicitud del Usuario: Investigar discrepancia entre Histórico (15) y Detalle (11) en Orden 2181.
+- Archivos Involucrados: N/A (Análisis lógico).
+- Diagnóstico: Se pagaron 15 items en su momento (tabla pagos). Actualmente la orden tiene 11 items (tabla ordenes_productos). Esto indica edición post-pago.
+- Respuesta de Gemini: Explicación de Snapshot vs Live Data.

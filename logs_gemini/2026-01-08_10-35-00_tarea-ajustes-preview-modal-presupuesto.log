@@ -1,0 +1,44 @@
+- Solicitud del Usuario: Ajustar preview y modal de impresión del presupuesto según nueva.vue
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/presupuesto.vue (modificado)
+
+- Acción Realizada:
+  1. Cambiado título de tercera pestaña: "Emitir orden" → "Emitir Presupuesto"
+  2. Cambiado texto del alert: "emitir la Orden" → "emitir el Presupuesto"
+  3. Verificado que preview del presupuesto ya estaba presente (componente ordenes-preview)
+  4. Modificado método finishOrder() para:
+     - Cambiar mensaje de éxito de "Orden creada" a "Presupuesto creado"
+     - Agregar $confirm preguntando "¿Desea imprimir una copia del presupuesto?"
+     - Si confirma, llamar a printOrder("reporte")
+     - Limpiar formulario después del proceso
+     - Cambiar mensajes de error de "orden" a "presupuesto"
+
+- Herramienta(s) Utilizada(s):
+  - replace_file_content (para cambios de texto en template y método finishOrder)
+  - grep_search (para localizar secciones específicas)
+  - view_file (para revisar código de nueva.vue y presupuesto.vue)
+  - multi_replace_file_content (para actualizar task.md)
+  - write_to_file (para crear este log)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Pestaña 3 muestra título "Emitir Presupuesto" ✓
+  - Alert muestra "Verifique todos los datos antes de emitir el Presupuesto" ✓
+  - Preview del presupuesto presente usando componente ordenes-preview ✓
+  - Método finishOrder() ahora:
+    * Muestra mensaje "Presupuesto creado con éxito" ✓
+    * Pregunta si desea imprimir con $confirm ✓
+    * Llama a printOrder("reporte") si confirma ✓
+    * Limpia formulario después ✓
+
+- Observaciones de Gemini:
+  - El flujo es idéntico al de nueva.vue pero adaptado para presupuestos
+  - El componente ordenes-preview funciona tanto para órdenes como presupuestos
+  - La función printOrder ya existe y funcionará correctamente con el div id="reporte"
+  - Se mantiene la misma UX que en creación de órdenes para consistencia
+  - Los mensajes ahora usan terminología de "presupuesto" en lugar de "orden"
+
+- Respuesta de Gemini:
+  Ajustes completados exitosamente. El módulo de presupuestos ahora tiene el mismo flujo que las órdenes: muestra preview en la pestaña 3, crea el presupuesto al confirmar, muestra mensaje de éxito y pregunta si desea imprimir. La experiencia de usuario es consistente entre ambos módulos.

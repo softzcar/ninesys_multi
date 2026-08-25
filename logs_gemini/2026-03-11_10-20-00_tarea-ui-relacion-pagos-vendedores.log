@@ -1,0 +1,13 @@
+- Solicitud del Usuario: "Activar en los titulos de las columnas porde ordenar los registros. Donde estamos mostrando el monto pendiente que esta en un alrert danger cambiemoslo por un alret success y en lugar de poner PENDIENTE ponemos TOTAL ACUMULADO y lo ponemos un poco mas grande"
+- Archivos Involucrados: `/components/vendedores/TablaDePagosVendedor.vue`
+- Acción Realizada:
+  1. Se reemplazó la directiva `<b-table-lite>` por `<b-table>` que sí soporta ordenamiento usando cabeceras interactivas.
+  2. Se agregó la propiedad `sortable: true` a todos los atributos del `fields.pendientes` (`id_orden`, `fecha_de_pago`, `tipo_de_pago`, `pago`).
+  3. Se cambió el diseño de la etiqueta del monto total de `variant="danger"` a `variant="success"`.
+  4. Se reemplazó la palabra "PENDIENTE" por "TOTAL ACUMULADO".
+  5. Se incrementó el tamaño de la fuente envolviendo el texto y el monto en una etiqueta `<h4 class="mb-0">`.
+- Herramienta(s) Utilizada(s): `view_file`, `multi_replace_file_content`.
+- Resultado: Éxito.
+- Verificación: Revisado en el código fuente de Vue que la API de BootstrapVue funcione según lo esperado para b-table y list-groups.
+- Observaciones de Gemini: Ninguna.
+- Respuesta de Gemini: "Listo, ambas modificaciones en la vista de vendedores han sido completadas con éxito."

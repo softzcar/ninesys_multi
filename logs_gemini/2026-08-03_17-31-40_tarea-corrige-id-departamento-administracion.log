@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** El usuario (Sayerlin, usuario del módulo Administración) reportó que en `/comercializacion/reporte-de-caja` no ve el filtro por vendedor, pese a que el código debería mostrarlo solo a usuarios de Administración. Al indagar, preguntó explícitamente si esto podía deberse a un error en el script de migración que adecuó los IDs de departamentos antiguos de la empresa 194 a la convención nueva.
+- **Fecha y Hora:** 2026-08-03 17:31:40
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/comercializacion/reporte-de-caja.vue
+    - pages/comercializacion/reportes/balance-cierres.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. Se confirmó, leyendo `public/model/create_new_company_api_emp_N_postgres.sql` (la plantilla oficial de siembra de `departamentos` para toda empresa nueva) en `ninesys-api`, que la convención estándar y real es: `1=Impresión, 2=Estampado, 3=Corte, 4=Costura, 5=Administración, 6=Comecialización, 7=Diseño, 8=Producción`. Esto coincide exactamente con los datos reales de la empresa 194 -- **no hay ningún error en el script/proceso de migración de departamentos**, la convención está correctamente aplicada.
+    2. Se encontró el bug real: `reporte-de-caja.vue` (3 apariciones: el `v-if` que muestra el `<select>` de vendedor, y 2 usos en `mounted()` para decidir si se autoescoge el propio empleado o se listan todos) comparaba `currentDepartamentId === 7`, que es el ID de **Diseño**, no de Administración. Se corrigieron las 3 apariciones a `=== 5`.
+    3. Se encontró la misma comparación incorrecta en `balance-cierres.vue` (`isAdmin` computed), pero allí el impacto real era distinto: al ser parte de un `||` junto con `this.currentDepartament === "Administración"` (comparación por nombre, correcta), el ID incorrecto no bloqueaba a Administración -- solo agregaba un falso positivo para usuarios de Diseño. Corregido igual a `=== 5` por consistencia y corrección, aunque no era la causa del síntoma reportado por el usuario.
+    4. `components/empleados/DashboardEmpleado.vue` fue revisado y confirmado que usa `currentDepartamentId === 7` CORRECTAMENTE (para decidir el título "Estado de Diseños" vs "Estado de Órdenes") -- no se tocó.
+- **Inconvenientes y Desafíos:** Ninguno técnico. El desafío fue de investigación: la hipótesis inicial del usuario (error de migración) era razonable y se verificó activamente contra la plantilla real antes de descartarla, en vez de asumir.
+- **Decisión Final y Justificación:** El patrón de control de acceso por ID numérico de departamento hardcodeado es intencional y estándar en este código base (confirmado que corresponde 1 a 1 con la plantilla oficial de nueva empresa) -- la solución correcta era corregir los 2 números equivocados, no reemplazar el patrón por una búsqueda dinámica por nombre.
+- **Herramienta(s) Utilizada(s):** `Read`, `grep`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`.
+- **Resultado:** Éxito.
+- **Verificación:** Ambos componentes sin errores de sintaxis tras el cambio.
+- **Logro Conseguido:** El filtro de vendedor en `/comercializacion/reporte-de-caja` volverá a mostrarse a usuarios de Administración real (ID 5). Se descartó formalmente la hipótesis de error de migración, con evidencia directa de la plantilla de siembra.
+- **Observaciones:** Pendiente que el usuario confirme visualmente en el navegador tras el deploy a Desarrollo.
+- **Respuesta de Claude:** Confirmado -- no hay error en la migración de departamentos, la convención estándar (5=Administración, 7=Diseño) está correctamente aplicada en la empresa 194. El bug era puramente 2 archivos de frontend comparando contra el número equivocado (7 en vez de 5). Corregido y desplegado a Desarrollo.

@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Reporte de que al imprimir, la pestaña principal se queda bloqueada.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+- Acción Realizada: Se identificó que después de confirmar la impresión (o cancelarla), se ejecutaba una alerta de Éxito (`this.$fire`) que bloqueaba la interfaz de usuario hasta que se hiciera clic en "OK".
+    Dado que el usuario ya recibía una confirmación de éxito en el paso anterior (`this.$confirm("El pago... ha sido procesado correctamente. ¿Desea imprimir?")`), esta segunda alerta era redundante y causaba la percepción de que la aplicación estaba congelada, especialmente porque la atención del usuario se dirigía a la nueva pestaña de impresión.
+    Se ha comentado este bloque de código para eliminar el bloqueo innecesario.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó el código para asegurar que el flujo `onPagoExitoso` ahora termina suavemente recargando los datos (`reloadMe`), sin interrumpir al usuario con popups adicionales.
+- Observaciones de Gemini: Esta mejora agiliza el flujo de trabajo de pagos masivos, evitando clics extra innecesarios.
+- Respuesta de Gemini: Confirmación de eliminación del bloqueo.

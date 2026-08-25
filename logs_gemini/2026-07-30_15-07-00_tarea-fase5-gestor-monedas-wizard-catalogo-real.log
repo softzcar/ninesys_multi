@@ -1,0 +1,29 @@
+- **Solicitud del Usuario:** Implementar la Fase 5 del plan aprobado "Estándar de monedas, métodos de pago y moneda base dinámicos": reemplazar `tipos_de_monedas` (JSON desconectado) por `catalogo_monedas`/`catalogo_metodos_pago` reales como fuente del Gestor de Monedas y del paso "Monedas" del wizard de configuración.
+- **Fecha y Hora:** 2026-07-30 15:07:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/monedas.vue (reescrito por completo)
+    - components/admin/MonedasNueva.vue (nuevo)
+    - components/admin/MonedasEditar.vue (nuevo)
+    - components/admin/MetodosPagoManager.vue (nuevo)
+    - components/empresa/MonedasManager.vue (reescrito)
+    - components/empresa/ConfigMonedasForm.vue (reescrito)
+    - components/empresa/configuracionWizard.vue
+    - pages/empresa/configuracion.vue
+- **Commits Relacionados:**
+    - Frontend: a858791 (refactor/modular-routes)
+    - Backend: ver bitácora de ninesys-api (639c250, a46dd02)
+- **Acción Realizada:**
+    1. `pages/monedas.vue` (Gestor de Monedas, sección Administración): reescrito completo sobre el mismo patrón de `pages/telas.vue` -- tabla de `catalogo_monedas` real, alta vía `admin-MonedasNueva`, edición vía `admin-MonedasEditar`, gestión de métodos de pago por moneda vía `admin-MetodosPagoManager` (modal), eliminación con chequeo de uso real (`GET /monedas/{id}/uso`) antes de confirmar, y bloqueada por completo para la moneda base (botón deshabilitado).
+    2. `MonedasNueva.vue`: el selector de "nueva moneda" ya no es texto libre -- se llena con `GET /monedas-soportadas/{id_pais}` (catálogo de plataforma, Fase 1), usando el `id_pais` real de la empresa. Reutiliza el patrón de reactivación por 409 ya establecido en `TelasNuevo.vue`.
+    3. `MetodosPagoManager.vue`: modal con tabla + alta inline de métodos de pago para una moneda específica, mismo patrón de uso-check antes de eliminar.
+    4. `MonedasManager.vue` (paso "Monedas" del wizard, compartido con la página de configuración fuera del wizard): reescrito para que cada alta/baja se persista de inmediato contra la API real (`GET/POST /monedas`, `POST /monedas/eliminar`), en vez de acumular cambios en memoria para un guardado por lote al final. `ConfigMonedasForm.vue` se redujo a un wrapper que valida "al menos una moneda configurada" antes de dejar avanzar el wizard (ya no hace ningún POST propio -- el guardado ya ocurrió en tiempo real dentro de `MonedasManager`).
+    5. Se quitó el prop `initial-data`/evento `change` (ya no aplican) de los 2 sitios que usan `<config-monedas-form>` (`configuracionWizard.vue`, `pages/empresa/configuracion.vue`).
+- **Inconvenientes y Desafíos:** Se encontró, al retomar la sesión tras un corte eléctrico, un archivo temporal huérfano (`MonedasManager.vue.tmp.24907.b02362ae23d1`) -- resultado de una escritura atómica interrumpida por el corte, con el diseño ya avanzado de la reescritura de `MonedasManager.vue`. Se leyó y verificó su contenido completo antes de adoptarlo como la versión final (coincidía exactamente con el diseño ya decidido: selector poblado desde `monedas-soportadas`, persistencia directa contra `/monedas`), y se eliminó el archivo temporal tras incorporar su contenido.
+- **Decisión Final y Justificación (gap documentado, no resuelto en esta fase):** el paso "Monedas" del wizard, para una empresa **completamente nueva** (sin ninguna fila en `catalogo_monedas` todavía), permite agregar monedas pero NINGUNA queda marcada como `es_base` -- el backend (`POST /monedas`, Fase 5) deliberadamente nunca asigna `es_base` para proteger a las empresas ya migradas. No existe hoy un flujo de "arranque" que designe la primera moneda base de una empresa nueva vía la UI. No se resolvió en esta fase porque: (a) ninguna empresa nueva se está aprovisionando actualmente, (b) resolverlo bien requiere una decisión de diseño propia (endpoint de bootstrap con su propia regla de "solo si catalogo_monedas está vacío"), no un parche apurado. Documentado explícitamente en memoria para la próxima vez que se dé de alta una empresa nueva.
+- **Herramienta(s) Utilizada(s):** `Read`, `Write`, `Edit`, `npx eslint`, `deploy.sh` (opción 2, Desarrollo Contabo -- build + rsync), `rm` (limpieza del archivo temporal huérfano).
+- **Resultado:** Éxito
+- **Verificación:** `npx eslint` sin errores sobre los 8 archivos tocados. `npm run generate` completó sin fallos reales (mismos warnings preexistentes no relacionados). Deploy a `vps-contabo-dev` finalizado con éxito. Verificado contra el backend en vivo (ver bitácora de ninesys-api) que el ciclo completo crear/uso/eliminar de una moneda de prueba funciona correctamente sin afectar los datos reales de la empresa 194. Pendiente (acumulado de fases anteriores): recorrido visual en navegador con credenciales reales.
+- **Logro Conseguido:** El Gestor de Monedas y el paso "Monedas" del wizard dejan de ser una lista en memoria desconectada de todo (`tipos_de_monedas`) y pasan a ser una gestión real, con soft-delete y verificación de uso, sobre las monedas y métodos de pago efectivamente usados por la empresa -- cerrando la brecha que originó esta investigación completa hace varias fases.
+- **Observaciones de Gemini:** N/A (sesión con Claude Code).
+- **Respuesta de Gemini:** Fase 5 completa (backend + frontend): Gestor de Monedas y wizard reescritos sobre catálogos reales, con un gap conocido y documentado (bootstrap de moneda base para empresas nuevas) que no bloquea a la empresa 194. Sigue la Fase 6 (servicio compartido de registro de pagos, backend).

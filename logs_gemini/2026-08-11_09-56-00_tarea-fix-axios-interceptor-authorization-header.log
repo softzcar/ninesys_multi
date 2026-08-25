@@ -1,0 +1,10 @@
+- **Solicitud del Usuario:** Diagnosticar y resolver por qué las peticiones de `app_multi` al backend no enviaban correctamente las cabeceras HTTP de autorización.
+- **Diagnóstico del Root Cause:**
+  - En `app_multi/plugins/axios-interceptor.js`, el método `$axios.onRequest` asignaba la autorización mediante `config.headers.common["Authorization"] = id_empresa`.
+  - En las versiones modernas de Axios utilizadas por Nuxt, `config.headers` es una instancia de `AxiosHeaders` o un objeto de cabeceras propio de la petición individual. `common` es ignorado en peticiones individuales durante el interceptor.
+  - Al no asignarse `config.headers["Authorization"]` directamente, Axios enviaba las solicitudes HTTP sin la cabecera `Authorization`. El backend recibía peticiones anónimas y respondía con el error 500 (`An internal error has occurred while processing your request.`).
+- **Acciones Realizadas:**
+  - Se modificó `app_multi/plugins/axios-interceptor.js` para asignar la cabecera `Authorization` directamente sobre el objeto `config.headers["Authorization"]` (con fallback de resolución de empresa a `store.state.login.idEmpresa` o `store.state.login.dataEmpresa.id`).
+  - Se aplicó idéntica corrección para los tokens JWT del servicio de WhatsApp.
+- **Verificación:**
+  - Verificado en entorno local de desarrollo (hot reload).

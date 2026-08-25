@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Implementar la Fase 1 del plan aprobado "Estándar de monedas, métodos de pago y moneda base dinámicos": el wizard de configuración de empresa debe tener su propio selector de país (basado en codigo_iso2, vía el nuevo catálogo de plataforma), desacoplado del selector de código telefónico, según la corrección explícita del usuario sobre la fragilidad de usar el teléfono como identificador geográfico.
+- **Fecha y Hora:** 2026-07-30 12:23:51
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/empresa/ConfigEmpresaForm.vue
+    - components/empresa/configuracionWizard.vue
+    - components/empresa/ConfigResumen.vue
+    - pages/empresa/configuracion.vue
+- **Commits Relacionados:**
+    - Frontend: c06b159 (refactor/modular-routes)
+    - Backend: ver bitácora de ninesys-api (8589e9a, d7497ba)
+- **Acción Realizada:**
+    1. `ConfigEmpresaForm.vue` ahora obtiene `/paises-soportados` en su propio hook `created()` (encapsulado, sin depender de que cada padre lo cargue y lo pase por props), y el `<b-form-select>` de "País" pasó de estar atado a `data.pais` (derivado del código telefónico) a `data.id_pais`, poblado con el catálogo real. Se quitó el prop `countryOptions` (ya no se usa) y se actualizó `validate()`/`save()` para validar y enviar `id_pais` en vez de `pais`.
+    2. `configuracionWizard.vue` y `pages/empresa/configuracion.vue`: se eliminó el computed `countryOptions` (derivaba el país del código telefónico, exactamente el patrón frágil que el usuario pidió eliminar), se agregó `id_pais: null` a `empresaData`, se ajustó `loadInitialData()` para leer `companyData.id_pais` en vez de `companyData.pais`, y se agregó un fetch propio de `/paises-soportados` (`paisesSoportados` + computed `nombrePaisEmpresa`) para mostrar el nombre del país en el paso "Resumen" del wizard.
+    3. `ConfigResumen.vue` (usado por la página de configuración fuera del wizard) recibe ahora un prop `nombrePais` en vez de leer `empresaData.pais` directamente.
+- **Inconvenientes y Desafíos:** No se contó con credenciales de un usuario de prueba para hacer un recorrido completo autenticado en el navegador (login → wizard → paso "Datos de la Empresa"). Se compensó verificando: (a) `eslint` sin errores de sintaxis sobre los 4 archivos tocados, (b) build de producción completo (`npm run generate`) sin fallos reales (solo warnings preexistentes de Sass/Babel no relacionados), y (c) los endpoints backend que alimentan estos componentes probados en vivo por separado (ver bitácora de ninesys-api).
+- **Decisión Final y Justificación:** Se optó por que `ConfigEmpresaForm.vue` cargue su propio catálogo de países en vez de que los 2 componentes padre lo hagan y lo pasen por props -- menos invasivo (evita tocar la firma de props en 2 lugares para algo que el propio formulario puede resolver solo) y evita duplicar la lógica de fetch. Se conservó el prop `countryCodes` (código telefónico) sin tocar, porque sigue siendo necesario para el campo de teléfono de la empresa, que es un dato distinto del país.
+- **Herramienta(s) Utilizada(s):** `Edit`, `npx eslint` (chequeo de sintaxis puntual), `deploy.sh` (opción 2, Desarrollo Contabo -- build + rsync).
+- **Resultado:** Éxito
+- **Verificación:** `npx eslint` sin errores sobre los 4 archivos. `npm run generate` completó con éxito (solo warnings preexistentes no relacionados: Sass `abs()` deprecado, Babel deoptimización de bundles grandes de terceros). Deploy a `vps-contabo-dev` finalizado con éxito (rsync completo, 905 archivos). Pendiente para una sesión futura: recorrido manual en navegador con credenciales reales para confirmar visualmente el selector.
+- **Logro Conseguido:** El wizard de configuración de empresa ya no deriva el país de un selector de código telefónico -- usa el catálogo real `paises_soportados`, cerrando la brecha de fragilidad señalada por el usuario, sin alterar el campo de teléfono ni ningún otro dato del wizard.
+- **Observaciones de Gemini:** N/A (sesión con Claude Code).
+- **Respuesta de Gemini:** Selector de país del wizard desacoplado del teléfono y conectado al catálogo real de plataforma; desplegado en dev. Falta una verificación visual en navegador con credenciales reales, marcada como pendiente para la próxima sesión.

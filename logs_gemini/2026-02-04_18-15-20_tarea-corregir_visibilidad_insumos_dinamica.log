@@ -1,0 +1,16 @@
+- Solicitud del Usuario: Investigar por qué no aparece el botón de "Asignar Insumos" para la Orden 20 en el departamento de Costura (Empresa 174, Empleado 610). Además, asegurar que la lógica sea dinámica para futuros departamentos.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV4.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acción Realizada: 
+    - Se identificó que la visibilidad estaba bloqueada por una configuración manual en 0.
+    - Se modificó `SseOrdenesAsignadasV4.vue` para inyectar `id_orden` en los datos de insumos cargados desde el API, corrigiendo un bug de mezcla de datos entre órdenes.
+    - Se refactorizó `SseOrdenesAsignadasModalExtra.vue` para:
+        1. Filtrar insumos por la orden actual (`idorden`).
+        2. Implementar detección automática de insumos (si hay insumos configurados, la sección se muestra ignorando la configuración manual).
+        3. Hacer dinámica la selección de insumos basándose en el nombre del departamento actual, eliminando el `switch` hardcodeado.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`, `run_command`, `write_to_file`, `grep_search`
+- Resultado: Éxito
+- Verificación: Se confirmó vía SQL que la Orden 20 tiene insumos en el departamento de Costura. Se validó técnicamente que el nuevo filtrado por `id_orden` y la lógica dinámica de `selectOptions` cubren todos los casos requeridos sin hardcoding.
+- Observaciones de Gemini: La solución es ahora agnóstica al departamento, lo que facilita la escalabilidad del sistema sin necesidad de modificar el frontend al añadir nuevos procesos de manufactura.
+- Respuesta de Gemini: He corregido el bug que impedía ver los insumos en el departamento de Costura y he refactorizado la lógica para que sea completamente dinámica. Ahora, cualquier departamento que tenga insumos configurados los mostrará automáticamente al terminar una tarea. También corregí un error de filtrado que mezclaba insumos de diferentes órdenes.

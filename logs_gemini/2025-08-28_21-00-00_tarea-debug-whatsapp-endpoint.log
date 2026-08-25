@@ -1,0 +1,47 @@
+- Solicitud del Usuario: Implementar una opción para enviar o no un mensaje de WhatsApp al cliente al crear una nueva orden, y depurar los errores de comunicación con el servicio de mensajería.
+
+- Archivos Involucrados:
+  - `components/ordenes/nueva.vue` (Frontend)
+  - `app/routes.php` (Backend API Principal)
+  - `app/lib/whatsapp.php` (Clase Cliente de WhatsApp)
+  - `controllers/whatsappController.js` (Analizado para depuración)
+
+- Acción Realizada: Se ha llevado a cabo una sesión intensiva de implementación y depuración para la funcionalidad de envío condicional de mensajes de WhatsApp. Las acciones se pueden resumir en:
+  1.  **Análisis del Flujo:** Se analizó el proceso de creación de órdenes y se determinó que la lógica de envío de WhatsApp residía en el backend, utilizando un microservicio externo.
+  2.  **Implementación Frontend:** Se añadió una casilla de verificación en el componente `nueva.vue` para controlar el envío. Se corrigieron varios bugs relacionados con el diálogo de confirmación y el estado por defecto de la casilla.
+  3.  **Depuración del Backend:** Se enfrentaron múltiples errores HTTP 400 (Bad Request) devueltos por el microservicio de WhatsApp, indicando un problema con la estructura del payload (los datos enviados).
+  4.  **Refactorización:** Se refactorizó el código de envío en `routes.php` para aislar la lógica, eliminar dependencias de la clase `WhatsAppAPIClient` y usar cURL para una comunicación HTTP más robusta.
+
+- Herramienta(s) Utilizada(s): `default_api.read_file`, `default_api.replace`, `default_api.run_shell_command`, `default_api.write_file`
+
+- Resultado: Parcial.
+  - **Éxito:** La funcionalidad en el frontend está completa y funcionando. La comunicación con el servicio de WhatsApp se ha establecido correctamente mediante cURL.
+  - **Fallo:** Persiste un error de validación en el microservicio que impide el envío final del mensaje.
+
+- Verificación: Se ha verificado el flujo mediante la creación de órdenes de prueba. La respuesta de la API, que ahora incluye el payload enviado (`ws_payload_sent`) y el código de error (`ws_response`), ha sido la principal herramienta de depuración.
+
+- Observaciones de Gemini: El problema actual es una paradoja. El error devuelto por el microservicio (`Faltan parámetros: 'data' en el cuerpo...`) contradice directamente el payload que estamos enviando, el cual sí contiene la estructura y los campos solicitados. Esto sugiere fuertemente que el problema no reside en el código PHP que generamos, sino en un eslabón intermedio (cache del servidor, proxy, Cloudflare) o en la configuración del middleware `body-parser` en el servidor de Node.js que no está procesando correctamente el cuerpo de la petición.
+
+- **Resumen de Combinaciones de Payload Probadas:**
+
+  1.  **Estructura Plana (Intento Final):**
+      - **Payload Enviado:** `{ "phone_client": "...", "template": "...", "customer": {...} }`
+      - **Error Recibido:** `Faltan parámetros: 'data' en el cuerpo...`
+      - **Observación:** Contradice la lógica del controlador, que parece necesitar una clave `data`.
+
+  2.  **Estructura Anidada (Recomendada por el Controlador):**
+      - **Payload Enviado:** `{ "data": { "phone_client": "...", "template": "...", "customer": {...} } }`
+      - **Error Recibido:** `Faltan parámetros: 'data' en el cuerpo...`
+      - **Observación:** Esta es la contradicción principal. El payload es correcto según el código del controlador y el error, pero aun así falla.
+
+  3.  **Estructura Doble-Anidada (Hipótesis Inicial):**
+      - **Payload Enviado:** `{ "data": { "object": { "phone_client": "...", "template": "...", "customer": {...} } } }`
+      - **Error Recibido:** `Cannot read properties of undefined (reading 'object')`
+      - **Observación:** El error cambió, lo que nos guio a simplificar la estructura.
+
+- **Sugerencia para Mañana:**
+  El problema parece estar fuera del alcance del código PHP. El siguiente paso lógico es depurar el microservicio de Node.js. Se sugiere:
+  1.  Añadir un `console.log(req.body)` al principio del endpoint `/send-message/:companyId` en `whatsappController.js` para ver qué está recibiendo exactamente el servidor.
+  2.  Verificar que el middleware `express.json()` esté correctamente aplicado a esa ruta en el archivo principal del servidor Node.js.
+
+- Respuesta de Gemini: (Respuesta actual)

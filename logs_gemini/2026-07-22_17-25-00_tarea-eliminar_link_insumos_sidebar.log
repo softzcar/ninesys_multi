@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** "Vamos a eliminar del sidebar en la sección 'Reportes' el link 'Insumos' que abre la página `/inventario/reportes/insumo`".
+- **Fecha y Hora:** 2026-07-22 17:25:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/sidebars/SidebarAdmin.vue`
+- **Commits Relacionados:**
+    - Frontend: e60b1a0
+- **Acción Realizada:**
+    Se localizó el `<router-link>` a `/inventario/reportes/insumo` ("Insumos") dentro de la sección "Reportes" del sidebar de Administración y se eliminó el `<li>` completo. Se verificó que no hubiera otras referencias a esa ruta en ningún otro sidebar o componente del proyecto (`grep` sin resultados adicionales). La página `pages/inventario/reportes/insumo/index.vue` en sí NO se eliminó en esta tarea -- el usuario pidió específicamente quitar el link del menú, a diferencia de la tarea posterior de "Insumos por Orden" donde sí pidió eliminar también la página.
+
+- **Inconvenientes y Desafíos:** Ninguno.
+
+- **Decisión Final y Justificación:** Cambio mínimo y literal a lo solicitado (solo el link del sidebar), sin asumir que también debía eliminarse la página, ya que el usuario no lo pidió en este mensaje.
+
+- **Herramienta(s) Utilizada(s):** `grep`, `Edit`, `node --check` (validación de sintaxis), `Bash` (`git diff`, `git commit`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Verificado en vivo en el navegador (Chrome, sesión conectada, tras recarga forzada): el link "Insumos" ya no aparece en la sección Reportes del sidebar; los links restantes de esa sección (`/inventario/reportes/orden`, `/inventario/reportes/producto`) siguen visibles y funcionando con normalidad.
+
+- **Logro Conseguido:** Se limpió del menú un acceso a un reporte que el usuario indicó que ya no es útil, sin afectar ninguna otra funcionalidad.
+
+- **Observaciones:** Minutos después, en la misma sesión, el usuario pidió eliminar también "Insumos por Orden" (link + página + componente huérfano) -- ver bitácora `2026-07-22_17-39-05_tarea-eliminar_reporte_insumos_por_orden.log`.
+
+- **Respuesta de Claude:** Se eliminó el link "Insumos" del sidebar (sección Reportes). Verificado en vivo que ya no aparece en el menú.

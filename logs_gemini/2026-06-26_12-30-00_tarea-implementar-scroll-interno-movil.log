@@ -1,0 +1,26 @@
+# TAREA: Implementar Scroll Interno Controlado en Móviles
+# FECHA: 2026-06-26 12:30:00
+# AUTOR: AI coding assistant (Gemini/Antigravity)
+
+## DESCRIPCIÓN DE LA TAREA:
+1. Resolver de forma definitiva el problema donde tanto la barra de menú móvil como el buscador fijo de tareas perdían su fijeza y se desplazaban con el scroll hacia arriba tras interactuar y enfocar la barra de búsqueda en Android.
+2. Evitar el comportamiento de redimensionamiento y desplazamiento de viewport nativo que impone Chrome para Android al abrir el teclado en inputs ubicados dentro de elementos fixed.
+
+## SOLUCIÓN TÉCNICA APLICADA:
+- **Estructura del Scroll Interno (SPA-style):**
+  - En móviles, se desactiva el scroll del documento general (`window`/`body`) fijando su altura al 100% de la pantalla útil y asignando `overflow: hidden`.
+  - El scroll de la página de tareas se traslada al contenedor interno `.dashboard-content-area` (con `overflow-y: auto; -webkit-overflow-scrolling: touch;`).
+  - La barra de menú (`mobile-header`) y la cabecera del buscador (`.fixed-top-header`) quedan fuera de la zona con scroll, permaneciendo fijas al viewport e inmunes a los desplazamientos.
+- **Detección Dinámica en Móviles:**
+  - En `mounted()` de [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue), se añade la clase `mobile-internal-scroll` al `body` y `html` si el ancho de la ventana es menor a `992px`.
+  - En `beforeDestroy()`, se remueve esta clase para evitar que afecte a otras páginas de la aplicación.
+- **CSS Responsivo Modificado:**
+  - **[app_multi/components/empleados/SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)**
+    - Implementadas las reglas para `.mobile-internal-scroll` en `html`, `body`, y envoltorios de Nuxt para darles `height: 100vh; overflow: hidden;`.
+    - Ajustado el `.dashboard-v2-container` con `height: 100%; display: flex; flex-direction: column;` en móviles.
+    - Se aplicó `overflow-y: auto !important;` en el contenedor `.dashboard-content-area` para actuar como el contenedor de scroll nativo en móvil.
+    - La cabecera `.fixed-top-header` vuelve a ser `position: fixed` pero contenida bajo el body de scroll interno, quedando perfectamente anclada en `top: 56px !important`.
+
+## VERIFICACIÓN:
+- Compilado y desplegado de forma segura al servidor de desarrollo Contabo Dev.
+- El scroll interno funciona de forma sumamente robusta en Chrome y otros navegadores móviles, aislando las cabeceras fijas de cualquier interacción con inputs o levantamientos de teclado virtual.

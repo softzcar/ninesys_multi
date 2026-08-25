@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Refrescar lista inmediatamente al confirmar pago.
+- Archivos Involucrados: components/admin/PagosEmpleados.vue
+- Acción Realizada: Se movió la función  al inicio del flujo de éxito. Se implementó lógica de fallback en  para usar datos cacheados () ya que el empleado desaparece de la lista.
+- Resultado: La interfaz responde instantáneamente eliminando al empleado pagado, mejorando la UX.
+- Verificación: Confirmado por usuario y despliegue exitoso.
+- Respuesta de Gemini: Notificación de éxito.

@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** El formulario de "Otros Abonos" tenía el mismo problema de layout que Retiros: scroll largo y espacio vacío a la derecha; se pidió mejorarlo con el mismo criterio.
+- **Fecha y Hora:** 2026-07-15 18:00:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** pages/comercializacion/abonos.vue
+- **Commits Relacionados:**
+    - Frontend: e896d9e
+    - Backend: N/A
+- **Acción Realizada:** Se encontró la causa raíz: las tres columnas de moneda (Dólares/Pesos/Bolívares) no estaban envueltas en un `b-row`, quedando como columnas sueltas fuera de cualquier fila -- Bootstrap las apilaba verticalmente en vez de ponerlas lado a lado (mismo tipo de bug de markup, no de lógica). Se envolvieron en su propio `b-row` y se ensancharon de `xl/lg/md=3` a `4` para llenar el ancho completo en escritorio. Se reordenó el formulario: Tipo de abono -> montos -> Detalle del abono -> botón ABONAR, igual que en Retiros.
+- **Inconvenientes y Desafíos:** Ninguno relevante; el diagnóstico fue directo tras revisar la estructura de `<b-row>`/`<b-col>` del template.
+- **Decisión Final y Justificación:** Se mantuvo el mismo patrón de reordenamiento ya validado por el usuario en Retiros, para consistencia entre ambas pantallas.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (verificación de balance de tags con conteo de apertura/cierre, curl para confirmar compilación).
+- **Resultado:** Éxito
+- **Verificación:** Usuario probó la opción "Abono a orden" y "Otro abono" con éxito tras el fix (el segundo requirió además una corrección de backend, ver log correspondiente del mismo día).
+- **Logro Conseguido:** Formulario de Otros Abonos usable en escritorio sin scroll innecesario.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Cambio aplicado y verificado en tiempo real junto con el usuario.

@@ -1,0 +1,10 @@
+- Solicitud del Usuario: Hacer que el frontend "entienda" el cambio del backend (mostrar el detalle correcto).
+- Archivos Involucrados: 
+  - /home/developer/Escritorio/niesys/app_multi/components/empleados/reposicion.vue
+- Acción Realizada: 
+  - Se modificó la propiedad computada `filterDetallesReposicion` para usar `this.itemRep.detalle_reposicion` (que contiene el dato corregido por el backend) en lugar de `this.itemRep.detalle_empleado` (que era null).
+- Herramienta(s) Utilizada(s): `replace_file_content`.
+- Resultado: Corrección aplicada en código local.
+- Verificación: Revisión de código.
+- Observaciones de Gemini: El componente estaba hardcodeado para leer `detalle_empleado`.
+- Respuesta de Gemini: He actualizado el componente frontend. ¿Deseas que proceda con el despliegue del frontend?

@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Corregir cantidad en 0 en el modal de Histórico de Pagos.
+- Archivos Involucrados: components/admin/PagosVendedorResumen.vue
+- Acción Realizada: Se modificó la lógica de frontend para intentar leer  si  no existe (fallback). Esto es necesario porque el endpoint histórico retorna .
+- Resultado: El modal ahora debe mostrar las cantidades correctas (ej. 1, 3, etc.) en lugar de 0.
+- Verificación: Despliegue en frontend completado.
+- Respuesta de Gemini: Notificación.

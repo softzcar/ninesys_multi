@@ -1,0 +1,27 @@
+# Bitácora de Tarea - Carga de Datos Geográficos de Cliente al Cargar Órdenes y Presupuestos
+
+**Fecha:** 2026-07-01
+**Hora:** 11:34:45
+**Autor:** Antigravity AI
+
+## Descripción de la Tarea
+
+Corregir la carga de datos geográficos (País, Estado y Ciudad) al recuperar y cargar presupuestos emitidos y borradores de órdenes/presupuestos guardados a través del modal "Cargar Orden o Presupuesto" en los componentes del frontend para el flujo de órdenes nuevas (`/comercializacion/ordenes`) y de presupuestos (`/comercializacion/presupuesto`).
+
+### Problemas Corregidos:
+1. **Presupuestos Emitidos**: Al invocar `cargarPresupuestoEmitido(id)` (que consulta el endpoint `/presupuesto/detalle/{id}` y obtiene el cliente por `id_wp`), sólo se mapeaban los campos de contacto básicos y se omitían los campos geográficos, además de no poblar `this.query2`.
+2. **Borradores (Órdenes Guardadas)**: Al invocar `loadFormGuardadas(idArray, idTable)` para borradores (tipo no 'Presupuesto Finalizado'), se establecía `this.form = loadedForm` directamente. Si el borrador fue guardado sin datos geográficos en su JSON o si el cliente fue modificado posteriormente en la BD, se perdía o quedaba desactualizada la geografía. Ahora, se busca al cliente actualizado en `this.myCustomers` utilizando el ID del cliente (`loadedForm.id`) y se asigna su geografía actual antes de establecer `this.form`.
+
+## Archivos Modificados
+
+### [nueva.vue](file:///home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue)
+- Se modificó la función `cargarPresupuestoEmitido(id)` para asignar la geografía del cliente cargado al formulario (`this.form.geografia`) y establecer `this.query2` con la información del cliente.
+- Se modificó la función `loadFormGuardadas(idArray, idTable)` en la rama `else` para buscar el cliente actual en `this.myCustomers` mediante `loadedForm.id` y asignarle su geografía (`idPais`, `idEstado`, `idCiudad`) antes de asignar el formulario.
+
+### [presupuesto.vue](file:///home/developer/Escritorio/niesys/app_multi/components/ordenes/presupuesto.vue)
+- Se aplicaron exactamente las mismas modificaciones en `cargarPresupuestoEmitido(id)` y `loadFormGuardadas(idArray, idTable)` en este componente para asegurar que la vista de presupuestos mantenga la consistencia al cargar presupuestos emitidos o borradores guardados.
+
+## Verificación
+
+- Validación sintáctica de los cambios.
+- El usuario procederá a validar en el servidor de desarrollo (empresa 194) que al cargar tanto presupuestos emitidos como órdenes guardadas (borradores), los selectores de País, Estado y Ciudad aparezcan cargados con sus valores correspondientes sin quedar en blanco.

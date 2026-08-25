@@ -1,0 +1,89 @@
+- Solicitud del Usuario: Implementar funcionalidad para que los cambios manuales de tasas de cambio afecten a todos los usuarios del sistema, no solo al usuario que las modifica. Además, mejorar la interfaz visual del componente de monedas, agregar comparación entre tasas BCV y Manual, integrar el componente en el dashboard de administración, y ajustar permisos por departamento.
+
+- Archivos Involucrados:
+  * Frontend:
+    - /home/developer/Escritorio/niesys/app_multi/components/formMonedas.vue
+    - /home/developer/Escritorio/niesys/app_multi/store/login.js
+    - /home/developer/Escritorio/niesys/app_multi/components/menus/MenuLoader.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/administracion/DashboardAdministracion.vue
+  * Backend:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/config.php
+
+- Acción Realizada:
+  
+  **Backend (API):**
+  1. Agregué encabezados CORS (`Access-Control-Allow-Origin: *`) al endpoint POST `/configuracion/monedas` en todas las respuestas (éxito y error)
+  2. Implementé lógica robusta de parsing de datos que acepta tanto JSON como Form Data (URLSearchParams)
+  3. Agregué fallback manual con `parse_str()` para casos donde `getParsedBody()` falla
+  4. El endpoint ahora actualiza correctamente la columna `tipos_de_monedas` (JSON) en la tabla `empresas`
+
+  **Frontend (Nuxt.js):**
+  1. **Persistencia Global de Tasas:**
+     - Creé método `persistirTasas()` en `formMonedas.vue` que envía POST a `/configuracion/monedas`
+     - Uso de URLSearchParams para evitar problemas de CORS/Preflight
+     - Actualización automática del store local después de guardar para refrescar UI
+     - Toast de confirmación al usuario
+  
+  2. **Carga de Tasas desde BD:**
+     - Modifiqué `setDataEmpresa` en `store/login.js` para cargar el valor `valor` desde `tipos_de_monedas`
+     - Prioridad: 1) Valor de BD, 2) Valor en state, 3) 0 por defecto
+  
+  3. **Restricciones por Departamento:**
+     - Actualicé getter `puedeEditarTasas` para permitir edición solo a "Administración"
+     - Ocultado botón "Actualizar Automáticamente" para no-admins
+     - Removido texto de advertencia para interfaz más limpia
+     - Ocultado badge de fuente (Automática/Manual) para no-admins
+  
+  4. **Carga Automática Selectiva:**
+     - Modificado `MenuLoader.vue` para que solo Administración active carga automática de APIs
+     - No-admins usan exclusivamente tasas de BD sin consultar APIs
+  
+  5. **Comparación BCV vs Manual:**
+     - Agregado list group mostrando tasa BCV (de metadata API) y tasa Manual (de BD)
+     - Computed properties `tasaBcv` y `tasaManual` para extraer valores
+     - Badges con colores distintivos (primary para BCV, secondary para Manual)
+  
+  6. **Integración en Dashboard:**
+     - Agregado componente `<form-monedas />` en `DashboardAdministracion.vue`
+     - Añadido como primer card con título "Tasas del día"
+     - Removido título interno del componente para evitar duplicación
+  
+  7. **Mejoras de UX:**
+     - Cambiado evento `@change` por `@blur` para evitar toast duplicado al presionar Enter
+     - Agregado `@keyup.enter` para permitir guardar con tecla Enter
+     - Agregado `@submit.prevent` al form para evitar recarga de página
+     - Preservación de metadata existente (especialmente bcv_disponible) al editar manualmente
+     - Cambiado label de "Bolívar" a "Tasa sistema"
+     - Input ahora muestra `moneda.valor` (tasa de BD) en lugar de `tasas[moneda.moneda]` (tasa de API)
+
+- Herramienta(s) Utilizada(s): 
+  * `view_file` - Para examinar estructura de código existente
+  * `view_file_outline` - Para mapear componentes y funciones
+  * `replace_file_content` - Para modificar código existente
+  * `multi_replace_file_content` - Para ediciones múltiples en mismo archivo
+  * `grep_search` - Para localizar usos de funciones y componentes
+  * `run_command` - Para despliegue y actualización de VPS
+  * `send_command_input` - Para confirmar deploy interactivo
+
+- Resultado: Éxito
+
+- Verificación:
+  * Usuario confirmó que al actualizar tasa desde Administración, el cambio se refleja correctamente en base de datos
+  * Usuario verificó que tasa persiste para todos los usuarios (se muestra en departamento Comercialización)
+  * Usuario confirmó que componente se muestra correctamente en dashboard con todas las mejoras visuales
+  * Usuario validó que:
+    - Toast de confirmación se muestra solo una vez al presionar Enter
+    - Tasa "Manual" se actualiza inmediatamente después de guardar
+    - Tasa "BCV" se mantiene visible después de edición manual
+    - Input muestra correctamente la tasa de BD ("Tasa sistema")
+  * Deploy ejecutado exitosamente con `./deploy.sh` confirmado por usuario
+
+- Observaciones de Gemini:
+  * El problema inicial de CORS se resolvió agregando encabezados explícitos en todas las respuestas del endpoint
+  * La duplicación de toast al presionar Enter era causada por el navegador disparando eventos `change` y `blur` simultáneamente; cambiar a solo `@blur` resolvió el problema
+  * La metadata de tasas (especialmente bcv_disponible) se estaba sobrescribiendo al editar manualmente; fue necesario preservar la metadata existente usando spread operator
+  * El componente `formMonedas.vue` se diseñó para ser reutilizable y funcional tanto en contexto standalone como dentro de un card de dashboard
+  * La lógica de permisos se centralizó en el getter `puedeEditarTasas` del store para mantener consistencia
+  * Se implementó doble verificación de ID de usuario (id_empleado, usuario_id, _id, id) para robustez ante diferentes estructuras de datos de login
+
+- Respuesta de Gemini: Se implementó exitosamente la funcionalidad de tasas globales. Ahora los administradores pueden actualizar tasas que se reflejan para todos los usuarios del sistema. El componente incluye comparación visual entre tasa BCV (oficial) y tasa Manual (en uso), con permisos granulares por departamento. La interfaz está integrada en el dashboard de administración y optimizada para una experiencia de usuario fluida. Deploy completado y funcional en producción.

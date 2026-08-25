@@ -1,0 +1,22 @@
+- Solicitud del Usuario: Implementar validación robusta para el campo teléfono en `/comercializacion/ordenes`. Debe validar formato internacional (E.164), corregir prefijos locales (0414 -> +58414) y bloquear caracteres no numéricos.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/package.json
+    - /home/developer/Escritorio/niesys/app_multi/mixins/phoneValidation.js (Nuevo)
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+- Acción Realizada: 
+    1. Instalación de `libphonenumber-js`.
+    2. Creación de mixin `phoneValidation.js` con lógica de parseo y formateo.
+    3. Integración en `nueva.vue`:
+        - Importación del mixin.
+        - Evento `@input` para limpieza visual.
+        - Evento `@blur` para validación y formateo automático.
+        - Validación bloqueante en `step1`.
+- Herramienta(s) Utilizada(s): `run_command`, `write_to_file`, `multi_replace_file_content`.
+- Resultado: Éxito
+- Verificación: Se creó `walkthrough.md` con los pasos para verificar manualmente: limpieza de input, formateo automático de números locales a internacionales (+58), y bloqueo de números inválidos.
+- Observaciones de Gemini: La solución utiliza una librería estándar robusta, lo que garantiza que se soporten formatos de múltiples países sin mantener expresiones regulares complejas manualmente.
+- Respuesta de Gemini: He implementado la validación robusta solicitada. Ahora el campo de teléfono:
+    1.  **Limpia** automáticamente caracteres no numéricos mientras escribes.
+    2.  **Formatea** automáticamente a formato internacional (E.164) al salir del campo (ej: `0414...` -> `+58414...`).
+    3.  **Valida** estrictamente que el número sea real y válido antes de permitir avanzar.
+    4.  **Soporta** números internacionales si se ingresan con su código de país.

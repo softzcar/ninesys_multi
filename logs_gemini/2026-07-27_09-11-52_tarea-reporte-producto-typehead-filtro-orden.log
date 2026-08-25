@@ -1,0 +1,37 @@
+- **Solicitud del Usuario:** "Sigamos con 'Productos' aquí vamos a cambiar el SELECT por un TypeHead y en la tabla tenemos dos columnas llamadas `valor_inicial` y `valor_final` vamos a cambiar esas dos columnas por una sola que se llame 'Material Consumido' y mostramos el cálculo de la diferencia de esos dos valores. Vamos a poner un filtro por número de orden y poder ordenar por orden, producto, id insumo, insumo, empleado y fecha".
+- **Fecha y Hora:** 2026-07-27 09:11:52
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `pages/inventario/reportes/producto/index.vue`
+- **Commits Relacionados:**
+    - Frontend: `99c36dd`, `f14d3d9` (checklist)
+    - Backend: `5994bb8` (ver bitácora correspondiente en `ninesys-api/logs_gemini/`)
+- **Acción Realizada:**
+    1. Se reemplazó el `<b-form-select>` de selección de producto por `<vue-typeahead-bootstrap>`, siguiendo el mismo patrón ya establecido en el proyecto (usado en "Asignación de Insumos a Productos" y "Reporte de Costos de Productos"): se reutilizó el array `products` ya cargado (`{value, text}`), exponiendo `productsTypeaheadData` (computed que devuelve solo los `text`) como fuente de sugerencias, y un método `onProductSelected(hit)` que busca el objeto completo por coincidencia exacta de `text`, fija `selected_prod` y dispara `loadTable()` -- mismo efecto que antes tenía el `@change` del select.
+    2. Se agregó un filtro por número de orden: un `<b-form-input>` ligado a `filtroOrden`, y un computed `itemsFiltrados` que filtra client-side el array ya cargado (`dataTable.items`) comparando `id_orden` como substring -- sin llamada adicional al backend, dado que el endpoint ya trae todo el historial del producto de una sola vez.
+    3. El ordenamiento por columna no requirió código nuevo en este componente: BootstrapVue activa el clic-para-ordenar automáticamente en cualquier columna cuyo `field` tenga `sortable: true`, y esa marca ya viene del backend (ver commit `5994bb8`).
+    4. Se eliminó, como limpieza directamente ligada a la reestructuración de la tabla, el `<template #cell(id_producto)>` y el método `filterProduct()` -- código muerto confirmado: la columna `id_producto` nunca estuvo en el array `fields` devuelto por el backend, por lo que ese slot nunca se renderizaba.
+
+- **Inconvenientes y Desafíos:**
+    Al verificar en vivo en el navegador, la herramienta de captura de pantalla (`computer` screenshot) devolvió un error de deserialización de parámetros (`Failed to deserialize params.clip.scale`), y `read_page` devolvió un viewport de `0x0` -- ambos síntomas de un problema puntual de la extensión del navegador en esta sesión, no relacionado con la página en sí. Se verificó igualmente todo el comportamiento (carga de productos, selección vía typeahead, filtro por orden, forma de los datos renderizados) usando `get_page_text` (que sí devolvió el HTML renderizado completo) y `javascript_tool` para inspeccionar y manipular directamente la instancia Vue del componente -- sin necesidad de interacción visual pixel-a-pixel, dado que las herramientas de captura no estaban disponibles en ese momento.
+
+- **Decisión Final y Justificación:**
+    Se implementó el filtro por orden como `computed` client-side en vez de agregar un parámetro de query al backend, ya que el endpoint no pagina (siempre trae el historial completo del producto seleccionado) -- una llamada adicional a la API en cada tecleo habría sido una complejidad innecesaria sin beneficio real de rendimiento.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check` (validación de sintaxis del bloque `<script>`), `Bash` (`git diff`, `git commit`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo, ejecutado en segundo plano por el tiempo de build de Nuxt), `mcp__claude-in-chrome__*` (`get_page_text`, `javascript_tool` para inspección y manipulación directa de la instancia Vue, dado que `computer`/screenshot y `read_page` no funcionaron correctamente en esta sesión del navegador).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Verificado en vivo en el navegador (Chrome, sesión conectada, tras recarga forzada sin caché) contra datos reales de Contabo Dev:
+    - Se confirmó que `getProducts()` cargó 147 productos reales antes de cualquier interacción.
+    - Se invocó `onProductSelected()` directamente sobre la instancia Vue con el producto "20 - Chaqueta": `selected_prod` quedó en `20`, `queryProducto` en el texto correcto, y `dataTable.items` se pobló con 187 filas reales, con `dataTable.fields` mostrando las 7 columnas esperadas (incluyendo `material_consumido` sin `sortable`, y las otras 6 con `sortable: true`).
+    - Se extrajo el texto renderizado de la tabla (`get_page_text`) confirmando visualmente: título dinámico `Reporte del producto "20 - Chaqueta"`, encabezados con el texto "(Click to sort ascending)" en las 6 columnas correctas (ausente en "Material Consumido"), y cada fila mostrando un único valor numérico de Material Consumido (ej. 2.50, 6.00, 0.50) en vez de dos columnas separadas.
+    - Se probó el filtro por orden asignando `filtroOrden = '4511'` directamente en la instancia Vue: el total de filas pasó de 187 a 18, y se confirmó que las 18 filas resultantes pertenecen exclusivamente a la orden 4511 (`ordenesUnicas: [4511]`).
+
+- **Logro Conseguido:**
+    Se completó la mejora de UX y funcionalidad solicitada para el Reporte de Producto: búsqueda de producto más cómoda (typeahead en vez de scroll en un select con 147 opciones), una columna más legible y directamente útil ("Material Consumido" en vez de dos valores crudos que había que restar mentalmente), filtro por orden, y ordenamiento por columna -- todo verificado con datos reales de producción clonada en Contabo Dev.
+
+- **Observaciones:** Ver bitácora complementaria en `ninesys-api/logs_gemini/` para el detalle del cambio de backend (cálculo de Material Consumido, habilitación de sortable, fix de columna duplicada y de inyección SQL).
+
+- **Respuesta de Claude:** Se reemplazó el selector de producto por un TypeHead buscable (mismo componente ya usado en otras pantallas del proyecto), se agregó un filtro por número de orden (client-side, sin llamadas adicionales al backend), y el ordenamiento por columna quedó habilitado automáticamente gracias al cambio de backend. Todo verificado en vivo con datos reales: selección de producto, carga de 187 movimientos, filtro reduciendo correctamente a las filas de una orden específica, y la columna "Material Consumido" mostrando el cálculo esperado.

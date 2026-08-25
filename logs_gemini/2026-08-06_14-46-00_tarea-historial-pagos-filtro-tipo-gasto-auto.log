@@ -1,0 +1,14 @@
+- **Solicitud del Usuario:** En "Historial de Pagos de Gastos" (`/empresa/gastos-historial`), cambiar el comportamiento del filtro "Tipo de gasto" para que el `SELECT` ejecute la búsqueda al elegir una opción, sin necesidad de hacer click en el botón "Buscar". El filtro de fechas se deja exactamente como está (funciona correctamente hoy; estandarizar los controles de fecha de toda la app queda como pendiente aparte para el futuro).
+- **Fecha y Hora:** 2026-08-06 14:46:00
+- **Proyecto(s):** Frontend (app_multi).
+- **Archivos Involucrados:** `components/admin/GastosHistorial.vue`.
+- **Commits Relacionados:**
+    - Frontend: `e4fb14e`.
+- **Acción Realizada:** Agregado `@change="getRegistros"` al `<b-form-select id="hist-tipo">`, disparando la búsqueda automáticamente al cambiar el tipo de gasto seleccionado. Cambio de una sola línea, sin tocar los campos de fecha ni el botón "Buscar" (que sigue funcionando para re-ejecutar la búsqueda manualmente en cualquier momento).
+- **Inconvenientes y Desafíos:** Ninguno técnico. La verificación visual en navegador (Chrome vía extensión MCP) falló con el mismo problema de permisos intermitente de sesiones anteriores ("Permission denied" para el dominio) -- el usuario verificó manualmente y confirmó que funciona correctamente.
+- **Decisión Final y Justificación:** Cambio mínimo y quirúrgico -- un solo atributo agregado, consistente con el pedido explícito de dejar el filtro de fechas intacto.
+- **Herramienta(s) Utilizada(s):** Chequeo de sintaxis Vue local, `deploy.sh` (Desarrollo).
+- **Resultado:** Éxito.
+- **Verificación:** Confirmado directamente por el usuario en el navegador tras el despliegue ("Verificado funciona correctamente!").
+- **Logro Conseguido:** Mejora de UX pedida por el usuario, aplicada sin efectos secundarios sobre el resto del formulario de filtros.
+- **Respuesta de Claude:** Filtro de "Tipo de gasto" ahora se aplica automáticamente al seleccionar una opción, sin tocar el filtro de fechas.

@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Cambiar placeholder a "Cantidad de Material utilizado" (genérico).
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasModalExtra.vue
+- Acciones Realizadas:
+    - Se modificó la propiedad computada `placeholderInput` para retornar siempre "Cantidad de Material utilizado".
+    - Esto elimina la lógica condicional anterior para simplificar y generalizar la UI para cualquier unidad de medida.
+- Herramientas Utilizadas: `replace_file_content`.
+- Resultado: Éxito
+- Verificación: El input mostrará el texto genérico solicitado.
+- Observaciones de Gemini: Cambio simple para mejorar la usabilidad y reducir la carga cognitiva del usuario al no depender de unidades específicas en el placeholder.
+- Respuesta de Gemini: Placeholder actualizado a genérico.

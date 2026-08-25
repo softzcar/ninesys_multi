@@ -1,0 +1,14 @@
+LOG DE CAMBIOS - BITÁCORA DE TAREAS
+
+Fecha/Hora: 2026-07-03 16:20:00
+Tarea: Rediseño de tarjetas de tareas en el dashboard de empleados y visualización de insumos estimados.
+
+Descripción de los Cambios:
+1. SseOrdenesAsignadasV5.vue:
+   - Renombrada la sección colapsable "EN PROCESO" a "ORDENES EN PROCESO" en la pestaña de órdenes.
+   - Renombrada la sección colapsable "EN PROCESO" a "REVISIONES EN PROCESO" en la pestaña de revisiones para mantener consistencia.
+   - Modificado el diseño de las tarjetas de tareas de órdenes y revisiones en las categorías de URGENTES, EN PROCESO y PENDIENTES.
+   - Removido el botón de acción principal de la columna derecha de las tarjetas (`card-right-action`).
+   - Ubicado el botón de acción principal (Iniciar / Terminar) al principio de la barra inferior de acciones secundarias (`card-actions-bar mt-3`) utilizando componentes de BootstrapVue (`<b-button>`) adaptados al estilo de la barra de acciones.
+   - Insertado un bloque de información para el material estimado en la columna de información de la tarjeta (`.card-info-col`), que utiliza la función `calcularMaterialOrden` para renderizar de forma condicional y reactiva los metros de tela/papel estimados y el catálogo/tipo de impresión correspondiente a la orden, mejorando drásticamente la visibilidad previa de los insumos.
+   - Agregados los estilos CSS para `.btn-main-action`, `.info-material-row` y `.material-badge` en la sección `<style scoped>`.

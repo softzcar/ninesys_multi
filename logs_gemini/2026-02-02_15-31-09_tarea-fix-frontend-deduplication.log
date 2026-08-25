@@ -1,0 +1,9 @@
+- Solicitud del Usuario: Corregir duplicidad en cantidades de reposición en frontend (16 vs 8, 24 vs 3).
+- Archivos Involucrados: components/admin/PagosVendedorResumen.vue
+- Acción Realizada: 
+    1. Diagnóstico: Se confirmó que existen múltiples registros en  para la misma reposición (ej. Repo 8 tiene 2 pagos, Repo 12 tiene 8 pagos).
+    2. Corrección Frontend: Se modificó la lógica de agrupación para sumar  SOLO si el ID (Reposición u Orden) es único en el grupo. Se usa un  para tracking.
+    3. Validación: Esto evita que si hay 8 pagos de '3 unidades', se sume a 24. Ahora se cuenta 3 una sola vez.
+- Resultado: Cantidades corregidas.
+- Verificación: Frontend pusheado. Usuario debe actualizar.
+- Respuesta de Gemini: Notificación.

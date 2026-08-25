@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Corregir también el modal del botón azul (Ojo Azul) para que muestre el detalle del jefe de producción y no el original de la orden o el del empleado.
+- Archivos Involucrados: 
+    - components/produccion/controlDeProduccionDetallesEditor.vue
+    - components/empleados/SseOrdenesAsignadasV4.vue
+- Acción Realizada: 
+    1. Se modificó el componente hijo (`controlDeProduccionDetallesEditor`) para aceptar una nueva prop `detalles_externos`.
+    2. Si esta prop existe, sobrescribe el valor de `detalles_orden` (que normalmente viene de la API de ordenes generales).
+    3. Se actualizó el componente padre (`SseOrdenesAsignadasV4`) para pasar `row.item.detalle_reposicion` (que ya contiene la info correcta del backend) a esta nueva prop.
+- Herramienta(s) Utilizada(s): replace_file_content, git push
+- Resultado: Éxito. Ahora ambos modales (Amarillo y Azul) muestran consistentemente las instrucciones de la reposición aprobada.
+- Verificación: Frontend push. Requiere actualización manual del cliente (`git pull`).
+- Observaciones de Gemini: La reutilización de componentes genéricos para casos específicos (Reposiciones) requiere a menudo mecanismos de override como este.
+- Respuesta de Gemini: Corrección aplicada en frontend y subida al repositorio.

@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** En `/comercializacion/reportes/pagos-abonos`, el usuario notó que "Saldo Pendiente Total" no cuadraba con Total Neto − Total Pagado. Tras la investigación (ver conversación), confirmó que las órdenes sobrepagadas son datos de prueba (no vale la pena explicarlas en la UI), pero pidió: (1) que la SUMA de las tarjetas cuadre matemáticamente, agregando una tarjeta de "Sobrepago" si hace falta, (2) una nota explicativa en cada tarjeta, y (3) integrar el componente de Guía de Página debajo del título.
+- **Fecha y Hora:** 2026-08-04 15:32:17
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - pages/comercializacion/reportes/pagos-abonos.vue
+    - static/guias/comercializacion-reportes-pagos-abonos.md
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. Verificado con SQL directo (mismo rango de fechas de la captura del usuario) que existe una identidad exacta que sí cuadra: `Total Neto = Total Pagado (histórico completo) + Saldo Pendiente (recortado) − Sobrepago − Notas de Crédito`. Confirmado con los números reales antes de tocar código (40.022,55 = 37.804,22 + 3.177,10 − 890,77 − 68,00).
+    2. `pagosFiltrados()`: agregados 2 campos nuevos por fila, deduplicados por orden igual que los demás (`total_neto`, `saldo_pendiente`): `total_abono_historico` (todo lo abonado históricamente en la orden, sin límite de fecha) y `sobrepago` (valor absoluto del saldo negativo de una orden ya saldada, que antes se recortaba a 0 sin dejar rastro).
+    3. `totales()`: agregados `sumas.pagadoHistorico` y `sumas.sobrepago`, sumando los 2 campos nuevos.
+    4. Template: la tarjeta "Total Pagado / Abonos" cambió su fuente de `totales.totalGeneral` (suma de pagos SOLO dentro del rango) a `totales.sumas.pagadoHistorico` (histórico completo) -- necesario para que la identidad matemática cuadre. Se agregaron 2 tarjetas nuevas: "Sobrepago / Crédito a favor" y "Notas de Crédito" (esta última ya se calculaba internamente pero nunca se mostraba como tarjeta resumen). El panel "Métodos de Pago" (que SÍ sigue limitado al rango de fechas, a propósito, para responder "qué entró en este período") se dejó sin cambiar en su cálculo, pero se le agregó un tooltip aclarando que es una pregunta distinta a "Total Pagado / Abonos".
+    5. Agregado un ícono de información (`b-icon="info-circle"`) con tooltip (`v-b-tooltip.hover.click`, funciona tanto con mouse como con tap en móvil) a las 7 tarjetas + el panel de Métodos de Pago, con una frase explicando qué representa cada número.
+    6. Agregado `<common-page-guide />` bajo el `<h1>` del reporte, con un nuevo archivo `static/guias/comercializacion-reportes-pagos-abonos.md` explicando el reporte completo, las 7 tarjetas, la fórmula de cuadre, y la diferencia entre "Total Pagado" (histórico) y "Métodos de Pago" (solo del rango).
+- **Inconvenientes y Desafíos:** Ninguno técnico. El desafío fue puramente de diseño/matemática: encontrar la combinación exacta de tarjetas que hiciera que la suma cuadrara con los datos reales, verificado con SQL antes de tocar el frontend (para no adivinar la fórmula a ciegas).
+- **Decisión Final y Justificación:** Se decidió NO mencionar en la UI el caso puntual de las órdenes sobrepagadas de prueba (decisión explícita del usuario) -- solo se explica la regla general ("nunca negativo por orden"). Se usó `v-b-tooltip.hover.click` (en vez de solo `.hover`) específicamente para que las notas funcionen también por tap en dispositivos móviles/tablet, requisito ya establecido en tareas anteriores de esta sesión.
+- **Herramienta(s) Utilizada(s):** `ssh` + `psql` (verificación de la fórmula de cuadre con datos reales antes de codificar), `Read`, `Edit`, `Write`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`, `nuxt generate` local completo antes de desplegar.
+- **Resultado:** Éxito.
+- **Verificación:** Sintaxis del componente sin errores. Build local completo sin errores, `dist/guias/comercializacion-reportes-pagos-abonos.md` confirmado en el output. Pendiente confirmación visual del usuario (tooltips + guía + que las 7 tarjetas efectivamente cuadren en pantalla).
+- **Logro Conseguido:** Cierra por completo la confusión real detectada -- las tarjetas ahora son matemáticamente consistentes entre sí, con explicación in-context (tooltip) y a fondo (guía) para prevenir la misma duda a futuro.
+- **Observaciones:** Ninguna pendiente relacionada a este reporte.
+- **Respuesta de Claude:** Implementado: 2 tarjetas nuevas (Sobrepago y Notas de Crédito), "Total Pagado" ahora histórico completo para que las 7 tarjetas cuadren exactamente, tooltip explicativo en cada una, y la Guía de Página integrada con el detalle completo del reporte.

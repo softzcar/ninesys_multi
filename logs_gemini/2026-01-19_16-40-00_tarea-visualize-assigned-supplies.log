@@ -1,0 +1,8 @@
+- Solicitud del Usuario: destacando los pasos que no tienen `Tiempo PRomedio` Asignado, ahora debemos mostrar de alguna manera en esa tabla si el departamento tiene insumos asigandos para cada producto
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionInsumosProductosV2.vue
+- Acción Realizada: Se modificó la propiedad computada `productsWithDepartmentData` en `AsignacionInsumosProductosV2.vue`. Se añadió lógica para verificar si existen registros en `insumosAsignados` que coincidan con el producto y departamento. Si existen (y el tiempo no es '0 min'), se asigna la variante 'success' (verde) a la celda.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se revisó la lógica de asignación de `_cellVariants`. La condición `tiempo === '0 min'` tiene prioridad (rojo), seguida de la existencia de insumos (verde).
+- Observaciones de Gemini: Esta mejora visual permite identificar rápidamente productos con insumos asignados sin entrar al detalle.
+- Respuesta de Gemini: He actualizado la lógica para que las celdas de los departamentos que tienen insumos asignados se muestren en color verde (variant "success"). Esto sucede siempre que el tiempo asignado no sea "0 min", manteniendo la alerta roja para esos casos prioritarios.

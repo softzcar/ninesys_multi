@@ -1,0 +1,70 @@
+================================================================================
+| REGISTRO DE TAREA COMPLETADA: Gráfico de Eficiencia por Empleado (Reporte)   |
+| Fecha: 2026-03-22                                                            |
+| Entorno: Desarrollo (Hostinger - API) y Local Frontend (Vue/Nuxt)            |
+================================================================================
+
+1. DESCRIPCIÓN DEL REQUERIMIENTO:
+   Se solicitó añadir un Gráfico de Eficiencia por Empleado en la pestaña
+   de "Reportes > Semanal" (/reportes/semanal).
+   Requisitos de UI:
+   - Uso de ApexCharts (Column with Markers)
+   - Una barra/columna por empleado
+   - Colores distribuidos (una barra de color diferente para cada individuo)
+   - Marcador (Goal) horizontal al nivel del 100% de la barra, que represente
+     la expectativa base (Expected: 100).
+   - Datos reales y dinámicos que se correspondan al selector de fechas
+     (inicio y fin) del mismo panel, permitiendo procesar eficiencias ya sea
+     semanalmente, quincenalmente o de los últimos 30 meses.
+
+2. IMPLEMENTACIÓN BACKEND (PHP / API):
+   - Archivo: app/routes/reports.php
+   - Componente: Nuevo Endpoint [GET] /reportes/employee-efficiency-global
+   - Operaciones:
+     * Captura las variables $inicio y $fin proporcionadas por el frondend.
+     * Genera una sola consulta integral a `lotes_detalles_empleados_asignados`
+     * Trae TODAS las tareas realizadas o activas en ese rango por los
+       empleados e invcluye su tiempo `projected_seconds` con cálculos de
+       (tiempo_en_segundos * cantidad_de_piezas_del_lote).
+   - Estado: Confirmado, con Push a refactor/modular-routes y Despliegue en 
+     Hostinger completado usando deploy_backend.sh.
+
+3. IMPLEMENTACIÓN FRONTEND (Vue / Nuxt / ApexCharts):
+   - Archivos editados/creados:
+     * components/charts/EmployeeEfficiencyChart.vue (NUEVO)
+     * pages/reportes/semanal.vue
+   - Operaciones:
+     * Construcción de EmployeeEfficiencyChart envolviendo el tag global natural
+       de nuxt `<apexchart>` y seteando chartOptions.plotOptions.bar para
+       inyectar `distributed: true` y la propiedad de `goals:` en 100.
+     * Incorporación de contenedor de tarjetas 12 col en semanal.vue bajo 
+       el título "Eficiencia del Período por Empleado".
+     * Importación de EmployeeEfficiencyChart a los custom components.
+     * Incorporación de `import mixintime from "~/mixins/mixin-time.js";` y
+       anidamiento de sus funciones a través de `mixins: [mixintime]`.
+     * Ejecución metódica que solicita el /employee-efficiency-global e itera 
+       la respuesta cruda, agrupando en diccionario bajo nombre de empleado.
+     * Aplicación individualizada de `this.calcularTiempoTrabajoIndividual` a 
+       cada iteración para descontar de inmediato fines de semana y tiempos sin
+       horario laboral en base al `horarioLaboral` inyectado de state Vuex.
+     * Progresión final que cruza Tiempo_Real vs Tiempo_Proyectado y emite 
+       un % compilado que ApexCharts pinta en interfaz.
+
+4. INCIDENCIAS SOLUCIONADAS (TRABAJO DEBUGGER EN CURSO):
+   - Error 1: "ReferenceError: mixin is not defined" (Pantallazo blanco global).
+     * CAUSA: Reemplazo erróneo del tag de importación default import mixin
+     * SOLUCIÓN: Agregada explícitamente la línea `import mixin from "~/mixins/mixins.js"`.
+   - Error 2: "Unknown custom element <VueApexCharts>"
+     * CAUSA: El componente base en Nuxt fue globalmente registrado usando
+       el target `<apexchart>` (como en los demás chart del proyecto) pero
+       creé el nuevo intentando inyectar `VueApexCharts` textualmente.
+     * SOLUCIÓN: Cambio de nomenclatura en EmployeeEfficiencyChart.vue.
+
+5. VERIFICACIÓN Y RESULTADOS FINALES:
+   - Visualización de Leyendas inferior mostrando Mapeos Dinámicos de 1 y
+     hasta más empleados simultáneamente, por color, activables y desactivables.
+   - Marcador 100 claramente visible en tooltip.
+   - El Reporte ya reacciona independientemente dependiendo del rango temporal
+     y su título es ahora consecuente.
+
+=== FINAL DEL ARCHIVO ===

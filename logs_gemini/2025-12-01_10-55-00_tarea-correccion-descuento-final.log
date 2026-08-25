@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Corregir error de variable `` no definida en la implementación anterior.
+- Archivos Involucrados: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php
+- Acción Realizada: Se movió la instanciación de `CustomTime` y la definición de `` para que ocurran antes del bloque de lógica de descuento, asegurando que la variable esté disponible cuando se necesita.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó que `` se define antes de su primer uso en el bloque insertado. Los errores de linting relacionados con `` deberían desaparecer.
+- Observaciones de Gemini: La corrección fue rápida y necesaria para evitar un error 500 en el servidor.
+- Respuesta de Gemini: Corrección aplicada. El backend ahora debería procesar correctamente los cambios de descuento sin errores de variable indefinida.

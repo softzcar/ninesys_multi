@@ -1,0 +1,16 @@
+- Solicitud del Usuario: Refinar la planilla de pagos unificada, corregir duplicados y habilitar ordenación en el modal de detalles.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue (visto en pasos anteriores)
+    - Base de datos api_emp_163 (Hostinger)
+- Acción Realizada: 
+    1. Se detectó que la empleada Maru tenía registros con ID 440 e ID 3 en Hostinger, causando la fila "Empleado" duplicada.
+    2. Se ejecutó un UPDATE en la base de datos de Hostinger para unificar todos los registros bajo el ID 3 (Maru).
+    3. Se mejoró la lógica de de-duplicación por id_pago en PagosEmpleados.vue.
+    4. Se robusteció el mapeo de empleados en el frontend para buscar por 'id' y '_id'.
+    5. Se habilitó sorting y se mostró el departamento en el modal de detalles.
+- Herramienta(s) Utilizada(s): `run_command` (mysql via ssh), `replace_file_content`, `multi_replace_file_content`, `view_file`.
+- Resultado: Éxito
+- Verificación: Se verificó mediante consultas SQL directas en el VPS Hostinger que el registro 4087 ahora pertenece al ID 3. La lógica del frontend ahora consolida correctamente los datos al coincidir los IDs.
+- Observaciones de Gemini: La inconsistencia de IDs en la base de datos era la raíz del problema visual persistente. La corrección de datos junto con la robustez del código asegura que no vuelva a ocurrir.
+- Respuesta de Gemini: Se notificó al usuario la corrección exitosa y se proporcionó el walkthrough detallado.

@@ -1,0 +1,13 @@
+- Solicitud del Usuario: en la página `/comercializacion/ordenes/activas` el componente linkSearch en la empresa ID163 al aplicr el filtro muestra el ID incorrecto en la cabecera del modal vamos a arreglarlo y revisamos en la página `/produccion/ordenes-todas` que ocuerre le mismo Bug
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/linkSearch.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/activas.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/produccionsse/ordenesTodas.vue
+- Acción Realizada: 
+    - Se modificó `linkSearch.vue` para convertir `title` y `statusbutton` en propiedades computadas (`computed`), asegurando que se actualicen reactivamente cuando cambian los props `id` o `progreso`.
+    - Se agregó `:key="data.item.orden"` al componente `linkSearch` en `activas.vue` y se corrigió de `key` a `:key` en `ordenesTodas.vue` para mejorar la gestión de componentes reutilizados por Vue en las tablas filtrables.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`, `find_by_name`, `grep_search`, `write_to_file`
+- Resultado: Éxito
+- Verificación: Se verificó la lógica de reactividad de Vue. Los componentes ahora recalculan el título del modal basándose en el prop `id` actual, resolviendo el desfase visual después de aplicar filtros.
+- Observaciones de Gemini: El problema se originaba por la inicialización de variables en `data()` y `mounted()`, las cuales no se ejecutan de nuevo cuando Vue reutiliza componentes en filas de una tabla dinámica.
+- Respuesta de Gemini: He corregido el error en el componente `linkSearch` convirtiendo el título y el color del botón en propiedades computadas. También se han aplicado claves únicas en las tablas de órdenes de Comercialización y Producción para garantizar la correcta reactividad al aplicar filtros.

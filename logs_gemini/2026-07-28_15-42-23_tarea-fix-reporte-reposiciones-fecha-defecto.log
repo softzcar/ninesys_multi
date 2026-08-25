@@ -1,0 +1,33 @@
+- **Solicitud del Usuario:** Durante la corrección de los 3 bugs de backend del Reporte de Reposiciones, el usuario observó: "creo que el reporte debería mostrar por defecto las reposiciones activas tal vez? porque si hay una reposición de hace tiempo que está activa no la vamos a ver..." -- pidiendo que la vista por defecto ("Activas") no dependa de un rango de fechas.
+- **Fecha y Hora:** 2026-07-28 15:42:23
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/reposicionesReporte.vue`
+- **Commits Relacionados:**
+    - Frontend: `089231c`
+- **Acción Realizada:**
+    Se confirmó que `beforeMount()` fijaba `fechaConsultaInicio`/`fechaConsultaFin` en "hoy" -- y como la última reposición real databa de 7 días antes de la fecha actual, la vista inicial ("Activas") siempre cargaba vacía sin importar que hubiera 12 reposiciones activas reales. Se corrigió para que las fechas queden vacías por defecto (sin restricción), dejando que el filtro de estatus "activa" muestre TODAS las reposiciones activas sin importar su antigüedad -- coherente con la naturaleza de una reposición activa (sigue pendiente hasta que se resuelva, no hasta que pase una fecha).
+
+    Se relajó la validación de `buscarReposiciones()`: antes exigía ambas fechas obligatoriamente ("Por favor seleccione ambas fechas"); ahora la fecha es un filtro opcional -- solo se avisa si el usuario llena una fecha sin la otra (combinación ambigua). Se eliminó el computed `hoy()`, que quedó sin ningún uso tras el cambio.
+
+- **Inconvenientes y Desafíos:**
+    **Corte eléctrico** interrumpió la sesión justo después de crear el commit local de este fix, antes de hacer `git push` y desplegar. Al retomar, se verificó que el commit seguía intacto en el historial local (`git log`) y sin pushear (`git status` vs. `origin`), se completó el push y el despliegue sin pérdida de trabajo.
+
+    Al verificar en el navegador tras el despliegue, una primera lectura del estado de la instancia Vue mostró las fechas en "hoy" en vez de vacías -- se determinó que era un artefacto de estado transitorio de una interacción de prueba anterior en la misma pestaña del navegador (de antes del corte eléctrico), no un fallo del fix. Una recarga limpia de la página (`location.reload(true)`) confirmó el comportamiento correcto: fechas vacías, 12 filas reales cargadas.
+
+- **Decisión Final y Justificación:**
+    Se optó por dejar las fechas vacías (sin restricción) en vez de, por ejemplo, poner un rango muy amplio como "últimos 5 años" -- vacío es semánticamente más correcto ("sin filtro de fecha") y evita tener que elegir un número arbitrario de años hacia atrás que igual podría quedarse corto en el futuro.
+
+- **Herramienta(s) Utilizada(s):** `Edit`, `node --check`, `git diff`/`commit`/`push`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__read_network_requests` (confirmar que la petición inicial se hace con `fecha_inicio=&fecha_fin=` vacíos), `mcp__claude-in-chrome__javascript_tool` (verificar estado real de `form`/`dataReporte` en la instancia Vue), `mcp__claude-in-chrome__computer` (captura de pantalla de la tabla y del modal de detalle funcionando con datos reales).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Tras el despliegue y una recarga limpia del navegador, se confirmó vía `read_network_requests` que la petición inicial es `GET /reposiciones-reporte/activa?fecha_inicio=&fecha_fin=` (sin restricción de fecha). Se confirmó vía `javascript_tool` que `form.fechaConsultaInicio`/`fechaConsultaFin` quedan en `""` y `dataReporte.length = 12`. Se confirmó visualmente: la tabla muestra las 12 reposiciones activas reales con montos de "Consumido" correctos (ej. $41.78 para la orden 6293, coincidiendo con lo verificado en el backend), y el modal "Desglose de Costos de Reposición" (al hacer click en un monto) muestra las líneas de insumo real con nombre, cantidad, costo unitario y total -- antes de los fixes de hoy, esas líneas no existían en absoluto.
+
+- **Logro Conseguido:**
+    Se completó, junto con los 3 fixes de backend, la restauración funcional completa del Reporte de Reposiciones -- de un reporte que "no mostraba información" a uno que muestra correctamente las 12 reposiciones activas reales del sistema con sus costos de material verificados. La sugerencia del usuario sobre el comportamiento de fecha por defecto fue clave para que el fix de backend (que ya corregía los datos) se tradujera en una experiencia de usuario realmente útil.
+
+- **Observaciones:** Ver bitácora complementaria en `ninesys-api/logs_gemini/` para el detalle de los 3 bugs de backend corregidos en la misma tarea. El reporte queda funcionalmente restaurado; falta evaluar si el resto de las columnas/filtros (estatus explícitos "Canceladas"/"Entregadas"/"Todas", fechas manuales) tienen algún problema adicional, pendiente de revisión.
+
+- **Respuesta de Claude:** Se corrigió el comportamiento de fecha por defecto: la vista "Activas" ya no restringe por fecha (antes cargaba solo "hoy", ocultando reposiciones activas más antiguas). Verificado en vivo tras el despliegue -- la tabla ahora muestra las 12 reposiciones activas reales, con el modal de detalle mostrando también los insumos consumidos correctamente.

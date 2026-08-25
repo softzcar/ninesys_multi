@@ -1,0 +1,13 @@
+- Solicitud del Usuario: Implementar un modal en el reporte de reposiciones que muestre el desglose detallado de los materiales consumidos (tinta, papel, tela) y sus costos individuales.
+- Archivos Involucrados: 
+    - Frontend: components/admin/reposicionesReporte.vue
+    - Backend: app/routes/production.php
+- Acción Realizada: 
+    1. Se añadió el endpoint `/reposicion-detalles/{id}` en el backend para consultar los movimientos detallados de inventario por reposición.
+    2. En el frontend, se reemplazó el texto de la columna "Consumido" por un botón.
+    3. Se creó un modal (`b-modal`) que se abre al hacer clic en dicho botón, mostrando una tabla con el insumo, unidad, cantidad, costo unitario y costo total, además de un resumen superior.
+- Herramienta(s) Utilizada(s): replace_file_content, run_command (git push, ssh pull)
+- Resultado: Éxito. El usuario puede ver qué componentes específicos contribuyen al costo total de la reposición.
+- Verificación: Despliegue en backend y frontend.
+- Observaciones de Gemini: Esta funcionalidad proporciona transparencia financiera sobre los retrabajos.
+- Respuesta de Gemini: Modal de desglose de costos implementado y desplegado.

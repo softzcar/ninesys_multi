@@ -1,0 +1,45 @@
+- Solicitud del Usuario: Reemplazar la barra de progreso lineal por un gráfico radial (RadialBar) de ApexCharts en la tabla de producción, mejorar la visibilidad (colores/grosores), manejar nombres de departamentos largos y reordenar elementos visuales.
+
+- Archivos Involucrados:
+  * /home/developer/Escritorio/niesys/app_multi/components/produccionsse/progressBar.vue
+  * /home/developer/Escritorio/niesys/app_multi/components/produccionsse/controlDeProduccionPro.vue
+
+- Acción Realizada:
+  1. Integración de ApexCharts:
+     - Se importó `VueApexCharts` en `progressBar.vue`.
+     - Se reemplazó `<b-progress>` con `<apexchart type="radialBar">`.
+     - Configuración optimizada: Tamaño 70x70px, `sparkline: true` (sin padding), color verde `#00bc8c`.
+
+  2. Mejoras Visuales:
+     - Aumento del grosor del anillo (hollow size reducido a 55%).
+     - Cambio de color de textos (porcentaje y departamento) de blanco a verde brillante `#00bc8c` para mejor contraste.
+     - Aumento de tamaño de fuente (18px porcentaje, 15px departamento).
+
+  3. Manejo de Contenido:
+     - Implementación de truncamiento inteligente para nombres de departamentos largos (máx 15 caracteres) agregando "...".
+     - Adición de `b-tooltip` para mostrar el nombre completo al pasar el mouse sobre el texto truncado.
+
+  4. Ajustes de Layout y Alineación:
+     - Reordenamiento de elementos: Botones de acción movidos a la izquierda, gráfico radial a la derecha.
+     - En `controlDeProduccionPro.vue`: Cambio de la columna "Progreso" de ancho automático a fijo (`340px`) para garantizar alineación vertical perfecta entre filas.
+     - En `progressBar.vue`: Ajuste de contenedores con `min-width: max-content` para evitar cortes.
+
+- Herramienta(s) Utilizada(s): 
+  * `replace_file_content`
+  * `multi_replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: 
+  * El gráfico radial se visualiza correctamente con el estilo deseado.
+  * Los textos son legibles y destacan sobre el fondo oscuro.
+  * Los departamentos largos no rompen el diseño gracias al truncamiento.
+  * La tabla mantiene una alineación estricta gracias al ancho fijo de la columna.
+  * Los botones de acción son los primeros elementos visibles en la celda, mejorando la usabilidad.
+
+- Observaciones de Gemini:
+  * El uso de ancho fijo (340px) en la columna de la tabla fue crucial para mantener la estética tipo grid, ya que `auto` causaba desalineaciones según el contenido de cada fila.
+  * Invertir el orden (botones primero) mejora la consistencia visual al alinear los elementos estáticos (botones) a la izquierda de la celda.
+
+- Respuesta de Gemini: 
+  "Perfecto! He reordenado el template de progressBar.vue. Ahora el orden es: Botones -> Chart + Departamento. Esto evita que los botones se desordenen y mantiene una estructura visual más lógica."

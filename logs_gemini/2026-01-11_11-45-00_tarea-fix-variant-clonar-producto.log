@@ -1,0 +1,29 @@
+- Solicitud del Usuario: Corregir inconsistencia en variant del botón cuando se clona una fila con multiplicador aplicado
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  Agregada línea `multiplicador_aplicado: false` en el método `duplicateItem()` (línea 2831) para resetear el flag cuando se duplica un producto. Esto previene que el producto clonado herede el estado "multiplicador aplicado" del producto original.
+
+- Herramienta(s) Utilizada(s): view_file, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Flag `multiplicador_aplicado` se resetea a `false` al duplicar
+  - Producto clonado muestra botón con variant warning (amarillo)
+  - Estado se mantiene independiente entre producto original y clonado
+  - Usuario reporta que el cálculo está funcionando correctamente
+
+- Observaciones de Gemini:
+  Este es un problema recurrente al duplicar elementos. La solución es simple: resetear todos los flags de estado que no deben heredarse al clonar. En este caso, el flag `multiplicador_aplicado` debe ser `false` porque el producto clonado es una nueva instancia que no ha tenido el multiplicador aplicado, aunque su precio pueda ya incluirlo desde el producto original.
+
+- Respuesta de Gemini:
+  Bug corregido. El producto clonado ahora muestra correctamente el variant warning (amarillo) porque el flag `multiplicador_aplicado` se resetea a `false` al duplicar. El usuario puede aplicar el multiplicador nuevamente si lo desea para ese producto específico.
+  
+  **Estado final:**
+  ✅ Cálculo de precio: Funcionando correctamente
+  ✅ Variant del botón: Correcto en producto original
+  ✅ Variant al clonar: Corregido - ahora resetea el flag
+  ✅ Funcionalidad completa implementada y probada

@@ -1,0 +1,17 @@
+- Solicitud del Usuario: El usuario solicitó eliminar la tabla de órdenes de la parte inferior del recibo de pago para evitar que se impriman múltiples páginas en casos con muchas órdenes.
+
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/reportes/ReportePagoVendedor.vue
+
+- Acción Realizada:
+    1.  Se editó `ReportePagoVendedor.vue` para comentar/eliminar la sección HTML que renderizaba la tabla de detalles de órdenes (`<div class="details-section">`).
+
+- Herramienta(s) Utilizada(s): `replace_file_content`
+
+- Resultado: Éxito
+
+- Verificación: Se verificó visualmente en el código que la sección de la tabla ha sido comentada, por lo que ya no se renderizará en el recibo.
+
+- Observaciones de Gemini: El cambio hace que el recibo sea más compacto, centrándose solo en los totales financieros y firmas, lo cual es ideal para impresión física rápida.
+
+- Respuesta de Gemini: He eliminado la tabla de detalles de órdenes del recibo. Ahora el formato es compacto, limitado a una sola página con el resumen financiero y las firmas.

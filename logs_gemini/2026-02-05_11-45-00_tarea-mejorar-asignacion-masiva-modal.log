@@ -1,0 +1,11 @@
+- Solicitud del Usuario: el modal que se abre con el botón `[+ Cargar Tods Las Tallas]` tenemos la opción de calcular la cantidad en base a una referencia, ahora necesitamos la opción adicional de asigar manualmente un valor a la cantidad de todas las tallas... podemos asigar la accion de asiganr el mismo valor a las cantidades cuando el botón esté desactivado y cunado esté activado funcione como lo está haciendo en este momento... OK solo Ñadiremos la especificación que cuando `Caálculo Autmático` esté activado el texto dle botón diga "Recalcular" como está ahora, pero al desactivar el switch el texto del botón cambie a "Asignar" de manera de aclararle al usuario la acción que se ejecutará.
+- Archivos Involucrados: `/home/developer/Escritorio/niesys/app_multi/components/admin/AsignacionMasivaModal.vue`
+- Acción Realizada: Mejora del modal de asignación masiva de insumos. Se realizaron los siguientes cambios:
+    1. Se modificó el método `calculateQuantities` para soportar tanto el cálculo porcentual automático como la asignación directa del valor base a todas las tallas.
+    2. Se implementó texto dinámico para el botón secundario del modal: muestra "Recalcular" cuando el cálculo automático está activo y "Asignar" cuando está desactivado.
+    3. Se eliminó la restricción que evitaba que el método se ejecutara si el switch estaba apagado, permitiendo así la asignación manual masiva.
+- Herramienta(s) Utilizada(s): `view_file`, `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Revisión del código para confirmar que el switch `useCalculation` controla correctamente tanto el texto del botón como el comportamiento de la función de cálculo/asignación.
+- Observaciones de Gemini: La solución es eficiente y evita agregar elementos adicionales de UI, manteniendo la simplicidad solicitada.
+- Respuesta de Gemini: He actualizado el modal de asignación masiva. Ahora, al desactivar el "Cálculo Automático", el botón cambiará su texto a "Asignar" y, al presionarlo, se asignará la cantidad base a todas las tallas de forma directa. Si el cálculo está activo, seguirá funcionando mediante porcentajes con el botón de "Recalcular".

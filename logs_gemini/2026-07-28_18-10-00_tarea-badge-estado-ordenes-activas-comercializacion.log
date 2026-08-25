@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** "ok faltó en `/ordenes/activas` implementar nuestros nuevos y bonitos badgets de estados de colores"
+- **Fecha y Hora:** 2026-07-28 18:10:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/ordenes/activas.vue`
+- **Commits Relacionados:**
+    - Frontend: `9762f64`
+- **Acción Realizada:**
+    Se identificó la página real detrás de "/ordenes/activas": `pages/comercializacion/ordenes/activas/index.vue` (título "Comercialización", sección "Ordenes en curso"), que renderiza el componente `components/ordenes/activas.vue` -- distinto del componente `produccionsse/ordenesActivas.vue` usado en `/produccion/ordenes-activas` (agrupado por empleado vía SSE, sin columna de estatus). El componente correcto ya tenía una columna `estatus` (agregada dinámicamente vía `this.fields.push(...)` tras cargar `/table/ordenes-activas/{id_empleado}`), pero se renderizaba como texto plano por el comportamiento por defecto de `b-table`. Se agregó el mismo template `#cell(estatus)` con `<badge-estatus-orden>` ya usado en el resto de pantallas de esta ronda de mejoras.
+
+- **Inconvenientes y Desafíos:** Ninguno. Único desafío fue identificar cuál de los 2 componentes "ordenesActivas" correspondía a la ruta mencionada por el usuario, dado que existen dos con propósitos distintos (`components/ordenes/activas.vue` para Comercialización vs. `components/produccionsse/ordenesActivas.vue` para Producción).
+
+- **Decisión Final y Justificación:** Se reutilizó el componente global `BadgeEstatusOrden` ya creado en esta misma ronda de mejoras (usado en Reporte de Reposiciones, Órdenes en curso de Control de Producción y Todas las Órdenes) en vez de crear un mapeo de colores nuevo, para mantener consistencia visual exacta en todo el sistema.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check`, `git diff`/`commit`, script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__navigate`/`computer` (verificación visual).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Verificado visualmente en vivo tras el despliegue en `https://app.nineteengreen.com/comercializacion/ordenes/activas/`: la columna "Estatus" muestra badges de color correctos ("En Espera" gris, "Activa" azul) sobre datos reales (180 órdenes).
+
+- **Logro Conseguido:** Cierra la ronda de badges de estado de color -- ahora las 4 pantallas del sistema que muestran el estatus de una orden (Reporte de Reposiciones, Órdenes en curso de Producción, Todas las Órdenes, Órdenes en curso de Comercialización) tienen tratamiento visual idéntico y consistente.
+
+- **Observaciones:** Ninguna.
+
+- **Respuesta de Claude:** Se agregó el badge de color de estado en `/comercializacion/ordenes/activas`, reutilizando el mismo componente `BadgeEstatusOrden` ya aplicado en las otras 3 pantallas. Verificado en vivo tras el despliegue.

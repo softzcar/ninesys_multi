@@ -1,0 +1,38 @@
+- **Solicitud del Usuario:** "sigamos con verificar que los totales que muestra sean correctos, estos valores son dinámicos y cambian dependiendo de los switches que están en 'Incluir Gastos' Ok Auditemos esto!" (Fase 4 de la auditoría del Reporte de Costos de Producción: cards de totales). Tras encontrar que la barra de eficiencia de insumos nunca se activaba, el usuario pidió investigar si se podía calcular de verdad, en vez de dejarla o eliminarla.
+- **Fecha y Hora:** 2026-07-27 12:24:13
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosKpis.vue` (solo lectura, puramente presentacional -- sin cambios)
+    - `components/admin/ReporteCostosGraficoCostos.vue` (solo lectura, ya condicionaba correctamente cada rebanada del gráfico a los switches -- sin cambios)
+    - `components/admin/ReporteCostosProduccion.vue` (`reportTotals`)
+- **Commits Relacionados:**
+    - Frontend: `3fb6d72`
+    - Backend: `106312c` (ver bitácora correspondiente en `ninesys-api/logs_gemini/`)
+- **Acción Realizada:**
+    **Parte 1 -- Verificación (sin cambios de código):** se confirmó en vivo, manipulando directamente `selectedExpenses` en la instancia Vue del componente y comparando contra los valores esperados calculados independientemente:
+    - Sin ningún switch: `costo_total=$7,419.79`.
+    - Solo "fijo": `costo_total=$9,620.12` (+$2,200 exacto, verificado contra los 3 registros reales de `gastos_registros` en el rango: $600+$1000+$600).
+    - Solo "variable": sin cambio (correcto, no hay gastos variables reales registrados en el rango de prueba).
+    - Todos los switches: `costo_total=$9,695.35`, con `gasto_remanente=$75.15` coincidiendo exactamente con `costosOperativos.total_remanentes_periodo` del backend, y `gasto_mantenimiento=$0` coincidiendo con `total_mantenimiento_periodo=$0`.
+    - Se confirmó que `ReporteCostosGraficoCostos.vue` (el gráfico de dona "Desglose de Costos") ya condiciona correctamente cada rebanada a `selectedExpenses`, sin necesitar ningún cambio.
+    - Se detectó una discrepancia de redondeo acumulado de ~$0.41 sobre ~$9,695 (0.004%) entre sumar los totales agregados vs. sumar 414 filas ya redondeadas individualmente -- inmaterial, no se tocó.
+
+    **Parte 2 -- Fix (a pedido del usuario, tras confirmarse que era viable):** se conectó la barra "Eficiencia Promedio de Insumos" de `ReporteCostosKpis.vue` a datos reales. El backend (commit `106312c` en `ninesys-api`) ya expone `consumo_estimado_insumos`/`consumo_real_insumos` por cada fila del reporte. Se agregó su acumulación dentro del `forEach` de `reportTotals` (sobre `filteredReportData`, respetando el filtro "Filtrar por Orden" igual que el resto de los totales), y al final del computed se calcula `totals.eficiencia_insumos = (consumo_estimado_insumos / consumo_real_insumos) * 100` -- mismo criterio ya establecido en el Reporte de Eficiencia de Empleados (>100% = se consumió menos material del estimado, bien; <100% = se consumió más, mal). Sin datos reales de consumo, se deja en 0, que el `v-if` del KPI ya interpreta correctamente como "sin datos" (oculta la barra).
+
+- **Inconvenientes y Desafíos:** Ninguno en esta tarea -- la parte de verificación no requirió ningún fix (todo estaba correcto), y la parte de implementación fue una conexión directa a datos ya calculados por el backend, sin lógica nueva compleja en el frontend.
+
+- **Decisión Final y Justificación:**
+    Se decidió NO tocar `ReporteCostosKpis.vue` ni `ReporteCostosGraficoCostos.vue` -- ambos son puramente presentacionales (reciben `totals`/`selectedExpenses` ya calculados correctamente) y no tenían ningún bug propio; el trabajo real estaba en `reportTotals` (el computed que alimenta a ambos) y en el backend.
+
+- **Herramienta(s) Utilizada(s):** `Read` (revisión de los 2 componentes de KPIs/gráfico, confirmando que eran presentacionales sin lógica de cálculo propia), `Edit`, `node --check`, `Bash` (`git diff`, `git commit`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo), `mcp__claude-in-chrome__javascript_tool` (verificación exhaustiva de todas las combinaciones de switches antes de cualquier cambio, y verificación final de la barra de eficiencia tras el fix), `AskUserQuestion` (para decidir el destino de la barra de eficiencia antes de investigar/implementar).
+
+- **Resultado:** Éxito
+
+- **Verificación:** Ver la parte de "Acción Realizada" arriba para el detalle numérico de la Fase 4 (todo correcto, sin fix necesario). Para la barra de eficiencia: tras desplegar, se recargó la página, se cargó el mismo rango de prueba (2026-07-01 a 2026-07-22), y `reportTotals.eficiencia_insumos` dio `132.74`, coincidiendo exactamente con el valor ya verificado en el backend (base de datos y API). Se confirmó además, extrayendo el texto renderizado de la página, que la barra "Eficiencia Promedio de Insumos: 132.74%" ahora sí aparece visualmente en la interfaz (antes nunca se mostraba, al estar siempre en 0).
+
+- **Logro Conseguido:**
+    Se cerró la auditoría completa de las 4 fases del Reporte de Costos de Producción (datos de la API, filtros, gastos con switches, y cards/KPIs), confirmando que los totales dinámicos responden correctamente a los switches de gastos, y completando de paso una funcionalidad que llevaba tiempo indeterminado a medio implementar (la barra de eficiencia de insumos, con placeholders vacíos y un comentario explícito de "por compatibilidad" en el backend).
+
+- **Observaciones:** Con esta tarea se completa la auditoría íntegra del Reporte de Costos de Producción solicitada al inicio de esta sesión de trabajo, cubriendo las 4 fases acordadas con el usuario. Ver bitácora complementaria en `ninesys-api/logs_gemini/` para el detalle de la implementación del backend.
+
+- **Respuesta de Claude:** Se verificaron los totales de las KPI cards contra todas las combinaciones de switches de "Incluir Gastos" -- todo correcto, sin ningún bug encontrado (los montos coinciden exactamente con los totales reales de la base de datos en cada combinación). De paso, se conectó la barra "Eficiencia Promedio de Insumos" (que nunca se mostraba) a un cálculo real, reutilizando la lógica ya corregida esta semana para eficiencia de insumos. Verificado en vivo: la barra ahora muestra "132.74%" para el rango de prueba, coincidiendo exactamente con la base de datos.

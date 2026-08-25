@@ -1,0 +1,58 @@
+- Solicitud del Usuario: Corregir bug crítico donde al clonar una fila con multiplicador aplicado, el precio se multiplica dos veces
+
+- Archivos Involucrados:
+  - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+
+- Acción Realizada:
+  Cambiado línea 2831 en método `duplicateItem()`:
+  - **Antes:** `multiplicador_aplicado: false` (siempre resetear)
+  - **Después:** `multiplicador_aplicado: item.multiplicador_aplicado || false` (copiar del original)
+
+- Herramienta(s) Utilizada(s): view_file, replace_file_content
+
+- Resultado: Éxito
+
+- Verificación:
+  - Flag ahora se copia del item original
+  - Consistencia entre precio y estado del flag
+  - Botón muestra el estado correcto al clonar
+  - No se puede aplicar multiplicador dos veces accidentalmente
+
+- Observaciones de Gemini:
+  **Bug crítico identificado:**
+  
+  Cuando se clonaba un producto que tenía multiplicador aplicado:
+  1. Precio se copiaba correctamente (con multiplicador incluido) ✅
+  2. Flag se reseteaba a `false` ❌
+  3. Botón mostraba amarillo (estado inconsistente)
+  4. Usuario hacía click pensando que no estaba aplicado
+  5. Sistema aplicaba multiplicador OTRA VEZ: `precio_ya_multiplicado * (1 + mult%)`
+  6. Resultado: Multiplicación doble incorrecta
+  
+  **Ejemplo del problema:**
+  - Precio original: $10
+  - Multiplicador: 20%
+  - Producto 1: $10 * 1.20 = $12 (correcto, botón verde)
+  - Clonar producto 1: $12 copiado, flag=false, botón amarillo
+  - Click en botón: $12 * 1.20 = $14.40 ❌ (INCORRECTO!)
+  - Debería ser: $12, botón verde, no permitir re-aplicar
+  
+  **Solución:**
+  Copiar el flag junto con el precio mantiene la consistencia de estado.
+  Si el original tiene multiplicador (verde), el clon también (verde).
+  
+  **Comportamiento correcto ahora:**
+  - Producto con multiplicador → Clonar → Clon también tiene flag true → Botón verde
+  - Producto sin multiplicador → Clonar → Clon también tiene flag false → Botón amarillo
+  - Estado visual siempre refleja la realidad del precio
+
+- Respuesta de Gemini:
+  Bug crítico corregido. El flag `multiplicador_aplicado` ahora se copia correctamente al duplicar productos, previniendo la aplicación doble accidental del multiplicador.
+  
+  **Estado consistente garantizado:**
+  - Precio con multiplicador → Flag true → Botón verde
+  - Precio sin multiplicador → Flag false → Botón amarillo
+  
+  ✅ No más aplicación doble accidental
+  ✅ Estado visual correcto al clonar
+  ✅ Lógica toggle funciona correctamente

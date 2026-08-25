@@ -1,0 +1,15 @@
+- Solicitud del Usuario: Corregir el bug donde se abren varios modales al hacer clic en el nombre del empleado y mejorar la lógica de cierre del modal.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosConfirmacionModal.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+- Acción Realizada: 
+    1. Se identificó que los IDs de los modales (`modalId`, `modalConfirmacionFinalId`) no eran suficientemente únicos en listas largas, causando colisiones.
+    2. Se modificó `PagosConfirmacionModal.vue` para generar IDs con sufijos aleatorios (`Math.random()`) garantizados por instancia.
+    3. Se eliminaron las propiedades `no-close-on-backdrop` y `no-close-on-esc` para permitir el cierre estándar de BootstrapVue.
+    4. Se vinculó el evento `@hidden` a la función `cerrarModal` para asegurar que `limpiarDatos` se ejecute siempre, independientemente de cómo se cierre el modal (X, ESC, Backdrop o botón Cancelar).
+    5. Se estabilizó el ID del modal en `PagosVendedorResumen.vue` moviéndolo a `data()`.
+- Herramienta(s) Utilizada(s): `replace_file_content`, `multi_replace_file_content`, `view_file`.
+- Resultado: Éxito
+- Verificación: Se verificó la consistencia estructural de los componentes y se aseguró que las llamadas a `$bvModal.show` coincidan con los nuevos IDs generados.
+- Observaciones de Gemini: La duplicidad de modales es un problema común al usar IDs estáticos o predecibles dentro de un `v-for`. El uso de sufijos aleatorios por instancia es la solución más robusta.
+- Respuesta de Gemini: Se notificó al usuario la corrección de los modales y la mejora en la lógica de cierre.

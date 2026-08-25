@@ -1,0 +1,14 @@
+- Solicitud del Usuario: Hacer obligatorio el detalle del descuento si el monto > 0 y guardar el descuento en la tabla `pagos_descuentos`.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/ordenes/abono.vue
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php
+- Acción Realizada:
+    1. Frontend (`nueva.vue`): Se agregó validación para impedir guardar si hay descuento sin detalle.
+    2. Frontend (`abono.vue`): Se agregó el campo de detalle de descuento, se incluyó en el payload y se agregó la validación.
+    3. Backend (`orders.php`): Se modificaron los endpoints `/ordenes/nueva/custom/edit` y `/orden/abono` para insertar un registro en la tabla `pagos_descuentos` vinculado al ID del abono generado, siempre que haya un descuento.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó la lógica de validación en frontend y las consultas SQL de inserción en backend.
+- Observaciones de Gemini: Se asume que `id_pago` en `pagos_descuentos` se refiere al ID del abono (`abonos._id`), ya que es la única relación lógica en este contexto.
+- Respuesta de Gemini: Cambios aplicados. El detalle es obligatorio y se guarda en la tabla solicitada.

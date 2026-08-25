@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Confusión reportada sobre "/catalogo-insumos-productos": no entendía por qué crear un ítem del catálogo (ej. "Tinta") pedía elegir un Producto y Departamento específicos, ya que asumía que necesitaría 300 filas si 300 productos usan el mismo insumo. Tras explicarle que la relación real vive en `product_insumos_asignados` (no en el catálogo), propuso simplificar la página a un CRUD por Nombre y bloquear el borrado de ítems ya asignados, notando que estos ítems también se crean "al vuelo" desde el formulario de Nuevo/Editar Insumo. Confirmó proceder con la opción recomendada (eliminar las columnas del esquema).
+- **Fecha y Hora:** 2026-07-17 13:00:00
+- **Proyecto(s):** Frontend (ver log espejo en ninesys-api para el detalle de backend/esquema)
+- **Archivos Involucrados:**
+  - components/admin/CatalogoInsumosProductosNuevo.vue
+  - components/admin/CatalogoInsumosProductosEditar.vue
+  - components/inventario/CatalogoInsumosProductosModal.vue
+  - pages/catalogo-insumos-productos.vue
+- **Commits Relacionados:**
+    - Frontend: ff7351c
+    - Backend: fd5ce5e, fac7004 (ver log en ninesys-api con el detalle completo del rediseño de esquema y endpoints)
+- **Acción Realizada:**
+  1. Se simplificaron los 3 componentes que crean/editan un ítem del catálogo (la página dedicada y el "+" inline embebido en el formulario de Insumo de inventario) a un único campo "Nombre", eliminando los selects de Producto y Departamento y su lógica asociada (`productOptions`, `departamentoOptions`, validaciones de campos requeridos).
+  2. Se simplificó `pages/catalogo-insumos-productos.vue`: se quitaron las columnas "Producto"/"Departamento" de la tabla y el fetch/enriquecimiento de `products`/`departamentos` que las alimentaba (ya no aplica, la API ya no devuelve esos campos).
+  3. Se mejoró el manejo de errores en los 3 formularios y en el borrado de la página: ahora muestran el mensaje específico que devuelve el backend (ej. "Ya existe un insumo del catálogo con ese nombre" o "No se puede eliminar: está en uso...") en vez de un texto genérico fijo.
+- **Inconvenientes y Desafíos:** Al investigar se descubrió que los endpoints de editar/eliminar del catálogo no existían en el backend (404) — funcionalidad rota desde su creación, no solo un problema de UX. Se amplió el alcance para construirlos (ver log de ninesys-api).
+- **Decisión Final y Justificación:** Se mantuvieron los props `products`/`departamentos` declarados (aunque ya no se usan internamente) en `CatalogoInsumosProductosModal.vue` para no tener que tocar además los 3 archivos padre (`InsumoNuevo.vue`, `InsumoEditar.vue`, `InsumoClonar.vue`) que aún se los pasan — evita herencia de atributos no declarados sin ganancia real, cambio mínimo.
+- **Herramienta(s) Utilizada(s):** Read, Edit, Bash (grep para confirmar que no quedaran referencias sueltas a los campos eliminados).
+- **Resultado:** Éxito
+- **Verificación:** Los 3 formularios y la tabla se revisaron por código tras el cambio (sin referencias residuales a `id_product`/`id_departamento`); el backend fue verificado en vivo con los 6 escenarios (crear, editar, duplicado, eliminar en uso, eliminar sin uso) documentados en el log de ninesys-api. Pendiente confirmación visual del usuario en navegador tras el deploy.
+- **Logro Conseguido:** La página "Catálogo de Insumos de Productos" pasa de un formulario confuso de 3 campos (2 de ellos sin función real) a un CRUD simple de un campo, con editar/eliminar funcionando por primera vez y protección contra pérdida de datos al eliminar un ítem en uso.
+- **Observaciones de Claude:** N/A
+- **Respuesta de Claude:** Los 3 componentes y la página simplificados y desplegados a Contabo Dev; pendiente que el usuario confirme en navegador.

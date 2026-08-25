@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Cargar observaciones adicionales desde `/ordenes-observaciones/{id}` al cargar una orden no asignada.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/ordenes/cargarOrdenesNoAsignadas.vue
+- Acción Realizada: Se modificó el método `cargarOrdenCompleta` para ejecutar dos peticiones en paralelo usando `Promise.all`: una para obtener los datos de la orden (`/buscar/{id}`) y otra para las observaciones (`/ordenes-observaciones/{id}`). Se implementó lógica para combinar las observaciones recibidas (concatenándolas) con el campo `observaciones` de la orden principal antes de emitir el evento `orden-cargada`.
+- Herramienta(s) Utilizada(s): default_api.replace_file_content
+- Resultado: Éxito
+- Verificación: Se verificó mediante revisión de código que se realiza la llamada adicional y se procesa la respuesta correctamente, inyectando los datos en el objeto que recibe el componente padre.
+- Observaciones de Gemini: Se asumió que el endpoint de observaciones devuelve un array de objetos con una propiedad `observacion`. Se implementó una concatenación segura para no perder datos existentes.
+- Respuesta de Gemini: Se ha implementado la carga de observaciones adicionales. Ahora, al cargar una orden, se consultará también el historial de observaciones y se mostrará en el campo correspondiente.

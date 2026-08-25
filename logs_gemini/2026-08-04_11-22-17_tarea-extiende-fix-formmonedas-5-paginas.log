@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** Tras confirmar visualmente que el fix de "espacio vacío" en el widget de tasas funcionó en Nueva Orden, el usuario pidió aplicar el mismo arreglo en presupuesto.vue, abono.vue, retiros, "otros abonos", cierre de caja, "y no recuerdo dónde más, revisa por favor" -- pidiendo explícitamente auditar el resto de los usos.
+- **Fecha y Hora:** 2026-08-04 11:22:17
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/ordenes/presupuesto.vue
+    - components/ordenes/abono.vue
+    - pages/comercializacion/cierre-de-caja.vue
+    - pages/comercializacion/abonos.vue
+    - pages/comercializacion/retiros/index.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. Revisados los 2 usos restantes que ya estaban identificados en memoria (`project_rediseno_formmonedas_layout.md`) pero sin confirmar en detalle: `MenuLoader.vue` (dentro de un `<b-modal>` de configuración inicial de tasas, ancho completo del modal -- contexto distinto, sin el bug de columnas vacías, NO se tocó) y `DashboardAdministracion.vue` (dentro de una grilla de tarjetas legítima `b-col lg="3" md="6" sm="12"` sin offset -- tampoco tiene el bug, NO se tocó).
+    2. Confirmado el mismo patrón `offset-md/lg/xl` en los 5 usos restantes: `presupuesto.vue` (offset-9, idéntico a nueva.vue), `abono.vue` (offset-6), `cierre-de-caja.vue` (offset-9), `abonos.vue` (offset-6/8/8, variante con proporciones distintas por breakpoint), `retiros/index.vue` (offset-9). En los 5 se aplicó el mismo reemplazo ya validado en nueva.vue: `b-col` sin offset (ancho completo) + `<div class="d-flex justify-content-end">` envolviendo `<form-monedas />`.
+- **Inconvenientes y Desafíos:** Ninguno técnico. Se verificó que `abonos.vue` solo tiene 1 instancia real de `<form-monedas />` (no 2, a diferencia de `MetodosPagoDinamico` que sí tiene 2 en ese mismo archivo) antes de asumir que faltaba una segunda corrección.
+- **Decisión Final y Justificación:** Mismo patrón exacto en los 5 archivos, sin variación -- todos compartían la misma causa raíz (columna angosta empujada con offset), así que la misma solución aplica sin necesidad de adaptarla caso por caso. Se dejaron intactos `MenuLoader.vue` y `DashboardAdministracion.vue` por tener contextos de layout genuinamente distintos, no el mismo bug.
+- **Herramienta(s) Utilizada(s):** `grep`, `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`, `nuxt generate` local completo antes de desplegar (lección de la tarea de `marked`, para no repetir un deploy fallido).
+- **Resultado:** Éxito.
+- **Verificación:** Los 5 componentes sin errores de sintaxis. Build local completo sin errores. Pendiente confirmación visual del usuario en cada una de las 5 pantallas.
+- **Logro Conseguido:** Cierra por completo el pendiente de layout de `formMonedas.vue` -- de los 8 usos totales, los 6 que tenían el bug real (Nueva Orden ya corregida antes + estos 5) quedan arreglados; los 2 restantes se confirmó que nunca tuvieron el problema.
+- **Observaciones:** Ninguna pendiente relacionada a este componente.
+- **Respuesta de Claude:** Aplicado el mismo fix en los 5 archivos restantes que sí tenían el bug (presupuesto, abono, cierre de caja, otros abonos, retiros). Revisé también MenuLoader.vue y el Dashboard de Administración -- esos 2 no tenían el mismo problema (contextos distintos), así que se dejaron como estaban.

@@ -1,0 +1,64 @@
+# Tarea EN CURSO (no verificada, no desplegada): Input decimal estilo "bancario" (0.00)
+
+- **Fecha**: 2026-07-09
+- **Hora**: 18:31:00 (Local)
+- **Estado**: ⚠️ PENDIENTE DE VERIFICACIÓN VISUAL Y DESPLIEGUE — retomar aquí mañana.
+- **Plan guardado en**: `/home/developer/.claude/plans/composed-conjuring-lerdorf.md`
+
+## Descripción del Problema
+
+Los inputs numéricos de `app_multi` que aceptan decimales son inconsistentes: distintas implementaciones a lo largo del tiempo usan `type="number"` nativo (separador depende del locale del navegador), unos con `step="0.01"`, otros `step="0.10"`, sin criterio único. Además el mixin global tenía dos funciones de formateo de salida contradictorias (`formatNumber` en-US vs `formatMonto` de-DE). Se pidió una solución global tipo "input bancario": el usuario escribe solo dígitos y el punto decimal se inserta automáticamente desde la derecha (máscara `0.00`), sin separador de miles (ej. escribir `150` → `1.50`).
+
+Exploración previa confirmó: no existía ningún componente reutilizable para esto (~76 archivos con `type="number"`, ~93 con `parseFloat` manual, ~111 con `toFixed`). Dos librerías de máscaras instaladas (`maska`, `vue-the-mask`) resultaron ser código muerto (el plugin `plugins/maska.js` ni siquiera está registrado en `nuxt.config.js`).
+
+## Decisiones acordadas con el usuario
+
+- El `v-model` del nuevo componente emite un **Number** de JS (no string). Solo se toca el **frontend**, no el backend.
+- Sin soporte de valores negativos por ahora.
+- Estrategia de migración: **piloto primero** (3 archivos representativos), NO se migran aún los ~100-130 archivos restantes de la app — eso queda como tarea de seguimiento aparte.
+- De paso se unificó el único uso de `formatMonto` (de-DE) hacia `formatNumber` (en-US) en un archivo, dejando un solo estándar de visualización.
+
+## Acciones realizadas (COMPLETADAS, código escrito pero SIN verificar visualmente ni desplegar)
+
+### 1. Componente nuevo: `components/CampoDecimal.vue`
+Componente global (auto-registrado por Nuxt como `<campo-decimal>`, sin necesidad de import, gracias a `components: true` en `nuxt.config.js`). Implementa la mecánica "cents-shift": guarda internamente solo los dígitos escritos, reconstruye el valor mostrado insertando el punto decimal 2 posiciones desde la derecha, cursor siempre fijado al final (no se edita en medio del número), maneja `paste` normalizando comas/puntos como separador decimal, y sincroniza cambios externos vía `watch` sobre la prop `value` (soporta campos de solo lectura recalculados por otros campos, ej. costo total calculado). Placeholder por defecto `"0.00"`. Ver archivo completo para la implementación.
+
+### 2. Migración piloto (3 archivos)
+- `components/admin/AsignacionDePreciosForm.vue`: campo `item.price` migrado a `<campo-decimal>`.
+- `components/inventario/InsumoNuevo.vue`: 3 campos migrados (`costoMetro`, `form.rendimiento`, `form.costo` — este último `:readonly` cuando se calcula automáticamente).
+- `components/ordenes/presupuesto.vue`: 6 campos monetarios migrados (`montoDolaresEfectivo`, `montoDolaresZelle`, `montoDolaresPanama`, `montoPesosEfectivo`, `montoPesosPago`, `descuento`).
+- NO se tocaron campos de cantidad/enteros en esos mismos archivos (ej. `form.cantidad` en InsumoNuevo, `form.productos[i].cantidad` en presupuesto) — están fuera de alcance porque ya funcionan bien según el usuario.
+
+### 3. Unificación de formato de salida
+`pages/comercializacion/retiros/index.vue`: las 11 ocurrencias de `formatMonto(` se reemplazaron por `formatNumber(` (mismo mixin global, ya usado en 15 archivos). No se modificó `mixins/mixins.js` (la función `formatMonto` queda intacta mixin, sin usos).
+
+## Inconvenientes y bloqueo actual
+
+Se intentó verificar en navegador (Claude in Chrome) con el usuario de prueba `danuil` (rol Estampado), pero ese rol no tiene acceso a las páginas piloto (admin/comercialización/inventario) — middleware de auth redirige a Inicio.
+
+El usuario proporcionó credenciales de admin (`linyersaqb@gmail.com`), pero el login devolvía **500** contra `https://api.nineteengreen.com/login` (servidor dev, Contabo). Se investigó (solo lectura, sin modificar nada del backend):
+- El stderr de LiteSpeed en `vps-contabo-dev` mostraba un pico de `Reached max children process limit` horas antes (ya resuelto, no es la causa actual).
+- El body de la respuesta 500 actual es el mensaje genérico de `ShutdownHandler.php` ("An error while processing your request...").
+- Se comparó `ShutdownHandler.php` en `vps-contabo-dev` vs. el repo local `ninesys-api` (rama `feature/postgresql-support`, que es la rama activa localmente) vs. la rama `refactor/modular-routes`: el fix de este bug (commit `d4fe811`, "corregir 500 falso en creación de reposiciones") **existe en la rama `refactor/modular-routes`** pero el servidor dev y la rama local activa `feature/postgresql-support` siguen con la versión antigua/con el bug (`if ($error)` trata cualquier warning como fatal).
+- El usuario indicó que **hay otro agente trabajando en el backend en este momento** y que probablemente esa actividad concurrente es la causa de la inestabilidad/500 actual. Se decidió esperar a que ese trabajo termine antes de reintentar el login y la verificación visual.
+
+**No se realizó ningún cambio en `ninesys-api` ni en ningún servidor remoto** — toda la investigación fue de solo lectura (SSH read-only, `git show`, `curl`).
+
+## Qué falta (retomar mañana)
+
+1. Confirmar con el usuario que el otro agente terminó su trabajo en el backend / que el login ya funciona.
+2. Iniciar sesión como admin (`linyersaqb@gmail.com`) en `http://localhost:3000` (servidor Nuxt dev ya corre en background, PID visible con `ps aux | grep nuxt`).
+3. Probar en navegador los 3 formularios piloto:
+   - `/productos/gestion` → modal de asignación de precios (`AsignacionDePreciosForm.vue`).
+   - `/inventario/gestion` → modal "Nuevo Insumo" (`InsumoNuevo.vue`), especialmente el modo "Precio por Metro" que recalcula `Costo Total` automáticamente.
+   - `/comercializacion/presupuesto` → modal de conversión a orden (6 campos monetarios).
+   - Casos a probar: escribir dígitos (`150` → `1.50`), backspace progresivo, pegar un valor (`1234.56` o `1234,56`), estado de validación Bootstrap (`:state`), consola sin errores.
+4. Confirmar visualmente `/comercializacion/retiros` (montos con `formatNumber`).
+5. Con la verificación aprobada por el usuario, decidir si se procede a migrar el resto de los ~100-130 archivos (fuera de alcance de esta tarea, pendiente de decisión futura) y si se despliega a Hostinger/Contabo Dev (requiere sincronización explícita, no automática).
+
+## Resultado
+
+Parcial — código completo y listo, verificación visual pendiente por bloqueo externo (backend dev inestable por trabajo concurrente de otro agente).
+
+## Referencias de Sesión (Contexto)
+- Plan: `/home/developer/.claude/plans/composed-conjuring-lerdorf.md`

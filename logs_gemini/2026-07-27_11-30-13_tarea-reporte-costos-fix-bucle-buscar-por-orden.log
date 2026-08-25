@@ -1,0 +1,38 @@
+- **Solicitud del Usuario:** Fase 2 de la auditoría del Reporte de Costos de Producción (filtros): "probé filtrar por orden donde pone 'Buscar por orden' en esa misma sección y se colgó la app, revisemos eso".
+- **Fecha y Hora:** 2026-07-27 11:30:13
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+    - `components/admin/ReporteCostosProduccion.vue`
+- **Commits Relacionados:**
+    - Frontend: `8acb66c` (primer fix, insuficiente), `5a86d77` (causa raíz real)
+- **Acción Realizada:**
+    Se reprodujo el bug en el navegador (Chrome, sesión conectada) instrumentando `onFiltered` para contar sus invocaciones: asignar un solo valor a `tableFilter` disparaba **843 llamadas a `onFiltered` en 2 segundos**, confirmando un bucle de reactividad real, no solo lentitud.
+
+    **Primer intento de fix (commit `8acb66c`):** se identificó que `onFiltered` volvía a mutar los mismos objetos reactivos de `reportData` en cada evento `@filtered` (vía `combineReportDataWithTintas()` y `updateUnifiedColumns()`), y que `<b-table>` vuelve a filtrar cuando sus `items` cambian -- un patrón clásico de bucle de reactividad. Se simplificó `onFiltered` para que solo actualizara `filteredReportData`, y se eliminó `combineReportDataWithTintas()` por completo (código que además resultó ser redundante: `getReport()` ya arma `total_tinta_consumo_ml`/`total_tinta_costo` por orden al procesar la respuesta de la API, antes de asignar `this.reportData`).
+
+    **Verificación tras el primer fix -- INSUFICIENTE:** se repitió la misma prueba instrumentada y el bucle SEGUÍA ocurriendo (790-843 disparos, prácticamente el mismo orden de magnitud que antes), pese a que `updateUnifiedColumns` ya no se llamaba ni una sola vez (confirmado instrumentando también ese método, contador en 0). Esto significaba que la causa real era otra, no las mutaciones dentro de `onFiltered`.
+
+    **Diagnóstico de la causa real:** se encontró `:filter-included-fields="['id_orden']"` en el template -- un **array literal inline**. Vue crea una referencia NUEVA de ese array en cada re-render del componente padre; `<b-table>` interpreta la prop como "cambiada" (nueva referencia, aunque el contenido sea idéntico) y vuelve a ejecutar su filtrado interno, emitiendo `@filtered` de nuevo. Como `onFiltered` reasigna `filteredReportData` (de la cual dependen `reportTotals` y varias partes visibles del template), eso fuerza otro re-render del padre, que vuelve a crear el array `['id_orden']`, cerrando el ciclo -- sin necesidad de ninguna mutación de items para sostenerse.
+
+    **Fix real (commit `5a86d77`):** se extrajo el array a una propiedad estable `filterIncludedFields: ['id_orden']` en `data()`, mismo patrón ya usado correctamente en este mismo componente para `baseFields`/`expenseOptions` (arrays de configuración que sí estaban declarados como referencias estables desde el principio).
+
+- **Inconvenientes y Desafíos:**
+    Durante la verificación del primer fix (insuficiente), la pestaña del navegador quedó **genuinamente congelada** (`Runtime.evaluate` de Chrome DevTools Protocol expiró a los 45 segundos incluso para una expresión trivial como `'ping'`), confirmando que el bucle -aunque finito, se estabilizaba tras ~800-850 pasadas- consumía suficiente tiempo de CPU síncrono como para bloquear el hilo principal de forma perceptible como un colgado real, coincidiendo con el reporte original del usuario. Se abrió una pestaña nueva para continuar el diagnóstico sin depender de la pestaña congelada (que no se pudo cerrar automáticamente al finalizar, quedó pendiente de cierre manual por el usuario).
+
+- **Decisión Final y Justificación:**
+    Se mantuvieron AMBOS fixes (el de `onFiltered`/`combineReportDataWithTintas` y el del array literal), aunque solo el segundo era estrictamente necesario para romper el bucle: el primero sigue siendo una mejora legítima por su cuenta (evita trabajo de recómputo redundante en cada filtrado, ya que los campos calculados por ítem no dependen de qué subconjunto esté filtrado) y elimina código muerto/duplicado (`combineReportDataWithTintas`). No se revirtió.
+
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `node --check`, `Bash` (`git diff`, `git commit`), script de despliegue `ninesys-hub/bin/deploy.sh` (opción 2, Desarrollo Contabo, dos veces), `mcp__claude-in-chrome__javascript_tool` (instrumentación de métodos del componente Vue en vivo para contar invocaciones, diagnóstico principal de esta tarea), `mcp__claude-in-chrome__tabs_create_mcp` (pestaña nueva tras que la primera quedara congelada).
+
+- **Resultado:** Éxito
+
+- **Verificación:**
+    Tras el fix real (commit `5a86d77`), desplegado a Contabo Dev y verificado en una pestaña nueva del navegador: asignar `tableFilter = '6301'` disparó `onFiltered` exactamente **1 vez** (antes: 790-843). Se simuló además la escritura progresiva realista de un usuario (dígitos `'6'`, `'63'`, `'630'`, `'6301'` con pausas entre cada uno): **4 disparos de `onFiltered` para 4 cambios de valor**, proporción 1:1 sin ningún bucle. El filtrado en sí funcionó correctamente (redujo a 1 fila, la orden 6301), y los valores de costos de esa orden (`costo_mano_de_obra_total: 0.9`, `costo_total: 5.06`) coinciden exactamente con lo verificado en la tarea anterior (fix de `salario_invertido`, no se rompió nada).
+
+- **Logro Conseguido:**
+    Se corrigió un bug que colgaba genuinamente la aplicación al usar el filtro "Buscar por Orden" -- confirmado en vivo con la propia pestaña del navegador quedando inutilizable durante el diagnóstico del primer intento insuficiente. La causa raíz real (array literal inline como prop reactiva) es un patrón sutil y fácil de pasar por alto en revisiones de código estáticas; se encontró únicamente gracias a la instrumentación empírica en vivo tras confirmar que el primer fix (aparentemente razonable) no resolvía el problema.
+
+- **Observaciones:**
+    Vale la pena, en una futura pasada de limpieza de este mismo componente (o de otros que usen `<b-table>` con filtros), revisar si hay más props pasadas como arrays/objetos literales inline en el template (`:algo="[...]"` o `:algo="{...}"`) que puedan estar causando recomputación innecesaria de forma silenciosa, sin llegar a un bucle perceptible como este. No se hizo una auditoría exhaustiva de otros componentes en esta tarea, el alcance fue específicamente el bug reportado.
+
+- **Respuesta de Claude:** Se corrigió el bug que colgaba la app al usar "Buscar por Orden". El primer intento de fix (eliminar mutaciones dentro del handler de filtrado) resultó insuficiente -- verificado en vivo que el bucle seguía ocurriendo casi igual de fuerte. La causa real: un array `['id_orden']` escrito directamente en el template como prop de la tabla, que Vue recreaba en cada re-render, haciendo que la tabla pensara que el filtro había cambiado y volviera a filtrarse a sí misma en un ciclo. Se corrigió extrayéndolo a una referencia estable. Verificado en vivo: de 843 disparos por un solo cambio de filtro, a exactamente 1 -- y probado también escribiendo carácter por carácter como lo haría un usuario real, sin ningún problema.

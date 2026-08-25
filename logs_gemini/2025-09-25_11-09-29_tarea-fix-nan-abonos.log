@@ -1,0 +1,8 @@
+- Solicitud del Usuario: [Excelente ahora mostramos `0.00` creemos un log para esta tarea terminada]
+- Archivos Involucrados: ["/home/developer/Escritorio/niesys/app_multi/pages/comercializacion/abonos.vue"]
+- Acción Realizada: [Se corrigió un bug en la página de Abonos donde se mostraba `NaN` en el monto del abono. El problema se debía a que se realizaban divisiones por tasas de cambio que podían no existir (`undefined`). Se refactorizaron la propiedad computada `totalAbono` y el método `updateMontoAbono` para verificar que las tasas de cambio sean números válidos y mayores a cero antes de usarlas en cualquier cálculo, previniendo así el error.]
+- Herramienta(s) Utilizada(s): [default_api.read_file, default_api.replace]
+- Resultado: [Éxito]
+- Verificación: [El usuario confirmó que el `NaN` desapareció y ahora se muestra `0.00` correctamente cuando las tasas de cambio no están disponibles.]
+- Observaciones de Gemini: [El error era un caso típico de falta de validación de datos antes de operaciones matemáticas. La solución robustece el componente contra datos incompletos o variables provenientes de la API.]
+- Respuesta de Gemini: [Hecho. El archivo de bitácora `2025-09-25_11-09-29_tarea-fix-nan-abonos.log` ha sido creado en la carpeta `logs_gemini/`.]

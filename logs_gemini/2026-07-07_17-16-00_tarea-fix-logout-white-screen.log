@@ -1,0 +1,45 @@
+# Tarea Completada: Corrección de Bug Pantalla en Blanco al Salir (Logout)
+
+- **Fecha**: 2026-07-07
+- **Hora**: 17:16:00 (Local)
+- **ID Conversación**: `fec015dc-1d45-4838-b8ee-e8b3d57ea749`
+
+## Descripción del Problema
+Al presionar el botón "Salir" en el sidebar, el sistema redirigía a la ruta `/logout` pero se quedaba en pantalla en blanco y no lograba cerrar sesión del todo ni redirigir a la pantalla de login. Esto ocurría porque la mutación `setAccess(false)` sólo apagaba la variable de acceso, pero dejaba datos de sesión residuales y tokens viejos en el estado persistido por `vuex-persist` en `localStorage` (`ninesys_vuex_v1`). Al recargar la app en `/`, se restauraban estos datos inconsistentes, provocando que los layouts y componentes se colgaran en un loop/renderizado incompleto.
+
+## Acciones Realizadas
+
+### 1. Corrección del Store de Vuex (login.js)
+- Se expandió la mutación `logout(state)` en `store/login.js` para resetear todas las variables de la sesión del usuario (empresa, departamentos, empleado, módulos, etc.) a sus valores por defecto.
+- Se agregaron instrucciones explícitas para eliminar los tokens y la clave de persistencia de Vuex de `localStorage`:
+  ```javascript
+  localStorage.removeItem('jwt_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('ninesys_vuex_v1')
+  ```
+
+### 2. Corrección del Componente y Robustecimiento
+- Se actualizó `pages/logout.vue` y `components/layout/AppSidebar.vue` (método `goOut`) para realizar una limpieza agresiva de Service Workers y del Cache Storage del navegador antes de realizar la redirección, evitando que versiones viejas almacenadas en la caché local del navegador del usuario interfieran en el flujo de salida:
+  ```javascript
+  if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+          for (const registration of registrations) {
+              registration.unregister();
+          }
+      });
+  }
+  if ('caches' in window) {
+      caches.keys().then(names => {
+          for (const name of names) {
+              caches.delete(name);
+          }
+      });
+  }
+  ```
+- Al presionar el botón "Salir", en vez de hacer una transición de ruta por el Vue router a `/logout` (que podría colgarse en el middleware local de Nuxt), la sesión se limpia y se fuerza al navegador a recargarse directamente en la raíz `/` con `window.location.href = '/'` usando un estado 100% limpio.
+
+### 3. Despliegue
+- Se compiló el frontend (`npm run generate`) y se sincronizó mediante `rsync` tanto en **Desarrollo** (`vps-contabo-dev`) como en **Producción** (`vps-contabo-prod`) usando el script de despliegue centralizado `ninesys-hub/bin/deploy.sh` de forma segura.
+
+## Verificación
+- Los archivos compilados fueron sincronizados exitosamente a ambos servidores. La limpieza total del localStorage y la invalidación forzada de Service Workers y cachés del navegador resuelven de forma definitiva el problema de la pantalla en blanco y el loop de carga.

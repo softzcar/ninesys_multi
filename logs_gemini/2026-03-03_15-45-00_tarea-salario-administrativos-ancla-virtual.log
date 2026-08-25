@@ -1,0 +1,11 @@
+- Solicitud del Usuario: Incluir a los empleados (Administradores / Jefes de Producción) que tienen un salario mensual o quincenal pero no figuran en la planilla porque no producen registros en tabla pagos, y evitar crear registros "basura" en la DB al consultar.
+- Archivos Involucrados: 
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/payments.php
+- Acción Realizada: 
+    1. Se añadió una consulta `$sql_administrativo` en `GET /pagos/semana/empleados` para buscar en `api_empresas.empresas_usuarios` a los empleados que tienen `salario_monto > 0`, están activos y son de la empresa actual, que además no posean ningún cobro operativo pendiente. Estos se retornan con un ID simulado `0` para su lectura en UI.
+    2. Se implementó en `POST /pagos/procesar-lote-pagos` un mecanismo de detección: si el empleado viene en el payload pero no tiene array asociable a registros operativos en la BD (`count($idsParaPago) === 0`), se inyecta silenciosamente un "Ancla Virtual" en `pagos` registrándole `'Pago Salario Administrativo'`. El consecutivo Last_insert_id() provee entonces una llave primaria auténtica bajo la cual colgar el salario y bonos pagados, manteniendo la integridad referencial intacta y cerrando transaccionalmente.
+- Herramienta(s) Utilizada(s): `multi_replace_file_content` y `grep_search`.
+- Resultado: Éxito
+- Verificación: Revisado código local de API; las instrucciones transaccionales `BEGIN` y `COMMIT` en PDO envuelven apropiadamente tanto la inserción física del registro nuevo (ancla) como la distribución del resto de sus ingresos base (Abonos de Salario, Bonos y descuentos).
+- Observaciones de Gemini: El plan inicial apuntaba a devolver todo desde la visualización pero se optó por la recomendación del usuario de evitar basuras relacionales; las anclas ocurren extrictamente y solo al procesar lote de pagos.
+- Respuesta de Gemini: Notificado de los flujos de seguridad transaccional adoptados que obedecen la sugerencia de no rellenar sin procesar.

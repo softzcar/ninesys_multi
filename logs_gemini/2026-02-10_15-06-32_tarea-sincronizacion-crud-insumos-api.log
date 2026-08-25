@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Asegurarse que el formulario de edición reciba los nuevos datos, tenga la misma estructura del formulario de crear y que la lógica de UPDATE en la API maneje los campos correctamente.
+- Archivos Involucrados: ninesys_multi/components/inventario/InsumoEditar.vue, ninesys-apidev/app/routes/inventory.php, ninesys_multi/components/inventario/InsumoNuevo.vue
+- Acción Realizada: Reordenación de campos en Sección 2 de ambos formularios. Corrección de mapeo de data en InsumoEditar.vue (uso de id_catalogo). Verificación de lógica UPDATE en backend inventory.php.
+- Herramienta(s) Utilizada(s): view_file, replace_file_content, task_boundary, notify_user
+- Resultado: Éxito
+- Verificación: Se revisó el código del backend para confirmar el manejo de campos id_catalogo y tipo_insumo. Se ajustó el frontend para coincidir con el retorno de la API.
+- Observaciones de Gemini: El backend ya contaba con parte de la lógica, se aseguró la consistencia entre los nombres de parámetros enviados por el frontend y los recibidos por el API.
+- Respuesta de Gemini: Confirmación de sincronización de formularios y API.

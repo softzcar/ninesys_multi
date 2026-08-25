@@ -1,0 +1,33 @@
+# Bitácora de Tareas - Ninesys Frontend
+
+## Información General
+- **Fecha y Hora:** 2026-06-26 17:40:00
+- **Tarea:** Inclusión del `status` de la orden en el encabezado (header) del modal de búsqueda de detalles de orden.
+- **Autor:** Antigravity (AI coding assistant)
+
+## Descripción del Trabajo
+Se ha implementado la funcionalidad para mostrar el estatus actual de una orden directamente en el título/encabezado del modal que presenta sus detalles. Este cambio impacta tanto al buscar la orden a través del input superior del navbar como al hacer clic sobre un número de orden en los listados del sistema.
+
+### Cambios Realizados
+1. **[BarraDeBusqueda.vue](file:///home/developer/Escritorio/niesys/app_multi/components/buscar/BarraDeBusqueda.vue):**
+   - Se removió la propiedad de título `:title="'Detalle de Orden: ' + orderToSearch"` en el componente `<b-modal>`.
+   - Se implementó la ranura (slot) `<template #modal-title>` para renderizar de manera personalizada el título del modal.
+   - Se agregó la propiedad computada `orderStatus` vinculada reactivamente con el estado global de Vuex (`$store.state.buscar.orden`).
+   - Se incluyó la etiqueta HTML y clases CSS necesarias para el badge del estatus.
+
+2. **[linkSearch.vue](file:///home/developer/Escritorio/niesys/app_multi/components/linkSearch.vue):**
+   - Se removió la propiedad de título `:title="title"` en el componente `<b-modal>`.
+   - Se reemplazó por la ranura `<template #modal-title>` para personalizar el título de acuerdo al id de la orden y su estatus.
+   - Se agregó la propiedad computada `orderStatus` de manera segura, comparando el id de la orden actual con el del store de Vuex para evitar datos cruzados.
+
+3. **Estilos de Interfaz de Usuario (CSS en ambos componentes):**
+   - Se diseñó un badge premium de estilo translúcido (glassmorphism/opacity) con colores armónicos y no genéricos.
+   - Se incorporó un indicador circular pulsante mediante animaciones de fotogramas clave (`@keyframes pulse-green` y `@keyframes pulse-yellow`) para dar dinamismo a los estados activos (ej. `activa`, `En espera`).
+   - Soporte y colores diferenciados para los estados: `activa`, `en espera` / `espera`, `pausada`, `cancelada` y `terminada`.
+
+## Verificación Realizada
+- La reactividad de Vuex limpia y actualiza dinámicamente el estatus del encabezado del modal conforme finalizan las llamadas asíncronas a la API del backend.
+- Se respetó la prohibición estricta de compilación (`nuxt build` / `npm run build`).
+
+---
+*Fin del Registro.*

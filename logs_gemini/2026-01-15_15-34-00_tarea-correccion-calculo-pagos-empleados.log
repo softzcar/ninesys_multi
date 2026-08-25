@@ -1,0 +1,63 @@
+- Solicitud del Usuario: Corregir el cálculo de pagos en la página /empleados/pagos para que considere el tipo de pago del empleado (Salario, Comisión, o Salario más Comisión) y muestre un desglose claro de salario fijo y comisiones.
+
+- Archivos Involucrados:
+  - Backend: /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/orders.php
+  - Frontend: /home/developer/Escritorio/niesys/app_multi/components/empleados/TablaDePagos.vue
+
+- Acción Realizada:
+  **Backend (orders.php)**:
+  - Agregué consulta para obtener datos salariales del empleado (salario_tipo, salario_monto, salario_periodo, comision, comision_tipo) desde api_empresas.empresas_usuarios
+  - Agregué campo 'datos_empleado' a la respuesta del endpoint GET /reportes/resumen/empleados/{id_empleado}/{id_departamento}
+  - Agregué LEFT JOIN con api_empresas.empresas_usuarios en la consulta de ordenes_terminadas para incluir información salarial
+
+  **Frontend (TablaDePagos.vue)**:
+  - Agregué campo 'datosEmpleado' al data() para almacenar información salarial
+  - Creé computed property 'salarioFijo()' que retorna el salario del empleado solo si salario_tipo es "Salario" o "Salario más Comisión"
+  - Creé 'totalComisionesTerminadas()' y 'totalComisionesPendientes()' para separar el cálculo de comisiones
+  - Actualicé 'total()' para sumar correctamente salario + comisiones
+  - Modifiqué template para mostrar desglose con colores distintivos:
+    * Salario Fijo (amarillo/warning) - Solo visible si aplica
+    * Comisiones Terminadas (verde/success)
+    * Comisiones Pendientes (rojo/danger)
+    * Total (azul/primary)
+
+- Herramienta(s) Utilizada(s): multi_replace_file_content, replace_file_content, run_command (git commit, git push, ssh para deploy)
+
+- Resultado: Éxito
+
+- Verificación:
+  - Realicé prueba del endpoint con curl usando header 'Authorization: 171'
+  - Verifiqué que el endpoint retorna correctamente los datos_empleado:
+    {
+      "salario_tipo": "Salario",
+      "salario_monto": 400,
+      "salario_periodo": "semanal",
+      "comision": 1,
+      "comision_tipo": "fija"
+    }
+  - Consulté empleados de empresa 171 y confirmé que existen empleados con diferentes configuraciones:
+    * ID 581-583, 587: Salario
+    * ID 584-585: Comisión
+    * ID 586: Salario más Comisión
+  - Desplegué backend al VPS mediante git pull en /home/apidev.nineteengreen.com/public_html
+  - Realicé commit del frontend (commit 3d36750)
+
+- Observaciones de Gemini:
+  - El frontend AÚN NO ha sido desplegado al VPS. El usuario debe ejecutar ./deploy.sh cuando esté listo.
+  - La interfaz mostrará el periodo del salario (SEMANAL, QUINCENAL, MENSUAL) junto al monto
+  - El componente es backward compatible: si datos_empleado es null, simplemente no muestra el salario fijo
+  - Los lints pre-existentes en orders.php no son críticos y no afectan la funcionalidad
+
+- Respuesta de Gemini: He completado exitosamente la corrección del cálculo de pagos en /empleados/pagos. Los cambios implementados incluyen:
+
+✅ Backend modificado y desplegado - El endpoint ahora retorna los datos salariales del empleado (salario_tipo, salario_monto, salario_periodo)
+
+✅ Frontend actualizado - La página ahora muestra un desglose claro y amigable:
+  - SALARIO FIJO (PERÍODO) - Solo para empleados con salario
+  - COMISIONES TERMINADAS
+  - COMISIONES PENDIENTES  
+  - TOTAL
+
+El backend está funcionando correctamente en el VPS. Para ver los cambios en el frontend, necesitas desplegar la aplicación con ./deploy.sh cuando estés listo.
+
+La empresa 171 tiene empleados de prueba con los 3 tipos de pago configurados para validar la funcionalidad.

@@ -1,0 +1,26 @@
+TAREA: Reestructuración Integral del Reporte de Balance de Pagos y Abonos
+FECHA: 2026-03-14
+ESTADO: Completada
+
+OBJETIVOS ALCANZADOS:
+1.  **Seguridad y Acceso**: Se restringió la visibilidad del selector de "Vendedor" en el reporte de caja solo para administradores (id_departamento 7). Los vendedores ahora ven sus propios datos por defecto.
+2.  **Corrección de Errores**: Se eliminó un error 500 en el cierre de caja causado por un uso incorrecto de `str_replace` sobre un array en el backend (`finance.php`).
+3.  **Integración de Descuentos**: Se modificó el backend para incluir datos de la tabla `abonos` (descuentos, notas de crédito y abonos totales) en el reporte de pagos.
+4.  **Rediseño de Interfaz**:
+    - Se renombró el reporte a "Balance de pagos y abonos".
+    - Se reordenaron las columnas: Metadatos (Fecha/Hora) a la izquierda, Datos Financieros a la derecha.
+    - Se agregaron nuevas columnas: Monto Total, Descuentos, Monto Neto y Saldo Pendiente.
+    - Se habilitó el ordenamiento (sortable) en todas las nuevas columnas financieras.
+5.  **Análisis Financiero**:
+    - Se incluyó una sección de totales generales en formato grande para Total Bruto, Descuentos y Neto.
+    - Se implementó un pie de tabla (footer) con sumatorias automáticas por columna.
+    - Se aplicó lógica anti-duplicados para evitar que órdenes con múltiples pagos inflen los totales de la orden.
+6.  **Formato y UX**: Se integró el mixin `formatNumber` para asegurar que todos los montos tengan separadores de miles y decimales consistentes.
+
+ARCHIVOS MODIFICADOS:
+- Backend: `ninesys-apidev/app/routes/finance.php`
+- Frontend: `app_multi/pages/comercializacion/reportes/pagos-abonos.vue`
+- Frontend: `app_multi/pages/comercializacion/reporte-de-caja.vue`
+
+DESPLIEGUE:
+- Cambios de backend desplegados con éxito en el servidor de desarrollo (Hostinger).

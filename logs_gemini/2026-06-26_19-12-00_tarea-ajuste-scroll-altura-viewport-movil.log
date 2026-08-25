@@ -1,0 +1,28 @@
+# LOG DE TAREA: Ajuste de Altura de Viewport (svh) y Scroll en Pantallas Móviles
+
+**Fecha:** 2026-06-26 19:12:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha solucionado el problema por el cual el contenido de las tarjetas del dashboard de empleados se quedaba recortado en la parte inferior en dispositivos móviles, impidiendo que el usuario pudiera interactuar con las últimas tareas de la lista.
+
+1. **Ajuste de Altura del Viewport con svh (Small Viewport Height):**
+   - En [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue), se añadieron reglas de altura utilizando la unidad `svh` en lugar de `vh` para los elementos del scroll interno controlado:
+     - `html.mobile-internal-scroll` y sus wrappers principales: `height: 100svh !important;`
+     - `.main-content`: `height: calc(100svh - 56px) !important;`
+     - `.dashboard-v2-container`: `height: calc(100svh - 56px) !important;`
+     - `.dashboard-content-area`: `height: calc(100svh - 125px) !important;`
+   - Esto corrige el cálculo de altura en navegadores móviles (Chrome/Safari) donde las barras dinámicas del navegador recortaban el viewport efectivo.
+
+2. **Padding Inferior de Seguridad en la Zona Scrolleable:**
+   - Se modificó la propiedad `padding` de `.dashboard-content-area` en móviles para que sea `padding: 15px 15px 80px 15px !important;`.
+   - Este padding inferior adicional de **80px** actúa como un margen de seguridad al final de la lista, garantizando que el usuario pueda scrollear la última tarjeta por encima del borde de la pantalla de forma holgada y cómoda.
+
+## Archivos Modificados
+- **Frontend:**
+  - [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Los cambios se comitearon y subieron a la rama `refactor/modular-routes`.
+- Se lanzó la compilación y sincronización con el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

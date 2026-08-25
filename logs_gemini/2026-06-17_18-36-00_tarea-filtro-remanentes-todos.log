@@ -1,0 +1,22 @@
+- **Solicitud del Usuario:** vamos con tu opción recomendada Todos
+- **Fecha y Hora:** 2026-06-17 18:36:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/pages/administradores/inventario/remanentes.vue]
+- **Commits Relacionados:**
+    - Frontend: d4b4e72
+    - Backend: N/A
+- **Acción Realizada:**
+    1. Se modificó el filtro inicial `tipo` de `'activos'` a `'todos'` en el objeto `filtros` en `remanentes.vue`.
+    2. Se confirmó y guardó el cambio localmente.
+    3. Se realizó el commit de la modificación en la rama `refactor/modular-routes`.
+- **Inconvenientes y Desafíos:** Ninguno.
+- **Decisión Final y Justificación:** Cambiar el filtro predeterminado a 'todos' evita que los remanentes de insumos terminados (con stock actual = 0) queden ocultos en la carga inicial de la página, proporcionando una visualización inmediata de los sobrantes reales.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `run_command`, `write_to_file`
+- **Resultado:** Éxito
+- **Verificación:** El archivo `remanentes.vue` fue editado y confirmado mediante git status y commit.
+- **Logro Conseguido:** El listado de remanentes mostrará ahora de forma predeterminada todos los sobrantes existentes (tanto activos como de rollos terminados) al abrir la página.
+- **Referencias de Sesión (Contexto):**
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/9a107ab5-a848-425f-ae82-a2a121d579ef/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/9a107ab5-a848-425f-ae82-a2a121d579ef/walkthrough.md)
+- **Observaciones de Gemini:** Ninguna.
+- **Respuesta de Gemini:** Se ha actualizado el filtro por defecto en remanentes a 'todos'.

@@ -1,0 +1,12 @@
+- Solicitud del Usuario: [Listo este requerimienot! creemos un log]
+- Archivos Involucrados: [
+  "/home/developer/Escritorio/niesys/app_multi/store/login.js",
+  "/home/developer/Escritorio/niesys/app_multi/components/formMonedas.vue",
+  "/home/developer/Escritorio/niesys/app_multi/components/ordenes/nueva.vue"
+]
+- Acción Realizada: [Se realizó una refactorización completa de la lógica de configuración de monedas y carga de tasas de cambio. La lógica de negocio se centralizó en la store de Vuex (`store/login.js`) mediante la creación de getters (`currencyConfigState`, `areRatesLoaded`, etc.) para crear una única fuente de verdad. El componente hijo `formMonedas.vue` y los componentes padres (como `nueva.vue`) fueron refactorizados para consumir estos getters, asegurando un comportamiento consistente en todos los escenarios: sin monedas configuradas, solo con la moneda base (dólar), y con múltiples monedas. El proceso incluyó depuración iterativa para corregir errores de implementación y reactividad, y finalizó con ajustes de texto solicitados por el usuario.]
+- Herramienta(s) Utilizada(s): [default_api.search_file_content, default_api.read_file, default_api.replace, default_api.run_shell_command]
+- Resultado: [Éxito]
+- Verificación: [El usuario confirmó que el comportamiento final de la aplicación es el correcto en todos los escenarios probados, mostrando los mensajes y advertencias adecuadas y cargando los componentes como se esperaba.]
+- Observaciones de Gemini: [La tarea evolucionó de un simple cambio de texto a una importante refactorización de la gestión del estado. La centralización de la lógica en Vuex fue crucial para la robustez y mantenibilidad de la solución. El proceso de depuración, que incluyó el análisis de logs y la revisión de la estructura de los componentes, fue clave para identificar errores sutiles de implementación que impedían el comportamiento esperado.]
+- Respuesta de Gemini: [Listo. El archivo de bitácora `2025-09-25_10-59-18_tarea-refactor-logica-monedas.log` ha sido creado en la carpeta `logs_gemini/`.]

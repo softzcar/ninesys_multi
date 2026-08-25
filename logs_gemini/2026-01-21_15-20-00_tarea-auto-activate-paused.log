@@ -1,0 +1,12 @@
+- Solicitud del Usuario: El usuario solicitó que si la sesión está en estado PAUSED al abrir el modal, la aplicación intente activarla automáticamente en lugar de solo mostrar la alerta y esperar un clic manual.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/checkConnection.vue
+- Acción Realizada: 
+    - Se añadió la propiedad `intentoAutoActivacion` al `data` del componente.
+    - Se resetea esta bandera a `false` en `onModalShow`.
+    - En `updateState`, si el estado es `PAUSED` y la bandera es falsa (y el modal está abierto), se dispara automáticamente `this.activateWhatsapp()`.
+    - Se activa la bandera para evitar bucles infinitos si el backend responde con PAUSED nuevamente.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito.
+- Verificación: Revisión de lógica. Se asegura un único intento por apertura de modal.
+- Observaciones de Gemini: Mejora la fluidez. El usuario no necesita saber que está "pausado" si el tiempo ya expiró; la app lo reintenta por él.
+- Respuesta de Gemini: Confirmación de que la auto-activación está implementada localmente.

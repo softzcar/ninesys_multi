@@ -1,0 +1,21 @@
+# LOG DE TAREA: Ocultar Barra de Progreso en el Dashboard de Empleados
+
+**Fecha:** 2026-06-26 18:37:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha removido el componente de la barra de progreso (`ProgressBarEmpleados`) en todas las tarjetas de tareas del dashboard de empleados para simplificar la visualización de la interfaz y mantener la consistencia con las tarjetas de tareas pendientes.
+
+1. **Eliminación de ProgressBarEmpleados:**
+   - Se removió el bloque `<div class="card-progress-bar-container ..."> <empleados-ProgressBarEmpleados ... /> </div>` de las siguientes secciones en `SseOrdenesAsignadasV5.vue`:
+     - **Pestaña Órdenes:** Sección de tareas **Urgentes** (líneas 140-142) y sección de tareas **En Proceso** (líneas 268-270).
+     - **Pestaña Revisiones:** Sección de tareas **Urgentes** (líneas 412-414) y sección de tareas **En Proceso** (líneas 488-490).
+
+## Archivos Modificados
+- **Frontend:**
+  - [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Los cambios se commitearon y subieron al repositorio remoto en la rama `refactor/modular-routes`.
+- El frontend se compiló y desplegó correctamente en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `deploy.sh` (Opción 2).

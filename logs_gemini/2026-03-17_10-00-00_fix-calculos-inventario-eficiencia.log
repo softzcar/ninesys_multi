@@ -1,0 +1,11 @@
+- **Solicitud del Usuario:** Explicación y corrección de cálculos en reporte de inventario general.
+- **Fecha y Hora:** 2026-03-17 10:00:00
+- **Proyecto(s):** Frontend (Vue components)
+- **Archivos Involucrados:** [/home/developer/Escritorio/niesys/app_multi/components/reportes/ReporteInventarioGeneral.vue](file:///home/developer/Escritorio/niesys/app_multi/components/reportes/ReporteInventarioGeneral.vue)
+- **Acción Realizada:** Se actualizaron las fórmulas de cálculo en el reporte imprimible de inventario:
+    1.  **Stock por fila:** Ahora multiplica `cantidad * rendimiento` para mostrar unidades individuales (ej. metros) en lugar de magnitudes globales (ej. Kg).
+    2.  **Valor por fila:** Se cambió a un cálculo proporcional `(Stock Actual / Stock Inicial) * Costo Total del Lote`.
+    3.  **Totales del encabezado:** Se ajustaron para ser la suma de los valores calculados por fila.
+- **Lógica de Seguridad:** Se incluyó un fallback `|| 1` en los divisores para evitar errores de división por cero en caso de datos maestros incompletos.
+- **Resultado:** Éxito. El reporte ahora refleja fielmente el valor económico del material restante en bodega.
+- **Verificación:** Revisión de lógica de reducción (reduce) en Vue.

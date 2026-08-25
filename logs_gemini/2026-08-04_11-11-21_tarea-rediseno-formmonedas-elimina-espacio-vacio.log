@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** En `/comercializacion/ordenes` (Nueva Orden), el widget de tasas (dólar/bolívar) dejaba un rectángulo vacío grande a la izquierda ("ESPACIO OCIOSO", señalado con una captura anotada). Pidió ideas para reorganizar el componente y aprovechar el espacio en escritorio, tablet y celular.
+- **Fecha y Hora:** 2026-08-04 11:11:21
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - components/formMonedas.vue
+    - components/ordenes/nueva.vue
+- **Commits Relacionados:**
+    - Frontend: (ver hash tras el commit)
+- **Acción Realizada:**
+    1. Diagnóstico: el wrapper en `nueva.vue` usaba `<b-col md="3" ... offset-md="9">` -- reserva 9 de 12 columnas de la fila como espacio vacío solo para empujar el widget (3 columnas) hacia la derecha. Ese ancho angosto forzado (25% real) obligaba además a `formMonedas.vue` (diseñado apilado verticalmente: botón, texto, 2 badges en lista, formulario) a verse alto y angosto, agravando la sensación de espacio desperdiciado.
+    2. Confirmado por grep que el mismo componente se usa en 8 lugares (`nueva.vue`, `presupuesto.vue`, `abono.vue`, `cierre-de-caja.vue`, `abonos.vue`, `retiros/index.vue`, `MenuLoader.vue`, `DashboardAdministracion.vue`), cada uno con un wrapper distinto copiado a mano (`offset-9`, `offset-6`, sin wrapper, o dentro de una grilla de tarjetas) -- confirma el "desorden de interfaz" ya señalado por el usuario como problema aparte.
+    3. Rediseñado `formMonedas.vue`: de layout apilado a una barra horizontal compacta (flexbox, `flex-wrap`, sin anchos fijos en píxeles) que agrupa botón "Actualizar", badges BCV/Manual, y el grupo input+botón "Usar BCV" por cada moneda adicional, todo en la misma fila que se envuelve de forma natural en pantallas angostas. La línea de "última actualización" pasó a ser una segunda línea discreta en vez de un bloque propio.
+    4. `nueva.vue`: reemplazado el `b-col` con offset-9 por un `<b-col>` normal (ancho completo) + `<div class="d-flex justify-content-end">` envolviendo `<form-monedas />` -- el widget queda anclado visualmente a la derecha sin reservar columnas vacías del lado izquierdo.
+- **Inconvenientes y Desafíos:** Ninguno técnico. Se verificó con un `nuxt generate` local completo (lección de la tarea anterior con `marked`) antes de desplegar, para no repetir un deploy fallido.
+- **Decisión Final y Justificación:** Se corrigió el patrón compartido (`formMonedas.vue`) de forma que el mismo beneficio se pueda extender a los otros 7 usos con solo ajustar su wrapper -- en vez de tocar los 8 lugares en la misma tarea (riesgo de romper varias pantallas a la vez sin poder verificar cada una). Se dejó explícitamente pendiente en la memoria del proyecto.
+- **Herramienta(s) Utilizada(s):** `grep` (mapeo de los 8 usos), `Read`, `Edit`, verificación de sintaxis con `vue-template-compiler` + `@babel/core`, `nuxt generate` local completo antes de desplegar.
+- **Resultado:** Éxito.
+- **Verificación:** Ambos componentes sin errores de sintaxis. Build local completo sin errores (incluye `/comercializacion/ordenes`). Pendiente confirmación visual del usuario en escritorio/tablet/celular tras el deploy.
+- **Logro Conseguido:** Elimina el espacio vacío reportado en la pantalla más usada del sistema (creación de orden), y deja un patrón reutilizable para corregir el mismo problema en los otros 7 usos del componente.
+- **Observaciones:** Pendiente aplicar el mismo ajuste de wrapper (quitar offset, envolver en `d-flex justify-content-end`) en `presupuesto.vue` (mismo offset-9 confirmado), `abono.vue` (offset-6), `cierre-de-caja.vue`, `abonos.vue`, `retiros/index.vue`, `MenuLoader.vue` y `DashboardAdministracion.vue` -- quedó anotado en memoria del proyecto, no se tocó en esta tarea.
+- **Respuesta de Claude:** Rediseñado el widget de tasas a una barra horizontal compacta (en vez de apilado vertical), y corregido el wrapper de Nueva Orden para que ya no reserve un espacio vacío -- el widget queda anclado a la derecha usando solo el ancho que realmente necesita, y se reorganiza solo en pantallas angostas.

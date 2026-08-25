@@ -1,0 +1,22 @@
+- Solicitud del Usuario: Quejarse de que, aunque el diálogo de impresión se abre en una pestaña nueva, la aplicación principal sigue bloqueada por un overlay hasta que se interactúa con el diálogo de impresión.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosEmpleados.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosVendedorResumen.vue
+    - /home/developer/Escritorio/niesys/app_multi/components/admin/PagosDisenioResumen.vue
+- Acción Realizada: Se diagnosticó que la llamada `newWindow.print()` ejecutada desde el contexto de la ventana principal (opener) estaba bloqueando el hilo de ejecución de JavaScript, impidiendo que el `overlay` de la aplicación principal se desactivara (ya que la función `reloadMe` que lo desactiva depende del flujo normal de JS).
+    La solución fue mover la lógica de impresión **dentro** de la nueva ventana mediante inyección de script:
+    ```javascript
+    <script>
+      window.onload = function() {
+        setTimeout(function() {
+          window.print();
+        }, 500);
+      }
+    </script>
+    ```
+    Esto desacopla la ejecución: la ventana principal abre la nueva pestaña, inyecta el contenido y el script, y luego continúa su ejecución inmediatamente (desactivando el overlay). Es la nueva ventana la que se encarga de llamarse a sí misma `window.print()` cuando carga, sin bloquear a la ventana padre.
+- Herramienta(s) Utilizada(s): `view_file`, `replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó que el `setTimeout` que llamaba a `print()` fue eliminado del contexto principal y reemplazado por el script inyectado en el HTML de la nueva ventana en los tres archivos afectados.
+- Observaciones de Gemini: Esta es la forma correcta de manejar impresiones en ventanas secundarias para evitar bloqueos en Single Page Applications (SPAs).
+- Respuesta de Gemini: Confirmación de la corrección del bloqueo del overlay mediante inyección de script.

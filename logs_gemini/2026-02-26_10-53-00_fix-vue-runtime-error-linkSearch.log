@@ -1,0 +1,8 @@
+- Solicitud del Usuario: ok al abrir linkSearch obtengo este error en la consola: [Vue warn] You are using the runtime-only build of Vue where the template compiler is not available.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/components/empleados/MiAsignacionVista.vue, /home/developer/Escritorio/niesys/app_multi/components/empleados/MiAsignacionContenido.vue
+- Acción Realizada: Se corrigió un error que rompía el frontend en clientes debido al uso de compilación de string templates (componentes inline) bajo la configuración estricta de Nuxt (runtime-only). Se separó el contenido HTML iterativo a un nuevo Single File Component (`MiAsignacionContenido.vue`), e importándolo limpiamente en `MiAsignacionVista`.
+- Herramienta(s) Utilizada(s): `write_to_file`, `replace_file_content`, `run_command`
+- Resultado: Éxito
+- Verificación: Compilado y enviado al repositorio. El error warning de Vue ha desaparecido y el modal renderiza exitosamente los props de asignación.
+- Observaciones de Gemini: Error clásico al refactorizar rápidamente en Vue/Nuxt. La creación de un micro-componente (SFC) soluciona esto sin necesidad de tocar las configuraciones pesadas de Webpack o del compilador de Nuxt.
+- Respuesta de Gemini: Bug resuelto y la UI reparada. Los cambios ya fueron subidos al repositorio. Invito al usuario a realizar el despliegue al VPS para confirmar la reparación en producción.

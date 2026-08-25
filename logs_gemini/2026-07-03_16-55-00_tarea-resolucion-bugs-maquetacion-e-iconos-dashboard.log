@@ -1,0 +1,26 @@
+LOG DE CAMBIOS - BITÁCORA DE TAREAS
+
+Fecha/Hora: 2026-07-03 16:55:00
+Tarea: Resolución de bugs de maquetación y corrección final de iconos repetidos/vacíos en el dashboard.
+
+Descripción de los Cambios:
+1. SseOrdenesAsignadasV5.vue (Maquetación en Móviles):
+   - Modificado el CSS scoped de la barra de acciones secundarias de la tarjeta (`.card-actions-bar`) en la media query móvil (`@media (max-width: 576px)`) agregando `flex-wrap: nowrap !important;` y `overflow-x: auto !important;`.
+   - Esto evita definitivamente que el botón de piezas de la derecha salte de línea en pantallas móviles, garantizando que todos los botones secundarios se mantengan siempre alineados en una única fila horizontal.
+
+2. pausasEmpleados.vue (Icono del Botón de Pausas):
+   - Se agregó el componente `<b-icon>` con icono dinámico (`play-fill` si el estado es 'REANUDAR', y `pause-fill` en caso contrario) al botón principal de pausas.
+   - Esto corrige el bug por el cual el botón se mostraba vacío e invisible en pantallas móviles al ocultarse el texto por las reglas de normalización CSS.
+
+3. reposicion.vue (Diferenciación del Icono de Detalle de Reposición):
+   - Se cambió el icono del botón que abre el modal de motivo/detalle de la reposición de `eye` al icono `exclamation-circle` (círculo de exclamación).
+
+4. controlDeProduccionDetallesEditor.vue (Diferenciación del Icono de Detalles Generales):
+   - Se cambió el icono del botón que abre las observaciones y detalles generales de la orden de `eye` al icono `card-text` (tarjeta de texto).
+
+Resultado Visual:
+- El visualizador de imágenes usa el icono `image` (paisaje fotográfico).
+- El visor de detalles de reposición/daño usa el icono `exclamation-circle` (advertencia).
+- El editor de observaciones/detalles generales usa el icono `card-text` (lista/diario de texto).
+- El botón de pausa usa el icono `pause-fill` o `play-fill`.
+- Ningún botón queda sin icono ni se duplican los iconos de ojo en la interfaz. Todos se maquetan en una sola línea horizontal sin desbordamiento destructivo.

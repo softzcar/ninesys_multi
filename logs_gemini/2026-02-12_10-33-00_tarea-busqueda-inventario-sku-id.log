@@ -1,0 +1,8 @@
+- Solicitud del Usuario: Modificar la página de gestión de inventario para permitir la búsqueda por SKU e ID del insumo.
+- Archivos Involucrados: /home/developer/Escritorio/niesys/app_multi/pages/inventario/gestion/index.vue
+- Acción Realizada: Se modificó la propiedad `includedFields` en el componente `index.vue` para añadir el campo `rollo` (que representa el ID del insumo en el frontend). También se actualizó el atributo `placeholder` del componente `b-form-input` de búsqueda para reflejar las nuevas capacidades (Nombre, SKU o ID).
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`
+- Resultado: Éxito
+- Verificación: Se verificó el código fuente para asegurar que el campo `rollo` sea el buscador de ID correcto según la definición de la tabla. Se confirmó que el SKU ya estaba en la lista pero ahora se incluyó el ID y se mejoró la transparencia del input para el usuario.
+- Observaciones de Gemini: El sistema utiliza el filtrado nativo de `b-table`, por lo que añadir el campo a `includedFields` es la forma más eficiente y menos invasiva de lograr el objetivo.
+- Respuesta de Gemini: He actualizado la página de Gestión de Inventario para que puedas buscar insumos por su nombre, SKU o ID. He añadido el campo `rollo` a los criterios de búsqueda y actualizado el mensaje de ayuda en el cuadro de búsqueda.

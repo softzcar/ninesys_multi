@@ -1,0 +1,26 @@
+- **Solicitud del Usuario:** Verificar y garantizar que los componentes de eficiencia del módulo del empleado calculen y rendericen correctamente las barras de progreso y tiempos de trabajo, integrando con precisión el huso horario configurado para cada empresa y evitando desfases.
+- **Fecha y Hora:** 2026-06-03 14:32:00 (GMT-4)
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+    - `app_multi/mixins/mixin-time.js`
+    - `app_multi/components/empleados/DashboardEmpleado.vue`
+    - `app_multi/components/empleados/SseOrdenesAsignadasV4.vue`
+    - `app_multi/components/empresa/ConfigTimezoneForm.vue`
+    - `app_multi/components/empresa/ConfigPersonalizacionForm.vue`
+    - `app_multi/components/empresa/MonedasManager.vue`
+    - `app_multi/components/empresa/configuracionWizard.vue`
+    - `app_multi/components/progreso-tiempo-semaforo.vue`
+    - `app_multi/pages/empresa/configuracion.vue`
+- **Commits Relacionados:**
+    - Frontend: Pendiente de commitear
+    - Backend: Pendiente de commitear
+- **Acción Realizada:**
+    - Implementación del componente `ConfigTimezoneForm.vue` para seleccionar la zona horaria en la configuración de la empresa y en el Wizard de configuración inicial.
+    - Implementación del método `obtenerAhoraEnTimezone(timezone)` en el mixin de tiempo (`mixin-time.js`) que calcula la hora local exacta de la empresa en JS nativo usando `Intl.DateTimeFormat` con locale `sv-SE`, independientemente de la zona horaria de la PC del usuario.
+    - Modificado `calcularTiempoTrabajoOrdenes` en `mixin-time.js` para usar la zona horaria de la store de la empresa (`timezone`) y el método anterior.
+    - Modificado `fetchEficienciaChart` en `DashboardEmpleado.vue` y `fetchEfficiency` en `SseOrdenesAsignadasV4.vue` para sustituir instanciaciones de `new Date()` (que usaban la hora del PC del usuario) por la hora adaptada del huso de la empresa para tareas activas y pausas.
+    - Normalizado el parseo de todas las fechas que vienen de la base de datos reemplazando espacios por "T" (`.replace(' ', 'T')`) para evitar `Invalid Date` en navegadores como Safari.
+    - Desplegado exitosamente en desarrollo con `deploy.sh`.
+- **Inconvenientes y Desafíos:** Ninguno. La técnica de hora localizada ficticia funciona de forma sumamente robusta sin necesidad de librerías externas de zonas horarias.
+- **Resultado:** Éxito
+- **Verificación:** Se verificó que las barras de progreso, avance en curso y eficiencias de tareas del empleado en el portal de desarrollo en la VPS se alinean perfectamente y no presentan saltos de tiempo artificiales.

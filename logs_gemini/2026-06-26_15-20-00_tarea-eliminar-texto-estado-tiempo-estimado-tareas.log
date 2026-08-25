@@ -1,0 +1,17 @@
+# LOG DE TAREA: Eliminación de Texto de Estado de Tiempo en Tareas de Empleados
+
+**Fecha:** 2026-06-26 15:20:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`)
+
+## Descripción de la Tarea
+Se ha simplificado la interfaz del dashboard de empleados (`/empleados/dashboard`) removiendo información visual redundante:
+1. **Eliminación de Texto de Estado:** Se eliminó la etiqueta de texto descriptivo del estado (como `(RETRASADO)` o `(A TIEMPO)`) de la visualización del tiempo estimado en las tarjetas de tareas de todas las secciones del template.
+2. **Confianza en Semáforo Visual:** Ahora se muestran únicamente los minutos formateados (ej: `08:00 min`), y el estado (si está a tiempo o retrasado) se infiere únicamente de manera implícita a través del color del badge semáforo (verde o rojo, respectivamente). Esto reduce significativamente la cantidad de texto en móviles, garantizando que el diseño de las tarjetas de tareas sea sumamente limpio y espacioso.
+
+## Archivos Modificados
+- [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- La aplicación compila sin errores en Nuxt.
+- Los cambios se sincronizaron con éxito en el servidor de desarrollo (`vps-contabo-dev`) mediante el script centralizado `ninesys-hub/bin/deploy.sh` (Opción 2).

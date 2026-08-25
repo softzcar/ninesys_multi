@@ -1,0 +1,6 @@
+- Solicitud del Usuario: Corregir que el modal se abre dos veces para empleados asignados a múltiples departamentos (ej. Maru).
+- Archivos Involucrados: components/admin/PagosConfirmacionModal.vue
+- Acción Realizada: Se modificó la generación del  para incluir  (además del ID del empleado), garantizando unicidad en el DOM.
+- Resultado: Cada instancia del modal tiene un ID único (ej.  vs ), evitando conflictos.
+- Verificación: Despliegue en frontend completado.
+- Respuesta de Gemini: Confirmación de solución a conflicto de IDs.

@@ -1,0 +1,23 @@
+# LOG DE TAREA: Priorización de Órdenes Urgentes En Curso y Soporte en Reposiciones
+
+**Fecha:** 2026-06-26 17:01:00
+**Autor:** Antigravity AI Coding Assistant
+**Proyecto:** Frontend (`app_multi`) y Backend (`ninesys-api`)
+
+## Descripción de la Tarea
+Se ha implementado la priorización de las tareas urgentes (`prioridad > 0`) dentro de los listados de tareas en curso del dashboard de empleados, tanto para órdenes como para revisiones (reposiciones):
+
+1. **Soporte de Prioridad en Reposiciones (Backend):**
+   - Se modificó el query de reposiciones en el endpoint del backend `/empleados/ordenes-asignadas/v2/...` (`ninesys-api/app/routes/manufacturing.php`).
+   - Se añadió un `LEFT JOIN lotes l ON l.id_orden = a.id_orden` y se seleccionó el campo `l.prioridad` como `prioridad`. Esto permite que las reposiciones expongan la prioridad de la orden padre a la que pertenecen.
+
+2. **Ordenación en el Frontend:**
+   - Se actualizaron las funciones de ordenación (`.sort`) en las propiedades computadas `dataTableEnCurso` (órdenes en proceso) y `dataTableReposiciones` (revisiones) en el componente `/components/empleados/SseOrdenesAsignadasV5.vue`.
+   - Ahora, los elementos con prioridad activa (`prioridad > 0` o `urgent > 0`) se ordenan de primeros en la lista (orden descendente). Los elementos sin prioridad o con prioridad idéntica mantienen su orden original basado en la fecha y hora (`fecha_hora`).
+
+## Archivos Modificados
+- **Backend:** [manufacturing.php](file:///home/developer/Escritorio/niesys/ninesys-api/app/routes/manufacturing.php)
+- **Frontend:** [SseOrdenesAsignadasV5.vue](file:///home/developer/Escritorio/niesys/app_multi/components/empleados/SseOrdenesAsignadasV5.vue)
+
+## Verificación y Despliegue
+- Backend y Frontend sincronizados exitosamente con el servidor de desarrollo (`vps-contabo-dev`) mediante los scripts centralizados correspondientes (`deploy_backend.sh` y `deploy.sh` en `ninesys-hub/bin/`).

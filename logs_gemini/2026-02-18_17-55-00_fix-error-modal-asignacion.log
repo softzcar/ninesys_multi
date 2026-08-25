@@ -1,0 +1,16 @@
+
+- Solicitud del Usuario: Error al cargar detalles de la orden en el modal de asignación y tabla vacía.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/production.php (Modificado)
+    - /home/developer/Escritorio/niesys/app_multi/components/produccion/CorteItemView.vue (Modificado)
+    - /home/developer/.gemini/antigravity/brain/72fdc126-34ec-4ea4-b3f3-3be096126eef/walkthrough.md (Modificado)
+- Acción Realizada:
+    - Backend: Se robusteció el endpoint `/production/corte/orden-detalles/{id}` añadiendo `try-catch`, sanitización de entrada (`intval`) y manejo explícito de errores para evitar respuestas 500 por IDs inválidos.
+    - Frontend: Se mejoró `CorteItemView.vue` para diferenciar visualmente entre "Cargando" y "Sin resultados" (evitando la confusión de "cargando infinito"). Se añadió `console.log` del ID de la orden para facilitar depuración.
+- Herramienta(s) Utilizada(s): `replace_file_content`
+- Resultado: Éxito
+- Verificación:
+    - El backend ahora retorna JSON de error controlado o lista vacía en lugar de fallar silenciosamente o con error 500 por sintaxis SQL.
+    - El frontend muestra mensajes claros al usuario.
+- Observaciones de Gemini:
+    - Es probable que el ID de orden enviado fuera inválido o no correspondiera a una orden de venta con productos, lo que causaba el fallo. Ahora el sistema es tolerante a estos casos.

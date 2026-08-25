@@ -1,0 +1,25 @@
+- Solicitud del Usuario: Actualizar el archivo deploy.sh para que el deploy se haga al directorio `/home/app.nineteencustom.com/public_html` del nuevo VPS de Contabo, y registrar las credenciales SSH de Contabo en GEMINI.md.
+
+- Archivos Involucrados:
+  - `/home/developer/Escritorio/niesys/app_multi/deploy.sh`
+  - `/home/developer/Escritorio/niesys/app_multi/GEMINI.md`
+  - `~/.ssh/config`
+
+- Acción Realizada:
+  1. Se actualizó `deploy.sh`: cambió `REMOTE_HOST` de `vps-ninesys` a `vps-contabo` (nuevo alias para 217.216.95.32). `REMOTE_PATH` ya era correcto (`/home/app.nineteencustom.com/public_html`).
+  2. Se agregó el alias `vps-contabo` en `~/.ssh/config` apuntando a `217.216.95.32`, usuario `root`.
+  3. Se actualizó `GEMINI.md` del frontend:
+     - Sección deploy: cambió IP a `217.216.95.32` y alias a `vps-contabo`.
+     - Sección "Acceso al VPS": agregó subsección "VPS Contabo (NUEVO - Servidor Principal)" con host, user, password, panel CyberPanel y clave MariaDB. Se conservó el VPS de Hostinger como referencia histórica.
+     - Actualizó rutas VPS (backend ahora en `/home/api.nineteengreen.com/public_html/`).
+     - Actualizó comandos de actualización remota usando `sshpass` con las credenciales de Contabo.
+
+- Herramienta(s) Utilizada(s): `multi_replace_file_content`, `run_command`, `view_file`
+
+- Resultado: Éxito
+
+- Verificación: Se verificó visualmente que los cambios en `deploy.sh` y `GEMINI.md` son correctos. El alias SSH fue agregado exitosamente al ssh config.
+
+- Observaciones de Gemini: El SSH config no soporta la directiva `Password` nativamente, por lo que para el rsync del deploy.sh se requerirá que `vps-contabo` tenga clave SSH configurada o usar `sshpass` en el script. Se sugiere configurar autenticación por clave SSH a Contabo para que el deploy sin contraseña funcione correctamente.
+
+- Respuesta de Gemini: Se actualizaron `deploy.sh`, `GEMINI.md` y `~/.ssh/config` correctamente con las credenciales del nuevo VPS de Contabo.

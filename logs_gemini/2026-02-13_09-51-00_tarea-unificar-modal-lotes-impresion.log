@@ -1,0 +1,15 @@
+- Solicitud del Usuario: Unificar el modal de finalización de lotes para Impresión con el modal genérico (FinalizarLoteModal.vue), agregando formularios de tintas por orden dentro de cada tarjeta, y soporte backend para consumo_tintas en el endpoint finalizar-departamento.
+- Archivos Involucrados:
+  - Frontend: components/empleados/FinalizarLoteModal.vue (extendido con props, data, computed, template y métodos de tintas)
+  - Frontend: components/empleados/SseOrdenesAsignadasV4.vue (eliminada bifurcación modal Impresión)
+  - Backend: app/routes/manufacturing.php (soporte consumo_tintas en endpoint finalizar-departamento)
+- Acción Realizada:
+  - FinalizarLoteModal.vue: Agregados props (impresoras, esReposicion), data (tintasPorOrden, colorMap), computed (isImpresion), métodos de gestión de impresoras por orden, sección de template con formularios CMYKW dentro de cada tarjeta de orden, y lógica de envío de tintas en enviarDatos().
+  - SseOrdenesAsignadasV4.vue: Eliminada condición if (depto === 'Impresión') que abría modal separado. Agregados props impresoras y esReposicion al FinalizarLoteModal.
+  - manufacturing.php: Agregado bloque de procesamiento de consumo_tintas opcional después del procesamiento de consumos_lote, insertando registros en tabla 'tintas' directamente por orden.
+  - Agregado 'Impresión' al configMap de debeMostrarOrden como fallback.
+- Herramienta(s) Utilizada(s): multi_replace_file_content, replace_file_content, run_command
+- Resultado: Éxito
+- Verificación: Commits realizados en ambos repositorios. Backend desplegado en VPS exitosamente. Frontend pendiente de despliegue por el usuario.
+- Observaciones de Gemini: El endpoint separado finalizar-impresion se mantiene como legacy pero ya no se usa desde el frontend. Se podría deprecar en el futuro. La validación de formValid ahora incluye validación de tintas solo cuando isImpresion es true.
+- Respuesta de Gemini: Implementación completada. Se extendió FinalizarLoteModal.vue con formularios de tintas por orden para Impresión, se eliminó la bifurcación en el componente padre, y se agregó soporte backend para consumo_tintas en finalizar-departamento.

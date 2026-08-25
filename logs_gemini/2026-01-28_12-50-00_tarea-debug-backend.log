@@ -1,0 +1,12 @@
+- Solicitud del Usuario: Investigar por qué el backend no termina el insumo.
+- Archivos Involucrados:
+    - /home/developer/Escritorio/Antigravity/ninesys-apidev/app/routes/inventory.php
+- Acciones Realizadas:
+    - Se agregó `debug_received` al objeto de respuesta en `inventory.php`.
+    - Esto devolverá en el JSON de respuesta exactamente lo que el servidor entendió que le enviaron (`$request->getParsedBody()`).
+    - Despliegue realizado a VPS.
+- Herramientas Utilizadas: `replace_file_content`, `run_command` (git, ssh).
+- Resultado: Backend instrumentado.
+- Verificación: Pendiente de prueba del usuario.
+- Observaciones de Gemini: Necesitamos ver si `auto_remanente` llega como `true` boolean, "true" string, o no llega.
+- Respuesta de Gemini: Debug activado.

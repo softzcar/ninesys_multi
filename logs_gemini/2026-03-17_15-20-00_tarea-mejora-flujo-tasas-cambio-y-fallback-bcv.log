@@ -1,0 +1,34 @@
+TAREA: Mejora del Flujo de Tasas de Cambio y Robustez del Proxy BCV
+FECHA: 2026-03-17
+ESTADO: Completada
+
+RESUMEN DE ACCIONES:
+
+1. BACKEND (Robustez del Proxy):
+   - Archivo: app/routes.php
+   - Cambio: Se implementó un sistema de fallback en el endpoint `/bcv-rates`. 
+   - Lógica: Si la fuente primaria (justcarlux.dev) devuelve un error (ej. 523), el sistema consulta automáticamente a dolarapi.com.
+   - Resultado: La API ahora es resiliente a caídas de proveedores externos.
+
+2. FRONTEND - STORE (Lógica de Prioridades):
+   - Archivo: store/login.js
+   - Cambio: Se modificó `cargarTasasAutomaticas` para aceptar el parámetro `forceUpdate`.
+   - Lógica: Por defecto (forceUpdate: false), el sistema actualiza la referencia (metadata) para el multiplicador de precios, pero NO sobrescribe la tasa operativa si ya tiene un valor de la base de datos.
+   - Resultado: Se respeta la decisión manual del administrador mientras se mantiene el BCV como referencia actualizada.
+
+3. FRONTEND - UI (Experiencia de Usuario):
+   - Archivo: components/formMonedas.vue
+   - Cambio: Se agregó visualización comparativa (BCV Oficial vs Tasa Manual) y un botón "Usar BCV".
+   - Resultado: El administrador puede aplicar la tasa oficial con un solo clic.
+
+4. FRONTEND - NOTIFICACIONES (Transparencia):
+   - Archivo: components/menus/MenuLoader.vue
+   - Cambio: Se implementó un b-toast (notificación flotante) que alerta al administrador si la sincronización automática falla completamente.
+   - Resultado: El usuario es informado proactivamente si el sistema no pudo obtener las tasas del día, indicando que se usarán los valores manuales.
+
+DESPLIEGUE Y VERIFICACIÓN:
+- Entorno PRODUCCIÓN (Contabo): Desplegado exitosamente (Backend y Frontend). Verificado funcionamiento del fallback con curl y pruebas visuales en app.nineteencustom.com.
+- Entorno DESARROLLO (Hostinger): Sincronizado con la última versión de producción.
+
+CONCLUSIÓN:
+El componente de manejo de divisas es ahora más robusto, informativo y respeta la jerarquía de configuración definida por el negocio.

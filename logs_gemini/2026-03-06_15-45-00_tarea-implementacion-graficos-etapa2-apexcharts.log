@@ -1,0 +1,28 @@
+- **Solicitud del Usuario:** Proyecto Etapa 2: Gráficos. Mostrar gráficos con total de órdenes por día, resumen de eficiencia de tiempo y de insumos usando ApexCharts. Mostrar porcentaje de eficiencia en el centro y leyendas descriptivas.
+- **Fecha y Hora:** 2026-03-06 15:45:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** 
+    - `/home/developer/Escritorio/niesys/app_multi/pages/reportes/semanal.vue`
+    - `/home/developer/Escritorio/niesys/app_multi/components/charts/DonutChart.vue`
+- **Commits Relacionados:**
+    - Frontend: N/A (Desarrollo local)
+    - Backend: N/A
+- **Acción Realizada:** 
+    - Integración de componentes `WeeklyOrdersChart` y `DonutChart` de ApexCharts en el reporte semanal.
+    - Implementación de propiedades computadas (`chartOrdersData`, `chartTimeEfficiencyData`, `chartMaterialEfficiencyData`) para procesar los datos recibidos del API.
+    - Modificación de `DonutChart.vue` para aceptar props `centerValue` y `centerLabel`, permitiendo mostrar el porcentaje de eficiencia (ej: "98%") en el centro del gráfico.
+    - Adición de leyendas descriptivas personalizadas debajo de cada gráfico de dona para mejorar la interpretabilidad.
+    - Ajuste estético de la etiqueta central de "Media" a "Eficiencia".
+- **Inconvenientes y Desafíos:** El gráfico de dona mostraba por defecto el total de la serie en el centro; se requirió modificar la configuración de `plotOptions.pie.donut.labels.total.formatter` en ApexCharts para inyectar el valor personalizado de eficiencia semanal.
+- **Decisión Final y Justificación:** Se optó por centralizar el procesamiento de datos del gráfico en propiedades computadas del frontend para mantener la reactividad sin sobrecargar las peticiones al backend.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `write_to_file`
+- **Resultado:** Éxito
+- **Verificación:** Visualización exitosa de los tres gráficos en el componente con datos reales, etiquetas centrales correctas y leyendas dinámicas.
+- **Logro Conseguido:** Dashboard gráfico interactivo completado, permitiendo a la gerencia visualizar el rendimiento semanal de un vistazo.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/2991c6ad-8194-4f52-be65-78530226521e/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/2991c6ad-8194-4f52-be65-78530226521e/walkthrough.md)
+
+- **⚠️ NOTA DE PERSISTENCIA:** Implementación completa de la Etapa 2 de gráficos.
+- **Observaciones de Gemini:** Los gráficos mejoran significativamente la UX del reporte. Se recomienda monitorear el rendimiento con semanas de >500 órdenes.
+- **Respuesta de Gemini:** Se notificó al usuario la finalización de los gráficos y los refinamientos estéticos solicitados.

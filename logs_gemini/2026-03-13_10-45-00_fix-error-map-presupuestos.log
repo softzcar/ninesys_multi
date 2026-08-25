@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Corregir error de frontend `TypeError: Cannot read properties of undefined (reading 'map')` en `presupuesto.vue` al cargar la página en el servidor de desarrollo.
+- **Fecha y Hora:** 2026-03-13 10:45:00
+- **Proyecto(s):** Backend y Frontend (Impacto)
+- **Archivos Involucrados:** 
+    - Backend: `app/routes/tables.php`
+- **Commits Relacionados:**
+    - Backend: `533384d` ([fix(api): use pp.tela directly and add error handling in /ordenes/guardadas to prevent 500 errors])
+- **Acción Realizada:** 
+    1. **Análisis del Error**: Se detectó que el frontend fallaba porque la respuesta de `/ordenes/guardadas` retornaba un Error 500 o fallaba la estructura JSON. El fallo prevenía de una sintaxis SQL inválida en el servidor de pruebas por la tabla `catalogo_telas`.
+    2. **Corrección de SQL**: Se ajustó la consulta SQL para usar la columna `tela` nativa de la tabla `presupuestos_productos` en lugar de requerir un `LEFT JOIN` con una tabla que causaba errores en producción.
+    3. **Robustez de la API**: Se añadió control de errores en PHP para asegurar que si `goQuery` falla (devolviendo `['status' => 'error']`), el endpoint devuelva un array `items` vacío y un mensaje descriptivo en lugar de iterar sobre el string de error y causar un Fatal Error en PHP.
+    4. **Despliegue Backend**: Se subieron y desplegaron exitosamente estos cambios a Hostinger para corregir la consulta en el servidor remoto que utilizaba el usuario.
+- **Inconvenientes y Desafíos:** Aunque localmente MySQL podía intentar la resolución, la estructura en Hostinger producía un error de SQL que en cascada rompía el controlador en PHP y luego lanzaba la excepción en Vue.js. Se implementó una solución doble (en el nivel de SQL y en el controlador).
+- **Decisión Final y Justificación:** Depender directamente de `pp.tela` es más eficiente y seguro, ya que la migración ya inserta el string en esa columna, evitando consultas adicionales complejas.
+- **Herramienta(s) Utilizada(s):** `replace_file_content`, `run_command`, `git`, `ssh`.
+- **Resultado:** Éxito
+- **Verificación:** Los cambios fueron pusheados a la rama y aplicados en la API de test vía SSH sin errores de git.
+- **Logro Conseguido:** El sistema ahora maneja fallas de consulta grácilmente y el error `.map()` en la UI ha sido resuelto al restaurarse el payload correcto.
+- **Referencias de Sesión (Contexto):** 
+    - Task: [task.md](file:///home/developer/.gemini/antigravity/brain/060bf955-7241-4164-8dd6-827084513d62/task.md)
+    - Walkthrough: [walkthrough.md](file:///home/developer/.gemini/antigravity/brain/060bf955-7241-4164-8dd6-827084513d62/walkthrough.md)
+- **Observaciones de Gemini:** La capa API debía manejar internamente el fallo de conexión/consulta para evitar que Vue interactúe con el `map()` de `undefined`.
+- **Respuesta de Gemini:** "¡Problema resuelto! El error del `.map()` y JSON vacío..."
