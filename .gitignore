@@ -55,3 +55,7 @@ task.md
 backups_transpilaciones/
 logs_deploys/
 .env
+
+# Source maps de los templates de evaluación: 7,3MB de basura de compilación
+# que no aporta nada al repo (el template sigue funcionando sin ellos).
+templates-prueba/**/*.map
