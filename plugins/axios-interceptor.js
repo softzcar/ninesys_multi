@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { extractApiErrorMessage, getApiErrorTitle } from '@/utils/apiErrorHandler'
 
 // Caché de peticiones GET en vuelo y recientes (TTL 2 segundos)
 const requestCache = new Map()
@@ -76,26 +77,31 @@ export default function ({ $axios, store, app }) {
     return url && url.includes(store.$config?.WS_API)
   }
 
-  // Red de seguridad global: si un componente no maneja su propio error (no hace
-  // .catch()/$fire), esto garantiza que el usuario SIEMPRE vea algo cuando una
-  // petición falla, en vez de que la UI quede silenciosamente desactualizada o
-  // vacía sin explicación. No reemplaza el manejo específico por componente
-  // (donde ya exista, este toast aparece además, no en su lugar); es un piso
-  // mínimo para los casos que hoy no muestran nada.
+  // Red de seguridad global: si un componente no maneja su propio error,
+  // esto garantiza que el usuario SIEMPRE vea una notificación clara cuando una
+  // petición falla con el mensaje real de la API.
+  let lastToastMessage = null
+  let lastToastTime = 0
+
   const showGlobalErrorToast = (error) => {
     try {
-      const description = error?.response?.data?.error?.description
-      const status = error?.response?.status
-      const message = description && description !== 'An internal error has occurred while processing your request.'
-        ? description
-        : 'Ocurrió un error al comunicarse con el servidor. Por favor intente nuevamente.'
+      const message = extractApiErrorMessage(error)
+      const title = getApiErrorTitle(error, 'Error')
+      const now = Date.now()
+
+      // Evitar spam de toasts idénticos repetidos en menos de 1.5s
+      if (lastToastMessage === message && now - lastToastTime < 1500) {
+        return
+      }
+      lastToastMessage = message
+      lastToastTime = now
 
       // $bvToast solo existe en la instancia raíz de Vue ya montada (window.$nuxt),
       // no en el objeto "app" de contexto del plugin (que se recibe antes del montaje).
       const bvToast = (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$bvToast) || (app && app.$bvToast)
       if (bvToast) {
         bvToast.toast(message, {
-          title: status ? `Error (${status})` : 'Error',
+          title,
           variant: 'danger',
           autoHideDelay: 6000,
           appendToast: true,
