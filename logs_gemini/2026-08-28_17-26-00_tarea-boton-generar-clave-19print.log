@@ -1,0 +1,40 @@
+- Solicitud del Usuario: El login de clientes por teléfono de 19print_app
+  (autoservicio por WhatsApp) ya estaba en producción. El usuario pidió el
+  fallback pendiente de fase 2: un botón en "Gestión de Clientes" para
+  generar la clave manualmente cuando el WhatsApp automático falla,
+  mostrando el PIN en pantalla para que el staff se lo comunique al cliente
+  por otra vía. Confirmó explícitamente que el trabajo previo de Antigravity
+  en este repo ya estaba terminado, commiteado y pusheado antes de tocarlo.
+- Archivos Involucrados:
+  - `pages/clientes/gestion.vue`
+  - (proxy nuevo en `ninesys-api`: `app/routes/products.php`, ver su propia
+    bitácora en ese repo)
+  - (endpoint nuevo en `19print_app`: `packages/backend/src/routes/
+    integracion.js`, repo propio)
+- Acción Realizada:
+  1. Agregado `idEmpresa` a `...mapState("login", [...])` y un computed
+     `usa19print` (`[194, 208].includes(Number(this.idEmpresa))`) para que
+     el botón nuevo solo aparezca en las dos empresas que realmente usan
+     19print_app.
+  2. Botón nuevo en la columna de Acciones de la tabla, junto a
+     "Editar"/"Eliminar", visible solo si `usa19print &&
+     dataUser.departamento === 'Administración'` (mismo nivel de acceso que
+     el botón de eliminar cliente).
+  3. Método `generarClave19print(item)`: `POST
+     ${this.$config.API}/customers/generar-clave-19print` con el teléfono
+     del cliente como `URLSearchParams` (form-urlencoded, no JSON -- esta
+     app no tiene BodyParsingMiddleware para JSON del lado del backend). En
+     éxito muestra el PIN y si el WhatsApp se envió o no vía `this.$alert`;
+     en error usa `this.$handleApiError` (helper agregado hoy mismo por
+     Antigravity en `plugins/alerts.js`, ver bitácora
+     `2026-08-28_14-01-59_tarea-unificacion-manejo-errores-api.log`).
+- Herramienta(s) Utilizada(s): Edit, Bash (git commit/push,
+  ninesys-hub/bin/deploy.sh).
+- Resultado: Éxito.
+- Verificación: Desplegado a Desarrollo (`ninesys-hub/bin/deploy.sh` opción
+  2, build vía `npm run generate` + rsync a `app.nineteengreen.com`).
+  Probado end-to-end contra un cliente real de la empresa 194 a través de
+  toda la cadena app_multi → ninesys-api → 19print_app: el proxy devolvió el
+  PIN generado y confirmó el envío por WhatsApp. Producción no fue tocada.
+- Observaciones de Gemini: N/A (tarea ejecutada por Claude).
+- Respuesta de Gemini: N/A (tarea ejecutada por Claude).

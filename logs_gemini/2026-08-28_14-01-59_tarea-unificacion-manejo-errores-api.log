@@ -1,0 +1,55 @@
+- Solicitud del Usuario: [Reconstruida desde el commit -- no hay registro
+  textual de la solicitud original porque esta tarea la ejecutó Antigravity
+  fuera de esta conversación] Unificar cómo se leen y muestran los errores
+  de la API en todo el frontend: hoy cada respuesta de error tiene una forma
+  distinta según el endpoint (Slim HttpErrorHandler, ApiResponse, rutas
+  legacy de auth, string simple, listas de validación), y el toast global de
+  errores solo sabía leer una de esas formas -- el resto de los casos
+  mostraba un mensaje genérico sin información real, incluso cuando el
+  backend sí mandaba un mensaje útil.
+- Archivos Involucrados:
+  - `utils/apiErrorHandler.js` (nuevo)
+  - `plugins/alerts.js`
+  - `plugins/axios-interceptor.js`
+- Commits Relacionados: 24d43eb (refactor/modular-routes)
+- Acción Realizada:
+  1. Nuevo `utils/apiErrorHandler.js` con dos funciones puras:
+     - `extractApiErrorMessage(error, fallbackMessage)`: intenta, en orden,
+       `error.response.data.error.description` (Slim HttpErrorHandler,
+       ignorando el mensaje genérico "An internal error has occurred..."),
+       `data.message` (ApiResponse), `data.msg` (rutas legacy/auth),
+       `data.error` como string simple, y `data.errores` como array u
+       objeto de validaciones (unidos con `<br/>`). Si no hay `response` en
+       absoluto, distingue timeout/network error del resto. Si nada matchea,
+       cae a un mensaje por código HTTP (401/403/404/409/5xx) y por último a
+       `error.message` o al fallback.
+     - `getApiErrorTitle(error, defaultTitle)`: título contextual según el
+       status HTTP (ej. 401 → "No Autorizado", 409 → "Registro Duplicado o
+       Conflicto").
+  2. `plugins/alerts.js`: expone `Vue.prototype.$extractApiError` y
+     `Vue.prototype.$handleApiError` (este último decide entre modal
+     `$fire` de SweetAlert o toast `$bvToast` según `options.type`, arma
+     título/mensaje con las funciones nuevas, y marca
+     `error.config.suppressGlobalErrorToast = true` para que el
+     interceptor global de axios no dispare un segundo toast duplicado si
+     el componente ya manejó el error a mano).
+  3. `plugins/axios-interceptor.js`: el toast global de errores
+     (`showGlobalErrorToast`, la "red de seguridad" para componentes que no
+     manejan su propio error) ahora usa `extractApiErrorMessage`/
+     `getApiErrorTitle` en vez de leer un único formato a mano, y agrega
+     de-duplicación (no repetir el mismo mensaje en menos de 1.5s).
+- Herramienta(s) Utilizada(s): [No registrado por Antigravity -- típicamente
+  `write_to_file`/`replace_file_content` para los tres archivos]
+- Resultado: Éxito.
+- Verificación: [No registrado por Antigravity en el momento de la tarea].
+  Verificado indirectamente en una tarea posterior del mismo día (ver commit
+  70090d1, botón "Generar clave 19print" en Gestión de Clientes): ese código
+  nuevo usa `this.$handleApiError` de este mismo commit y funcionó
+  correctamente en la prueba end-to-end contra Desarrollo.
+- Observaciones de Gemini: N/A -- log reconstruido por Claude a partir del
+  commit `24d43eb`, ya que Antigravity no generó bitácora para esta tarea
+  (hallazgo del cierre de sesión del 2026-08-28, ver
+  `feedback_revision_cierre_dia_commits_vs_bitacoras` en la memoria del
+  proyecto). El código en sí es correcto y se integra bien con el resto del
+  frontend; el único gap fue de documentación, no de la implementación.
+- Respuesta de Gemini: N/A (no aplica, tarea reconstruida).
