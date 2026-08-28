@@ -191,6 +191,21 @@
                       />
                     </span>
                     <span
+                      v-if="usa19print && dataUser.departamento === 'Administración'"
+                      class="floatme mr-1"
+                    >
+                      <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        v-b-tooltip.hover
+                        title="Generar clave de acceso a Nineteen Print (fallback si el WhatsApp automático falla)"
+                        :disabled="generandoClave19print === data.item.id"
+                        @click="generarClave19print(data.item)"
+                      >
+                        <b-icon icon="key-fill"></b-icon>
+                      </b-button>
+                    </span>
+                    <span
                       v-if="
                                                  dataUser.departamento ===
                                                  'Administración'
@@ -253,6 +268,7 @@ export default {
       overlay: true,
       dataTable: [],
       tmpDelete: null,
+      generandoClave19print: null,
 
       // Filtros CRM Avanzados
       selectedPais: 189,
@@ -294,7 +310,14 @@ export default {
   },
 
   computed: {
-    ...mapState("login", ["dataUser", "access"]),
+    ...mapState("login", ["dataUser", "access", "idEmpresa"]),
+
+    // Solo Nineteen Custom (194) y 19 Print (208) usan el login de clientes
+    // por teléfono de 19print_app -- el botón de generar clave no tiene
+    // sentido (y fallaría) para cualquier otra empresa.
+    usa19print() {
+      return [194, 208].includes(Number(this.idEmpresa));
+    },
 
     // Lista filtrada reactivamente por texto, ciudad e historial de productos
     filteredDataTable() {
@@ -457,6 +480,33 @@ export default {
           this.tmpDelete = null;
         });
       return respCount;
+    },
+
+    // Fallback manual para cuando el WhatsApp automático de 19print_app
+    // falla: genera (o regenera) la clave de acceso del cliente y la
+    // muestra en pantalla para que el staff se la comunique como pueda.
+    // Reenviado por ninesys-api (POST /customers/generar-clave-19print) a
+    // 19print_app, que es quien tiene la lógica real y la base de datos.
+    async generarClave19print(item) {
+      if (!item.phone) {
+        this.$alert("Este cliente no tiene teléfono registrado.", "Falta el teléfono", "warning");
+        return;
+      }
+      this.generandoClave19print = item.id;
+      try {
+        const data = new URLSearchParams();
+        data.set("phone", item.phone);
+        const resp = await this.$axios.post(`${this.$config.API}/customers/generar-clave-19print`, data);
+        const { pin, whatsappEnviado } = resp.data;
+        const mensaje = whatsappEnviado
+          ? `Clave: ${pin}\n\nSe envió por WhatsApp al ${item.phone}, pero por si no llega, esta es la clave para que se la pueda comunicar usted mismo.`
+          : `Clave: ${pin}\n\nNo se pudo enviar por WhatsApp -- comuníquesela al cliente por otra vía.`;
+        await this.$alert(mensaje, "Clave generada", "success");
+      } catch (err) {
+        this.$handleApiError(err, { title: "No se pudo generar la clave" });
+      } finally {
+        this.generandoClave19print = null;
+      }
     },
 
     deleteCustomer(id_emp, nombre, apellido, email) {
