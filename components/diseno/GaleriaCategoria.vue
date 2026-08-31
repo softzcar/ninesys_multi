@@ -35,7 +35,7 @@
               accept="image/jpeg,image/png,image/webp,image/gif"
               :disabled="uploading"
             />
-            <b-form-text>Se comprime automáticamente a 800px de ancho. JPG, PNG, WEBP, GIF.</b-form-text>
+            <b-form-text>Se comprime automáticamente a 800px de ancho. JPG, PNG, WEBP, GIF. Máximo 100MB.</b-form-text>
           </b-col>
           <b-col cols="auto">
             <b-button
@@ -48,6 +48,14 @@
             </b-button>
           </b-col>
         </b-row>
+        <b-progress
+          v-if="uploading"
+          :value="uploadProgress"
+          max="100"
+          show-progress
+          animated
+          class="mt-2"
+        />
       </b-card>
     </b-collapse>
 
@@ -133,6 +141,8 @@
 <script>
 import axios from 'axios'
 
+const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024 // 100MB
+
 export default {
   props: {
     categoria: { type: Object, required: true },
@@ -147,6 +157,7 @@ export default {
       showUpload: false,
       newFile: null,
       uploading: false,
+      uploadProgress: 0,
       zoomModal: false,
       zoomUrl: '',
       deleteModal: false,
@@ -241,7 +252,15 @@ export default {
         this.$bvToast.toast('ID de empresa no disponible. Recarga la página.', { variant: 'danger', title: 'Error' })
         return
       }
+      if (this.newFile.size > MAX_UPLOAD_SIZE_BYTES) {
+        this.$bvToast.toast(
+          `El archivo pesa ${(this.newFile.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 100MB.`,
+          { variant: 'danger', title: 'Archivo demasiado grande' }
+        )
+        return
+      }
       this.uploading = true
+      this.uploadProgress = 0
       try {
         let fileToUpload = this.newFile
         if (this.newFile && this.newFile.type.startsWith("image/")) {
@@ -258,6 +277,9 @@ export default {
         const url = `${this.galleryCdn}/?action=gallery_upload&id_empresa=${this.idEmpresa}&product=${this.categoria.name}`
         const { data } = await axios.post(url, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (evt) => {
+            if (evt.total) this.uploadProgress = Math.round((evt.loaded * 100) / evt.total)
+          },
         })
 
         if (data.uploaded) {
@@ -274,6 +296,7 @@ export default {
         this.$bvToast.toast('Error de conexión', { variant: 'danger', title: 'Error' })
       } finally {
         this.uploading = false
+        this.uploadProgress = 0
       }
     },
 

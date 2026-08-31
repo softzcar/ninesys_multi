@@ -419,6 +419,14 @@
                 </b-button>
               </b-input-group-append>
             </b-input-group>
+            <b-progress
+              v-if="uploadingFile && uploadProgress > 0"
+              :value="uploadProgress"
+              max="100"
+              show-progress
+              animated
+              class="mt-1"
+            />
             <input
               type="file"
               ref="fileInput"
@@ -462,6 +470,7 @@ export default {
       loadingConversations: false,
       loadingMessages: false,
       uploadingFile: false,
+      uploadProgress: 0,
       showDeleteModal: false,
       deleting: false,
       mediaTypes: ['image', 'audio', 'video', 'document', 'sticker'],
@@ -1163,6 +1172,9 @@ export default {
         await this.$wsApi.post(`/send-media/${this.idEmpresa}`, fd, {
           headers: { 'Content-Type': 'multipart/form-data' },
           timeout: 60000,
+          onUploadProgress: (evt) => {
+            if (evt.total) this.uploadProgress = Math.round((evt.loaded * 100) / evt.total);
+          },
         });
 
         // Caption consumida
@@ -1187,6 +1199,7 @@ export default {
         );
       } finally {
         this.uploadingFile = false;
+        this.uploadProgress = 0;
       }
     },
 

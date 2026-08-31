@@ -59,6 +59,15 @@
                 drop-placeholder="Arrasre la propuesta aquí..."
                 @input="postImage()"
               ></b-form-file>
+              <b-form-text>Máximo 100MB.</b-form-text>
+              <b-progress
+                v-if="uploadProgress > 0"
+                :value="uploadProgress"
+                max="100"
+                show-progress
+                animated
+                class="mt-2"
+              />
             </div>
           </b-card-text>
         </b-card>
@@ -74,6 +83,8 @@
 import mixin from "~/mixins/mixins.js";
 import axios from "axios";
 
+const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+
 export default {
   mixins: [mixin],
 
@@ -85,6 +96,7 @@ export default {
       newImage: null,
       overlay: false,
       overlayText: "",
+      uploadProgress: 0,
       tmpImage: "",
       id_orden: "",
       showCard: true,
@@ -189,8 +201,19 @@ export default {
     },
 
     async postImage() {
+      if (this.newImage && this.newImage.size > MAX_UPLOAD_SIZE_BYTES) {
+        this.$fire({
+          title: "Archivo demasiado grande",
+          html: `<p>El archivo pesa ${(this.newImage.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 100MB.</p>`,
+          type: "warning",
+        });
+        this.newImage = null;
+        return;
+      }
+
       this.overlay = true;
       this.overlayText = "Procesando imágen...";
+      this.uploadProgress = 0;
 
       let fileToUpload = this.newImage;
       if (this.newImage && this.newImage.type.startsWith("image/")) {
@@ -214,6 +237,9 @@ export default {
           {
             headers: {
               "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (evt) => {
+              if (evt.total) this.uploadProgress = Math.round((evt.loaded * 100) / evt.total);
             },
           }
         )
@@ -249,6 +275,7 @@ export default {
         })
         .finally(() => {
           this.overlay = false;
+          this.uploadProgress = 0;
         });
     },
 

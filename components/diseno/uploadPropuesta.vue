@@ -83,6 +83,7 @@
               placeholder="Escoja o arrastre un archivo aquí..."
               drop-placeholder="Arrasre la propuesta aquí..."
             ></b-form-file>
+            <b-form-text>Máximo 100MB.</b-form-text>
           </b-form-group>
         </div>
 
@@ -93,6 +94,14 @@
             @click="postImage()"
           >Enviar Diseño</b-button>
         </div>
+        <b-progress
+          v-if="uploadProgress > 0"
+          :value="uploadProgress"
+          max="100"
+          show-progress
+          animated
+          class="mt-2"
+        />
       </b-card-text>
     </b-card>
     <template #overlay>
@@ -105,6 +114,8 @@
 import mixin from "~/mixins/mixins.js";
 import axios from "axios";
 
+const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+
 export default {
   mixins: [mixin],
 
@@ -115,6 +126,7 @@ export default {
       newImage: null,
       overlay: false,
       overlayText: "",
+      uploadProgress: 0,
       tmpImage: "",
       tipoDiseno: null,
       id_orden: "",
@@ -332,6 +344,9 @@ export default {
       if (!this.newImage) {
         ok = false;
         msg += "<p>Seleccione una imagen</p>";
+      } else if (this.newImage.size > MAX_UPLOAD_SIZE_BYTES) {
+        ok = false;
+        msg += `<p>El archivo pesa ${(this.newImage.size / 1024 / 1024).toFixed(1)}MB. El máximo permitido es 100MB.</p>`;
       }
 
       if (ok && this.item.id_revision === null) {
@@ -362,10 +377,14 @@ export default {
         let formData = new FormData();
         formData.append("file", fileToUpload);
         this.overlay = true;
+        this.uploadProgress = 0;
         await axios
           .post(this.urlCDN, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (evt) => {
+              if (evt.total) this.uploadProgress = Math.round((evt.loaded * 100) / evt.total);
             },
           })
           .then(async (res) => {
@@ -404,6 +423,7 @@ export default {
           .finally(() => {
             this.overlay = false;
             this.disableForm = false;
+            this.uploadProgress = 0;
           });
       } else {
         this.$fire({
