@@ -58,12 +58,12 @@
               <b-row v-for="empRow in form" :key="empRow.id" class="align-items-center mb-1 no-gutters">
                 <b-col cols="7" class="small">{{ nombreEmpleado(empRow.empleado) }}</b-col>
                 <b-col cols="5">
-                  <b-form-input size="sm" type="number" min="0" :max="producto.cantidad" step="1"
+                  <b-form-input size="sm" type="number" min="0" :max="producto.cantidad" step="0.1"
                     v-model.number="productosAsignacion[producto._id].splits[empRow.empleado]"
                     @input="onCambioSplit"></b-form-input>
                 </b-col>
               </b-row>
-              <div class="small" :class="sumaSplits(producto) === producto.cantidad ? 'text-success' : 'text-danger'">
+              <div class="small" :class="lineaCompleta(producto) ? 'text-success' : 'text-danger'">
                 Asignado: {{ sumaSplits(producto) }} / {{ producto.cantidad }}
               </div>
             </div>
@@ -126,7 +126,7 @@ export default {
 
       if (this.form.length === 1) {
         const unico = this.form[0].empleado;
-        result[unico] = this.products.reduce((acc, p) => acc + (parseInt(p.cantidad) || 0), 0);
+        result[unico] = this.redondear(this.products.reduce((acc, p) => acc + (parseFloat(p.cantidad) || 0), 0));
         return result;
       }
 
@@ -135,20 +135,21 @@ export default {
         if (!asign) return;
         if (!asign.granular) {
           if (asign.asignacionCompleta && result[asign.asignacionCompleta] !== undefined) {
-            result[asign.asignacionCompleta] += parseInt(p.cantidad) || 0;
+            result[asign.asignacionCompleta] += parseFloat(p.cantidad) || 0;
           }
         } else {
           Object.keys(asign.splits || {}).forEach((idEmp) => {
-            const cant = parseInt(asign.splits[idEmp]) || 0;
+            const cant = parseFloat(asign.splits[idEmp]) || 0;
             if (result[idEmp] !== undefined) result[idEmp] += cant;
           });
         }
       });
+      Object.keys(result).forEach((idEmp) => { result[idEmp] = this.redondear(result[idEmp]); });
       return result;
     },
 
     totalUnidadesOrden() {
-      return this.products.reduce((acc, p) => acc + (parseInt(p.cantidad) || 0), 0);
+      return this.redondear(this.products.reduce((acc, p) => acc + (parseFloat(p.cantidad) || 0), 0));
     },
 
     totalPorcentaje() {
@@ -210,17 +211,25 @@ export default {
       }
     },
 
+    // Las cantidades pueden ser decimales (productos por metro: DTF, sublimacion por
+    // metros), asi que se trabaja con una escala de 1 decimal -- la misma de
+    // ordenes_productos.cantidad -- para que sumas como 0.1 + 0.2 no arrastren el error
+    // de punto flotante hasta las comparaciones.
+    redondear(n) {
+      return Math.round((parseFloat(n) || 0) * 10) / 10;
+    },
+
     sumaSplits(producto) {
       const asign = this.productosAsignacion[producto._id];
       if (!asign) return 0;
-      return Object.values(asign.splits || {}).reduce((a, b) => a + (parseInt(b) || 0), 0);
+      return this.redondear(Object.values(asign.splits || {}).reduce((a, b) => a + (parseFloat(b) || 0), 0));
     },
 
     lineaCompleta(producto) {
       const asign = this.productosAsignacion[producto._id];
       if (!asign) return false;
       if (!asign.granular) return !!asign.asignacionCompleta;
-      return this.sumaSplits(producto) === parseInt(producto.cantidad);
+      return this.sumaSplits(producto) === this.redondear(producto.cantidad);
     },
 
     onCambioAsignacionCompleta() { },
@@ -289,7 +298,7 @@ export default {
         const idEmpleado = this.form[0].empleado;
         return [{
           id_empleado: idEmpleado,
-          productos: this.products.map((p) => ({ id_ordenes_productos: p._id, cantidad_asignada: parseInt(p.cantidad) })),
+          productos: this.products.map((p) => ({ id_ordenes_productos: p._id, cantidad_asignada: this.redondear(p.cantidad) })),
         }];
       }
 
@@ -300,10 +309,10 @@ export default {
           if (!asign) return;
           if (!asign.granular) {
             if (asign.asignacionCompleta === f.empleado) {
-              productos.push({ id_ordenes_productos: p._id, cantidad_asignada: parseInt(p.cantidad) });
+              productos.push({ id_ordenes_productos: p._id, cantidad_asignada: this.redondear(p.cantidad) });
             }
           } else {
-            const cant = parseInt(asign.splits[f.empleado]) || 0;
+            const cant = this.redondear(asign.splits[f.empleado]);
             if (cant > 0) {
               productos.push({ id_ordenes_productos: p._id, cantidad_asignada: cant });
             }
@@ -395,7 +404,7 @@ export default {
               asign.asignacionCompleta = filasLinea[0].id_empleado;
             } else {
               asign.granular = true;
-              filasLinea.forEach((f) => { asign.splits[f.id_empleado] = parseInt(f.cantidad_asignada); });
+              filasLinea.forEach((f) => { asign.splits[f.id_empleado] = this.redondear(f.cantidad_asignada); });
             }
           });
         })
