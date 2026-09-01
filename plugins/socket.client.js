@@ -6,9 +6,12 @@ export default ({ $config, store }, inject) => {
 
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
-        if (hostname === 'app.nineteencustom.com') {
-            wsUrl = 'https://ws.nineteencustom.com';
-        } else if (hostname === 'app.nineteengreen.com' || hostname.includes('nineteengreen')) {
+        // app.nineteencustom.com ya no se fuerza a ws.nineteencustom.com: respeta la
+        // URL horneada en el build. Desde el cutover del 2026-08-31 la aplicación se
+        // sirve desde el dominio de producción pero el WhatsApp vive en el servidor
+        // nuevo (ws.nineteengreen.com), así que el hardcode apuntaba a un proceso
+        // detenido.
+        if (hostname === 'app.nineteengreen.com' || hostname.includes('nineteengreen')) {
             wsUrl = 'https://ws.nineteengreen.com';
         }
     }

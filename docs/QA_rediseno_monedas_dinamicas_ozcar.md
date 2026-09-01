@@ -91,6 +91,10 @@ Para cada formulario, probar con **al menos 2 monedas distintas en el mismo pago
 
 - [ ] En la configuración del horario laboral necsitamos implementar poder asiganr solo medio dia de trabajo... 
 
+## Administración -> Gestión de Clientes (Datos geograficos perdidos)
+
+- [ ] El buscador de clientes en la pagina `/clientes/gestion` por nombre no funciona, al escribir `ozc` para buscar el cliente `Ozcar Vela` no lo consigue pero me mesta al cliente `CARMEN MUÑOZ` con el teléfono `584247140372` pero si uso el buscador de clientes de crear nueva orden si lo muestra correctamente.  REvisé el registro en la base e datos y me di cuenta que este cliente Ozcar vela ID 947 TEnia valores null en los registros para pais, estado y ciudad. Este cliente tenía estos datos configurados correctamente, pero ya no los tenía, sospecho que al momento de generar una orden o un presupuesto estos datos se están perdiendo, ya sea desde el formulario desde ninesys o mi **sospecha mads fuerte, se pierden al generar un presupuesto automático desde WhatsApp**
+
 ## Wizard Nueva Empresa
 
 - [ ] **Wizard de nueva empresa** se quedó bloqueado al hacer Click en Finalizar, al recargar no entra a la app se queda bloqueado
@@ -120,7 +124,9 @@ Para cada formulario, probar con **al menos 2 monedas distintas en el mismo pago
 
 - [ ] Ese es el telfono de Zenaida 4262535073 que es empelada de la empresa 194 ... Está inactiva pero el telefono sigue registrado ... Si intento crear un empleado con ese telefono en tora emrpesa me muestra error y no me lo permite. ¿Es posible qeu un empleado trabaje en dos empresas? Creo que si... entonces, un empelado (su teléfono) puede estar registrado en varias empresas pero el mismo teléfono NO se puede repetir  en la misma empresa... es decir dos empelados de la misma empresa NO pueden tener el mismo numero tlefonico. ¿Que problema nos puede traer que el mismo empelado este registrado  en api_empresas.empresas_usuarios 
 
-## dtf.nineteencustom.com
+## Empleados terminar lote
+
+- [ ] Sigue solicitando incluir datos de tinta aunque ya la impresora se marque como que no requiere la dato manual de la tinta, se calculará automáticamente.
 
 ### Credenciales Ricardo
 
@@ -144,11 +150,11 @@ Credenciales generadas (guardalas ahora, no quedan en ningún log de chat despu�
 - [x] Crear sitios en DEV o PROD directamente?
 - [x] Crear repositorio en Github
 - [x] clonar en VPS
-- [ ] Porbar funcionamiento
-- [ ] 🐛 Una vez que se envía el emnsaje al servicio de whatsapp para generar un presupuesto autmáticamente, da error diciendo que el producto no tiene nombre
+- [ ] Probar funcionamiento
+- [ ] 🐛 Una vez que se envía el mensaje al servicio de whatsapp para generar un presupuesto automáticamente, da error diciendo que el producto no tiene nombre
 - [ ] 🐛 Dejar de mostrar el precio en el select de productos
 - [ ] 🐛 El requerimiento para el presupuesto debe generarlo independientemente que el modo IA esté activado o no, 
-- [ ] 🐛 Una inagen se meustra en negro despues de haber sido procesada
-- [ ] 🐛 `/lienzos/[value]` en el boton 'Editar / Reacomodar' no muestra el preview de las imagenes, debe mostrar las imagnes orifginaes y con lso mismos cortoles para editar el ancho y cantidad.
-- [ ] 🐛 Al momento de cargar la imagen queita el fondo automáticamente, debemos permitir al usuuario indicar cuando le debe quetar el fonde con eun check en el formupario de la parte inferior
-- [ ] En `proyecots/[vaalue]` necesitamos una nueva pestaña lado izquierdo  llamadsa 'Subir Lienzo' esta opción se usará apra subir un 'Lienzo' ya montado.
+- [ ] 🐛 Una imagen se muestra en negro después de haber sido procesada
+- [ ] 🐛 `/lienzos/[value]` en el botón 'Editar / Reacomodar' no muestra el preview de las imágenes, debe mostrar las imágnes originales y con los mismos controles para editar el ancho y cantidad.
+- [ ] 🐛 Al momento de cargar la imagen quieta el fondo automáticamente, debemos permitir al usuario indicar cuando le debe quetar el fonde con eun check en el formupario de la parte inferior
+- [ ] En `proyecots/[vaalue]` necesitamos una nueva pestaña lado izquierdo  llamadsa 'Subir Lienzo' esta opción se usará para subir un 'Lienzo' ya montado.
