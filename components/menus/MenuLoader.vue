@@ -119,12 +119,12 @@ export default {
           icon: "exclamation-triangle-fill",
           label: "⚠️ ENTORNO LOCAL - DESARROLLO",
         };
-      } else if (host.includes("nineteengreen.com") && !host.includes("nineteencustom.com")) {
+      } else if (host.includes("nineteengreen.com")) {
         return {
           show: true,
-          variant: "info",
-          icon: "tools",
-          label: "🔧 ENTORNO DE PRUEBAS - NINETEENGREEN.COM",
+          variant: "warning",
+          icon: "arrow-right-circle",
+          label: "🔄 Dominio antiguo — usa app.ninesys19.com",
         };
       }
       return { show: false };

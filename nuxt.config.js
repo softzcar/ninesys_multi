@@ -14,14 +14,13 @@ export default {
   // Should hold all env variables that are public as these will be exposed on the frontend.
   publicRuntimeConfig: {
     // CONFIGURACIÓN DINÁMICA POR ENTORNO
-    LOCAL_IP: process.env.API_URL || `https://api.nineteengreen.com`,
-    LOCAL_IP_WOO: process.env.API_URL || `https://api.nineteengreen.com`,
-    API: process.env.API_URL || `https://api.nineteengreen.com`,
-    CDN: process.env.CDN_URL || `https://cdn.nineteengreen.com`,
-    GALLERY_CDN: process.env.GALLERY_CDN_URL || `https://cdn.nineteengreen.com`,
-    WS_API: process.env.WS_URL || `https://ws.nineteengreen.com`,
-    APP_URL: process.env.APP_URL || `https://app.nineteengreen.com`,
-    LIVE: process.env.LIVE_URL || `https://live.nineteengreen.com`,
+    LOCAL_IP: process.env.API_URL || `https://api.ninesys19.com`,
+    LOCAL_IP_WOO: process.env.API_URL || `https://api.ninesys19.com`,
+    API: process.env.API_URL || `https://api.ninesys19.com`,
+    CDN: process.env.CDN_URL || `https://cdn.ninesys19.com`,
+    GALLERY_CDN: process.env.GALLERY_CDN_URL || `https://cdn.ninesys19.com`,
+    WS_API: process.env.WS_URL || `https://ws.ninesys19.com`,
+    APP_URL: process.env.APP_URL || `https://app.ninesys19.com`,
     HORARIO: {
       horaInicioManana: 8.5,  // 8:30 AM
       horaFinManana: 12,     // 12:00 PM

@@ -1,20 +1,11 @@
 import { io } from 'socket.io-client';
 
 export default ({ $config, store }, inject) => {
-    // Determinar la URL del socket dinámicamente según el dominio actual como respaldo
-    let wsUrl = $config.WS_API;
-
-    if (typeof window !== 'undefined') {
-        const hostname = window.location.hostname;
-        // app.nineteencustom.com ya no se fuerza a ws.nineteencustom.com: respeta la
-        // URL horneada en el build. Desde el cutover del 2026-08-31 la aplicación se
-        // sirve desde el dominio de producción pero el WhatsApp vive en el servidor
-        // nuevo (ws.nineteengreen.com), así que el hardcode apuntaba a un proceso
-        // detenido.
-        if (hostname === 'app.nineteengreen.com' || hostname.includes('nineteengreen')) {
-            wsUrl = 'https://ws.nineteengreen.com';
-        }
-    }
+    // deploy.sh exporta WS_URL explícitamente para cada destino (ninesys19.com
+    // o nineteengreen.com) antes de compilar, así que $config.WS_API ya viene
+    // horneado con el valor correcto para este build -- no hace falta
+    // adivinarlo de nuevo a partir del hostname del navegador.
+    const wsUrl = $config.WS_API;
 
     console.log('[Socket.io] Plugin inicializado. URL destino:', wsUrl);
 

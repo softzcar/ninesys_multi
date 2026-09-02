@@ -25,7 +25,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 8000) {
     }
 }
 
-let apiBaseUrl = 'https://api.nineteengreen.com';
+let apiBaseUrl = 'https://api.ninesys19.com';
 
 /**
  * Obtiene las tasas de cambio desde APIs externas
@@ -34,7 +34,7 @@ let apiBaseUrl = 'https://api.nineteengreen.com';
 export async function obtenerIndicadoresVenezuela() {
     try {
         // 1. Llamadas paralelas a las APIs con timeout
-        const currentApiUrl = apiBaseUrl || (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$config.API) || 'https://api.nineteengreen.com';
+        const currentApiUrl = apiBaseUrl || (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$config.API) || 'https://api.ninesys19.com';
 
         const [resBcv, resVzla, resGlobal] = await Promise.allSettled([
             fetchWithTimeout(`${currentApiUrl}/bcv-rates`, {}, 5000), // BCV es prioritario, le damos 5s
