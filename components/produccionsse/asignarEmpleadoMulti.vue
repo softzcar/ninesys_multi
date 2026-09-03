@@ -48,34 +48,18 @@
             </div>
           </b-col>
 
-          <b-col md="6">
-            <div v-if="!esGranular(producto._id)">
-              <b-form-select size="sm" :options="opcionesEmpleadosForm"
-                v-model="productosAsignacion[producto._id].asignacionCompleta"
-                @change="onCambioAsignacionCompleta"></b-form-select>
+          <b-col md="8">
+            <b-row v-for="empRow in form" :key="empRow.id" class="align-items-center mb-1 no-gutters">
+              <b-col cols="7" class="small">{{ nombreEmpleado(empRow.empleado) }}</b-col>
+              <b-col cols="5">
+                <b-form-input size="sm" type="number" min="0" :max="producto.cantidad" step="0.1"
+                  v-model.number="productosAsignacion[producto._id].splits[empRow.empleado]"
+                  @input="onCambioSplit"></b-form-input>
+              </b-col>
+            </b-row>
+            <div class="small" :class="lineaCompleta(producto) ? 'text-success' : 'text-danger'">
+              Asignado: {{ sumaSplits(producto) }} / {{ producto.cantidad }}
             </div>
-            <div v-else>
-              <b-row v-for="empRow in form" :key="empRow.id" class="align-items-center mb-1 no-gutters">
-                <b-col cols="7" class="small">{{ nombreEmpleado(empRow.empleado) }}</b-col>
-                <b-col cols="5">
-                  <b-form-input size="sm" type="number" min="0" :max="producto.cantidad" step="0.1"
-                    v-model.number="productosAsignacion[producto._id].splits[empRow.empleado]"
-                    @input="onCambioSplit"></b-form-input>
-                </b-col>
-              </b-row>
-              <div class="small" :class="lineaCompleta(producto) ? 'text-success' : 'text-danger'">
-                Asignado: {{ sumaSplits(producto) }} / {{ producto.cantidad }}
-              </div>
-            </div>
-          </b-col>
-
-          <b-col md="2" class="text-right">
-            <!-- El volumen de esta línea puede justificar repartirla por cantidad entre varios empleados
-                 en vez de asignarla completa a uno solo (ej. 1000 piezas de un mismo producto). -->
-            <b-form-checkbox switch size="sm" :checked="esGranular(producto._id)"
-              @change="toggleGranular(producto._id)">
-              Repartir
-            </b-form-checkbox>
           </b-col>
         </b-row>
       </b-card>
@@ -112,7 +96,11 @@ export default {
       // actual es idéntico a lo ya guardado, sin importar cuántas veces se
       // dispare guardarAsignacion() (auto o manual).
       ultimoPayloadGuardado: null,
-      // { [id_ordenes_productos]: { asignacionCompleta: idEmpleado|null, granular: bool, splits: {[idEmpleado]: cantidad} } }
+      // { [id_ordenes_productos]: { splits: {[idEmpleado]: cantidad} } } --
+      // con 2+ empleados siempre se indica la cantidad de piezas por
+      // empleado, sin atajo de "asignación completa a uno solo" (ese atajo
+      // producía 0.00% "silencioso" en los demás y no aportaba nada real
+      // sobre escribir la cantidad total en una sola casilla).
       productosAsignacion: {},
       fieldsEmpleados: [
         { key: "empleado", label: "Empleado" },
@@ -123,12 +111,6 @@ export default {
   },
 
   computed: {
-    opcionesEmpleadosForm() {
-      const opts = this.form.map((f) => ({ value: f.empleado, text: this.nombreEmpleado(f.empleado) }));
-      opts.unshift({ value: null, text: "Seleccione un empleado" });
-      return opts;
-    },
-
     // Unidades asignadas a cada empleado, calculadas a partir de la asignación de
     // productos (no de un porcentaje escrito a mano) -- para 1 solo empleado, es el
     // 100% de todas las unidades sin necesidad de la UI de productos.
@@ -145,16 +127,10 @@ export default {
       this.products.forEach((p) => {
         const asign = this.productosAsignacion[p._id];
         if (!asign) return;
-        if (!asign.granular) {
-          if (asign.asignacionCompleta && result[asign.asignacionCompleta] !== undefined) {
-            result[asign.asignacionCompleta] += parseFloat(p.cantidad) || 0;
-          }
-        } else {
-          Object.keys(asign.splits || {}).forEach((idEmp) => {
-            const cant = parseFloat(asign.splits[idEmp]) || 0;
-            if (result[idEmp] !== undefined) result[idEmp] += cant;
-          });
-        }
+        Object.keys(asign.splits || {}).forEach((idEmp) => {
+          const cant = parseFloat(asign.splits[idEmp]) || 0;
+          if (result[idEmp] !== undefined) result[idEmp] += cant;
+        });
       });
       Object.keys(result).forEach((idEmp) => { result[idEmp] = this.redondear(result[idEmp]); });
       return result;
@@ -220,26 +196,9 @@ export default {
         const splitsPrevios = (previo && previo.splits) || {};
         const splits = {};
         this.form.forEach((f) => { splits[f.empleado] = splitsPrevios[f.empleado] || 0; });
-        nuevo[p._id] = {
-          asignacionCompleta: previo && this.form.some((f) => f.empleado === previo.asignacionCompleta) ? previo.asignacionCompleta : null,
-          granular: previo ? previo.granular : false,
-          splits,
-        };
+        nuevo[p._id] = { splits };
       });
       this.productosAsignacion = nuevo;
-    },
-
-    esGranular(idProducto) {
-      return !!(this.productosAsignacion[idProducto] && this.productosAsignacion[idProducto].granular);
-    },
-
-    toggleGranular(idProducto) {
-      const asign = this.productosAsignacion[idProducto];
-      if (!asign) return;
-      this.$set(asign, "granular", !asign.granular);
-      if (!asign.granular) {
-        asign.asignacionCompleta = null;
-      }
     },
 
     // Las cantidades pueden ser decimales (productos por metro: DTF, sublimacion por
@@ -259,11 +218,9 @@ export default {
     lineaCompleta(producto) {
       const asign = this.productosAsignacion[producto._id];
       if (!asign) return false;
-      if (!asign.granular) return !!asign.asignacionCompleta;
       return this.sumaSplits(producto) === this.redondear(producto.cantidad);
     },
 
-    onCambioAsignacionCompleta() { },
     onCambioSplit() { },
 
     // Autoguardado (con debounce, usando saveTimer): se dispara desde los
@@ -366,15 +323,9 @@ export default {
         this.products.forEach((p) => {
           const asign = this.productosAsignacion[p._id];
           if (!asign) return;
-          if (!asign.granular) {
-            if (asign.asignacionCompleta === f.empleado) {
-              productos.push({ id_ordenes_productos: p._id, cantidad_asignada: this.redondear(p.cantidad) });
-            }
-          } else {
-            const cant = this.redondear(asign.splits[f.empleado]);
-            if (cant > 0) {
-              productos.push({ id_ordenes_productos: p._id, cantidad_asignada: cant });
-            }
+          const cant = this.redondear(asign.splits[f.empleado]);
+          if (cant > 0) {
+            productos.push({ id_ordenes_productos: p._id, cantidad_asignada: cant });
           }
         });
         return { id_empleado: f.empleado, productos };
@@ -457,27 +408,14 @@ export default {
           const filas = (res.data && res.data.asignaciones_productos) || [];
           if (filas.length === 0) return;
 
-          // Reconstruir el estado de la UI a partir de lo ya guardado: por línea de
-          // producto, si un solo empleado la cubre por completo es asignación simple,
-          // si hay más de uno es granular.
-          const porLinea = {};
+          // Reconstruir el estado de la UI a partir de lo ya guardado: la
+          // cantidad de cada empleado en cada línea de producto, sin importar
+          // si un solo empleado cubre toda la línea o el trabajo está
+          // repartido entre varios.
           filas.forEach((f) => {
-            const idLinea = f.id_ordenes_productos;
-            if (!porLinea[idLinea]) porLinea[idLinea] = [];
-            porLinea[idLinea].push(f);
-          });
-
-          Object.keys(porLinea).forEach((idLinea) => {
-            const asign = this.productosAsignacion[idLinea];
+            const asign = this.productosAsignacion[f.id_ordenes_productos];
             if (!asign) return;
-            const filasLinea = porLinea[idLinea];
-            if (filasLinea.length === 1) {
-              asign.granular = false;
-              asign.asignacionCompleta = filasLinea[0].id_empleado;
-            } else {
-              asign.granular = true;
-              filasLinea.forEach((f) => { asign.splits[f.id_empleado] = this.redondear(f.cantidad_asignada); });
-            }
+            asign.splits[f.id_empleado] = this.redondear(f.cantidad_asignada);
           });
         })
         .catch((err) => console.error("No se pudo cargar la asignación de productos previa", err))
