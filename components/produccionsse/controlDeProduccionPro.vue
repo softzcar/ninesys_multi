@@ -520,7 +520,7 @@
 
         <div v-else>
           <b-container fluid>
-            <div class="list-group-header">
+            <div class="list-group-header-terminadas">
               <div class="list-group-header-item">Orden</div>
               <div class="list-group-header-item">Cliente</div>
               <div class="list-group-header-item">Reponer</div>
@@ -528,7 +528,7 @@
 
             <ul class="list-group" style="list-style: none; padding: 0; margin: 0;">
               <li v-for="el in ordenesTerminadas" :key="el.orden" class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
-                <b-list-group class="list-group-draggable">
+                <b-list-group class="list-group-terminadas">
                   <b-list-group-item data-label="Orden">
                     <link-search :id="el.orden" :key="el.orden" />
                   </b-list-group-item>
@@ -1743,6 +1743,34 @@ export default {
   margin: 0;
 }
 
+.list-group-header-terminadas {
+  display: grid;
+  grid-template-columns: 140px 1fr 140px;
+  background-color: #375a7f;
+  border: 1px solid #4e5d6c;
+  border-bottom: 2px solid #00bc8c;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.list-group-terminadas {
+  display: grid;
+  grid-template-columns: 140px 1fr 140px;
+  padding: 0;
+  margin: 0;
+}
+
+.list-group-terminadas .list-group-item {
+  padding: 0.5rem 0.5rem;
+  border: none;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid #4e5d6c;
+}
+
 .list-group-reposiciones-curso .list-group-item {
   padding: 0.5rem 0.5rem;
   border: none;
@@ -1909,14 +1937,17 @@ export default {
     /* Gris muy claro para resaltar */
   }
 
-  /* REPOSICIONES MOBILE — misma estructura que ordenes */
+  /* REPOSICIONES MOBILE — misma estructura que ordenes (Órdenes terminadas
+     reusa el mismo patrón, un tercer selector agregado a cada regla) */
   .list-group-header-reposiciones,
-  .list-group-header-reposiciones-curso {
+  .list-group-header-reposiciones-curso,
+  .list-group-header-terminadas {
     display: none;
   }
 
   .list-group-reposiciones,
-  .list-group-reposiciones-curso {
+  .list-group-reposiciones-curso,
+  .list-group-terminadas {
     display: flex;
     flex-direction: column;
     border: 1px solid #ddd;
@@ -1928,7 +1959,8 @@ export default {
   }
 
   .list-group-reposiciones .list-group-item,
-  .list-group-reposiciones-curso .list-group-item {
+  .list-group-reposiciones-curso .list-group-item,
+  .list-group-terminadas .list-group-item {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #eee;
     display: flex;
@@ -1942,12 +1974,14 @@ export default {
 
   /* Quitar borde del último item */
   .list-group-reposiciones .list-group-item:last-child,
-  .list-group-reposiciones-curso .list-group-item:last-child {
+  .list-group-reposiciones-curso .list-group-item:last-child,
+  .list-group-terminadas .list-group-item:last-child {
     border-bottom: none;
   }
 
   .list-group-reposiciones .list-group-item::before,
-  .list-group-reposiciones-curso .list-group-item::before {
+  .list-group-reposiciones-curso .list-group-item::before,
+  .list-group-terminadas .list-group-item::before {
     content: attr(data-label);
     font-weight: bold;
     color: #00bc8c;
@@ -1956,7 +1990,11 @@ export default {
     display: block;
   }
 
-  /* Handle: Estilo de cabecera */
+  /* Handle: Estilo de cabecera -- NO incluye .list-group-terminadas a
+     propósito: esa sección no tiene columna de "arrastre" (drag-handle)
+     como primera celda, su primer item es "Orden" con datos reales, así
+     que debe conservar su etiqueta como Cliente/Reponer, no convertirse en
+     una barra oscura vacía. */
   .list-group-reposiciones .list-group-item:first-child,
   .list-group-reposiciones-curso .list-group-item:first-child {
     background-color: #375a7f;
