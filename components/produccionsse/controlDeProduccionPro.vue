@@ -484,6 +484,70 @@
         </div>
       </b-overlay>
     </b-collapse>
+
+    <!-- 4. Órdenes terminadas (Cabecera y Collapse) -->
+    <div class="section-header bg-secondary-accent d-flex align-items-center justify-content-between mt-4 mb-3" @click="toggleSection('isOrdenesTerminadasVisible')">
+      <div class="d-flex align-items-center">
+        <h3 class="section-title mb-0">Órdenes terminadas</h3>
+        <b-badge pill variant="secondary" class="ml-3 px-2 py-1 count-badge">
+          {{ ordenesTerminadas.length }}
+        </b-badge>
+      </div>
+      <b-button variant="link" class="collapse-toggle-btn text-decoration-none p-0">
+        <b-icon icon="chevron-down" class="chevron-icon" :class="{ 'rotated': !isOrdenesTerminadasVisible }"></b-icon>
+      </b-button>
+    </div>
+
+    <b-collapse v-model="isOrdenesTerminadasVisible" class="mb-4">
+      <b-overlay :show="isOrdenesTerminadasVisible && !ordenesTerminadasCargadas" opacity="0.6" rounded="sm" spinner-variant="secondary">
+        <template #overlay>
+          <div class="text-center">
+            <b-spinner variant="secondary" label="Cargando..."></b-spinner>
+            <h3 class="mt-2">Cargando órdenes terminadas...</h3>
+          </div>
+        </template>
+
+        <div v-if="ordenesTerminadasCargadas && ordenesTerminadas.length === 0">
+          <b-alert show class="mt-2 mb-4" variant="info">
+            <h3>No hay órdenes terminadas</h3>
+          </b-alert>
+        </div>
+
+        <div v-else>
+          <b-container fluid>
+            <div class="list-group-header">
+              <div class="list-group-header-item">Orden</div>
+              <div class="list-group-header-item">Cliente</div>
+              <div class="list-group-header-item">Reponer</div>
+            </div>
+
+            <ul class="list-group" style="list-style: none; padding: 0; margin: 0;">
+              <li v-for="el in ordenesTerminadas" :key="el.orden" class="list-group-item" style="list-style: none; padding: 0; margin: 0; border: none">
+                <b-list-group class="list-group-draggable">
+                  <b-list-group-item data-label="Orden">
+                    <link-search :id="el.orden" :key="el.orden" />
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Cliente">
+                    {{ el.cliente }}
+                  </b-list-group-item>
+
+                  <b-list-group-item data-label="Reponer">
+                    <produccionsse-reposicion
+                      :item="el"
+                      :reposicion_ordenes_productos="reposicionOrdenesProductosTerminadas"
+                      :empleados="empleados"
+                      :key="el.orden"
+                    />
+                  </b-list-group-item>
+                </b-list-group>
+              </li>
+            </ul>
+          </b-container>
+        </div>
+      </b-overlay>
+    </b-collapse>
+
     <!-- Modal Detalle Completo de la Reposición -->
     <b-modal id="modal-detalle-reposicion" title="Detalle Completo de la Reposición" hide-footer size="lg" @hidden="selectedRep = null; repQueue = []; handleModalHidden()">
       <div v-if="selectedRep">
@@ -731,6 +795,10 @@ export default {
       isReposicionesAsignarVisible: true,
       isReposicionesCursoVisible: true,
       isOrdenesCursoVisible: true,
+      isOrdenesTerminadasVisible: false,
+      ordenesTerminadas: [],
+      reposicionOrdenesProductosTerminadas: [],
+      ordenesTerminadasCargadas: false,
       reposicion_ordenes_productos: [],
       lote_detalles: [],
       lotes_fisicos: [],
@@ -1177,6 +1245,19 @@ export default {
       localStorage.setItem(key, this[key]);
     },
 
+    async loadOrdenesTerminadas() {
+      await this.$axios
+        .get(`${this.$config.API}/produccion/ordenes-terminadas`)
+        .then((res) => {
+          this.ordenesTerminadas = res.data.ordenes || [];
+          this.reposicionOrdenesProductosTerminadas = res.data.reposicion_ordenes_productos || [];
+          this.ordenesTerminadasCargadas = true;
+        })
+        .catch((err) => {
+          console.error("Error al cargar órdenes terminadas:", err);
+        });
+    },
+
     async loadOrdersProduction() {
       await this.$axios
         .get(`${this.$config.API}/sse/produccion`)
@@ -1451,6 +1532,9 @@ export default {
     if (localStorage.getItem('isOrdenesCursoVisible') !== null) {
       this.isOrdenesCursoVisible = localStorage.getItem('isOrdenesCursoVisible') === 'true';
     }
+    if (localStorage.getItem('isOrdenesTerminadasVisible') !== null) {
+      this.isOrdenesTerminadasVisible = localStorage.getItem('isOrdenesTerminadasVisible') === 'true';
+    }
 
     this.initTiemposDeProduccion();
     this.intervaloRecargaDatos = setInterval(() => {
@@ -1487,6 +1571,17 @@ export default {
     isOrdenesCursoVisible(val) {
       if (val) {
         this.setupInfiniteScroll();
+      }
+    },
+
+    // Carga perezosa a propósito -- la sección "Órdenes terminadas" es la
+    // menos urgente de refrescar y usa un endpoint aparte (GET
+    // /produccion/ordenes-terminadas), separado de /sse/produccion, para no
+    // sumarle carga a esa consulta ya pesada. Se pide una sola vez, la
+    // primera vez que se expande.
+    isOrdenesTerminadasVisible(val) {
+      if (val && !this.ordenesTerminadasCargadas) {
+        this.loadOrdenesTerminadas();
       }
     },
 
@@ -1535,6 +1630,10 @@ export default {
 
 .bg-success-accent {
   border-left: 5px solid #00bc8c !important;
+}
+
+.bg-secondary-accent {
+  border-left: 5px solid #6c757d !important;
 }
 
 .section-title {
