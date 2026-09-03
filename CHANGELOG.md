@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.6] - 2026-09-03
+- Asignacion automatica de empleados sin boton Guardar (autoguardado con debounce) + confirmacion al cerrar modal con datos pendientes
+
 ## [v1.0.5] - 2026-09-03
 - Fix layout Ordenes terminadas: grid dedicado de 3 columnas en vez del de 10 de Ordenes en curso
 
