@@ -86,7 +86,7 @@
       </b-alert>
     </div>
 
-    <b-button v-if="form.length > 0" variant="success" class="mt-3" :disabled="!puedeGuardar" @click="guardarAsignacion">
+    <b-button v-if="form.length > 0" variant="success" class="mt-3" :disabled="!hayCambiosPendientes" @click="guardarAsignacion">
       <b-icon icon="check-circle"></b-icon> Guardar asignación
     </b-button>
   </div>
@@ -107,6 +107,11 @@ export default {
       // se abría el modal (bug real: un toast "Asignación Guardada" por cada
       // pestaña con datos previos, sin que el usuario tocara nada).
       hidratando: true,
+      // JSON del último payload realmente enviado con éxito (o cargado al
+      // hidratar) -- evita reenviar/mostrar el toast de nuevo si el estado
+      // actual es idéntico a lo ya guardado, sin importar cuántas veces se
+      // dispare guardarAsignacion() (auto o manual).
+      ultimoPayloadGuardado: null,
       // { [id_ordenes_productos]: { asignacionCompleta: idEmpleado|null, granular: bool, splits: {[idEmpleado]: cantidad} } }
       productosAsignacion: {},
       fieldsEmpleados: [
@@ -173,6 +178,14 @@ export default {
     puedeGuardar() {
       if (this.form.length === 0) return false;
       return this.todoAsignado;
+    },
+
+    // true solo si hay un estado completo Y distinto de lo último guardado --
+    // maneja tanto el botón (deshabilitado si no hay nada nuevo que guardar)
+    // como sirve de base para el guard de guardarAsignacion().
+    hayCambiosPendientes() {
+      if (!this.puedeGuardar) return false;
+      return JSON.stringify(this.construirPayloadAsignaciones()) !== this.ultimoPayloadGuardado;
     },
   },
 
@@ -270,6 +283,15 @@ export default {
     // completar (2+ empleados con productos aún sin repartir del todo).
     tieneAsignacionPendiente() {
       return this.form.length >= 2 && !this.todoAsignado;
+    },
+
+    // Cierra la hidratación inicial: registra lo que se acaba de cargar como
+    // "ya guardado" (para que el botón nazca deshabilitado y el autoguardado
+    // no confunda datos recién leídos con un cambio real del usuario) y
+    // recién ahí habilita el autoguardado.
+    finalizarHidratacion() {
+      this.ultimoPayloadGuardado = JSON.stringify(this.construirPayloadAsignaciones());
+      this.hidratando = false;
     },
 
     nombreEmpleado(idEmpleado) {
@@ -372,6 +394,13 @@ export default {
       const asignaciones = this.construirPayloadAsignaciones();
       if (asignaciones.length === 0) return;
 
+      // Nada realmente distinto de lo último guardado -- evita reenviar y
+      // volver a mostrar el toast (ej. si el autoguardado se disparó más de
+      // una vez para el mismo cambio, o el usuario hace click en el botón
+      // sin haber tocado nada desde el último guardado).
+      const payloadKey = JSON.stringify(asignaciones);
+      if (payloadKey === this.ultimoPayloadGuardado) return;
+
       this.overlay = true;
       try {
         const res = await this.$axios.post(`${this.$config.API}/lotes/empleados/asignar-productos`, {
@@ -380,6 +409,7 @@ export default {
           asignaciones,
         });
 
+        this.ultimoPayloadGuardado = payloadKey;
         this.$bvToast.toast("Se guardó la asignación de empleados y productos.", {
           title: "Asignación Guardada",
           variant: "success",
@@ -447,10 +477,10 @@ export default {
         })
         .catch((err) => console.error("No se pudo cargar la asignación de productos previa", err))
         .finally(() => {
-          this.$nextTick(() => { this.hidratando = false; });
+          this.$nextTick(() => this.finalizarHidratacion());
         });
     } else {
-      this.$nextTick(() => { this.hidratando = false; });
+      this.$nextTick(() => this.finalizarHidratacion());
     }
   },
 
