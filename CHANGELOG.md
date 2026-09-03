@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.4] - 2026-09-03
+- Badge de Ordenes terminadas: mostrar puntos suspensivos en vez de 0 mientras no ha cargado
+
 ## [v1.0.3] - 2026-09-03
 - Seccion Ordenes terminadas en Control de Produccion con emision de reposiciones
 
