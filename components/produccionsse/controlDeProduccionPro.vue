@@ -489,8 +489,13 @@
     <div class="section-header bg-secondary-accent d-flex align-items-center justify-content-between mt-4 mb-3" @click="toggleSection('isOrdenesTerminadasVisible')">
       <div class="d-flex align-items-center">
         <h3 class="section-title mb-0">Órdenes terminadas</h3>
+        <!-- Carga perezosa: antes de expandir por primera vez no se sabe el
+             conteo real todavía -- mostrar "0" aquí se leía como "confirmado
+             cero" en vez de "sin cargar" (confundió al usuario con la
+             empresa 194, que sí tenía 71 en Desarrollo). "…" en vez de un
+             número hasta que ordenesTerminadasCargadas sea true. -->
         <b-badge pill variant="secondary" class="ml-3 px-2 py-1 count-badge">
-          {{ ordenesTerminadas.length }}
+          {{ ordenesTerminadasCargadas ? ordenesTerminadas.length : '…' }}
         </b-badge>
       </div>
       <b-button variant="link" class="collapse-toggle-btn text-decoration-none p-0">
