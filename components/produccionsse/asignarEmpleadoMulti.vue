@@ -428,9 +428,14 @@ export default {
         );
       } catch (error) {
         console.error("No se pudo guardar la asignación", error);
+        // ultimoPayloadGuardado NO se actualiza en este catch -- el botón
+        // "Guardar asignación" sigue habilitado (hayCambiosPendientes en
+        // true) para reintentar. Como esto puede fallar en segundo plano
+        // (autoguardado, sin que el usuario esté mirando esta pestaña en
+        // ese momento), el mensaje debe ser explícito sobre qué hacer.
         this.$fire({
-          title: "Error al guardar la asignación",
-          html: `<p>${(error.response && error.response.data && error.response.data.error) || error}</p>`,
+          title: "No se pudo guardar la asignación",
+          html: `<p>${(error.response && error.response.data && error.response.data.error) || error}</p><p>Vuelva a intentarlo haciendo click en <strong>"Guardar asignación"</strong>.</p>`,
           type: "error",
         });
       } finally {
