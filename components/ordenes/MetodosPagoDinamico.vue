@@ -9,6 +9,16 @@
           </small>
         </h5>
 
+        <b-form-checkbox
+          v-if="tasaDisponible(moneda) && moneda.codigo !== monedaBaseCodigo"
+          v-model="modoBasePorMoneda[moneda._id]"
+          switch
+          class="mb-2"
+          @change="alternarModoBase(moneda)"
+        >
+          Escribir montos en {{ monedaBaseCodigo }}
+        </b-form-checkbox>
+
         <b-alert v-if="!tasaDisponible(moneda)" show variant="warning" class="py-2">
           No hay tasa de cambio configurada para {{ moneda.nombre }}. Un administrador debe
           configurarla en Empresa &rarr; Configuración &rarr; Monedas antes de poder registrar
@@ -21,13 +31,13 @@
         <b-row v-for="metodo in metodosPorMoneda(moneda._id)" :key="metodo._id" class="mb-2 align-items-end">
           <b-col md="4">
             <b-form-group :label="metodo.nombre" :label-for="`monto-${metodo._id}`">
-              <b-input-group :prepend="moneda.simbolo || moneda.codigo">
+              <b-input-group :prepend="modoBasePorMoneda[moneda._id] ? monedaBaseSimbolo : (moneda.simbolo || moneda.codigo)">
                 <campo-decimal
                   :id="`monto-${metodo._id}`"
-                  v-model="montos[metodo._id]"
+                  :value="valorMostrado(moneda, metodo)"
                   placeholder="0.00"
                   :disabled="!tasaDisponible(moneda) || sinSaldoDisponible(moneda)"
-                  @input="emitirCambio"
+                  @input="(val) => actualizarMonto(moneda, metodo, val)"
                 ></campo-decimal>
               </b-input-group>
             </b-form-group>
@@ -49,8 +59,11 @@
           </b-col>
 
           <b-col md="4" v-if="montos[metodo._id] > 0">
-            <small class="text-success">
+            <small class="text-success" v-if="!modoBasePorMoneda[moneda._id]">
               ≈ {{ equivalenteEnBase(moneda, montos[metodo._id]).toFixed(2) }} {{ monedaBaseSimbolo }}
+            </small>
+            <small class="text-success" v-else>
+              ≈ {{ parseFloat(montos[metodo._id]).toFixed(2) }} {{ moneda.simbolo || moneda.codigo }}
             </small>
           </b-col>
         </b-row>
@@ -97,6 +110,16 @@ export default {
       metodos: [],
       montos: {},
       detalles: {},
+      // Por moneda: true = el usuario está escribiendo el monto en moneda
+      // base (monedaBaseCodigo) y el componente lo convierte a la moneda
+      // local; false (default) = comportamiento de siempre, se escribe
+      // directo en la moneda del método de pago.
+      modoBasePorMoneda: {},
+      // Staging solo para el modo base -- lo que el usuario ve/edita
+      // mientras modoBasePorMoneda[moneda._id] es true. `montos` sigue
+      // siendo, siempre, la fuente de verdad en moneda local que se envía
+      // al backend (obtenerPagos() no cambia).
+      montosBaseTexto: {},
       // Los recuadros en rojo de "referencia obligatoria" solo se muestran
       // después del primer intento de envío (validar()) -- no mientras el
       // usuario todavía está llenando el formulario.
@@ -171,6 +194,46 @@ export default {
       const tasa = this.tasaMoneda(moneda);
       return tasa ? n / tasa : 0;
     },
+    // Valor que debe verse en el input del método de pago según el modo
+    // activo para su moneda -- lo que el usuario está tecleando, no un
+    // recálculo derivado (evita el problema de redondeo de "ida y vuelta").
+    valorMostrado(moneda, metodo) {
+      if (this.modoBasePorMoneda[moneda._id]) {
+        return this.montosBaseTexto[metodo._id];
+      }
+      return this.montos[metodo._id];
+    },
+    // Único punto de escritura de `montos[metodo._id]` (la fuente de verdad
+    // en moneda local que se envía al backend, sin cambiar su forma). En
+    // modo base, convierte usando la misma tasa ya resuelta por
+    // tasaMoneda() -- si no hay tasa real, nunca multiplica a ciegas (mismo
+    // patrón defensivo que equivalenteEnBase): escribe 0 en vez de NaN o un
+    // monto basado en una tasa inventada.
+    actualizarMonto(moneda, metodo, valorEscrito) {
+      if (this.modoBasePorMoneda[moneda._id]) {
+        this.$set(this.montosBaseTexto, metodo._id, valorEscrito);
+        const base = parseFloat(valorEscrito) || 0;
+        const tasa = this.tasaMoneda(moneda);
+        const local = tasa ? Math.round(base * tasa * 100) / 100 : 0;
+        this.$set(this.montos, metodo._id, local);
+      } else {
+        this.$set(this.montos, metodo._id, valorEscrito);
+      }
+      this.emitirCambio();
+    },
+    // Al activar el modo base para una moneda con montos ya cargados en
+    // moneda local, precarga el staging para no perder lo ya escrito.
+    alternarModoBase(moneda) {
+      if (!this.modoBasePorMoneda[moneda._id]) return;
+      this.metodosPorMoneda(moneda._id).forEach((metodo) => {
+        const local = parseFloat(this.montos[metodo._id]) || 0;
+        this.$set(
+          this.montosBaseTexto,
+          metodo._id,
+          local > 0 ? this.equivalenteEnBase(moneda, local).toFixed(2) : null
+        );
+      });
+    },
     async cargarCatalogo() {
       this.cargando = true;
       try {
@@ -180,6 +243,9 @@ export default {
         ]);
         this.monedas = (resMonedas.data?.data || []).filter((m) => m.activo);
         this.metodos = (resMetodos.data?.data || []).filter((m) => m.activo);
+        this.monedas.forEach((moneda) => {
+          this.$set(this.modoBasePorMoneda, moneda._id, false);
+        });
       } catch (err) {
         console.error("Error al cargar catálogo de monedas/métodos de pago:", err);
       } finally {
@@ -249,6 +315,7 @@ export default {
     resetear() {
       this.montos = {};
       this.detalles = {};
+      this.montosBaseTexto = {};
       this.mostrarErroresReferencia = false;
       this.emitirCambio();
     },
