@@ -178,6 +178,17 @@ export default {
     },
     form() {
       this.inicializarProductosAsignacion();
+      this.programarAutoguardado();
+    },
+    // Deep (no solo puedeGuardar false->true) para cubrir también editar un
+    // reparto que ya estaba completo -- ej. mover unidades de un empleado a
+    // otro sin que la suma deje de cuadrar en ningún momento, caso en el que
+    // puedeGuardar nunca "cambia" de valor.
+    productosAsignacion: {
+      deep: true,
+      handler() {
+        this.programarAutoguardado();
+      },
     },
   },
 
@@ -234,6 +245,24 @@ export default {
 
     onCambioAsignacionCompleta() { },
     onCambioSplit() { },
+
+    // Autoguardado (con debounce, usando saveTimer): se dispara desde los
+    // watchers de `form` y `productosAsignacion` cada vez que algo cambia.
+    // Si el estado actual no es guardable todavía (ej. 2+ empleados sin
+    // terminar de repartir productos), no hace nada -- se vuelve a intentar
+    // en el próximo cambio.
+    programarAutoguardado() {
+      clearTimeout(this.saveTimer);
+      if (!this.puedeGuardar) return;
+      this.saveTimer = setTimeout(() => this.guardarAsignacion(), 600);
+    },
+
+    // Público -- lo consulta el modal padre (asignar.vue) al intentar
+    // cerrarse, para advertir antes de perder una asignación a medio
+    // completar (2+ empleados con productos aún sin repartir del todo).
+    tieneAsignacionPendiente() {
+      return this.form.length >= 2 && !this.todoAsignado;
+    },
 
     nombreEmpleado(idEmpleado) {
       const empleado = this.options.find((emp) => emp.value == idEmpleado);

@@ -60,7 +60,7 @@
                                 </div>
                             </div>
 
-                            <produccionsse-asignar-empleado-multi :item="dep"
+                            <produccionsse-asignar-empleado-multi ref="asignarMultiRefs" :item="dep"
                               @assignments-updated="handleAssignmentsUpdated" :idorden="id" :emp_asignados="filterAsigandos(
                                 dep._id,
                                 id
@@ -1132,7 +1132,28 @@ export default {
       });
     },
 
-    onModalHide() {
+    onModalHide(bvModalEvent) {
+      // Advertir antes de cerrar (X, ESC o click afuera -- todas pasan por
+      // este mismo evento) si alguna pestaña quedó con una asignación de
+      // productos a medio completar (2+ empleados sin terminar de repartir).
+      // No es un "enviar", el propio guardarAsignacion() ya bloquea guardar
+      // algo incompleto -- es una advertencia de que se va a perder lo armado.
+      const refs = this.$refs.asignarMultiRefs || [];
+      const hayPendientes = refs.some(
+        (r) => r && r.tieneAsignacionPendiente && r.tieneAsignacionPendiente()
+      );
+      if (hayPendientes) {
+        if (bvModalEvent) bvModalEvent.preventDefault();
+        this.$confirm(
+          "",
+          "Hay una asignación de productos sin completar en alguna pestaña. Si cierra ahora se perderá lo armado. ¿Cerrar de todas formas?",
+          "warning"
+        ).then(() => {
+          this.$nextTick(() => this.$bvModal.hide(this.modal));
+        });
+        return;
+      }
+
       if (this.assignmentsChanged) {
         console.log("Refrescando datos al cerrar el modal.");
         this.$emit("refresh-data");
