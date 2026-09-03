@@ -100,6 +100,13 @@ export default {
       empleado: null,
       form: [],
       saveTimer: null,
+      // true mientras mounted() está poblando el estado inicial (empleados ya
+      // asignados + su reparto de productos ya guardado) -- sin esto, cargar
+      // un departamento que ya tenía una asignación completa reenviaba al
+      // servidor exactamente lo mismo que se acababa de leer de él, apenas
+      // se abría el modal (bug real: un toast "Asignación Guardada" por cada
+      // pestaña con datos previos, sin que el usuario tocara nada).
+      hidratando: true,
       // { [id_ordenes_productos]: { asignacionCompleta: idEmpleado|null, granular: bool, splits: {[idEmpleado]: cantidad} } }
       productosAsignacion: {},
       fieldsEmpleados: [
@@ -252,6 +259,7 @@ export default {
     // terminar de repartir productos), no hace nada -- se vuelve a intentar
     // en el próximo cambio.
     programarAutoguardado() {
+      if (this.hidratando) return;
       clearTimeout(this.saveTimer);
       if (!this.puedeGuardar) return;
       this.saveTimer = setTimeout(() => this.guardarAsignacion(), 600);
@@ -437,7 +445,12 @@ export default {
             }
           });
         })
-        .catch((err) => console.error("No se pudo cargar la asignación de productos previa", err));
+        .catch((err) => console.error("No se pudo cargar la asignación de productos previa", err))
+        .finally(() => {
+          this.$nextTick(() => { this.hidratando = false; });
+        });
+    } else {
+      this.$nextTick(() => { this.hidratando = false; });
     }
   },
 
