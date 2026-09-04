@@ -64,5 +64,36 @@ const options = {
     }
 }
 
+// Limpieza de imágenes huérfanas: cuando el usuario quita una imagen ya
+// subida del contenido del editor (antes de guardar), el archivo queda vivo
+// en el servidor sin que nada la referencie -- se compara el HTML anterior
+// contra el nuevo y se pide borrar en el servidor lo que ya no aparece.
+// Fire-and-forget: un fallo acá no debe bloquear el guardado del contenido
+// real, solo se registra en consola.
+function extraerNombresImagenesOrden(html) {
+    if (!html) return [];
+    const regex = /images-orders-details\/([a-f0-9]{16}\.[A-Za-z0-9]{1,10})/g;
+    const nombres = [];
+    let match;
+    while ((match = regex.exec(html)) !== null) {
+        nombres.push(match[1]);
+    }
+    return nombres;
+}
+
+export async function limpiarImagenesQuillHuerfanas(htmlAnterior, htmlNuevo, axiosInstance, apiBase) {
+    const antes = new Set(extraerNombresImagenesOrden(htmlAnterior));
+    const despues = new Set(extraerNombresImagenesOrden(htmlNuevo));
+    const eliminadas = [...antes].filter((n) => !despues.has(n));
+
+    eliminadas.forEach((filename) => {
+        const data = new URLSearchParams();
+        data.set('filename', filename);
+        axiosInstance.post(`${apiBase}/delete-order-detail-image`, data).catch((err) => {
+            console.error('No se pudo limpiar la imagen huérfana', filename, err);
+        });
+    });
+}
+
 // Exportar las opciones para usarlas en otros componentes
 export default options

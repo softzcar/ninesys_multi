@@ -686,7 +686,7 @@
 <script>
 import mixins from "~/mixins/mixins.js";
 import { mapState, mapGetters } from "vuex";
-import quillOptions from "~/plugins/nuxt-quill-plugin";
+import quillOptions, { limpiarImagenesQuillHuerfanas } from "~/plugins/nuxt-quill-plugin";
 import procesamientoOrdenes from "~/mixins/procesamientoOrdenes.js";
 import phoneValidation from "~/mixins/phoneValidation.js";
 
@@ -3358,6 +3358,7 @@ export default {
     onEditorChange({ editor, html, text }) {
       console.log("editor change!", editor, html, text);
       console.log('DEBUG: asignando this.form.obs en onEditorChange:', html, typeof html);
+      limpiarImagenesQuillHuerfanas(this.form.obs, html, this.$axios, this.$config.API);
       this.form.obs = html;
     },
 

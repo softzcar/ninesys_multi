@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import quillOptions from "~/plugins/nuxt-quill-plugin";
+import quillOptions, { limpiarImagenesQuillHuerfanas } from "~/plugins/nuxt-quill-plugin";
 
 export default {
   data() {
@@ -339,6 +339,7 @@ export default {
 
     onEditorChange({ editor, html, text }) {
       console.log("editor change!", editor, html, text);
+      limpiarImagenesQuillHuerfanas(this.borrador, html, this.$axios, this.$config.API);
       this.postBorrador(html);
       this.borrador = html;
     },
