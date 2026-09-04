@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.15] - 2026-09-04
+- Fix: restaurar reposicionesPendientes.vue eliminado por error (columna Interaccion vacia en Reposiciones por aprobar)
+
 ## [v1.0.14] - 2026-09-04
 - Reporte pagos-abonos: total pagado y saldo pendiente ahora acotados al rango de fechas, no historial completo
 
