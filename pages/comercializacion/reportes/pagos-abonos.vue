@@ -202,13 +202,13 @@
                           </b-row>
 
                           <b-row>
-                            <!-- Total Pagado (histórico) -->
+                            <!-- Total Pagado (acotado al rango de fechas filtrado) -->
                             <b-col sm="6" class="mb-3">
                               <div class="h-100 p-3 rounded text-center border" style="background-color: #eff6ff; border-color: #bfdbfe !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                                 <b-icon icon="check2-circle" class="text-primary mb-2" font-scale="1.8"></b-icon>
                                 <div class="text-primary text-uppercase font-weight-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">
                                   Total Pagado / Abonos
-                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Todo lo abonado en el historial completo de esas órdenes (no solo los pagos hechos dentro del rango de fechas seleccionado) -- por eso puede ser mayor que el desglose de Métodos de Pago, que sí está limitado al rango." style="cursor: help;"></b-icon>
+                                  <b-icon icon="info-circle" v-b-tooltip.hover.click title="Lo abonado dentro del rango de fechas seleccionado -- mismo alcance que el desglose de Métodos de Pago, por eso ambos cuadran entre sí." style="cursor: help;"></b-icon>
                                 </div>
                                 <div class="h2 font-weight-bold text-primary mt-1 mb-0">
                                   {{ formatNumber(totales.sumas.pagadoHistorico) }} $
@@ -268,7 +268,7 @@
                             <div class="d-flex align-items-center mb-3">
                               <b-icon icon="wallet2" class="text-muted mr-2" font-scale="1.2"></b-icon>
                               <span class="text-uppercase font-weight-bold text-secondary" style="font-size: 0.85rem; letter-spacing: 0.05em;">Métodos de Pago</span>
-                              <b-icon icon="info-circle" class="ml-2 text-muted" v-b-tooltip.hover.click title="Solo los pagos recibidos dentro del rango de fechas seleccionado, agrupados por método -- distinto de 'Total Pagado / Abonos', que es el historial completo." style="cursor: help;"></b-icon>
+                              <b-icon icon="info-circle" class="ml-2 text-muted" v-b-tooltip.hover.click title="Los pagos recibidos dentro del rango de fechas seleccionado, agrupados por método -- mismo alcance que 'Total Pagado / Abonos'." style="cursor: help;"></b-icon>
                             </div>
                             <div v-if="totales.porMetodoPago && totales.porMetodoPago.length">
                               <div 
@@ -570,14 +570,15 @@ export default {
           const total_neto = yaProcesada ? 0 : totalNetoScaled;
           const saldo_pendiente = yaProcesada ? 0 : (saldoPendienteScaled > 0.01 ? saldoPendienteScaled : 0);
 
-          // Para que las tarjetas de resumen cuadren entre sí (Total Neto =
-          // Total Pagado histórico + Saldo Pendiente − Sobrepago − Notas de
-          // Crédito), el "Total Pagado" de la tarjeta usa el historial
-          // COMPLETO de abonos de la orden (no solo los pagos dentro del
-          // rango filtrado) -- mismo alcance que ya usa "Saldo Pendiente".
-          // El desglose "Métodos de Pago" sigue mostrando solo los pagos
-          // reales del rango (pregunta distinta: "qué entró en este
-          // período"), aclarado en su propio tooltip (2026-08-04).
+          // Todas las cifras de esta fila (total_descuento, total_nota_credito,
+          // total_abonos_base) vienen del backend ya acotadas al mismo rango de
+          // fechas filtrado (finance.php, /reporte-de-pagos) -- decisión explícita
+          // del usuario 2026-09-04: un reporte de un rango debe reflejar solo lo
+          // que pasó en ese rango, sin arrastrar abonos de fuera del período aunque
+          // la orden también haya tenido un pago dentro del rango. Por eso "Total
+          // Pagado / Abonos" y "Métodos de Pago" ahora cuadran entre sí (antes,
+          // hasta el 2026-09-04, "Total Pagado" usaba el historial completo de la
+          // orden a propósito -- ver commit anterior si hace falta revertir).
           const total_abono_historico = yaProcesada ? 0 : (ratio * totalAbonoBase);
           const sobrepago = yaProcesada ? 0 : (saldoPendienteScaled < -0.01 ? Math.abs(saldoPendienteScaled) : 0);
 
