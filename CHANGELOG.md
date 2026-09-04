@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.12] - 2026-09-04
+- Fix: race con v-model impedia detectar imagenes quitadas del editor Quill (nunca disparaba el borrado)
+
 ## [v1.0.11] - 2026-09-04
 - Limpiar imagenes huerfanas al quitarlas del editor Quill en descripcion de orden
 
