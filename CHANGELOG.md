@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.14] - 2026-09-04
+- Reporte pagos-abonos: total pagado y saldo pendiente ahora acotados al rango de fechas, no historial completo
+
 ## [v1.0.13] - 2026-09-04
 - Barra de progreso al subir imagenes desde el editor Quill, mismo patron de b-progress ya usado en app_multi
 
