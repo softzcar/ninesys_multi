@@ -12,6 +12,38 @@ Quill.register('modules/blotFormatter', BlotFormatter)
 // Configuración personalizada de Quill
 const API_URL = 'https://api.ninesys19.com';
 
+// Barra de progreso para la subida de imágenes desde el editor -- mismo
+// patrón ya usado en el resto de app_multi (b-progress + onUploadProgress
+// de axios, proyecto del límite de 100MB en diseno/GaleriaCategoria.vue y
+// hermanos). Este handler vive fuera de cualquier componente Vue (es un
+// handler de toolbar de Quill, sin template propio), así que se inserta
+// directo en el DOM del editor en vez de depender de un <b-progress>.
+function crearBarraProgresoQuill(editorRoot) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'quill-upload-progress-wrapper';
+    wrapper.style.padding = '4px 8px';
+    wrapper.style.borderBottom = '1px solid #ccc';
+    wrapper.innerHTML = `
+        <small class="text-muted">Subiendo imagen... <span class="quill-upload-progress-pct">0</span>%</small>
+        <div class="progress" style="height:6px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width:0%"></div>
+        </div>
+    `;
+    editorRoot.parentNode.insertBefore(wrapper, editorRoot);
+
+    return {
+        actualizar(pct) {
+            const bar = wrapper.querySelector('.progress-bar');
+            const label = wrapper.querySelector('.quill-upload-progress-pct');
+            if (bar) bar.style.width = pct + '%';
+            if (label) label.textContent = pct;
+        },
+        destruir() {
+            wrapper.remove();
+        },
+    };
+}
+
 const options = {
     theme: 'snow', // Puedes cambiar a 'bubble' si prefieres
     modules: {
@@ -38,10 +70,16 @@ const options = {
                             const formData = new FormData();
                             formData.append('image', file);
 
+                            const barra = crearBarraProgresoQuill(this.quill.root);
                             try {
                                 const response = await axios.post(`${activeApiUrl}/upload-order-detail-image`, formData, {
                                     headers: {
                                         'Content-Type': 'multipart/form-data'
+                                    },
+                                    onUploadProgress: (evt) => {
+                                        if (evt.total) {
+                                            barra.actualizar(Math.round((evt.loaded * 100) / evt.total));
+                                        }
                                     }
                                 });
 
@@ -54,6 +92,8 @@ const options = {
                             } catch (error) {
                                 console.error('Error uploading image:', error);
                                 alert('Error al subir la imagen');
+                            } finally {
+                                barra.destruir();
                             }
                         }
                     };
