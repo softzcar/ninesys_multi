@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** "ok ahora sube las imágenes y las muestra en el editor quill pero me acabo de dar cuenta que si elimino la imagen del editor no se elimina del servidor, queda como archivo basura en el VPS"
+- **Fecha y Hora:** 2026-09-04 15:10:00
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:**
+  - app_multi/plugins/nuxt-quill-plugin.js
+  - app_multi/components/ordenes/nueva.vue
+  - app_multi/components/ordenes/presupuesto.vue
+  - app_multi/components/produccion/controlDeProduccionDetallesEditor.vue
+  - ninesys-api/app/routes/upload.php
+- **Commits Relacionados:**
+  - Frontend: fc34880
+  - Backend: 55956d9
+- **Acción Realizada:** Se agregó `limpiarImagenesQuillHuerfanas(htmlAnterior, htmlNuevo, axiosInstance, apiBase)` en el plugin de Quill: extrae por regex las referencias `images-orders-details/<archivo>` del HTML anterior y del nuevo, calcula cuáles se quitaron y hace POST de borrado por cada una. Se conectó desde `onEditorChange` en los 3 formularios que usan el editor de descripción/observaciones (nueva orden, presupuesto, editor de detalles de producción). En el backend se agregó `POST /delete-order-detail-image`, validando el nombre de archivo con `basename()` + regex estricto `^[a-f0-9]{16}\.[A-Za-z0-9]{1,10}$` (mismo patrón que genera `moveUploadedFile()`) antes de `unlink()`, evitando cualquier path traversal.
+- **Inconvenientes y Desafíos:** Ninguno en esta iteración inicial (el bug del v-model se detectó y corrigió en una tarea siguiente).
+- **Decisión Final y Justificación:** Comparar el HTML completo antes/después en vez de interceptar cada `image-removed` del editor Quill, porque Quill no emite un evento nativo confiable para "imagen eliminada del contenido" -- diffear el HTML es más simple y ya cubre undo/redo del editor.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (deploy)
+- **Resultado:** Parcial (bug de detección corregido en tarea siguiente del mismo día)
+- **Verificación:** Confirmado por el usuario con una imagen real: subida, borrada del editor, verificado que inicialmente NO se disparaba la solicitud de borrado (root cause: race con v-model, ver log siguiente).
+- **Logro Conseguido:** Evita que se acumulen archivos huérfanos en el VPS cada vez que un usuario cambia de opinión sobre una imagen en la descripción de una orden.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Se implementó la limpieza de imágenes huérfanas end-to-end (frontend + endpoint de borrado), pendiente de un fix adicional por una condición de carrera con v-model.

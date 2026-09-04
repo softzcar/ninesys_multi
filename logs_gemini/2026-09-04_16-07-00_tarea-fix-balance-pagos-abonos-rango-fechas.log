@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** "[Imagen] vamos a revisar en el balance de pagos y abonos los montos... veo en la sección 'Métodos de pago' una información que no coincide con la mostrada en las demás cards... ninguno de los dos, que se filtren los pagos de esta semana nada más, los viejos no tienen por qué aparecer"
+- **Fecha y Hora:** 2026-09-04 16:07:00
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:**
+  - app_multi/pages/comercializacion/reportes/pagos-abonos.vue
+  - app_multi/static/guias/comercializacion-reportes-pagos-abonos.md
+  - ninesys-api/app/routes/finance.php
+- **Commits Relacionados:**
+  - Frontend: 047ae2f
+  - Backend: 92332df
+- **Acción Realizada:** El card "Total Pagado / Abonos" mostraba el historial completo del cliente/vendedor mientras que "Métodos de Pago" ya venía acotado al rango de fechas del filtro -- decisión explícita del usuario: acotar TODO al rango filtrado, sin bleed-through histórico. Se agregó `AND moment::date BETWEEN ? AND ?` (Postgres) / `DATE(moment) BETWEEN ? AND ?` (MySQL) a las subconsultas `total_descuento`, `total_nota_credito` y `total_abonos_base` de `/reporte-de-pagos` (antes sin acotar por fecha); `total_orden` se dejó deliberadamente sin acotar por no ser un evento fechado. Se actualizaron los tooltips y la guía de la página para reflejar que las 7 cards ahora son consistentes con el rango de fechas seleccionado.
+- **Inconvenientes y Desafíos:** Requirió corregir el orden posicional de los parámetros `$params` en cada subconsulta al agregar el par de fechas repetido.
+- **Decisión Final y Justificación:** El usuario decidió explícitamente el criterio de verdad ("los viejos no tienen por qué aparecer") en vez de mostrar el histórico en ambas cards, evitando ambigüedad sobre qué número es el correcto.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (deploy)
+- **Resultado:** Éxito
+- **Verificación:** Confirmado por el usuario con capturas de pantalla reales del reporte para la vendedora Sara, rango de fechas de la semana.
+- **Logro Conseguido:** Las 7 cards del reporte de Balance de pagos y abonos ahora muestran cifras consistentes entre sí, acotadas al mismo rango de fechas.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Reporte corregido para reflejar exclusivamente el rango de fechas filtrado en las 7 cards, confirmado por el usuario.

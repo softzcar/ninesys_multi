@@ -1,0 +1,17 @@
+- **Solicitud del Usuario:** "ya que estamos en las imágenes ahora en app_multi vamos a implementar una progressBar similar a la implementada 19print_app ayer"
+- **Fecha y Hora:** 2026-09-04 15:37:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - app_multi/plugins/nuxt-quill-plugin.js
+- **Commits Relacionados:**
+  - Frontend: f21946d
+  - Backend: N/A
+- **Acción Realizada:** Se agregó `crearBarraProgresoQuill(editorRoot)`, que inserta un elemento de progreso Bootstrap (`b-progress` nativo vía DOM) por encima del área editable de Quill durante la subida, actualizado con el callback `onProgress` de axios (`onUploadProgress`), replicando el mismo patrón ya usado un día antes en 19print_app.
+- **Inconvenientes y Desafíos:** El usuario reportó inicialmente no ver la barra tras recargar la página -- se verificó que era un tema de caché de assets ya resuelto sin cambios de código adicionales.
+- **Decisión Final y Justificación:** Reutilizar el patrón ya validado en 19print_app en vez de una librería de terceros, para mantener consistencia visual y no sumar una dependencia nueva.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (deploy)
+- **Resultado:** Éxito
+- **Verificación:** Confirmado visualmente por el usuario en nineteengreen.com al subir una imagen desde el editor de descripción de una orden.
+- **Logro Conseguido:** Feedback visual de progreso al subir imágenes desde el editor Quill, consistente con el resto de la aplicación.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Barra de progreso implementada y confirmada funcionando por el usuario.

@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** "subi esta imagen ... luego la borré del editor, en ese momento no vi que hiciera ninguna solicitud a la api y la imagen sigue en el VPS"
+- **Fecha y Hora:** 2026-09-04 15:26:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:**
+  - app_multi/components/ordenes/nueva.vue
+  - app_multi/components/ordenes/presupuesto.vue
+  - app_multi/components/produccion/controlDeProduccionDetallesEditor.vue
+- **Commits Relacionados:**
+  - Frontend: adb42b9
+  - Backend: N/A
+- **Acción Realizada:** Causa raíz: en Vue 2, cuando un input tiene `v-model` y además un listener explícito `@change` sobre el mismo evento, el handler implícito del `v-model` se ejecuta ANTES que el `@change` (se declara primero en el template) -- así que al momento de comparar "HTML anterior vs HTML nuevo" dentro de `onEditorChange`, `form.obs`/`borrador` YA tenían el valor nuevo en ambos lados de la comparación, y el diff nunca detectaba nada removido. Se agregó una variable propia `_quillHtmlAnterior` (data field, no ligada a v-model) que se actualiza manualmente DESPUÉS de calcular el diff, desacoplando el "antes" del valor reactivo que v-model ya había mutado.
+- **Inconvenientes y Desafíos:** El bug era silencioso (no lanzaba error, solo nunca ejecutaba la limpieza) -- se detectó por reporte directo del usuario con un caso real reproducible.
+- **Decisión Final y Justificación:** Tracking manual en vez de reordenar el binding de v-model/@change, porque este orden de ejecución es un comportamiento documentado de Vue 2 y no debía asumirse frágil para otros usos del mismo patrón en el proyecto.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (deploy)
+- **Resultado:** Éxito
+- **Verificación:** Confirmado por el usuario: "ok ahora funciona correctamente" tras repetir la prueba de subir y borrar una imagen antes de guardar.
+- **Logro Conseguido:** La limpieza de imágenes huérfanas del editor Quill quedó funcionando de punta a punta, verificada por el usuario con datos reales.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Corregido el bug de raíz (condición de carrera entre v-model y el listener de cambio); confirmado funcionando por el usuario.
