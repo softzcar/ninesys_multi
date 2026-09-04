@@ -709,6 +709,14 @@ export default {
   },
   data() {
     return {
+      // Registro propio del HTML anterior del editor Quill, aparte de
+      // form.obs -- en el template v-model="form.obs" está declarado ANTES
+      // que @change="onEditorChange", así que Vue ya actualiza form.obs al
+      // valor nuevo antes de que onEditorChange se ejecute (mismo evento).
+      // Leer this.form.obs ahí como "el valor anterior" siempre da el mismo
+      // valor que el nuevo -- nunca detecta imágenes quitadas. Este campo
+      // solo se actualiza al final de onEditorChange, nunca por v-model.
+      _quillHtmlAnterior: null,
       isSmallScreen: false,
       productAttributes: [], // <-- AÑADIDO
       productAttributesValues: [], // <-- AÑADIDO
@@ -3358,7 +3366,10 @@ export default {
     onEditorChange({ editor, html, text }) {
       console.log("editor change!", editor, html, text);
       console.log('DEBUG: asignando this.form.obs en onEditorChange:', html, typeof html);
-      limpiarImagenesQuillHuerfanas(this.form.obs, html, this.$axios, this.$config.API);
+      if (this._quillHtmlAnterior !== null) {
+        limpiarImagenesQuillHuerfanas(this._quillHtmlAnterior, html, this.$axios, this.$config.API);
+      }
+      this._quillHtmlAnterior = html;
       this.form.obs = html;
     },
 

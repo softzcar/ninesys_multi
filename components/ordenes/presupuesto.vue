@@ -524,6 +524,10 @@ export default {
   },
   data() {
     return {
+      // Ver mismo campo en components/ordenes/nueva.vue: registro propio
+      // del HTML anterior, independiente de form.obs (v-model ya lo
+      // actualiza antes de que corra onEditorChange en el mismo evento).
+      _quillHtmlAnterior: null,
       isSmallScreen: false,
       productAttributes: [], // <-- AÑADIDO
       productAttributesValues: [], // <-- AÑADIDO
@@ -2841,7 +2845,10 @@ export default {
     onEditorChange({ editor, html, text }) {
       console.log("editor change!", editor, html, text);
       console.log('DEBUG: asignando this.form.obs en onEditorChange:', html, typeof html);
-      limpiarImagenesQuillHuerfanas(this.form.obs, html, this.$axios, this.$config.API);
+      if (this._quillHtmlAnterior !== null) {
+        limpiarImagenesQuillHuerfanas(this._quillHtmlAnterior, html, this.$axios, this.$config.API);
+      }
+      this._quillHtmlAnterior = html;
       this.form.obs = html;
     },
 

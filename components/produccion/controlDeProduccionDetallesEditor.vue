@@ -68,6 +68,13 @@ import quillOptions, { limpiarImagenesQuillHuerfanas } from "~/plugins/nuxt-quil
 export default {
   data() {
     return {
+      // Ver mismo campo en components/ordenes/nueva.vue: registro propio
+      // del HTML anterior, independiente de "borrador" (v-model ya lo
+      // actualiza antes de que corra onEditorChange en el mismo evento).
+      // Se resetea a null cada vez que se recarga borrador desde el
+      // servidor (getObservaciones) para no comparar contra contenido viejo
+      // de una orden distinta.
+      _quillHtmlAnterior: null,
       editorKey: 0,
       title: `Detalles de la orden ${this.idorden}`,
       quillOptions,
@@ -299,6 +306,7 @@ export default {
             this.detalles_orden = this.detallesExternos;
           }
           this.borrador = res.data[0].observaciones_empleado;
+          this._quillHtmlAnterior = null;
           this.editorKey++;
 
           console.group("obs");
@@ -339,7 +347,10 @@ export default {
 
     onEditorChange({ editor, html, text }) {
       console.log("editor change!", editor, html, text);
-      limpiarImagenesQuillHuerfanas(this.borrador, html, this.$axios, this.$config.API);
+      if (this._quillHtmlAnterior !== null) {
+        limpiarImagenesQuillHuerfanas(this._quillHtmlAnterior, html, this.$axios, this.$config.API);
+      }
+      this._quillHtmlAnterior = html;
       this.postBorrador(html);
       this.borrador = html;
     },
