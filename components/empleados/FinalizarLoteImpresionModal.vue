@@ -74,14 +74,14 @@
             </b-col>
           </b-row>
           
-          <!-- Canales de tinta dinámicos -->
-          <b-row v-if="impresora.id_impresora">
+          <!-- Canales de tinta dinámicos (solo si la impresora requiere carga manual) -->
+          <b-row v-if="impresora.id_impresora && esModoManualForIndex(index)">
             <b-col v-for="colorObj in getPrinterChannels(index)" :key="colorObj.id_color" md="2" sm="4" class="mb-3">
               <b-form-group :label="`${colorObj.nombre} (ml)`">
-                <b-form-input 
-                  v-model.number="impresora.colores[colorObj.id_color]" 
-                  type="number" 
-                  step="0.1" 
+                <b-form-input
+                  v-model.number="impresora.colores[colorObj.id_color]"
+                  type="number"
+                  step="0.1"
                   min="0"
                   :style="{
                     backgroundColor: colorObj.color_hex,
@@ -94,6 +94,9 @@
               </b-form-group>
             </b-col>
           </b-row>
+          <b-alert v-else-if="impresora.id_impresora" show variant="info" class="mt-2">
+            Esta impresora está en modo automático: no se requiere ingresar ml de tinta manualmente.
+          </b-alert>
         </b-card>
 
         <!-- Botón para añadir impresora -->
@@ -272,9 +275,12 @@ export default {
       const papelValido = this.consumoPapel.every(
         (p) => p.id_insumo && p.cantidad_total > 0
       )
-      const tintaValida = this.impresorasSeleccionadas.every(imp => {
+      const tintaValida = this.impresorasSeleccionadas.every((imp, index) => {
         if (!imp.id_impresora) return false;
-        // Validar que al menos un canal tenga un consumo mayor a 0
+        // Impresoras en modo automático (ingresar_tinta_manual = 0) no
+        // piden ml por canal -- basta con haber seleccionado la impresora.
+        if (!this.esModoManualForIndex(index)) return true;
+        // Modo manual: al menos un canal debe tener un consumo mayor a 0.
         return Object.values(imp.colores || {}).some(val => parseFloat(val) > 0);
       })
       return papelValido && tintaValida
@@ -439,6 +445,16 @@ export default {
       return options
     },
 
+    // Ver mismo patrón ya establecido en SseOrdenesAsignadasModalExtra.vue
+    // (esModoManualForIndex): si la impresora tiene ingresar_tinta_manual=0
+    // está en modo automático y no se le pide ml por canal.
+    esModoManualForIndex(index) {
+      const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
+      if (!selectedId || !this.impresoras) return true;
+      const selectedPrinter = this.impresoras.find(imp => imp._id === selectedId);
+      if (!selectedPrinter || selectedPrinter.ingresar_tinta_manual === undefined || selectedPrinter.ingresar_tinta_manual === null) return true;
+      return parseInt(selectedPrinter.ingresar_tinta_manual) !== 0;
+    },
     getPrinterChannels(index) {
       const selectedId = this.impresorasSeleccionadas[index]?.id_impresora;
       if (!selectedId) return [];

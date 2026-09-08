@@ -1502,7 +1502,20 @@ export default {
       });
 
       this.papelUtilizadoLote = papelConsumido;
-      this.showFinalizarLoteModal = true;
+
+      // Impresión tiene su propio modal (FinalizarLoteImpresionModal): pide
+      // la impresora UNA sola vez para todo el lote (repartido proporcional
+      // entre las órdenes al finalizar), en vez de pedirla por cada orden
+      // como hace el modal genérico -- un lote de impresión se procesa con
+      // un solo equipo de una sola vez (hallazgo real 2026-09-08, reportado
+      // por el usuario sobre los lotes de Jesús). El modal ya existía en el
+      // código pero nunca se activaba.
+      const tipoDepartamento = this.$store.getters['login/currentDepartamentTipo'];
+      if (tipoDepartamento === 'impresion') {
+        this.showFinalizarImpresionModal = true;
+      } else {
+        this.showFinalizarLoteModal = true;
+      }
     },
 
     handleLoteFinalizado() {
