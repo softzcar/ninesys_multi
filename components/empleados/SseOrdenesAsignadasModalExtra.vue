@@ -2039,57 +2039,46 @@ export default {
       return currentOrdenProceso === maxOrdenProceso;
     },
 
-    terminarTodo() {
-      this.registrarEstado("fin", this.idorden, 0);
+    async terminarTodo() {
+      // Antes este método disparaba postInventarioMovimientos() y
+      // registrarEstado() como promesas paralelas sin await ni catch: si el
+      // registro de consumo fallaba (blip de red, rechazo del backend), la
+      // tarea igual quedaba marcada "terminada" sin ningún aviso, perdiendo
+      // el consumo en silencio (hallazgo real 2026-09-08, orden 6964 -- DTF
+      // terminado con Consumo Real = 0 sin que nadie viera un error). Se
+      // secuencia igual que handleBatchTerminarConfirm(): primero se espera
+      // y confirma cada consumo, y solo si todos tienen éxito se cierra la
+      // tarea.
+      this.overlay = true;
+      this.ButtonDisabled = true;
+      try {
+        for (const el of this.form) {
+          await this.postInventarioMovimientos(
+            el.input,
+            el.select,
+            el.idCatalogo,
+            this.item.id_woo,
+            el.desperdicio,
+            0,
+            null,
+            false,
+            el.precargado
+          );
+        }
 
-      // Para otros departamentos, enviar los elementos del formulario
-      this.form.forEach((el) => {
-        console.log("Enviamos elemento del formulario", el);
-
-        this.postInventarioMovimientos(
-          el.input,
-          el.select,
-          el.idCatalogo,
-          this.item.id_woo,
-          el.desperdicio,
-          0,
-          null,
-          false,
-          el.precargado
-        );
-      });
-
-      if (this.items.length) {
-        // this.registrarEstado("fin", this.idorden, 0).then(() => {
-        // Enviar mensaje al cliente
-        // this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
-        //     // console.log('Modal is about to be shown', bvEvent, modal)
-        //     });
-        // });
-        /* this.$emit(
-                    "registrarestado",
-                    "fin",
-                    this.idorden,
-                    this.item.unidades
-                ); */
-        /* this.items.forEach((item) => {
-                    // enviar estado
-    
-                    this.registrarEstado(
-                        "fin",
-                        this.idorden,
-                        item.unidades
-                    ).then(() => {
-                        // Enviar mensaje al cliente
-                        // this.$root.$on("bv::modal::hide", (bvEvent, modal) => {
-                        //     // console.log('Modal is about to be shown', bvEvent, modal)
-                        //     });
-                    });
-                }); */
+        await this.registrarEstado("fin", this.idorden, 0);
+        this.$bvModal.hide(this.modal);
+      } catch (e) {
+        console.error(e);
+        this.$fire({
+          type: "error",
+          title: "No se pudo registrar el consumo de material",
+          html: `<p>La tarea NO se marcó como terminada. Verifique los datos ingresados e intente de nuevo.</p><p>${(e.response && e.response.data && (e.response.data.error || JSON.stringify(e.response.data))) || e}</p>`,
+        });
+      } finally {
+        this.overlay = false;
+        this.ButtonDisabled = false;
       }
-      // this.clearForms()
-      this.$bvModal.hide(this.modal);
-      // this.clearForms();
     },
 
     /* async registrarEstado_old(tipo, id_lotes_detalles, unidades) {
