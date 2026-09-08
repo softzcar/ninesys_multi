@@ -306,6 +306,19 @@
             <b-badge v-if="filterUrgentes" variant="dark" pill class="ml-1" style="font-size:0.75em;">activo</b-badge>
           </b-button>
 
+          <!-- Toggle: solo órdenes SOLO IMPRESIÓN (todos sus productos son
+               es_servicio_de_impresion=1 -- se pueden cerrar completas en
+               Impresión, sin pasar por Corte/Costura/Estampado) -->
+          <b-button
+            id="filter-solo-impresion"
+            variant="info"
+            @click="filterSoloImpresion = !filterSoloImpresion"
+          >
+            <b-icon :icon="filterSoloImpresion ? 'printer-fill' : 'printer'" class="mr-1"></b-icon>
+            SOLO IMPRESIÓN
+            <b-badge v-if="filterSoloImpresion" variant="dark" pill class="ml-1" style="font-size:0.75em;">activo</b-badge>
+          </b-button>
+
           <b-button v-if="isUserFiltering" @click="clearFilters" variant="outline-danger" size="sm" class="w-100">
             <b-icon icon="x-circle"></b-icon> Limpiar Filtros
           </b-button>
@@ -747,6 +760,7 @@ export default {
       isProyeccionLoading: false, // Nuevo: para rastrear el endpoint pesado de proyecciones
       visibleOrders: 10,        // Nuevo: para carga incremental en bloques de 10
       physicalOrdersMap: {},     // Nuevo: índice para búsqueda instantánea de productos físicos
+      esImpresionOrdersMap: {},  // Nuevo: true si TODOS los productos de la orden son "solo impresión"
       ordenProductosMap: {},
       loteDetallesMap: {},
       pActivosMap: {},
@@ -770,6 +784,7 @@ export default {
       filterEstatus: '',
       filterPorAsignar: false,
       filterUrgentes: false,
+      filterSoloImpresion: false,
 
       overlay: true,
       items: [],
@@ -1226,6 +1241,7 @@ export default {
       this.filterEstatus = "";
       this.filterPorAsignar = false;
       this.filterUrgentes = false;
+      this.filterSoloImpresion = false;
     },
 
     toggleSection(key) {
@@ -1272,15 +1288,26 @@ export default {
           this.pasos = res.data.pasos || [];
 
           // 🆕 PRE-INDEXACIÓN: Crear mapa de órdenes con productos físicos
+          // y mapa de órdenes "solo impresión" (todos sus productos son
+          // es_servicio_de_impresion=1, se pueden cerrar completas en
+          // Impresión sin pasar por Corte/Costura/Estampado).
           const map = {};
+          const impresionMap = {};
           if (res.data.orden_productos) {
             res.data.orden_productos.forEach(p => {
               if (p.fisico == 1) {
                 map[p.id_orden] = true;
               }
+              if (impresionMap[p.id_orden] === undefined) {
+                impresionMap[p.id_orden] = true;
+              }
+              if (parseInt(p.es_servicio_de_impresion) !== 1) {
+                impresionMap[p.id_orden] = false;
+              }
             });
           }
           this.physicalOrdersMap = map;
+          this.esImpresionOrdersMap = impresionMap;
 
           // Pre-indexar arrays en mapas O(1)
           const opMap = {};
@@ -1387,7 +1414,8 @@ export default {
         (this.filterCliente && this.filterCliente.trim().length > 0) ||
         (this.filterEstatus && this.filterEstatus.trim().length > 0) ||
         this.filterPorAsignar ||
-        this.filterUrgentes
+        this.filterUrgentes ||
+        this.filterSoloImpresion
       );
     },
 
@@ -1460,6 +1488,14 @@ export default {
         // Filtro URGENTES: muestra solo órdenes con prioridad === 1
         if (this.filterUrgentes) {
           filtered = filtered.filter(item => parseInt(item.prioridad) === 1);
+        }
+
+        // Filtro SOLO IMPRESIÓN: muestra solo órdenes donde TODOS los
+        // productos son "servicio de impresión" (DTF, Sublimación por
+        // metros, etc.) -- órdenes que no requieren pasar por
+        // Corte/Costura/Estampado y se pueden cerrar completas en Impresión.
+        if (this.filterSoloImpresion) {
+          filtered = filtered.filter(item => this.esImpresionOrdersMap[item.orden] === true);
         }
 
         return filtered;
