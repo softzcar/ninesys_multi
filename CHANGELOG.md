@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.20] - 2026-09-08
+- CampoDecimal: escritura tradicional + auto coma-a-punto; diagnostico errorCaptured en inventario-gestion
+
 ## [v1.0.19] - 2026-09-08
 - Botones POR ASIGNAR/URGENTES siempre solidos (no outline), badge indica el estado activo
 
