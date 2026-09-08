@@ -7,30 +7,29 @@
     v-bind="$attrs"
     v-on="listeners"
     :value="displayValue"
-    :formatter="maskFormatter"
+    :formatter="normalizeInput"
     :placeholder="effectivePlaceholder"
     @paste="onPaste"
-    @focus="snapCursorToEnd"
-    @click="snapCursorToEnd"
   />
 </template>
 
 <script>
-// Input numérico estilo "bancario": el usuario solo escribe dígitos y el
-// punto decimal se inserta automáticamente desde la derecha (máscara 0.00).
-// Ej: escribir "150" produce "1.50". No se edita en medio del número, solo
-// se agrega/borra desde la derecha (igual que los inputs de monto de apps
-// bancarias).
+// Input numérico de escritura TRADICIONAL (el usuario escribe y edita
+// libremente, en cualquier posición del texto -- no hay máscara de dígitos
+// desde la derecha). Lo único que se automatiza es el separador decimal:
+// si el usuario escribe coma, se reemplaza por punto de forma silenciosa
+// (la API necesita el punto), en vez de bloquear la escritura o mostrar un
+// error. Se descarta cualquier caracter que no sea dígito o separador, y
+// si escribe más de un separador solo se respeta el primero.
 //
-// Usa el prop `formatter` NATIVO de <b-form-input> (BootstrapVue) en vez de
-// un listener @input.native separado: <b-form-input> ya escucha el evento
-// nativo "input" internamente y escribe su propio valor crudo al DOM -- un
-// segundo listener nativo independiente compite por el mismo evento sin
-// sincronizarse con ese mecanismo interno, y cuál de los dos "gana" depende
-// del contexto (confirmado roto envuelto en <b-input-group>, 2026-08-13).
-// El prop `formatter` es el único camino soportado por la librería para
-// interceptar/reescribir el valor en el mismo ciclo que ya usa
-// internamente, sin ninguna carrera.
+// Reemplaza al enfoque "bancario" (máscara 0.00 desde la derecha) usado
+// hasta 2026-09-08 -- el usuario pidió volver a la escritura tradicional
+// manteniendo solo la conversión automática de coma a punto.
+//
+// Usa el prop `formatter` NATIVO de <b-form-input> (BootstrapVue) para
+// interceptar/reescribir el valor en el mismo ciclo que la librería ya usa
+// internamente, sin condiciones de carrera con un listener @input.native
+// aparte (ver historial de este archivo para el detalle de ese problema).
 export default {
   name: "CampoDecimal",
   inheritAttrs: false,
@@ -43,10 +42,6 @@ export default {
       type: Number,
       default: 2,
     },
-    maxIntegerDigits: {
-      type: Number,
-      default: 10,
-    },
     placeholder: {
       type: String,
       default: null,
@@ -58,58 +53,63 @@ export default {
       return rest
     },
     displayValue() {
-      return this.formatDigits(this.numberToDigits(this.value))
+      if (this.value === null || this.value === undefined || this.value === "") return ""
+      return String(this.value)
     },
     effectivePlaceholder() {
       if (this.placeholder !== null) return this.placeholder
       return (0).toFixed(this.decimals)
     },
-    maxDigits() {
-      return this.maxIntegerDigits + this.decimals
-    },
   },
   methods: {
-    numberToDigits(val) {
-      if (val === null || val === undefined || val === "") return ""
-      const num = Number(val)
-      if (isNaN(num)) return ""
-      return Math.round(Math.abs(num) * Math.pow(10, this.decimals)).toString()
-    },
-    formatDigits(digits) {
-      if (!digits) return ""
-      const padded = digits.padStart(this.decimals + 1, "0")
-      const integerPart = padded
-        .slice(0, this.decimals > 0 ? -this.decimals : undefined)
-        .replace(/^0+(?=\d)/, "")
-      const decimalPart = padded.slice(-this.decimals)
-      return this.decimals > 0 ? `${integerPart}.${decimalPart}` : integerPart
-    },
-    digitsToNumber(digits) {
-      if (!digits) return null
-      return parseInt(digits, 10) / Math.pow(10, this.decimals)
-    },
     // Llamado por <b-form-input> en cada tecleo (evento nativo "input"
     // interno de la librería) -- recibe el valor crudo ya editado por el
-    // navegador y devuelve el string formateado que la librería usará como
-    // su propio localValue. Un único origen de verdad para el DOM.
-    maskFormatter(rawValue) {
-      const digits = String(rawValue).replace(/\D/g, "").slice(0, this.maxDigits)
-      this.$emit("input", this.digitsToNumber(digits))
-      this.$nextTick(() => this.snapCursorToEnd())
-      return this.formatDigits(digits)
+    // navegador (con la edición del usuario ya aplicada en la posición del
+    // cursor que sea) y devuelve el texto normalizado que la librería usará
+    // como su propio localValue.
+    normalizeInput(rawValue) {
+      let text = String(rawValue).replace(/,/g, ".").replace(/[^0-9.]/g, "")
+
+      // Si hay más de un punto, se respeta solo el primero (separador
+      // decimal) y se descartan los demás.
+      const primerPunto = text.indexOf(".")
+      if (primerPunto !== -1) {
+        text = text.slice(0, primerPunto + 1) + text.slice(primerPunto + 1).replace(/\./g, "")
+      }
+
+      // Recortar a la cantidad de decimales permitida, sin reformatear el
+      // resto del texto (edición libre).
+      if (primerPunto !== -1 && this.decimals >= 0) {
+        const [parteEntera, parteDecimal = ""] = text.split(".")
+        text = this.decimals > 0
+          ? `${parteEntera}.${parteDecimal.slice(0, this.decimals)}`
+          : parteEntera
+      }
+
+      const numero = text === "" || text === "." ? null : Number(text)
+      this.$emit("input", Number.isNaN(numero) ? null : numero)
+      return text
     },
     onPaste(event) {
       event.preventDefault()
       const clipboard = (event.clipboardData || window.clipboardData).getData("text")
-      const normalized = this.normalizeDecimalString(clipboard)
-      const parsed = parseFloat(normalized)
-      if (isNaN(parsed)) return
-      const digits = Math.round(Math.abs(parsed) * Math.pow(10, this.decimals))
-        .toString()
-        .slice(0, this.maxDigits)
-      this.$emit("input", this.digitsToNumber(digits))
-      this.$nextTick(() => this.snapCursorToEnd())
+      const normalizado = this.normalizeDecimalString(clipboard)
+      const el = this.$refs.input && this.$refs.input.$el
+      if (!el) return
+      const inicio = el.selectionStart
+      const fin = el.selectionEnd
+      const actual = el.value
+      const nuevoTexto = actual.slice(0, inicio) + normalizado + actual.slice(fin)
+      const posicionCursor = inicio + normalizado.length
+      // Reutiliza el mismo camino que un tecleo normal -- normalizeInput
+      // se encarga de limpiar caracteres inválidos y emitir el valor.
+      const textoFinal = this.normalizeInput(nuevoTexto)
+      el.value = textoFinal
+      this.$nextTick(() => el.setSelectionRange(posicionCursor, posicionCursor))
     },
+    // Convierte texto pegado con separador de miles + decimal (ej.
+    // "1.234,56" o "1,234.56") a un formato simple con punto decimal --
+    // se asume que el ÚLTIMO separador presente es el decimal.
     normalizeDecimalString(text) {
       let cleaned = text.trim().replace(/[^0-9.,]/g, "")
       const lastComma = cleaned.lastIndexOf(",")
@@ -119,12 +119,6 @@ export default {
       const intPart = cleaned.slice(0, decimalSepIndex).replace(/[.,]/g, "")
       const decPart = cleaned.slice(decimalSepIndex + 1).replace(/[.,]/g, "")
       return `${intPart}.${decPart}`
-    },
-    snapCursorToEnd() {
-      const el = this.$refs.input && this.$refs.input.$el
-      if (!el) return
-      const len = el.value.length
-      el.setSelectionRange(len, len)
     },
   },
 }

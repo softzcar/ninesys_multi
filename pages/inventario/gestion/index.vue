@@ -15,6 +15,10 @@
                         dataUser.departamento === 'Administración' ||
                         dataUser.departamento === 'Producción'
                     ">
+                        <b-alert v-if="componentError" show variant="danger" dismissible @dismissed="componentError = ''">
+                            <strong>Error al renderizar un control:</strong> {{ componentError }}
+                        </b-alert>
+
                         <!-- FILA 1: TÍTULO Y ACCIONES PRINCIPALES -->
                         <b-row class="align-items-center mb-4 pb-2 border-bottom">
                             <b-col md="6">
@@ -200,6 +204,7 @@ import PrintService from "@/utils/PrintService"
 export default {
     data() {
         return {
+            componentError: "",
             includedFields: ["insumo", "departamento", "sku", "rollo"],
             titulo: "Gestión de Inventario",
             overlay: true,
@@ -636,6 +641,16 @@ export default {
             this.overlay = false
         })
         this.fetchCatalogoInsumosProductos();
+    },
+    // Diagnostico temporal (2026-09-08): captura cualquier error de render
+    // de un componente hijo (ej. InsumoNuevo/InsumoEditar/InsumoClonar) y lo
+    // muestra como alerta visible en vez de dejar que el boton simplemente
+    // desaparezca sin rastro -- ver hallazgo "botones de insumo desaparecidos".
+    errorCaptured(err, vm, info) {
+        const nombreComponente = vm && vm.$options && (vm.$options.name || vm.$options._componentTag) || "componente desconocido";
+        console.error('[InventarioGestion] errorCaptured:', nombreComponente, info, err);
+        this.componentError = `${err.message} -- en "${nombreComponente}" (${info})`;
+        return false;
     },
 }
 </script>
