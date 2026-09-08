@@ -287,13 +287,12 @@
           <!-- Toggle: solo órdenes POR ASIGNAR -->
           <b-button
             id="filter-por-asignar"
-            variant="warning"
+            :variant="filterPorAsignar ? 'warning' : 'outline-warning'"
             size="sm"
             class="w-100"
             @click="filterPorAsignar = !filterPorAsignar"
             :style="{
               fontWeight: '700',
-              opacity: filterPorAsignar ? '1' : '0.6',
               boxShadow: filterPorAsignar ? '0 0 0 2px rgba(243, 156, 18, 0.5)' : 'none',
               transition: 'all 0.2s ease-in-out'
             }"
@@ -306,16 +305,14 @@
           <!-- Toggle: solo órdenes URGENTES -->
           <b-button
             id="filter-urgentes"
-            variant="danger"
+            :variant="filterUrgentes ? 'danger' : 'outline-danger'"
             size="sm"
             class="w-100"
             @click="filterUrgentes = !filterUrgentes"
             :style="{
               fontWeight: '700',
-              opacity: filterUrgentes ? '1' : '0.6',
               boxShadow: filterUrgentes ? '0 0 0 2px rgba(231, 76, 60, 0.5)' : 'none',
-              transition: 'all 0.2s ease-in-out',
-              color: 'white'
+              transition: 'all 0.2s ease-in-out'
             }"
           >
             <b-icon :icon="filterUrgentes ? 'exclamation-circle-fill' : 'exclamation-circle'" class="mr-1"></b-icon>
