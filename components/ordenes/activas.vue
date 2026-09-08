@@ -134,6 +134,8 @@
             hover
             :items="dataTable"
             :fields="fields"
+            :per-page="perPage"
+            :current-page="currentPage"
             show-empty
             empty-text="No se encontraron órdenes con estos filtros."
           >
@@ -199,16 +201,13 @@
             </template>
           </b-table>
 
-          <div id="ordenes-activas-scroll-sentinel"
-              style="height: 50px; display: flex; align-items: center; justify-content: center;">
-            <div v-if="isLoadingMore" class="text-muted">
-              <b-spinner small variant="success" class="mr-2"></b-spinner>
-              Cargando más órdenes...
-            </div>
-            <div v-else-if="endOfList && dataTable.length > 0" class="text-muted small">
-              Fin de la lista ({{ dataTable.length }} órdenes mostradas)
-            </div>
-          </div>
+          <b-pagination
+            v-if="dataTable.length > perPage"
+            v-model="currentPage"
+            :total-rows="dataTable.length"
+            :per-page="perPage"
+            align="center"
+          ></b-pagination>
         </b-col>
       </b-row>
     </b-container>
@@ -244,13 +243,17 @@ export default {
         show: true,
         text: "Cargando ordenes activas...",
       },
-      // Paginación real por cursor (ord._id) + scroll infinito -- mismo esquema ya
-      // aplicado en Todas las Órdenes.
-      cursor: null,
       totalCount: 0,
       isLoadingMore: false,
-      endOfList: false,
-      scrollObserver: null,
+      // Paginación client-side (mismo comportamiento previo al 2026-08-12): esta
+      // página es el reporte usado para determinar quién debe dinero, ordenando
+      // desde las órdenes más antiguas -- eso exige tener SIEMPRE el universo
+      // completo cargado (no un buffer parcial de scroll infinito), porque una
+      // deuda vieja que aún no "llegó" quedaría invisible. Se trae todo en una
+      // sola consulta (parámetro todos=1) y se pagina solo la VISUALIZACIÓN
+      // (hallazgo real 2026-09-08, pedido explícito del usuario).
+      currentPage: 1,
+      perPage: 25,
     };
   },
 
@@ -319,18 +322,14 @@ export default {
     },
 
     // Reemplaza getOrdenesActivas()/getPagos()/applyFilters(): un único método que pide
-    // una página real al servidor (fecha, búsqueda, vendedor, categoría, estado -- todos
-    // como filtros del WHERE) y la anexa al buffer acumulado. reset=true vuelve a la
-    // primera página; reset=false es "cargar más" desde el scroll infinito.
+    // TODO el resultado al servidor (fecha, búsqueda, vendedor, categoría, estado -- todos
+    // como filtros del WHERE, todos=1 para no truncar) -- necesario para poder ordenar
+    // desde las órdenes más antiguas y detectar deuda vieja (ver comentario en data()).
     async fetchPage({ reset = false } = {}) {
       if (this.isLoadingMore) return;
       this.isLoadingMore = true;
-      if (reset) {
-        this.loading.show = true;
-        this.ordenesActivas = [];
-        this.cursor = null;
-        this.endOfList = false;
-      }
+      this.loading.show = true;
+      this.currentPage = 1;
 
       const searchTerm = (this.filter || "").trim();
 
@@ -343,11 +342,8 @@ export default {
           id_vendedor: this.selectedVendedor,
           categoria: this.selectedCategory,
           estado_orden: this.selectedStatus,
-          limit: 25,
+          todos: 1,
         };
-        if (!reset && this.cursor) {
-          params.cursor = this.cursor;
-        }
 
         const res = await this.$axios.get(
           `${this.$config.API}/table/ordenes-activas/${this.dataUser.id_empleado}`,
@@ -359,9 +355,7 @@ export default {
           this.fields.push({ key: 'estatus', label: 'Estatus', sortable: true });
         }
 
-        this.ordenesActivas.push(...res.data.items);
-        this.cursor = res.data.next_cursor;
-        this.endOfList = res.data.next_cursor === null;
+        this.ordenesActivas = res.data.items || [];
         if (typeof res.data.total_count === 'number') {
           this.totalCount = res.data.total_count;
         }
@@ -370,27 +364,7 @@ export default {
       } finally {
         this.isLoadingMore = false;
         this.loading.show = false;
-        this.setupInfiniteScroll();
       }
-    },
-
-    setupInfiniteScroll() {
-      if (this.scrollObserver) {
-        this.scrollObserver.disconnect();
-        this.scrollObserver = null;
-      }
-      this.$nextTick(() => {
-        const sentinel = document.getElementById('ordenes-activas-scroll-sentinel');
-        if (sentinel) {
-          const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && !this.isLoadingMore && !this.endOfList) {
-              this.fetchPage({ reset: false });
-            }
-          }, { threshold: 0.1 });
-          observer.observe(sentinel);
-          this.scrollObserver = observer;
-        }
-      });
     },
 
     reloadMe() {
