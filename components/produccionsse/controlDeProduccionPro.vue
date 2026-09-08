@@ -287,7 +287,7 @@
           <!-- Toggle: solo órdenes POR ASIGNAR -->
           <b-button
             id="filter-por-asignar"
-            :variant="filterPorAsignar ? 'warning' : 'outline-warning'"
+            variant="warning"
             @click="filterPorAsignar = !filterPorAsignar"
           >
             <b-icon :icon="filterPorAsignar ? 'person-x-fill' : 'person-x'" class="mr-1"></b-icon>
@@ -298,7 +298,7 @@
           <!-- Toggle: solo órdenes URGENTES -->
           <b-button
             id="filter-urgentes"
-            :variant="filterUrgentes ? 'danger' : 'outline-danger'"
+            variant="danger"
             @click="filterUrgentes = !filterUrgentes"
           >
             <b-icon :icon="filterUrgentes ? 'exclamation-circle-fill' : 'exclamation-circle'" class="mr-1"></b-icon>
