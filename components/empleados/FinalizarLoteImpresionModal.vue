@@ -3,6 +3,62 @@
     @hidden="resetAndClose">
     <b-overlay :show="overlay">
       <b-container fluid>
+        <!-- Material Estimado del Lote (ocultar para reposiciones) -- se
+             muestra primero, ANTES de los campos de registro, para que el
+             empleado pueda leer la referencia del sistema al momento de
+             asignar cuánto material usó (pedido explícito del usuario,
+             antes quedaba al final del modal). -->
+        <div v-if="!esReposicion" class="mb-4">
+          <h5><strong>📊 Resumen de Material</strong></h5>
+          <b-card bg-variant="light" class="mb-3">
+            <!-- Mostrar siempre, incluso si está vacío -->
+            <div v-if="materialesEstimadosAgrupados.length > 0">
+              <h6><strong>Material Estimado (Sistema):</strong></h6>
+              <div v-if="materialesEstimadosAgrupados.length === 1">
+                <p class="mb-2">
+                  {{ materialesEstimadosAgrupados[0].total }} {{ materialesEstimadosAgrupados[0].unidad }}
+                  de {{ materialesEstimadosAgrupados[0].catalogo }}
+                </p>
+              </div>
+              <div v-else>
+                <ul class="mb-2">
+                  <li v-for="(item, index) in materialesEstimadosAgrupados" :key="index">
+                    <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Material Utilizado y Eficiencia -->
+              <div>
+                <p class="mb-2">
+                  <strong>Material Utilizado:</strong>
+                  {{ materialUtilizadoTotal }} Metros
+                </p>
+
+                <p v-if="parseFloat(materialUtilizadoTotal) > 0" class="mb-0">
+                  <strong>Eficiencia:</strong>
+                  <span :class="parseFloat(eficienciaLote) >= 100 ? 'text-success' : 'text-danger'">
+                    {{ eficienciaLote }}%
+                  </span>
+                  <small class="text-muted">
+                    ({{ parseFloat(eficienciaLote) >= 100 ? 'Óptimo' : 'Por encima del estimado' }})
+                  </small>
+                </p>
+              </div>
+            </div>
+            <div v-else>
+              <p class="text-muted mb-2">
+                <b-spinner small></b-spinner> Cargando información de materiales...
+              </p>
+              <b-button size="sm" variant="outline-primary" @click="cargarMaterialesLote">
+                🔄 Recargar Materiales (Debug)
+              </b-button>
+            </div>
+          </b-card>
+        </div>
+
+        <hr />
+
         <!-- Sección de Papel -->
         <h5>Registro de Consumo de Papel</h5>
         <div v-for="(papel, index) in consumoPapel" :key="papel.key">
@@ -110,56 +166,6 @@
         </b-row>
 
         <hr />
-
-        <!-- Material Estimado del Lote (ocultar para reposiciones) -->
-        <div v-if="!esReposicion" class="mb-4">
-          <h5><strong>📊 Resumen de Material</strong></h5>
-          <b-card bg-variant="light" class="mb-3">
-            <!-- Mostrar siempre, incluso si está vacío -->
-            <div v-if="materialesEstimadosAgrupados.length > 0">
-              <h6><strong>Material Estimado (Sistema):</strong></h6>
-              <div v-if="materialesEstimadosAgrupados.length === 1">
-                <p class="mb-2">
-                  {{ materialesEstimadosAgrupados[0].total }} {{ materialesEstimadosAgrupados[0].unidad }}
-                  de {{ materialesEstimadosAgrupados[0].catalogo }}
-                </p>
-              </div>
-              <div v-else>
-                <ul class="mb-2">
-                  <li v-for="(item, index) in materialesEstimadosAgrupados" :key="index">
-                    <strong>{{ item.catalogo }}:</strong> {{ item.total }} {{ item.unidad }}
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Material Utilizado y Eficiencia -->
-              <div>
-                <p class="mb-2">
-                  <strong>Material Utilizado:</strong>
-                  {{ materialUtilizadoTotal }} Metros
-                </p>
-
-                <p v-if="parseFloat(materialUtilizadoTotal) > 0" class="mb-0">
-                  <strong>Eficiencia:</strong>
-                  <span :class="parseFloat(eficienciaLote) >= 100 ? 'text-success' : 'text-danger'">
-                    {{ eficienciaLote }}%
-                  </span>
-                  <small class="text-muted">
-                    ({{ parseFloat(eficienciaLote) >= 100 ? 'Óptimo' : 'Por encima del estimado' }})
-                  </small>
-                </p>
-              </div>
-            </div>
-            <div v-else>
-              <p class="text-muted mb-2">
-                <b-spinner small></b-spinner> Cargando información de materiales...
-              </p>
-              <b-button size="sm" variant="outline-primary" @click="cargarMaterialesLote">
-                🔄 Recargar Materiales (Debug)
-              </b-button>
-            </div>
-          </b-card>
-        </div>
 
         <!-- Botón de Finalización -->
         <b-row class="mt-4">
