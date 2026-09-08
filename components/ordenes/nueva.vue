@@ -1230,6 +1230,14 @@ export default {
         this.form.fechaEntrega = ordenData.fecha_entrega;
         console.log('DEBUG: asignando this.form.obs en manejarOrdenCargada:', ordenData.observaciones, typeof ordenData.observaciones);
         this.form.obs = this.decodeHtmlEntities(ordenData.observaciones) || "";
+        // Reset obligatorio: form.obs se asigna aquí sin pasar por
+        // onEditorChange, así que _quillHtmlAnterior debe olvidar cualquier
+        // contenido previo (de otra orden, si este mismo componente se
+        // reutiliza sin remount) -- si no, el próximo edit real compara
+        // contra el HTML equivocado y puede borrar del servidor una imagen
+        // que sigue vigente en ESTA orden (hallazgo real 2026-09-08, orden
+        // 6878: se borraron imágenes propias de la descripción original).
+        this._quillHtmlAnterior = null;
         console.log('DEBUG: this.form.obs después de decode:', this.form.obs, typeof this.form.obs);
         this.form.total = parseFloat(ordenData.pago_total) || 0;
         this.abonoHistorico = parseFloat(ordenData.pago_abono) || 0;
@@ -1626,6 +1634,9 @@ export default {
         }
 
         this.form.obs = data.observaciones;
+        // Ver comentario en manejarOrdenCargada: reset obligatorio de
+        // _quillHtmlAnterior al asignar form.obs fuera de onEditorChange.
+        this._quillHtmlAnterior = null;
         this.form.total = data.pago_total;
 
         // Mapear productos
