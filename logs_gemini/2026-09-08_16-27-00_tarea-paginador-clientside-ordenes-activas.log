@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** "vamos a tener que retroceder y volver a implementar en esta página en particular el paginador antiguo y traernos TODOS los resultados" -- específico para /comercializacion/ordenes/activas, el reporte usado para determinar quién debe dinero.
+- **Fecha y Hora:** 2026-09-08 16:27:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** components/ordenes/activas.vue
+- **Commits Relacionados:** 
+  - Frontend: 62337e9
+  - Backend: 16182a5 (ver log de ninesys-api)
+- **Acción Realizada:** Se eliminó por completo el mecanismo de scroll infinito (cursor, endOfList, scrollObserver basado en IntersectionObserver) y se reemplazó por paginación client-side clásica (currentPage/perPage + b-pagination), restaurando la UX previa al 2026-08-12. fetchPage() se reescribió para traer siempre todos los resultados en una sola llamada (parámetro todos=1) y reemplazar la lista completa en vez de ir agregando páginas. Toda la lógica de filtros server-side (categoría, estatus, vendedor, búsqueda que ignora rango de fechas) se preservó sin cambios.
+- **Inconvenientes y Desafíos:** Revertir a 'traer todo' reintroduce el riesgo del bug de rendimiento N+1 original que motivó el cambio a paginación progresiva -- se verificó explícitamente en el backend que el fix de esa fecha es independiente del volumen de resultados antes de proceder.
+- **Decisión Final y Justificación:** Este cambio se acotó específicamente a esta página (activas.vue) y no a 'todas las órdenes', porque el caso de uso real (determinar deuda ordenando por antigüedad) es propio del reporte de órdenes en curso.
+- **Herramienta(s) Utilizada(s):** Edit
+- **Resultado:** Éxito
+- **Verificación:** Verificado en Desarrollo que la página carga el historial completo (200+ órdenes) en poco más de 1 segundo, sin regresión de rendimiento.
+- **Logro Conseguido:** Restaurada la capacidad de ordenar y ver el historial completo de órdenes en curso para determinar deuda pendiente, sin reintroducir el problema de rendimiento original.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Revertido el scroll infinito a paginación client-side clásica con carga completa, específicamente para el reporte de deuda de órdenes en curso.

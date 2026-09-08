@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** "hay órdenes terminadas que no muestran un consumo de material lo que no es lógico" (orden 6964, DTF UV) -- tras una investigación que descartó la hipótesis inicial (falta de funcionalidad) y encontró la causa real.
+- **Fecha y Hora:** 2026-09-08 17:53:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** components/empleados/SseOrdenesAsignadasModalExtra.vue
+- **Commits Relacionados:** 
+  - Frontend: af819b3
+  - Backend: a1b631c (ver log de ninesys-api -- guardas de seguridad relacionadas)
+- **Acción Realizada:** Causa raíz real: terminarTodo() disparaba el registro de consumo de material (postInventarioMovimientos) y el cierre de la tarea (registrarEstado('fin')) como promesas paralelas, SIN await ni catch. Si el registro de consumo fallaba por cualquier motivo (blip de red, rechazo del backend), la tarea igual quedaba marcada 'terminada' sin ningún aviso al empleado -- el consumo se perdía en silencio, exactamente el síntoma reportado. La validación que exige registrar el consumo (hasStrictInsumos, agregada en el commit a8b7d16e3 del 2026-05-22) ya funcionaba correctamente -- nunca fue un problema de falta de validación. Se reescribió terminarTodo() como async, reutilizando el mismo patrón ya correcto de handleBatchTerminarConfirm() (mismo archivo): se espera cada postInventarioMovimientos() en secuencia, y solo si todos tienen éxito se llama a registrarEstado('fin'); si algo falla, se muestra un error claro y la tarea NO se marca terminada, dejando el formulario intacto para reintentar.
+- **Inconvenientes y Desafíos:** La investigación inicial (2 subagentes de exploración) llevó a una conclusión incorrecta -- que el camino individual 'Terminar Tarea' no tenía captura de material -- aprobada inicialmente por el usuario. Al leer el componente real (no solo el resumen de la exploración) se descubrió que la funcionalidad ya existía desde mayo, obligando a corregir el rumbo del plan a mitad de la investigación y volver a presentárselo al usuario con la causa real antes de tocar código.
+- **Decisión Final y Justificación:** No se puede recuperar retroactivamente el consumo real ya perdido de la orden 6964 (nunca se registró, no hay de dónde reconstruirlo) -- se le informó al usuario explícitamente que ese caso queda como pérdida histórica aceptada, y que el fix es para prevenir que vuelva a pasar.
+- **Herramienta(s) Utilizada(s):** Agent/Explore (2 subagentes en paralelo), Edit, Bash (verificación de sintaxis JS aproximada)
+- **Resultado:** Éxito
+- **Verificación:** Verificado que el flujo feliz (consumo exitoso) sigue funcionando igual; el guard de backend hermano (a1b631c) confirma en vivo que ahora sí detecta el requerimiento de insumo para productos DTF.
+- **Logro Conseguido:** Cerrada la causa raíz real de la pérdida silenciosa de consumo de material al terminar una tarea individual, corrigiendo un rumbo de investigación equivocado antes de invertir esfuerzo en una funcionalidad que ya existía.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Corregida la pérdida silenciosa de consumo de material en terminarTodo() -- causa raíz real tras descartar la hipótesis inicial de falta de funcionalidad.

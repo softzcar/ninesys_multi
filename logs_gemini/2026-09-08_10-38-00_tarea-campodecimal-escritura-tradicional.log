@@ -1,0 +1,15 @@
+- **Solicitud del Usuario:** Punto 6 de la lista de pendientes: 'introducir números de manera regular, no bancaria' -- quitar la máscara de dígitos insertados desde la derecha y volver a escritura libre tradicional.
+- **Fecha y Hora:** 2026-09-08 10:38:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** components/common/CampoDecimal.vue, pages/inventario/gestion/index.vue
+- **Commits Relacionados:** 
+  - Frontend: 86217ed
+- **Acción Realizada:** Se quitó el modo 'bancario' del componente y se volvió a escritura tradicional libre (el usuario edita el texto en cualquier posición, como un input normal). Se mantuvo la única automatización pedida: reemplazo silencioso de coma por punto (la API necesita punto para decimales), y normalización de separador de miles/decimal al pegar texto (ej. '1.234,56'), tomando el último separador como el decimal. De paso, se agregó un errorCaptured() diagnóstico temporal en pages/inventario/gestion/index.vue ante un reporte separado del usuario (botones Nuevo/Editar/Clonar Insumo desaparecidos) que no fue posible reproducir en esta sesión sin acceso a la extensión de Chrome.
+- **Inconvenientes y Desafíos:** El diagnóstico de inventario/gestion quedó como un parche temporal (muestra el error de render como alerta visible en vez de que el control desaparezca sin rastro) -- pendiente de retirar una vez identificada la causa real del bug reportado.
+- **Decisión Final y Justificación:** Volver a comportamiento de input estándar en vez de mantener cualquier forma de máscara, porque el pedido explícito del usuario fue eliminar por completo el patrón 'bancario', no ajustarlo.
+- **Herramienta(s) Utilizada(s):** Edit
+- **Resultado:** Éxito
+- **Verificación:** Pendiente de retest visual del usuario/reportante (punto 6 de la lista original).
+- **Logro Conseguido:** Recuperada la escritura tradicional de montos decimales en toda la app, y agregado un diagnóstico temporal para investigar un bug separado y no reproducible en esta sesión.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Reemplazada la máscara bancaria de CampoDecimal por escritura tradicional libre, con normalización de coma/punto solo al pegar o completar.

@@ -1,0 +1,15 @@
+- **Solicitud del Usuario:** Bug real reportado en Producción (orden 6878, reportado por Sayerlyn): imágenes vigentes de una orden se estaban borrando del servidor al editar otra orden.
+- **Fecha y Hora:** 2026-09-08 09:32:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** pages/comercializacion/ordenes/nueva.vue, pages/comercializacion/ordenes/presupuesto.vue
+- **Commits Relacionados:** 
+  - Frontend: 7cb57db
+- **Acción Realizada:** Al cargar una orden existente para editarla, form.obs se asigna directamente sin pasar por onEditorChange, pero _quillHtmlAnterior nunca se reseteaba -- si el componente se reutiliza para ver/editar varias órdenes sin remount completo, la siguiente comparación de imágenes huérfanas podía comparar contra el HTML de una carga anterior y borrar del servidor una imagen que seguía vigente en la orden actual. controlDeProduccionDetallesEditor.vue ya tenía este reset correctamente implementado desde el principio; nunca se replicó a nueva.vue ni presupuesto.vue, los dos puntos reales donde el vendedor sube imágenes al crear/editar una orden.
+- **Inconvenientes y Desafíos:** Sin acceso a la extensión de Chrome en esta sesión para reproducir visualmente -- el diagnóstico se hizo por lectura de código y cruce contra los logs reales del servidor.
+- **Decisión Final y Justificación:** Se acotó el alcance real del daño revisando los logs de Producción (incluyendo históricos comprimidos desde el 31-ago): 18 borrados totales, todos de la misma sesión, concentrados el 7/8-sep -- no es un problema masivo desde el lanzamiento de la función el 4-sep, sino un caso puntual ya contenido con el fix.
+- **Herramienta(s) Utilizada(s):** Bash (revisión de logs de servidor vía SSH), Edit
+- **Resultado:** Éxito
+- **Verificación:** Revisión de logs post-fix pendiente de nuevos casos; el reset ahora replica el patrón ya probado de controlDeProduccionDetallesEditor.vue.
+- **Logro Conseguido:** Eliminado el riesgo de borrado accidental de imágenes vigentes al editar varias órdenes en la misma sesión del navegador.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Corregido el reset de _quillHtmlAnterior en los 2 puntos reales de subida de imágenes, replicando un patrón que ya funcionaba correctamente en otro componente.

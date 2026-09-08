@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** Diseño simplificado del punto 7 (a pedido explícito del usuario tras descartar el diseño original más grande): checkbox 'Verificado' por transacción no-efectivo en /reportes/pagos-abonos, con filtro Todas/Verificadas/Por Verificar y checkbox 'Mostrar Efectivo', solo interactivo para administradores.
+- **Fecha y Hora:** 2026-09-08 16:12:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** pages/comercializacion/reportes/pagos-abonos.vue
+- **Commits Relacionados:** 
+  - Frontend: 9294b8b
+  - Backend: f37cb49 (ver log de ninesys-api)
+- **Acción Realizada:** Nueva columna 'Verificado' junto a 'Monto' con un b-form-checkbox deshabilitado para Efectivo (siempre false, no aplica) y controlado por isAdmin (mismo patrón computed ya usado en balance-cierres.vue) para el resto. Nuevo filtro con el mismo estilo radio-group de los filtros ya existentes de la página (Categoría/Moneda/Método de Pago). El checkbox dispara una actualización optimista local + POST al nuevo endpoint, con rollback y aviso de error si falla. Se confirmó que el computed 'totales' (cards de resumen) ya deriva 100% de pagosFiltrados, por lo que extender ese computed con los 2 filtros nuevos hizo que las cards se recalcularan solas, sin trabajo adicional.
+- **Inconvenientes y Desafíos:** El usuario rechazó dos veces una ronda de preguntas estructuradas (AskUserQuestion) sobre el diseño, prefiriendo redactar él mismo la reformulación completa del requerimiento en texto libre -- el diseño final fue directamente el que propuso el usuario, no una síntesis de respuestas a preguntas cerradas.
+- **Decisión Final y Justificación:** Extender un reporte ya existente en vez de construir una página/tabla nueva con auditoría en bloque (diseño original descartado), por pedido explícito del usuario de resolver 'de la manera más sencilla posible' dado que la integración real con un banco no es un plan a corto plazo.
+- **Herramienta(s) Utilizada(s):** Edit
+- **Resultado:** Éxito
+- **Verificación:** Verificación end-to-end vía curl+SQL contra la empresa 194 en Desarrollo, y confirmación posterior de la columna/endpoint en vivo en Producción.
+- **Logro Conseguido:** Los administradores ya pueden marcar transacciones no-efectivo como verificadas manualmente contra el estado de cuenta, con filtros y cards de resumen que reflejan el estado de verificación.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Implementado el checkbox de verificación de pagos en el reporte existente, con las cards de resumen reflejando el filtro sin trabajo adicional gracias a un computed ya centralizado.

@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** Punto 3 de la lista de pendientes: 'iniciar en lote impresión no deja terminar tarea, pide tinta'.
+- **Fecha y Hora:** 2026-09-08 11:45:00
+- **Proyecto(s):** Ambos
+- **Archivos Involucrados:** components/produccionsse/controlDeProduccionPro.vue, components/empleados/FinalizarLoteImpresionModal.vue
+- **Commits Relacionados:** 
+  - Frontend: ff41761, 1a93dd9
+  - Backend: 4518641, 58493a0, 3505305, 6906f2f (ver logs de ninesys-api)
+- **Acción Realizada:** Causa raíz: existían DOS modales para finalizar lote. El que realmente se usaba (FinalizarLoteModal.vue) pedía tinta/impresora POR CADA ORDEN por separado dentro de un v-for -- un lote se procesa con un solo equipo de una sola vez. El modal correcto (FinalizarLoteImpresionModal.vue, que ya modelaba 'impresora única por lote' con reparto proporcional) existía en el código y en el árbol de render, pero nada activaba su bandera showFinalizarImpresionModal. Se conectó finalizarLotePorDepartamento() para abrir el modal correcto cuando el departamento es tipo 'impresion', y se agregó el respeto al flag ingresar_tinta_manual del catálogo de impresoras (ausente también en el modal correcto), siguiendo el mismo patrón ya probado en SseOrdenesAsignadasModalExtra.vue. A pedido explícito del usuario, se movió también la sección 'Resumen de Material' al inicio del modal, antes de los campos de registro, para que el empleado la lea como referencia ANTES de escribir cuánto material usó.
+- **Inconvenientes y Desafíos:** Al reconectar y usar por primera vez en meses el modal correcto con datos reales, salieron a la luz 4 bugs de backend latentes nunca antes ejecutados (orden atascada, error SQL de comisión, unidades fraccionarias truncadas, cardinality violation) -- documentados en sus propios logs de ninesys-api.
+- **Decisión Final y Justificación:** Activar el modal ya existente y correcto en vez de rediseñar el flujo de finalización de lote desde cero, dado que ya modelaba el comportamiento de negocio correcto (impresora única por lote).
+- **Herramienta(s) Utilizada(s):** Edit, Bash (verificación con lote real)
+- **Resultado:** Éxito
+- **Verificación:** Finalización real del lote 66 en Desarrollo, con los 4 bugs de backend descubiertos en el camino corregidos y verificados aparte.
+- **Logro Conseguido:** El flujo real de finalizar un lote de Impresión ya pide la impresora y tinta una sola vez por lote, no por cada orden -- resolviendo el punto 3 de la lista de pendientes.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Reconectado el modal correcto de finalización de lote de Impresión, descubriendo y corrigiendo en cascada 4 bugs de backend latentes en su primer uso real.

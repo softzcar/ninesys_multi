@@ -1,0 +1,16 @@
+- **Solicitud del Usuario:** Punto 5 de la lista de pendientes: 'filtro para ver en control de produccion solo tareas relacionadas a impresion dtf, sublimacion por metros, y sublimacion con metros por tela, pueden ser los productos que dice solo impresion'.
+- **Fecha y Hora:** 2026-09-08 14:29:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** components/produccionsse/controlDeProduccionPro.vue
+- **Commits Relacionados:** 
+  - Frontend: 57ea380
+  - Backend: d9c7e32 (ver log de ninesys-api)
+- **Acción Realizada:** Nuevo mapa esImpresionOrdersMap poblado en el mismo forEach que ya construye physicalOrdersMap: una orden se marca 'solo impresión' únicamente si TODOS sus productos físicos tienen es_servicio_de_impresion=1 (AND estricto, no 'al menos uno') -- justificado porque el propósito es identificar órdenes que se pueden cerrar por completo dentro de Impresión, y una orden mixta (DTF + playera que requiere Corte/Costura) no puede cerrarse solo ahí. Nuevo botón toggle 'SOLO IMPRESIÓN' con el mismo patrón visual (sólido + badge) ya corregido esa misma mañana para POR ASIGNAR/URGENTES.
+- **Inconvenientes y Desafíos:** Se confirmó explícitamente con el usuario (pregunta de una sola opción) la regla de negocio AND-estricto antes de implementar, para no asumir 'al menos un producto' cuando el caso real relevante es 'puede cerrarse 100% en Impresión'.
+- **Decisión Final y Justificación:** Reutilizar el flag es_servicio_de_impresion ya curado en productos reales en vez de inferir por nombre/categoría, evitando fragilidad ante productos con nombres no estandarizados.
+- **Herramienta(s) Utilizada(s):** Edit, Bash (verificación vía curl y psql contra datos reales de la 194)
+- **Resultado:** Éxito
+- **Verificación:** Confirmado contra datos reales: 15 filas de orden_productos marcadas es_servicio_de_impresion=1 en productos DTF reales (163, 164, 165), tanto en Desarrollo como, tras el deploy, en Producción.
+- **Logro Conseguido:** Nuevo filtro funcional en Control de Producción que aísla exactamente las órdenes que se pueden cerrar 100% dentro de Impresión (DTF, sublimación por metros/tela).
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Implementado el filtro SOLO IMPRESIÓN con regla AND-estricta confirmada con el usuario, reutilizando el flag es_servicio_de_impresion ya curado.

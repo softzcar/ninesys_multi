@@ -1,0 +1,15 @@
+- **Solicitud del Usuario:** Los botones de filtro 'POR ASIGNAR'/'URGENTES' en Control de Producción se veían deshabilitados cuando estaban inactivos, generando confusión sobre si eran clicables.
+- **Fecha y Hora:** 2026-09-08 10:01:00
+- **Proyecto(s):** Frontend
+- **Archivos Involucrados:** components/produccionsse/controlDeProduccionPro.vue
+- **Commits Relacionados:** 
+  - Frontend: 8c8e3ca, 7782bdd, a54627f
+- **Acción Realizada:** Iteración en 3 pasos hasta dar con el estilo correcto: (1) se reemplazó la opacidad reducida (0.6) por variant outline vs sólido según el estado, porque la opacidad se leía como botón deshabilitado; (2) se quitaron el tamaño reducido, ancho forzado y estilos en línea (box-shadow, negrita, transición) que los hacían ver distintos al resto de botones de la app; (3) el outline (sin relleno) seguía leyéndose como deshabilitado con otra forma, así que se dejó el relleno sólido fijo (warning/danger) igual que el resto de la app, distinguiendo el estado activo solo con un badge 'activo'.
+- **Inconvenientes y Desafíos:** Dos intentos previos (opacidad, luego outline) no resolvieron completamente la percepción de 'deshabilitado' -- se necesitaron 3 rondas de ajuste visual hasta encontrar el patrón correcto (relleno sólido fijo + badge).
+- **Decisión Final y Justificación:** El patrón final (sólido fijo + badge 'activo') se convirtió en el estándar reutilizado más tarde el mismo día para el nuevo botón 'SOLO IMPRESIÓN' del punto 5 de la lista de pendientes.
+- **Herramienta(s) Utilizada(s):** Edit
+- **Resultado:** Éxito
+- **Verificación:** Verificación visual en /test.
+- **Logro Conseguido:** Botones de filtro con apariencia consistente con el resto de la interfaz, sin confundir 'inactivo' con 'deshabilitado' -- patrón que se reutilizó luego para el filtro SOLO IMPRESIÓN.
+- **Observaciones de Gemini:** N/A (tarea realizada con Claude Code).
+- **Respuesta de Gemini:** Corregido en 3 iteraciones el estilo de los botones de filtro, estableciendo el patrón visual (sólido + badge) reutilizado más tarde en el filtro SOLO IMPRESIÓN.
