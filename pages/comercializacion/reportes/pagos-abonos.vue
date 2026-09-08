@@ -138,6 +138,28 @@
                     ></b-form-radio-group>
                   </b-col>
                 </b-row>
+
+                <b-row class="mb-3" v-if="reporteGenerado">
+                  <b-col class="mb-2">
+                    <h5 class="mt-2 mb-2 pb-2">Filtrar por Verificación</h5>
+                    <b-form-radio-group
+                      id="verificado-filter"
+                      v-model="selectedVerificado"
+                      :options="['Todas', 'Verificadas', 'Por Verificar']"
+                      name="verificado-filter-radios"
+                      buttons
+                      button-variant="outline-primary"
+                      size="sm"
+                    ></b-form-radio-group>
+                    <b-form-checkbox
+                      id="mostrar-efectivo-check"
+                      v-model="mostrarEfectivo"
+                      class="mt-2"
+                    >
+                      Mostrar Efectivo
+                    </b-form-checkbox>
+                  </b-col>
+                </b-row>
               </b-form>
 
               <div v-if="!reporteGenerado" class="py-5 text-center">
@@ -313,6 +335,15 @@
                           {{ formatNumber(data.item.montoAjustadoLocal) }}
                         </template>
 
+                        <template #cell(verificado)="data">
+                          <b-form-checkbox
+                            :checked="data.item.verificado"
+                            :disabled="data.item.metodo_pago === 'Efectivo' || !isAdmin"
+                            @change="(val) => toggleVerificado(data.item, val)"
+                            class="d-inline-block"
+                          ></b-form-checkbox>
+                        </template>
+
                         <template #cell(tasa)="data">
                           {{ formatNumber(data.item.tasa) }}
                         </template>
@@ -412,6 +443,8 @@ export default {
       optionsMonedas: [],
       selectedMetodoPago: 'Todos',
       optionsMetodoPago: [],
+      selectedVerificado: 'Todas',
+      mostrarEfectivo: true,
       campos: [
         {
           key: "orden",
@@ -459,6 +492,12 @@ export default {
           sortable: true,
           tdClass: "text-right",
           thClass: "text-right",
+        },
+        {
+          key: "verificado",
+          label: "Verificado",
+          tdClass: "text-center",
+          thClass: "text-center",
         },
         {
           key: "_id",
@@ -511,6 +550,13 @@ export default {
     monedaBaseNombre() {
       return this.$store.state.login.dataEmpresa?.moneda_base?.nombre || "Dólares";
     },
+    isAdmin() {
+      return (
+        Number(this.dataUser?.acceso) === 1 ||
+        this.$store.state.login.currentDepartament === "Administración" ||
+        this.$store.state.login.currentDepartamentId === 5
+      );
+    },
     pagosFiltrados() {
       const pagosSeguro = Array.isArray(this.pagos) ? this.pagos : [];
       const ordenesProcesadas = new Set();
@@ -524,6 +570,13 @@ export default {
         })
         .filter(pago => this.selectedMoneda === 'Todas' || pago.moneda === this.selectedMoneda)
         .filter(pago => this.selectedMetodoPago === 'Todos' || pago.metodo_pago === this.selectedMetodoPago)
+        .filter(pago => this.mostrarEfectivo || pago.metodo_pago !== 'Efectivo')
+        .filter(pago => {
+          if (pago.metodo_pago === 'Efectivo') return true; // ya resuelto por el filtro de arriba
+          if (this.selectedVerificado === 'Verificadas') return !!pago.verificado;
+          if (this.selectedVerificado === 'Por Verificar') return !pago.verificado;
+          return true; // 'Todas'
+        })
         .map(pago => {
           const montoLocal = parseFloat(pago.monto) || 0;
           const tasaVal = parseFloat(pago.tasa) || 1;
@@ -668,6 +721,29 @@ export default {
   },
 
   methods: {
+    async toggleVerificado(pago, verificado) {
+      const previo = pago.verificado;
+      // Optimista: actualiza de una vez el objeto (pagosFiltrados ya lo
+      // spreadea desde this.pagos, así que hay que mutar la fila original
+      // en this.pagos para que sobreviva a la próxima recomputación).
+      const original = this.pagos.find(p => p._id === pago._id);
+      if (original) original.verificado = verificado;
+
+      try {
+        await this.$axios.post(`${this.$config.API}/metodos-de-pago/${pago._id}/verificar`, {
+          verificado,
+          id_empleado: this.dataUser?.id_empleado,
+        });
+      } catch (error) {
+        console.error("Error al actualizar verificación:", error);
+        if (original) original.verificado = previo;
+        this.$fire({
+          title: "Error",
+          html: "<p>No se pudo actualizar la verificación del pago.</p>",
+          type: "error",
+        });
+      }
+    },
     generateCategoryOptions() {
       const allCategories = [];
       if (Array.isArray(this.pagos)) {
