@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.17] - 2026-09-08
+- Fix UI: botones POR ASIGNAR/URGENTES en /test ya no se ven deshabilitados
+
 ## [v1.0.16] - 2026-09-08
 - Fix critico: resetear _quillHtmlAnterior al cargar una orden existente, evita borrar imagenes vigentes de otra carga
 
