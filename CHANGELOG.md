@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.18] - 2026-09-08
+- Unificar estilo de botones POR ASIGNAR/URGENTES con el resto de la app (sin size sm ni w-100 ni box-shadow)
+
 ## [v1.0.17] - 2026-09-08
 - Fix UI: botones POR ASIGNAR/URGENTES en /test ya no se ven deshabilitados
 
