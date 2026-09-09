@@ -158,9 +158,22 @@
         </tab-content>
 
         <tab-content
+          :title="tituloPaso(pasoPorClave('tallas_telas'))"
+          :icon="pasoPorClave('tallas_telas').icon"
+          :before-change="() => validarPaso(9)"
+        >
+          <paso-cabecera :paso="pasoPorClave('tallas_telas')" />
+          <h5 class="mt-4 mb-2">Tallas</h5>
+          <tallas-gestion />
+          <hr class="my-4" />
+          <h5 class="mb-2">Telas</h5>
+          <telas-gestion />
+        </tab-content>
+
+        <tab-content
           :title="tituloPaso(pasoPorClave('productos'))"
           :icon="pasoPorClave('productos').icon"
-          :before-change="() => validarPaso(9)"
+          :before-change="() => validarPaso(10)"
           v-slot="{ active }"
         >
           <paso-cabecera :paso="pasoPorClave('productos')" />
@@ -170,7 +183,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('insumos'))"
           :icon="pasoPorClave('insumos').icon"
-          :before-change="() => validarPaso(10)"
+          :before-change="() => validarPaso(11)"
           v-slot="{ active }"
         >
           <paso-cabecera :paso="pasoPorClave('insumos')" />
@@ -187,7 +200,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('comisiones'))"
           :icon="pasoPorClave('comisiones').icon"
-          :before-change="() => validarPaso(11)"
+          :before-change="() => validarPaso(12)"
         >
           <paso-cabecera :paso="pasoPorClave('comisiones')" />
           <admin-ComisionesProductos />
@@ -196,7 +209,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('impresoras'))"
           :icon="pasoPorClave('impresoras').icon"
-          :before-change="() => validarPaso(12)"
+          :before-change="() => validarPaso(13)"
         >
           <paso-cabecera :paso="pasoPorClave('impresoras')" />
           <impresoras-gestion v-if="!pasoPorClave('impresoras').noAplica" />
@@ -205,7 +218,7 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('inventario_tintas'))"
           :icon="pasoPorClave('inventario_tintas').icon"
-          :before-change="() => validarPaso(13)"
+          :before-change="() => validarPaso(14)"
         >
           <paso-cabecera :paso="pasoPorClave('inventario_tintas')" />
           <inventario-InsumoNuevoTinta v-if="!pasoPorClave('inventario_tintas').noAplica" />
@@ -214,24 +227,11 @@
         <tab-content
           :title="tituloPaso(pasoPorClave('tintas'))"
           :icon="pasoPorClave('tintas').icon"
-          :before-change="() => validarPaso(14)"
+          :before-change="() => validarPaso(15)"
           v-slot="{ active }"
         >
           <paso-cabecera :paso="pasoPorClave('tintas')" />
           <AdminRecargaTintas v-if="!pasoPorClave('tintas').noAplica" :tab-active="active" />
-        </tab-content>
-
-        <tab-content
-          :title="tituloPaso(pasoPorClave('tallas_telas'))"
-          :icon="pasoPorClave('tallas_telas').icon"
-          :before-change="() => validarPaso(15)"
-        >
-          <paso-cabecera :paso="pasoPorClave('tallas_telas')" />
-          <h5 class="mt-4 mb-2">Tallas</h5>
-          <tallas-gestion />
-          <hr class="my-4" />
-          <h5 class="mb-2">Telas</h5>
-          <telas-gestion />
         </tab-content>
 
         <tab-content
@@ -392,6 +392,13 @@ const DEFINICION_PASOS = [
     rutaSugerida: "Productos > Categorías",
   },
   {
+    clave: "tallas_telas",
+    titulo: "Tallas y telas",
+    icon: "ti ti-ruler",
+    descripcion: 'Confirma las tallas estándar (S/M/L/XL) y reemplaza la "Tela de Prueba" por tus telas reales. Se revisa antes de Productos porque la asignación de insumos por producto (más adelante) se hace por talla.',
+    rutaSugerida: "Varios > Tallas y Telas",
+  },
+  {
     clave: "productos",
     titulo: "Productos",
     icon: "ti ti-package",
@@ -433,13 +440,6 @@ const DEFINICION_PASOS = [
     icon: "ti ti-spray",
     descripcion: "Registra la primera carga real de tintas para tus impresoras.",
     rutaSugerida: "Inventario > Recarga de Tintas",
-  },
-  {
-    clave: "tallas_telas",
-    titulo: "Tallas y telas",
-    icon: "ti ti-ruler",
-    descripcion: 'Confirma las tallas estándar (S/M/L/XL) y reemplaza la "Tela de Prueba" por tus telas reales.',
-    rutaSugerida: "Varios > Tallas y Telas",
   },
   {
     clave: "whatsapp",
