@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.29] - 2026-09-09
+- Reordenar Tallas y telas antes de Productos en el Wizard de Configuracion Operativa
+
 ## [v1.0.28] - 2026-09-09
 - Click-to-insert de variables en editores de mensajes de WhatsApp (bienvenida/despedida/saldo)
 
