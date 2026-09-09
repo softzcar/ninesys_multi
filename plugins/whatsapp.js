@@ -68,8 +68,9 @@ export default function ({ $axios, store, $config }, inject) {
       return activeLoginPromise
     }
 
-    const username = $config.jwtUsername || 'admin'
-    const password = $config.jwtPassword || 'Ninesys@2024'
+    // Sin fallback hardcodeado a propósito -- ver nuxt.config.js.
+    const username = $config.jwtUsername
+    const password = $config.jwtPassword
 
     activeLoginPromise = (async () => {
       try {

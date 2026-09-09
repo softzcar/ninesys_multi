@@ -26,7 +26,7 @@
                                 </b-col>
                                 <b-col md="6">
                                     <b-form-group label="Contraseña:" label-for="input-password">
-                                        <b-form-input id="input-password" v-model="form.password" placeholder="Ingrese la contraseña" type="password" required></b-form-input>
+                                        <b-form-input id="input-password" v-model="form.password" placeholder="Dejar en blanco para no cambiarla" type="password" autocomplete="new-password"></b-form-input>
                                     </b-form-group>
                                     <b-form-group label="Tipo de acceso:" label-for="input-access">
                                         <b-form-select id="input-access" v-model="form.acceso" :options="accessOptions" required></b-form-select>
@@ -297,10 +297,10 @@ export default {
             // --- VALIDACIONES DE DATOS BÁSICOS ---
 
             // 1. Validar campos básicos (pestaña 1)
-            if (!this.form.nombre || !this.form.email || !this.form.telefono || !this.form.password || this.form.acceso === null || !this.form.departamentos || this.form.departamentos.length === 0) {
+            if (!this.form.nombre || !this.form.email || !this.form.telefono || this.form.acceso === null || !this.form.departamentos || this.form.departamentos.length === 0) {
                 this.$fire({
                     title: "Campos Requeridos",
-                    html: `<p>Debe completar todos los campos obligatorios en la pestaña "Datos Básicos": nombre, email, teléfono, contraseña, tipo de acceso y al menos un departamento.</p>`,
+                    html: `<p>Debe completar todos los campos obligatorios en la pestaña "Datos Básicos": nombre, email, teléfono, tipo de acceso y al menos un departamento.</p>`,
                     type: "warning",
                 })
                 // Cambiar a la pestaña de datos básicos
@@ -587,7 +587,10 @@ export default {
             this.form = {
                 // Datos Básicos
                 username: item.username || "",
-                password: item.password || "",
+                // La API ya no devuelve la clave real (auditoría de seguridad
+                // 2026-09-09) -- queda siempre en blanco; el backend interpreta
+                // "en blanco" como "no cambiarla".
+                password: "",
                 nombre: item.nombre || "",
                 email: item.email || "",
                 // GET /empleados usa JSON_NUMERIC_CHECK: un teléfono compuesto

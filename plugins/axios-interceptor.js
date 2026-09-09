@@ -4,7 +4,7 @@ import { extractApiErrorMessage, getApiErrorTitle } from '@/utils/apiErrorHandle
 // Caché de peticiones GET en vuelo y recientes (TTL 2 segundos)
 const requestCache = new Map()
 
-export default function ({ $axios, store, app }) {
+export default function ({ $axios, store, app, $config }) {
 
   // La clave de caché DEBE incluir la empresa/usuario que hace la petición: este
   // wrapper corre antes de que el interceptor onRequest fije el header
@@ -123,8 +123,13 @@ export default function ({ $axios, store, app }) {
       return activeLoginPromise
     }
 
-    const username = process.env.JWT_USERNAME || 'admin'
-    const password = process.env.JWT_PASSWORD || 'Ninesys@2024'
+    // `process.env.JWT_USERNAME` nunca se resuelve en el bundle del navegador
+    // (Nuxt 2 no lo reemplaza sin declararlo en `env:`) -- esto SIEMPRE caía
+    // al valor hardcodeado de abajo, sin importar el entorno. Corregido para
+    // leer el mismo publicRuntimeConfig que ya usa plugins/whatsapp.js, sin
+    // fallback inseguro (auditoría de seguridad 2026-09-09).
+    const username = $config.jwtUsername
+    const password = $config.jwtPassword
 
     activeLoginPromise = (async () => {
       try {
