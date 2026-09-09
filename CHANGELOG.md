@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.31] - 2026-09-09
+- Recuperar clave por WhatsApp desde el login + sección Configuración (cambiar clave) en el sidebar.
+
 ## [v1.0.30] - 2026-09-09
 - Filtrar select de Talla por producto en nueva orden y presupuesto + checkbox Incluir en asignacion masiva
 
