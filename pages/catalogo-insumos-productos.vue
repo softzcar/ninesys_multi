@@ -92,6 +92,12 @@ export default {
                 const catalogoRes = await this.$axios.get(`${this.$config.API}/catalogo-insumos-productos`);
                 this.dataTable = catalogoRes.data;
                 this.overlay = false;
+                // Avisa hacia arriba (usado por OperativaWizard.vue) que el
+                // catálogo cambió, para refrescar otros componentes que lo
+                // consumen (ej. "Inventario físico") sin depender de que el
+                // usuario cambie de pestaña -- ver hallazgo real 2026-09-09
+                // (insumo creado aquí no aparecía al asociarlo desde Inventario).
+                this.$emit("reload");
             } catch (error) {
                 this.overlay = false;
                 console.error("Error cargando los datos:", error);

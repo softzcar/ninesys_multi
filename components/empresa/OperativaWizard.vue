@@ -175,13 +175,13 @@
         >
           <paso-cabecera :paso="pasoPorClave('insumos')" />
           <h5 class="mt-4 mb-2">Catálogo de insumos</h5>
-          <catalogo-insumos-gestion />
+          <catalogo-insumos-gestion @reload="insumosCatalogoVersion++" />
           <hr class="my-4" />
           <h5 class="mb-2">Insumos asignados a cada producto</h5>
           <admin-InsumosDeProductos :tab-active="active" />
           <hr class="my-4" />
           <h5 class="mb-2">Inventario físico</h5>
-          <inventario-gestion />
+          <inventario-gestion :catalogo-version="insumosCatalogoVersion" />
         </tab-content>
 
         <tab-content
@@ -479,6 +479,10 @@ export default {
       isReady: false,
       pasos: DEFINICION_PASOS.map((p) => ({ ...p, revisado: false, noAplica: false })),
       whatsappAiEnabled: false,
+      // Se incrementa cada vez que "Catálogo de insumos" cambia (paso
+      // "insumos"), para que "Inventario físico" (misma pestaña) refresque
+      // su selector de catálogo sin depender de cambiar de pestaña.
+      insumosCatalogoVersion: 0,
     };
   },
   computed: {

@@ -202,6 +202,20 @@ import axios from "axios"
 import PrintService from "@/utils/PrintService"
 
 export default {
+    props: {
+        // Cuando este componente vive dentro del wizard (OperativaWizard.vue),
+        // el usuario puede crear un insumo en "Catálogo de insumos" (arriba,
+        // misma pestaña) y luego intentar asociarlo aquí en "Inventario
+        // físico" sin cambiar de pestaña -- catalogoInsumosProductos se carga
+        // una sola vez en mounted() y nunca se refrescaba en ese caso
+        // (hallazgo real 2026-09-09). El wizard incrementa este número cada
+        // vez que el catálogo cambia. Fuera del wizard nunca cambia, así que
+        // no afecta ese flujo.
+        catalogoVersion: {
+            type: Number,
+            default: 0,
+        },
+    },
     data() {
         return {
             componentError: "",
@@ -633,6 +647,9 @@ export default {
         },
         selectedStockStatus(newVal) {
             this.showResultRadio()
+        },
+        catalogoVersion() {
+            this.fetchCatalogoInsumosProductos();
         },
     },
 
