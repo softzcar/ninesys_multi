@@ -11,6 +11,13 @@ export const state = () => ({
     dataProductosSelect: [],
     dataCustomers: [],
     dataTallas: [],
+    // Mapa id_product -> [id_talla,...] con las tallas que ese producto tiene
+    // realmente configuradas en product_insumos_asignados. Un producto sin
+    // entradas aqui (nunca se le asigno ningun insumo por talla) no aparece
+    // como key -- en ese caso el filtro en nueva orden/presupuesto debe caer
+    // al catalogo completo (dataTallas) para no romper productos existentes
+    // que nunca curaron esto (hallazgo real 2026-09-09).
+    tallasAsignadasPorProducto: {},
     dataTelas: [],
     dataCategories: [],
     customersSelect: [],
@@ -157,6 +164,16 @@ export const mutations = {
     },
     setDataTallas(state, data) {
         state.dataTallas = data
+    },
+    setTallasAsignadasPorProducto(state, pares) {
+        // pares: [{id_product, id_talla}, ...] -- construye el mapa una sola
+        // vez a partir de la respuesta plana del backend.
+        const mapa = {}
+        for (const { id_product, id_talla } of pares) {
+            if (!mapa[id_product]) mapa[id_product] = []
+            mapa[id_product].push(id_talla)
+        }
+        state.tallasAsignadasPorProducto = mapa
     },
     setDataCategories(state, data) {
         state.dataCategories = data

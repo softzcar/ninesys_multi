@@ -32,10 +32,24 @@
                 </b-form-checkbox>
             </div>
 
+            <!-- Desmarca las tallas que no aplican a este producto (ej. un
+                 producto que solo se fabrica en tallas infantiles) -- antes
+                 se cargaban SIEMPRE todas las tallas del catálogo, sin poder
+                 excluir ninguna (hallazgo real 2026-09-09). -->
+            <div class="mb-2">
+                <b-button size="sm" variant="outline-secondary" class="mr-1" @click="marcarTodas(true)">
+                    Marcar todas
+                </b-button>
+                <b-button size="sm" variant="outline-secondary" @click="marcarTodas(false)">
+                    Desmarcar todas
+                </b-button>
+            </div>
+
             <!-- Tabla de Previsualización -->
             <b-table-simple hover small responsive bordered>
                 <b-thead head-variant="light">
                     <b-tr>
+                        <b-th class="text-center" style="width: 40px;">Incluir</b-th>
                         <b-th>Talla</b-th>
                         <b-th class="text-center">Variación %</b-th>
                         <b-th>Cantidad</b-th>
@@ -44,6 +58,9 @@
                 </b-thead>
                 <b-tbody>
                     <b-tr v-for="(item, index) in localItems" :key="index">
+                        <b-td class="text-center">
+                            <b-form-checkbox v-model="item.incluir"></b-form-checkbox>
+                        </b-td>
                         <b-td><strong>{{ item.tallaLabel }}</strong></b-td>
                         <b-td class="text-center">
                             <span v-if="item.variation_percentage > 0" class="text-success">+{{
@@ -53,11 +70,11 @@
                             <span v-else class="text-muted">--</span>
                         </b-td>
                         <b-td>
-                            <b-form-input type="number" v-model.number="item.cantidad" size="sm"
+                            <b-form-input type="number" v-model.number="item.cantidad" size="sm" :disabled="!item.incluir"
                                 step="0.01"></b-form-input>
                         </b-td>
                         <b-td>
-                            <b-form-select v-model="item.unidadDeMedida" :options="unitOptions"
+                            <b-form-select v-model="item.unidadDeMedida" :options="unitOptions" :disabled="!item.incluir"
                                 size="sm"></b-form-select>
                         </b-td>
                     </b-tr>
@@ -139,9 +156,17 @@ export default {
                     variation_percentage: parseFloat(talla.variation_percentage || 0),
                     cantidad: 1,
                     unidadDeMedida: this.globalUnit,
+                    // Marcado por defecto (comportamiento igual al de antes,
+                    // "Cargar Todas las Tallas") -- el usuario desmarca las
+                    // que no aplican a este producto antes de aplicar.
+                    incluir: true,
                 }));
 
             this.calculateQuantities();
+        },
+
+        marcarTodas(valor) {
+            this.localItems = this.localItems.map((item) => ({ ...item, incluir: valor }));
         },
 
         resetData() {
@@ -194,9 +219,19 @@ export default {
                 return;
             }
 
+            const itemsIncluidos = this.localItems.filter((item) => item.incluir);
+            if (itemsIncluidos.length === 0) {
+                this.$fire({
+                    type: "warning",
+                    title: "Ninguna talla seleccionada",
+                    text: "Marque al menos una talla para aplicar la asignación.",
+                });
+                return;
+            }
+
             /* Validar que todos tengan cantidad > 0 ?? No necesariamente, puede ser 0 */
 
-            this.$emit("apply", this.localItems);
+            this.$emit("apply", itemsIncluidos);
             this.$nextTick(() => {
                 this.$bvModal.hide(this.id);
             });

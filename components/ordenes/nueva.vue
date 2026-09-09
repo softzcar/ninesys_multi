@@ -381,7 +381,7 @@
                                   <template #cell(talla)="data">
                                     <b-form-select :disabled="data.item.diseno"
                                       v-model="form.productos[data.index].talla"
-                                      :options="tallasConNoAplica" @change="
+                                      :options="tallasParaProducto(data.item.cod)" @change="
                                         recalcularSegunTalla(
                                           data.index,
                                           form.productos[data.index],
@@ -1921,6 +1921,23 @@ export default {
       }
 
       product.precio = finalPrice.toFixed(2);
+    },
+
+    // Restringe el select de Talla a las tallas que el producto realmente
+    // tiene configuradas en la asignación de insumos (product_insumos_asignados)
+    // -- ej. un producto que solo se fabrica en tallas infantiles. Si el
+    // producto no tiene NINGUNA talla configurada ahí (nunca se curó), se cae
+    // al catálogo completo para no bloquear productos existentes que no usan
+    // este mecanismo (hallazgo real 2026-09-09).
+    tallasParaProducto(idProduct) {
+      const tallasPermitidas = this.$store.state.comerce.tallasAsignadasPorProducto[idProduct];
+      if (!tallasPermitidas || tallasPermitidas.length === 0) {
+        return this.tallasConNoAplica;
+      }
+      const filtradas = this.$store.state.comerce.dataTallas.filter((t) =>
+        tallasPermitidas.includes(t.value)
+      );
+      return [{ value: "No aplica", text: "No aplica" }, ...filtradas];
     },
 
     recalcularSegunTalla(index, item, idProd) {
@@ -3564,6 +3581,19 @@ export default {
           console.log("Tallas recargadas y mapeadas");
         });
     },
+    // Tallas que cada producto tiene realmente configuradas en la asignación
+    // de insumos -- usado por tallasParaProducto() para restringir el select
+    // de Talla por producto en vez de mostrar siempre el catálogo completo.
+    async loadTallasAsignadas() {
+      await this.$axios
+        .get(`${this.$config.API}/products/tallas-asignadas`)
+        .then((res) => {
+          this.$store.commit("comerce/setTallasAsignadasPorProducto", res.data || []);
+        })
+        .catch((err) => {
+          console.error("Error obteniendo tallas asignadas por producto:", err);
+        });
+    },
     async loadDataTelas() {
       await this.$axios
         .get(`${this.$config.API}/telas`)
@@ -3784,6 +3814,7 @@ export default {
       // pool de procesos PHP en Desarrollo.
       await Promise.all([
         this.loadDataTallas(),
+        this.loadTallasAsignadas(),
         this.loadDataTelas(),
         this.loadDataProductos(),
         this.loadDataCategories(), // <-- AÑADIDO PARA CORREGIR EL BUG
