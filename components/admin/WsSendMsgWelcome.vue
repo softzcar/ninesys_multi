@@ -15,24 +15,24 @@
                 <b-alert show variant="info" class="mb-4">
                     <strong>Variables Dinámicas Disponibles:</strong>
                     <p class="mb-0">
-                        Puedes usar las siguientes variables entre corchetes
-                        <code>[]</code> en tus mensajes. Serán reemplazadas
-                        automáticamente con los datos de la orden y el cliente
-                        al enviar el mensaje:
+                        Haz click sobre una variable para insertarla en el
+                        mensaje, en la posición donde esté el cursor. Serán
+                        reemplazadas automáticamente con los datos de la orden
+                        y el cliente al enviar el mensaje:
                     </p>
                     <ul>
-                        <li><code>[CLIENTE]</code>: Nombre del cliente.</li>
-                        <li><code>[ORDEN_ID]</code>: Número de la orden.</li>
+                        <li><code class="ws-var-insertable" role="button" tabindex="0" @click="insertVariable('[CLIENTE]')">[CLIENTE]</code>: Nombre del cliente.</li>
+                        <li><code class="ws-var-insertable" role="button" tabindex="0" @click="insertVariable('[ORDEN_ID]')">[ORDEN_ID]</code>: Número de la orden.</li>
                         <li>
-                            <code>[FECHA_ENTREGA]</code>: Fecha de entrega de la
+                            <code class="ws-var-insertable" role="button" tabindex="0" @click="insertVariable('[FECHA_ENTREGA]')">[FECHA_ENTREGA]</code>: Fecha de entrega de la
                             orden.
                         </li>
                         <li>
-                            <code>[PRODUCTOS]</code>: Lista de productos de la
+                            <code class="ws-var-insertable" role="button" tabindex="0" @click="insertVariable('[PRODUCTOS]')">[PRODUCTOS]</code>: Lista de productos de la
                             orden.
                         </li>
                         <li>
-                            <code>[TOTAL_ORDEN]</code>: Monto total de la orden,
+                            <code class="ws-var-insertable" role="button" tabindex="0" @click="insertVariable('[TOTAL_ORDEN]')">[TOTAL_ORDEN]</code>: Monto total de la orden,
                             descuentos y saldo pendiente.
                         </li>
                     </ul>
@@ -46,6 +46,7 @@
                     >
                         <b-form-textarea
                             id="input-mensaje"
+                            ref="mensajeTextarea"
                             v-model="mensaje"
                             placeholder="Escribe el mensaje de inicio de la orden..."
                             rows="3"
@@ -93,6 +94,23 @@ export default {
     },
 
     methods: {
+        // Mismo patron ya usado en pages/crm/campanas.vue -- inserta la
+        // variable en la posicion del cursor dentro del textarea, en vez de
+        // solo mostrarla como referencia estatica.
+        insertVariable(variable) {
+            const textarea = this.$refs.mensajeTextarea.$el;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = this.mensaje || "";
+
+            this.mensaje = text.substring(0, start) + variable + text.substring(end);
+
+            this.$nextTick(() => {
+                textarea.focus();
+                textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+            });
+        },
+
         /**
          *
          */
@@ -133,3 +151,14 @@ export default {
     props: ["idorden"],
 };
 </script>
+
+<style scoped>
+.ws-var-insertable {
+    cursor: pointer;
+    user-select: none;
+}
+.ws-var-insertable:hover {
+    background-color: #d1ecf1;
+    text-decoration: underline;
+}
+</style>
