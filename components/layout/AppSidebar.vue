@@ -99,6 +99,25 @@
 
         <!-- Componente de menú dinámico -->
         <component :is="sidebarMenuComponent" v-if="currentComponent" />
+
+        <!-- Configuración -- opciones de autoservicio del propio empleado.
+             Vive acá (no en cada Sidebar<Rol>.vue) para no duplicarla por rol. -->
+        <li class="nav-item">
+          <a class="nav-link" v-b-toggle="isCollapsed ? null : 'sidebar-configuracion'">
+            <b-icon icon="gear" />
+            <span v-show="!isCollapsed">Configuración</span>
+            <b-icon v-show="!isCollapsed" icon="chevron-down" class="menu-arrow" />
+          </a>
+          <b-collapse v-if="!isCollapsed" id="sidebar-configuracion" class="sub-menu" accordion="app-sidebar-accordion">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="#" @click.prevent="$bvModal.show('modal-cambiar-clave')">
+                  Cambiar clave
+                </a>
+              </li>
+            </ul>
+          </b-collapse>
+        </li>
       </ul>
     </div>
 
@@ -109,11 +128,14 @@
         <span v-show="!isCollapsed">Salir</span>
       </button>
     </div>
+
+    <modal-cambiar-clave id="modal-cambiar-clave" />
   </nav>
 </template>
 
 <script>
 import { mapState, mapGetters } from "vuex";
+import ModalCambiarClave from "~/components/configuracion/ModalCambiarClave.vue";
 
 // Mapeo estático de componentes de sidebar para evitar re-creación en cada renderizado
 const sidebarComponentMap = {
@@ -130,6 +152,9 @@ const sidebarComponentMap = {
 
 export default {
   name: "AppSidebar",
+  components: {
+    ModalCambiarClave,
+  },
   data() {
     return {
       isCollapsed: false,

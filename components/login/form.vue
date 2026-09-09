@@ -75,9 +75,33 @@
               >
             </b-form>
             <!-- <b-button type="reset" variant="danger">Reset</b-button> -->
+            <b-button variant="link" size="sm" class="mt-2" @click="mostrarModalOlvidoClave = true"
+              >¿Olvidó su clave?</b-button
+            >
           </b-card>
         </b-col>
       </b-row>
+
+      <!-- Recuperar clave por WhatsApp -- envía una clave nueva de 8 dígitos
+           al teléfono registrado (mismo patrón ya implementado en dtf). -->
+      <b-modal
+        v-model="mostrarModalOlvidoClave"
+        title="Recuperar clave"
+        ok-title="Enviar"
+        cancel-title="Cancelar"
+        :ok-disabled="enviandoRecuperarClave"
+        @ok="solicitarClave"
+      >
+        <p>Se enviará una nueva clave de acceso a su WhatsApp registrado.</p>
+        <b-form-group label="Email:" label-for="email-recuperar">
+          <b-form-input
+            id="email-recuperar"
+            v-model="emailRecuperarClave"
+            type="email"
+            placeholder="Ingrese su email"
+          ></b-form-input>
+        </b-form-group>
+      </b-modal>
     </b-container>
   </div>
 </template>
@@ -106,6 +130,9 @@ export default {
       // muestra esta lista en vez de completar el login de una vez.
       mostrarSelectorEmpresa: false,
       empresasDisponibles: [],
+      mostrarModalOlvidoClave: false,
+      emailRecuperarClave: "",
+      enviandoRecuperarClave: false,
     };
   },
   computed: {
@@ -310,6 +337,44 @@ export default {
           .finally(() => {
             this.loading = false;
           });
+    },
+
+    async solicitarClave(bvModalEvt) {
+      bvModalEvt.preventDefault();
+
+      if (!this.emailRecuperarClave || !this.emailCheck(this.emailRecuperarClave)) {
+        this.$fire({
+          type: "error",
+          title: "Dato requerido",
+          html: "Introduzca un email válido.",
+        });
+        return;
+      }
+
+      this.enviandoRecuperarClave = true;
+      const data = new URLSearchParams();
+      data.set("email", this.emailRecuperarClave);
+
+      await this.$axios
+        .post(`${this.$config.API}/login/solicitar-clave`, data)
+        .then((res) => {
+          this.mostrarModalOlvidoClave = false;
+          this.emailRecuperarClave = "";
+          this.$fire({
+            type: "success",
+            title: "Clave enviada",
+            html: res.data.message || "Se envió una nueva clave a su WhatsApp registrado.",
+          });
+        })
+        .catch((err) => {
+          const msg =
+            (err.response && err.response.data && err.response.data.error) ||
+            "No se pudo enviar la clave. Intente de nuevo.";
+          this.$fire({ type: "error", title: "No se pudo enviar", html: msg });
+        })
+        .finally(() => {
+          this.enviandoRecuperarClave = false;
+        });
     },
 
     async getConfigData() {
