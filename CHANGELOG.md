@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.27] - 2026-09-09
+- Fix: insumo creado en catalogo no aparecia al asociarlo desde Inventario dentro del wizard
+
 ## [v1.0.26] - 2026-09-08
 - Fix: registrar consumo de material espera confirmacion antes de marcar la tarea terminada (Terminar Tarea individual)
 
