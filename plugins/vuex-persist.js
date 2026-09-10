@@ -21,6 +21,7 @@ export default ({ store }) => {
                     if (parsedState.login.currentOrdenProceso !== undefined) store.commit('login/setCurrentOrdenProceso', parsedState.login.currentOrdenProceso)
                     if (parsedState.login.currentMinOrdenProcesoId !== undefined) store.commit('login/setCurrentMinOrdenProcesoId', parsedState.login.currentMinOrdenProcesoId)
                     if (parsedState.login.idEmpresa !== undefined) store.commit('login/setIdEmpresa', parsedState.login.idEmpresa)
+                    if (parsedState.login.apiToken !== undefined) store.commit('login/setApiToken', parsedState.login.apiToken)
                     if (parsedState.login.empleado !== undefined) store.commit('login/setEmpleado', parsedState.login.empleado)
                     if (parsedState.login.departamentos !== undefined) store.commit('login/setDepartamentos', parsedState.login.departamentos)
                     if (parsedState.login.dataEmpresa !== undefined) store.commit('login/setDataEmpresa', parsedState.login.dataEmpresa)
@@ -49,6 +50,7 @@ export default ({ store }) => {
                         currentOrdenProceso: state.login.currentOrdenProceso,
                         currentMinOrdenProcesoId: state.login.currentMinOrdenProcesoId,
                         idEmpresa: state.login.idEmpresa,
+                        apiToken: state.login.apiToken,
                         empleado: state.login.empleado,
                         departamentos: state.login.departamentos,
                         dataEmpresa: state.login.dataEmpresa,

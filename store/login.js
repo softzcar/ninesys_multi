@@ -19,8 +19,9 @@ export const state = () => ({
     activo: false,
     configuracionFaltante: [],
     wizardOperativo: null, // Estado del wizard operativo (fase 2, posterior al institucional)
-    token: null, // Token JWT
-    refreshToken: null, // Token de refresco
+    token: null, // Token JWT del servicio de WhatsApp (NO confundir con apiToken)
+    refreshToken: null, // Token de refresco (del servicio de WhatsApp)
+    apiToken: null, // Sesión real (JWT) contra ninesys-api -- auditoría de seguridad 2026-09-10, reemplaza gradualmente Authorization: <id_empresa> crudo
     // Nuevos campos para tasas automáticas
     ultimaActualizacionTasas: null, // timestamp ISO
     fuenteTasas: 'manual', // 'manual' | 'automatica' | 'fallback'
@@ -67,6 +68,9 @@ export const mutations = {
     },
     setIdEmpresa(state, data) {
         state.idEmpresa = data
+    },
+    setApiToken(state, token) {
+        state.apiToken = token
     },
     setModulos(state, data) {
         state.modulos = data
@@ -126,6 +130,7 @@ export const mutations = {
         state.access = false
         state.token = null
         state.refreshToken = null
+        state.apiToken = null
         state.dataUser = []
         state.dataEmpresa = []
         state.datos_personalizacion = {}

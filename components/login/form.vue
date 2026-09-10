@@ -244,6 +244,13 @@ export default {
                         );
                         this.$store.commit("login/setDataEmpresa", res.data.empresa);
                         this.$store.commit("login/setIdEmpresa", res.data.empresa.id);
+                        // Sesión real (JWT) -- auditoría de seguridad 2026-09-10.
+                        // El `if` es deliberado: si el backend desplegado aún no
+                        // manda `token` (orden de despliegue), el interceptor cae
+                        // solo al modo crudo (transición gradual).
+                        if (res.data.token) {
+                          this.$store.commit("login/setApiToken", res.data.token);
+                        }
                         this.$store.commit("login/setEmpleado", res.data.empleado[0]);
                         this.$store.commit("login/setModulos", res.data.modulos);
                         this.$store.commit("login/setAccess", res.data.data.access);

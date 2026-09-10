@@ -207,9 +207,7 @@ export default {
 
     async getProducts() {
       try {
-          const res = await this.$axios.get(`${this.$config.API}/products`, {
-            headers: { Authorization: this.$store.state.login.dataEmpresa.id }
-          });
+          const res = await this.$axios.get(`${this.$config.API}/products`);
           this.products = res.data;
           this.productsSelect = res.data.map(p => `${p.cod} | ${p.name}`);
       } catch (e) {
@@ -386,9 +384,7 @@ export default {
 
         try {
             this.$overlay = true; 
-            const response = await this.$axios.post(`${this.$config.API}/production/corte/crear-orden-stock-manual`, payload, {
-                headers: { Authorization: this.$store.state.login.dataEmpresa.id } 
-            });
+            const response = await this.$axios.post(`${this.$config.API}/production/corte/crear-orden-stock-manual`, payload);
 
             if (response.data.status === 'success') {
                 await this.$fire({

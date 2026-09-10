@@ -33,6 +33,10 @@ export default function ({ $axios, store, app, $config }) {
         } catch (e) {
           paramsStr = String(normalizedConfig.params)
         }
+        // Solo particiona el caché por empresa activa -- no es la fuente de
+        // autorización real (eso lo decide el interceptor onRequest, que
+        // manda Bearer <apiToken> cuando existe; ver auditoría de seguridad
+        // 2026-09-10).
         const idEmpresa = store.state.login?.idEmpresa || store.state.login?.dataEmpresa?.id || 0
         const key = `${idEmpresa}|${url}?${paramsStr}`
 
@@ -165,12 +169,19 @@ export default function ({ $axios, store, app, $config }) {
     }
 
     $axios.onRequest(async (config) => {
-        // Mantener el id_empresa como antes para APIs que no son WhatsApp
+        // Sesión real (JWT) -- auditoría de seguridad 2026-09-10 (hallazgo
+        // C2). Si ya hay apiToken (login con el backend nuevo), se manda como
+        // Bearer; si no, se cae al id_empresa crudo de siempre (transición
+        // gradual, el backend acepta ambos formatos mientras migran los
+        // demás repos). El bloque de WhatsApp que sigue abajo sobreescribe
+        // esto incondicionalmente para sus propias URLs, sin cambios.
+        const apiToken = store.state.login?.apiToken
         const id_empresa = store.state.login?.idEmpresa || store.state.login?.dataEmpresa?.id || 0
+        const authValue = apiToken ? `Bearer ${apiToken}` : id_empresa
         if (config.headers) {
-            config.headers["Authorization"] = id_empresa
+            config.headers["Authorization"] = authValue
             if (config.headers.common) {
-                config.headers.common["Authorization"] = id_empresa
+                config.headers.common["Authorization"] = authValue
             }
         }
 
@@ -258,6 +269,21 @@ export default function ({ $axios, store, app, $config }) {
                 store.commit('login/setToken', null)
                 store.commit('login/setRefreshToken', null)
             }
+        } else if (error.response?.status === 401 && store.state.login?.apiToken) {
+            // Sesión real (JWT, auditoría de seguridad 2026-09-10) inválida o
+            // expirada: la API responde 401 `invalid_token`. Sin refresh
+            // token (decisión de producto) -- se cierra sesión y se redirige
+            // a login en vez del toast genérico, que dejaría al usuario
+            // atascado viendo errores en cada petición sin entender por qué.
+            // La condición sobre `apiToken` (no "cualquier 401") es
+            // deliberada: evita disparar esto por un 401 de un endpoint que
+            // no depende de la sesión nueva (ej. login fallido, antes de
+            // tener apiToken).
+            console.warn('[AUTH] Sesión expirada o inválida, cerrando sesión.')
+            store.commit('login/logout')
+            if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+                window.location.href = '/'
+            }
         } else if (!error.config?.suppressGlobalErrorToast) {
             // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza
             // que cualquier error de la API se vea, aunque el componente que hizo
@@ -266,7 +292,7 @@ export default function ({ $axios, store, app, $config }) {
             // muestra su propio mensaje y no quiere el toast genérico además.
             showGlobalErrorToast(error)
         }
-        // Para otros endpoints, no hacer logout por errores 401/403
+        // Para otros endpoints (401/403 sin sesión JWT activa), no hacer logout
         return Promise.reject(error)
     })
 
