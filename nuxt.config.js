@@ -57,15 +57,6 @@ rif: 'J-00000000-0', */
       { value: "Administración", text: "Administración" },
     ],
 
-    // Credenciales JWT para servicio de WhatsApp -- sin fallback hardcodeado
-    // a propósito (auditoría de seguridad 2026-09-09: la credencial vieja
-    // 'admin'/'Ninesys@2024' vivía acá y terminó publicada en el bundle
-    // público). Si el build no las recibe por entorno, quedan vacías y el
-    // login a msg_ninesys falla de forma visible en vez de usar un default
-    // conocido. Ver ninesys-hub/bin/.secrets_frontend_{dev,prod}.sh.
-    jwtUsername: process.env.JWT_USERNAME || '',
-    jwtPassword: process.env.JWT_PASSWORD || '',
-
     // socketServerURL: 'http://localhost/phpClient/simulateBackend.php', // URL del servidor de pruebas
   },
 
@@ -119,6 +110,7 @@ rif: 'J-00000000-0', */
     // Socket.io client for WhatsApp service
     { src: "~/plugins/socket.client.js", mode: "client" },
     { src: "~/plugins/whatsapp.js", mode: "client" },
+    { src: "~/plugins/cdn-api.js", mode: "client" },
     // '~/plugins/socketPlugin.js',
     // { src: '~/plugins/socketPlugin.js', options: { socketServerURL: 'http://localhost' } },
     { src: "~plugins/nuxt-quill-plugin", ssr: false },

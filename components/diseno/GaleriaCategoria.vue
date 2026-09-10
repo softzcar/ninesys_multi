@@ -139,8 +139,6 @@
 </template>
 
 <script>
-import axios from 'axios'
-
 const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024 // 100MB
 
 export default {
@@ -181,7 +179,7 @@ export default {
     async fetchImages() {
       this.loadingImages = true
       try {
-        const { data } = await axios.get(`${this.galleryCdn}/`, {
+        const { data } = await this.$cdnApi.get(`${this.galleryCdn}/`, {
           params: { action: 'catalog', id_empresa: this.idEmpresa, product: this.categoria.name },
         })
         this.images = (data.images || []).map((url) => ({
@@ -275,7 +273,7 @@ export default {
         formData.append('file', fileToUpload)
 
         const url = `${this.galleryCdn}/?action=gallery_upload&id_empresa=${this.idEmpresa}&product=${this.categoria.name}`
-        const { data } = await axios.post(url, formData, {
+        const { data } = await this.$cdnApi.post(url, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (evt) => {
             if (evt.total) this.uploadProgress = Math.round((evt.loaded * 100) / evt.total)
@@ -317,7 +315,7 @@ export default {
     async deleteCategory() {
       this.deletingCategory = true
       try {
-        const { data } = await axios.delete(`${this.galleryCdn}/`, {
+        const { data } = await this.$cdnApi.delete(`${this.galleryCdn}/`, {
           params: {
             action: 'gallery_delete_category',
             id_empresa: this.idEmpresa,
@@ -344,7 +342,7 @@ export default {
     async deleteImage() {
       if (!this.deleteTarget) return
       try {
-        const { data } = await axios.delete(`${this.galleryCdn}/`, {
+        const { data } = await this.$cdnApi.delete(`${this.galleryCdn}/`, {
           params: {
             action: 'gallery_delete',
             id_empresa: this.idEmpresa,

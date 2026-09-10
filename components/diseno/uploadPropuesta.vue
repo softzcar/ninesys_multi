@@ -112,7 +112,6 @@
   
   <script>
 import mixin from "~/mixins/mixins.js";
-import axios from "axios";
 
 const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
 
@@ -378,7 +377,7 @@ export default {
         formData.append("file", fileToUpload);
         this.overlay = true;
         this.uploadProgress = 0;
-        await axios
+        await this.$cdnApi
           .post(this.urlCDN, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
@@ -459,7 +458,7 @@ export default {
             // que ya se sube la imagen, ver urlCDN). No se descarta el
             // resultado: si el CDN no la borró, se avisa en vez de quedar
             // un archivo huérfano sin que nadie se entere.
-            await axios
+            await this.$cdnApi
               .delete(this.urlCDN)
               .then((res) => {
                 if (!res.data || res.data.deleted !== true) {

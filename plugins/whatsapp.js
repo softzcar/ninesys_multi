@@ -1,8 +1,5 @@
 
 export default function ({ $axios, store, $config }, inject) {
-  // Token propio para msg_ninesys, aislado del token principal de la app
-  let _wsToken = null
-
   // Crear una instancia aislada de Axios para el servicio de WhatsApp
   const wsApi = $axios.create({
     baseURL: $config.WS_API,
@@ -59,81 +56,27 @@ export default function ({ $axios, store, $config }, inject) {
     return originalRequest.call(this, config)
   }
 
-  let activeLoginPromise = null
-
-  // Función para obtener token JWT del servicio msg_ninesys
-  const getJWTToken = async () => {
-    if (activeLoginPromise) {
-      console.log('[WS-API] Reutilizando promesa de login JWT en curso...')
-      return activeLoginPromise
-    }
-
-    // Sin fallback hardcodeado a propósito -- ver nuxt.config.js.
-    const username = $config.jwtUsername
-    const password = $config.jwtPassword
-
-    activeLoginPromise = (async () => {
-      try {
-        console.log('[WS-API] Solicitando nuevo token JWT...')
-        const response = await wsApi.post('/login', {
-          username,
-          password
-        })
-
-        if (response.data.token) {
-          _wsToken = response.data.token
-          return _wsToken
-        }
-      } catch (error) {
-        console.error('[WS-API] Error obteniendo token JWT:', error.message)
-        throw error
-      } finally {
-        activeLoginPromise = null
-      }
-    })()
-
-    return activeLoginPromise
-  }
-
-  // Interceptor de Peticion para $wsApi
-  wsApi.onRequest(async (config) => {
-    // Si no es la ruta de login, intentar adjuntar token
-    if (!config.url.includes('/login')) {
-      // Si no hay token propio, obtener uno nuevo
-      if (!_wsToken) {
-        try {
-          await getJWTToken()
-        } catch (e) {
-          // Continuar, el error de respuesta manejara el 401/403 si es necesario
-        }
-      }
-
-      if (_wsToken) {
-        config.headers.Authorization = `Bearer ${_wsToken}`
-      }
+  // Auditoría de seguridad 2026-09-10 (hallazgos C5/C6, ver
+  // [[project_fase_seguridad_pendiente]]): antes este plugin se logueaba
+  // aparte contra msg_ninesys con una credencial de admin compartida
+  // (`jwtUsername`/`jwtPassword`) que vivía en el bundle público de Nuxt --
+  // cualquiera podía leerla y operar el WhatsApp de cualquier empresa. Ahora
+  // manda el MISMO JWT de sesión que ya usa el resto de la app para
+  // ninesys-api (`store.state.login.apiToken`) -- msg_ninesys lo valida con
+  // el mismo secreto compartido servidor-a-servidor, nunca visible acá.
+  wsApi.onRequest((config) => {
+    const apiToken = store.state.login?.apiToken
+    if (apiToken && !config.url.includes('/login')) {
+      config.headers.Authorization = `Bearer ${apiToken}`
     }
     return config
   })
 
-  // Interceptor de Respuesta para $wsApi (Manejo de 401/403 / Refresco)
+  // Interceptor de Respuesta para $wsApi: un 401/403 acá significa que la
+  // sesión (la misma de ninesys-api) ya no es válida -- el interceptor
+  // principal (axios-interceptor.js) es quien decide el logout forzado
+  // cuando corresponde; acá solo se propaga el error.
   wsApi.onResponseError(async (error) => {
-    const originalRequest = error.config
-    const status = error.response?.status
-
-    // Reintentar en 401 (no proporcionado) o 403 (token invalido/expirado)
-    if ((status === 401 || status === 403) && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        const newToken = await getJWTToken()
-        originalRequest.headers.Authorization = `Bearer ${newToken}`
-        return wsApi.request(originalRequest)
-      } catch (loginError) {
-        _wsToken = null
-        console.error('[WS-API] No se pudo renovar el token:', loginError.message)
-      }
-    }
-
     return Promise.reject(error)
   })
 

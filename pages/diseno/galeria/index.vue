@@ -75,7 +75,6 @@
 <script>
 import { mapState } from 'vuex'
 import mixin from '~/mixins/mixin-login.js'
-import axios from 'axios'
 
 export default {
   mixins: [mixin],
@@ -104,7 +103,7 @@ export default {
       if (!this.idEmpresa) return
       this.loading = true
       try {
-        const { data } = await axios.get(`${this.$config.GALLERY_CDN}/`, {
+        const { data } = await this.$cdnApi.get(`${this.$config.GALLERY_CDN}/`, {
           params: { action: 'gallery_categories', id_empresa: this.idEmpresa },
         })
         this.categories = data.categories || []
@@ -125,7 +124,7 @@ export default {
       }
 
       try {
-        const { data } = await axios.delete(`${this.$config.GALLERY_CDN}/`, {
+        const { data } = await this.$cdnApi.delete(`${this.$config.GALLERY_CDN}/`, {
           params: {
             action: 'gallery_create_category',
             id_empresa: this.idEmpresa,
