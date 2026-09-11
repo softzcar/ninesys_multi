@@ -223,6 +223,18 @@ rif: 'J-00000000-0', */
     },
     generateDynamicRoutes: true,
     vendor: ["axios"],
+    // Quita todos los console.* del bundle de producción -- auditoría de
+    // seguridad 2026-09-11 (Fase 5): hay ~1000 console.log/error de
+    // depuración en el código, varios volcando datos sensibles (pagos,
+    // salarios, teléfonos de clientes) a la consola de cualquier usuario.
+    // No afecta `npm run dev` (Terser solo corre en el build de producción).
+    terser: {
+      terserOptions: {
+        compress: {
+          drop_console: true,
+        },
+      },
+    },
     extend(config, ctx) {
       config.module.rules.push({
         test: /\.(mp3)$/,

@@ -707,7 +707,6 @@ export default {
 
       // Si no se encuentra en las listas (porque ya se recargaron), usar datosUltimoPago como fallback
       if (!empleadoData && this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
-        console.log('DEBUG RECIBO - Empleado no encontrado en lista, usando datosUltimoPago');
         empleadoData = this.datosUltimoPago.empleado;
       }
 
@@ -746,19 +745,12 @@ export default {
 
       // Si tenemos datos del último pago (con bonos y descuentos), usarlos (PRIORIDAD)
       if (this.datosUltimoPago && this.datosUltimoPago.nombreEmpleado === nombreEmpleado) {
-        console.log('DEBUG RECIBO - Usando datos completos del último pago:', this.datosUltimoPago);
         salarioBase = parseFloat(this.datosUltimoPago.salarioBase || 0);
         totalComisiones = parseFloat(this.datosUltimoPago.comisionTotal || 0);
         bonos = this.datosUltimoPago.bonos || [];
         descuentos = this.datosUltimoPago.descuentos || [];
         totalFinal = parseFloat(this.datosUltimoPago.totalFinal || empleadoData.pago);
-      } else {
-        console.log('DEBUG RECIBO - No hay datos completos del último pago, usando datos básicos');
       }
-
-      console.log('DEBUG RECIBO - Salario base calculado:', salarioBase);
-      console.log('DEBUG RECIBO - Total comisiones:', totalComisiones);
-      console.log('DEBUG RECIBO - Total final:', totalFinal);
 
       // Crear contenido del recibo que refleje exactamente lo que se muestra en el modal
       const printContent = `

@@ -468,28 +468,17 @@ export default {
         data.set('descuentos', '0')
       }
 
-      // DEBUG: Agregar logs para diagnosticar envío a API
-      console.log('DEBUG API - Empleado:', this.empleado);
-      console.log('DEBUG API - Salario tipo:', this.empleado?.salario_tipo);
-      console.log('DEBUG API - Salario calculado (prop):', this.salarioCalculado);
-      console.log('DEBUG API - Total comisiones tabla:', this.totalComisionesTabla);
-      console.log('DEBUG API - Salario base calculado:', this.salarioBase);
-      console.log('DEBUG API - Detalles completos:', this.detalles);
-
       // Agregar salario calculado si existe y el tipo de salario lo permite
       if ((this.empleado.salario_tipo === 'Salario' || this.empleado.salario_tipo === 'Salario más Comisión') && this.salarioCalculado && parseFloat(this.salarioCalculado) > 0) {
         data.set('salario', this.salarioCalculado.toString())
-        console.log('DEBUG API - Enviando salario:', this.salarioCalculado.toString());
       } else {
         // Para vendedores con "Salario más Comisión", siempre enviar el salario calculado aunque sea 0
         // Esto asegura que se registre el período como pagado
         if (this.empleado.salario_tipo === 'Salario más Comisión') {
           const salarioAEnviar = this.salarioCalculado ? this.salarioCalculado.toString() : '0';
           data.set('salario', salarioAEnviar)
-          console.log('DEBUG API - Enviando salario para Salario+Comisión:', salarioAEnviar);
         } else {
           data.set('salario', '0')
-          console.log('DEBUG API - Enviando salario: 0 (condición no cumplida)');
         }
       }
 
@@ -497,17 +486,13 @@ export default {
       // Solo enviar comisiones si el tipo de salario lo permite
       if (this.empleado.salario_tipo === 'Comisión' || this.empleado.salario_tipo === 'Salario más Comisión') {
         data.set('comision', this.totalComisionesTabla.toString())
-        console.log('DEBUG API - Enviando comisión:', this.totalComisionesTabla.toString());
       } else {
         data.set('comision', '0')
-        console.log('DEBUG API - Enviando comisión: 0 (condición no cumplida)');
       }
 
       this.dataToPost = data;
 
       try {
-        const dataObjeto = Object.fromEntries(data.entries());
-        console.warn('Procesando pago con los siguientes datos:', dataObjeto);
         await this.$axios.post(`${this.$config.API}/pagos/pagar-a-empleados`, data)
         // Emitir evento con datos completos del pago para el recibo
         this.$emit('pago-exitoso', this.empleado.nombre, {
@@ -557,11 +542,6 @@ export default {
 
   mounted() {
     this.totalItemsPagos = this.detalles.length;
-    console.log("=== PagosConfirmacionModal PROPS ===");
-    console.log("tipoEmpleado:", this.tipoEmpleado);
-    console.log("empleado:", this.empleado);
-    console.log("detalles (filtrados):", this.detalles);
-    console.log("totalBase:", this.totalBase);
   }
 }
 </script>

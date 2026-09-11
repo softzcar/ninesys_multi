@@ -2874,8 +2874,6 @@ export default {
       data.set("sendWhatsAppMessage", this.form.sendWhatsAppMessage);
       data.set("guardar_stock", this.form.guardarStock || false);
 
-      console.log("data para crear nueva orden", data);
-
       // ENVIAR DATOS AL SERVIDOR PARA CREAR UNA NUEVA ORDEN
       try {
         const res = await this.$axios.post(

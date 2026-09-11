@@ -629,7 +629,6 @@ export default {
 
       // Mensaje nuevo (entrante o saliente)
       socket.on('message:new', (data) => {
-        console.log('[WaInbox] message:new', data.jid, 'from_me:', data.from_me);
         if (String(data.companyId) !== myCompany) return;
 
         // Si la conversación activa es la del mensaje, agregarlo al chat
@@ -668,7 +667,6 @@ export default {
 
       // Conversación actualizada (last_message, unread, etc.)
       socket.on('conversation:updated', (data) => {
-        console.log('[WaInbox] conversation:updated', data.jid);
         if (String(data.companyId) !== myCompany) return;
 
         const conv = this.conversations.find((c) => c.id === data.jid);
@@ -704,7 +702,6 @@ export default {
 
       // Handoff: cambio de modo en la conversación
       socket.on('conversation:handoff', (data) => {
-        console.log('[WaInbox] conversation:handoff', data.jid, data.mode);
         if (String(data.companyId) !== myCompany) return;
 
         const conv = this.conversations.find((c) => c.id === data.jid);
@@ -734,7 +731,6 @@ export default {
       // de la conversación según el viewMode actual. La lógica común vive en
       // applyAssignmentChange().
       socket.on('conversation:assigned', (data) => {
-        console.log('[WaInbox] conversation:assigned', data);
         if (String(data.companyId) !== myCompany) return;
         this.applyAssignmentChange({
           jid: data.jid,
@@ -748,7 +744,6 @@ export default {
       });
 
       socket.on('conversation:returned-to-queue', (data) => {
-        console.log('[WaInbox] conversation:returned-to-queue', data);
         if (String(data.companyId) !== myCompany) return;
         this.applyAssignmentChange({
           jid: data.jid,
@@ -762,7 +757,6 @@ export default {
       });
 
       socket.on('conversation:returned-to-ai', (data) => {
-        console.log('[WaInbox] conversation:returned-to-ai', data);
         if (String(data.companyId) !== myCompany) return;
         this.applyAssignmentChange({
           jid: data.jid,
@@ -929,12 +923,7 @@ export default {
           '| elegibles (dptos 5/6):', filtered.length
         );
       } catch (e) {
-        console.error(
-          '[WaInbox] fetchVendors error:',
-          e.response?.status,
-          e.response?.data,
-          e.message
-        );
+        console.error('[WaInbox] fetchVendors error:', e.response?.status, e.message);
       }
     },
 
@@ -1084,7 +1073,7 @@ export default {
         }
         this.$nextTick(() => this.scrollToBottom());
       } catch (e) {
-        console.error("[WaInbox] sendMessage error:", e.response?.status, e.response?.data, e);
+        console.error("[WaInbox] sendMessage error:", e.response?.status, e.message);
         this.$bvToast.toast(
           (e.response?.data?.message || e.message) + ` (status ${e.response?.status || '?'})`,
           { title: "Error enviando mensaje", variant: "danger" }
@@ -1192,7 +1181,7 @@ export default {
         }
         // El evento message:new del socket insertará el mensaje en la lista.
       } catch (e) {
-        console.error('[WaInbox] uploadFile error:', e.response?.status, e.response?.data, e);
+        console.error('[WaInbox] uploadFile error:', e.response?.status, e.message);
         this.$bvToast.toast(
           (e.response?.data?.message || e.message) + ` (status ${e.response?.status || '?'})`,
           { title: 'Error enviando archivo', variant: 'danger' }
@@ -1361,7 +1350,7 @@ export default {
           }
         }
       } catch (e) {
-        console.error('[WaInbox] sendVoiceNote error:', e.response?.status, e.response?.data, e);
+        console.error('[WaInbox] sendVoiceNote error:', e.response?.status, e.message);
         this.$bvToast.toast(
           (e.response?.data?.message || e.message) + ` (status ${e.response?.status || '?'})`,
           { title: 'Error enviando nota de voz', variant: 'danger' }
