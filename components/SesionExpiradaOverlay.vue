@@ -19,6 +19,7 @@
 
       <b-form @submit.prevent="reautenticar">
         <b-form-input
+          ref="passwordInput"
           v-model="password"
           type="password"
           placeholder="Clave"
@@ -105,6 +106,20 @@ export default {
         }
       }
     }
+    // Al cerrar el modal de fondo, el foco no vuelve solo al campo de clave
+    // (autofocus del <input> ya "se gastó" al montar, cuando el modal seguía
+    // reclamando el foco) -- queda en <body>, confirmado en pruebas reales.
+    // Se enfoca explícitamente. El segundo intento (350ms) cubre el caso
+    // donde la propia transición de cierre del modal (fade-out) le devuelve
+    // el foco a otra parte al terminar, después de nuestro primer intento.
+    this.$nextTick(() => {
+      this.$refs.passwordInput && this.$refs.passwordInput.focus();
+    });
+    setTimeout(() => {
+      if (this.$refs.passwordInput && document.activeElement !== this.$refs.passwordInput.$el) {
+        this.$refs.passwordInput.focus();
+      }
+    }, 350);
     this.renderTurnstile();
   },
   beforeDestroy() {
