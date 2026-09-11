@@ -163,6 +163,21 @@ export default function ({ $axios, store, app, $config }) {
             console.warn(`[AUTH] Sesión inválida (${motivo}), mostrando overlay de reautenticación.`)
             store.commit('login/setMotivoSesionExpirada', motivo)
             store.commit('login/setSesionExpirada', true)
+            // Bug reportado 2026-09-11: si en ese momento había un <b-modal>
+            // real abierto en la página de fondo (que sigue montada a
+            // propósito, ver arriba), ese modal mantiene su atrapa-foco de
+            // BootstrapVue activo y le gana el foco al campo de clave del
+            // overlay -- el usuario no podía escribir, aunque el campo en sí
+            // no tenía nada deshabilitado (confirmado con DevTools:
+            // document.activeElement apuntaba al modal de fondo, no al
+            // overlay). SesionExpiradaOverlay es deliberadamente un <div>
+            // simple, no un b-modal real, así que no puede ganarle ese
+            // atrapa-foco por su cuenta. Los b-modal de BootstrapVue se
+            // cierran solos con Escape por defecto -- se simula esa tecla
+            // para liberar el foco, sin necesitar conocer el id del modal.
+            if (typeof document !== 'undefined') {
+              document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 27, which: 27, key: 'Escape', code: 'Escape', bubbles: true }))
+            }
         } else if (!error.config?.suppressGlobalErrorToast) {
             // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza
             // que cualquier error de la API se vea, aunque el componente que hizo

@@ -79,6 +79,13 @@ export default {
     },
   },
   mounted() {
+    // Segunda red de seguridad (ver axios-interceptor.js) para el mismo bug
+    // -- si un modal real de BootstrapVue se abrió en la página de fondo
+    // justo en este instante, su atrapa-foco le gana el foco al campo de
+    // clave y el usuario no puede escribir.
+    if (typeof document !== "undefined") {
+      document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, which: 27, key: "Escape", code: "Escape", bubbles: true }));
+    }
     this.renderTurnstile();
   },
   beforeDestroy() {
