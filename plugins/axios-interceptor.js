@@ -174,9 +174,20 @@ export default function ({ $axios, store, app, $config }) {
             // simple, no un b-modal real, así que no puede ganarle ese
             // atrapa-foco por su cuenta. Los b-modal de BootstrapVue se
             // cierran solos con Escape por defecto -- se simula esa tecla
-            // para liberar el foco, sin necesitar conocer el id del modal.
+            // para liberar el foco.
+            //
+            // IMPORTANTE: BootstrapVue escucha 'keydown' directo en el propio
+            // <div class="modal">, no en `document` -- un evento despachado
+            // sobre `document` nunca le llega (los eventos solo burbujean
+            // HACIA ARRIBA desde su origen, nunca hacia abajo a descendientes
+            // como el modal). Por eso se despacha sobre `document.activeElement`
+            // -- que en este escenario ES el modal atrapado (o algo dentro de
+            // él) -- para que el evento sí burbujee a través suyo.
             if (typeof document !== 'undefined') {
-              document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 27, which: 27, key: 'Escape', code: 'Escape', bubbles: true }))
+              const origenEsc = document.activeElement && document.activeElement !== document.body
+                ? document.activeElement
+                : document
+              origenEsc.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 27, which: 27, key: 'Escape', code: 'Escape', bubbles: true }))
             }
         } else if (!error.config?.suppressGlobalErrorToast) {
             // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza

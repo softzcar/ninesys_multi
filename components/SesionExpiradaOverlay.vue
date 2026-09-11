@@ -82,9 +82,15 @@ export default {
     // Segunda red de seguridad (ver axios-interceptor.js) para el mismo bug
     // -- si un modal real de BootstrapVue se abrió en la página de fondo
     // justo en este instante, su atrapa-foco le gana el foco al campo de
-    // clave y el usuario no puede escribir.
+    // clave y el usuario no puede escribir. Se despacha sobre
+    // document.activeElement (no sobre document) porque BootstrapVue
+    // escucha 'keydown' directo en el <div class="modal">, y un evento
+    // despachado en document nunca le llegaría (no burbujea hacia abajo).
     if (typeof document !== "undefined") {
-      document.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, which: 27, key: "Escape", code: "Escape", bubbles: true }));
+      const origenEsc = document.activeElement && document.activeElement !== document.body
+        ? document.activeElement
+        : document;
+      origenEsc.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, which: 27, key: "Escape", code: "Escape", bubbles: true }));
     }
     this.renderTurnstile();
   },
