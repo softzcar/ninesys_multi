@@ -368,14 +368,22 @@ export default {
                   this.showConfigWizard = true; // Activamos el wizard
                 });
               }
-              // Caso 2: Credenciales incorrectas (error 401)
+              // Caso 2: msg del backend -- el título depende del código HTTP
+              // real, no siempre son "datos incorrectos" (ej. 400 de
+              // Turnstile no es una credencial mal escrita, es que no se
+              // pudo verificar que la solicitud viene de una persona).
               else if (responseData.msg) {
+                const titulosPorEstado = {
+                  400: "Verificación fallida",
+                  401: "Datos incorrectos",
+                  429: "Demasiados intentos",
+                };
                 this.$fire({
                   type: "error",
-                  title: "Datos incorrectos",
+                  title: titulosPorEstado[err.response.status] || "No se pudo iniciar sesión",
                   html: responseData.msg,
                 });
-              } 
+              }
               // Caso 3: Otro error del servidor con respuesta
               else {
                 this.$fire({
