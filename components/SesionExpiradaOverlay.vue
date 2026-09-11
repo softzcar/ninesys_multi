@@ -1,7 +1,7 @@
 <template>
   <div class="sesion-expirada-overlay">
     <b-card style="max-width: 22rem" class="text-center">
-      <h5>Sesión expirada</h5>
+      <h5>{{ motivoSesionExpirada === 'otro_dispositivo' ? 'Sesión cerrada' : 'Sesión expirada' }}</h5>
       <hr />
       <!--
         Nota de seguridad (auditoría 2026-09-11): este overlay es puramente
@@ -15,7 +15,7 @@
         <strong>{{ dataUser.nombre }}</strong><br />
         <small class="text-muted">{{ dataUser.email }}</small>
       </p>
-      <p class="small">Su sesión expiró. Ingrese su clave para continuar.</p>
+      <p class="small">{{ mensajeMotivo }}</p>
 
       <b-form @submit.prevent="reautenticar">
         <b-form-input
@@ -63,7 +63,12 @@ export default {
     };
   },
   computed: {
-    ...mapState("login", ["dataUser", "idEmpresa"]),
+    ...mapState("login", ["dataUser", "idEmpresa", "motivoSesionExpirada"]),
+    mensajeMotivo() {
+      return this.motivoSesionExpirada === "otro_dispositivo"
+        ? "Su sesión se cerró porque se inició sesión en otro dispositivo. Ingrese su clave para continuar."
+        : "Su sesión expiró. Ingrese su clave para continuar.";
+    },
   },
   mounted() {
     this.renderTurnstile();
@@ -102,7 +107,7 @@ export default {
         window.turnstile.reset(this.turnstileWidgetId);
       }
     },
-    async reautenticar() {
+    async reautenticar(forzarSesion) {
       this.cargando = true;
       this.error = "";
 
@@ -112,6 +117,9 @@ export default {
       data.set("cf-turnstile-response", this.turnstileToken);
       if (this.idEmpresa) {
         data.set("id_empresa", this.idEmpresa);
+      }
+      if (forzarSesion) {
+        data.set("forzar_sesion", "1");
       }
 
       // El interceptor global (axios-interceptor.js) manda el apiToken
@@ -128,6 +136,23 @@ export default {
         const res = await this.$axios.post(`${this.$config.API}/login`, data, {
           suppressGlobalErrorToast: true,
         });
+
+        if (res.data?.requiere_confirmacion_sesion) {
+          // Alguien más (u otra pestaña propia) ya reclamó la sesión --
+          // sesión única por empleado, auditoría 2026-09-11. Mismo patrón
+          // que components/login/form.vue.
+          this.cargando = false;
+          this.resetearTurnstile();
+          const { dispositivo, desde } = res.data.sesion_activa;
+          this.$confirm(
+            `Ya hay una sesión abierta en ${dispositivo} desde el ${desde}. Si continúa, esa sesión se cerrará y los cambios sin guardar que tenga allí se perderán. ¿Desea continuar?`,
+            "Sesión activa en otro dispositivo",
+            "warning"
+          ).then(() => {
+            this.reautenticar(true);
+          });
+          return;
+        }
 
         if (res.data?.data?.access === true && res.data.token) {
           // Deliberadamente SOLO se actualiza el token -- no se toca

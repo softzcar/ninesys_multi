@@ -140,6 +140,9 @@ export default {
       // Cloudflare Turnstile (CAPTCHA) -- auditoría de seguridad 2026-09-11.
       turnstileToken: "",
       turnstileWidgetId: null,
+      // Sesión única por empleado -- auditoría de seguridad 2026-09-11. Se
+      // resetea en letMeIn() (nuevo intento manual de login).
+      sesionForzada: false,
     };
   },
   computed: {
@@ -166,6 +169,9 @@ export default {
     async letMeIn(event) {
       event.preventDefault();
       this.loading = true;
+      // Nuevo intento manual -- no arrastrar el consentimiento de un intento
+      // anterior (sesión única por empleado, auditoría 2026-09-11).
+      this.sesionForzada = false;
 
       let ban = true;
       let c = {};
@@ -209,15 +215,21 @@ export default {
     },
 
     // Reenvía el login con la empresa elegida en el selector (ver
-    // requiere_seleccion_empresa más abajo).
+    // requiere_seleccion_empresa más abajo). Si el usuario ya confirmó
+    // cerrar una sesión activa en otro dispositivo antes de llegar acá, ese
+    // consentimiento se mantiene -- no se le vuelve a preguntar dos veces
+    // por el mismo intento de login.
     async elegirEmpresa(idEmpresa) {
       this.loading = true;
       this.mostrarSelectorEmpresa = false;
-      await this.doLogin(idEmpresa);
+      await this.doLogin(idEmpresa, this.sesionForzada);
     },
 
-    async doLogin(idEmpresa) {
+    async doLogin(idEmpresa, forzarSesion) {
         this.loading = true;
+        if (forzarSesion) {
+          this.sesionForzada = true;
+        }
 
         const data = new URLSearchParams();
         data.set("email", this.form.email);
@@ -226,11 +238,30 @@ export default {
         if (idEmpresa) {
           data.set("id_empresa", idEmpresa);
         }
+        if (forzarSesion || this.sesionForzada) {
+          data.set("forzar_sesion", "1");
+        }
 
         await this.$axios
           .post(`${this.$config.API}/login`, data)
                     .then((res) => {
-                      if (res.data.requiere_seleccion_empresa) {
+                      if (res.data.requiere_confirmacion_sesion) {
+                        // Sesión única por empleado -- auditoría de seguridad
+                        // 2026-09-11. El token de Turnstile ya se consumió en
+                        // este intento, hay que resetear el widget antes de
+                        // reintentar.
+                        this.loading = false;
+                        this.resetearTurnstile();
+                        const { dispositivo, desde } = res.data.sesion_activa;
+                        this.$confirm(
+                          `Ya hay una sesión abierta en ${dispositivo} desde el ${desde}. Si continúa, esa sesión se cerrará y los cambios sin guardar que tenga allí se perderán. ¿Desea continuar?`,
+                          "Sesión activa en otro dispositivo",
+                          "warning"
+                        ).then(() => {
+                          this.loading = true;
+                          this.doLogin(idEmpresa, true);
+                        });
+                      } else if (res.data.requiere_seleccion_empresa) {
                         // La identidad tiene más de una empresa asignada -- mostrar el
                         // selector en vez de completar el login todavía.
                         this.loading = false;

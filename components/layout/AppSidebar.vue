@@ -403,7 +403,20 @@ export default {
     },
     goOut() {
       this.$confirm("¿Desea Salir del sistema?", "Salir", "question")
-        .then(() => {
+        .then(async () => {
+          // Sesión única por empleado -- auditoría de seguridad 2026-09-11:
+          // libera el cupo en el backend (sesiones_activas) para que un
+          // login posterior, desde donde sea, no pida confirmación de
+          // "sesión activa" innecesariamente. Best-effort -- si falla (sin
+          // red, etc.) igual se cierra la sesión localmente.
+          try {
+            await this.$axios.post(`${this.$config.API}/logout`, null, {
+              suppressGlobalErrorToast: true,
+            });
+          } catch (e) {
+            console.warn('No se pudo notificar el cierre de sesión al servidor:', e.message);
+          }
+
           // Desregistrar Service Workers de forma agresiva al salir
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(registrations => {

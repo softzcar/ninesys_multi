@@ -155,7 +155,13 @@ export default function ({ $axios, store, app, $config }) {
             // sobre `apiToken` (no "cualquier 401") es deliberada: evita
             // disparar esto por un 401 de un endpoint que no depende de la
             // sesión nueva (ej. login fallido, antes de tener apiToken).
-            console.warn('[AUTH] Sesión expirada o inválida, mostrando overlay de reautenticación.')
+            // Sesión única por empleado (auditoría 2026-09-11): el backend
+            // distingue `session_superseded` (otro login la reemplazó) de
+            // `invalid_token` (expiró) -- el overlay muestra un mensaje
+            // distinto según el motivo real.
+            const motivo = error.response?.data?.error === 'session_superseded' ? 'otro_dispositivo' : 'expirada'
+            console.warn(`[AUTH] Sesión inválida (${motivo}), mostrando overlay de reautenticación.`)
+            store.commit('login/setMotivoSesionExpirada', motivo)
             store.commit('login/setSesionExpirada', true)
         } else if (!error.config?.suppressGlobalErrorToast) {
             // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza

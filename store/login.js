@@ -23,6 +23,7 @@ export const state = () => ({
     refreshToken: null, // Token de refresco (del servicio de WhatsApp)
     apiToken: null, // Sesión real (JWT) contra ninesys-api -- auditoría de seguridad 2026-09-10, reemplaza gradualmente Authorization: <id_empresa> crudo
     sesionExpirada: false, // Overlay de reautenticación (no logout/redirect) -- auditoría de seguridad 2026-09-11
+    motivoSesionExpirada: 'expirada', // 'expirada' | 'otro_dispositivo' -- ver SesionExpiradaOverlay.vue
     // Nuevos campos para tasas automáticas
     ultimaActualizacionTasas: null, // timestamp ISO
     fuenteTasas: 'manual', // 'manual' | 'automatica' | 'fallback'
@@ -75,6 +76,9 @@ export const mutations = {
     },
     setSesionExpirada(state, valor) {
         state.sesionExpirada = valor
+    },
+    setMotivoSesionExpirada(state, valor) {
+        state.motivoSesionExpirada = valor
     },
     setModulos(state, data) {
         state.modulos = data
