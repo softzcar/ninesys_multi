@@ -235,5 +235,10 @@ rif: 'J-00000000-0', */
   },
 
   // Mode: This option lets you define the development or production mode of Nuxt (important when you use Nuxt programmatically)
-  dev: process.env.NODE_ENV !== "development",
+  // Nota (auditoría 2026-09-11): la lógica de esta línea estaba invertida
+  // (`!==`), pero no tenía efecto real -- `nuxt build`/`nuxt generate`/`nuxt
+  // dev` (los comandos usados por npm run build/generate/dev) siempre
+  // sobreescriben este valor por CLI sin importar lo que diga acá. Se corrige
+  // igual para que no confunda a futuro.
+  dev: process.env.NODE_ENV === "development",
 }

@@ -28,7 +28,7 @@
 
             <b-collapse v-if="item.tiene_nota" :id="'collapse-nota-' + id_orden + '-' + index" v-model="item.visible" class="mt-2">
               <b-card border-variant="primary" class="shadow-sm">
-                <div class="quill-content" v-html="item.nota"></div>
+                <div class="quill-content" v-html="sanitizeHtml(item.nota)"></div>
               </b-card>
             </b-collapse>
           </div>
@@ -39,8 +39,11 @@
 </template>
 
 <script>
+import mixin from "~/mixins/mixins.js";
+
 export default {
   name: "ModalNotasProduccion",
+  mixins: [mixin],
   props: {
     id_orden: {
       type: [String, Number],

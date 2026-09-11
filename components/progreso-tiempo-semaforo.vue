@@ -123,7 +123,7 @@
             <b-list-group-item :variant="ordenReactiva.variant">
               <strong>Fecha Entrega Original:</strong>
               <!-- Etiqueta cambiada para mayor claridad -->
-              <span v-html="textList.fechaEntrega"></span>
+              <span>{{ textList.fechaEntrega }}</span>
             </b-list-group-item>
 
             <b-list-group-item :variant="ordenReactiva.variant">

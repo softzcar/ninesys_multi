@@ -197,7 +197,7 @@
                                 TIPO DE DISEÑO: {{ form.diseno }}
                             </h3>
                         </div>
-                        <div class="spacer observaciones" v-html="form.obs"></div>
+                        <div class="spacer observaciones" v-html="sanitizeHtml(form.obs)"></div>
                     </div>
                 </b-col>
             </b-row>

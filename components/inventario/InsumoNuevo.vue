@@ -22,6 +22,7 @@
                                         :data="uniqueInventoryItems" :serializer="item => item.sku" @hit="onSkuSelect"
                                         placeholder="Ingrese o busque un SKU..." required>
                                         <template slot="suggestion" slot-scope="{ data, htmlText }">
+                                            <!-- htmlText ya viene escapado por vue-typeahead-bootstrap (su propio highlight()) -- seguro, ver auditoría 2026-09-11 -->
                                             <span v-html="htmlText"></span>
                                             <small class="text-muted ml-2">({{ data.insumo }})</small>
                                         </template>

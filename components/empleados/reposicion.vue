@@ -70,7 +70,7 @@
               <b-list-group-item>
                 <b-button class="mt-2" size="sm" v-b-toggle.collapse-1 variant="light">Ver Detalles</b-button>
                 <b-collapse id="collapse-1" class="mt-2">
-                  <span v-html="item.detalle_supervisor"></span>
+                  <span>{{ item.detalle_supervisor }}</span>
                   <p>Mas detalles...</p>
                 </b-collapse>
               </b-list-group-item>

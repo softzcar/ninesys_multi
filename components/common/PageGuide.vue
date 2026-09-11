@@ -13,6 +13,7 @@
 
     <b-collapse :id="toggleId" class="mt-2">
       <b-card class="page-guide-card">
+        <!-- contenidoHtml sale siempre de static/guias/*.md (repo propio, no BD/usuario) -- seguro, ver auditoría 2026-09-11 -->
         <div class="page-guide-content" v-html="contenidoHtml"></div>
       </b-card>
     </b-collapse>

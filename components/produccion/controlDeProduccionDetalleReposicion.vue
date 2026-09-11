@@ -8,7 +8,7 @@
         <b-modal :id="modal" :title="title" size="lg" ok-only>
             <b-row class="mt-2">
                 <b-col>
-                    <div v-html="detalleLocal"></div>
+                    <div>{{ detalleLocal }}</div>
                 </b-col>
             </b-row>
         </b-modal>

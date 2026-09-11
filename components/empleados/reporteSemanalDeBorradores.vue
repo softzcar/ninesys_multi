@@ -41,7 +41,7 @@
               </h5>
             </b-card-header>
             <b-card-body>
-              <div v-html="item.borrador"></div>
+              <div v-html="sanitizeHtml(item.borrador)"></div>
             </b-card-body>
           </b-card>
         </div>
@@ -58,7 +58,10 @@
 </template>
 
 <script>
+import mixin from "~/mixins/mixins.js";
+
 export default {
+  mixins: [mixin],
   data() {
     return {
       title: "Reporte Semanal de Borradores",

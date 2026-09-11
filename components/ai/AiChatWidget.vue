@@ -397,8 +397,18 @@ export default {
         text = String(text)
       }
       
+      // Escapar HTML antes de aplicar el formato -- auditoría de seguridad
+      // 2026-09-11 (Fase 5, hallazgo A7): tanto los mensajes del bot como lo
+      // que el propio usuario escribe en el chat pasan por acá.
+      const textEscapado = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+
       // Convert markdown-like formatting to HTML
-      return text
+      return textEscapado
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>')
         .replace(/• /g, '&bull; ')

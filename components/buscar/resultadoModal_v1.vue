@@ -195,7 +195,7 @@
                                 TIPO DE DISEÑO: {{ tipoDiseno }}
                             </h3>
                         </div>
-                        <div class="spacer observaciones" v-html="resOrden.orden[0].observaciones"></div>
+                        <div class="spacer observaciones" v-html="sanitizeHtml(resOrden.orden[0].observaciones)"></div>
                     </div>
                 </b-col>
             </b-row>

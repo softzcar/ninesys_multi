@@ -5,6 +5,7 @@
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div>
+                        <!-- htmlText ya viene escapado por vue-typeahead-bootstrap (su propio highlight()) -- seguro, ver auditoría 2026-09-11 -->
                         <span v-html="htmlText"></span>
                         <br />
                         <small class="text-muted">

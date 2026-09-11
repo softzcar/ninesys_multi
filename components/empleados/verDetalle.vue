@@ -34,7 +34,7 @@
                 <!-- {{ detalleReposicion }} -->
               </b-alert>
 
-              <div v-html="detalle"></div>
+              <div v-html="sanitizeHtml(detalle)"></div>
             </b-col>
           </b-row>
         </b-container>
@@ -45,8 +45,10 @@
 
 <script>
 import axios from "axios";
+import mixin from "~/mixins/mixins.js";
 
 export default {
+  mixins: [mixin],
   data() {
     return {
       detalle: "",

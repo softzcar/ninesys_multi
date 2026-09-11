@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify"
+
 export default {
   data() {
     return {
@@ -191,6 +193,19 @@ export default {
       return regex.test(email)
     },
 
+    // Sanitiza HTML antes de usarlo con v-html -- auditoría de seguridad
+    // 2026-09-11 (Fase 5, hallazgo A7, ver memoria [[project_fase_seguridad_pendiente]]).
+    // Lista blanca acotada a lo que produce el editor Quill (observaciones/
+    // borradores/notas): cualquier otra etiqueta o atributo (script, on*,
+    // iframe) se elimina.
+    sanitizeHtml(html) {
+      if (!html) return ""
+      return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "a", "span"],
+        ALLOWED_ATTR: ["href", "target", "rel", "class"],
+      })
+    },
+
     whatsAppMe(phone, showIcon, msg = "") {
       // Expresión regular para validar el formato de un número de teléfono (sin ceros iniciales y con 7 a 15 dígitos)
 
@@ -213,7 +228,10 @@ export default {
 
       // Si el número no es válido o comienza con cero
       if (!phoneRegex.test(phone)) {
-        return `<span class="ws-span">${phone}</span>`
+        // phone ya pasó por formatPhoneNumber (solo dígitos), pero se escapa
+        // igual como defensa en profundidad -- auditoría de seguridad 2026-09-11.
+        const phoneEscapado = String(phone).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        return `<span class="ws-span">${phoneEscapado}</span>`
       }
 
       if (showIcon) {

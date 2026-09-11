@@ -8,14 +8,17 @@
 
       <b-modal :id="modal" title="Detalles de la orden" size="lg" ok-only>
         <diseno-viewImage :id="idorden" :aprobada="true" />
-        <div v-html="detalles"></div>
+        <div v-html="sanitizeHtml(detalles)"></div>
       </b-modal>
     </div>
   </div>
 </template>
 
 <script>
+import mixin from "~/mixins/mixins.js";
+
 export default {
+  mixins: [mixin],
   computed: {
     modal: function () {
       const rand = Math.random().toString(36).substring(2, 7)

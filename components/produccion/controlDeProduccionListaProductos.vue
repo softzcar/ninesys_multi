@@ -20,7 +20,7 @@
                             >
                             <b-collapse id="collapse-1" class="mt-2">
                                 <b-card>
-                                    <div v-html="detalles"></div>
+                                    <div v-html="sanitizeHtml(detalles)"></div>
                                 </b-card>
                             </b-collapse>
                         </div>
@@ -52,8 +52,10 @@
 <script>
 import axios from "axios"
 import quillOptions from "~/plugins/nuxt-quill-plugin"
+import mixin from "~/mixins/mixins.js"
 
 export default {
+    mixins: [mixin],
     data() {
         return {
             title: `Detalles de la orden ${this.idorden}`,

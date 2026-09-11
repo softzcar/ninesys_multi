@@ -19,7 +19,7 @@
             <!-- Collapse Ver original -->
             <b-collapse id="collapse-1" class="mt-2">
               <b-card>
-                <div v-html="detalles_orden"></div>
+                <div v-html="sanitizeHtml(detalles_orden)"></div>
               </b-card>
             </b-collapse>
 
@@ -64,8 +64,10 @@
 
 <script>
 import quillOptions, { limpiarImagenesQuillHuerfanas } from "~/plugins/nuxt-quill-plugin";
+import mixin from "~/mixins/mixins.js";
 
 export default {
+  mixins: [mixin],
   data() {
     return {
       // Ver mismo campo en components/ordenes/nueva.vue: registro propio

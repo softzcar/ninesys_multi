@@ -319,7 +319,7 @@
                     <p style="margin-top: 0.5rem; font-size: 0.9rem;">Cargando observaciones...</p>
                   </div>
                 </template>
-                <div class="spacer observaciones" v-html="observaciones"></div>
+                <div class="spacer observaciones" v-html="sanitizeHtml(observaciones)"></div>
               </b-overlay>
             </div>
           </b-col>
