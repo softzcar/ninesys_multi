@@ -324,3 +324,16 @@ export default {
   padding: 1rem;
 }
 </style>
+
+<!-- Sin scope a propósito -- SweetAlert2 (vue-simple-alert, $confirm/$fire)
+     inserta su propio contenedor directo en <body>, fuera del árbol de este
+     componente, así que un <style scoped> nunca podría alcanzarlo. Reportado
+     2026-09-11: el $confirm de "sesión activa en otro dispositivo" (parte de
+     ESTE MISMO flujo) quedaba tapado detrás del overlay, porque su z-index
+     por defecto (1060) es menor al que se le subió al overlay (20000) para
+     ganarle a los modales/confirmaciones de la página de fondo. -->
+<style>
+.swal2-container {
+  z-index: 20001 !important;
+}
+</style>
