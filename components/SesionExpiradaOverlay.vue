@@ -36,7 +36,7 @@
              fuerza bruta que el login normal, ver components/login/form.vue). -->
         <div ref="turnstileContainer" class="mt-2"></div>
 
-        <b-button type="submit" variant="primary" class="mt-3" block :disabled="cargando">
+        <b-button type="submit" variant="primary" class="mt-3" block :disabled="cargando || !turnstileToken">
           {{ cargando ? "Verificando..." : "Continuar" }}
         </b-button>
       </b-form>

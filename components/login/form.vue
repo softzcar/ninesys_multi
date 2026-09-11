@@ -74,7 +74,7 @@
                    2026-09-11, protección contra fuerza bruta en /login. -->
               <div ref="turnstileContainer" class="mb-3"></div>
 
-              <b-button type="submit" variant="primary" @click="letMeIn($event)" data-testid="btn-entrar"
+              <b-button type="submit" variant="primary" @click="letMeIn($event)" data-testid="btn-entrar" :disabled="!turnstileToken"
                 >Entrar</b-button
               >
             </b-form>
