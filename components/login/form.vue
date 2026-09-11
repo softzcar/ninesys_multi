@@ -243,7 +243,16 @@ export default {
         }
 
         await this.$axios
-          .post(`${this.$config.API}/login`, data)
+          .post(`${this.$config.API}/login`, data, {
+            // Este flujo ya tiene su propio manejo de errores específico
+            // (abajo, .catch()) para cada caso -- company_full_config,
+            // mensaje de credenciales/Turnstile/límite de intentos, etc. Sin
+            // esto, el interceptor global (axios-interceptor.js) agrega
+            // ADEMÁS un toast genérico redundante en cada error de login,
+            // duplicando o confundiendo el mensaje ya mostrado (reportado
+            // por el usuario 2026-09-11 al probar sin resolver Turnstile).
+            suppressGlobalErrorToast: true,
+          })
                     .then((res) => {
                       if (res.data.requiere_confirmacion_sesion) {
                         // Sesión única por empleado -- auditoría de seguridad
@@ -406,7 +415,11 @@ export default {
       data.set("email", this.emailRecuperarClave);
 
       await this.$axios
-        .post(`${this.$config.API}/login/solicitar-clave`, data)
+        .post(`${this.$config.API}/login/solicitar-clave`, data, {
+          // Mismo motivo que en doLogin() -- este flujo ya maneja su propio
+          // error específico abajo, no hace falta el toast genérico duplicado.
+          suppressGlobalErrorToast: true,
+        })
         .then((res) => {
           this.mostrarModalOlvidoClave = false;
           this.emailRecuperarClave = "";
