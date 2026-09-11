@@ -107,14 +107,29 @@ export default {
         window.turnstile.reset(this.turnstileWidgetId);
       }
     },
+    // Ver la misma corrección y su porqué en components/login/form.vue --
+    // consulta el token vigente directo del SDK en vez de confiar en que el
+    // callback ya haya actualizado turnstileToken.
+    obtenerTokenTurnstile() {
+      if (window.turnstile && this.turnstileWidgetId !== null) {
+        return window.turnstile.getResponse(this.turnstileWidgetId) || this.turnstileToken;
+      }
+      return this.turnstileToken;
+    },
     async reautenticar(forzarSesion) {
+      const tokenTurnstile = this.obtenerTokenTurnstile();
+      if (!tokenTurnstile) {
+        this.error = "Espere a que se complete la verificación antes de continuar.";
+        return;
+      }
+
       this.cargando = true;
       this.error = "";
 
       const data = new URLSearchParams();
       data.set("email", this.dataUser.email);
       data.set("password", this.password);
-      data.set("cf-turnstile-response", this.turnstileToken);
+      data.set("cf-turnstile-response", tokenTurnstile);
       if (this.idEmpresa) {
         data.set("id_empresa", this.idEmpresa);
       }

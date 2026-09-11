@@ -231,10 +231,21 @@ export default {
           this.sesionForzada = true;
         }
 
+        const tokenTurnstile = this.obtenerTokenTurnstile();
+        if (!tokenTurnstile) {
+          this.loading = false;
+          this.$fire({
+            type: "warning",
+            title: "Verificación pendiente",
+            html: "Espere a que se complete la verificación (\"Verifique que es un ser humano\") antes de continuar.",
+          });
+          return;
+        }
+
         const data = new URLSearchParams();
         data.set("email", this.form.email);
         data.set("password", this.form.password);
-        data.set("cf-turnstile-response", this.turnstileToken);
+        data.set("cf-turnstile-response", tokenTurnstile);
         if (idEmpresa) {
           data.set("id_empresa", idEmpresa);
         }
@@ -506,6 +517,20 @@ export default {
       } else {
         setTimeout(this.renderTurnstile, 200);
       }
+    },
+
+    // Reportado por el usuario 2026-09-11: resolvió el widget (vio el check
+    // de éxito) pero el payload salió con cf-turnstile-response vacío --
+    // carrera entre el postMessage del iframe (que dispara el callback y
+    // actualiza turnstileToken) y el clic en "Entrar". window.turnstile
+    // .getResponse() consulta el token vigente directo del SDK, sin depender
+    // de que el callback ya haya alcanzado a correr -- es la fuente de
+    // verdad real, turnstileToken es solo un espejo reactivo para la UI.
+    obtenerTokenTurnstile() {
+      if (window.turnstile && this.turnstileWidgetId !== null) {
+        return window.turnstile.getResponse(this.turnstileWidgetId) || this.turnstileToken;
+      }
+      return this.turnstileToken;
     },
 
     // Un token de Turnstile es de un solo uso -- tras un intento fallido hay
