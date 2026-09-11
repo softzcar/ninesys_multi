@@ -1,0 +1,24 @@
+- **Solicitud del Usuario:** "¿Cómo podemos hacer que no pida hacer lo mismo dos veces en este caso?" -- eliminar la segunda verificación de Cloudflare en el conflicto real de sesión (ver decisión y diseño acordado en la bitácora del backend de la misma tarea).
+- **Fecha y Hora:** 2026-09-11 16:10:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** components/login/form.vue, components/SesionExpiradaOverlay.vue
+- **Commits Relacionados:**
+    - Backend: c5e66a1 + a44e8ce en `ninesys-api` (ver log de ese repo)
+    - Frontend: 13a29cc ("usar el token de confirmación de sesión para evitar un segundo CAPTCHA") -- pusheado y desplegado en Desarrollo
+- **Acción Realizada:**
+  1. Al recibir `requiere_confirmacion_sesion`, ambos componentes capturan el nuevo campo `token_confirmacion_sesion` de la respuesta.
+  2. Al confirmar el diálogo "Ya hay una sesión abierta...", si hay token disponible se reintenta de inmediato (sin esperar una nueva verificación manual) mandándolo en el payload en vez de un `cf-turnstile-response` nuevo -- el backend salta Turnstile si el token es válido.
+  3. Si el backend todavía no manda el token (despliegue viejo) o ya venció (diálogo abierto más de 2 minutos), se cae al camino manual anterior: resetear Turnstile y pedir al usuario que verifique de nuevo antes de reintentar -- ningún caso queda sin salida.
+  4. El token se limpia (`null`) tras cualquier intento fallido o exitoso, y si el usuario cambia de email/clave antes de reintentar, para no arrastrar un consentimiento que no le corresponde a esa nueva cuenta.
+- **Inconvenientes y Desafíos:** Diseñar el respaldo correctamente para no regresionar el fix de la tarea anterior (el reintento automático que antes quedaba atascado en "Espere la verificación") en el caso de que el token no esté disponible.
+- **Decisión Final y Justificación:** Reintento automático SOLO cuando el token de confirmación está presente (ya no depende de Turnstile) -- si no lo está, se respeta el flujo manual ya probado y funcionando, en vez de asumir que siempre habrá token.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git`
+- **Resultado:** Éxito
+- **Verificación:** Verificado junto con el backend contra Desarrollo (ver bitácora de ese repo, empleado desechable 736) -- confirmado que el reintento con token de la misma cuenta completa el login sin pedir un segundo CAPTCHA, y sin regresionar el resto del flujo de sesión única ya probado el mismo día.
+- **Logro Conseguido:** Reduce a una sola verificación humana el flujo completo de sesión única, incluido el conflicto real entre dispositivos.
+- **Referencias de Sesión (Contexto):**
+    - Task: N/A (sesión de Claude Code, no Antigravity)
+    - Walkthrough: N/A
+- **⚠️ NOTA DE PERSISTENCIA:** N/A, este log ya contiene el detalle técnico completo.
+- **Observaciones de Gemini:** N/A (sesión ejecutada por Claude Code, no Gemini/Antigravity).
+- **Respuesta de Gemini:** N/A.

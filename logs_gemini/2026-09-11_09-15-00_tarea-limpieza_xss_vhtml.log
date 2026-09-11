@@ -1,0 +1,26 @@
+- **Solicitud del Usuario:** "arranquemos con la Fase 5 y el 'limpieza: XSS por v-html'" -- primer punto de la Fase 5 del plan de seguridad.
+- **Fecha y Hora:** 2026-09-11 09:15:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** mixins/mixins.js, package.json (dompurify nuevo), ~23 componentes con `v-html`, components/ai/AiChatWidget.vue, nuxt.config.js
+- **Commits Relacionados:**
+    - Backend: N/A
+    - Frontend: df52c59 ("sanitizar v-html contra XSS, Fase 5 hallazgo A7") -- rama `refactor/modular-routes`, pusheado y desplegado en Desarrollo
+- **Acción Realizada:**
+  1. Investigado a fondo (2 agentes en paralelo, solo lectura) el origen real de cada uno de los 23 usos de `v-html` sin sanitizar, antes de tocar nada -- clasificados en 3 grupos según si el campo se captura con editor Quill real (HTML legítimo) o `<textarea>`/dato crudo (HTML nunca esperado).
+  2. Grupo A/B (12 sitios, HTML real vía Quill): agregada la dependencia `dompurify` + método `sanitizeHtml()` en `mixins/mixins.js` (lista blanca acotada de etiquetas/atributos). Cada sitio pasó de `v-html="X"` a `v-html="sanitizeHtml(X)"`.
+  3. Grupo C + suelto (3 sitios sin HTML real esperado): `v-html` cambiado a interpolación `{{ }}` normal, más simple y seguro que sanitizar algo que nunca debía tener HTML.
+  4. `whatsAppMe()` (usado en 4 archivos): corregida una rama sin escapar (defensa en profundidad, no explotable hoy en la práctica).
+  5. `formatMessage()` de `AiChatWidget.vue` (chat de IA): no escapaba nada, y tanto los mensajes del bot como lo que el propio usuario escribe pasan por ahí -- el hallazgo de mayor riesgo real. Corregido escapando `&<>"'` antes de aplicar los reemplazos markdown-lite.
+  6. Confirmados ya seguros sin tocar (solo comentario aclaratorio): 2 usos que dependen de una librería que ya escapa internamente, y uno que es siempre contenido estático de archivos `.md`, nunca de BD/usuario.
+- **Inconvenientes y Desafíos:** Regresión real detectada y corregida ANTES del deploy final: `mixins.js` no se aplica globalmente pese a estar listado en `plugins` de `nuxt.config.js` -- cada componente debe importarlo y declararlo explícitamente. 7 de los 12 archivos a los que se les agregó `sanitizeHtml(...)` no tenían el mixin declarado -- habría causado `sanitizeHtml is not a function` en tiempo de ejecución. Detectado por revisión de código antes de llegar a producir el error en Desarrollo, corregido agregando el import+declaración a los 7.
+- **Decisión Final y Justificación:** Sanitización con lista blanca (DOMPurify) donde HTML real es esperado, y eliminación de `v-html` donde nunca lo fue -- en vez de una sola estrategia genérica para los 23 sitios, cada uno se trató según su necesidad real.
+- **Herramienta(s) Utilizada(s):** 2 agentes de investigación en paralelo, `Read`, `Edit`, `Bash` (npm install, npm run generate), navegador real, `git`
+- **Resultado:** Éxito
+- **Verificación:** `npm run generate` compila limpio (sin sourcemaps, bundles minificados). DOMPurify probado en vivo en el navegador contra Desarrollo con payloads reales (`<script>`, `<img onerror>`, `<a onclick>`) -- todos removidos, formato legítimo (negrita/cursiva/listas/links) preservado. Navegado en vivo con sesión real (Dashboard, Control de Producción incl. el editor Quill), sin errores de consola relacionados. De paso, revisado el build de producción confirmando que no expone sourcemaps y está correctamente minificado.
+- **Logro Conseguido:** Cierra el hallazgo A7 (XSS almacenado vía `v-html` sin sanitizar) en los 23 puntos reales del sistema, con el hallazgo de mayor riesgo real (chat de IA) corregido de forma específica.
+- **Referencias de Sesión (Contexto):**
+    - Task: N/A (sesión de Claude Code, no Antigravity)
+    - Walkthrough: N/A
+- **⚠️ NOTA DE PERSISTENCIA:** N/A, este log ya contiene el detalle técnico completo.
+- **Observaciones de Gemini:** N/A (sesión ejecutada por Claude Code, no Gemini/Antigravity). Log reconstruido el 2026-09-11 a partir de memoria de sesión y `git log`, a pedido del usuario, porque no se generó en el momento.
+- **Respuesta de Gemini:** N/A.

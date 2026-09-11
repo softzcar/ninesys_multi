@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Probando en vivo el CAPTCHA recién desplegado, el usuario reportó 3 problemas reales en secuencia: (1) al enviar el login sin resolver Turnstile, "la interfaz decía otras cosas" además del mensaje esperado; (2) el título del diálogo de error decía "Datos incorrectos" incluso cuando la causa real era otra; (3) resolvió el CAPTCHA (vio el check de éxito) pero el payload salió con `cf-turnstile-response` vacío. Luego pidió explícitamente: "¿Es posible deshabilitar el botón de enviar el formulario hasta tanto se confirme que es un humano?"
+- **Fecha y Hora:** 2026-09-11 14:05:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** components/login/form.vue, components/SesionExpiradaOverlay.vue
+- **Commits Relacionados:**
+    - Backend: N/A
+    - Frontend: 4fe1fba ("quitar el toast genérico duplicado en errores de /login"), 8d4d50a ("título correcto según el motivo real del error"), 94a996f ("leer el token vigente del SDK, no solo del callback"), 81957d5 ("deshabilitar el botón hasta resolver la verificación") -- todos pusheados y desplegados en Desarrollo
+    - Frontend: N/A
+- **Acción Realizada:**
+  1. **Toast duplicado:** causa real -- `axios-interceptor.js` ya tenía (de antes de esta sesión) un toast global que se dispara en CUALQUIER error de axios salvo que la llamada pase `suppressGlobalErrorToast: true`; `doLogin()`/`solicitarClave()` en `form.vue` nunca lo pasaban, así que además del `$fire` específico que ya arma cada uno, el interceptor agregaba un toast genérico redundante en TODO error de login, no solo el caso puntual reportado. Corregido agregando esa opción a ambas llamadas.
+  2. **Título incorrecto:** corregido a un título según el código HTTP real de la respuesta (400 → "Verificación fallida", 401 → "Datos incorrectos", 429 → "Demasiados intentos"), en vez de siempre "Datos incorrectos".
+  3. **Carrera Turnstile/envío:** el callback que actualiza `turnstileToken` (reactivo, usado por la UI) no había alcanzado a correr todavía cuando `doLogin()` armaba el payload (el `postMessage` del iframe de Turnstile es asíncrono). Corregido con un método nuevo `obtenerTokenTurnstile()` que consulta `window.turnstile.getResponse(widgetId)` -- la fuente de verdad real del SDK -- en vez de confiar solo en la variable reactiva; si aun así no hay token, se avisa claro y no se envía la petición. Aplicado en `form.vue` y `SesionExpiradaOverlay.vue`.
+  4. **Botón deshabilitado hasta verificar:** pedido proactivo del usuario tras el bug anterior -- `:disabled="!turnstileToken"` agregado al botón "Entrar" en ambos componentes.
+- **Inconvenientes y Desafíos:** Ninguno de estos 4 bugs era reproducible de forma confiable con automatización de navegador (Turnstile se resiste a interacción scripted) -- la verificación real dependió de que el propio usuario probara en vivo y reportara con el payload/respuesta exactos, que resultó ser un método de verificación más confiable que el intento de automatizar.
+- **Decisión Final y Justificación:** Cada bug se corrigió puntualmente en el lugar exacto donde ocurría, sin rediseñar el flujo de login -- son correcciones de comportamiento real observado, no hallazgos anticipados por auditoría.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, reportes en vivo del usuario (payload/respuesta exactos), `git`
+- **Resultado:** Éxito
+- **Verificación:** Confirmado por el propio usuario en pruebas reales sucesivas, cada fix validado contra el comportamiento exacto reportado antes de continuar con el siguiente.
+- **Logro Conseguido:** Corrige 3 bugs reales (no solo teóricos) encontrados en la primera prueba en vivo de una función de seguridad recién desplegada, y agrega una mejora de UX proactiva pedida por el usuario para prevenir el tercero de raíz en el futuro.
+- **Referencias de Sesión (Contexto):**
+    - Task: N/A (sesión de Claude Code, no Antigravity)
+    - Walkthrough: N/A
+- **⚠️ NOTA DE PERSISTENCIA:** N/A, este log ya contiene el detalle técnico completo.
+- **Observaciones de Gemini:** N/A (sesión ejecutada por Claude Code, no Gemini/Antigravity). Log reconstruido el 2026-09-11 a partir de memoria de sesión y `git log`, a pedido del usuario, porque no se generó en el momento.
+- **Respuesta de Gemini:** N/A.

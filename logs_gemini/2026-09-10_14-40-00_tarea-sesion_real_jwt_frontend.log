@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** Incomodidad explícita del usuario con que `Authorization` mandara el `id_empresa` crudo -- implementar sesión real de usuario (Fase 2 del plan de seguridad, contraparte frontend del JWT del backend).
+- **Fecha y Hora:** 2026-09-10 14:40:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** store/login.js, plugins/vuex-persist.js, components/login/form.vue, plugins/axios-interceptor.js, components/NewStockOrderModal.vue
+- **Commits Relacionados:**
+    - Backend: 8f1871a en `ninesys-api` (ver log de ese repo)
+    - Frontend: f55bd41 ("sesión real (JWT) contra ninesys-api en vez de id_empresa crudo") -- pusheado y desplegado en Desarrollo
+- **Acción Realizada:**
+  1. `store/login.js`: nuevo campo `apiToken` (JWT de sesión emitido por `/login`).
+  2. `vuex-persist.js` actualizado para persistir el nuevo campo.
+  3. `login/form.vue`: guarda el `token` que ahora devuelve `/login` en el store.
+  4. `axios-interceptor.js`: manda `Bearer <apiToken>` cuando existe (en vez del `id_empresa` crudo), y agrega logout + redirect automático a `/` si el backend responde 401 con una sesión JWT activa (JWT corrupto o expirado).
+  5. Quitados headers manuales muertos de `NewStockOrderModal.vue` que duplicaban lo que el interceptor ya maneja globalmente.
+- **Inconvenientes y Desafíos:** Verificar que el modo legado (`id_empresa` crudo) siguiera funcionando en paralelo durante la transición, sin regresiones en ningún flujo existente.
+- **Decisión Final y Justificación:** El interceptor global decide automáticamente entre `Bearer` (si hay `apiToken`) y el header crudo (transición gradual) -- ningún componente individual necesita saber en qué modo está operando.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, navegador real para verificación
+- **Resultado:** Éxito
+- **Verificación:** captura de red confirmó `Authorization: Bearer` en el 100% de las peticiones tras un login real; JWT corrupto/expirado → logout forzado y redirect a `/` (probado en navegador real, no solo con curl); logout limpia `localStorage`; regresión de `NewStockOrderModal` verificada por UI real (orden 6865, Control de Producción → Corte → excedente → modal abrió y sus 5 peticiones fueron 100% `Bearer`; el ajuste de prueba sobre la orden real se revirtió después, sin dejar datos alterados).
+- **Logro Conseguido:** Contraparte frontend del cierre de raíz del hallazgo crítico C2 -- la sesión del usuario ahora viaja firmada, no como un número adivinable.
+- **Referencias de Sesión (Contexto):**
+    - Task: N/A (sesión de Claude Code, no Antigravity)
+    - Walkthrough: N/A
+- **⚠️ NOTA DE PERSISTENCIA:** N/A, este log ya contiene el detalle técnico completo.
+- **Observaciones de Gemini:** N/A (sesión ejecutada por Claude Code, no Gemini/Antigravity). Log reconstruido el 2026-09-11 a partir de memoria de sesión y `git log`, a pedido del usuario, porque no se generó en el momento.
+- **Respuesta de Gemini:** N/A.

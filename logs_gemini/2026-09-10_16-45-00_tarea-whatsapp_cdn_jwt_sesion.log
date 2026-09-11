@@ -1,0 +1,26 @@
+- **Solicitud del Usuario:** "de los marcados como Crítico nos faltan C5 y C6, vamos a resolver estos dos" -- credencial de WhatsApp expuesta en el bundle público (C5) y CDN de imágenes sin autenticación (C6).
+- **Fecha y Hora:** 2026-09-10 16:45:00
+- **Proyecto(s):** Frontend (app_multi) -- contraparte de cambios en `msg_ninesys` y `ninesys-cdn` (repos fuera del alcance de este reporte)
+- **Archivos Involucrados:** plugins/whatsapp.js, plugins/cdn-api.js (nuevo), plugins/axios-interceptor.js, nuxt.config.js, components/disenosse/GaleriaCategoria.vue, components/disenosse/uploadPropuesta.vue, pages/diseno/galeria/index.vue, ninesys-hub/bin/deploy_frontend_dev.sh, .secrets_frontend_dev.sh (eliminado)
+- **Commits Relacionados:**
+    - Backend: N/A (cambios reales en `msg_ninesys` commit `2687c20` y `ninesys-cdn` commit `a479ed6`, repos fuera del alcance de este reporte -- ver memoria de seguridad para el detalle)
+    - Frontend: 2f5d514 ("usar el JWT de sesión para WhatsApp y el CDN (cierra C5/C6)") -- pusheado y desplegado en Desarrollo
+- **Acción Realizada:**
+  1. Hallazgo de diseño clave: C5 y C6 compartían la misma causa raíz (el navegador los llama directo sin ningún secreto que pueda llevar sin re-exponerlo) -- la pieza que faltaba ya existía: el JWT de sesión de la Fase 2. `msg_ninesys` y `ninesys-cdn` pasaron a validar directamente el mismo JWT de sesión con un secreto compartido nuevo, en vez de proxear ~35 endpoints a través de `ninesys-api` como sugería el plan original.
+  2. `plugins/whatsapp.js` y el nuevo `plugins/cdn-api.js` ($cdnApi) mandan `Authorization: Bearer <apiToken>` -- el mismo token de sesión de `ninesys-api`, no uno nuevo.
+  3. Quitadas `jwtUsername`/`jwtPassword` de `publicRuntimeConfig` (nuxt.config.js) -- ya no existe ninguna credencial de WhatsApp en el bundle público (confirmado con grep sobre el bundle real desplegado, cero coincidencias).
+  4. Eliminada la rama muerta `isWhatsAppService` de `axios-interceptor.js` (duplicaba el mismo mecanismo viejo, sin llamador real).
+  5. Migrados a `$cdnApi` los 3 archivos que llamaban al CDN sin ninguna autenticación (`GaleriaCategoria.vue`, `uploadPropuesta.vue`, `pages/diseno/galeria/index.vue`) -- el resto de los ~14 consumidores del CDN ya usaban `this.$axios` (ya mandaba el Bearer correcto sin saberlo) o son lecturas de imagen sin `action` (no necesitan auth). Un archivo (`uploadImage.vue`) resultó tener su único flujo de subida completamente comentado -- inerte, no se tocó.
+  6. Limpieza de infraestructura: `.secrets_frontend_dev.sh` (contenía la credencial vieja en texto plano) eliminado, y el bloque que lo cargaba quitado de `deploy_frontend_dev.sh` -- ya no hace falta ningún secreto de build para el frontend.
+- **Inconvenientes y Desafíos:** Hallazgo no previsto en el plan original: `ninesys-api/app/lib/whatsapp.php` es un llamador servidor-a-servidor real (recuperación de clave, avisos de orden, CRM) que usa un JWT de servicio propio de `msg_ninesys`, distinto del nuevo -- cambiar el secreto sin más habría roto silenciosamente esos flujos automáticos (se resolvió con doble validación en cascada del lado de `msg_ninesys`, fuera del alcance de este repo).
+- **Decisión Final y Justificación:** Reutilizar el JWT de sesión ya existente (validado directamente por cada servicio) en vez de proxear todo a través de `ninesys-api` -- mismo principio que los tokens de servicio internos ya usados en el ecosistema, sin duplicar superficie de ataque.
+- **Herramienta(s) Utilizada(s):** `Grep`, `Read`, `Edit`, `Bash` (grep sobre el bundle desplegado, curl de verificación), navegador real, `git`
+- **Resultado:** Éxito
+- **Verificación (navegador real, sesión de Sayerlin):** WaInbox (`/whatsapp` → Conversaciones) cargó correctamente, 3/3 peticiones a `ws.nineteengreen.com` con `Bearer`; Galería de Catálogo (`/diseno/galeria`) listó categorías e imágenes reales, 2/2 peticiones a `cdn.nineteengreen.com` con `Bearer`. Grep sobre el bundle público confirmó cero coincidencias de la credencial vieja.
+- **Logro Conseguido:** Cierra de raíz 2 de los 9 hallazgos críticos originales (C5 credencial expuesta en el bundle, C6 CDN sin autenticación) reutilizando infraestructura ya construida, sin necesidad de un proxy nuevo.
+- **Referencias de Sesión (Contexto):**
+    - Task: N/A (sesión de Claude Code, no Antigravity)
+    - Walkthrough: N/A
+- **⚠️ NOTA DE PERSISTENCIA:** N/A, este log ya contiene el detalle técnico completo.
+- **Observaciones de Gemini:** N/A (sesión ejecutada por Claude Code, no Gemini/Antigravity). Log reconstruido el 2026-09-11 a partir de memoria de sesión y `git log`, a pedido del usuario, porque no se generó en el momento.
+- **Respuesta de Gemini:** N/A.

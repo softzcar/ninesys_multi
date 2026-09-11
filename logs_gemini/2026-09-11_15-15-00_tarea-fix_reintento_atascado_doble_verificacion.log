@@ -1,0 +1,23 @@
+- **Solicitud del Usuario:** Probando en vivo el escenario real de dos dispositivos (PC + teléfono, mismo usuario), el usuario reportó: "al intentar usar la PC me sale el overlay con el mensaje que mi sesión se cerró y me pide la clave, pero el input sigue deshabilitado" (mensaje impreciso -- el bug real era otro, ver diagnóstico). Un round posterior reportó que, ya corregido eso, debía completar la verificación de Cloudflare dos veces siempre, incluso sin conflicto real.
+- **Fecha y Hora:** 2026-09-11 15:15:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** components/login/form.vue, components/SesionExpiradaOverlay.vue
+- **Commits Relacionados:**
+    - Backend: N/A
+    - Frontend: 7d69429 ("reintento de sesión única quedaba atascado en 'Espere la verificación'"), 207fe9d ("reautenticación en overlay pedía verificar Turnstile dos veces siempre") -- ambos pusheados y desplegados en Desarrollo
+- **Acción Realizada:**
+  1. **Reintento atascado:** el `.then()` del diálogo `$confirm` ("Ya hay una sesión abierta...") llamaba a `doLogin(idEmpresa, true)`/`reautenticar(true)` de inmediato al confirmar, pero el token de Turnstile se acababa de resetear (es de un solo uso, ya se había consumido en el intento que detectó el conflicto) y todavía no había uno nuevo -- sin forma de avanzar, caía siempre en "Espere a que se complete la verificación". Corregido: al confirmar, se guarda el consentimiento (`sesionForzada`/`idEmpresaPendiente`) y se deja que el usuario vuelva a verificar y presione el botón manualmente (ya deshabilitado hasta que haya token).
+  2. De paso, encontrados y corregidos 2 bugs relacionados en el mismo flujo: `letMeIn()` en `form.vue` borraba ese consentimiento en cada submit (ahora solo se borra si cambian email/password, no en cada clic), y `SesionExpiradaOverlay.vue` pasaba el Event nativo del submit como si fuera el parámetro `forzarSesion` (siempre "truthy" -- todo reintento normal mandaba `forzar_sesion=1` sin preguntar, saltándose la validación de sesión única sin que nadie lo notara).
+  3. **Doble verificación innecesaria:** `SesionExpiradaOverlay.vue` reautentica llamando a `/login` igual que un login nuevo, así que el backend siempre encontraba la fila existente de `sesiones_activas` (la del propio dispositivo, apenas vencida) y la trataba como conflicto -- obligando a doble verificación en TODA reautenticación, no solo cuando de verdad había otro dispositivo. Corregido usando el motivo ya guardado en el store (`motivoSesionExpirada`, ver hallazgo de fuerza bruta/overlay): si NO es `otro_dispositivo` (vencimiento normal, sin conflicto real), se reclama directo desde el primer intento.
+- **Inconvenientes y Desafíos:** El segundo bug (`letMeIn` borrando el consentimiento) y el tercero (Event pasado como `forzarSesion`) no habían sido reportados por el usuario -- se encontraron revisando el código alrededor del bug sí reportado, mientras se diseñaba el fix.
+- **Decisión Final y Justificación:** Cuando SÍ es `otro_dispositivo` (conflicto real), se mantiene el diálogo completo con doble verificación -- confirmado con el usuario que, tras el segundo check, el login termina completándose normalmente (no es un bucle), y que esa doble verificación en el caso REAL es esperada e intencional (el token de Cloudflare es de un solo uso).
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, reportes en vivo del usuario, `git`
+- **Resultado:** Éxito
+- **Verificación:** Confirmado por el usuario probando en vivo el escenario completo PC+teléfono: el diálogo de "sesión activa en otro dispositivo" apareció correctamente, y tras confirmar y reverificar Turnstile una vez más, el login se completó sin quedar atascado. Reautenticación por vencimiento simple confirmada con una sola verificación.
+- **Logro Conseguido:** Cierra la brecha entre "el mecanismo de backend funciona" (verificado con HTTP real el mismo día) y "el flujo funciona de punta a punta en el navegador real" -- 3 bugs reales que solo se manifestaban en el uso genuino, no en pruebas sintéticas.
+- **Referencias de Sesión (Contexto):**
+    - Task: N/A (sesión de Claude Code, no Antigravity)
+    - Walkthrough: N/A
+- **⚠️ NOTA DE PERSISTENCIA:** N/A, este log ya contiene el detalle técnico completo.
+- **Observaciones de Gemini:** N/A (sesión ejecutada por Claude Code, no Gemini/Antigravity). Log reconstruido el 2026-09-11 a partir de memoria de sesión y `git log`, a pedido del usuario, porque no se generó en el momento.
+- **Respuesta de Gemini:** N/A.
