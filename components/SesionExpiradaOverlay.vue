@@ -109,20 +109,38 @@ export default {
     // Al cerrar el modal de fondo, el foco no vuelve solo al campo de clave
     // (autofocus del <input> ya "se gastó" al montar, cuando el modal seguía
     // reclamando el foco) -- queda en <body>, confirmado en pruebas reales.
-    // Se enfoca explícitamente. El segundo intento (350ms) cubre el caso
-    // donde la propia transición de cierre del modal (fade-out) le devuelve
-    // el foco a otra parte al terminar, después de nuestro primer intento.
     this.$nextTick(() => {
       this.$refs.passwordInput && this.$refs.passwordInput.focus();
     });
-    setTimeout(() => {
-      if (this.$refs.passwordInput && document.activeElement !== this.$refs.passwordInput.$el) {
+
+    // Red de seguridad continua (reportado 2026-09-11: el modal de fondo,
+    // al forzar su cierre, puede a su vez disparar SU PROPIA confirmación
+    // -- ej. "hay datos sin guardar, ¿cerrar de todas formas?" -- que
+    // vuelve a robarle el foco al campo de clave, sin que podamos conocer
+    // de antemano cada posible diálogo que un componente de la página
+    // pueda abrir). Mientras este overlay esté montado, cualquier foco que
+    // intente salir de él (excepto el iframe de Turnstile, que vive DENTRO
+    // de este mismo árbol) se devuelve de inmediato al campo de clave --
+    // así no importa qué esté compitiendo por el foco del lado de la
+    // página de fondo.
+    this._focusGuard = () => {
+      const overlayEl = this.$el;
+      const activo = document.activeElement;
+      if (!overlayEl || !activo || overlayEl.contains(activo)) {
+        return;
+      }
+      if (this.$refs.passwordInput) {
         this.$refs.passwordInput.focus();
       }
-    }, 350);
+    };
+    document.addEventListener("focusin", this._focusGuard, true);
+
     this.renderTurnstile();
   },
   beforeDestroy() {
+    if (this._focusGuard) {
+      document.removeEventListener("focusin", this._focusGuard, true);
+    }
     // Sin esto, un widget de Turnstile queda huérfano en el registro interno
     // de Cloudflare cada vez que este overlay se cierra (reautenticación
     // exitosa) -- si la sesión vuelve a expirar más tarde en la misma
@@ -294,7 +312,11 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 2000;
+  /* Por encima de cualquier <b-modal> (z-index ~1050) o alerta SweetAlert2
+     (vue-simple-alert, z-index ~1060) que pueda quedar abierta de fondo o
+     dispararse como efecto secundario al forzar su cierre (reportado
+     2026-09-11) -- así el campo de clave siempre queda visible y accesible. */
+  z-index: 20000;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
