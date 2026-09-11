@@ -62,6 +62,12 @@ export default {
       turnstileWidgetId: null,
       // Sesión única por empleado -- auditoría de seguridad 2026-09-11.
       sesionForzada: false,
+      // Token corto de un solo uso que el backend entrega junto con
+      // requiere_confirmacion_sesion -- permite reintentar sin pedir un
+      // segundo CAPTCHA, porque Turnstile y la clave ya se verificaron en el
+      // intento que lo generó (bug reportado 2026-09-11: pedía verificar dos
+      // veces siempre que había un conflicto real).
+      tokenConfirmacionSesion: null,
     };
   },
   computed: {
@@ -125,10 +131,17 @@ export default {
     // validación de sesión única (bug encontrado 2026-09-11 al revisar el
     // flujo). El estado real vive en this.sesionForzada.
     async reautenticar() {
-      const tokenTurnstile = this.obtenerTokenTurnstile();
-      if (!tokenTurnstile) {
-        this.error = "Espere a que se complete la verificación antes de continuar.";
-        return;
+      // Si ya hay un token de confirmación de sesión (de un
+      // requiere_confirmacion_sesion anterior en este mismo intento),
+      // Turnstile y la clave ya se verificaron ahí -- no hace falta un
+      // cf-turnstile-response nuevo.
+      let tokenTurnstile = "";
+      if (!this.tokenConfirmacionSesion) {
+        tokenTurnstile = this.obtenerTokenTurnstile();
+        if (!tokenTurnstile) {
+          this.error = "Espere a que se complete la verificación antes de continuar.";
+          return;
+        }
       }
 
       this.cargando = true;
@@ -138,6 +151,9 @@ export default {
       data.set("email", this.dataUser.email);
       data.set("password", this.password);
       data.set("cf-turnstile-response", tokenTurnstile);
+      if (this.tokenConfirmacionSesion) {
+        data.set("token_confirmacion_sesion", this.tokenConfirmacionSesion);
+      }
       if (this.idEmpresa) {
         data.set("id_empresa", this.idEmpresa);
       }
@@ -172,19 +188,25 @@ export default {
           // sesión única por empleado, auditoría 2026-09-11. Mismo patrón
           // que components/login/form.vue.
           this.cargando = false;
-          this.resetearTurnstile();
           const { dispositivo, desde } = res.data.sesion_activa;
+          // Turnstile y la clave YA se verificaron en este mismo intento --
+          // el backend entrega un token corto de un solo uso para que el
+          // reintento no pida un segundo CAPTCHA (bug reportado 2026-09-11).
+          this.tokenConfirmacionSesion = res.data.token_confirmacion_sesion || null;
           this.$confirm(
             `Ya hay una sesión abierta en ${dispositivo} desde el ${desde}. Si continúa, esa sesión se cerrará y los cambios sin guardar que tenga allí se perderán. ¿Desea continuar?`,
             "Sesión activa en otro dispositivo",
             "warning"
           ).then(() => {
-            // No reintentar de inmediato -- el widget recién se reseteó y
-            // todavía no hay un token nuevo. Se guarda el consentimiento y se
-            // deja que el usuario vuelva a verificar y presione "Continuar"
-            // (mismo bug y misma corrección que components/login/form.vue).
             this.sesionForzada = true;
-            this.error = "Complete nuevamente la verificación y presione Continuar.";
+            if (this.tokenConfirmacionSesion) {
+              this.reautenticar();
+            } else {
+              // Respaldo (backend viejo, o token ya vencido si el diálogo
+              // quedó abierto más de 2 minutos): vuelve al camino manual.
+              this.resetearTurnstile();
+              this.error = "Complete nuevamente la verificación y presione Continuar.";
+            }
           });
           return;
         }
@@ -198,11 +220,14 @@ export default {
           this.$store.commit("login/setSesionExpirada", false);
           this.password = "";
           this.sesionForzada = false;
+          this.tokenConfirmacionSesion = null;
         } else {
+          this.tokenConfirmacionSesion = null;
           this.error = res.data?.msg || "Clave incorrecta.";
           this.resetearTurnstile();
         }
       } catch (err) {
+        this.tokenConfirmacionSesion = null;
         this.error =
           err.response?.data?.msg || "No se pudo verificar la clave. Intente de nuevo.";
         this.resetearTurnstile();

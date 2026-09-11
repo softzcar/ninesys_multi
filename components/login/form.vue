@@ -148,6 +148,11 @@ export default {
       // Empresa pendiente de confirmar tras el diálogo de sesión activa,
       // cuando esa confirmación ocurrió durante el selector de empresas.
       idEmpresaPendiente: null,
+      // Token corto de un solo uso que el backend entrega junto con
+      // requiere_confirmacion_sesion (auditoría de seguridad 2026-09-11) --
+      // permite completar el reintento sin pedir un segundo CAPTCHA, porque
+      // Turnstile y la clave ya se verificaron en el intento que lo generó.
+      tokenConfirmacionSesion: null,
     };
   },
   computed: {
@@ -167,10 +172,12 @@ export default {
     "form.email"() {
       this.sesionForzada = false;
       this.idEmpresaPendiente = null;
+      this.tokenConfirmacionSesion = null;
     },
     "form.password"() {
       this.sesionForzada = false;
       this.idEmpresaPendiente = null;
+      this.tokenConfirmacionSesion = null;
     },
   },
   methods: {
@@ -246,21 +253,32 @@ export default {
           this.sesionForzada = true;
         }
 
-        const tokenTurnstile = this.obtenerTokenTurnstile();
-        if (!tokenTurnstile) {
-          this.loading = false;
-          this.$fire({
-            type: "warning",
-            title: "Verificación pendiente",
-            html: "Espere a que se complete la verificación (\"Verifique que es un ser humano\") antes de continuar.",
-          });
-          return;
+        // Si ya hay un token de confirmación de sesión (viene de un
+        // requiere_confirmacion_sesion anterior en ESTE mismo intento de
+        // login), Turnstile y la clave ya se verificaron ahí -- no hace
+        // falta un cf-turnstile-response nuevo (auditoría de seguridad
+        // 2026-09-11, bug reportado: pedía verificar dos veces siempre).
+        let tokenTurnstile = "";
+        if (!this.tokenConfirmacionSesion) {
+          tokenTurnstile = this.obtenerTokenTurnstile();
+          if (!tokenTurnstile) {
+            this.loading = false;
+            this.$fire({
+              type: "warning",
+              title: "Verificación pendiente",
+              html: "Espere a que se complete la verificación (\"Verifique que es un ser humano\") antes de continuar.",
+            });
+            return;
+          }
         }
 
         const data = new URLSearchParams();
         data.set("email", this.form.email);
         data.set("password", this.form.password);
         data.set("cf-turnstile-response", tokenTurnstile);
+        if (this.tokenConfirmacionSesion) {
+          data.set("token_confirmacion_sesion", this.tokenConfirmacionSesion);
+        }
         if (idEmpresa) {
           data.set("id_empresa", idEmpresa);
         }
@@ -282,32 +300,39 @@ export default {
                     .then((res) => {
                       if (res.data.requiere_confirmacion_sesion) {
                         // Sesión única por empleado -- auditoría de seguridad
-                        // 2026-09-11. El token de Turnstile ya se consumió en
-                        // este intento, hay que resetear el widget antes de
-                        // reintentar.
+                        // 2026-09-11.
                         this.loading = false;
-                        this.resetearTurnstile();
                         const { dispositivo, desde } = res.data.sesion_activa;
+                        // Turnstile y la clave YA se verificaron en este
+                        // mismo intento -- el backend entrega un token corto
+                        // de un solo uso (token_confirmacion_sesion) para que
+                        // el reintento no tenga que pedir un segundo CAPTCHA
+                        // (bug reportado 2026-09-11).
+                        this.tokenConfirmacionSesion = res.data.token_confirmacion_sesion || null;
                         this.$confirm(
                           `Ya hay una sesión abierta en ${dispositivo} desde el ${desde}. Si continúa, esa sesión se cerrará y los cambios sin guardar que tenga allí se perderán. ¿Desea continuar?`,
                           "Sesión activa en otro dispositivo",
                           "warning"
                         ).then(() => {
-                          // No reintentar de inmediato: el widget recién se
-                          // reseteó y todavía no hay un token nuevo (Turnstile
-                          // es de un solo uso). Se guarda el consentimiento y
-                          // se deja que el usuario vuelva a verificar y
-                          // presione "Entrar" -- el botón permanece
-                          // deshabilitado hasta entonces (bug reportado
-                          // 2026-09-11: el reintento automático caía siempre
-                          // en "Espere a que se complete la verificación").
                           this.sesionForzada = true;
                           this.idEmpresaPendiente = idEmpresa;
-                          this.$fire({
-                            type: "info",
-                            title: "Verificación requerida",
-                            html: "Complete nuevamente la verificación (\"Verifique que es un ser humano\") y presione Entrar para continuar.",
-                          });
+                          if (this.tokenConfirmacionSesion) {
+                            // Se puede reintentar de una vez, sin pedir una
+                            // segunda verificación humana.
+                            this.loading = true;
+                            this.doLogin(idEmpresa, true);
+                          } else {
+                            // Respaldo (backend viejo, o token ya vencido si
+                            // el diálogo quedó abierto más de 2 minutos):
+                            // vuelve al camino manual, resetea Turnstile y
+                            // pide verificar de nuevo antes de reintentar.
+                            this.resetearTurnstile();
+                            this.$fire({
+                              type: "info",
+                              title: "Verificación requerida",
+                              html: "Complete nuevamente la verificación (\"Verifique que es un ser humano\") y presione Entrar para continuar.",
+                            });
+                          }
                         });
                       } else if (res.data.requiere_seleccion_empresa) {
                         // La identidad tiene más de una empresa asignada -- mostrar el
@@ -316,6 +341,7 @@ export default {
                         this.empresasDisponibles = res.data.empresas || [];
                         this.mostrarSelectorEmpresa = true;
                       } else if (res.data.data.access === true) {
+                        this.tokenConfirmacionSesion = null;
                         this.loadingText = "Cargando datos, por favor espere...";
 
                         // Incluir el teléfono del usuario en dataUser si viene en datos_usuario
@@ -379,6 +405,7 @@ export default {
                         // Este bloque 'else' es por si la API devuelve un código 200 pero con acceso denegado.
                         // Es una capa extra de seguridad.
                         this.loading = false;
+                        this.tokenConfirmacionSesion = null;
                         this.resetearTurnstile();
                         this.$fire({
                           type: "warning",
@@ -390,6 +417,8 @@ export default {
             this.loading = false;
             // El token de Turnstile es de un solo uso -- se resetea en
             // cualquier fallo para que el próximo intento tenga uno fresco.
+            // Lo mismo para el token de confirmación de sesión, si había uno.
+            this.tokenConfirmacionSesion = null;
             this.resetearTurnstile();
             // Manejo de errores inteligente
             if (err.response && err.response.data) {
