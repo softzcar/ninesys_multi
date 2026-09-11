@@ -68,6 +68,17 @@ export default {
   mounted() {
     this.renderTurnstile();
   },
+  beforeDestroy() {
+    // Sin esto, un widget de Turnstile queda huérfano en el registro interno
+    // de Cloudflare cada vez que este overlay se cierra (reautenticación
+    // exitosa) -- si la sesión vuelve a expirar más tarde en la misma
+    // pestaña, el siguiente render() ya no crea un iframe funcional (visto
+    // en pruebas manuales: "Cannot find Widget ..., consider using
+    // turnstile.remove()"). Limpieza explícita al destruir el componente.
+    if (window.turnstile && this.turnstileWidgetId !== null) {
+      window.turnstile.remove(this.turnstileWidgetId);
+    }
+  },
   methods: {
     // Mismo patrón que components/login/form.vue.
     renderTurnstile() {

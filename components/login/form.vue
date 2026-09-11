@@ -470,6 +470,19 @@ export default {
     this.renderTurnstile();
   },
 
+  beforeDestroy() {
+    // Sin esto, el widget queda huérfano en el registro interno de
+    // Cloudflare cuando Home.vue cambia de este formulario al dashboard tras
+    // un login exitoso (sin recarga de página, es una SPA) -- si más tarde
+    // aparece SesionExpiradaOverlay (misma pestaña, sesión expirada), su
+    // propio render() puede fallar por el widget huérfano de acá. Visto en
+    // pruebas manuales: "Cannot find Widget ..., consider using
+    // turnstile.remove()".
+    if (window.turnstile && this.turnstileWidgetId !== null) {
+      window.turnstile.remove(this.turnstileWidgetId);
+    }
+  },
+
   mixins: [mixin],
 };
 </script>
