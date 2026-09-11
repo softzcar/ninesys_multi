@@ -1142,7 +1142,14 @@ export default {
       const hayPendientes = refs.some(
         (r) => r && r.tieneAsignacionPendiente && r.tieneAsignacionPendiente()
       );
-      if (hayPendientes) {
+      // Excepción: si el cierre lo está forzando el sistema por una sesión
+      // inválida (auditoría de seguridad 2026-09-11, ver store/login.js
+      // forzandoCierreSesion y components/SesionExpiradaOverlay.vue), el
+      // cierre ya es inevitable (viene de hide('FORCE'), no cancelable) --
+      // preguntar aquí solo tapa el formulario de login con una
+      // confirmación que no cambia nada (bug real reportado por el
+      // usuario, con captura).
+      if (hayPendientes && !this.$store.state.login.forzandoCierreSesion) {
         if (bvModalEvent) bvModalEvent.preventDefault();
         this.$confirm(
           "",

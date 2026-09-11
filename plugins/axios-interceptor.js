@@ -198,6 +198,11 @@ export default function ({ $axios, store, app, $config }) {
               const sufijoContenido = '___BV_modal_content_'
               if (activo && activo.id && activo.id.endsWith(sufijoContenido)) {
                 const modalId = activo.id.slice(0, -sufijoContenido.length)
+                // Mientras dure este cierre forzado, los modales con su
+                // propia guardia de "datos sin guardar" la omiten (ver
+                // store/login.js, forzandoCierreSesion, y su porqué en
+                // components/SesionExpiradaOverlay.vue).
+                store.commit('login/setForzandoCierreSesion', true)
                 let forzado = false
                 try {
                   const modalEl = activo.closest('.modal')
@@ -213,6 +218,11 @@ export default function ({ $axios, store, app, $config }) {
                   if (root) {
                     root.$emit('bv::hide::modal', modalId)
                   }
+                }
+                if (window.$nuxt) {
+                  window.$nuxt.$nextTick(() => {
+                    store.commit('login/setForzandoCierreSesion', false)
+                  })
                 }
               }
             }

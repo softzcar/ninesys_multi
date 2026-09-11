@@ -159,7 +159,13 @@ export default {
         ? tarjetas.some((c) => c && c.newImage)
         : false;
 
-      if (tieneImagenSinSubir) {
+      // Excepción: si el cierre lo está forzando el sistema por una sesión
+      // inválida (auditoría de seguridad 2026-09-11, ver store/login.js
+      // forzandoCierreSesion y components/SesionExpiradaOverlay.vue), el
+      // cierre ya es inevitable (viene de hide('FORCE'), no cancelable) --
+      // preguntar aquí solo tapa el formulario de login con una
+      // confirmación que no cambia nada.
+      if (tieneImagenSinSubir && !this.$store.state.login.forzandoCierreSesion) {
         bvModalEvt.preventDefault();
         this.$confirm(
           "Seleccionaste una imagen que todavía no se subió. Si cierras ahora, se perderá.",

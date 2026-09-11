@@ -24,6 +24,14 @@ export const state = () => ({
     apiToken: null, // Sesión real (JWT) contra ninesys-api -- auditoría de seguridad 2026-09-10, reemplaza gradualmente Authorization: <id_empresa> crudo
     sesionExpirada: false, // Overlay de reautenticación (no logout/redirect) -- auditoría de seguridad 2026-09-11
     motivoSesionExpirada: 'expirada', // 'expirada' | 'otro_dispositivo' -- ver SesionExpiradaOverlay.vue
+    // true mientras SesionExpiradaOverlay/axios-interceptor están forzando el
+    // cierre de un modal de fondo para liberarle el foco al campo de clave
+    // (bug reportado 2026-09-11: ese cierre forzado disparaba, como efecto
+    // secundario, la propia confirmación de "hay datos sin guardar" del
+    // modal). Los modales con ese tipo de guardia deben omitirla mientras
+    // este flag esté en true -- el cierre ya es inevitable (viene de
+    // hide('FORCE'), no cancelable), preguntar solo confunde/tapa el login.
+    forzandoCierreSesion: false,
     // Nuevos campos para tasas automáticas
     ultimaActualizacionTasas: null, // timestamp ISO
     fuenteTasas: 'manual', // 'manual' | 'automatica' | 'fallback'
@@ -79,6 +87,9 @@ export const mutations = {
     },
     setMotivoSesionExpirada(state, valor) {
         state.motivoSesionExpirada = valor
+    },
+    setForzandoCierreSesion(state, valor) {
+        state.forzandoCierreSesion = valor
     },
     setModulos(state, data) {
         state.modulos = data

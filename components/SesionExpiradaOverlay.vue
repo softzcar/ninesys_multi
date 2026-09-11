@@ -91,6 +91,11 @@ export default {
       const sufijoContenido = "___BV_modal_content_";
       if (activo && activo.id && activo.id.endsWith(sufijoContenido)) {
         const modalId = activo.id.slice(0, -sufijoContenido.length);
+        // Mientras dure este cierre forzado, los modales con su propia
+        // guardia de "datos sin guardar" (ver store/login.js,
+        // forzandoCierreSesion) la omiten -- el cierre ya es inevitable, no
+        // hace falta preguntar y menos aún tapar el login con esa pregunta.
+        this.$store.commit("login/setForzandoCierreSesion", true);
         let forzado = false;
         try {
           const modalEl = activo.closest(".modal");
@@ -104,6 +109,9 @@ export default {
         if (!forzado) {
           this.$root.$emit("bv::hide::modal", modalId);
         }
+        this.$nextTick(() => {
+          this.$store.commit("login/setForzandoCierreSesion", false);
+        });
       }
     }
     // Al cerrar el modal de fondo, el foco no vuelve solo al campo de clave
