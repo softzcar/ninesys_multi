@@ -141,7 +141,14 @@ export default {
       if (this.idEmpresa) {
         data.set("id_empresa", this.idEmpresa);
       }
-      if (this.sesionForzada) {
+      // Si el motivo NO es "otro_dispositivo", esta pantalla apareció por un
+      // simple vencimiento normal del token de ESTE mismo dispositivo -- no
+      // hay ningún otro dispositivo real compitiendo por la sesión, así que
+      // se reclama directo sin pedir confirmación ni doble verificación
+      // (reportado 2026-09-11: pedía verificar Turnstile dos veces en cada
+      // reautenticación, incluso sin conflicto real). Cuando SÍ es
+      // "otro_dispositivo", se mantiene el diálogo de confirmación completo.
+      if (this.sesionForzada || this.motivoSesionExpirada !== "otro_dispositivo") {
         data.set("forzar_sesion", "1");
       }
 
