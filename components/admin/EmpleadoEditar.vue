@@ -149,6 +149,14 @@
                     <hr class="mt-4">
                     <b-button type="submit" variant="primary">Guardar</b-button>
                     <b-button @click="resetForm" variant="danger">Limpiar</b-button>
+                    <!-- Auditoría de seguridad 2026-09-11 (protección contra fuerza
+                         bruta en /login, Capa 2): libera el bloqueo de un empleado
+                         que agotó sus intentos y necesita seguir trabajando ya,
+                         sin esperar los 15 minutos. Cambiar la clave (arriba)
+                         también desbloquea automáticamente. -->
+                    <b-button @click="desbloquearAcceso" variant="outline-warning" :disabled="desbloqueando">
+                        {{ desbloqueando ? "Desbloqueando..." : "Desbloquear acceso" }}
+                    </b-button>
                 </b-form>
 
             </b-overlay>
@@ -163,6 +171,7 @@ export default {
     data() {
         return {
             isSettingForm: false,
+            desbloqueando: false,
             form: {
                 // Datos Básicos
                 username: "",
@@ -534,6 +543,31 @@ export default {
             }).catch(error => {
                 console.error('[EmpleadoEditar] Error al guardar:', error)
             })
+        },
+        // Auditoría de seguridad 2026-09-11: libera el bloqueo de fuerza
+        // bruta de /login para este empleado (admin-only en el backend, ver
+        // requiereAdmin() en /empleados/desbloquear-login). No hace nada si
+        // no había ningún bloqueo activo -- seguro de llamar siempre.
+        async desbloquearAcceso() {
+            this.desbloqueando = true
+            const data = new URLSearchParams()
+            data.set("id_usuario", this.item._id)
+            try {
+                await this.$axios.post(`${this.$config.API}/empleados/desbloquear-login`, data)
+                this.$fire({
+                    title: "Listo",
+                    html: `<p>Acceso de <b>${this.form.nombre}</b> desbloqueado.</p>`,
+                    type: "success",
+                })
+            } catch (error) {
+                this.$fire({
+                    title: "Error",
+                    html: `<p>No se pudo desbloquear el acceso: ${error.response ? (error.response.data.error || error.response.data.message) : error.message}</p>`,
+                    type: "error",
+                })
+            } finally {
+                this.desbloqueando = false
+            }
         },
         onPhoneBlur() {
             if (!this.form.telefono) return

@@ -70,6 +70,10 @@
                 ></b-form-input>
               </b-form-group>
 
+              <!-- Cloudflare Turnstile (CAPTCHA) -- auditoría de seguridad
+                   2026-09-11, protección contra fuerza bruta en /login. -->
+              <div ref="turnstileContainer" class="mb-3"></div>
+
               <b-button type="submit" variant="primary" @click="letMeIn($event)" data-testid="btn-entrar"
                 >Entrar</b-button
               >
@@ -133,6 +137,9 @@ export default {
       mostrarModalOlvidoClave: false,
       emailRecuperarClave: "",
       enviandoRecuperarClave: false,
+      // Cloudflare Turnstile (CAPTCHA) -- auditoría de seguridad 2026-09-11.
+      turnstileToken: "",
+      turnstileWidgetId: null,
     };
   },
   computed: {
@@ -215,6 +222,7 @@ export default {
         const data = new URLSearchParams();
         data.set("email", this.form.email);
         data.set("password", this.form.password);
+        data.set("cf-turnstile-response", this.turnstileToken);
         if (idEmpresa) {
           data.set("id_empresa", idEmpresa);
         }
@@ -292,6 +300,7 @@ export default {
                         // Este bloque 'else' es por si la API devuelve un código 200 pero con acceso denegado.
                         // Es una capa extra de seguridad.
                         this.loading = false;
+                        this.resetearTurnstile();
                         this.$fire({
                           type: "warning",
                           title: "Acceso Denegado",
@@ -300,6 +309,9 @@ export default {
                       }
                     })          .catch((err) => {
             this.loading = false;
+            // El token de Turnstile es de un solo uso -- se resetea en
+            // cualquier fallo para que el próximo intento tenga uno fresco.
+            this.resetearTurnstile();
             // Manejo de errores inteligente
             if (err.response && err.response.data) {
               const responseData = err.response.data;
@@ -421,15 +433,41 @@ export default {
           this.overlay = false;
         });
     },
+
+    // Cloudflare Turnstile (CAPTCHA) -- auditoría de seguridad 2026-09-11.
+    // Render explícito (no automático vía atributos data-*) para poder leer
+    // el token con un callback propio en vez de depender de una función
+    // global en window. El script se carga async/defer (nuxt.config.js), así
+    // que puede no estar listo todavía al montar el componente -- reintenta
+    // hasta que window.turnstile exista.
+    renderTurnstile() {
+      if (window.turnstile && this.$refs.turnstileContainer) {
+        this.turnstileWidgetId = window.turnstile.render(this.$refs.turnstileContainer, {
+          sitekey: this.$config.TURNSTILE_SITE_KEY,
+          callback: (token) => {
+            this.turnstileToken = token;
+          },
+          "expired-callback": () => {
+            this.turnstileToken = "";
+          },
+        });
+      } else {
+        setTimeout(this.renderTurnstile, 200);
+      }
+    },
+
+    // Un token de Turnstile es de un solo uso -- tras un intento fallido hay
+    // que resetear el widget para que el usuario pueda reintentar.
+    resetearTurnstile() {
+      this.turnstileToken = "";
+      if (window.turnstile && this.turnstileWidgetId !== null) {
+        window.turnstile.reset(this.turnstileWidgetId);
+      }
+    },
   },
 
   async mounted() {
-    /* try {
-            const response = await this.$axios.get(`${this.$config.API}/`)
-            console.log("Respuesta recibida:", response)
-        } catch (error) {
-            console.error("Error al hacer la solicitud:", error)
-        } */
+    this.renderTurnstile();
   },
 
   mixins: [mixin],

@@ -22,6 +22,7 @@ export const state = () => ({
     token: null, // Token JWT del servicio de WhatsApp (NO confundir con apiToken)
     refreshToken: null, // Token de refresco (del servicio de WhatsApp)
     apiToken: null, // Sesión real (JWT) contra ninesys-api -- auditoría de seguridad 2026-09-10, reemplaza gradualmente Authorization: <id_empresa> crudo
+    sesionExpirada: false, // Overlay de reautenticación (no logout/redirect) -- auditoría de seguridad 2026-09-11
     // Nuevos campos para tasas automáticas
     ultimaActualizacionTasas: null, // timestamp ISO
     fuenteTasas: 'manual', // 'manual' | 'automatica' | 'fallback'
@@ -71,6 +72,9 @@ export const mutations = {
     },
     setApiToken(state, token) {
         state.apiToken = token
+    },
+    setSesionExpirada(state, valor) {
+        state.sesionExpirada = valor
     },
     setModulos(state, data) {
         state.modulos = data

@@ -27,6 +27,13 @@
          Para reactivar, descomentar la línea siguiente.
     <AiChatWidget v-if="isLoggedIn" />
     -->
+
+    <!-- Overlay de reautenticación (JWT vencido) -- auditoría de seguridad
+         2026-09-11. Como hermano de <Nuxt /> arriba, nunca desmonta el árbol
+         de componentes de la página actual (no se pierde el trabajo en
+         curso). Ver plugins/axios-interceptor.js (quien lo dispara) y
+         components/SesionExpiradaOverlay.vue. -->
+    <SesionExpiradaOverlay v-if="sesionExpirada" />
   </div>
 </template>
 
@@ -34,12 +41,14 @@
 import { mapState } from "vuex";
 import AppSidebar from "@/components/layout/AppSidebar.vue";
 import AiChatWidget from "@/components/ai/AiChatWidget.vue";
+import SesionExpiradaOverlay from "@/components/SesionExpiradaOverlay.vue";
 
 export default {
   name: 'DefaultLayout',
   components: {
     AppSidebar,
     AiChatWidget,
+    SesionExpiradaOverlay,
   },
   data() {
     return {
@@ -48,7 +57,7 @@ export default {
     };
   },
   computed: {
-    ...mapState("login", ["access", "currentDepartament", "dataUser"]),
+    ...mapState("login", ["access", "currentDepartament", "dataUser", "sesionExpirada"]),
     empresaNombre() {
       return this.$store.state.login.dataEmpresa?.nombre || "NineSys";
     },

@@ -1,0 +1,166 @@
+<template>
+  <div class="sesion-expirada-overlay">
+    <b-card style="max-width: 22rem" class="text-center">
+      <h5>Sesión expirada</h5>
+      <hr />
+      <!--
+        Nota de seguridad (auditoría 2026-09-11): este overlay es puramente
+        UX, NO es un control de seguridad -- quitarlo del DOM (ej. por
+        DevTools) no otorga ningún acceso, porque el backend rechaza
+        cualquier request con el JWT viejo/inválido sin importar qué haga el
+        navegador. Su único propósito es evitar perder el trabajo en curso
+        (no navega, no desmonta la página) al reautenticar.
+      -->
+      <p class="mb-2">
+        <strong>{{ dataUser.nombre }}</strong><br />
+        <small class="text-muted">{{ dataUser.email }}</small>
+      </p>
+      <p class="small">Su sesión expiró. Ingrese su clave para continuar.</p>
+
+      <b-form @submit.prevent="reautenticar">
+        <b-form-input
+          v-model="password"
+          type="password"
+          placeholder="Clave"
+          autocomplete="current-password"
+          autofocus
+          required
+          :state="error ? false : null"
+        ></b-form-input>
+        <b-form-invalid-feedback :state="error ? false : null">
+          {{ error }}
+        </b-form-invalid-feedback>
+
+        <!-- Cloudflare Turnstile -- /login exige un token válido en TODO
+             request, incluida esta reautenticación (misma protección contra
+             fuerza bruta que el login normal, ver components/login/form.vue). -->
+        <div ref="turnstileContainer" class="mt-2"></div>
+
+        <b-button type="submit" variant="primary" class="mt-3" block :disabled="cargando">
+          {{ cargando ? "Verificando..." : "Continuar" }}
+        </b-button>
+      </b-form>
+
+      <b-button variant="link" size="sm" class="mt-2" @click="cerrarSesion">
+        Cerrar sesión
+      </b-button>
+    </b-card>
+  </div>
+</template>
+
+<script>
+import { mapState } from "vuex";
+
+export default {
+  name: "SesionExpiradaOverlay",
+  data() {
+    return {
+      password: "",
+      cargando: false,
+      error: "",
+      turnstileToken: "",
+      turnstileWidgetId: null,
+    };
+  },
+  computed: {
+    ...mapState("login", ["dataUser", "idEmpresa"]),
+  },
+  mounted() {
+    this.renderTurnstile();
+  },
+  methods: {
+    // Mismo patrón que components/login/form.vue.
+    renderTurnstile() {
+      if (window.turnstile && this.$refs.turnstileContainer) {
+        this.turnstileWidgetId = window.turnstile.render(this.$refs.turnstileContainer, {
+          sitekey: this.$config.TURNSTILE_SITE_KEY,
+          callback: (token) => {
+            this.turnstileToken = token;
+          },
+          "expired-callback": () => {
+            this.turnstileToken = "";
+          },
+        });
+      } else {
+        setTimeout(this.renderTurnstile, 200);
+      }
+    },
+    resetearTurnstile() {
+      this.turnstileToken = "";
+      if (window.turnstile && this.turnstileWidgetId !== null) {
+        window.turnstile.reset(this.turnstileWidgetId);
+      }
+    },
+    async reautenticar() {
+      this.cargando = true;
+      this.error = "";
+
+      const data = new URLSearchParams();
+      data.set("email", this.dataUser.email);
+      data.set("password", this.password);
+      data.set("cf-turnstile-response", this.turnstileToken);
+      if (this.idEmpresa) {
+        data.set("id_empresa", this.idEmpresa);
+      }
+
+      // El interceptor global (axios-interceptor.js) manda el apiToken
+      // actual como Bearer en cada request -- pero ESE token es justo el que
+      // está vencido/inválido (por eso apareció este overlay). Si se manda
+      // tal cual, IdEmpresaMiddleware.php lo rechaza con 401 ANTES de llegar
+      // siquiera al handler real de /login. Se limpia acá para que el
+      // interceptor caiga al modo id_empresa crudo (igual que un login
+      // normal sin sesión todavía), y se reemplaza por el token fresco
+      // recién abajo si la clave es correcta.
+      this.$store.commit("login/setApiToken", null);
+
+      try {
+        const res = await this.$axios.post(`${this.$config.API}/login`, data, {
+          suppressGlobalErrorToast: true,
+        });
+
+        if (res.data?.data?.access === true && res.data.token) {
+          // Deliberadamente SOLO se actualiza el token -- no se toca
+          // dataUser/departamentos/modulos/etc., para no re-renderizar ni
+          // resetear nada de lo que ya está en pantalla (ver auditoría de
+          // seguridad 2026-09-11).
+          this.$store.commit("login/setApiToken", res.data.token);
+          this.$store.commit("login/setSesionExpirada", false);
+          this.password = "";
+        } else {
+          this.error = res.data?.msg || "Clave incorrecta.";
+          this.resetearTurnstile();
+        }
+      } catch (err) {
+        this.error =
+          err.response?.data?.msg || "No se pudo verificar la clave. Intente de nuevo.";
+        this.resetearTurnstile();
+      } finally {
+        this.cargando = false;
+      }
+    },
+    cerrarSesion() {
+      this.$store.commit("login/logout");
+      this.$store.commit("login/setSesionExpirada", false);
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    },
+  },
+};
+</script>
+
+<style scoped>
+.sesion-expirada-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+</style>

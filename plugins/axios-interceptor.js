@@ -144,18 +144,19 @@ export default function ({ $axios, store, app, $config }) {
         if (error.response?.status === 401 && store.state.login?.apiToken) {
             // Sesión real (JWT, auditoría de seguridad 2026-09-10) inválida o
             // expirada: la API responde 401 `invalid_token`. Sin refresh
-            // token (decisión de producto) -- se cierra sesión y se redirige
-            // a login en vez del toast genérico, que dejaría al usuario
-            // atascado viendo errores en cada petición sin entender por qué.
-            // La condición sobre `apiToken` (no "cualquier 401") es
-            // deliberada: evita disparar esto por un 401 de un endpoint que
-            // no depende de la sesión nueva (ej. login fallido, antes de
-            // tener apiToken).
-            console.warn('[AUTH] Sesión expirada o inválida, cerrando sesión.')
-            store.commit('login/logout')
-            if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-                window.location.href = '/'
-            }
+            // token (decisión de producto, ver JwtHelper.php) -- pero desde
+            // la auditoría de seguridad 2026-09-11 ya NO se hace logout ni
+            // redirect duro (eso perdía cualquier trabajo en curso: un
+            // formulario a medio llenar, un editor Quill, etc.). En su lugar
+            // se muestra un overlay de reautenticación (SesionExpiradaOverlay,
+            // montado en layouts/default.vue) que solo pide la clave y sigue
+            // exactamente donde estaba con un token fresco -- el árbol de
+            // componentes de la página actual nunca se desmonta. La condición
+            // sobre `apiToken` (no "cualquier 401") es deliberada: evita
+            // disparar esto por un 401 de un endpoint que no depende de la
+            // sesión nueva (ej. login fallido, antes de tener apiToken).
+            console.warn('[AUTH] Sesión expirada o inválida, mostrando overlay de reautenticación.')
+            store.commit('login/setSesionExpirada', true)
         } else if (!error.config?.suppressGlobalErrorToast) {
             // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza
             // que cualquier error de la API se vea, aunque el componente que hizo

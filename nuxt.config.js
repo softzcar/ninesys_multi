@@ -21,6 +21,12 @@ export default {
     GALLERY_CDN: process.env.GALLERY_CDN_URL || `https://cdn.ninesys19.com`,
     WS_API: process.env.WS_URL || `https://ws.ninesys19.com`,
     APP_URL: process.env.APP_URL || `https://app.ninesys19.com`,
+    // Cloudflare Turnstile (CAPTCHA en /login) -- auditoría de seguridad
+    // 2026-09-11. Site Key, público a propósito (la verificación real ocurre
+    // en el backend con el Secret Key). Widget creado hoy solo para el
+    // dominio de Desarrollo; agregar TURNSTILE_SITE_KEY al exportar env vars
+    // en deploy_frontend_prod.sh cuando se cree el widget de Producción.
+    TURNSTILE_SITE_KEY: process.env.TURNSTILE_SITE_KEY || '0x4AAAAAAEwWWrceRu3yp9s4',
     HORARIO: {
       horaInicioManana: 8.5,  // 8:30 AM
       horaFinManana: 12,     // 12:00 PM
@@ -73,6 +79,13 @@ rif: 'J-00000000-0', */
       { name: "format-detection", content: "telephone=no" },
     ],
     link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }, { rel: 'stylesheet', href: 'https://unpkg.com/@icon/themify-icons/themify-icons.css' }],
+    // Cloudflare Turnstile (CAPTCHA en /login) -- auditoría de seguridad
+    // 2026-09-11. Se carga en todas las páginas (igual que Themify Icons
+    // arriba) porque el formulario de login vive en components/login/form.vue,
+    // renderizado por Home.vue para cualquier visitante no autenticado.
+    script: [
+      { src: 'https://challenges.cloudflare.com/turnstile/v0/api.js', async: true, defer: true },
+    ],
   },
 
   router: {
