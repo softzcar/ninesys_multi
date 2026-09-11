@@ -141,8 +141,13 @@ export default {
       turnstileToken: "",
       turnstileWidgetId: null,
       // Sesión única por empleado -- auditoría de seguridad 2026-09-11. Se
-      // resetea en letMeIn() (nuevo intento manual de login).
+      // resetea si el usuario cambia de credenciales (ver watch), no en cada
+      // clic de "Entrar" -- así sobrevive al reintento tras confirmar el
+      // diálogo de "sesión activa en otro dispositivo".
       sesionForzada: false,
+      // Empresa pendiente de confirmar tras el diálogo de sesión activa,
+      // cuando esa confirmación ocurrió durante el selector de empresas.
+      idEmpresaPendiente: null,
     };
   },
   computed: {
@@ -154,6 +159,19 @@ export default {
       "idEmpresa",
     ]),
     ...mapState("datasys", ["dataSys"]),
+  },
+  watch: {
+    // Si el usuario cambia de credenciales antes de reintentar, no debe
+    // arrastrarse el consentimiento de cerrar una sesión ajena que dio para
+    // OTRA cuenta (sesión única por empleado, auditoría 2026-09-11).
+    "form.email"() {
+      this.sesionForzada = false;
+      this.idEmpresaPendiente = null;
+    },
+    "form.password"() {
+      this.sesionForzada = false;
+      this.idEmpresaPendiente = null;
+    },
   },
   methods: {
     ...mapMutations("login", [
@@ -169,9 +187,6 @@ export default {
     async letMeIn(event) {
       event.preventDefault();
       this.loading = true;
-      // Nuevo intento manual -- no arrastrar el consentimiento de un intento
-      // anterior (sesión única por empleado, auditoría 2026-09-11).
-      this.sesionForzada = false;
 
       let ban = true;
       let c = {};
@@ -208,7 +223,7 @@ export default {
       }
 
       if (ban) {
-        await this.doLogin();
+        await this.doLogin(this.idEmpresaPendiente);
       } else {
         this.loading = false;
       }
@@ -278,8 +293,21 @@ export default {
                           "Sesión activa en otro dispositivo",
                           "warning"
                         ).then(() => {
-                          this.loading = true;
-                          this.doLogin(idEmpresa, true);
+                          // No reintentar de inmediato: el widget recién se
+                          // reseteó y todavía no hay un token nuevo (Turnstile
+                          // es de un solo uso). Se guarda el consentimiento y
+                          // se deja que el usuario vuelva a verificar y
+                          // presione "Entrar" -- el botón permanece
+                          // deshabilitado hasta entonces (bug reportado
+                          // 2026-09-11: el reintento automático caía siempre
+                          // en "Espere a que se complete la verificación").
+                          this.sesionForzada = true;
+                          this.idEmpresaPendiente = idEmpresa;
+                          this.$fire({
+                            type: "info",
+                            title: "Verificación requerida",
+                            html: "Complete nuevamente la verificación (\"Verifique que es un ser humano\") y presione Entrar para continuar.",
+                          });
                         });
                       } else if (res.data.requiere_seleccion_empresa) {
                         // La identidad tiene más de una empresa asignada -- mostrar el

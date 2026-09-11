@@ -60,6 +60,8 @@ export default {
       error: "",
       turnstileToken: "",
       turnstileWidgetId: null,
+      // Sesión única por empleado -- auditoría de seguridad 2026-09-11.
+      sesionForzada: false,
     };
   },
   computed: {
@@ -116,7 +118,13 @@ export default {
       }
       return this.turnstileToken;
     },
-    async reautenticar(forzarSesion) {
+    // Sin parámetro -- @submit.prevent="reautenticar" en el template pasa el
+    // Event nativo del submit como primer argumento, que es siempre "truthy":
+    // si este método hubiera leído ese argumento como forzarSesion, TODO
+    // reintento normal habría mandado forzar_sesion=1 y se habría saltado la
+    // validación de sesión única (bug encontrado 2026-09-11 al revisar el
+    // flujo). El estado real vive en this.sesionForzada.
+    async reautenticar() {
       const tokenTurnstile = this.obtenerTokenTurnstile();
       if (!tokenTurnstile) {
         this.error = "Espere a que se complete la verificación antes de continuar.";
@@ -133,7 +141,7 @@ export default {
       if (this.idEmpresa) {
         data.set("id_empresa", this.idEmpresa);
       }
-      if (forzarSesion) {
+      if (this.sesionForzada) {
         data.set("forzar_sesion", "1");
       }
 
@@ -164,7 +172,12 @@ export default {
             "Sesión activa en otro dispositivo",
             "warning"
           ).then(() => {
-            this.reautenticar(true);
+            // No reintentar de inmediato -- el widget recién se reseteó y
+            // todavía no hay un token nuevo. Se guarda el consentimiento y se
+            // deja que el usuario vuelva a verificar y presione "Continuar"
+            // (mismo bug y misma corrección que components/login/form.vue).
+            this.sesionForzada = true;
+            this.error = "Complete nuevamente la verificación y presione Continuar.";
           });
           return;
         }
@@ -177,6 +190,7 @@ export default {
           this.$store.commit("login/setApiToken", res.data.token);
           this.$store.commit("login/setSesionExpirada", false);
           this.password = "";
+          this.sesionForzada = false;
         } else {
           this.error = res.data?.msg || "Clave incorrecta.";
           this.resetearTurnstile();
