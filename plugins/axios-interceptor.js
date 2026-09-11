@@ -172,22 +172,49 @@ export default function ({ $axios, store, app, $config }) {
             // document.activeElement apuntaba al modal de fondo, no al
             // overlay). SesionExpiradaOverlay es deliberadamente un <div>
             // simple, no un b-modal real, así que no puede ganarle ese
-            // atrapa-foco por su cuenta. Los b-modal de BootstrapVue se
-            // cierran solos con Escape por defecto -- se simula esa tecla
-            // para liberar el foco.
+            // atrapa-foco por su cuenta.
             //
-            // IMPORTANTE: BootstrapVue escucha 'keydown' directo en el propio
-            // <div class="modal">, no en `document` -- un evento despachado
-            // sobre `document` nunca le llega (los eventos solo burbujean
-            // HACIA ARRIBA desde su origen, nunca hacia abajo a descendientes
-            // como el modal). Por eso se despacha sobre `document.activeElement`
-            // -- que en este escenario ES el modal atrapado (o algo dentro de
-            // él) -- para que el evento sí burbujee a través suyo.
-            if (typeof document !== 'undefined') {
-              const origenEsc = document.activeElement && document.activeElement !== document.body
-                ? document.activeElement
-                : document
-              origenEsc.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 27, which: 27, key: 'Escape', code: 'Escape', bubbles: true }))
+            // Intento 1 (simular Escape) no funcionó: el modal en cuestión
+            // tiene `no-close-on-esc`. Intento 2 (evento raíz
+            // 'bv::hide::modal', que llama a hide('event')) TAMPOCO
+            // funciona en todos los casos: ese hide() emite un evento 'hide'
+            // CANCELABLE (BModal.hide(), bootstrap-vue) -- si el modal
+            // escucha @hide y hace preventDefault() (común en diálogos de
+            // confirmación con validación), se queda abierto igual.
+            //
+            // Fix definitivo: llamar directo a la instancia del componente
+            // con hide('FORCE') -- bootstrap-vue solo hace el evento NO
+            // cancelable cuando el trigger es exactamente 'FORCE'
+            // (TRIGGER_FORCE), y esa ruta no existe en ninguna API pública,
+            // así que hay que invocarla directo sobre la instancia Vue del
+            // modal (`.__vue__` en su elemento raíz `.modal`, cuyo id es
+            // `modalId` -- ver BModal.computedModalAttrs). Se llega a esa
+            // instancia subiendo desde el contenido enfocado
+            // (document.activeElement mientras el atrapa-foco está activo)
+            // con closest('.modal'). El evento raíz queda como respaldo si
+            // por lo que sea no se pudo acceder a la instancia.
+            if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+              const activo = document.activeElement
+              const sufijoContenido = '___BV_modal_content_'
+              if (activo && activo.id && activo.id.endsWith(sufijoContenido)) {
+                const modalId = activo.id.slice(0, -sufijoContenido.length)
+                let forzado = false
+                try {
+                  const modalEl = activo.closest('.modal')
+                  if (modalEl && modalEl.__vue__ && typeof modalEl.__vue__.hide === 'function') {
+                    modalEl.__vue__.hide('FORCE')
+                    forzado = true
+                  }
+                } catch (e) {
+                  // Sigue al respaldo de abajo
+                }
+                if (!forzado) {
+                  const root = window.$nuxt && window.$nuxt.$root
+                  if (root) {
+                    root.$emit('bv::hide::modal', modalId)
+                  }
+                }
+              }
             }
         } else if (!error.config?.suppressGlobalErrorToast) {
             // Red de seguridad global (ver showGlobalErrorToast arriba): garantiza

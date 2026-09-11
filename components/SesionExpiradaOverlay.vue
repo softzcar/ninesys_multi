@@ -79,18 +79,31 @@ export default {
     },
   },
   mounted() {
-    // Segunda red de seguridad (ver axios-interceptor.js) para el mismo bug
-    // -- si un modal real de BootstrapVue se abrió en la página de fondo
-    // justo en este instante, su atrapa-foco le gana el foco al campo de
-    // clave y el usuario no puede escribir. Se despacha sobre
-    // document.activeElement (no sobre document) porque BootstrapVue
-    // escucha 'keydown' directo en el <div class="modal">, y un evento
-    // despachado en document nunca le llegaría (no burbujea hacia abajo).
+    // Segunda red de seguridad (ver axios-interceptor.js, misma corrección y
+    // su porqué en detalle) -- si un modal real de BootstrapVue se abrió en
+    // la página de fondo justo en este instante, su atrapa-foco le gana el
+    // foco al campo de clave. Se fuerza el cierre llamando hide('FORCE')
+    // directo sobre la instancia del modal (no cancelable, a diferencia del
+    // evento raíz 'bv::hide::modal'), con ese evento como respaldo.
     if (typeof document !== "undefined") {
-      const origenEsc = document.activeElement && document.activeElement !== document.body
-        ? document.activeElement
-        : document;
-      origenEsc.dispatchEvent(new KeyboardEvent("keydown", { keyCode: 27, which: 27, key: "Escape", code: "Escape", bubbles: true }));
+      const activo = document.activeElement;
+      const sufijoContenido = "___BV_modal_content_";
+      if (activo && activo.id && activo.id.endsWith(sufijoContenido)) {
+        const modalId = activo.id.slice(0, -sufijoContenido.length);
+        let forzado = false;
+        try {
+          const modalEl = activo.closest(".modal");
+          if (modalEl && modalEl.__vue__ && typeof modalEl.__vue__.hide === "function") {
+            modalEl.__vue__.hide("FORCE");
+            forzado = true;
+          }
+        } catch (e) {
+          // Sigue al respaldo de abajo
+        }
+        if (!forzado) {
+          this.$root.$emit("bv::hide::modal", modalId);
+        }
+      }
     }
     this.renderTurnstile();
   },
