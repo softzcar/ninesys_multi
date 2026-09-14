@@ -579,11 +579,13 @@ export default {
     async printOrder(id) {
       let mostrar = ""
 
+      // Autorización por ID, no por nombre -- auditoría de seguridad
+      // 2026-09-14. Único caller confirmado (resultadoModal_v1.vue) ya
+      // importa mixins/mixin-login.js, así que `this.accessModule` está
+      // disponible acá.
       if (
-        this.$store.state.login.dataUser.departamento ===
-        "Administración" ||
-        this.$store.state.login.dataUser.departamento ===
-        "Comercialización"
+        this.accessModule?.accessData?.id_modulo === 1 ||
+        this.accessModule?.accessData?.id_modulo === 2
       ) {
         mostrar = "table-cell"
       } else {

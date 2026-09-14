@@ -6,7 +6,7 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Administración'">
+      <div v-if="accessModule.accessData.id_modulo === 1">
         <b-overlay
           :show="overlay"
           spinner-small
@@ -151,9 +151,12 @@
 <script>
 import { mapState, mapGetters } from "vuex";
 import draggable from "vuedraggable";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
   components: { draggable },
+
+  mixins: [accessModuleMixin],
 
   data() {
     return {

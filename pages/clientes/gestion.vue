@@ -191,7 +191,7 @@
                       />
                     </span>
                     <span
-                      v-if="usa19print && dataUser.departamento === 'Administración'"
+                      v-if="usa19print && accessModule.accessData.id_modulo === 1"
                       class="floatme mr-1"
                     >
                       <b-button
@@ -207,8 +207,8 @@
                     </span>
                     <span
                       v-if="
-                                                 dataUser.departamento ===
-                                                 'Administración'
+                                                 accessModule.accessData.id_modulo ===
+                                                 1
                                              "
                       class="floatme"
                     >

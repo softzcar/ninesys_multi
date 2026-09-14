@@ -230,7 +230,7 @@ export default {
     // vendedores de Comercialización), para que el POS y el wizard muestren la tasa
     // oficial actualizada al ingresar. (Antes solo lo disparaba Administración, por eso
     // a los vendedores no se les refrescaba.)
-    const isAdmin = this.$store.state.login.dataUser.departamento === 'Administración';
+    const isAdmin = this.accessModule.accessData.id_modulo === 1;
 
     {
       this.tasasTimeout = setTimeout(() => {

@@ -2,8 +2,8 @@
   <div>
     <b-card
       v-if="
-        this.$store.state.login.dataUser.departamento === 'Corte' ||
-        this.$store.state.login.dataUser.departamento === 'Administración'
+        this.$store.getters['login/currentDepartamentTipo'] === 'corte' ||
+        this.accessModule.accessData.id_modulo === 1
       "
       bg-variant="default"
       header="Control de Material"
@@ -20,8 +20,12 @@
 </template>
 
 <script>
+import accessModuleMixin from "~/mixins/mixin-login.js"
+
 export default {
   name: 'NinesysTareasPorLotes',
+
+  mixins: [accessModuleMixin],
 
   data() {
     return {}

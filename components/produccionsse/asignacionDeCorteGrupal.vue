@@ -10,8 +10,7 @@
             <b-card
               v-if="
                 $store.getters['login/currentDepartamentTipo'] === 'corte' ||
-                $store.state.login.dataUser.departamento ===
-                  'Administración'
+                accessModule.accessData.id_modulo === 1
               "
               bg-variant="default"
               header="Control de Material"
@@ -152,7 +151,10 @@
 </template>
 
 <script>
+import accessModuleMixin from "~/mixins/mixin-login.js";
+
 export default {
+  mixins: [accessModuleMixin],
   data() {
     return {
       includedFields: ["orden", "producto"],

@@ -2,7 +2,7 @@
     <div>
         <div v-if="access">
             <menus-MenuLoader />
-            <div v-if="dataUser.departamento === 'Administración'">
+            <div v-if="accessModule.accessData.id_modulo === 1">
                 <b-container>
                     <b-row>
                         <b-col>
@@ -24,9 +24,12 @@
 
 <script>
 import { mapState } from 'vuex'
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
     name: 'MultiplicadorPrecioPage',
+
+    mixins: [accessModuleMixin],
 
     computed: {
         ...mapState('login', ['dataUser', 'access'])

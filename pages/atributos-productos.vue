@@ -7,7 +7,7 @@
         <div v-else>
             <menus-MenuLoader />
             <div
-                v-if="dataUser.departamento === 'Administración' || dataUser.departamento === 'Producción'"
+                v-if="accessModule.accessData.id_modulo === 1 || accessModule.accessData.id_modulo === 5"
             >
                 <b-overlay :show="overlay" spinner-small>
                     <b-container>
@@ -54,8 +54,10 @@
 
 <script>
 import { mapState } from "vuex";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
+    mixins: [accessModuleMixin],
     data() {
         return {
             titulo: "Gestión de Atributos de Productos",

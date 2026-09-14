@@ -55,10 +55,13 @@ export default {
   computed: {
     ...mapState("login", ["dataUser", "access"]),
     
-    // Determina si el usuario tiene acceso a la vista general de pagos
+    // Determina si el usuario tiene acceso a la vista general de pagos.
+    // 'Administración' se identifica por ID (id_modulo===1, auditoría de
+    // seguridad 2026-09-14), no por nombre -- el resto de la lista son
+    // nombres de departamentos de producción/diseño sin un id_modulo
+    // estable confirmado entre empresas, se dejan como estaban.
     hasGeneralAccess() {
       const allowedDepts = [
-        'Administración',
         'Diseño',
         'Empleado',
         'Corte',
@@ -68,7 +71,10 @@ export default {
         'Limpieza',
         'Revisión'
       ];
-      return allowedDepts.includes(this.dataUser.departamento);
+      return (
+        this.accessModule.accessData.id_modulo === 1 ||
+        allowedDepts.includes(this.dataUser.departamento)
+      );
     }
   },
 };

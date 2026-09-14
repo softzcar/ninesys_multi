@@ -6,7 +6,7 @@
         <b-col>
           <b-list-group class="mb-4">
             <b-list-group-item>
-              <h3 v-if="departamento != 'Comercialización'">
+              <h3 v-if="idModuloUsuario !== 2">
                 RELACIÓN DE PAGOS
               </h3>
             </b-list-group-item>
@@ -53,7 +53,7 @@
       <b-row>
         <b-col class="mt-4">
           <b-tabs>
-            <b-tab v-if="departamento != 'Comercialización'" title="PENDIENTES" active>
+            <b-tab v-if="idModuloUsuario !== 2" title="PENDIENTES" active>
               <b-table-lite bordered responsive small striped :items="trabajosPendientes()" :fields="fields.pendientes">
                 <template #cell(id_orden)="data">
                   <linkSearch :id="data.item.id_orden" />
@@ -117,9 +117,10 @@
 <script>
 import mixin from "~/mixins/mixins.js";
 import mixinTime from "~/mixins/mixin-time.js";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
-  mixins: [mixin, mixinTime],
+  mixins: [mixin, mixinTime, accessModuleMixin],
 
   data() {
     return {
@@ -136,13 +137,22 @@ export default {
     departamento() {
       return this.$store.state.login.currentDepartament;
     },
+    // Nuevo computed adicional (2026-09-14): id_modulo del departamento activo
+    // del usuario logueado. Se usa en las comparaciones contra 'Administración'
+    // (1), 'Comercialización' (2) y 'Diseño' (3) de este archivo en vez del
+    // nombre de texto, que es editable y frágil. El computed departamento()
+    // de arriba se deja intacto porque otras partes del código lo siguen
+    // comparando por texto.
+    idModuloUsuario() {
+      return this.accessModule.accessData.id_modulo;
+    },
     horasTrabajadas() {
       let totalSegundos = 0;
 
       // Excluir a los departamentos que no registran tiempo por tarea.
       if (
-        this.$store.state.login.dataUser.departamento !== "Comercialización" &&
-        this.$store.state.login.dataUser.departamento !== "Administración"
+        this.idModuloUsuario !== 2 &&
+        this.idModuloUsuario !== 1
       ) {
         if (Array.isArray(this.ordenesSemana)) {
           let horarioLaboral = this.$store.state.login.dataEmpresa?.horario_laboral;
@@ -192,7 +202,7 @@ export default {
 
     fields() {
       let fields = {};
-      if (this.departamento === "Comercialización") {
+      if (this.idModuloUsuario === 2) {
         fields.pendientes = [
           {
             key: "id_orden",
@@ -237,7 +247,7 @@ export default {
             class: "text-center",
           },
         ];
-      } else if (this.departamento === "Diseño") {
+      } else if (this.idModuloUsuario === 3) {
         fields.pendientes = [
           {
             key: "id_orden",
@@ -403,8 +413,8 @@ export default {
           return total;
         }, 0);
       } else  */ if (
-          this.departamento === "Comercialización" ||
-          this.departamento === "Administración"
+          this.idModuloUsuario === 2 ||
+          this.idModuloUsuario === 1
         ) {
           comision = this.ordenesTerminadas.reduce((total, orden) => {
             total += parseFloat(orden.monto_pago);
@@ -425,8 +435,8 @@ export default {
       totalComisionesTerminadas() {
         let comision = 0;
         if (
-          this.departamento === "Comercialización" ||
-          this.departamento === "Administración"
+          this.idModuloUsuario === 2 ||
+          this.idModuloUsuario === 1
         ) {
           comision = this.ordenesTerminadas.reduce((total, orden) => {
             total += parseFloat(orden.monto_pago);
@@ -503,7 +513,7 @@ export default {
 
       totalPendiente() {
         let comision = 0;
-        if (this.departamento === "Diseño") {
+        if (this.idModuloUsuario === 3) {
           comision = this.ordenesPendientes.reduce((total, orden) => {
             if (orden.progreso !== "terminada") {
               total += parseFloat(orden.monto_pago || 0);
@@ -511,8 +521,8 @@ export default {
             return total;
           }, 0);
         } else if (
-          this.departamento === "Comercialización" ||
-          this.departamento === "Administración"
+          this.idModuloUsuario === 2 ||
+          this.idModuloUsuario === 1
         ) {
           comision = this.ordenesPendientes.reduce((total, orden) => {
             total += parseFloat(orden.monto_pago || 0);
@@ -537,7 +547,7 @@ export default {
 
       totalComisionesPendientes() {
         let comision = 0;
-        if (this.departamento === "Diseño") {
+        if (this.idModuloUsuario === 3) {
           comision = this.ordenesPendientes.reduce((total, orden) => {
             if (orden.progreso !== "terminada") {
               total += parseFloat(orden.monto_pago || 0);
@@ -545,8 +555,8 @@ export default {
             return total;
           }, 0);
         } else if (
-          this.departamento === "Comercialización" ||
-          this.departamento === "Administración"
+          this.idModuloUsuario === 2 ||
+          this.idModuloUsuario === 1
         ) {
           comision = this.ordenesPendientes.reduce((total, orden) => {
             total += parseFloat(orden.monto_pago || 0);
@@ -584,12 +594,12 @@ export default {
       },
 
       trabajosTerminados() {
-        if (this.departamento === "Diseño") {
+        if (this.idModuloUsuario === 3) {
           // return this.ordenesTerminadas.filter((el) => el.estatus === "Aprobado");
           return this.ordenesTerminadas;
         } else if (
-          this.departamento === "Comercialización" ||
-          this.departamento === "Administración"
+          this.idModuloUsuario === 2 ||
+          this.idModuloUsuario === 1
         ) {
           // return this.ordenesTerminadas.filter((el) => el.progreso === 'terminada')
           return this.ordenesTerminadas;
@@ -662,7 +672,7 @@ export default {
 
       trabajosPendientes() {
         // return null;
-        if (this.departamento === "Diseño") {
+        if (this.idModuloUsuario === 3) {
           return this.ordenesPendientes.filter(
             (el) => el.progreso !== "terminada"
           );
@@ -696,7 +706,7 @@ export default {
     mounted() {
       let tipo = "";
 
-      if (this.departamento === "Diseño") {
+      if (this.idModuloUsuario === 3) {
         tipo = "disenador";
       } else {
         tipo = "empleado";

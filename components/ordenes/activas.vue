@@ -91,8 +91,7 @@
                 />
               </b-col>
               <b-col class="col-12 col-md-4 mb-4 pb-4" v-if="
-                this.$store.state.login.dataUser
-                  .departamento === 'Administración'
+                accessModule.accessData.id_modulo === 1
               ">
                 <h3>Vendedor</h3>
                 <b-form-select
@@ -217,6 +216,7 @@
 <script>
 import { mapState } from "vuex";
 import mixin from "~/mixins/mixins.js";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
   data() {
@@ -430,7 +430,7 @@ export default {
     await this.fetchPage({ reset: true });
   },
 
-  mixins: [mixin],
+  mixins: [mixin, accessModuleMixin],
 };
 </script>
 

@@ -7,14 +7,14 @@
         <b-modal :id="modal" :title="title" hide-footer size="xl">
             <b-overlay :show="overlay" spinner-small>
                 <b-alert class="text-center pt-4" v-if="
-                    this.$store.state.login.dataUser.departamento === 'Impresión' &&
+                    this.$store.getters['login/currentDepartamentTipo'] === 'impresion' &&
                     this.item.fecha_inicio != null
                 ">
                     Solicitar ingresar metros impresos
                 </b-alert>
                 <b-alert class="text-center pt-4" v-if="
                     dataTable2.length === 0 &&
-                    this.$store.state.login.dataUser.departamento === 'Corte'
+                    this.$store.getters['login/currentDepartamentTipo'] === 'corte'
                 " show variant="danger">
                     <h3 class="alert-heading">No ha seleccionado las telas</h3>
                     <p>
@@ -24,7 +24,7 @@
                 </b-alert>
 
                 <div v-else>
-                    <div v-if="this.$store.state.login.dataUser.departamento === 'Corte'">
+                    <div v-if="this.$store.getters['login/currentDepartamentTipo'] === 'corte'">
                         <h3 class="text-center">
                             Llene los datos de el peso de las piezas
                         </h3>
@@ -104,7 +104,7 @@ export default {
 
         terminarTrabajo(item) {
             let msg
-            if (this.$store.state.login.dataUser.departamento === 'Corte') {
+            if (this.$store.getters['login/currentDepartamentTipo'] === 'corte') {
                 msg = `¿Ha terminado con éste producto? RECUERDE INGRESAR EL PESO DE LAS PIEZAS CORTADAS ANTES DE TERMINAR`
             } else {
                 msg = `¿Ha terminado con éste producto?`

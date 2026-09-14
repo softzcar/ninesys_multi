@@ -6,7 +6,7 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Administración' || dataUser.departamento === 'Producción'">
+      <div v-if="accessModule.accessData.id_modulo === 1 || accessModule.accessData.id_modulo === 5">
         <b-overlay :show="overlay" spinner-small>
           <b-container class="mt-4">
             <!-- Header section with elegant layout -->

@@ -104,9 +104,10 @@
 <script>
 import { mapState } from "vuex";
 import mixins from "~/mixins/mixins.js";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
-  mixins: [mixins],
+  mixins: [mixins, accessModuleMixin],
   data() {
     return {
       loading: false,
@@ -124,12 +125,15 @@ export default {
   computed: {
     ...mapState("login", ["access", "dataUser", "currentDepartamentId", "currentDepartament"]),
     isAdmin() {
+      // Autorización por ID, no por nombre/fila -- auditoría de seguridad
+      // 2026-09-14. Antes comparaba texto ('Administración') y
+      // currentDepartamentId (el _id de la FILA de departamento, que varía
+      // por empresa y ya causó un bug real de confusión, ver el comentario
+      // que reemplaza este). id_modulo es el ID estable (tabla central
+      // api_empresas.modulos, igual en todas las empresas).
       return (
         Number(this.dataUser?.acceso) === 1 ||
-        this.currentDepartament === "Administración" ||
-        // ID 5 = Administración según la plantilla estándar de nueva empresa
-        // (antes decía 7 por error, que en realidad es Diseño, ver hallazgo 2026-08-03).
-        this.currentDepartamentId === 5
+        this.accessModule.accessData.id_modulo === 1
       );
     },
     vendedoresOptions() {

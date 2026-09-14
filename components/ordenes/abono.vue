@@ -152,8 +152,7 @@
                 <b-row>
                   <b-col>
                     <div v-if="
-                      this.$store.state.login.dataUser.departamento ===
-                      'Administración'
+                      accessModule.accessData.id_modulo === 1
                     ">
                       <hr />
                       <h4>Descuento</h4>
@@ -164,8 +163,7 @@
                   <!-- <b-form-input min="0" :disabled="inputDisabled" v-model="value" type="number"
                   placeholder="Abono"></b-form-input>-->
                   <div v-if="
-                    this.$store.state.login.dataUser.departamento ===
-                    'Administración'
+                    accessModule.accessData.id_modulo === 1
                   ">
                     <campo-decimal :disabled="inputDisabled" v-model="valueDescuento"
                       placeholder="Descuento" class="mt-4 mb-2"></campo-decimal>
@@ -203,12 +201,13 @@
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 import { mapState } from "vuex";
 import FormMonedas from "~/components/formMonedas.vue";
 import MetodosPagoDinamico from "~/components/ordenes/MetodosPagoDinamico.vue";
 
 export default {
-  mixins: [mixin],
+  mixins: [mixin, accessModuleMixin],
   components: { FormMonedas, MetodosPagoDinamico },
   data() {
     return {

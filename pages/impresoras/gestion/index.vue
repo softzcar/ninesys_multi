@@ -7,13 +7,11 @@
         <div v-else>
             <menus-MenuLoader />
             <div v-if="
-                dataUser.departamento === 'Administración' ||
-                dataUser.departamento === 'Producción' ||
                 accessModule.accessData.id_modulo === 1 ||
                 accessModule.accessData.id_modulo === 3 ||
                 accessModule.accessData.id_modulo === 4 ||
-                accessModule.accessData.id_modulo === 6 
-                
+                accessModule.accessData.id_modulo === 5 ||
+                accessModule.accessData.id_modulo === 6
             ">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container fluid>

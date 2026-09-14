@@ -697,6 +697,7 @@ import ProductSelectorModal from "~/components/ordenes/ProductSelectorModal.vue"
 import PrintService from '@/utils/PrintService';
 import SelectorGeografico from "~/components/customers/SelectorGeografico.vue";
 import MetodosPagoDinamico from "~/components/ordenes/MetodosPagoDinamico.vue";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
   components: {
@@ -2926,8 +2927,8 @@ export default {
 
           if (wantsToPrint) {
             // Lógica de impresión con PrintService
-            const departamento = this.$store.state.login.dataUser.departamento;
-            const mostrarPrecio = (departamento === "Administración" || departamento === "Comercialización") ? "table-cell" : "none";
+            const idModulo = this.accessModule.accessData.id_modulo;
+            const mostrarPrecio = (idModulo === 1 || idModulo === 2) ? "table-cell" : "none";
 
             const styles = `
               <style>
@@ -3838,7 +3839,7 @@ export default {
     window.removeEventListener("resize", this.handleResize);
   },
 
-  mixins: [mixins, procesamientoOrdenes, phoneValidation],
+  mixins: [mixins, procesamientoOrdenes, phoneValidation, accessModuleMixin],
 
 };
 </script>

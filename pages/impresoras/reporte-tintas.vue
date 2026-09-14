@@ -9,7 +9,7 @@
       <menus-MenuLoader />
       
       <!-- Restricción por Departamento -->
-      <div v-if="dataUser.departamento === 'Administración' || dataUser.departamento === 'Producción'">
+      <div v-if="accessModule.accessData.id_modulo === 1 || accessModule.accessData.id_modulo === 5">
         <b-overlay :show="overlay" spinner-variant="info" rounded="sm">
           <b-container fluid class="mt-4 px-md-5 pb-5">
             
@@ -252,10 +252,11 @@
 <script>
 import { mapState } from "vuex";
 import mixin from "~/mixins/mixins.js";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
   name: "ReporteTintasPage",
-  mixins: [mixin],
+  mixins: [mixin, accessModuleMixin],
   
   data() {
     return {

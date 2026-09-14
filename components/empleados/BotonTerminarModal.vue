@@ -10,8 +10,7 @@
                 <b-alert class="text-center pt-4" v-if="
                     dataTable2.length === 0 &&
                     item.progreso === 'en curso' &&
-                    this.$store.state.login.dataUser.departamento ===
-                    'Corte'
+                    this.$store.getters['login/currentDepartamentTipo'] === 'corte'
                 " show variant="danger">
                     <h3 class="alert-heading">No ha seleccionado las telas</h3>
                     <p>
@@ -22,8 +21,7 @@
 
                 <div v-else-if="item.progreso === 'en curso'">
                     <div v-if="
-                        this.$store.state.login.dataUser.departamento ===
-                        'Corte'
+                        this.$store.getters['login/currentDepartamentTipo'] === 'corte'
                     ">
                         <h3 class="text-center">
                             Llene los datos de el peso de las piezas
@@ -112,7 +110,7 @@ export default {
 
         terminarTrabajo(item) {
             let msg
-            if (this.$store.state.login.dataUser.departamento === "Corte") {
+            if (this.$store.getters['login/currentDepartamentTipo'] === 'corte') {
                 msg = `¿Ha terminado con éste producto? RECUERDE INGRESAR EL PESO DE LAS PIEZAS CORTADAS ANTES DE TERMINAR`
             } else {
                 msg = `¿Ha terminado con éste producto?`

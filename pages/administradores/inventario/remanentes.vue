@@ -6,7 +6,7 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Administración'">
+      <div v-if="accessModule.accessData.id_modulo === 1">
         <b-overlay :show="cargando" spinner-small>
           <b-container fluid>
             <b-row>
@@ -139,9 +139,12 @@
 
 <script>
 import { mapState } from 'vuex'
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
   name: 'GestionRemanentes',
+
+  mixins: [accessModuleMixin],
 
   data() {
     return {

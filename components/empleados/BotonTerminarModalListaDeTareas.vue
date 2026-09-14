@@ -20,8 +20,8 @@
         <b-alert
           class="text-center pt-4"
           v-if="
-                        this.$store.state.login.dataUser.departamento ===
-                            'Impresión' && this.item.fecha_inicio != null
+                        this.$store.getters['login/currentDepartamentTipo'] ===
+                            'impresion' && this.item.fecha_inicio != null
                     "
         >
           Solicitar ingresar metros impresos

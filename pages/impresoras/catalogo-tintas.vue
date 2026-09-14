@@ -6,7 +6,7 @@
 
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Administración' || dataUser.departamento === 'Producción'">
+      <div v-if="accessModule.accessData.id_modulo === 1 || accessModule.accessData.id_modulo === 5">
         <b-overlay :show="overlay" spinner-small>
           <b-container class="mt-4">
             <!-- Header section with elegant layout -->
@@ -125,9 +125,11 @@
 
 <script>
 import { mapState } from "vuex";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
   name: 'CatalogoTintas',
+  mixins: [accessModuleMixin],
   data() {
     return {
       titulo: "Catálogo de Clasificación de Tintas",

@@ -7,13 +7,13 @@
         <div v-else>
             <menus-MenuLoader />
             <div v-if="
-                dataUser.departamento === 'Administración' ||
-                dataUser.departamento === 'Producción'
+                accessModule.accessData.id_modulo === 1 ||
+                accessModule.accessData.id_modulo === 5
             ">
                 <b-overlay :show="overlay" spinner-small>
                     <b-container fluid v-if="
-                        dataUser.departamento === 'Administración' ||
-                        dataUser.departamento === 'Producción'
+                        accessModule.accessData.id_modulo === 1 ||
+                        accessModule.accessData.id_modulo === 5
                     ">
                         <b-alert v-if="componentError" show variant="danger" dismissible @dismissed="componentError = ''">
                             <strong>Error al renderizar un control:</strong> {{ componentError }}
@@ -200,8 +200,10 @@
 import { mapState } from "vuex"
 import axios from "axios"
 import PrintService from "@/utils/PrintService"
+import accessModuleMixin from "~/mixins/mixin-login.js"
 
 export default {
+    mixins: [accessModuleMixin],
     props: {
         // Cuando este componente vive dentro del wizard (OperativaWizard.vue),
         // el usuario puede crear un insumo en "Catálogo de insumos" (arriba,

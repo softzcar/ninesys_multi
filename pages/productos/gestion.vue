@@ -7,8 +7,8 @@
     <div v-else>
       <menus-MenuLoader />
       <div v-if="
-                dataUser.departamento === 'Administración' ||
-                dataUser.departamento === 'Producción'
+                accessModule.accessData.id_modulo === 1 ||
+                accessModule.accessData.id_modulo === 5
             ">
         <b-overlay
           :show="overlay"
@@ -17,8 +17,8 @@
           <b-container
             fluid
             v-if="
-                        dataUser.departamento === 'Administración' ||
-                        dataUser.departamento === 'Producción'
+                        accessModule.accessData.id_modulo === 1 ||
+                        accessModule.accessData.id_modulo === 5
                     "
           >
             <b-row>
@@ -142,8 +142,10 @@
 
 <script>
 import { mapState } from "vuex";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
+  mixins: [accessModuleMixin],
   props: {
     // Cuando esta página vive dentro de un paso de vue-form-wizard, la
     // librería monta TODOS los pasos de una vez (usa v-show, no v-if) --

@@ -15,8 +15,7 @@
     >
       <div v-if="
                     this.$store.state.login.dataUser.acceso ||
-                    this.$store.state.login.dataUser.departamento ===
-                        'Comercialización'
+                    accessModule.accessData.id_modulo === 2
                 ">
         Enviar aprobación
         <span v-html="whatsAppMe('584147307169', true, msgAprobacion)"></span>
@@ -60,9 +59,10 @@
 
 <script>
 import mixin from "~/mixins/mixins.js";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 
 export default {
-  mixins: [mixin],
+  mixins: [mixin, accessModuleMixin],
 
   data() {
     return {

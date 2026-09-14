@@ -551,10 +551,14 @@ export default {
       return this.$store.state.login.dataEmpresa?.moneda_base?.nombre || "Dólares";
     },
     isAdmin() {
+      // Autorización por ID, no por nombre/fila -- auditoría de seguridad
+      // 2026-09-14 (mismo fix que balance-cierres.vue). id_modulo es el ID
+      // estable (tabla central api_empresas.modulos), a diferencia de
+      // currentDepartamentId (el _id de la fila de departamento, que varía
+      // por empresa).
       return (
         Number(this.dataUser?.acceso) === 1 ||
-        this.$store.state.login.currentDepartament === "Administración" ||
-        this.$store.state.login.currentDepartamentId === 5
+        this.accessModule.accessData.id_modulo === 1
       );
     },
     pagosFiltrados() {

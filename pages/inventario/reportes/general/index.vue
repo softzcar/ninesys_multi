@@ -8,16 +8,16 @@
             <menus-MenuLoader />
             <div
                 v-if="
-                    dataUser.departamento === 'Administración' ||
-                    dataUser.departamento === 'Producción'
+                    accessModule.accessData.id_modulo === 1 ||
+                    accessModule.accessData.id_modulo === 5
                 "
             >
                 <b-overlay :show="overlay" spinner-small>
                     <b-container
                         fluid
                         v-if="
-                            dataUser.departamento === 'Administración' ||
-                            dataUser.departamento === 'Producción'
+                            accessModule.accessData.id_modulo === 1 ||
+                            accessModule.accessData.id_modulo === 5
                         "
                     >
                         <b-row>
@@ -68,8 +68,10 @@
 <script>
 import { mapState } from "vuex"
 import axios from "axios"
+import accessModuleMixin from "~/mixins/mixin-login.js"
 
 export default {
+    mixins: [accessModuleMixin],
     data() {
         return {
             titulo: "Gestión de Inventario",

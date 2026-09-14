@@ -3,7 +3,7 @@
     <div v-if="!access"><login-form /></div>
     <div v-else>
       <menus-MenuLoader />
-      <div v-if="dataUser.departamento === 'Administración'">
+      <div v-if="accessModule.accessData.id_modulo === 1">
         <admin-GastosVariables />
       </div>
       <div v-else>
@@ -20,8 +20,10 @@
 </template>
 <script>
 import { mapState } from "vuex";
+import accessModuleMixin from "~/mixins/mixin-login.js";
 export default {
   name: 'EmpresaGastosVariables',
+  mixins: [accessModuleMixin],
   computed: { ...mapState("login", ["dataUser", "access"]) },
   head() { return { title: 'Gastos Variables - Ninesys' } }
 };
