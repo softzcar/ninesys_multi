@@ -71,7 +71,7 @@ Para cada formulario, probar con **al menos 2 monedas distintas en el mismo pago
 - [x] La vendedora Zenaida sigue apareciendo en el select de empleados de balance ya bonos y pagos en poduccion, investigar si el bug es solo en esta pagina o en todo el sItema, la vendedora zenaida esta desactivada en el sistema.
 - [x] Eliminar el reporte 'Cortar' De Producción
 - [x] En el reporte que meuestra 'Buscar' parece estat harcodeada la dirección de la empresa, debe mostrase la dierección que se le asigne a cda empresa en su configuración.
-- [ ] WhatApp tambene sta mezclando las empresas
+- [x] WhatApp tambene sta mezclando las empresas
 - [x] wizard de inicio: Agregar emoleados, seleccioanr departametneos que si se van a utilizar, 
 - [x] wizard inicio: NEcesitmaos en el wizard ocnfigurar de manera sistematica y logica la carga inicial de datos, 
 - [x] En crear nueva orden tenemos productos que son impresion por ejemplo, estos productos NO llevan talla, puede que leven tela o simplemente se venda la impresion en papel... lo quehace tambena l corte opcional, veamos como podemos indicar que existen porductos que no son prendas pero sis e fabrican.
