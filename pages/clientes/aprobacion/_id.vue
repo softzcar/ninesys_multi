@@ -5,7 +5,18 @@
       spinner-small
     >
       <b-container class="text-center">
-        <b-row v-if="
+        <b-row v-if="enlaceInvalido">
+          <b-col>
+            <b-alert
+              variant="danger"
+              class="text-center mt-4"
+              show
+            >
+              Este enlace no es válido o ya venció. Por favor solicite uno nuevo.
+            </b-alert>
+          </b-col>
+        </b-row>
+        <b-row v-else-if="
                         idOrden === undefined ||
                         this.imageUrl ===
                             `${this.$config.CDN}/images/no-image.png`
@@ -152,6 +163,7 @@ export default {
       myOrder: null,
       overlay: true,
       miCliente: "",
+      enlaceInvalido: false,
     };
   },
 
@@ -180,11 +192,21 @@ export default {
     async getOrdenes() {
       this.overlay = true;
       await this.$axios
-        .get(`${this.$config.API}/ordenes/reporte/${this.idOrden}`)
+        .get(`${this.$config.API}/ordenes/reporte/${this.idOrden}`, {
+          params: { token: this.$route.query.token },
+        })
         .then((resp) => {
           this.myOrder = resp.data;
           this.disenoLength = resp.data.diseno.length;
           this.miCliente = `${resp.data.customer[0].first_name} ${resp.data.customer[0].last_name}`;
+          this.overlay = false;
+        })
+        .catch((err) => {
+          // Enlace inválido/vencido -- auditoría de seguridad 2026-09-15,
+          // ver AprobacionClienteHelper.php. Antes esta llamada nunca fallaba.
+          if (err.response && err.response.status === 403) {
+            this.enlaceInvalido = true;
+          }
           this.overlay = false;
         });
     },
@@ -206,6 +228,7 @@ export default {
     async enviarAprobacion() {
       const data = new URLSearchParams();
       data.set("id_orden", this.idOrden);
+      data.set("token", this.$route.query.token || "");
       if (this.myOrder.diseno.length > 0) {
         this.overlay = true;
         data.set("id_diseno", this.myOrder.diseno[0].id_diseno);

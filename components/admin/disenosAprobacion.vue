@@ -71,6 +71,9 @@
                                 <b-button class="floatme" @click="disenoRechazar(rev)" variant="danger">
                                     <b-icon icon="x-lg"></b-icon>
                                 </b-button>
+                                <b-button class="floatme" @click="copiarEnlaceAprobacion(rev.id_orden)" variant="outline-secondary" title="Copiar enlace de aprobación para el cliente">
+                                    <b-icon icon="link-45deg"></b-icon>
+                                </b-button>
                             </b-form>
                         </b-card-text>
                     </b-card>
@@ -171,6 +174,27 @@ export default {
             }
 
             return this.estatusRevision.text
+        },
+
+        // Enlace de aprobación firmado -- auditoría de seguridad 2026-09-15
+        // (ver AprobacionClienteHelper.php en ninesys-api). Antes el link se
+        // armaba/compartía manualmente con solo el id_orden en la URL, sin
+        // ningún control de acceso.
+        async copiarEnlaceAprobacion(idOrden) {
+            await this.$axios
+                .get(`${this.$config.API}/disenos/aprobacion-de-cliente/${idOrden}/enlace`)
+                .then(async (res) => {
+                    const url = `${window.location.origin}/clientes/aprobacion/${idOrden}?token=${res.data.token}`
+                    await navigator.clipboard.writeText(url)
+                    this.alertMsg = "Enlace de aprobación copiado al portapapeles."
+                    this.variantMsg = "success"
+                    this.showMsg = true
+                })
+                .catch(() => {
+                    this.alertMsg = "No se pudo generar el enlace de aprobación."
+                    this.variantMsg = "danger"
+                    this.showMsg = true
+                })
         },
 
         async enviarEstatus(estatus, id_revision, id_orden) {
