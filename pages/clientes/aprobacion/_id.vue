@@ -154,14 +154,11 @@ export default {
   name: "NinesysRevision",
 
   // Página pública -- auditoría de seguridad 2026-09-15, hallazgo de la Fase G.
-  // El middleware "auth" global (nuxt.config.js router.middleware) redirige a
-  // "/" a cualquier visitante sin sesión, pero esta página la abre un CLIENTE
-  // externo desde un enlace de WhatsApp, sin ninguna cuenta de Ninesys -- la
-  // validación real ya la hace el backend con el token firmado de la URL
-  // (ver AprobacionClienteHelper.php), no una sesión de empleado. Sin este
-  // override, el enlace nunca funcionaba para un cliente real: se lo mandaba
-  // directo al login. Confirmado en vivo antes de este fix.
-  middleware: [],
+  // La validación real la hace el backend con el token firmado de la URL (ver
+  // AprobacionClienteHelper.php), no una sesión de empleado -- un `middleware:
+  // []` puesto acá NO alcanza para saltarse el guard global (confirmado en
+  // vivo: seguía redirigiendo a "/"). La excepción real vive en
+  // middleware/auth.js (PREFIJOS_RUTAS_PUBLICAS_CLIENTE).
 
   data() {
     return {

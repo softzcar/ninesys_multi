@@ -1,5 +1,16 @@
 const RUTAS_EXENTAS_WIZARD_OPERATIVO = ["/", "/login", "/logout", "/configuracion-operativa"]
 
+// Auditoría de seguridad 2026-09-15 (Fase G, hallazgo real probando end-to-end
+// con datos reales): páginas públicas para un CLIENTE externo sin cuenta de
+// Ninesys (llegan desde un enlace de WhatsApp con su propia validación --
+// token firmado en la URL, ver AprobacionClienteHelper.php -- no una sesión
+// de empleado). El override `middleware: []` puesto en el propio componente
+// de la página NO alcanzó para saltarse este middleware global (confirmado
+// en vivo: seguía redirigiendo a "/"), así que la excepción se hace acá,
+// mismo patrón que RUTAS_EXENTAS_WIZARD_OPERATIVO ya usa. Se compara con
+// startsWith porque el id de la orden varía.
+const PREFIJOS_RUTAS_PUBLICAS_CLIENTE = ["/clientes/aprobacion/"]
+
 // El sitio se genera estático (npm run generate), así que las rutas reales
 // llegan con slash final (ej. "/configuracion-operativa/") -- sin normalizar,
 // las comparaciones exactas de abajo nunca matchean y el middleware termina
@@ -14,6 +25,10 @@ function normalizarRuta(path) {
 
 export default function ({ store, route, redirect }) {
     const path = normalizarRuta(route.path)
+
+    if (PREFIJOS_RUTAS_PUBLICAS_CLIENTE.some((prefijo) => path.startsWith(prefijo))) {
+        return
+    }
 
     // Si el usuario no tiene una empresa válida O no está autenticado
     if (!store.state?.login?.idEmpresa || store.state.login.idEmpresa === 0 || !store.state?.login?.access) {
