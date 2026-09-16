@@ -36,8 +36,16 @@ export default {
   },
   computed: {
     displayData() {
-      // Mostrar solo las últimas N órdenes para no saturar el gráfico
-      return this.reportData.slice(-this.maxBars);
+      // Mostrar solo las órdenes más recientes (mayor id_orden) para no
+      // saturar el gráfico. Antes se usaba slice(-maxBars) asumiendo que
+      // reportData siempre venía ordenado DESC por id_orden (como lo entrega
+      // el backend) -- pero ese orden se rompe si el usuario ordena la tabla
+      // por otra columna, dejando el gráfico mostrando las órdenes más
+      // ANTIGUAS del rango filtrado en vez de las recientes. Se ordena
+      // explícitamente antes de cortar, y se invierte para mostrarlas en
+      // orden cronológico ascendente (más antigua de las N a la izquierda).
+      const sorted = [...this.reportData].sort((a, b) => Number(b.id_orden) - Number(a.id_orden));
+      return sorted.slice(0, this.maxBars).reverse();
     },
     categories() {
       return this.displayData.map(d => `#${d.id_orden}`);

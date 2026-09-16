@@ -102,6 +102,13 @@
                   :id_orden="data.item.id_orden"
                   :costo-insumos-total="Number(data.item.costo_insumos_total || 0)"
                 />
+                <b-icon-exclamation-triangle-fill
+                  v-if="data.item.insumos_sin_costo > 0"
+                  variant="warning"
+                  class="ml-1"
+                  v-b-tooltip.hover
+                  :title="`${data.item.insumos_sin_costo} insumo(s) eliminado(s) del catálogo no están incluidos en este costo`"
+                />
               </template>
               <template #cell(costo_mano_de_obra_total)="data">
                 <reporte-costos-produccion-labor
@@ -174,8 +181,18 @@
               <template #cell(tiempo_de_produccion)="data">
                 {{ data.item.tiempo_de_produccion.toFixed(2) }} hrs
               </template>
+              <template #head(pago_total)="data">
+                <span v-b-tooltip.hover title="Monto facturado de la orden, no necesariamente lo ya cobrado (no descuenta deuda pendiente)">
+                  {{ data.label }}
+                </span>
+              </template>
               <template #cell(pago_total)="data">
                 $ {{ data.item.pago_total.toFixed(2) }}
+              </template>
+              <template #head(ganancia)="data">
+                <span v-b-tooltip.hover title="Sobre lo facturado (pago_total), no sobre lo efectivamente cobrado">
+                  {{ data.label }}
+                </span>
               </template>
               <template #cell(ganancia)="data">
                 <strong
@@ -280,6 +297,18 @@
                 <b-list-group-item v-if="totalMantenimientoUSD > 0" class="d-flex justify-content-between align-items-center">
                   <span>Mantenimiento de Impresoras (Servicios):</span>
                   <b-badge variant="warning" pill>$ {{ totalMantenimientoUSD.toFixed(2) }}</b-badge>
+                </b-list-group-item>
+                <b-list-group-item
+                  v-if="costosOperativos.total_ordenes_con_insumos_huerfanos > 0"
+                  class="d-flex justify-content-between align-items-center"
+                >
+                  <span>
+                    <b-icon-exclamation-triangle-fill variant="warning" class="mr-1" />
+                    Insumos eliminados del catálogo sin costo calculable:
+                  </span>
+                  <b-badge variant="secondary" pill>
+                    {{ costosOperativos.total_movimientos_insumos_huerfanos }} movimiento(s) en {{ costosOperativos.total_ordenes_con_insumos_huerfanos }} orden(es)
+                  </b-badge>
                 </b-list-group-item>
                 <b-list-group-item class="d-flex justify-content-between align-items-center bg-light">
                   <strong>Utilidad Neta del Periodo (Estimada):</strong>
@@ -663,6 +692,7 @@ export default {
         this.salariosEmpleados = data.salarios_data || [];
         this.tintasResumen = data.tintas_resumen || [];
         this.costosOperativos = data.costos_operativos || {};
+        const factorAjusteEmpleado = data.factor_ajuste_empleado || {};
 
         const tintasMap = {};
         this.tintasResumen.forEach(t => tintasMap[t.id_orden] = t);
@@ -677,7 +707,8 @@ export default {
             item.empleados_asignados,
             this.horaEmpleadosPrecios,
             horarioLaboral,
-            this.horaEmpleadosTiempos
+            this.horaEmpleadosTiempos,
+            factorAjusteEmpleado
           );
 
           const tinta_consumo = tintasMap[id]?.total_tinta_consumo_ml || 0;

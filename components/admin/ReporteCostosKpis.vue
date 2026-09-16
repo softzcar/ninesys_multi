@@ -22,7 +22,7 @@
         <div class="kpi-body">
           <span class="kpi-label">Total Ventas</span>
           <span class="kpi-value">$ {{ formatMoney(totals.pago_total) }}</span>
-          <span class="kpi-sub">ingresos del período</span>
+          <span class="kpi-sub" v-b-tooltip.hover title="Monto facturado, no necesariamente lo ya cobrado">facturado del período *</span>
         </div>
       </div>
 
@@ -46,7 +46,7 @@
         <div class="kpi-body">
           <span class="kpi-label">Utilidad Neta</span>
           <span class="kpi-value">$ {{ formatMoney(totals.ganancia) }}</span>
-          <span class="kpi-sub">{{ margenPorcentaje }}% de margen</span>
+          <span class="kpi-sub" v-b-tooltip.hover title="Estimada sobre lo facturado, no sobre lo efectivamente cobrado">{{ margenPorcentaje }}% de margen *</span>
         </div>
       </div>
 

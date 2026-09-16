@@ -355,9 +355,13 @@ export default {
          * @param {Array} empleadosData - Array de objetos con info de empleados: [{id_usuario, salario_tipo, costo_por_hora}].
          * @param {Object} horarioLaboral - Objeto con horario laboral: {horaInicioManana, horaFinManana, horaInicioTarde, horaFinTarde, diasLaborales: []}.
          * @param {Array} tareasData - Array de objetos con tareas: [{id_orden, id_empleado, fecha_inicio, fecha_terminado, minutos_transcurridos}].
+         * @param {Object} [factorAjusteEmpleado] - Mapa opcional {id_empleado: factor} para topar el
+         *   sobre-conteo cuando el mismo empleado tiene tareas solapadas en distintas órdenes
+         *   ("cierre por lotes") -- viene de la API (`factor_ajuste_empleado`, reports.php). Sin él,
+         *   se asume factor 1 (sin ajuste), igual que antes de este fix.
          * @returns {number} Costo total en salarios para la orden, redondeado a 2 decimales.
          */
-        calcularCostoSalariosOrden(idOrden, empleadosIds, empleadosData, horarioLaboral, tareasData) {
+        calcularCostoSalariosOrden(idOrden, empleadosIds, empleadosData, horarioLaboral, tareasData, factorAjusteEmpleado) {
             try {
                 // Convertir empleadosIds a array de números, manejar string, número o vacío
                 let empleadosIdsArray = [];
@@ -400,7 +404,8 @@ export default {
                     const horasLaboradas = this.calcularHorasLaboradasReales(tarea.fecha_inicio, tarea.fecha_terminado, horarioLaboral);
                     const costoPorHora = costoPorHoraMap[Number(tarea.id_empleado)];
                     if (costoPorHora) {
-                        costoTotal += horasLaboradas * costoPorHora;
+                        const factor = factorAjusteEmpleado?.[tarea.id_empleado] ?? 1;
+                        costoTotal += horasLaboradas * costoPorHora * factor;
                     }
                 });
 

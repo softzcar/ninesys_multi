@@ -213,6 +213,8 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+
 export default {
   name: "ReporteCostosProduccionGastos",
   props: {
@@ -272,6 +274,7 @@ export default {
     };
   },
   computed: {
+    ...mapState("login", ["tasas"]),
     modalId() {
       return `modal-gastos-operativos-${this.tipo}-${this.id_orden}`;
     },
@@ -321,22 +324,38 @@ export default {
       return Array.isArray(this.gastosRealesDetalles) ? this.gastosRealesDetalles : [];
     },
     totalTemplatesProrrateado() {
+      // Convierte cada plantilla a USD según su propia moneda antes de sumar --
+      // sin esto, gastos fijos registrados en VES/COP se sumarían como si
+      // fueran USD (mismo criterio de conversión ya usado en el padre,
+      // ReporteCostosProduccion.vue, getTasaKey()/totalGastosPorTipoUSD).
       if (this.tipo !== "fijo") return 0;
-      return this.gastosPlantillasFijas.reduce(
-        (sum, item) => sum + (Number(item.monto_prorrateado) || 0),
-        0
-      );
+      return this.gastosPlantillasFijas.reduce((sum, item) => {
+        const tasa = parseFloat(this.tasas?.[this.getTasaKey(item.moneda)]) || 1;
+        return sum + (Number(item.monto_prorrateado) || 0) / tasa;
+      }, 0);
     },
     totalRealesSum() {
-      return this.realesFiltrados.reduce(
-        (sum, item) => sum + (Number(item.monto) || 0),
-        0
-      );
+      return this.realesFiltrados.reduce((sum, item) => {
+        const tasa = parseFloat(this.tasas?.[this.getTasaKey(item.moneda)]) || 1;
+        return sum + (Number(item.monto) || 0) / tasa;
+      }, 0);
     },
   },
   methods: {
     showModal() {
       this.$bvModal.show(this.modalId);
+    },
+    // Mismo mapeo que ReporteCostosProduccion.vue (getTasaKey) -- tasas.* son
+    // "unidades de esa moneda por 1 USD", así que para ir de moneda local a
+    // USD hay que dividir, no multiplicar.
+    getTasaKey(moneda) {
+      const map = {
+        USD: "dolar",
+        VES: "bolivar",
+        COP: "peso_colombiano",
+        BS: "bolivar",
+      };
+      return map[(moneda || "USD").toUpperCase()] || "dolar";
     },
     formatDate(dateStr) {
       if (!dateStr) return "—";
