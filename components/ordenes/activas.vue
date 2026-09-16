@@ -125,6 +125,15 @@
           <h3 class="mb-3 text-primary">
             {{ filterName }} -- {{ dataTable.length }}<span v-if="selectedRadio === 'todas'"> de {{ totalCount }}</span> Ordenes
           </h3>
+
+          <b-pagination
+            v-if="dataTable.length > perPage"
+            v-model="currentPage"
+            :total-rows="dataTable.length"
+            :per-page="perPage"
+            align="center"
+          ></b-pagination>
+
           <b-table
             ref="table"
             responsive
