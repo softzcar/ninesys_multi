@@ -1,0 +1,17 @@
+- **Solicitud del Usuario:** "en la pagin `/comercializacion/ordenes/activas` vamos a poner la paginación de la tabla también en la parte superior, en este momento solo la tenemos en la pare inferior."
+- **Fecha y Hora:** 2026-09-16 ~14:00-14:15
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:** `components/ordenes/activas.vue`
+- **Commits Relacionados:**
+    - Frontend: `099f2d3` (fix), `03b7e00` (CHANGELOG v1.0.33) en `refactor/modular-routes`
+    - Backend: N/A
+- **Acción Realizada:** La tabla de Órdenes Activas (Comercialización) solo tenía el control `b-pagination` de BootstrapVue debajo de la tabla. Se duplicó el mismo bloque (`v-model="currentPage"`, `:total-rows="dataTable.length"`, `:per-page="perPage"`, `v-if="dataTable.length > perPage"`) justo antes de `<b-table`, reutilizando las mismas variables reactivas del componente -- ambos controles (arriba y abajo) quedan sincronizados automáticamente sin lógica adicional. Es una página 100% client-side en cuanto a paginación (el backend ya trae el universo completo con `todos: 1`), así que no hizo falta tocar `fetchPage()` ni ningún computed.
+- **Inconvenientes y Desafíos:** Ninguno -- cambio de template acotado, sin lógica nueva.
+- **Decisión Final y Justificación:** No existía en el proyecto un patrón ya armado de "paginación arriba + abajo" para reutilizar (se verificó buscando en todo `app_multi`), así que se optó por la solución más simple y consistente: duplicar el `b-pagination` ya existente en vez de introducir un componente nuevo.
+- **Herramienta(s) Utilizada(s):** Explore agent (verificación de patrón existente), Edit dirigido, servidor de desarrollo local (`npm run dev`) para levantar y confirmar visualmente que compilaba sin errores, `git commit`/`push`, `ninesys-hub/bin/deploy_frontend_dev.sh`.
+- **Resultado:** Éxito.
+- **Verificación:** Servidor local levantado y compilado sin errores (`✔ Client: Compiled successfully`). Verificación visual completa delegada al usuario por el bloqueo conocido de Cloudflare Turnstile en `localhost` (no funciona el login local) -- a pedido del propio usuario se desplegó directo a Desarrollo (`app.nineteengreen.com`, donde Turnstile sí funciona) para que la probara ahí.
+- **Logro Conseguido:** La tabla de Órdenes Activas ya no obliga a bajar hasta el final para cambiar de página en listas largas -- mismo control de paginación arriba y abajo, desplegado en Desarrollo (`app_multi` v1.0.33).
+- **Referencias de Sesión (Contexto):** Tarea aislada, primera de la sesión del 2026-09-16. Sin relación con la auditoría de Costo de Mano de Obra que siguió después el mismo día (ver `2026-09-16_15-16-34_tarea-fix-ui-reporte-costos-produccion.log`).
+- **Observaciones de Gemini:** Ninguna. Sesión ejecutada con Claude Code (Sonnet 5), no Antigravity/Gemini -- no existen `task.md`/`walkthrough.md` para esta conversación; este log es la única fuente de registro.
+- **Respuesta de Gemini:** Confirmado: la paginación superior quedó agregada en `/comercializacion/ordenes/activas`, sincronizada con la inferior, desplegada en Desarrollo.
