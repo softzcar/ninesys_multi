@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.34] - 2026-09-16
+- Fix de UI en reportes de costos de mano de obra + wiring de TURNSTILE_SITE_KEY de Producción
+
 ## [v1.0.33] - 2026-09-16
 - Paginación superior en tabla de órdenes activas (Comercialización)
 
