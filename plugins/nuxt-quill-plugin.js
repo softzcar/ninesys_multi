@@ -44,6 +44,43 @@ function crearBarraProgresoQuill(editorRoot) {
     };
 }
 
+// Sube un archivo de imagen al servidor y lo inserta en el editor como embed
+// (URL real servida desde /images-orders-details, nunca base64) -- función
+// compartida entre el botón de la barra de herramientas y la intercepción de
+// pegado/arrastre de más abajo, para que ambos caminos suban el archivo de
+// la misma forma en vez de duplicar la lógica.
+async function subirImagenYEmbeber(quill, file) {
+    const activeApiUrl = (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$config.API) || API_URL;
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const barra = crearBarraProgresoQuill(quill.root);
+    try {
+        const response = await axios.post(`${activeApiUrl}/upload-order-detail-image`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            onUploadProgress: (evt) => {
+                if (evt.total) {
+                    barra.actualizar(Math.round((evt.loaded * 100) / evt.total));
+                }
+            }
+        });
+
+        if (response.data && response.data.url) {
+            const range = quill.getSelection(true) || { index: quill.getLength() };
+            const fullUrl = `${activeApiUrl}${response.data.url}`;
+            quill.insertEmbed(range.index, 'image', fullUrl);
+            quill.setSelection(range.index + 1);
+        }
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Error al subir la imagen');
+    } finally {
+        barra.destruir();
+    }
+}
+
 const options = {
     theme: 'snow', // Puedes cambiar a 'bubble' si prefieres
     modules: {
@@ -66,35 +103,7 @@ const options = {
                     input.onchange = async () => {
                         const file = input.files[0];
                         if (file) {
-                            const activeApiUrl = (typeof window !== 'undefined' && window.$nuxt && window.$nuxt.$config.API) || API_URL;
-                            const formData = new FormData();
-                            formData.append('image', file);
-
-                            const barra = crearBarraProgresoQuill(this.quill.root);
-                            try {
-                                const response = await axios.post(`${activeApiUrl}/upload-order-detail-image`, formData, {
-                                    headers: {
-                                        'Content-Type': 'multipart/form-data'
-                                    },
-                                    onUploadProgress: (evt) => {
-                                        if (evt.total) {
-                                            barra.actualizar(Math.round((evt.loaded * 100) / evt.total));
-                                        }
-                                    }
-                                });
-
-                                if (response.data && response.data.url) {
-                                    const range = this.quill.getSelection();
-                                    const fullUrl = `${activeApiUrl}${response.data.url}`;
-                                    this.quill.insertEmbed(range.index, 'image', fullUrl);
-                                    this.quill.setSelection(range.index + 1);
-                                }
-                            } catch (error) {
-                                console.error('Error uploading image:', error);
-                                alert('Error al subir la imagen');
-                            } finally {
-                                barra.destruir();
-                            }
+                            await subirImagenYEmbeber(this.quill, file);
                         }
                     };
                 }
@@ -102,6 +111,41 @@ const options = {
         },
         blotFormatter: {} // Habilitar BlotFormatter
     }
+}
+
+// Intercepta el pegado (Ctrl+V) y el arrastre de imágenes directamente sobre
+// el editor. Sin esto, Quill usa su comportamiento por defecto: embeber la
+// imagen como base64 en el propio HTML en vez de subirla al servidor -- ese
+// base64 nunca pasa por /upload-order-detail-image, así que la imagen
+// "desaparece" cuando el HTML se guarda y se vuelve a cargar (hallazgo real
+// 2026-09-17, reportado en ordenes/nueva.vue vía "Cargar Orden no Asignada":
+// las imágenes pegadas no se subían y no se veían luego). Debe llamarse una
+// vez el editor está listo (evento @ready de vue-quill-editor).
+export function interceptarPegadoYArrastreDeImagenes(quill) {
+    // Fase de captura: se ejecuta ANTES que el listener interno de Quill
+    // (que escucha 'paste' en fase de burbuja), así preventDefault() acá
+    // hace que Quill detecte e.defaultPrevented y omita su inserción base64
+    // por defecto.
+    quill.root.addEventListener('paste', (e) => {
+        const items = (e.clipboardData && e.clipboardData.items) || [];
+        const item = Array.from(items).find((it) => it.type && it.type.indexOf('image') === 0);
+        const file = item ? item.getAsFile() : null;
+        if (file) {
+            e.preventDefault();
+            e.stopPropagation();
+            subirImagenYEmbeber(quill, file);
+        }
+    }, true);
+
+    quill.root.addEventListener('drop', (e) => {
+        const files = (e.dataTransfer && e.dataTransfer.files) || [];
+        const file = Array.from(files).find((f) => f.type && f.type.indexOf('image') === 0);
+        if (file) {
+            e.preventDefault();
+            e.stopPropagation();
+            subirImagenYEmbeber(quill, file);
+        }
+    }, true);
 }
 
 // Limpieza de imágenes huérfanas: cuando el usuario quita una imagen ya
