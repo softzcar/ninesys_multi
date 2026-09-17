@@ -153,6 +153,14 @@ export default {
       // permite completar el reintento sin pedir un segundo CAPTCHA, porque
       // Turnstile y la clave ya se verificaron en el intento que lo generó.
       tokenConfirmacionSesion: null,
+      // Mismo mecanismo que el de arriba, para cuando la identidad tiene más
+      // de una empresa: permite completar el login con la empresa elegida
+      // sin pedir un segundo CAPTCHA (Turnstile ya se verificó en el intento
+      // que mostró el selector) -- hallazgo real 2026-09-17: sin esto, elegir
+      // una empresa dejaba el login colgado en "Verificando sus datos"
+      // porque el widget de Turnstile ya no está en pantalla para sacarle un
+      // token nuevo, y aunque lo estuviera, uno reciclado es inválido.
+      tokenSeleccionEmpresa: null,
     };
   },
   computed: {
@@ -173,11 +181,13 @@ export default {
       this.sesionForzada = false;
       this.idEmpresaPendiente = null;
       this.tokenConfirmacionSesion = null;
+      this.tokenSeleccionEmpresa = null;
     },
     "form.password"() {
       this.sesionForzada = false;
       this.idEmpresaPendiente = null;
       this.tokenConfirmacionSesion = null;
+      this.tokenSeleccionEmpresa = null;
     },
   },
   methods: {
@@ -253,13 +263,16 @@ export default {
           this.sesionForzada = true;
         }
 
-        // Si ya hay un token de confirmación de sesión (viene de un
-        // requiere_confirmacion_sesion anterior en ESTE mismo intento de
+        // Si ya hay un token de confirmación de sesión, o de selección de
+        // empresa (viene de un requiere_confirmacion_sesion o
+        // requiere_seleccion_empresa anterior en ESTE mismo intento de
         // login), Turnstile y la clave ya se verificaron ahí -- no hace
         // falta un cf-turnstile-response nuevo (auditoría de seguridad
-        // 2026-09-11, bug reportado: pedía verificar dos veces siempre).
+        // 2026-09-11 y hallazgo 2026-09-17: sin esto, elegir empresa dejaba
+        // el login colgado porque el widget de Turnstile ya no está en
+        // pantalla).
         let tokenTurnstile = "";
-        if (!this.tokenConfirmacionSesion) {
+        if (!this.tokenConfirmacionSesion && !this.tokenSeleccionEmpresa) {
           tokenTurnstile = this.obtenerTokenTurnstile();
           if (!tokenTurnstile) {
             this.loading = false;
@@ -278,6 +291,9 @@ export default {
         data.set("cf-turnstile-response", tokenTurnstile);
         if (this.tokenConfirmacionSesion) {
           data.set("token_confirmacion_sesion", this.tokenConfirmacionSesion);
+        }
+        if (this.tokenSeleccionEmpresa) {
+          data.set("token_seleccion_empresa", this.tokenSeleccionEmpresa);
         }
         if (idEmpresa) {
           data.set("id_empresa", idEmpresa);
@@ -340,8 +356,10 @@ export default {
                         this.loading = false;
                         this.empresasDisponibles = res.data.empresas || [];
                         this.mostrarSelectorEmpresa = true;
+                        this.tokenSeleccionEmpresa = res.data.token_seleccion_empresa || null;
                       } else if (res.data.data.access === true) {
                         this.tokenConfirmacionSesion = null;
+                        this.tokenSeleccionEmpresa = null;
                         this.loadingText = "Cargando datos, por favor espere...";
 
                         // Incluir el teléfono del usuario en dataUser si viene en datos_usuario
