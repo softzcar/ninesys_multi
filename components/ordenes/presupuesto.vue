@@ -409,7 +409,7 @@
                               <b-col lg="12">
                                 <h3 class="mb-4 mt-4">Observaciones</h3>
                                 <quill-editor ref="myQuillEditor" v-model="form.obs" :options="quillOptions"
-                                  @change="onEditorChange($event)"></quill-editor>
+                                  @change="onEditorChange($event)" @ready="onEditorReady"></quill-editor>
                               </b-col>
                             </b-row>
                           </div>
@@ -499,7 +499,7 @@
 <script>
 import mixins from "~/mixins/mixins.js";
 import { mapGetters } from "vuex";
-import quillOptions, { limpiarImagenesQuillHuerfanas } from "~/plugins/nuxt-quill-plugin";
+import quillOptions, { limpiarImagenesQuillHuerfanas, interceptarPegadoYArrastreDeImagenes } from "~/plugins/nuxt-quill-plugin";
 import procesamientoOrdenes from "~/mixins/procesamientoOrdenes.js";
 import phoneValidation from "~/mixins/phoneValidation.js";
 
@@ -2868,6 +2868,13 @@ export default {
     getObs(html) {
       console.log(`getObs recibió: ${html}`);
       this.form.obs = html;
+    },
+
+    onEditorReady(quill) {
+      // Sin esto, pegar (Ctrl+V) o arrastrar una imagen al editor la embebe
+      // como base64 en vez de subirla -- ver comentario en
+      // interceptarPegadoYArrastreDeImagenes (nuxt-quill-plugin.js).
+      interceptarPegadoYArrastreDeImagenes(quill);
     },
 
     onEditorChange({ editor, html, text }) {

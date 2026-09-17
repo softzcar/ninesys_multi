@@ -18,7 +18,21 @@ const API_URL = 'https://api.ninesys19.com';
 // hermanos). Este handler vive fuera de cualquier componente Vue (es un
 // handler de toolbar de Quill, sin template propio), así que se inserta
 // directo en el DOM del editor en vez de depender de un <b-progress>.
-function crearBarraProgresoQuill(editorRoot) {
+//
+// ⚠️ IMPORTANTE: el wrapper se inserta ANTES de quill.container (el nodo que
+// vue-quill-editor recibió como ref="editor" y que Quill convierte en
+// .ql-container), nunca antes de quill.root (.ql-editor) ni dentro de
+// quill.container. vue-quill-editor lee el HTML del editor con
+// `this.$refs.editor.children[0].innerHTML` en cada 'text-change' (ver
+// node_modules/vue-quill-editor/src/editor.vue) -- asume que ese primer
+// hijo SIEMPRE es .ql-editor. Insertar este wrapper como hermano ANTERIOR a
+// quill.root (como se hacía antes) lo convierte en children[0], así que
+// cualquier cambio de contenido mientras la barra está visible (ej. el
+// insertEmbed() de la imagen recién subida) hacía que se leyera el HTML de
+// la barra de progreso en vez del contenido real, pisando form.obs con el
+// texto "Subiendo imagen... 100%" (hallazgo real 2026-09-17). Insertando
+// fuera de quill.container este problema no puede ocurrir.
+function crearBarraProgresoQuill(quill) {
     const wrapper = document.createElement('div');
     wrapper.className = 'quill-upload-progress-wrapper';
     wrapper.style.padding = '4px 8px';
@@ -29,7 +43,7 @@ function crearBarraProgresoQuill(editorRoot) {
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width:0%"></div>
         </div>
     `;
-    editorRoot.parentNode.insertBefore(wrapper, editorRoot);
+    quill.container.parentNode.insertBefore(wrapper, quill.container);
 
     return {
         actualizar(pct) {
@@ -54,7 +68,7 @@ async function subirImagenYEmbeber(quill, file) {
     const formData = new FormData();
     formData.append('image', file);
 
-    const barra = crearBarraProgresoQuill(quill.root);
+    const barra = crearBarraProgresoQuill(quill);
     try {
         const response = await axios.post(`${activeApiUrl}/upload-order-detail-image`, formData, {
             headers: {
