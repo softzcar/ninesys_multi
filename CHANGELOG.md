@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.36] - 2026-09-17
+- Fix: pegar/arrastrar imagenes en Observaciones ahora se sube al servidor en vez de embeber base64
+
 ## [v1.0.35] - 2026-09-17
 - Fix: paginador de ordenes activas no debe volver a pagina 1 al cambiar estatus de una orden
 
