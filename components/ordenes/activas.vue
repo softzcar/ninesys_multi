@@ -338,7 +338,14 @@ export default {
       if (this.isLoadingMore) return;
       this.isLoadingMore = true;
       this.loading.show = true;
-      this.currentPage = 1;
+      // Solo volver a la página 1 cuando cambia un filtro real -- una recarga
+      // tras editar una orden o registrar un abono (reloadMe) no debe sacar al
+      // usuario de la página en la que estaba trabajando (hallazgo real
+      // 2026-09-17: cambiar el estatus a "Entregado" en la página 3 regresaba
+      // siempre a la página 1).
+      if (reset) {
+        this.currentPage = 1;
+      }
 
       const searchTerm = (this.filter || "").trim();
 
@@ -377,7 +384,7 @@ export default {
     },
 
     reloadMe() {
-      this.fetchPage({ reset: true });
+      this.fetchPage({ reset: false });
     },
   },
 
