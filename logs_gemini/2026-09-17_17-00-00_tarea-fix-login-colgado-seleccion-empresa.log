@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** Ver detalle completo en el log equivalente de `ninesys-api` -- resumen: "una vez que selecciono la empresa se muestra 'Verificando sus datos, por favor espere...' y allí se queda no hace nada más."
+- **Fecha y Hora:** 2026-09-17 17:00:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/login/form.vue`
+- **Commits Relacionados:**
+  - Frontend: `8b9381f` (rama `refactor/modular-routes`)
+- **Acción Realizada:**
+  1. Agregado el dato `tokenSeleccionEmpresa` (análogo a `tokenConfirmacionSesion` ya existente).
+  2. En `doLogin()`: se agregó `!this.tokenSeleccionEmpresa` a la condición que decide si hace falta sacar un token de Turnstile nuevo (`obtenerTokenTurnstile()`), y se agrega `token_seleccion_empresa` al payload cuando corresponde.
+  3. Al recibir `requiere_seleccion_empresa` del backend, se guarda `res.data.token_seleccion_empresa` en `this.tokenSeleccionEmpresa`.
+  4. Agregado el reset de `tokenSeleccionEmpresa` (junto al de `tokenConfirmacionSesion` ya existente) en los `watch` de `form.email`/`form.password`, para que no sobreviva si el usuario cambia de credenciales antes de reintentar.
+- **Inconvenientes y Desafíos:** Verificación en navegador (Claude in Chrome) bloqueada por inestabilidad de la extensión contra el dominio de Desarrollo durante buena parte de la tarde -- se resolvió pidiéndole al usuario que probara manualmente, quien confirmó el resultado.
+- **Decisión Final y Justificación:** Mismo patrón ya usado para `tokenConfirmacionSesion` -- consistencia de código y de comportamiento (un solo mecanismo de "saltar Turnstile con prueba corta de un solo uso").
+- **Herramienta(s) Utilizada(s):** `Read`/`Edit`, `deploy_frontend_dev.sh`.
+- **Resultado:** Éxito.
+- **Verificación:** Confirmado por el usuario en Desarrollo tras el despliegue: "ok ahora he podido registrar un empleado ya existente en otra empresa [...] ya ingresa correctamente."
+- **Logro Conseguido:** El selector de empresa post-login, implementado desde el 2026-08-12, ahora es utilizable de punta a punta por primera vez.
+- **Observaciones de Gemini:** Ninguna adicional.
+- **Respuesta de Gemini:** El login ya no se cuelga al elegir empresa -- se reutiliza el token de verificación del primer intento en vez de pedir uno nuevo. Confirmado funcionando por el usuario en Desarrollo.

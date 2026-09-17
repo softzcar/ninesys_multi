@@ -1,0 +1,21 @@
+- **Solicitud del Usuario:** "revisar que cada vez que se edita un dato y da error se borra todo nuevamente, ejm pones detalle de nómina pones el salario y te dice que faltó un dato, cuando lo pones luego borra el teléfono y lo de los salarios y la clave, debe al menos seguir manteniendo los datos."
+- **Fecha y Hora:** 2026-09-17 15:40:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/admin/EmpleadoEditar.vue`
+  - `components/admin/EmpleadoNuevo.vue`
+- **Commits Relacionados:**
+  - Frontend: `859d6e7` (rama `refactor/modular-routes`)
+- **Acción Realizada:**
+  1. En `EmpleadoEditar.vue`, `onSubmit()` encadenaba `.then(() => this.$emit('reload'))` sobre `guardarEmpleado()` -- pero `guardarEmpleado()` traga sus propios errores en un `try/catch` interno y nunca rechaza su promesa, así que ese `reload` se disparaba SIEMPRE, incluso cuando el backend devolvía un error de validación real.
+  2. El padre (página de Gestión de Empleados) reaccionaba a ese `reload` recargando la lista de empleados y volviendo a pasar el mismo `item` (sin los cambios, porque nunca se guardaron) como prop al modal de edición, que tiene un `watch` con `deep: true` sobre `item` que pisa TODO el formulario (`setForm(newItem)`) apenas cambia -- de ahí que el teléfono/salario/clave se "borraran" tras cualquier error.
+  3. Corregido: `onSubmit()` ahora solo llama `this.guardarEmpleado()`, sin el `.then()` que emitía el reload -- el `$emit('reload')` correcto ya vive dentro de `guardarEmpleado()`, junto al camino de éxito real.
+  4. Mismo antipatrón encontrado en `EmpleadoNuevo.vue` (un `.finally()` incondicional emitía `reload` también en error) -- ahí no corrompía el formulario (no tiene un `item` reactivo), pero igual refrescaba la lista sin necesidad en cada error. Se movió el `emit` al camino de éxito, igual que en `EmpleadoEditar.vue`.
+- **Inconvenientes y Desafíos:** El bug era sutil -- requirió leer con atención que `guardarEmpleado()` nunca rechaza su promesa pese a tener una rama de error interna, para entender por qué el `.catch()` de `onSubmit()` nunca se ejecutaba en la práctica.
+- **Decisión Final y Justificación:** Quitar el `emit` redundante/incorrecto de `onSubmit()` en vez de, por ejemplo, hacer que `guardarEmpleado()` SÍ rechace en error -- cambio más chico y sin riesgo de romper otros lugares que ya dependen de que `guardarEmpleado()` nunca lance.
+- **Herramienta(s) Utilizada(s):** `Read`/`Edit`.
+- **Resultado:** Éxito.
+- **Verificación:** Desplegado en Desarrollo junto con el resto de los cambios del día; el bug de pérdida de datos ya no se reprodujo en las pruebas posteriores del flujo de vinculación de empleados.
+- **Logro Conseguido:** Corrige un bug de pérdida de datos real que afectaba a cualquier edición fallida de un empleado (no solo al caso de vinculación entre empresas que lo hizo evidente) -- probablemente la causa de que la identidad duplicada de Ricardo terminara con el teléfono en blanco en primer lugar.
+- **Observaciones de Gemini:** Buen ejemplo de por qué un `try/catch` interno que nunca relanza puede esconder un bug de flujo en el código que lo llama -- vale la pena revisar si existe el mismo patrón (`.then()` externo asumiendo que una función async puede rechazar cuando en realidad no puede) en otros formularios del sistema.
+- **Respuesta de Gemini:** Corregido: un guardado fallido ya no dispara una recarga que pisaba el formulario con los datos viejos. El teléfono/salario/clave que se estén tipeando ahora sobreviven a un error de validación.

@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** Ver detalle completo en el log equivalente de `ninesys-api` (mismo pedido, misma tarea, ambos repos) -- resumen: mostrar un `confirm` explícito en vez de un bloqueo engañoso cuando el email/teléfono de un nuevo empleado ya pertenece a una identidad activa en otra empresa.
+- **Fecha y Hora:** 2026-09-17 16:00:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/admin/EmpleadoNuevo.vue`
+- **Commits Relacionados:**
+  - Frontend: `1b44544` (rama `refactor/modular-routes`)
+- **Acción Realizada:**
+  1. Extendida la firma de `guardarEmpleado(reactivarId = null, confirmarVinculacionId = null)` para soportar el nuevo segundo paso.
+  2. Agregado el envío de `confirmar_vinculacion_id` en el `FormData` cuando corresponde, mismo lugar donde ya se agregaba `reactivar_id`.
+  3. En el `.catch()` de `guardarEmpleado()`, agregada una rama nueva (antes de la existente para `eliminado_existente`) que detecta `error.response.status === 409 && errData.identidad_existente_otra_empresa`: muestra un `$bvModal.msgBoxConfirm` nombrando a la persona real y las empresas donde ya está activa, aclarando explícitamente que la clave actual no cambia. Si el admin confirma, se reintenta `guardarEmpleado(null, errData.id_usuario)`.
+  4. Aprovechado el mismo cambio para corregir un hallazgo menor encontrado en la exploración: el mensaje de éxito mostraba siempre un texto genérico fijo ("Empleado X registrado correctamente"), descartando el mensaje real que el backend ya devolvía (por ejemplo, el de vinculación por teléfono) -- ahora se muestra `res.data.message` cuando existe, con el genérico como respaldo.
+- **Inconvenientes y Desafíos:** El commit de este cambio quedó pendiente de `git commit` por un descuido durante la sesión (se detectó y corrigió al revisar `git status` antes del cierre del día, sin pérdida de trabajo -- ya estaba desplegado en Desarrollo).
+- **Decisión Final y Justificación:** Reutilizar el mismo patrón visual/UX ya establecido (`$bvModal.msgBoxConfirm`) para el caso de `eliminado_existente`, en vez de introducir un componente de confirmación nuevo.
+- **Herramienta(s) Utilizada(s):** `Read`/`Edit`, prueba en navegador (Claude in Chrome, con dificultades de estabilidad reportadas aparte) y verificación manual por el usuario, `deploy_frontend_dev.sh`.
+- **Resultado:** Éxito.
+- **Verificación:** El usuario probó en Desarrollo dar de alta a un empleado ya existente en otra empresa y confirmó que aparece el modal de confirmación correcto (no el bloqueo de antes).
+- **Logro Conseguido:** Completa, del lado del frontend, el fix de la causa raíz de las identidades duplicadas al vincular empleados entre empresas.
+- **Observaciones de Gemini:** Vale la pena, al cerrar una sesión larga con múltiples cambios, correr `git status` en cada repo tocado antes de dar por terminado -- en esta sesión un archivo quedó modificado y desplegado sin commit por varias horas.
+- **Respuesta de Gemini:** Agregado el modal de confirmación real ("Empleado ya existe en otra empresa") con los datos reales de la persona y sus empresas actuales, y el mensaje de éxito ahora refleja lo que realmente hizo el backend (alta nueva vs. vinculación). Probado y desplegado en Desarrollo.

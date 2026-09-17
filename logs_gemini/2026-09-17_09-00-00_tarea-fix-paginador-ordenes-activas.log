@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** "en la página de ordenes activas... al usar el paginador y estar por ejemplo en la página 3 y cambiar el estatus de la orden a 'Entregado' [...] reportan que la tabla se regresa a la página 1 [...] no podemos perder el foco de la página en la que estamos trabajando."
+- **Fecha y Hora:** 2026-09-17 09:00:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/ordenes/activas.vue`
+- **Commits Relacionados:**
+  - Frontend: `630f1dc` (rama `refactor/modular-routes`)
+- **Acción Realizada:**
+  1. Ubicado el método `fetchPage({ reset = false })`: reseteaba `this.currentPage = 1` de forma incondicional en cada llamada, sin importar el valor de `reset`.
+  2. Ubicado `reloadMe()` (disparado por `@updated`/`@reload` desde `ordenes-editar` y `ordenes-abono` tras editar una orden o registrar un abono): siempre llamaba `fetchPage({ reset: true })`.
+  3. Corregido para que `currentPage` solo se resetee cuando `reset === true` (cambio real de filtro: fecha, categoría, estatus, vendedor, búsqueda), y `reloadMe()` ahora llama `fetchPage({ reset: false })`.
+  4. Se mantiene el refetch completo de datos (necesario porque un abono puede cambiar `saldo_pendiente`, que alimenta el filtro client-side de Pagadas/Pendientes/Sobrepagadas), solo se dejó de resetear la página.
+- **Inconvenientes y Desafíos:** Ninguno relevante.
+- **Decisión Final y Justificación:** Se eligió la alternativa de "refrescar pero mantener la página" (en vez de parchear el JSON localmente con el nuevo estatus) porque el abono también puede alterar el filtro de estado de pago, que sí requiere datos frescos del servidor.
+- **Herramienta(s) Utilizada(s):** `Read`/`Edit`, prueba en navegador (Claude in Chrome) contra Desarrollo, `deploy_frontend_dev.sh`/`deploy_frontend_prod.sh`.
+- **Resultado:** Éxito.
+- **Verificación:** Probado en vivo en Desarrollo: se cambió el estatus de la orden 7003 (de "Terminada" a "Entregada") estando en la página 3 del listado -- la tabla se refrescó y la paginación permaneció en la página 3.
+- **Logro Conseguido:** Corrige una regresión de UX introducida junto con el paginador nuevo, que obligaba a los usuarios de Comercialización a volver a ubicar manualmente su lugar en la lista cada vez que cambiaban el estatus de una orden.
+- **Observaciones de Gemini:** Ninguna adicional.
+- **Respuesta de Gemini:** Corregido: `fetchPage()` solo resetea la página cuando cambia un filtro real; la recarga tras editar una orden o registrar un abono mantiene la página actual. Probado en Desarrollo y desplegado en Producción.
