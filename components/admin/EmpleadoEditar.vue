@@ -538,11 +538,18 @@ export default {
         },
         onSubmit(event) {
             event.preventDefault()
-            this.guardarEmpleado().then(() => {
-                this.$emit("reload")
-            }).catch(error => {
-                console.error('[EmpleadoEditar] Error al guardar:', error)
-            })
+            // guardarEmpleado() ya emite "reload" en su propio camino de éxito
+            // (más abajo, junto al $fire de "¡Éxito!"), y traga cualquier error
+            // en su try/catch interno sin volver a lanzarlo -- por eso su
+            // promesa NUNCA rechaza. El .then()/.catch() que había acá emitía
+            // "reload" SIEMPRE, incluso cuando el guardado fallaba: el padre
+            // refrescaba la lista de empleados y volvía a pasar el `item`
+            // (sin los cambios, porque nunca se guardaron) como prop a este
+            // mismo modal, cuyo watcher deep sobre `item` pisaba el formulario
+            // con los datos viejos -- eso era lo que "borraba" teléfono/salario/
+            // clave después de un error de validación (hallazgo real
+            // 2026-09-17, reportado por el usuario).
+            this.guardarEmpleado()
         },
         // Auditoría de seguridad 2026-09-11: libera el bloqueo de fuerza
         // bruta de /login para este empleado (admin-only en el backend, ver

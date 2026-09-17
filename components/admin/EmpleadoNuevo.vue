@@ -545,6 +545,7 @@ export default {
                     this.resetForm()
                     if (this.$refs.tabs) this.$refs.tabs.currentTab = 0
                     this.$bvModal.hide(this.modal)
+                    this.$emit("reload")
                 })
                 .catch(async error => {
                     const errData = error.response && error.response.data
@@ -571,8 +572,13 @@ export default {
                     })
                 })
                 .finally(() => {
+                    // "reload" ya se emite en el .then() de éxito (y en la
+                    // reactivación recursiva de arriba) -- emitirlo también acá
+                    // incondicionalmente hacía que el padre refrescara la lista
+                    // de empleados incluso cuando el registro falló, sin ningún
+                    // cambio real que mostrar (mismo hallazgo que el de
+                    // EmpleadoEditar.vue, 2026-09-17).
                     this.overlay = false
-                    this.$emit("reload")
                 })
         },
         onSubmit(event) {
