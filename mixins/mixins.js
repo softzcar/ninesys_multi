@@ -198,11 +198,19 @@ export default {
     // Lista blanca acotada a lo que produce el editor Quill (observaciones/
     // borradores/notas): cualquier otra etiqueta o atributo (script, on*,
     // iframe) se elimina.
+    // "img"/"src" agregados 2026-09-17: la lista original quedó definida
+    // antes de que la subida de imágenes en Quill funcionara de punta a
+    // punta -- una vez arreglada (ver nuxt-quill-plugin.js), las imágenes SÍ
+    // quedaban guardadas en observaciones (<img src="https://.../images-
+    // orders-details/...">) pero esta vista de solo lectura (buscar/
+    // resultado.vue vía linkSearch) las descartaba en silencio por no estar
+    // en la lista blanca. El editor Quill no pasa por sanitizeHtml (usa
+    // v-model directo), por eso ahí sí se veían.
     sanitizeHtml(html) {
       if (!html) return ""
       return DOMPurify.sanitize(html, {
-        ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "a", "span"],
-        ALLOWED_ATTR: ["href", "target", "rel", "class"],
+        ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "a", "span", "img"],
+        ALLOWED_ATTR: ["href", "target", "rel", "class", "src", "alt", "width", "height"],
       })
     },
 
