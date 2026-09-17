@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.38] - 2026-09-17
+- Fix: sanitizeHtml descartaba imagenes de Observaciones en vistas de solo lectura (buscar/linkSearch, previews)
+
 ## [v1.0.37] - 2026-09-17
 - Fix critico: la barra de progreso de subida de imagen en Quill pisaba las observaciones; conectado tambien en presupuesto.vue
 
