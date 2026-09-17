@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.41] - 2026-09-17
+- Fix: login quedaba colgado en Verificando sus datos al elegir empresa (Turnstile reutilizado)
+
 ## [v1.0.40] - 2026-09-17
 - Fix: al vincular empleado existente a otra empresa se pide confirmacion y se actualizan sus datos (no la clave)
 
