@@ -286,7 +286,7 @@ export default {
             }
             this.overlay = false
         },
-        async guardarEmpleado(reactivarId = null) {
+        async guardarEmpleado(reactivarId = null, confirmarVinculacionId = null) {
             this.overlay = true
 
             // --- VALIDACIONES DE DATOS BÁSICOS ---
@@ -487,6 +487,14 @@ export default {
                 data.set("reactivar_id", reactivarId)
             }
 
+            // Segundo envío tras confirmar el modal "Empleado ya existe en otra
+            // empresa" (ver .catch() más abajo): el backend actualiza el perfil de
+            // esa identidad con lo tipeado (menos la contraseña) y la vincula a esta
+            // empresa, en vez de crear una identidad nueva.
+            if (confirmarVinculacionId) {
+                data.set("confirmar_vinculacion_id", confirmarVinculacionId)
+            }
+
             // --- VALIDACIÓN CARGA FAMILIAR ---
 
             // 6. Validar carga familiar (cada dependiente debe tener nombre y parentesco)
@@ -539,7 +547,7 @@ export default {
                 .then((res) => {
                     this.$fire({
                         title: "¡Éxito!",
-                        html: `<p>Empleado <b>${this.form.nombre}</b> registrado correctamente.</p>`,
+                        html: `<p>${res.data && res.data.message ? res.data.message : `Empleado <b>${this.form.nombre}</b> registrado correctamente.`}</p>`,
                         type: "success",
                     })
                     this.resetForm()
@@ -549,6 +557,27 @@ export default {
                 })
                 .catch(async error => {
                     const errData = error.response && error.response.data
+                    // El email/teléfono coincide con una identidad real que existe en
+                    // OTRA empresa pero nunca estuvo asignada a esta -- en vez de
+                    // vincularla en silencio (comportamiento anterior) o bloquear como
+                    // si fuera un conflicto real, se le pide confirmación explícita al
+                    // admin: los datos tipeados van a actualizar el perfil de esa
+                    // persona en TODAS sus empresas (menos la contraseña, que nunca se
+                    // toca acá) y va a quedar también activa en esta.
+                    if (error.response && error.response.status === 409 && errData && errData.identidad_existente_otra_empresa) {
+                        this.overlay = false
+                        try {
+                            const empresas = (errData.empresas_actuales || []).join(", ") || "otra empresa"
+                            const val = await this.$bvModal.msgBoxConfirm(
+                                `El email o teléfono ya pertenece a "${errData.nombre_actual}", activo en: ${empresas}. Si continúa, se actualizarán su nombre y teléfono en TODAS sus empresas (su clave actual NO cambia), y quedará también activo en esta empresa. ¿Desea continuar?`,
+                                { title: "Empleado ya existe en otra empresa", okVariant: "primary", okTitle: "Confirmar y vincular", cancelTitle: "Cancelar", centered: true }
+                            )
+                            if (val) {
+                                await this.guardarEmpleado(null, errData.id_usuario)
+                            }
+                        } catch (e2) { /* usuario canceló */ }
+                        return
+                    }
                     // El email ya pertenece a un empleado desactivado EN ESTA empresa
                     // (mismo patrón ya usado en Gastos/Tallas/Telas/Categorías): ofrecer
                     // reactivarlo en vez de bloquear sin salida.
