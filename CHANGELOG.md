@@ -4,6 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.42] - 2026-09-18
+- Fix: widget de Cloudflare Turnstile forzado a tema claro (Ninesys no tiene tema oscuro oficial)
+- Feat: rediseno visual de /empleados/pagos con el mismo lenguaje del dashboard de empleados
+- Fix: horasTrabajadas no debe caer al fallback crudo si dataEmpresa no cargo (numero inconsistente entre recargas)
+- Fix: topar horasTrabajadas al maximo teorico segun horario laboral (datos historicos corruptos)
+- Feat: agregar Talla a las tarjetas de trabajo en /empleados/pagos
+
 ## [v1.0.41] - 2026-09-17
 - Fix: login quedaba colgado en Verificando sus datos al elegir empresa (Turnstile reutilizado)
 
