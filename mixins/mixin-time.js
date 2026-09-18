@@ -273,6 +273,24 @@ export default {
             if (inicio === null || inicio === undefined || fin === null || fin === undefined) return null;
             return { inicio, fin };
         },
+        // Puerto directo de calcularHorasSemanaHorario() (reports.php) --
+        // horas laborales totales de una semana según el horario configurado
+        // de la empresa. Usada para el "factor de ajuste" que topa horas
+        // trabajadas a lo humanamente posible (ver horasTrabajadas en
+        // TablaDePagos.vue, hallazgo real 2026-09-18).
+        calcularHorasSemanaHorario(horarioLaboral) {
+            if (!horarioLaboral || typeof horarioLaboral !== 'object') return 0;
+            let horasSemana = 0;
+            for (let dia = 0; dia <= 6; dia++) {
+                for (const turno of ['Manana', 'Tarde', 'Noche']) {
+                    const rango = this.resolverHorasEfectivasDia(horarioLaboral, turno, dia);
+                    if (rango) {
+                        horasSemana += Math.max(0, rango.fin - rango.inicio);
+                    }
+                }
+            }
+            return horasSemana;
+        },
         calcularTiempoTrabajoIndividual(tarea, pausas, horarioLaboral) {
             let tiempoTotalTrabajoMs = differenceInMilliseconds(tarea.fecha_fin, tarea.fecha_inicio);
             let tiempoPausasMs = 0;

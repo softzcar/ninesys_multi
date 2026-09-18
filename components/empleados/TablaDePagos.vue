@@ -178,6 +178,9 @@ export default {
               }
             }
 
+            let fechaMasAntigua = null;
+            let fechaMasReciente = null;
+
             this.ordenesSemana.forEach((orden) => {
               if (!orden.fecha_inicio || !orden.fecha_terminado) return;
 
@@ -194,6 +197,9 @@ export default {
                 };
                 totalSegundos +=
                   this.calcularTiempoTrabajoIndividual(tarea, [], horarioLaboral) / 1000;
+
+                if (!fechaMasAntigua || tarea.fecha_inicio < fechaMasAntigua) fechaMasAntigua = tarea.fecha_inicio;
+                if (!fechaMasReciente || tarea.fecha_fin > fechaMasReciente) fechaMasReciente = tarea.fecha_fin;
               } else if (
                 orden.tiempo_transcurrido != null &&
                 !isNaN(parseFloat(orden.tiempo_transcurrido))
@@ -204,6 +210,29 @@ export default {
                 totalSegundos += parseFloat(orden.tiempo_transcurrido);
               }
             });
+
+            // Tope por rango teórico (hallazgo real 2026-09-18): datos
+            // históricos corruptos (fecha_terminado re-estampada por un bug
+            // ya corregido, ver bitácora) dejan tareas con fecha_inicio real
+            // pero fecha_terminado meses después -- calcularTiempoTrabajoIndividual
+            // ya acota por horario laboral, pero igual puede sumar semanas
+            // completas de "horas laborales" para una sola tarea abierta por
+            // error. Mismo criterio ya usado en el Reporte de Costos de
+            // Producción (factor_ajuste_empleado): topar el total al máximo
+            // teórico que el horario laboral permite en el rango real
+            // observado (desde la tarea más antigua hasta la más reciente).
+            // No corrige los datos -- solo evita mostrar un número
+            // humanamente imposible mientras no se haga una limpieza de
+            // datos aparte.
+            if (horarioLaboral && fechaMasAntigua && fechaMasReciente && totalSegundos > 0) {
+              const horasSemana = this.calcularHorasSemanaHorario(horarioLaboral);
+              const diasRango = Math.floor((fechaMasReciente - fechaMasAntigua) / (1000 * 60 * 60 * 24)) + 1;
+              const horasTeoricas = horasSemana * (diasRango / 7);
+              const totalHorasCrudo = totalSegundos / 3600;
+              if (horasTeoricas > 0 && totalHorasCrudo > horasTeoricas) {
+                totalSegundos = horasTeoricas * 3600;
+              }
+            }
           } else {
             // dataEmpresa aún no está lista -- devolver null (en vez de "0.00"
             // o del fallback crudo) para que el panel de resumen pueda
