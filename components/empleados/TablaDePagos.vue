@@ -357,6 +357,11 @@ export default {
             class: "text-center",
           },
           {
+            key: "talla",
+            label: "TALLA",
+            class: "text-center",
+          },
+          {
             key: "product",
             label: "PRODUCTO",
           },
@@ -397,6 +402,11 @@ export default {
           {
             key: "unidades",
             label: "UND",
+            class: "text-center",
+          },
+          {
+            key: "talla",
+            label: "TALLA",
             class: "text-center",
           },
           {
