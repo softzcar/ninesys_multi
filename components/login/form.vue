@@ -582,6 +582,11 @@ export default {
       if (window.turnstile && this.$refs.turnstileContainer) {
         this.turnstileWidgetId = window.turnstile.render(this.$refs.turnstileContainer, {
           sitekey: this.$config.TURNSTILE_SITE_KEY,
+          // Ninesys no tiene tema oscuro oficial -- sin esto, Turnstile usa
+          // "auto" y hereda el tema oscuro del sistema operativo del
+          // visitante, quedando visualmente desalineado con el resto del
+          // login (reportado 2026-09-18).
+          theme: "light",
           callback: (token) => {
             this.turnstileToken = token;
           },
