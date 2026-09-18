@@ -75,6 +75,7 @@
               <th>Orden</th>
               <th>Departamento</th>
               <th>Producto</th>
+              <th>Origen</th>
               <th class="text-right">Uds.</th>
               <th class="text-right">Comisión</th>
               <th class="text-right">Monto</th>
@@ -83,9 +84,15 @@
           <tbody>
             <template v-if="data.pagos && data.pagos.length > 0">
               <tr v-for="pago in data.pagos" :key="pago.id_pago">
-                <td>{{ pago.id_orden || '—' }}</td>
+                <td><linkSearch v-if="pago.id_orden" :id="pago.id_orden" /><span v-else>—</span></td>
                 <td>{{ pago.nombre_departamento || pago.departamento_pago || '—' }}</td>
                 <td>{{ pago.producto || '—' }}</td>
+                <td>
+                  <b-badge v-if="pago.id_reposicion" variant="warning" class="origen-badge" @click="verReposicion(pago.id_reposicion)">
+                    <b-icon icon="arrow-repeat" class="mr-1"></b-icon>Reposición #{{ pago.id_reposicion }}
+                  </b-badge>
+                  <small v-else class="text-muted">Fabricación</small>
+                </td>
                 <td class="text-right">{{ pago.cantidad }}</td>
                 <td class="text-right">
                   <small v-if="pago.comision_tipo === 'fija'">Fija</small>
@@ -97,10 +104,12 @@
               </tr>
             </template>
             <tr v-else>
-              <td colspan="6" class="text-center text-muted">Sin registros de comisión</td>
+              <td colspan="7" class="text-center text-muted">Sin registros de comisión</td>
             </tr>
           </tbody>
         </table>
+
+        <produccion-DetalleReposicionModal ref="detalleReposicionModal" />
 
         <!-- Totales -->
         <div class="reporte-totales mt-3">
@@ -314,6 +323,10 @@ export default {
       return parseFloat(val || 0).toFixed(2)
     },
 
+    verReposicion(idReposicion) {
+      this.$refs.detalleReposicionModal.abrirConId(idReposicion)
+    },
+
     imprimir() {
       if (!this.data) return
       const d = this.data
@@ -324,11 +337,12 @@ export default {
               <td>${p.id_orden || '—'}</td>
               <td>${p.nombre_departamento || p.departamento_pago || '—'}</td>
               <td>${p.producto || '—'}</td>
+              <td>${p.id_reposicion ? `Reposición #${p.id_reposicion}` : 'Fabricación'}</td>
               <td style="text-align:right">${p.cantidad}</td>
               <td style="text-align:right">${this.labelComision(p)}</td>
               <td style="text-align:right"><strong>$${this.numberFmt(p.monto_pago)}</strong></td>
             </tr>`).join('')
-        : `<tr><td colspan="6" style="text-align:center;color:#999">Sin registros de comisión</td></tr>`
+        : `<tr><td colspan="7" style="text-align:center;color:#999">Sin registros de comisión</td></tr>`
 
       const filasBonos = d.bonos.map(b =>
         `<tr><td style="text-align:right;color:green">Bono (${b.descripcion}):</td><td style="text-align:right;color:green"><strong>+$${this.numberFmt(b.monto)}</strong></td></tr>`
@@ -357,6 +371,7 @@ export default {
                 <th>Orden</th>
                 <th>Departamento</th>
                 <th>Producto</th>
+                <th>Origen</th>
                 <th style="text-align:right">Uds.</th>
                 <th style="text-align:right">Comisión</th>
                 <th style="text-align:right">Monto</th>
@@ -413,5 +428,12 @@ export default {
 }
 .reporte-header {
   font-size: 0.85rem;
+}
+.origen-badge {
+  cursor: pointer;
+  white-space: nowrap;
+}
+.origen-badge:hover {
+  opacity: 0.85;
 }
 </style>
