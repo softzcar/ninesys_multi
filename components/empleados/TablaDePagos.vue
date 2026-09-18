@@ -1,115 +1,115 @@
 <template>
-  <div>
-    <!-- <h1 class="mb-4">{{ this.$store.state.login.dataUser.departamento }}</h1> -->
+  <div class="pagos-v2-container">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <b-overlay :show="overlay" spinner-small>
-      <b-row>
-        <b-col>
-          <b-list-group class="mb-4">
-            <b-list-group-item>
-              <h3 v-if="idModuloUsuario !== 2">
-                RELACIÓN DE PAGOS
-              </h3>
-            </b-list-group-item>
+      <h3 v-if="idModuloUsuario !== 2" class="pagos-title">RELACIÓN DE PAGOS</h3>
 
-            <!-- Badge de tipo de compensación -->
-            <b-list-group-item v-if="tipoCompensacion" variant="light">
-              <b-badge :variant="tipoCompensacion.variant" class="p-2" style="font-size: 1rem;">
-                {{ tipoCompensacion.icono }} {{ tipoCompensacion.texto }}
-              </b-badge>
-            </b-list-group-item>
+      <b-badge v-if="tipoCompensacion" class="comp-type-pill mb-3" :class="'variant-' + tipoCompensacion.variant">
+        {{ tipoCompensacion.icono }} {{ tipoCompensacion.texto }}
+      </b-badge>
 
-            <b-list-group-item variant="info">
-              <h3>{{ horasTrabajadas }} HORAS</h3>
-            </b-list-group-item>
+      <div class="summary-panel mb-4">
+        <b-row class="no-gutters">
+          <b-col
+            v-for="stat in summaryStats"
+            :key="stat.key"
+            class="summary-box"
+            :class="{ 'summary-box-total': stat.key === 'total' }"
+          >
+            <div class="summary-num" :class="stat.colorClass">{{ stat.value }}</div>
+            <div class="summary-label">{{ stat.label }}</div>
+          </b-col>
+        </b-row>
+      </div>
 
-            <!-- Mostrar salario fijo solo si el tipo de compensación lo incluye -->
-            <b-list-group-item v-if="debesMostrarSalario && parseFloat(salarioFijo) > 0" variant="warning">
-              <strong>SALARIO PENDIENTE ({{ datosEmpleado?.salario_periodo.toUpperCase() || 'SEMANAL' }})</strong> ${{
-                salarioFijo }}
-            </b-list-group-item>
+      <b-tabs class="pagos-tabs">
+        <b-tab v-if="idModuloUsuario !== 2" title="PENDIENTES" active>
+          <b-alert v-if="trabajosPendientes().length === 0" show variant="info" class="text-center py-3">
+            No tienes trabajos pendientes
+          </b-alert>
 
-
-            <!-- Mostrar comisiones solo si el tipo de compensación lo incluye -->
-            <div v-if="debesMostrarComisiones">
-              <!-- Comisiones Terminadas -->
-              <b-list-group-item variant="success">
-                <strong>COMISIONES TERMINADAS</strong> ${{ totalComisionesTerminadas }}
-              </b-list-group-item>
-
-              <!-- Comisiones Pendientes -->
-              <b-list-group-item variant="danger">
-                <strong>COMISIONES PENDIENTES</strong> ${{ totalComisionesPendientes }}
-              </b-list-group-item>
-            </div>
-
-            <!-- Total -->
-            <b-list-group-item variant="primary">
-              <strong>TOTAL</strong> $ {{ total }}
-            </b-list-group-item>
-          </b-list-group>
-        </b-col>
-      </b-row>
-
-      <b-row>
-        <b-col class="mt-4">
-          <b-tabs>
-            <b-tab v-if="idModuloUsuario !== 2" title="PENDIENTES" active>
-              <b-table-lite bordered responsive small striped :items="trabajosPendientes()" :fields="fields.pendientes">
-                <template #cell(id_orden)="data">
-                  <linkSearch :id="data.item.id_orden" />
-                </template>
-                <template #cell(cantidad)="data">
-                  <!-- {{ data.item.unidades_solicitadas }} -->
-                  {{ data.item.cantidad }}
-                </template>
-                <template #cell(calculo_pago)="data">
-                  ${{
-                    montoComisionEmpelado(
-                      data.item.comision_tipo,
-                      data.item.total_comision_variable,
-                      data.item.total_comision_fija
-                    )
-                  }}
-                </template>
-              </b-table-lite>
-            </b-tab>
-
-            <b-tab title="TERMINADOS">
-              <b-table-lite bordered responsive small striped hover :items="trabajosTerminados"
-                :fields="fields.terminadas">
-                <template #cell(id_orden)="data">
-                  <linkSearch :id="data.item.id_orden" />
-                </template>
-                <template #cell(calculo_pago)="data">
-                  ${{ data.item.monto_pago }}
-                </template>
-                <template #cell(producto)="data">
-                  <span style="text-transform: capitalize">
-                    {{ data.item.producto }}
+          <div
+            v-for="item in trabajosPendientes()"
+            :key="'pend-' + item.id_lote_detalles"
+            class="modern-task-card"
+          >
+            <div class="card-main-row">
+              <div class="badge-type-box type-ord">
+                <span class="type-text">ORD</span>
+                <linkSearch :id="item.id_orden" class="type-id-link" />
+              </div>
+              <div class="card-info-col">
+                <div v-if="campoProducto(fields.pendientes)" class="info-top-row">
+                  <span class="card-titular">
+                    {{ item[campoProducto(fields.pendientes).key] }}
                   </span>
-                </template>
+                </div>
+                <div class="info-bottom-row">
+                  <span
+                    v-for="field in camposDetalle(fields.pendientes)"
+                    :key="field.key"
+                    class="detail-chip"
+                    :class="{ 'detail-chip-money': field.key === 'calculo_pago' }"
+                  >
+                    <template v-if="field.key === 'calculo_pago'">
+                      {{ valorCampoPendiente(item, field) }}
+                    </template>
+                    <template v-else>
+                      {{ field.label }}: {{ valorCampoPendiente(item, field) }}
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </b-tab>
 
-                <template #cell(rendimiento)="data">
-                  {{
-                    tiempoTranscurridoEnMinutos(
-                      data.item.fecha_inicio,
-                      data.item.fecha_terminado
-                    )
-                  }}
-                </template>
+        <b-tab title="TERMINADOS">
+          <b-alert v-if="trabajosTerminados.length === 0" show variant="info" class="text-center py-3">
+            No tienes trabajos terminados
+          </b-alert>
 
-                <template #cell(fecha_inicio)="data">
-                  {{ formatTimestamp(data.item.fecha_inicio) }}
-                </template>
-
-                <template #cell(fecha_terminado)="data">
-                  {{ formatTimestamp(data.item.fecha_terminado) }}
-                </template>
-              </b-table-lite>
-            </b-tab>
-          </b-tabs>
-        </b-col>
-      </b-row>
+          <div
+            v-for="item in trabajosTerminados"
+            :key="'term-' + item.id_lote_detalles"
+            class="modern-task-card"
+          >
+            <div class="card-main-row">
+              <div class="badge-type-box type-ord">
+                <span class="type-text">ORD</span>
+                <linkSearch :id="item.id_orden" class="type-id-link" />
+              </div>
+              <div class="card-info-col">
+                <div v-if="campoProducto(fields.terminadas)" class="info-top-row">
+                  <span
+                    class="card-titular"
+                    :class="{ 'text-capitalize': campoProducto(fields.terminadas).key === 'producto' }"
+                  >
+                    {{ item[campoProducto(fields.terminadas).key] }}
+                  </span>
+                  <span class="status-pill status-terminado">Terminado</span>
+                </div>
+                <div class="info-bottom-row">
+                  <span
+                    v-for="field in camposDetalle(fields.terminadas)"
+                    :key="field.key"
+                    class="detail-chip"
+                    :class="{ 'detail-chip-money': field.key === 'calculo_pago' }"
+                  >
+                    <template v-if="field.key === 'calculo_pago'">
+                      {{ valorCampoTerminado(item, field) }}
+                    </template>
+                    <template v-else>
+                      {{ field.label }}: {{ valorCampoTerminado(item, field) }}
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </b-tab>
+      </b-tabs>
     </b-overlay>
   </div>
 </template>
@@ -235,7 +235,7 @@ export default {
                         key: "fecha_de_pago",
                         label: "FECHA",
                         class: "text-center",
-                    }, 
+                    },
                     {
                         key: "tipo_de_pago",
                         label: "TIPO",
@@ -325,7 +325,7 @@ export default {
             label: 'TIEMPO',
             },*/
         ];
-        
+
         // Solo agregar columna de $ si el empleado gana comisiones
         if (this.debesMostrarComisiones) {
           fields.pendientes.push({
@@ -364,7 +364,7 @@ export default {
             label: "Minutos",
           },
         ];
-        
+
         // Solo agregar columna de $ si el empleado gana comisiones
         if (this.debesMostrarComisiones) {
           fields.terminadas.push({
@@ -462,7 +462,7 @@ export default {
         if (salarioTipo === "Salario" || salarioTipo === "Salario más Comisión") {
           const montoBase = parseFloat(this.datosEmpleado.salario_monto || 0);
           const periodo = (this.datosEmpleado.salario_periodo || 'mensual').toLowerCase();
-          
+
           // Dividir el salario mensual según el periodo configurado
           let divisor = 1; // Mensual por defecto
           if (periodo === 'semanal') {
@@ -470,7 +470,7 @@ export default {
           } else if (periodo === 'quincenal') {
             divisor = 2; // 2 quincenas en un mes
           }
-          
+
           const montoPeriodo = montoBase / divisor;
           return montoPeriodo.toFixed(2);
         }
@@ -579,17 +579,17 @@ export default {
       },
       total() {
         let total = 0;
-        
+
         // Agregar salario si el empleado tiene salario configurado
         if (this.debesMostrarSalario) {
           total += parseFloat(this.salarioFijo);
         }
-        
+
         // Agregar comisiones si el empleado tiene comisiones configuradas
         if (this.debesMostrarComisiones) {
           total += parseFloat(this.totalComisionesTerminadas) + parseFloat(this.totalComisionesPendientes);
         }
-        
+
         return total.toFixed(2);
       },
 
@@ -636,6 +636,48 @@ export default {
                       }));
               }
           }, */
+
+      // ---------------------------------------------------------------
+      // Computed puramente de presentación (rediseño visual 2026-09-18):
+      // arma la lista de "stats" del panel de resumen a partir de los
+      // computed de negocio ya existentes arriba -- no agrega ninguna
+      // fórmula nueva, solo empaqueta sus resultados para poder iterarlos
+      // con v-for y lograr el ancho variable (2 a 5 cajas según el rol)
+      // sin duplicar bloques v-if en el template.
+      // ---------------------------------------------------------------
+      summaryStats() {
+        const stats = [
+          { key: "horas", label: "Horas Trabajadas", value: `${this.horasTrabajadas} h` },
+        ];
+
+        if (this.debesMostrarSalario && parseFloat(this.salarioFijo) > 0) {
+          stats.push({
+            key: "salario",
+            label: `Salario Pendiente (${(this.datosEmpleado?.salario_periodo || "semanal").toUpperCase()})`,
+            value: `$${this.salarioFijo}`,
+            colorClass: "color-pending",
+          });
+        }
+
+        if (this.debesMostrarComisiones) {
+          stats.push({
+            key: "com-term",
+            label: "Comisiones Terminadas",
+            value: `$${this.totalComisionesTerminadas}`,
+            colorClass: "color-process",
+          });
+          stats.push({
+            key: "com-pend",
+            label: "Comisiones Pendientes",
+            value: `$${this.totalComisionesPendientes}`,
+            colorClass: "color-urgent",
+          });
+        }
+
+        stats.push({ key: "total", label: "Total", value: `$${this.total}` });
+
+        return stats;
+      },
     },
 
     methods: {
@@ -701,6 +743,53 @@ export default {
           this.overlay = false;
         });
       },
+
+      // ---------------------------------------------------------------
+      // Helpers de presentación del rediseño visual (2026-09-18). No
+      // cambian ningún cálculo de negocio -- solo deciden qué campo de
+      // `fields.pendientes`/`fields.terminadas` (ya definidos arriba,
+      // fuente de verdad de qué columnas aplican a cada idModuloUsuario)
+      // se muestra como texto "titular" de la tarjeta (producto) y cómo
+      // se formatea cada campo restante como chip, preservando EXACTO el
+      // mismo formato que aplicaban los slots #cell(...) de las tablas
+      // que reemplazan (incluidas sus inconsistencias existentes, como
+      // que el campo "monto_pago" de Diseño-pendientes no llevaba
+      // símbolo "$" y que "product" -a diferencia de "producto"- nunca
+      // se capitalizaba -- no es parte de este cambio corregir eso).
+      // ---------------------------------------------------------------
+      esCampoProducto(key) {
+        return key === "product" || key === "producto";
+      },
+      campoProducto(fieldsArr) {
+        return fieldsArr.find((f) => this.esCampoProducto(f.key)) || null;
+      },
+      camposDetalle(fieldsArr) {
+        return fieldsArr.filter(
+          (f) => f.key !== "id_orden" && !this.esCampoProducto(f.key)
+        );
+      },
+      valorCampoPendiente(item, field) {
+        switch (field.key) {
+          case "calculo_pago":
+            return `$${this.montoComisionEmpelado(item.comision_tipo, item.total_comision_variable, item.total_comision_fija)}`;
+          default:
+            return item[field.key];
+        }
+      },
+      valorCampoTerminado(item, field) {
+        switch (field.key) {
+          case "calculo_pago":
+            return `$${item.monto_pago}`;
+          case "rendimiento":
+            return `${this.tiempoTranscurridoEnMinutos(item.fecha_inicio, item.fecha_terminado)} min`;
+          case "fecha_inicio":
+            return this.formatTimestamp(item.fecha_inicio);
+          case "fecha_terminado":
+            return this.formatTimestamp(item.fecha_terminado);
+          default:
+            return item[field.key];
+        }
+      },
     },
 
     mounted() {
@@ -718,3 +807,202 @@ export default {
     props: ["emp"],
   };
 </script>
+
+<style scoped>
+/* ================================================================= */
+/* Rediseño visual (2026-09-18) -- mismo lenguaje visual que          */
+/* /empleados/dashboard (components/empleados/SseOrdenesAsignadasV5.vue).*/
+/* Clases copiadas/adaptadas de ese componente; scoped a propósito     */
+/* (ese archivo usa CSS global no-scoped) para que nunca colisionen    */
+/* aunque ambas vistas convivan en la misma sesión SPA.                */
+/* ================================================================= */
+
+.pagos-v2-container {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #2b303a;
+  background-color: #f7f9fc;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.pagos-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin-bottom: 10px;
+}
+
+/* Pill de tipo de compensación (Salario / Comisión / Salario + Comisión) */
+.comp-type-pill {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+.comp-type-pill.variant-warning { background-color: #feebc8 !important; color: #9c4221 !important; }
+.comp-type-pill.variant-success { background-color: #c6f6d5 !important; color: #22543d !important; }
+.comp-type-pill.variant-info { background-color: #bee3f8 !important; color: #2b6cb0 !important; }
+
+/* Panel de resumen */
+.summary-panel {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 15px 5px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  border: 1px solid #edf2f7;
+}
+.summary-box {
+  border-right: 1px solid #f0f4f8;
+  text-align: center;
+  padding: 8px 4px;
+}
+.summary-box:last-child { border-right: none; }
+.summary-box-total {
+  border-left: 3px solid #0b7285;
+  background: linear-gradient(180deg, rgba(11, 114, 133, 0.05), transparent);
+  border-radius: 0 8px 8px 0;
+}
+.summary-num { font-size: 1.15rem; font-weight: 800; color: #2d3748; }
+.summary-num.color-process { color: #1c7ed6; }
+.summary-num.color-pending { color: #2b8a3e; }
+.summary-num.color-urgent { color: #c92a2a; }
+.summary-label {
+  font-size: 0.65rem;
+  color: #718096;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* Tabs (b-tabs) restyled -- los nodos internos no llevan el atributo
+   scoped del padre, hace falta ::v-deep para alcanzarlos. */
+.pagos-tabs ::v-deep .nav-tabs {
+  background-color: #edf2f7;
+  padding: 4px;
+  border-radius: 10px;
+  border: none;
+  gap: 4px;
+}
+.pagos-tabs ::v-deep .nav-item { margin-bottom: 0; }
+.pagos-tabs ::v-deep .nav-link {
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4a5568;
+  border-radius: 8px;
+  padding: 8px 14px;
+  transition: all 0.2s ease;
+}
+.pagos-tabs ::v-deep .nav-link.active {
+  background-color: #fff;
+  color: #1a202c;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.pagos-tabs ::v-deep .tab-content { margin-top: 15px; }
+
+/* Tarjeta de trabajo */
+.modern-task-card {
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+  margin-bottom: 10px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+}
+.modern-task-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-color: #cbd5e0;
+}
+.card-main-row { display: flex; align-items: center; width: 100%; }
+
+.badge-type-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 6px 12px;
+  text-align: center;
+  min-width: 65px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+.type-ord { background-color: #e6f7ff; border: 1px solid #bae7ff; }
+.type-ord .type-text { color: #0050b3; font-size: 0.65rem; font-weight: 800; }
+
+/* Restyle de linkSearch sin tocar el componente compartido (60+ usos
+   en el resto del sistema) -- mismo patrón ya usado en
+   SseOrdenesAsignadasV5.vue. */
+.type-id-link ::v-deep button,
+.type-id-link ::v-deep .btn {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #2d3748 !important;
+  box-shadow: none !important;
+  margin-top: 2px;
+}
+
+.card-info-col {
+  flex: 1;
+  padding-left: 12px;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.info-top-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.card-titular {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.info-bottom-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-chip {
+  background-color: #f7fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+.detail-chip-money {
+  margin-left: auto;
+  background-color: #f0fff4;
+  border-color: #c6f6d5;
+  color: #22543d;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.status-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+.status-terminado { background-color: #c6f6d5; color: #22543d; }
+</style>
