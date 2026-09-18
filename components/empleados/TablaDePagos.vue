@@ -155,39 +155,62 @@ export default {
         this.idModuloUsuario !== 1
       ) {
         if (Array.isArray(this.ordenesSemana)) {
-          let horarioLaboral = this.$store.state.login.dataEmpresa?.horario_laboral;
-          if (typeof horarioLaboral === "string") {
-            try {
-              horarioLaboral = JSON.parse(horarioLaboral);
-            } catch (e) {
-              horarioLaboral = null;
+          const dataEmpresa = this.$store.state.login.dataEmpresa;
+          // dataEmpresa arranca como `[]` (valor por defecto del store,
+          // ver store/login.js) hasta que el login termina de restaurarla
+          // (vuex-persist) o de recargarla -- sin esta guarda, si este
+          // computed corría ANTES de que dataEmpresa estuviera lista, caía
+          // directo a la rama "sin horario configurado" de abajo (tiempo
+          // crudo sin acotar), mostrando un total muy distinto (y no
+          // determinístico entre recargas de la página) al valor real
+          // acotado por horario laboral -- hallazgo real 2026-09-18
+          // (empleado danuill, Corte: 3554h en una recarga, 5334h en otra,
+          // con los mismos datos crudos verificados sin cambios en la BD).
+          const dataEmpresaLista = dataEmpresa && !Array.isArray(dataEmpresa);
+
+          if (dataEmpresaLista) {
+            let horarioLaboral = dataEmpresa.horario_laboral;
+            if (typeof horarioLaboral === "string") {
+              try {
+                horarioLaboral = JSON.parse(horarioLaboral);
+              } catch (e) {
+                horarioLaboral = null;
+              }
             }
+
+            this.ordenesSemana.forEach((orden) => {
+              if (!orden.fecha_inicio || !orden.fecha_terminado) return;
+
+              if (horarioLaboral) {
+                // Tiempo efectivo dentro del horario laboral configurado --
+                // antes se sumaba la diferencia de calendario cruda entre
+                // fecha_inicio y fecha_terminado (tiempo_transcurrido, calculado
+                // en el backend), lo que mostraba cientos de "horas" cuando una
+                // tarea quedaba abierta varios días antes de cerrarse (mismo
+                // patrón que el bug de "983% eficiencia" del dashboard).
+                const tarea = {
+                  fecha_inicio: new Date(orden.fecha_inicio.replace(" ", "T")),
+                  fecha_fin: new Date(orden.fecha_terminado.replace(" ", "T")),
+                };
+                totalSegundos +=
+                  this.calcularTiempoTrabajoIndividual(tarea, [], horarioLaboral) / 1000;
+              } else if (
+                orden.tiempo_transcurrido != null &&
+                !isNaN(parseFloat(orden.tiempo_transcurrido))
+              ) {
+                // Fallback SOLO cuando la empresa ya está cargada y
+                // genuinamente no tiene horario laboral configurado -- nunca
+                // como sustituto de "todavía no cargó".
+                totalSegundos += parseFloat(orden.tiempo_transcurrido);
+              }
+            });
+          } else {
+            // dataEmpresa aún no está lista -- devolver null (en vez de "0.00"
+            // o del fallback crudo) para que el panel de resumen pueda
+            // distinguir "todavía cargando" de "cero horas reales" y evitar
+            // mostrar un número inflado que luego cambia solo.
+            return null;
           }
-
-          this.ordenesSemana.forEach((orden) => {
-            if (!orden.fecha_inicio || !orden.fecha_terminado) return;
-
-            if (horarioLaboral) {
-              // Tiempo efectivo dentro del horario laboral configurado --
-              // antes se sumaba la diferencia de calendario cruda entre
-              // fecha_inicio y fecha_terminado (tiempo_transcurrido, calculado
-              // en el backend), lo que mostraba cientos de "horas" cuando una
-              // tarea quedaba abierta varios días antes de cerrarse (mismo
-              // patrón que el bug de "983% eficiencia" del dashboard).
-              const tarea = {
-                fecha_inicio: new Date(orden.fecha_inicio.replace(" ", "T")),
-                fecha_fin: new Date(orden.fecha_terminado.replace(" ", "T")),
-              };
-              totalSegundos +=
-                this.calcularTiempoTrabajoIndividual(tarea, [], horarioLaboral) / 1000;
-            } else if (
-              orden.tiempo_transcurrido != null &&
-              !isNaN(parseFloat(orden.tiempo_transcurrido))
-            ) {
-              // Fallback si la empresa no tiene horario laboral configurado.
-              totalSegundos += parseFloat(orden.tiempo_transcurrido);
-            }
-          });
         }
       }
 
@@ -646,8 +669,16 @@ export default {
       // sin duplicar bloques v-if en el template.
       // ---------------------------------------------------------------
       summaryStats() {
+        // horasTrabajadas() devuelve null mientras dataEmpresa (horario
+        // laboral) todavía no cargó -- mostrar "…" en vez de "null h" o de
+        // un número provisional incorrecto; se actualiza solo en cuanto el
+        // computed se reevalúe con los datos ya listos.
         const stats = [
-          { key: "horas", label: "Horas Trabajadas", value: `${this.horasTrabajadas} h` },
+          {
+            key: "horas",
+            label: "Horas Trabajadas",
+            value: this.horasTrabajadas === null ? "…" : `${this.horasTrabajadas} h`,
+          },
         ];
 
         if (this.debesMostrarSalario && parseFloat(this.salarioFijo) > 0) {
