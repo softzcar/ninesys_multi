@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Agregar el campo Talla a las tarjetas de trabajo en `/empleados/pagos`, al lado del campo UND.
+- **Fecha y Hora:** 2026-09-18 16:48:22
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/empleados/TablaDePagos.vue`
+- **Commits Relacionados:**
+  - Frontend: `3e0005f` (rama principal)
+  - Backend: N/A
+- **Acción Realizada:** Mostrado el campo `talla` como chip adicional en las tarjetas de trabajo (pendientes y terminadas). El backend (`/reportes/resumen/empleados`) ya devolvía este campo en ambas consultas (pendientes y terminadas) desde antes -- no hizo falta ningún cambio de API.
+- **Inconvenientes y Desafíos:** Ninguno -- el dato ya estaba disponible en la respuesta del backend, solo faltaba mostrarlo en el template.
+- **Decisión Final y Justificación:** Cambio puramente de presentación, consistente con el rediseño visual de la misma pantalla realizado horas antes el mismo día.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`.
+- **Resultado:** Éxito.
+- **Verificación:** Confirmado visualmente que el chip de Talla aparece junto a UND en ambas pestañas (Pendientes/Terminados) cuando el dato existe.
+- **Logro Conseguido:** Mejora la información disponible de un vistazo en la Planilla de Pagos, sin requerir cambios de backend.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Tarea pequeña y de bajo riesgo, parte del mismo bloque de trabajo del rediseño visual de `/empleados/pagos` del día.
+- **Respuesta de Gemini:** Agregado el campo Talla a las tarjetas de trabajo en `/empleados/pagos`, junto a UND.

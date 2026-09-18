@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** "vamos a investigar la opción del sidebar... Resumen" → "me refiero a la página /empleados/resumen" → "ok entonces es una página útil pero tenemos un problema, se muestra totalmente en blanco...". El usuario aportó una captura de DevTools (panel Elements con `<div class="main-content"><!----></div>` y Console vacía, sin errores) en vez de responder una pregunta estructurada -- evidencia clave para el diagnóstico.
+- **Fecha y Hora:** 2026-09-18 17:29:49
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `pages/empleados/resumen.vue`
+- **Commits Relacionados:**
+  - Frontend: `adeb27a` (rama principal)
+  - Backend: N/A
+- **Acción Realizada:** A diferencia de todas las demás páginas de empleados (`pagos.vue`, `dashboard.vue`, etc.), a `resumen.vue` le faltaba importar el mixin `mixin-login.js`, que define el computed `accessModule` usado 4 veces en el `v-if` de la página para decidir el acceso por módulo. Con `accessModule` `undefined`, evaluar `accessModule.accessData.id_modulo` tronaba el render completo del bloque `v-else`, dejando la página en blanco sin ninguna llamada a la API (el componente real, `asignacionDeCorteGrupal.vue`, nunca llegaba a montarse) y sin ningún error visible en la consola del navegador (el fallo ocurría en el render inicial de Vue, que cae a un comentario vacío `<!---->` sin loguear nada en esta configuración). Corregido agregando el mismo import de mixin que usan todas las demás páginas de empleados.
+- **Inconvenientes y Desafíos:** El fallo no dejaba rastro en consola, lo que descartó las hipótesis iniciales de error de red o de JavaScript en tiempo de ejecución -- la captura de DevTools mostrando el DOM real (`<!---->` en el lugar del contenido) fue la pista decisiva para sospechar un error de render silencioso de Vue, no un error de datos o de API.
+- **Decisión Final y Justificación:** Aplicar exactamente el mismo patrón de import ya usado y funcionando en todas las demás páginas de empleados, en vez de modificar la lógica del `v-if` -- la causa era la ausencia del mixin, no un problema con la condición en sí.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`.
+- **Resultado:** Éxito.
+- **Verificación:** Confirmado en Desarrollo que la página ya renderiza el contenido completo (título, `asignacionDeCorteGrupal.vue`) en vez de quedar en blanco.
+- **Logro Conseguido:** Recuperada una página útil de la aplicación (`/empleados/resumen`) que estaba completamente inutilizable, con una causa raíz que no dejaba ninguna pista en consola -- resuelta con evidencia visual del DOM en vez de logs de error.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** El usuario prefirió pegar una captura de pantalla directamente en vez de responder una pregunta estructurada de aclaración (`AskUserQuestion`) -- señal a tener en cuenta: cuando el usuario tiene evidencia visual concreta a mano, prefiere mostrarla directamente antes que elegir entre opciones. Esta misma página, ya reparada, llevó al hallazgo siguiente (`consloe.log`, ver tarea posterior) y a una investigación del endpoint `/sse/produccion/corte` y del select "Seleccione un insumo" vacío (documentado como pendiente, sin resolver aún al momento de este log).
+- **Respuesta de Gemini:** Causa raíz encontrada: faltaba el import del mixin `mixin-login.js` en `resumen.vue`, a diferencia de todas las demás páginas de empleados. Corregido y verificado en Desarrollo.

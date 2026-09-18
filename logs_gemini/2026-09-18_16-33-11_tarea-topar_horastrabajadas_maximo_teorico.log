@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** Continuación del mismo caso de danuill (Corte, empresa 194): incluso tras el fix de la condición de carrera, seguía mostrando ~3547h reales pero imposibles, porque los fixes de backend del mismo día evitan que se sigan GENERANDO datos corruptos hacia adelante, pero no limpian el histórico ya existente en `lotes_detalles_empleados_asignados` (fuera de alcance, decisión explícita del usuario).
+- **Fecha y Hora:** 2026-09-18 16:33:11
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/empleados/TablaDePagos.vue`
+  - `mixins/mixin-time.js` (nueva función `calcularHorasSemanaHorario`)
+- **Commits Relacionados:**
+  - Frontend: `444dfa7` (rama principal)
+  - Backend: N/A
+- **Acción Realizada:** Aplicado el mismo criterio ya usado en el Reporte de Costos de Producción (`factor_ajuste_empleado`, `reports.php`): topar el total de "horas trabajadas" al máximo teórico que el horario laboral de la empresa permite en el rango real observado (desde la tarea más antigua hasta la más reciente), en vez de intentar reconstruir fechas exactas que ya no se pueden saber con certeza por los datos corruptos. Agregada `calcularHorasSemanaHorario()` a `mixin-time.js`, puerto directo de su equivalente en PHP (`reports.php`), reutilizando `resolverHorasEfectivasDia()` ya existente en el mismo mixin.
+- **Inconvenientes y Desafíos:** No corrige los datos históricos -- solo evita mostrar un número humanamente imposible mientras no se decida una limpieza de datos aparte (decisión explícita, ya documentada en tareas anteriores del día).
+- **Decisión Final y Justificación:** Portar la misma fórmula ya validada y en uso en el backend (Reporte de Costos) en vez de inventar un criterio distinto para esta pantalla -- mantiene consistencia entre ambos reportes cuando ambos muestren datos del mismo empleado.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`.
+- **Resultado:** Éxito (mitigación de presentación, no corrección de datos -- a propósito).
+- **Verificación:** Verificado que danuill ya no muestra un número de horas mayor al máximo teórico posible según su horario laboral en el rango real de sus tareas.
+- **Logro Conseguido:** Elimina la exposición de un número de horas trabajadas humanamente imposible en la pantalla de pagos, sin necesidad de esperar a una limpieza de datos históricos que requiere más tiempo y una decisión aparte.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Queda pendiente, como decisión explícitamente diferida, la limpieza real de los datos duplicados históricos en `lotes_detalles_empleados_asignados` que originan este número inflado -- este fix es solo una mitigación de presentación.
+- **Respuesta de Gemini:** El total de "horas trabajadas" ahora se topa al máximo teórico según el horario laboral de la empresa, evitando mostrar cifras imposibles mientras se decide una limpieza de datos históricos aparte.

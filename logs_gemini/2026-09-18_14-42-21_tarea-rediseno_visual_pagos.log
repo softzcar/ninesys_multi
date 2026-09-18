@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Extender a `/empleados/pagos` el mismo lenguaje visual moderno tipo SaaS ya aplicado recientemente a `/empleados/dashboard` (tarjetas, tipografía "Plus Jakarta Sans", paleta suave, badges/pills), como piloto de modernización de UI. Confirmado por el usuario vía preguntas de aclaración: filas de trabajo como tarjetas (no tabla), Pendientes/Terminados se mantiene como tabs.
+- **Fecha y Hora:** 2026-09-18 14:42:21
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/empleados/TablaDePagos.vue` (único archivo con cambios reales)
+- **Commits Relacionados:**
+  - Frontend: `2c21cfe` (rama principal)
+  - Backend: N/A
+- **Acción Realizada:** Reescrito el `<template>` de `TablaDePagos.vue` completo: panel de resumen tipo `summary-panel` (reemplaza el `b-list-group` anterior), filas de trabajo como `.modern-task-card` en vez de `b-table-lite`, tabs (`b-tabs`) restyled con `::v-deep`, `linkSearch` restyled localmente vía CSS `scoped` (sin tocar el componente compartido, usado en 60+ pantallas del sistema). Cero cambios a la lógica de negocio (`horasTrabajadas`, tipo de compensación, salario prorrateado, totales por rol) -- solo cambia la maquetación, reutilizando exactamente los mismos `computed`/`methods`/`data` ya existentes.
+- **Inconvenientes y Desafíos:** Evitar tocar `linkSearch.vue` (usado en 60+ pantallas) obligó a restylearlo solo con CSS local `scoped` en vez de modificar el componente compartido. La estructura interna de `b-tabs` (para el `::v-deep`) depende de la versión de `bootstrap-vue` del proyecto, no se pudo asumir de memoria -- se inspeccionó el DOM real antes de fijar los selectores.
+- **Decisión Final y Justificación:** No crear todavía un CSS compartido (`assets/css/modern-ui.css`) entre dashboard y pagos -- es un piloto explícito del usuario ("si funciona bien, se extiende"); extraer prematuramente obligaría a resolver ahora decisiones de coordinación entre pantallas que no hacen falta todavía. CSS `scoped` local resuelve la duplicación de clases sin colisión.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `AskUserQuestion` (para confirmar tarjetas vs tabla y tabs vs secciones colapsables antes de implementar), `git commit`.
+- **Resultado:** Éxito.
+- **Verificación:** Revisado que ningún dato mostrado cambió respecto a la versión anterior (solo la presentación), probado con los distintos roles/módulos que consumen esta pantalla. Pendiente prueba exhaustiva en navegador con captura "antes/después" por rol (documentado como pendiente en el plan de esta tarea).
+- **Logro Conseguido:** Primer piloto real de modernización visual aplicado a una segunda pantalla (además del dashboard), sin tocar ninguna lógica de negocio ni el componente compartido `linkSearch`.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Este mismo archivo (`TablaDePagos.vue`) recibió dos cambios adicionales más tarde el mismo día (Talla en las tarjetas, y los fixes de `horasTrabajadas` en el mixin asociado) -- todos compatibles entre sí sin conflicto.
+- **Respuesta de Gemini:** Rediseñada `/empleados/pagos` con el mismo lenguaje visual del dashboard de empleados: panel de resumen, tarjetas de trabajo, tabs restyled -- sin ningún cambio a los cálculos ni datos mostrados.

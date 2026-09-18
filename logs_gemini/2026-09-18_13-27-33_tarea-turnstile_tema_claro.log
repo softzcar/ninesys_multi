@@ -1,0 +1,20 @@
+- **Solicitud del Usuario:** El widget de Cloudflare Turnstile en login y en el overlay de sesión expirada se veía en tema oscuro, desalineado visualmente con el resto de la aplicación (Ninesys no tiene tema oscuro oficial).
+- **Fecha y Hora:** 2026-09-18 13:27:33
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/login/form.vue`
+  - `components/SesionExpiradaOverlay.vue`
+- **Commits Relacionados:**
+  - Frontend: `65fefed` (rama principal)
+  - Backend: N/A
+- **Acción Realizada:** Forzado el parámetro `theme: "light"` en la configuración del widget de Turnstile en ambos componentes, en vez de dejar el valor por defecto `"auto"` (que hereda el tema del sistema operativo del visitante).
+- **Inconvenientes y Desafíos:** Ninguno técnico -- cambio puntual de configuración.
+- **Decisión Final y Justificación:** Forzar tema claro explícitamente en vez de intentar implementar un tema oscuro real para toda la app, que no está en el alcance ni en los planes actuales del proyecto.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`.
+- **Resultado:** Éxito.
+- **Verificación:** Revisado visualmente en Desarrollo que el widget se muestra en tema claro independientemente de la configuración del sistema operativo del navegador.
+- **Logro Conseguido:** Consistencia visual del widget de verificación con el resto de la interfaz en login y en la pantalla de sesión expirada.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Cambio de bajo riesgo, sin relación con el resto de las tareas del día.
+- **Respuesta de Gemini:** Forzado tema claro en el widget de Cloudflare Turnstile en login y en el overlay de sesión expirada.

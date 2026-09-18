@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Reporte de comportamiento inconsistente: el empleado danuill (Corte, empresa 194) mostraba un total de "horas trabajadas" muy distinto entre recargas de la misma página (ej. 3554h en una recarga y 5334h en otra), con los mismos datos crudos en la base de datos.
+- **Fecha y Hora:** 2026-09-18 15:38:49
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/empleados/TablaDePagos.vue` (computed `horasTrabajadas`)
+- **Commits Relacionados:**
+  - Frontend: `137cf01` (rama principal)
+  - Backend: N/A
+- **Acción Realizada:** Encontrada la causa: `dataEmpresa` arranca como `[]` (default del store de Vuex) hasta que el login la restaura/recarga de forma asíncrona. Si el computed `horasTrabajadas` corría antes de que esa carga terminara, `dataEmpresa?.horario_laboral` daba `undefined` y el código caía silenciosamente al fallback de "sin horario configurado" (tiempo crudo sin acotar por horario laboral) -- mostrando un total muy distinto y no determinístico entre recargas, dependiendo de si el store ya había cargado o no en el momento exacto en que se evaluaba el computed. Corregido distinguiendo explícitamente "`dataEmpresa` todavía no cargó" (`Array.isArray`, el valor default) de "cargó pero sin horario configurado" (objeto real sin esa clave) -- solo en el segundo caso se usa el fallback crudo original. Mientras no cargó, `horasTrabajadas()` devuelve `null` y el panel de resumen muestra "..." en vez de un número inflado que luego cambia solo.
+- **Inconvenientes y Desafíos:** El bug era intermitente y dependiente de timing (condición de carrera entre la carga asíncrona del store y la evaluación del computed), lo que lo hacía difícil de reproducir de forma determinística -- se confirmó comparando el valor mostrado en dos recargas consecutivas con los mismos datos crudos verificados en la base.
+- **Decisión Final y Justificación:** No corrige la causa de fondo (datos duplicados históricos en `lotes_detalles_empleados_asignados`, ver los fixes de pagos duplicados del mismo día en el backend) -- ese es un problema de datos, no de este componente. Este fix solo garantiza que el número mostrado sea consistente y no dependa de una condición de carrera de carga.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`.
+- **Resultado:** Éxito.
+- **Verificación:** Verificado en vivo que, con `dataEmpresa` aún no cargado, el panel muestra "..." de forma estable en vez de un número que cambia entre recargas.
+- **Logro Conseguido:** Elimina un valor inconsistente y confuso ("horas trabajadas" cambiando solo entre recargas) en la pantalla de pagos de empleados, mejorando la confianza en los números mostrados mientras se resuelve por separado la limpieza de datos históricos.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Este hallazgo, junto con el fix de pagos duplicados del backend el mismo día, motivó el fix siguiente (topar `horasTrabajadas` al máximo teórico) para mitigar visualmente el dato histórico corrupto mientras no se decide una limpieza aparte.
+- **Respuesta de Gemini:** Corregida la condición de carrera que hacía que "horas trabajadas" mostrara un número distinto en cada recarga -- ahora muestra "..." mientras los datos de la empresa no han cargado, en vez de calcular con un valor por defecto incorrecto.
