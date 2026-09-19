@@ -1,0 +1,28 @@
+- **Solicitud del Usuario:** "en el reporte que se muestra en la planilla de pagos es imperioso en este momento poder ver del lado izquierdo de las Unds, una columna que especifique si el pago es de fabricación o es de reposición y el número de esa reposición, vamos a hacer el ID reposición clicable y vamos a mostrar allí los detalles de esa reposición y donde mostramos el ID de la orden ponemos el componente linkSearch, en la página /produccion/reporte-reposiciones tenemos un botón con ojo que abre el detalle de las reposiciones, ese mismo componente es el que necesitamos allí, vamos a hacer estos cambios en el frontend".
+- **Fecha y Hora:** 2026-09-18 19:51:58
+- **Proyecto(s):** Frontend (app_multi) -- ver también tarea equivalente en `ninesys-api` (mismo pedido, lado backend).
+- **Archivos Involucrados:**
+  - `components/admin/PagosReporteEmpleado.vue` (tabla y HTML de impresión del reporte de pago)
+  - `components/admin/reposicionesReporte.vue` (refactorizado: modal extraído)
+  - `components/produccion/DetalleReposicionModal.vue` (nuevo, componente compartido)
+- **Commits Relacionados:**
+  - Frontend: `007bb55` (rama `refactor/modular-routes`, tag `v1.0.43`)
+  - Backend: `ab0ca53` (rama `feature/postgresql-support`, tag `v1.0.45`)
+- **Acción Realizada:**
+  1. Localizado el componente real detrás del reporte "Reporte de Pago" de la Planilla de Pagos: `PagosReporteEmpleado.vue`.
+  2. Localizado el modal "Detalle de la Reposición" (botón con ícono de ojo) en `reposicionesReporte.vue` -- estaba embebido inline en esa misma página, sin ser un componente reusable, y sin llamada a la API (usa el dato ya cargado de la tabla).
+  3. Extraído ese modal a un componente compartido nuevo, `components/produccion/DetalleReposicionModal.vue`, con dos modos de uso: `abrirConItem(item)` (dato ya cargado, sin llamada extra -- uso original en `reposicionesReporte.vue`, cero cambio de comportamiento ahí) y `abrirConId(id)` (solo se tiene el número de reposición -- pide el detalle vía `GET /reposiciones-reporte/todas?id_reposicion=X`, uso nuevo desde la Planilla de Pagos).
+  4. Refactorizado `reposicionesReporte.vue` para usar el componente nuevo (`<produccion-DetalleReposicionModal ref="detalleReposicionModal" />`) en vez del modal duplicado -- eliminado el estado `repoDetalle` y ~100 líneas de template duplicado.
+  5. Agregada la columna "Origen" en `PagosReporteEmpleado.vue`, a la izquierda de "Uds.": muestra un badge clicable "Reposición #N" (abre el modal nuevo) cuando `pago.id_reposicion` existe, o el texto "Fabricación" en caso contrario.
+  6. Cambiada la columna "Orden" para usar `<linkSearch :id="pago.id_orden" />` en vez de texto plano, igual que en 60+ pantallas del sistema.
+  7. Actualizado también el HTML de impresión (`imprimir()`) para incluir la misma columna "Origen" (en texto plano, sin interactividad -- el impreso es estático).
+- **Inconvenientes y Desafíos:** El modal de detalle no era un componente reusable de origen -- hubo que extraerlo con cuidado de no cambiar el comportamiento existente en `reposicionesReporte.vue` (que no debía empezar a hacer una llamada a la API innecesaria al abrir un detalle que ya tenía cargado).
+- **Decisión Final y Justificación:** Un solo componente compartido con dos métodos de apertura, en vez de duplicar el modal en `PagosReporteEmpleado.vue` -- evita que ambas copias del mismo detalle de reposición diverjan visualmente con el tiempo.
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `Write`, `Grep`, `deploy_frontend_dev.sh`, `deploy_frontend_prod.sh` (con clave de seguridad), `git commit`/`tag`/`push`.
+- **Resultado:** Éxito.
+- **Verificación:** Build de producción (`npm run generate`) completado sin errores relacionados a los archivos nuevos/modificados. No se pudo probar visualmente en navegador por falta de credenciales de prueba durante la sesión -- desplegado en Desarrollo y Producción a pedido explícito del usuario, pendiente de confirmación visual de su parte.
+- **Logro Conseguido:** La Planilla de Pagos ahora distingue visualmente fabricación de reposición por fila, con acceso directo al detalle completo de cualquier reposición sin salir de la pantalla -- elimina la necesidad de auditar manualmente por SQL/CSV como se hizo en la tarea anterior del día.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Pendiente: confirmar visualmente con el usuario que la columna y el modal se ven y funcionan como se espera en Producción real, dado que no se pudo probar en navegador durante esta sesión.
+- **Respuesta de Gemini:** Frontend listo y desplegado en Desarrollo y Producción: columna "Origen" clicable, Orden con `linkSearch`, y modal de detalle de reposición reusado desde `/produccion/reporte-reposiciones`.
