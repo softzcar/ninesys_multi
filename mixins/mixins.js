@@ -182,8 +182,14 @@ export default {
       }
     },
     totalProductos(items, nombreCampo) {
+      // parseInt truncaba cualquier cantidad fraccionaria a 0 (ej. 0.3
+      // metros de un servicio de impresión por metro) -- "TOTAL PRODUCTOS"
+      // mostraba 0 aunque sí había producto real cargado. Mismo patrón de
+      // bug de decimales ya corregido en otros puntos del sistema (ver
+      // asignación de personal, 2026-08-31). Bug real 2026-09-22, orden
+      // creada desde un presupuesto de DTF (SUBLIMACION POR METROS).
       return items.reduce((total, item) => {
-        return total + (parseInt(item[nombreCampo], 10) || 0)
+        return total + (parseFloat(item[nombreCampo]) || 0)
       }, 0)
     },
 

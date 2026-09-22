@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.2.1] - 2026-09-22
+- Fix critico: totalProductos() truncaba cantidades fraccionarias a 0 (parseInt en vez de parseFloat) -- "TOTAL PRODUCTOS: 0" en ordenes/presupuestos de servicios por metro (DTF)
+
 ## [v1.2.0] - 2026-09-22
 - Columnas Departamento y Comisión en carga masiva de productos
 
