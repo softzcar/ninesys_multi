@@ -1,7 +1,7 @@
 <template>
     <div>
         <b-overlay :show="overlay">
-            <b-container>
+            <b-container class="pb-5">
                 <b-row>
                     <b-col>
                         <h3>Asignación de comisiones a productos</h3>
@@ -30,46 +30,90 @@
                     </b-col>
                 </b-row>
 
-                <b-row>
-                    <b-col cols="12" lg="5">
-                        <b-form-select id="select-departamento" :disabled="inputDisabled" v-model="departamento"
-                            :options="departamentosSelect" :value="departamento"></b-form-select>
-                    </b-col>
-                </b-row>
-
-                <b-row class="mt-3 mb-3">
-                    <b-col>
+                <b-row class="mt-3 mb-3 guardar-cambios-bar">
+                    <b-col class="d-flex align-items-center">
                         <b-button variant="primary" @click="guardarTodosLosCambios" :disabled="!hayCambios">
                             Guardar Todos los Cambios
                         </b-button>
+                        <span v-if="hayCambios" class="ml-3 text-muted">
+                            {{ cantidadCambiosPendientes }} cambio(s) sin guardar
+                        </span>
                     </b-col>
                 </b-row>
 
-                <b-row>
+                <b-row v-if="productosFiltrados.length === 0 && !overlay">
                     <b-col>
-                        <h2 class="mt-4">{{ departamentoTit }}</h2>
-
-                        <b-pagination v-model="currentPage" :total-rows="totalRows" :per-page="perPage"></b-pagination>
-
-                        <p class="mt-3">Página actual: {{ currentPage }}</p>
-
-                        <b-table :per-page="perPage" :current-page="currentPage" striped :items="products"
-                            :fields="fields" :filter-included-fields="includedFields" @filtered="onFiltered"
-                            :filter="filter">
-                            <template #cell(comision)="data">
-                                <admin-ComisionesProductosInputGeneral :iddep="departamento" :key="data.item.cod"
-                                    :item="data.item" :seldep="departamentosSelect"
-                                    @update-comision="actualizarComisionEnData" />
-                            </template>
-
-                            <template #cell(categories)="data">
-                                <b-badge v-for="(prod, index) in data.item.categories(
-                                    data.item.categories
-                                )" :key="index" pill variant="info" class="mr-1 mb-1 p-2">{{ prod.name }}</b-badge>
-                            </template>
-                        </b-table>
+                        <p class="text-muted">No hay productos que coincidan con el filtro actual.</p>
                     </b-col>
                 </b-row>
+
+                <div v-for="dep in departamentos" :key="dep._id" class="section-container mb-3">
+                    <div class="section-header" @click="toggleSeccion(dep._id)">
+                        <div class="d-flex align-items-center">
+                            <b-icon :icon="expandedSections[dep._id] ? 'chevron-down' : 'chevron-right'"
+                                class="mr-2"></b-icon>
+                            <h5 class="mb-0">{{ dep.departamento }}</h5>
+                            <b-badge variant="secondary" class="ml-2">{{ productosFiltrados.length }}</b-badge>
+                            <b-badge v-if="cambiosPorDepartamento(dep._id) > 0" variant="warning" class="ml-2">
+                                {{ cambiosPorDepartamento(dep._id) }} sin guardar
+                            </b-badge>
+                        </div>
+                    </div>
+
+                    <b-collapse :visible="!!expandedSections[dep._id]" lazy>
+                        <div class="section-body p-3">
+                            <div class="d-flex flex-wrap align-items-center mb-3 aplicar-masiva-bar">
+                                <b-button size="sm" variant="outline-secondary" class="mr-1 mb-2"
+                                    @click="marcarTodos(dep._id, true)">
+                                    Marcar todos
+                                </b-button>
+                                <b-button size="sm" variant="outline-secondary" class="mr-3 mb-2"
+                                    @click="marcarTodos(dep._id, false)">
+                                    Desmarcar todos
+                                </b-button>
+
+                                <campo-decimal :id="`comision-global-${dep._id}`" style="width: 110px"
+                                    class="mr-2 mb-2" placeholder="Comisión" :decimals="3"
+                                    :value="comisionGlobalPorDepartamento[dep._id]"
+                                    @input="(val) => actualizarComisionGlobal(dep._id, val)" />
+
+                                <b-button size="sm" variant="success" class="mb-2"
+                                    :disabled="!seleccionCountPorDepartamento(dep._id) || comisionGlobalPorDepartamento[dep._id] === null || comisionGlobalPorDepartamento[dep._id] === undefined"
+                                    @click="aplicarComisionASeleccionados(dep._id)">
+                                    Aplicar a seleccionados ({{ seleccionCountPorDepartamento(dep._id) }})
+                                </b-button>
+                            </div>
+
+                            <b-table-simple hover small responsive bordered>
+                                <b-thead head-variant="light">
+                                    <b-tr>
+                                        <b-th style="width: 40px;"></b-th>
+                                        <b-th>Producto</b-th>
+                                        <b-th style="width: 130px;">Comisión</b-th>
+                                    </b-tr>
+                                </b-thead>
+                                <b-tbody>
+                                    <b-tr v-for="prod in productosFiltrados" :key="prod.cod">
+                                        <b-td>
+                                            <b-form-checkbox
+                                                :checked="!!seleccionadosMap[claveSeleccion(dep._id, prod.cod)]"
+                                                @change="(val) => toggleSeleccion(dep._id, prod.cod, val)" />
+                                        </b-td>
+                                        <b-td>{{ prod.name }}</b-td>
+                                        <b-td>
+                                            <admin-ComisionesProductosInputGeneral
+                                                :id-producto="prod.cod"
+                                                :id-departamento="dep._id"
+                                                :original-value="obtenerComisionOriginal(prod, dep._id)"
+                                                :pending-value="obtenerComisionPendiente(prod.cod, dep._id)"
+                                                @update-comision="actualizarComisionEnData" />
+                                        </b-td>
+                                    </b-tr>
+                                </b-tbody>
+                            </b-table-simple>
+                        </div>
+                    </b-collapse>
+                </div>
             </b-container>
         </b-overlay>
     </div>
@@ -80,56 +124,30 @@
 export default {
     data() {
         return {
-            perPage: 25,
-            currentPage: 1,
             filter: null,
-            includedFields: ["name"],
             overlay: true,
-            inputDisabled: false,
             products: [],
-            productsTable: [],
-            departamento: null,
-            departamentoTit: `Seleccione un departamento`,
-            dataLength: 0,
             departamentos: [],
-            departamentosSelect: [],
-            productsSelect: [],
             selectedType: "todos",
             optionsType: [
                 { text: "Todos", value: "todos" },
                 { text: "Físicos", value: "fisicos" },
                 { text: "Digitales", value: "digitales" },
             ],
-            fields: [
-                {
-                    key: "name",
-                    label: "nombre",
-                },
-                {
-                    key: "comision",
-                    label: "comision",
-                },
-            ],
-            cambios: {}, // Objeto para registrar los cambios pendientes
-        }
-    },
-
-    watch: {
-        departamento(val) {
-            // ACTUALIZAR EL TITULO DEL DEPARTAMENTO SELECCIONADO
-            const tmpDep = this.departamentosSelect.find(el => el.value === val)
-            this.departamentoTit = tmpDep.text
-            this.applyFilters()
-        },
-
-        totalRows() {
-            // ACTUALIZAR EL TITULO DEL DEPARTAMENTO SELECCIONADO
-            const tmpDep = this.departamentosSelect.find(el => el.value === this.departamento)
-            this.departamentoTit = tmpDep.text
-        },
-
-        selectedType() {
-            this.applyFilters()
+            // Cambios pendientes sin guardar. Clave compuesta
+            // `${id_departamento}::${id_producto}` -- antes se indexaba solo
+            // por id_producto, así que al cambiar de departamento con
+            // cambios pendientes se guardaban con el id_departamento
+            // equivocado (contaminación cruzada entre departamentos).
+            cambios: {},
+            // Selección múltiple por producto+departamento, para poder
+            // aplicar una misma comisión a varios productos de una vez.
+            seleccionadosMap: {},
+            comisionGlobalPorDepartamento: {},
+            // Todas las secciones arrancan colapsadas (junto con `lazy` en
+            // b-collapse, evita renderizar de una vez N departamentos x
+            // cientos de productos cada uno).
+            expandedSections: {},
         }
     },
 
@@ -138,25 +156,127 @@ export default {
             return Object.keys(this.cambios).length > 0
         },
 
-        totalRows() {
-            return parseInt(this.dataLength) + 1
+        cantidadCambiosPendientes() {
+            return Object.keys(this.cambios).length
+        },
+
+        productosFiltrados() {
+            let filtered = [...this.products]
+
+            if (this.selectedType === "fisicos") {
+                filtered = filtered.filter(product => product.producto_fisico === 1)
+            } else if (this.selectedType === "digitales") {
+                filtered = filtered.filter(product => product.producto_fisico === 0)
+            }
+
+            if (this.filter) {
+                const term = this.filter.toLowerCase()
+                filtered = filtered.filter(product => (product.name || "").toLowerCase().includes(term))
+            }
+
+            return filtered
         },
     },
 
     methods: {
-        onFiltered(filteredItems) {
-            // Trigger pagination to update the number of buttons/pages due to filtering
-            this.totalRows = filteredItems.length
-            this.currentPage = 1
+        claveSeleccion(idDepartamento, idProducto) {
+            return `${idDepartamento}::${idProducto}`
+        },
+
+        claveCambio(idDepartamento, idProducto) {
+            return `${idDepartamento}::${idProducto}`
+        },
+
+        toggleSeccion(idDepartamento) {
+            this.$set(this.expandedSections, idDepartamento, !this.expandedSections[idDepartamento])
+        },
+
+        toggleSeleccion(idDepartamento, idProducto, valor) {
+            this.$set(this.seleccionadosMap, this.claveSeleccion(idDepartamento, idProducto), valor)
+        },
+
+        actualizarComisionGlobal(idDepartamento, valor) {
+            this.$set(this.comisionGlobalPorDepartamento, idDepartamento, valor)
+        },
+
+        marcarTodos(idDepartamento, valor) {
+            this.productosFiltrados.forEach(prod => {
+                this.$set(this.seleccionadosMap, this.claveSeleccion(idDepartamento, prod.cod), valor)
+            })
+        },
+
+        seleccionCountPorDepartamento(idDepartamento) {
+            const prefix = `${idDepartamento}::`
+            return Object.keys(this.seleccionadosMap)
+                .filter(key => key.startsWith(prefix) && this.seleccionadosMap[key])
+                .length
+        },
+
+        cambiosPorDepartamento(idDepartamento) {
+            const prefix = `${idDepartamento}::`
+            return Object.keys(this.cambios).filter(key => key.startsWith(prefix)).length
+        },
+
+        obtenerComisionOriginal(producto, idDepartamento) {
+            const idExist = (producto.comisiones || []).find(
+                (el) => el.id_departamento === idDepartamento
+            )
+            if (idExist !== undefined) {
+                return parseFloat(idExist.comision) || 0
+            }
+
+            const dep = this.departamentos.find(d => d._id === idDepartamento)
+            const esDiseno = dep && dep.departamento === "Diseño"
+            if (producto.es_diseno === 1 && esDiseno) {
+                return parseFloat(producto.comision) || 0
+            }
+
+            return 0
+        },
+
+        obtenerComisionPendiente(idProducto, idDepartamento) {
+            const key = this.claveCambio(idDepartamento, idProducto)
+            return Object.prototype.hasOwnProperty.call(this.cambios, key) ? this.cambios[key] : null
+        },
+
+        actualizarComisionEnData(payload) {
+            // payload: { id_producto, id_departamento, comision }
+            const key = this.claveCambio(payload.id_departamento, payload.id_producto)
+            const producto = this.products.find(p => p.cod === payload.id_producto)
+            const original = producto ? this.obtenerComisionOriginal(producto, payload.id_departamento) : null
+
+            if (original !== null && payload.comision === original) {
+                // El usuario volvió al valor original: ya no es un cambio pendiente.
+                this.$delete(this.cambios, key)
+            } else {
+                this.$set(this.cambios, key, payload.comision)
+            }
+        },
+
+        aplicarComisionASeleccionados(idDepartamento) {
+            const valor = parseFloat(this.comisionGlobalPorDepartamento[idDepartamento])
+            if (Number.isNaN(valor)) return
+
+            const prefix = `${idDepartamento}::`
+            const idsSeleccionados = Object.keys(this.seleccionadosMap)
+                .filter(key => key.startsWith(prefix) && this.seleccionadosMap[key])
+                .map(key => key.split("::")[1])
+
+            idsSeleccionados.forEach(idProductoStr => {
+                const producto = this.products.find(p => String(p.cod) === idProductoStr)
+                if (!producto) return
+                this.actualizarComisionEnData({
+                    id_producto: producto.cod,
+                    id_departamento: idDepartamento,
+                    comision: valor,
+                })
+            })
         },
 
         async loadData() {
             this.overlay = true
             await this.getDepartamentos()
-            await this.getProducts().then(() => {
-                this.productsTable = this.products
-                this.applyFilters()
-            })
+            await this.getProducts()
             this.overlay = false
         },
 
@@ -164,24 +284,9 @@ export default {
             await this.$axios(`${this.$config.API}/products`)
                 .then((res) => {
                     this.products = res.data
-                    this.dataLength = res.data.length
-                    this.productsSelect = res.data.map((prod) => {
-                        return {
-                            value: prod.cod,
-                            text: prod.name
-                        }
-                    })
                 })
                 .catch((err) => {
-                    console.log("Error en getPtroducts", err)
-                    // this.alert({
-                    //   type: 'error',
-                    //   titile: 'Error',
-                    //   html: 'Error en la conexión',
-                    // })
-                })
-                .finally(() => {
-                    this.overlay = false
+                    console.log("Error en getProducts", err)
                 })
         },
 
@@ -189,122 +294,34 @@ export default {
             await this.$axios(`${this.$config.API}/departamentos`)
                 .then((res) => {
                     this.departamentos = res.data
-                    this.departamentosSelect = res.data.map((dep) => {
-                        return {
-                            value: dep._id,
-                            text: dep.departamento
-                        }
-                    })
-
-                    this.departamentosSelect.unshift({
-                        value: null,
-                        text: "Seleccione un departamento",
-                    })
-
-                    console.log(`Select departamentos`, this.departamentosSelect)
                 })
                 .catch((err) => {
-                    console.log("Error en getPtroducts", err)
-                    // this.alert({
-                    //   type: 'error',
-                    //   titile: 'Error',
-                    //   html: 'Error en la conexión',
-                    // })
+                    console.log("Error en getDepartamentos", err)
                 })
-                .finally(() => {
-                    this.overlay = false
-                })
-        },
-        /* compareNames(a, b) {
-            const nameA = a.name.toUpperCase()
-            const nameB = b.name.toUpperCase()
-    
-            let comparison = 0
-            if (nameA > nameB) {
-                comparison = 1
-            } else if (nameA < nameB) {
-                comparison = -1
-            }
-            return comparison
-        }, */
-
-        /* showCategories(dat) {
-            const filtered = dat.map((el) => {
-                return el.name
-            })
-            return filtered
-        }, */
-
-        /* async getAttributes() {
-            await this.$axios
-                .get(`${this.$config.API}/atributos/comisiones`)
-                .then((res) => {
-                    this.products = res.data.data
-                })
-        }, */
-
-        actualizarComisionEnData(payload) {
-            // payload es { id_producto: ..., comision: ... }
-
-            // Actualizamos el valor en la data local para que la UI sea consistente
-            const producto = this.products.find(p => p.cod === payload.id_producto)
-            if (producto) {
-                // Esto es opcional, pero mantiene la data del padre sincronizada
-                // por si se necesita en el futuro.
-            }
-
-            // Registramos el cambio en nuestro objeto de cambios pendientes
-            // Usamos el id_producto como clave para no tener duplicados
-            this.$set(this.cambios, payload.id_producto, payload.comision)
-
-            // Forzamos la reactividad si es necesario (Vue 2)
-            this.$forceUpdate()
-        },
-
-        applyFilters() {
-            let filtered = [...this.productsTable] // Start from the original products
-
-            // Filter by product type
-            if (this.selectedType === "fisicos") {
-                filtered = filtered.filter(product => product.producto_fisico === 1)
-            } else if (this.selectedType === "digitales") {
-                filtered = filtered.filter(product => product.producto_fisico === 0)
-            }
-
-            this.products = filtered
-            this.dataLength = filtered.length
-            this.currentPage = 1
         },
 
         async guardarTodosLosCambios() {
             this.overlay = true
 
-            // Convertimos nuestro objeto de cambios a un array que la API pueda procesar
-            const loteDeCambios = Object.keys(this.cambios).map(idProducto => {
+            const loteDeCambios = Object.keys(this.cambios).map(key => {
+                const [idDepartamento, idProducto] = key.split("::")
                 return {
                     id_product: idProducto,
-                    id_departamento: this.departamento, // El departamento actual
-                    comision: this.cambios[idProducto],
+                    id_departamento: parseInt(idDepartamento, 10),
+                    comision: this.cambios[key],
                 }
             })
 
-            // --- IMPORTANTE: Modificación en el Backend ---
-            // El endpoint actual (`/product-set-comision-producto`) procesa un solo cambio.
-            // Lo ideal es crear un NUEVO ENDPOINT que acepte un lote.
-            // Ej: POST /product-set-comisiones-batch
-
-            // --- CAMBIO AQUÍ: Construir URLSearchParams con JSON.stringify --- 
             const params = new URLSearchParams()
-            params.set('comisiones', JSON.stringify(loteDeCambios)) // <--- ESTE ES EL CAMBIO CLAVE
-            // --- FIN CAMBIO ---
+            params.set('comisiones', JSON.stringify(loteDeCambios))
 
             await this.$axios
                 .post(
                     `${this.$config.API}/product-set-comisiones-batch`,
-                    params.toString(), // Envía el string de URLSearchParams
+                    params.toString(),
                     {
                         headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded' // Especifica el Content-Type
+                            'Content-Type': 'application/x-www-form-urlencoded'
                         }
                     }
                 )
@@ -314,8 +331,8 @@ export default {
                         html: "Se guardaron todas las comisiones.",
                         type: "success",
                     })
-                    this.cambios = {} // Limpiamos los cambios pendientes
-                    this.loadData() // Recargamos los datos desde la fuente original
+                    this.cambios = {}
+                    this.loadData()
                 })
                 .catch(err => {
                     console.error("Error al guardar en lote:", err)
@@ -333,9 +350,6 @@ export default {
 
     mounted() {
         this.loadData()
-        // this.getProducts().then(() => this.productsTable = this.products)
-        // this.getDepartamentos()
-        // this.getAttributes().then(() => (this.overlay = false))
     },
 }
 </script>
@@ -353,5 +367,44 @@ export default {
        que el tamaño de cada botón sea el mismo sin importar en qué fila caiga. */
     flex: 0 0 auto;
     margin-bottom: 4px;
+}
+
+.guardar-cambios-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.section-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+}
+
+.section-header:hover {
+    background-color: #eef1f4;
+}
+
+.section-body {
+    background-color: #fff;
+}
+
+.aplicar-masiva-bar {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px;
 }
 </style>
