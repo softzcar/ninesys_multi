@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** Parte del plan aprobado por el usuario (Plan Mode) tras encontrar un bug real de sobrepago cuando se reparte trabajo entre 2+ empleados (ver bitácora completa en `ninesys-api/logs_gemini/2026-09-22_11-10-25_tarea-fix_reparto_comision_multi_empleado.log`). El fix principal es de backend; este es el complemento defensivo del frontend, explícitamente incluido en el plan aprobado.
+- **Fecha y Hora:** 2026-09-22 11:10:25
+- **Proyecto(s):** Frontend (app_multi) -- ver bitácora del backend (`ninesys-api`) para el contexto completo de la investigación y el fix de causa raíz.
+- **Archivos Involucrados:**
+  - `components/produccionsse/asignarEmpleadoMulti.vue`
+- **Commits Relacionados:**
+  - Frontend: `f39cd57` (rama `refactor/modular-routes`, tag `v1.0.44`)
+  - Backend: `85581a1` (rama `feature/postgresql-support`, tag `v1.0.47`)
+- **Acción Realizada:** El bug raíz (orden 6707, ~$9.84 sobrepagados) se originó porque `construirPayloadAsignaciones()` omite del payload a cualquier empleado que quede en 0 unidades repartidas en todas las líneas de producto -- el backend ya fue corregido para reconciliar contra esto, pero quedaba un caso borde sin cubrir: si TODOS los empleados de `this.form` quedan en 0 (se vació la asignación completa sin usar el botón "Quitar empleado"), `construirPayloadAsignaciones()` devuelve un array vacío y `guardarAsignacion()` hacía `return;` en silencio -- el request nunca llega al backend, así que la reconciliación del lado del servidor nunca se dispara y todas las filas viejas quedan huérfanas sin que nadie se entere. Corregido: en ese caso, se muestra una advertencia explícita (`$fire` tipo warning) pidiendo usar el botón "Quitar empleado" para el último integrante en vez de vaciar todos los splits.
+- **Inconvenientes y Desafíos:** Ninguno técnico -- cambio pequeño y acotado, complemento del fix real que vive en el backend.
+- **Decisión Final y Justificación:** No se tocó `construirPayloadAsignaciones()` en sí (el payload que arma ya es correcto y es justo lo que el backend necesita para reconciliar) -- el único cambio necesario era no fallar en silencio en el caso borde de "vaciar todo".
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`.
+- **Resultado:** Éxito.
+- **Verificación:** Cambio acotado a un solo `if`, sin lógica nueva compleja -- revisado el diff línea por línea. Pendiente prueba visual en navegador (no se probó en esta sesión).
+- **Logro Conseguido:** Cierra el último caso borde del bug de reparto de comisión entre 2+ empleados, complementando el fix de causa raíz del backend.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Ver la bitácora del backend para el detalle completo de la investigación, el barrido de Producción y la corrección de datos.
+- **Respuesta de Gemini:** Agregada una advertencia explícita en el modal "Asignar" cuando se intenta vaciar el reparto de todos los empleados, en vez de fallar en silencio -- complemento del fix de causa raíz en el backend.
