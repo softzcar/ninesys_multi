@@ -31,6 +31,11 @@
           En la hoja <strong>Productos</strong>, puede asignar un precio a
           un mismo producto usando su SKU.
         </li>
+        <li>
+          <strong>Departamento</strong> y <strong>Comisión</strong> son
+          opcionales, pero si asigna uno debe asignar también el otro. La
+          comisión admite hasta 3 decimales.
+        </li>
       </ul>
       <b-overlay :show="loading" spinner-small>
         <b-button variant="primary" @click="downloadTemplate">
@@ -190,6 +195,22 @@ export default {
               if (!product['Precio Descripción']) rowErrors.push('El campo "Precio Descripción" es obligatorio.');
               if (!product.Categoría) rowErrors.push('El campo Categoría es obligatorio.');
 
+              // Departamento y Comisión son opcionales, pero deben venir juntos:
+              // asignar una comisión sin departamento (o viceversa) no tiene sentido.
+              const departamento = product.Departamento || null;
+              const tieneComision = product['Comisión'] !== undefined && product['Comisión'] !== null && product['Comisión'] !== '';
+              let comision = null;
+              if (departamento && !tieneComision) {
+                rowErrors.push('Asignó un Departamento pero no una Comisión.');
+              } else if (!departamento && tieneComision) {
+                rowErrors.push('Asignó una Comisión pero no un Departamento.');
+              } else if (departamento && tieneComision) {
+                comision = parseFloat(product['Comisión']);
+                if (Number.isNaN(comision) || comision < 0) {
+                  rowErrors.push('La Comisión debe ser un número mayor o igual a 0.');
+                }
+              }
+
               if (rowErrors.length > 0) {
                 validationErrors.push({ row: rowNumber, messages: rowErrors });
               } else {
@@ -198,6 +219,8 @@ export default {
                   Nombre: product.Nombre,
                   Categoría: product.Categoría,
                   Atributos: product.Atributos || null,
+                  Departamento: departamento,
+                  Comision: comision,
                   precios: [{
                     valor: product.Precios,
                     descripcion: product['Precio Descripción'],
