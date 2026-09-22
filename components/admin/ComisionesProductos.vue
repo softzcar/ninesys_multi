@@ -77,11 +77,34 @@
                                     :value="comisionGlobalPorDepartamento[dep._id]"
                                     @input="(val) => actualizarComisionGlobal(dep._id, val)" />
 
-                                <b-button size="sm" variant="success" class="mb-2"
+                                <b-button size="sm" variant="success" class="mr-3 mb-2"
                                     :disabled="!seleccionCountPorDepartamento(dep._id) || comisionGlobalPorDepartamento[dep._id] === null || comisionGlobalPorDepartamento[dep._id] === undefined"
                                     @click="aplicarComisionASeleccionados(dep._id)">
                                     Aplicar a seleccionados ({{ seleccionCountPorDepartamento(dep._id) }})
                                 </b-button>
+
+                                <b-button size="sm" variant="outline-primary" class="mr-2 mb-2"
+                                    @click="descargarPlantillaComisiones(dep._id)">
+                                    <b-icon icon="download" class="mr-1"></b-icon>
+                                    Descargar Plantilla
+                                </b-button>
+
+                                <b-form-file
+                                    :id="`upload-comisiones-${dep._id}`"
+                                    :ref="`uploadComisiones${dep._id}`"
+                                    size="sm"
+                                    style="width: 260px"
+                                    class="mb-2 upload-plantilla-comisiones"
+                                    placeholder="Subir plantilla..."
+                                    drop-placeholder="Suelte el archivo aquí..."
+                                    accept=".xlsx, .xls"
+                                    @input="(file) => subirPlantillaComisiones(dep._id, file)"
+                                />
+
+                                <small class="text-muted w-100 mt-1">
+                                    En la plantilla, SKU y Nombre son solo de referencia -- únicamente se
+                                    actualiza la columna Comisión.
+                                </small>
                             </div>
 
                             <b-table-simple hover small responsive bordered>
@@ -120,6 +143,7 @@
 </template>
 
 <script>
+import * as XLSX from 'xlsx'
 
 export default {
     data() {
@@ -301,8 +325,6 @@ export default {
         },
 
         async guardarTodosLosCambios() {
-            this.overlay = true
-
             const loteDeCambios = Object.keys(this.cambios).map(key => {
                 const [idDepartamento, idProducto] = key.split("::")
                 return {
@@ -312,11 +334,29 @@ export default {
                 }
             })
 
+            await this.enviarLoteComisiones(loteDeCambios)
+        },
+
+        // Compartido entre guardarTodosLosCambios() (edición manual en la
+        // tabla) y subirPlantillaComisiones() (carga masiva desde Excel) --
+        // ambos flujos terminan armando el mismo array de cambios y
+        // enviándolo por el mismo endpoint.
+        async enviarLoteComisiones(loteDeCambios) {
+            if (loteDeCambios.length === 0) {
+                this.$fire({
+                    title: "Sin cambios",
+                    html: "No hay comisiones para actualizar.",
+                    type: "info",
+                })
+                return false
+            }
+
+            this.overlay = true
             const params = new URLSearchParams()
             params.set('comisiones', JSON.stringify(loteDeCambios))
 
-            await this.$axios
-                .post(
+            try {
+                await this.$axios.post(
                     `${this.$config.API}/product-set-comisiones-batch`,
                     params.toString(),
                     {
@@ -325,26 +365,152 @@ export default {
                         }
                     }
                 )
-                .then(res => {
-                    this.$fire({
-                        title: "Éxito",
-                        html: "Se guardaron todas las comisiones.",
-                        type: "success",
-                    })
-                    this.cambios = {}
-                    this.loadData()
+                this.$fire({
+                    title: "Éxito",
+                    html: "Se guardaron todas las comisiones.",
+                    type: "success",
                 })
-                .catch(err => {
-                    console.error("Error al guardar en lote:", err)
+                this.cambios = {}
+                await this.loadData()
+                return true
+            } catch (err) {
+                console.error("Error al guardar en lote:", err)
+                this.$fire({
+                    title: "Error",
+                    html: "No se pudieron guardar los cambios.",
+                    type: "error",
+                })
+                return false
+            } finally {
+                this.overlay = false
+            }
+        },
+
+        async descargarPlantillaComisiones(idDepartamento) {
+            this.overlay = true
+            try {
+                const response = await this.$axios.get(
+                    `${this.$config.API}/products-comisiones/template-excel/${idDepartamento}`
+                )
+                const fileUrl = response.data.file_url
+                const link = document.createElement('a')
+                link.href = `${this.$config.API}${fileUrl}`
+                link.setAttribute('download', 'plantilla_comisiones.xlsx')
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+            } catch (err) {
+                console.error('Error al descargar la plantilla de comisiones:', err)
+                this.$fire({
+                    title: "Error",
+                    html: "Ocurrió un error al generar la plantilla. Por favor, inténtelo de nuevo.",
+                    type: "error",
+                })
+            } finally {
+                this.overlay = false
+            }
+        },
+
+        async subirPlantillaComisiones(idDepartamento, file) {
+            if (!file) return
+
+            try {
+                const { loteDeCambios, errors } = await this.parsePlantillaComisiones(file, idDepartamento)
+
+                if (errors.length > 0) {
                     this.$fire({
-                        title: "Error",
-                        html: "No se pudieron guardar los cambios.",
+                        title: "Errores en el archivo",
+                        html: errors.join('<br>'),
                         type: "error",
                     })
+                    return
+                }
+
+                await this.enviarLoteComisiones(loteDeCambios)
+            } catch (err) {
+                console.error('Error al procesar la plantilla de comisiones:', err)
+                this.$fire({
+                    title: "Error",
+                    html: err.message || "No se pudo leer el archivo.",
+                    type: "error",
                 })
-                .finally(() => {
-                    this.overlay = false
-                })
+            } finally {
+                const uploadRef = this.$refs['uploadComisiones' + idDepartamento]
+                if (uploadRef) uploadRef.reset()
+            }
+        },
+
+        // Nunca lee SKU/Nombre de la hoja para nada -- son solo de
+        // referencia para quien edita el Excel. Cada fila se identifica
+        // exclusivamente por la columna ID (oculta), validada contra los
+        // productos ya cargados en el frontend.
+        parsePlantillaComisiones(file, idDepartamentoEsperado) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = (e) => {
+                    try {
+                        const data = e.target.result
+                        const workbook = XLSX.read(data, { type: 'array' })
+
+                        const metaSheet = workbook.Sheets['Meta']
+                        if (!metaSheet) {
+                            throw new Error('El archivo no tiene el formato esperado (falta la hoja de metadata). Descargue la plantilla desde esta misma pantalla.')
+                        }
+                        const idDepartamentoArchivo = parseInt(metaSheet['A1'] ? metaSheet['A1'].v : NaN, 10)
+                        if (idDepartamentoArchivo !== idDepartamentoEsperado) {
+                            const nombreArchivo = metaSheet['A2'] ? metaSheet['A2'].v : 'otro departamento'
+                            throw new Error(`Este archivo pertenece al departamento "${nombreArchivo}", no al que está intentando actualizar. Descargue la plantilla correcta desde esta sección.`)
+                        }
+
+                        const sheet = workbook.Sheets['Comisiones']
+                        if (!sheet) {
+                            throw new Error('No se encontró la hoja "Comisiones" en el archivo.')
+                        }
+                        const rows = XLSX.utils.sheet_to_json(sheet)
+
+                        const idsConocidos = new Set(this.products.map(p => String(p.cod)))
+                        const loteDeCambios = []
+                        const errors = []
+
+                        rows.forEach((row, index) => {
+                            const rowNumber = index + 2
+                            const idProducto = row.ID
+                            if (idProducto === undefined || idProducto === null || idProducto === '') {
+                                errors.push(`Fila ${rowNumber}: falta el ID del producto (no edite la columna ID).`)
+                                return
+                            }
+                            if (!idsConocidos.has(String(idProducto))) {
+                                errors.push(`Fila ${rowNumber}: el producto (ID ${idProducto}) no existe o no está disponible.`)
+                                return
+                            }
+
+                            const comisionRaw = row['Comisión']
+                            if (comisionRaw === undefined || comisionRaw === null || comisionRaw === '') {
+                                return // sin valor: sin cambio para esta fila
+                            }
+                            const comision = parseFloat(comisionRaw)
+                            if (Number.isNaN(comision) || comision < 0) {
+                                errors.push(`Fila ${rowNumber}: la Comisión debe ser un número mayor o igual a 0.`)
+                                return
+                            }
+
+                            loteDeCambios.push({
+                                id_product: idProducto,
+                                id_departamento: idDepartamentoEsperado,
+                                comision,
+                            })
+                        })
+
+                        resolve({ loteDeCambios, errors })
+                    } catch (err) {
+                        reject(err)
+                    }
+                }
+                reader.onerror = () => {
+                    reject(new Error('No se pudo leer el archivo. Asegúrese de que no esté dañado y que esté cerrado (no abierto en Excel u otra aplicación) antes de subirlo.'))
+                }
+                reader.readAsArrayBuffer(file)
+            })
         },
     },
 
