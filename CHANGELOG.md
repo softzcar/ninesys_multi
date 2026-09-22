@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.0.44] - 2026-09-22
+- Fix: advertencia explicita en el modal "Asignar" al vaciar el reparto de todos los empleados en vez de fallar en silencio (parte del fix de reparto de comision, ver ninesys-api v1.0.47)
+
 ## [v1.0.43] - 2026-09-18
 - Feat: columna Origen (Fabricacion/Reposicion #N clicable) en la Planilla de Pagos, con modal de detalle de la reposicion reusado desde /produccion/reporte-reposiciones; Orden ahora usa linkSearch
 

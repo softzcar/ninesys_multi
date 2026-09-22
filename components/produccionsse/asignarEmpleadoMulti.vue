@@ -343,7 +343,19 @@ export default {
       }
 
       const asignaciones = this.construirPayloadAsignaciones();
-      if (asignaciones.length === 0) return;
+      if (asignaciones.length === 0) {
+        // Todos los empleados quedaron en 0 unidades repartidas -- este
+        // request nunca llega al backend, así que ninguna fila vieja se
+        // reconcilia. Antes esto fallaba en silencio; ahora se avisa
+        // explícitamente en vez de dejar asignaciones huérfanas sin que
+        // nadie se entere (bug real 2026-09-22, ver orden 6707).
+        this.$fire({
+          title: "No se puede vaciar la asignación",
+          html: `<p>Debe quedar al menos un empleado con unidades asignadas. Para quitar al último integrante, use el botón "Quitar empleado" en vez de dejar todas las cantidades en 0.</p>`,
+          type: "warning",
+        });
+        return;
+      }
 
       // Nada realmente distinto de lo último guardado -- evita reenviar y
       // volver a mostrar el toast (ej. si el autoguardado se disparó más de
