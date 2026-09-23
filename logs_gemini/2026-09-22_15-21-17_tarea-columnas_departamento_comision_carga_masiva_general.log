@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** [Reconstruido desde Git -- tramo de conversación anterior a la ventana visible de esta sesión. Por el commit, el pedido inicial fue permitir asignar comisión por departamento directamente desde la plantilla Excel de la carga masiva GENERAL de productos.]
+- **Fecha y Hora:** 2026-09-22 15:21:17
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/components/products/BulkLoad.vue`
+- **Commits Relacionados:**
+  - Frontend: `11fce60` (implementación) -- **revertido** el 2026-09-22/23 por `110b890`
+  - Backend: `75d3230` (implementación) -- **revertido** por `611b91b`, ver log correspondiente en `ninesys-api/logs_gemini/`
+- **Acción Realizada:** Agregadas al formulario y a la validación de `BulkLoad.vue` (carga masiva general de productos) dos columnas opcionales-pero-pareadas: Departamento y Comisión (3 decimales), con el mismo criterio de validación que ya usaban otras columnas con listas desplegables (si se asigna una, debe asignarse la otra).
+- **Inconvenientes y Desafíos:** Ninguno técnico en el momento de esta implementación. El problema salió a la luz al día siguiente (2026-09-22, tramo posterior/2026-09-23): el usuario aclaró que el requerimiento real no era agregar estos campos a la carga masiva GENERAL, sino una carga masiva de comisiones **dedicada** desde la pantalla "Comisiones de Productos", con la hoja pre-llenada por productos reales (escribir SKUs a mano es propenso a errores, y de hecho el SKU no es un identificador confiable: 47% de productos activos de la empresa 194 sin SKU).
+- **Decisión Final y Justificación:** Revertido por completo el mismo día del hallazgo (ver `revert: quitar columnas Departamento/Comision de carga masiva general de productos`, commit `110b890`) y reemplazado por la implementación correcta (ver log `2026-09-22_17-24-00_tarea-carga_masiva_comisiones_departamento.log`). Se preservó únicamente la infraestructura compartida real (precisión de 3 decimales en el esquema, commit `2fadcf9`).
+- **Herramienta(s) Utilizada(s):** No registrado para la implementación original (reconstrucción desde Git). El revert se hizo con `Read`/`Edit`/`git commit`/`git push`/`deploy_frontend_dev.sh`.
+- **Resultado:** Parcial -- implementado y desplegado a Desarrollo, pero identificado como el enfoque equivocado y revertido por completo el mismo día/día siguiente, sin llegar a desplegarse a Producción.
+- **Verificación:** No registrada en el momento de esta implementación. La reversión sí se verificó formalmente: plantilla descargada tras el revert confirmada con 6 columnas (A-F), sin Departamento/Comisión, sin hoja oculta `ListadoDepartamentos`.
+- **Logro Conseguido:** Ninguno directo (funcionalidad descartada) -- valor indirecto: la implementación y su posterior reversión ayudaron a clarificar el requerimiento real, que se implementó correctamente después en la pantalla de Comisiones de Productos.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Este log fue reconstruido el 2026-09-23 a partir del historial de Git, porque la tarea se completó sin dejar bitácora el mismo día -- detectado al cruzar `git log` del 2026-09-22 contra `logs_gemini/` antes de generar el reporte diario. Se documenta explícitamente como trabajo revertido para que el reporte semanal no lo cuente como una feature entregada.
+- **Respuesta de Gemini:** N/A (reconstrucción posterior).
