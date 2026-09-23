@@ -1,0 +1,19 @@
+- **Solicitud del Usuario:** "ok en la prueba en el servidor de desarrollo seleccioné el producto SERVICIO DE SUBLIMACIÓN Y CALANDRA pero en el presupuesto aparece un producto adicional llamado 'Uso de software 19print (temporal)' ambos con el cod 122, también está mostrando en crear una nueva orden 'TOTAL PRODUCTOS: 0' Donde la cantidad en el presupuesto es 0.3" (con captura de pantalla adjunta).
+- **Fecha y Hora:** 2026-09-22 16:32:00
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `app_multi/mixins/mixins.js` (función `totalProductos`)
+- **Commits Relacionados:**
+  - Frontend: `1333475` (tag `v1.2.1`)
+  - Backend: N/A
+- **Acción Realizada:** Se investigaron los dos hallazgos reportados por el usuario. El primero ("Uso de software 19print (temporal)" duplicando el `cod` 122) resultó ser un placeholder deliberado y ya documentado en el código de `19print_app` (comentario explícito: "PLACEHOLDER TEMPORAL... confirmado con el usuario"), no un bug -- no se tocó ese código. El segundo hallazgo ("TOTAL PRODUCTOS: 0" con cantidad 0.3 en pantalla) sí era un bug real: `totalProductos(items, nombreCampo)` en `mixins.js` sumaba las cantidades con `parseInt(item[nombreCampo], 10)`, que trunca cualquier valor fraccionario a 0 antes de sumarlo -- con una cantidad de 0.3 (facturación por metro de DTF), `parseInt` devuelve `0`, y la suma total queda en 0 aunque haya productos reales cargados. Se cambió a `parseFloat(item[nombreCampo])`. Se verificó que el mixin es usado por 5 templates (`nueva.vue`, `presupuesto.vue`, `preview.vue`, `presupuesto-preview.vue`, `buscar/resultado.vue`) y que todos interpolan el resultado directamente sin dar por sentado que sea un entero, así que el cambio no rompe ningún formateo existente.
+- **Inconvenientes y Desafíos:** Ninguno técnico. El desafío fue distinguir cuál de los dos hallazgos del usuario era un bug real y cuál era comportamiento ya conocido -- se investigó el código de `19print_app` antes de tocar nada para no "arreglar" el placeholder deliberado.
+- **Decisión Final y Justificación:** `parseFloat` en vez de `parseInt` porque el sistema factura por unidades fraccionarias reales (metros de DTF) en varios productos, y truncar a entero produce un total incorrecto silenciosamente -- mismo patrón de bug ya visto antes en este código (ver `project_fix_decimales_asignacion_personal`).
+- **Herramienta(s) Utilizada(s):** `Read`, `Edit`, `git commit`, `git tag`, `git push`.
+- **Resultado:** Éxito.
+- **Verificación:** Desplegado a Desarrollo (`app_multi v1.2.1`). Pendiente confirmar despliegue a Producción (no solicitado explícitamente en este momento).
+- **Logro Conseguido:** Corregido un bug que dejaba en cero el total de productos mostrado al cliente en presupuestos/órdenes con cantidades fraccionarias (facturación por metro, típico de DTF), pese a que el pedido sí tenía productos reales cargados.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Queda pendiente, sin resolver a propósito, si se debe crear el producto real "Uso de software 19print" en el catálogo de Ninesys para eliminar el placeholder -- el usuario no respondió esa pregunta antes de pasar al siguiente tema.
+- **Respuesta de Gemini:** Corregido el total de productos en cero cuando la cantidad es fraccionaria (ej. 0.3 metros); el producto duplicado con el mismo código es un placeholder intencional ya confirmado anteriormente, no un bug.
