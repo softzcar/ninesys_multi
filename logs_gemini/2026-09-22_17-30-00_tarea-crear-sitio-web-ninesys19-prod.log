@@ -1,0 +1,35 @@
+# Registro de Tarea: Creación y Despliegue de Sitio Web ninesys19.com en Producción
+
+**Fecha:** 2026-09-22 17:30:00
+**Servidor Destino:** Contabo Producción (`vps-contabo-prod` / `185.214.135.74`)
+**Dominio:** `ninesys19.com`
+
+---
+
+## 1. Contexto y Requerimiento
+El usuario solicitó la creación y publicación del sitio web informativo/landing en el dominio `ninesys19.com` en el servidor de producción (`185.214.135.74`), utilizando el paquete de archivos provisto en `/home/developer/Descargas/ninesys19-web-actualizada.zip`.
+
+---
+
+## 2. Acciones Realizadas
+
+1. **Creación del VirtualHost / Sitio en Producción:**
+   - Se ejecutó el comando de CyberPanel CLI en `vps-contabo-prod`:
+     `cyberpanel --package Default --owner admin --domainName ninesys19.com --email info@ninesys19.com --php 8.1 createWebsite`
+   - Creó el directorio `/home/ninesys19.com/public_html` con usuario `nines4155:nines4155`.
+
+2. **Carga y Extracción de Archivos:**
+   - Se transfirió el archivo ZIP `/home/developer/Descargas/ninesys19-web-actualizada.zip` al servidor mediante `scp`.
+   - Se descomprimió todo el contenido en `/home/ninesys19.com/public_html/`.
+   - Se asignaron los permisos y propietarios correspondientes (`chown -R nines4155:nines4155`, directorios a 755 y archivos a 644).
+
+3. **Emisión de Certificado SSL:**
+   - Se emitió el certificado SSL Let's Encrypt para `ninesys19.com` y `www.ninesys19.com` mediante `cyberpanel issueSSL --domainName ninesys19.com`.
+
+4. **Reinicio y Verificación de Servicio:**
+   - Se reinició el servicio OpenLiteSpeed (`systemctl restart lsws`).
+   - Se verificaron exitosamente las respuestas HTTP y HTTPS (HTTP/2 200 OK) para:
+     - `https://ninesys19.com/`
+     - `https://ninesys19.com/sublimacion.html`
+     - `https://ninesys19.com/tutoriales.html`
+     - `https://ninesys19.com/assets/logo-ninesys19.png`
