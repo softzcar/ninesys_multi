@@ -249,12 +249,9 @@ export default {
                 return parseFloat(idExist.comision) || 0
             }
 
-            const dep = this.departamentos.find(d => d._id === idDepartamento)
-            const esDiseno = dep && dep.departamento === "Diseño"
-            if (producto.es_diseno === 1 && esDiseno) {
-                return parseFloat(producto.comision) || 0
-            }
-
+            // Sin fila en products_comisiones para este producto+departamento:
+            // se asume $0 (2026-09-25 -- antes caía a producto.comision, el
+            // campo legacy que se está eliminando de la base de datos).
             return 0
         },
 
