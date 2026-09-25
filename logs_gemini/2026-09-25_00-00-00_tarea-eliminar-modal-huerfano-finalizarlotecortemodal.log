@@ -1,0 +1,25 @@
+- **Solicitud del Usuario:** "eliminemos ese modal huerfano entonces, no tiene sentido que regresemos a esa implementación antigua." -- tras investigar el bug del semáforo de Eficiencia de Insumos (orden 7168), se había corregido inicialmente `FinalizarLoteCorteModal.vue` (agregado `isTela()`, conversión metros->kilos) bajo la hipótesis de que "Corte" era responsable de la discrepancia de tela. Al verificar el flujo real en `SseOrdenesAsignadasV5.vue`/`V4.vue` se confirmó que ese modal nunca se renderiza: `showFinalizarCorteModal` se declara pero jamás se pone en `true` -- toda finalización que no sea Impresión (incluida Corte) usa el modal genérico `FinalizarLoteModal.vue`, que ya tenía la lógica de tela correcta desde antes. El usuario pidió eliminar el archivo huérfano en vez de mantenerlo.
+- **Fecha y Hora:** 2026-09-25
+- **Proyecto(s):** Frontend (app_multi)
+- **Archivos Involucrados:**
+  - `components/empleados/FinalizarLoteCorteModal.vue` (eliminado)
+  - `components/empleados/SseOrdenesAsignadasV5.vue` (limpieza de referencias)
+- **Commits Relacionados:**
+  - Frontend: (pendiente de commit en el momento de este log, ver commit inmediatamente posterior)
+  - Backend: N/A
+- **Acción Realizada:**
+  1. Se confirmó mediante lectura directa de `SseOrdenesAsignadasV5.vue` (línea ~1513) que la lógica de selección de modal es `if (tipoDepartamento === 'impresion') { showFinalizarImpresionModal = true } else { showFinalizarLoteModal = true }` -- ninguna rama activa `showFinalizarCorteModal`.
+  2. Se verificó con `grep` que `SseOrdenesAsignadasV4.vue`/`V4_backup.vue` (que sí referencian el modal en comentarios) tampoco se renderizan en ningún flujo activo, y quedaron fuera de alcance de esta limpieza a propósito.
+  3. Eliminado `components/empleados/FinalizarLoteCorteModal.vue` con `rm`.
+  4. En `SseOrdenesAsignadasV5.vue`: removido el bloque `<FinalizarLoteCorteModal ... />` del template, su `import`, su entrada en `components: {}`, la propiedad `showFinalizarCorteModal: false` de `data()`, y la línea `this.showFinalizarCorteModal = false` en `handleLoteFinalizado()` (8 líneas en total).
+  5. Verificado con `grep -rn "FinalizarLoteCorteModal"` en todo el proyecto: cero referencias restantes.
+- **Inconvenientes y Desafíos:** El diagnóstico inicial (antes de este paso) atribuyó erróneamente la discrepancia de tela de la orden 7168 al departamento de Corte, lo que llevó a arreglar primero el archivo equivocado. Se corrigió ese diagnóstico con el propio operador de planta y revisando `id_departamento` directamente en la base de datos, lo que reveló que Estampado es quien consume la tela para sublimado -- ver bitácora del fix de `manufacturing.php` del mismo día para el bug real.
+- **Decisión Final y Justificación:** Eliminar el archivo en vez de dejarlo sin usar, por pedido explícito del usuario ("no tiene sentido que regresemos a esa implementación antigua") -- evita mantener dos implementaciones paralelas del mismo flujo de finalización.
+- **Herramienta(s) Utilizada(s):** `Read`, `Grep`, `Edit`, `Bash (rm)`, verificación de balance de llaves/paréntesis con Python.
+- **Resultado:** Éxito.
+- **Verificación:** `grep -rn "FinalizarLoteCorteModal"` sin resultados en todo el repo; revisión manual de `SseOrdenesAsignadasV5.vue` confirmando balance correcto de sintaxis tras la edición.
+- **Logro Conseguido:** Eliminado código muerto que podía inducir a error en futuras investigaciones (parecía una implementación viva del flujo de Corte cuando en realidad nunca se ejecutaba), sin afectar ningún flujo real en producción.
+- **Referencias de Sesión (Contexto):**
+  - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** Este log se creó de forma retroactiva -- la eliminación ocurrió antes en la misma sesión, y el commit correspondiente se hizo inmediatamente después de este archivo de log.
+- **Respuesta de Gemini:** Eliminado `FinalizarLoteCorteModal.vue` y limpiadas sus 8 referencias en `SseOrdenesAsignadasV5.vue`; confirmado que ningún flujo real quedó afectado.

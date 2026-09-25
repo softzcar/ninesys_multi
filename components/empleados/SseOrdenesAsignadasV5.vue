@@ -739,10 +739,6 @@
       :es-reposicion="esReposicionParaFinalizar" @close="showFinalizarImpresionModal = false"
       @lote-finalizado="handleLoteFinalizado" />
 
-    <!-- MODAL PARA FINALIZAR LOTE DE CORTE -->
-    <FinalizarLoteCorteModal v-if="loteParaFinalizar" :show="showFinalizarCorteModal" :lote-id="loteParaFinalizar.id"
-      :insumos="insumos" :ordenes="ordenesParaFinalizar" @close="showFinalizarCorteModal = false"
-      @lote-finalizado="handleLoteFinalizado" />
   </div>
 </template>
 
@@ -753,7 +749,6 @@ import procesamientoOrdenesMixin from "~/mixins/procesamientoOrdenes.js";
 import mixintime from "~/mixins/mixin-time.js";
 import FinalizarLoteModal from '~/components/empleados/FinalizarLoteModal.vue';
 import FinalizarLoteImpresionModal from '~/components/empleados/FinalizarLoteImpresionModal.vue';
-import FinalizarLoteCorteModal from '~/components/empleados/FinalizarLoteCorteModal.vue';
 import CorteItemView from '~/components/produccion/CorteItemView.vue';
 
 export default {
@@ -761,7 +756,6 @@ export default {
   components: {
     FinalizarLoteModal,
     FinalizarLoteImpresionModal,
-    FinalizarLoteCorteModal,
     CorteItemView,
   },
   data() {
@@ -779,7 +773,6 @@ export default {
       // Modal de finalización
       showFinalizarLoteModal: false,
       showFinalizarImpresionModal: false,
-      showFinalizarCorteModal: false,
       loteParaFinalizar: null,
       ordenesParaFinalizar: [],
       esReposicionParaFinalizar: false,
@@ -1521,7 +1514,6 @@ export default {
     handleLoteFinalizado() {
       this.showFinalizarLoteModal = false;
       this.showFinalizarImpresionModal = false;
-      this.showFinalizarCorteModal = false;
       this.loteParaFinalizar = null;
       this.reloadMe();
     },
