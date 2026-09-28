@@ -21,10 +21,10 @@
             <b-icon icon="robot" class="mr-2"></b-icon>
             <span class="font-weight-bold">Asistente IA</span>
           </div>
-          <b-button 
-            variant="light" 
-            size="sm" 
-            class="ai-close-btn" 
+          <b-button
+            variant="light"
+            size="sm"
+            class="ai-close-btn"
             @click="toggleChat"
             v-b-tooltip.hover.bottom
             title="Cerrar chat"
@@ -39,11 +39,12 @@
           <div v-if="messages.length === 0" class="ai-welcome-message">
             <div class="ai-bubble ai-bubble-bot">
               <p class="mb-0">👋 ¡Hola{{ userName ? ' ' + userName : '' }}! Soy tu asistente de consultas.</p>
-              <p class="mb-0 mt-2">Puedo ayudarte con información sobre:</p>
+              <p class="mb-0 mt-2">Puedo ayudarte a consultar:</p>
               <ul class="mb-0 mt-1">
-                <li>Órdenes y clientes</li>
-                <li>Estado de producción</li>
-                <li>Inventario y materiales</li>
+                <li>Productos y precios del catálogo</li>
+                <li>Órdenes y saldo de un cliente (por teléfono)</li>
+                <li>Telas, tallas y horario de atención</li>
+                <li>Imágenes de la galería</li>
               </ul>
             </div>
           </div>
@@ -98,146 +99,29 @@
         </div>
       </div>
     </transition>
-
-    <!-- Modal de Confirmación de Orden -->
-    <b-modal
-      v-model="showOrderModal"
-      title="Confirmar Nueva Orden"
-      size="lg"
-      centered
-      @ok="confirmarOrden"
-      @cancel="cancelarOrden"
-      ok-title="Crear Orden"
-      cancel-title="Cancelar"
-      ok-variant="success"
-      :ok-disabled="isCreatingOrder"
-    >
-      <div v-if="orderPreview">
-        <!-- Cliente -->
-        <div class="mb-3">
-          <strong>Cliente:</strong>
-          <p class="mb-0">{{ orderPreview.cliente_seleccionado?.nombre }}</p>
-          <small class="text-muted">{{ orderPreview.cliente_seleccionado?.telefono }}</small>
-        </div>
-
-        <!-- Fecha de Entrega -->
-        <div class="mb-3">
-          <strong>Fecha de Entrega Estimada:</strong>
-          <span class="ml-2">{{ orderPreview.fecha_entrega_estimada }}</span>
-        </div>
-
-        <!-- Productos -->
-        <div v-for="(producto, idx) in orderPreview.productos" :key="idx" class="border rounded p-3 mb-3">
-          <h6>{{ producto.nombre_buscado }} (x{{ producto.cantidad }})</h6>
-          
-          <!-- Selector de Producto (si hay múltiples opciones) -->
-          <div v-if="producto.opciones && producto.opciones.length > 1" class="mb-2">
-            <label class="small">Seleccionar producto:</label>
-            <b-form-select v-model="selectedProducts[idx].producto_id" size="sm" @change="onProductoChange(idx)">
-              <option v-for="opt in producto.opciones" :key="opt.id" :value="opt.id">
-                {{ opt.nombre }}
-              </option>
-            </b-form-select>
-          </div>
-
-          <!-- Selector de Precio -->
-          <div class="mb-2">
-            <label class="small"><strong>Precio:</strong></label>
-            <b-form-select v-model="selectedProducts[idx].precio" size="sm">
-              <option v-for="precio in getPrecios(idx)" :key="precio.id" :value="precio.precio">
-                {{ precio.descripcion }}: ${{ precio.precio }}
-              </option>
-            </b-form-select>
-          </div>
-
-          <!-- Selector de Talla -->
-          <div class="mb-2">
-            <label class="small">Talla:</label>
-            <b-form-select v-model="selectedProducts[idx].talla_id" size="sm">
-              <option :value="null">Sin especificar</option>
-              <option v-for="t in orderPreview.opciones?.tallas" :key="t.id" :value="t.id">
-                {{ t.nombre }}
-              </option>
-            </b-form-select>
-          </div>
-
-          <!-- Selector de Tela -->
-          <div class="mb-2">
-            <label class="small">Tela:</label>
-            <b-form-select v-model="selectedProducts[idx].tela_id" size="sm">
-              <option :value="null">Sin especificar</option>
-              <option v-for="t in orderPreview.opciones?.telas" :key="t.id" :value="t.id">
-                {{ t.nombre }}
-              </option>
-            </b-form-select>
-          </div>
-
-          <!-- Selector de Corte -->
-          <div class="mb-2">
-            <label class="small">Corte:</label>
-            <b-form-select v-model="selectedProducts[idx].corte" size="sm">
-              <option v-for="c in orderPreview.opciones?.cortes" :key="c.id" :value="c.id">
-                {{ c.nombre }}
-              </option>
-            </b-form-select>
-          </div>
-
-          <!-- Subtotal -->
-          <div class="text-right">
-            <strong>Subtotal: ${{ (selectedProducts[idx]?.precio || 0) * producto.cantidad }}</strong>
-          </div>
-        </div>
-
-        <!-- Total -->
-        <div class="text-right border-top pt-2">
-          <h5>Total: ${{ calcularTotal() }}</h5>
-        </div>
-      </div>
-
-      <div v-else class="text-center py-4">
-        <b-spinner></b-spinner>
-        <p>Cargando datos...</p>
-      </div>
-    </b-modal>
   </div>
 </template>
 
 <script>
 export default {
   name: 'AiChatWidget',
-  
+
   data() {
     return {
       isOpen: false,
       isLoading: false,
       userInput: '',
-      messages: [],
-      // Modal de confirmación de orden
-      showOrderModal: false,
-      orderPreview: null,
-      orderRequest: null,
-      selectedProducts: [],
-      isCreatingOrder: false,
-      // Estado para flujo conversacional de órdenes
-      orderContext: {
-        active: false,
-        cliente: null,
-        productos: [],
-        ultimoContextoBD: null  // Guardar último contexto para reutilizar
-      },
-      // Estado para confirmación de orden
-      orderValidationPending: null  // Guarda datos de validación esperando confirmación
+      messages: []
     }
   },
 
   computed: {
     isLoggedIn() {
       // Verificar si el usuario está logueado usando el store de Vuex
-      return this.$store?.state?.login?.access === true || 
+      return this.$store?.state?.login?.access === true ||
              (this.$store?.state?.login?.idEmpresa && this.$store.state.login.idEmpresa > 0)
     },
     userName() {
-      // Obtener nombre del empleado logueado desde Vuex
       return this.$store?.state?.login?.dataUser?.nombre || ''
     }
   },
@@ -251,101 +135,38 @@ export default {
       if (!this.userInput.trim() || this.isLoading) return
 
       const query = this.userInput.trim()
-      
-      // Limpiar input inmediatamente
       this.userInput = ''
-      
-      // Forzar actualización del DOM y limpiar el input nativo
       this.$nextTick(() => {
         if (this.$refs.chatInput && this.$refs.chatInput.$el) {
           this.$refs.chatInput.$el.value = ''
         }
       })
 
-      // Add user message
-      this.messages.push({
-        sender: 'user',
-        text: query,
-        time: this.getCurrentTime()
-      })
-
+      this.messages.push({ sender: 'user', text: query, time: this.getCurrentTime() })
       this.scrollToBottom()
       this.isLoading = true
 
-      // ============================================================
-      // FLUJO INTELIGENTE: DETECTAR INTENCIÓN DE ORDEN
-      // ============================================================
-      
-      // Detectar si el mensaje parece ser sobre crear una orden
-      // Versión robusta: detecta typos, listas de productos, y patrones
-      const palabrasClave = ['orden', 'ordenes', 'roden', 'orde', 'ordne', 'pedido', 'pedidos', 'crear', 'crea', 'cree', 'nueva', 'nuevo', 'hacer', 'hace', 'haz', 'generar', 'genera']
-      const tienePalabraClave = palabrasClave.some(p => query.toLowerCase().includes(p))
-      const tieneFormatoLista = /\d+\s*(franela|gorra|camisa|pantalon|chemise|short|sudadera)/i.test(query)
-      const tieneCliente = /para\s+[\w\s]+:/i.test(query)
-      const esIntencionOrden = tienePalabraClave || tieneFormatoLista || tieneCliente
-      
-      if (this.orderContext.active || esIntencionOrden) {
-        // Si hay orden activa O si parece querer crear una orden, usar endpoint con contexto
-        if (esIntencionOrden && !this.orderContext.active) {
-          // Activar contexto de orden para las siguientes interacciones
-          this.orderContext.active = true
-        }
-        await this.enviarMensajeOrden(query)
-        this.isLoading = false
-        this.userInput = ''  // Asegurar que está limpio
-        this.scrollToBottom()
-        this.$nextTick(() => {
-          if (this.$refs.chatInput) {
-            this.$refs.chatInput.focus()
-          }
-        })
-        return
-      }
-
       try {
-        // Get empresa ID from store (default to 163 for testing)
-        const empresaId = this.$store?.state?.login?.idEmpresa || 163
-        
-        // Get API URL from nuxt config
         const apiUrl = this.$config?.API || 'https://api.ninesys19.com'
 
-        // Construir historial de conversación para Gemini
-        // Solo incluir los últimos 10 mensajes para no exceder el límite de tokens
+        // Historial reciente (últimos 10) para continuidad conversacional.
         const history = this.messages
           .slice(-10)
-          .map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'model',
-            text: msg.text
-          }))
+          .map(msg => ({ role: msg.sender === 'user' ? 'user' : 'model', text: msg.text }))
 
-        const response = await this.$axios.post(`${apiUrl}/ai/chat`, 
-          { query, history },
-          { 
-            headers: { 
-              'Authorization': empresaId.toString(),
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-
+        // NO se sobreescribe Authorization: el interceptor de axios adjunta el
+        // Bearer JWT, del que la API deriva la empresa. El bucle de IA vive en el
+        // agente (ninesys-ai-agent) al que la API hace de proxy; aquí solo se
+        // consulta (lectura). La creación de órdenes se hará en una fase posterior.
+        const response = await this.$axios.post(`${apiUrl}/ai/chat`, { query, history })
         const data = response.data
 
-        if (data.success) {
-          // Detectar si la respuesta es un JSON de creación de orden
-          const responseText = data.response || ''
-          if (this.isCreateOrderResponse(responseText)) {
-            this.handleCreateOrderResponse(responseText)
-          } else {
-            this.messages.push({
-              sender: 'bot',
-              text: data.response,
-              time: this.getCurrentTime()
-            })
-          }
+        if (data && data.success) {
+          this.messages.push({ sender: 'bot', text: data.response, time: this.getCurrentTime() })
         } else {
           this.messages.push({
             sender: 'bot',
-            text: '❌ ' + (data.error || data.response || 'Error al procesar la consulta'),
+            text: '❌ ' + ((data && (data.error || data.response)) || 'Error al procesar la consulta'),
             time: this.getCurrentTime()
           })
         }
@@ -358,48 +179,33 @@ export default {
         })
       } finally {
         this.isLoading = false
-        this.userInput = ''  // Asegurar que el input esté limpio
         this.scrollToBottom()
-        // Mantener el foco en el input para seguir escribiendo
         this.$nextTick(() => {
-          if (this.$refs.chatInput) {
-            this.$refs.chatInput.focus()
-          }
+          if (this.$refs.chatInput) this.$refs.chatInput.focus()
         })
       }
     },
 
     getCurrentTime() {
-      return new Date().toLocaleTimeString('es-ES', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
+      return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
     },
 
     scrollToBottom() {
       this.$nextTick(() => {
         const container = this.$refs.messagesContainer
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
+        if (container) container.scrollTop = container.scrollHeight
       })
     },
 
     formatMessage(text) {
-      // Si text es un objeto (respuesta de create_order), extraer el campo de texto
       if (typeof text === 'object' && text !== null) {
-        // Intentar extraer texto del objeto
         text = text.prompt || text.message || text.text || text.response || JSON.stringify(text)
       }
-      
-      // Asegurar que sea string
-      if (typeof text !== 'string') {
-        text = String(text)
-      }
-      
-      // Escapar HTML antes de aplicar el formato -- auditoría de seguridad
-      // 2026-09-11 (Fase 5, hallazgo A7): tanto los mensajes del bot como lo
-      // que el propio usuario escribe en el chat pasan por acá.
+      if (typeof text !== 'string') text = String(text)
+
+      // Escapar HTML antes de aplicar formato -- auditoría de seguridad 2026-09-11
+      // (Fase 5, hallazgo A7): tanto los mensajes del bot como lo que escribe el
+      // usuario pasan por acá.
       const textEscapado = text
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -407,514 +213,10 @@ export default {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
 
-      // Convert markdown-like formatting to HTML
       return textEscapado
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>')
         .replace(/• /g, '&bull; ')
-    },
-
-    // ============================================================
-    // FLUJO CONVERSACIONAL DE ÓRDENES CON CONTEXTO DE BD
-    // ============================================================
-
-    parsearRespuestaIA(response) {
-      // Extraer texto legible de respuestas JSON de Gemini
-      if (typeof response === 'object' && response !== null) {
-        // Intentar extraer campos de texto comunes
-        return response.question || 
-               response.message || 
-               response.text || 
-               response.response || 
-               response.prompt ||
-               JSON.stringify(response)
-      }
-      return response
-    },
-
-    async obtenerContextoBD(query) {
-      // Extrae información del mensaje para buscar en BD
-      const empresaId = this.$store?.state?.login?.idEmpresa || 163
-      const apiUrl = this.$config?.API || 'https://api.ninesys19.com'
-      
-      try {
-        // Extraer posibles nombres de clientes y productos del query
-        const palabras = query.toLowerCase().split(/\s+/)
-        
-        // Buscar palabras que puedan ser nombres (más de 2 letras, no son números)
-        const posiblesNombres = palabras.filter(p => p.length > 2 && !/^\d+$/.test(p))
-        
-        // Detectar menciones de productos comunes
-        const tieneProducto = /franela|camisa|pantalón|gorra|chaqueta|sudadera|short/i.test(query)
-        
-        const payload = {
-          buscar_clientes: posiblesNombres.join(' '),
-          buscar_productos: tieneProducto ? query : '',
-          incluir_tallas: true,
-          incluir_telas: true
-        }
-        
-        const response = await this.$axios.post(
-          `${apiUrl}/ordenes/contexto-ia`,
-          payload,
-          {
-            headers: {
-              'Authorization': empresaId.toString(),
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-        
-        if (response.data.success) {
-          return response.data.contexto
-        }
-      } catch (error) {
-        console.error('Error obteniendo contexto BD:', error)
-      }
-      
-      // Contexto vacío si hay error
-      return { clientes: [], productos: [], tallas: [], telas: [] }
-    },
-
-    async enviarMensajeOrden(query) {
-      // Flujo conversacional inteligente con contexto de BD
-      const empresaId = this.$store?.state?.login?.idEmpresa || 163
-      const apiUrl = this.$config?.API || 'https://api.ninesys19.com'
-      
-      // Obtener contexto de BD
-      let contextoBD = await this.obtenerContextoBD(query)
-      
-      // Si el contexto está vacío pero hay uno guardado, reutilizarlo
-      const tieneContexto = contextoBD.clientes.length > 0 || 
-                            contextoBD.productos.length > 0 || 
-                            contextoBD.tallas.length > 0 || 
-                            contextoBD.telas.length > 0
-      
-      if (!tieneContexto && this.orderContext.ultimoContextoBD) {
-        contextoBD = this.orderContext.ultimoContextoBD
-      } else if (tieneContexto) {
-        // Guardar el contexto actual para reutilizar después
-        this.orderContext.ultimoContextoBD = contextoBD
-      }
-      
-      // Enriquecer queries numéricos para evitar confusión
-      let queryEnriquecido = query
-      if (/^\d+$/.test(query.trim())) {
-        queryEnriquecido = `Selecciono la opción número ${query.trim()}`
-      }
-      
-      // Construir historial
-      const history = this.messages.slice(-10).map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        text: msg.text
-      }))
-      
-      try {
-        const response = await this.$axios.post(
-          `${apiUrl}/ai/chat-orden`,
-          {
-            query: queryEnriquecido,
-            history,
-            contexto_bd: contextoBD,
-            orden_en_progreso: this.orderContext.active ? {
-              cliente: this.orderContext.cliente,
-              productos: this.orderContext.productos
-            } : null
-          },
-          {
-            headers: {
-              'Authorization': empresaId.toString(),
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-        
-        const data = response.data
-        
-        if (data.success) {
-          // DETECTAR SI ES UNA CONFIRMACIÓN Y HAY VALIDACIÓN PENDIENTE
-          const esConfirmacion = /^(s[íí]|si|crear|ok|confirmar|dale|adelante)$/i.test(query.trim())
-          
-          if (esConfirmacion && this.orderValidationPending) {
-            // Usuario confirmó - crear orden directamente
-            await this.crearOrdenDirecta(this.orderValidationPending)
-            this.orderValidationPending = null
-            return
-          }
-          
-          // Si la respuesta tiene puede_crear: true, guardar validación
-          if (data.puede_crear === true && data.data) {
-            this.orderValidationPending = data.data
-            
-            const textoRespuesta = this.parsearRespuestaIA(data.response)
-            this.messages.push({
-              sender: 'bot',
-              text: textoRespuesta,
-              time: this.getCurrentTime()
-            })
-          } else if (data.is_action && data.action === 'create_order' && data.ready) {
-            // Orden lista para crear (flujo antiguo)
-            await this.handleCreateOrderResponse(data.response)
-          } else if (data.is_action && data.action === 'create_order') {
-            // Orden en progreso, mostrar pregunta
-            const textoRespuesta = this.parsearRespuestaIA(data.response)
-            this.messages.push({
-              sender: 'bot',
-              text: textoRespuesta,
-              time: this.getCurrentTime()
-            })
-          } else {
-            // Respuesta normal
-            const textoRespuesta = this.parsearRespuestaIA(data.response)
-            this.messages.push({
-              sender: 'bot',
-              text: textoRespuesta,
-              time: this.getCurrentTime()
-            })
-          }
-        } else {
-          this.messages.push({
-            sender: 'bot',
-            text: '❌ ' + (data.error || data.response || 'Error al procesar'),
-            time: this.getCurrentTime()
-          })
-        }
-      } catch (error) {
-        console.error('Error en orden conversacional:', error)
-        this.messages.push({
-          sender: 'bot',
-          text: '❌ Error de conexión. Intenta de nuevo.',
-          time: this.getCurrentTime()
-        })
-      }
-    },
-
-    // ============================================================
-    // Métodos para creación de órdenes desde chat
-    // ============================================================
-    
-    isCreateOrderResponse(text) {
-      // Detectar si la respuesta es un JSON con action: create_order
-      try {
-        if (typeof text !== 'string') return false
-        const trimmed = text.trim()
-        if (!trimmed.startsWith('{')) return false
-        
-        const parsed = JSON.parse(trimmed)
-        return parsed.action === 'create_order'
-      } catch {
-        return false
-      }
-    },
-
-    async handleCreateOrderResponse(responseData) {
-      try {
-        // Si es string JSON, parsearlo, si no, usar directamente
-        const orderData = typeof responseData === 'string' 
-          ? JSON.parse(responseData) 
-          : responseData
-        
-        // Mostrar mensaje de procesamiento
-        this.messages.push({
-          sender: 'bot',
-          text: '📋 Creando orden...',
-          time: this.getCurrentTime()
-        })
-        
-        const empresaId = this.$store?.state?.login?.idEmpresa || 163
-        const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
-        const apiUrl = this.$config?.API || 'https://api.ninesys19.com'
-        
-        // Validar que el usuario esté logueado
-        if (!userId) {
-          this.messages[this.messages.length - 1].text = 
-            '❌ Error: Debes estar logueado para crear órdenes.'
-          this.scrollToBottom()
-          return
-        }
-        
-        // Crear la orden DIRECTAMENTE (sin modal)
-        const createResponse = await this.$axios.post(
-          `${apiUrl}/ordenes/nueva/simple`,
-          {
-            cliente_nombre: orderData.data.cliente?.nombre || orderData.data.cliente_nombre,
-            cliente_id: orderData.data.cliente?.id,
-            productos: orderData.data.productos,
-            observaciones: orderData.data.observaciones || '',
-            responsable_id: userId
-          },
-          {
-            headers: {
-              'Authorization': empresaId.toString(),
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-        
-        if (createResponse.data.success) {
-          // Resetear contexto de orden
-          this.orderContext.active = false
-          this.orderContext.cliente = null
-          this.orderContext.productos = []
-          this.orderContext.ultimoContextoBD = null
-          
-          // Mensaje de éxito
-          this.messages[this.messages.length - 1].text = 
-            `✅ **¡Orden #${createResponse.data.orden_id} creada exitosamente!**\n\n` +
-            `👤 Cliente: ${createResponse.data.cliente?.nombre || 'N/A'}\n` +
-            `📦 Productos: ${createResponse.data.productos_count || orderData.data.productos.length} items\n` +
-            `💰 Total: $${createResponse.data.total || '0.00'}\n` +
-            `📅 Entrega estimada: ${createResponse.data.fecha_entrega || 'Por confirmar'}`
-        } else {
-          this.messages[this.messages.length - 1].text = 
-            '❌ Error al crear la orden: ' + (createResponse.data.message || 'Error desconocido')
-        }
-        
-        this.scrollToBottom()
-      } catch (error) {
-        console.error('Error creando orden:', error)
-        this.messages[this.messages.length - 1] = {
-          sender: 'bot',
-          text: '❌ Error al crear la orden: ' + (error.response?.data?.message || error.message),
-          time: this.getCurrentTime()
-        }
-        this.scrollToBottom()
-      }
-    },
-
-    initializeProductSelections() {
-      this.selectedProducts = []
-      
-      if (!this.orderPreview?.productos) return
-      
-      this.orderPreview.productos.forEach((prod, idx) => {
-        const firstOption = prod.opciones?.[0]
-        const firstPrecio = firstOption?.precios?.[0]
-        
-        this.selectedProducts.push({
-          producto_id: firstOption?.id || null,
-          producto_nombre: firstOption?.nombre || prod.nombre_buscado,
-          cantidad: prod.cantidad,
-          precio: firstPrecio?.precio || 0,
-          talla_id: prod.talla_encontrada?.id || null,
-          talla_nombre: prod.talla_encontrada?.nombre || null,
-          tela_id: prod.tela_encontrada?.id || null,
-          tela_nombre: prod.tela_encontrada?.nombre || null,
-          corte: ''
-        })
-      })
-    },
-
-    getPrecios(idx) {
-      if (!this.orderPreview?.productos?.[idx]) return []
-      
-      const producto = this.orderPreview.productos[idx]
-      const selectedProductId = this.selectedProducts[idx]?.producto_id
-      
-      const opcion = producto.opciones?.find(o => o.id === selectedProductId) || producto.opciones?.[0]
-      return opcion?.precios || []
-    },
-
-    onProductoChange(idx) {
-      // Cuando cambia el producto seleccionado, actualizar el precio al primero disponible
-      const precios = this.getPrecios(idx)
-      if (precios.length > 0) {
-        this.selectedProducts[idx].precio = precios[0].precio
-      }
-    },
-
-    calcularTotal() {
-      let total = 0
-      this.selectedProducts.forEach((sp, idx) => {
-        const cantidad = this.orderPreview?.productos?.[idx]?.cantidad || 1
-        total += (sp.precio || 0) * cantidad
-      })
-      return total.toFixed(2)
-    },
-
-    async confirmarOrden(bvModalEvent) {
-      bvModalEvent.preventDefault()
-      this.isCreatingOrder = true
-      
-      try {
-        const empresaId = this.$store?.state?.login?.idEmpresa || 163
-        const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
-        const apiUrl = this.$config?.API || 'https://api.ninesys19.com'
-        
-        // Preparar productos con las selecciones del usuario
-        const productosConSelecciones = this.selectedProducts.map((sp, idx) => {
-          const prodOriginal = this.orderPreview.productos[idx]
-          const opcion = prodOriginal.opciones?.find(o => o.id === sp.producto_id) || prodOriginal.opciones?.[0]
-          const talla = this.orderPreview.opciones?.tallas?.find(t => t.id === sp.talla_id)
-          const tela = this.orderPreview.opciones?.telas?.find(t => t.id === sp.tela_id)
-          
-          return {
-            producto_id: sp.producto_id,
-            producto_nombre: opcion?.nombre || prodOriginal.nombre_buscado,
-            cantidad: prodOriginal.cantidad,
-            precio: sp.precio,
-            talla_id: sp.talla_id,
-            talla_nombre: talla?.nombre || null,
-            tela_id: sp.tela_id,
-            tela_nombre: tela?.nombre || null,
-            corte: sp.corte || ''
-          }
-        })
-        
-        const response = await this.$axios.post(
-          `${apiUrl}/ordenes/nueva/simple`,
-          {
-            cliente_nombre: this.orderPreview.cliente_seleccionado?.nombre,
-            cliente_id: this.orderPreview.cliente_seleccionado?.id,
-            productos: productosConSelecciones,
-            observaciones: this.orderRequest?.observaciones || '',
-            responsable_id: userId
-          },
-          {
-            headers: {
-              'Authorization': empresaId.toString(),
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-        
-        if (response.data.success) {
-          this.messages.push({
-            sender: 'bot',
-            text: `✅ **¡Orden #${response.data.orden_id} creada exitosamente!**\n` +
-                  `• Cliente: ${response.data.cliente?.nombre}\n` +
-                  `• Total: $${response.data.total}\n` +
-                  `• Entrega: ${response.data.fecha_entrega}`,
-            time: this.getCurrentTime()
-          })
-          this.showOrderModal = false
-          // Resetear contexto de orden
-          this.orderContext.active = false
-          this.orderContext.cliente = null
-          this.orderContext.productos = []
-          this.orderContext.ultimoContextoBD = null
-        } else {
-          this.messages.push({
-            sender: 'bot',
-            text: '❌ Error al crear la orden: ' + (response.data.message || 'Error desconocido'),
-            time: this.getCurrentTime()
-          })
-        }
-      } catch (error) {
-        console.error('Error creando orden:', error)
-        this.messages.push({
-          sender: 'bot',
-          text: '❌ Error al crear la orden: ' + (error.response?.data?.message || error.message),
-          time: this.getCurrentTime()
-        })
-      } finally {
-        this.isCreatingOrder = false
-        this.scrollToBottom()
-      }
-    },
-
-    cancelarOrden() {
-      this.showOrderModal = false
-      this.orderPreview = null
-      this.orderRequest = null
-      this.selectedProducts = []
-      
-      // Resetear contexto de orden
-      this.orderContext.active = false
-      this.orderContext.cliente = null
-      this.orderContext.productos = []
-      this.orderContext.ultimoContextoBD = null
-      
-      this.messages.push({
-        sender: 'bot',
-        text: '⚠️ Creación de orden cancelada.',
-        time: this.getCurrentTime()
-      })
-      this.scrollToBottom()
-    },
-
-    async crearOrdenDirecta(validacionData) {
-      // Crear orden directamente usando datos de validación
-      try {
-        this.messages.push({
-          sender: 'bot',
-          text: '📋 Creando orden...',
-          time: this.getCurrentTime()
-        })
-        
-        const empresaId = this.$store?.state?.login?.idEmpresa || 163
-        const userId = this.$store?.state?.login?.dataUser?.id_empleado || this.$store?.state?.login?.idUsuario
-        const apiUrl = this.$config?.API || 'https://api.ninesys19.com'
-        
-        if (!userId) {
-          this.messages[this.messages.length - 1].text = 
-            '❌ Error: Debes estar logueado para crear órdenes.'
-          this.scrollToBottom()
-          return
-        }
-        
-        const cliente = validacionData.cliente?.datos
-        if (!cliente) {
-          this.messages[this.messages.length - 1].text = '❌ Error: Datos de cliente no válidos.'
-          this.scrollToBottom()
-          return
-        }
-        
-        // Preparar productos con datos validados
-        const productosParaCrear = validacionData.productos
-          .filter(p => !p.tiene_errores)
-          .map(p => ({
-            product: p.original.product,
-            cantidad: p.original.cantidad,
-            talla: p.original.talla || '',
-            tipo_corte: p.original.tipo_corte || '',
-            tela: p.original.tela || ''
-          }))
-        
-        // Llamar al endpoint de creación con Function Calling
-        const result = await this.$axios.post(
-          `${apiUrl}/ai/chat-orden`,
-          {
-            query: `Crear orden para cliente ID ${cliente.id} con ${productosParaCrear.length} productos`,
-            history: [],
-            orden_confirmada: {
-              cliente_id: cliente.id,
-              cliente_nombre: cliente.nombre_completo,
-              productos: productosParaCrear
-            }
-          },
-          {
-            headers: {
-              'Authorization': empresaId.toString(),
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-        
-        // Actualizar último mensaje con el resultado
-        if (result.data.success) {
-          this.messages[this.messages.length - 1].text = 
-            `✅ **¡Orden creada exitosamente!**\n\n` +
-            `👤 Cliente: ${cliente.nombre_completo}\n` +
-            `📦 Productos: ${productosParaCrear.length} items`
-          
-          // Resetear contexto
-          this.orderContext.active = false
-          this.orderContext.cliente = null
-          this.orderContext.productos = []
-          this.orderContext.ultimoContextoBD = null
-        } else {
-          this.messages[this.messages.length - 1].text = 
-            '❌ Error: ' + (result.data.error || result.data.response || 'No se pudo crear la orden')
-        }
-        
-      } catch (error) {
-        console.error('Error creando orden directa:', error)
-        this.messages[this.messages.length - 1].text = 
-          '❌ Error al crear la orden: ' + (error.response?.data?.error || error.message)
-      } finally {
-        this.scrollToBottom()
-      }
     }
   }
 }
@@ -1089,7 +391,7 @@ export default {
     height: 100%;
     border-radius: 0;
   }
-  
+
   .ai-fab {
     bottom: 20px;
     right: 20px;
