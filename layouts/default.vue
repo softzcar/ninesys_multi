@@ -22,11 +22,8 @@
       </div>
     </div>
 
-    <!-- AI Chat Widget - disponible en todas las páginas -->
-    <!-- Comentado temporalmente para pruebas de WhatsApp multimedia (estorba la interfaz).
-         Para reactivar, descomentar la línea siguiente.
+    <!-- AI Chat Widget - disponible en todas las páginas (consultas de lectura vía MCP) -->
     <AiChatWidget v-if="isLoggedIn" />
-    -->
 
     <!-- Overlay de reautenticación (JWT vencido) -- auditoría de seguridad
          2026-09-11. Como hermano de <Nuxt /> arriba, nunca desmonta el árbol
