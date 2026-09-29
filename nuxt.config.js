@@ -129,6 +129,8 @@ rif: 'J-00000000-0', */
     { src: "~plugins/nuxt-quill-plugin", ssr: false },
     { src: "~/plugins/apexcharts.js", ssr: false },
     { src: "~/plugins/vuex-persist.js", ssr: false },
+    // Conversación del Asistente IA por pestaña (después de vuex-persist: necesita el login).
+    { src: "~/plugins/aichat-persist.client.js", mode: "client" },
     { src: "~/plugins/chunk-reload-toast.js", mode: "client" },
   ],
 

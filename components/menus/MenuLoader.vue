@@ -36,6 +36,11 @@
           <b-nav-item v-if="$store.state.login.currentDepartament === 'Administración'">
             <checkConnection />
           </b-nav-item>
+
+          <!-- Asistente IA: abre/cierra el panel lateral derecho -->
+          <li class="nav-item d-flex align-items-center ml-2">
+            <AiChatToggle />
+          </li>
         </b-navbar-nav>
       </b-navbar>
 
@@ -79,10 +84,11 @@ import { mapState, mapGetters } from "vuex";
 import mixin from "~/mixins/mixin-login.js";
 import FormMonedas from "~/components/formMonedas.vue";
 import BusquedaHistoricoModal from "~/components/buscar/BusquedaHistoricoModal.vue";
+import AiChatToggle from "~/components/ai/AiChatToggle.vue";
 
 export default {
   mixins: [mixin],
-  components: { FormMonedas, BusquedaHistoricoModal },
+  components: { FormMonedas, BusquedaHistoricoModal, AiChatToggle },
   computed: {
     tasasEstanConfiguradas() {
       const depto = this.$store.state.login.dataUser.departamento;

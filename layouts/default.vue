@@ -7,7 +7,11 @@
     <div v-show="showSidebar && sidebarVisible" class="sidebar-overlay d-lg-none" @click="sidebarVisible = false" />
 
     <!-- Contenido Principal -->
-    <div class="main-wrapper" :class="{ 'with-sidebar': showSidebar, 'sidebar-collapsed': sidebarCollapsed }">
+    <div
+      class="main-wrapper"
+      :class="{ 'with-sidebar': showSidebar, 'sidebar-collapsed': sidebarCollapsed, 'with-aichat': chatDocked }"
+      :style="{ '--aichat-width': chatWidth + 'px' }"
+    >
       <!-- Header móvil con toggle -->
       <div v-show="showSidebar" class="mobile-header d-lg-none">
         <button class="btn btn-link sidebar-toggle-btn" @click="sidebarVisible = !sidebarVisible">
@@ -22,8 +26,9 @@
       </div>
     </div>
 
-    <!-- AI Chat Widget - disponible en todas las páginas (consultas de lectura vía MCP) -->
-    <AiChatWidget v-if="isLoggedIn" />
+    <!-- Asistente IA: panel lateral derecho (se abre desde la barra superior, MenuLoader).
+         Su estado vive en el store `aichat`, así que la conversación sobrevive a la navegación. -->
+    <AiChatPanel v-if="showChat" />
 
     <!-- Overlay de reautenticación (JWT vencido) -- auditoría de seguridad
          2026-09-11. Como hermano de <Nuxt /> arriba, nunca desmonta el árbol
@@ -37,14 +42,17 @@
 <script>
 import { mapState } from "vuex";
 import AppSidebar from "@/components/layout/AppSidebar.vue";
-import AiChatWidget from "@/components/ai/AiChatWidget.vue";
+import AiChatPanel from "@/components/ai/AiChatPanel.vue";
 import SesionExpiradaOverlay from "@/components/SesionExpiradaOverlay.vue";
+
+// Rutas sin sidebar ni asistente (auth y wizard obligatorio de primera vez).
+const HIDDEN_ROUTES = ['/login', '/logout', '/registro', '/password-reset', '/configuracion-operativa'];
 
 export default {
   name: 'DefaultLayout',
   components: {
     AppSidebar,
-    AiChatWidget,
+    AiChatPanel,
     SesionExpiradaOverlay,
   },
   data() {
@@ -79,13 +87,23 @@ export default {
       // configuración obligatorio de primera vez -- si el sidebar quedara
       // visible ahí, el cliente podría saltarse el wizard navegando
       // directamente a cualquier módulo antes de tener datos correctos.
-      const hiddenRoutes = ['/login', '/logout', '/registro', '/password-reset', '/configuracion-operativa'];
       const currentPath = this.$route?.path || '';
 
       // Solo mostrar si está logueado y tiene departamento asignado
       return this.isLoggedIn &&
         this.currentDepartament &&
-        !hiddenRoutes.some(route => currentPath.startsWith(route));
+        !HIDDEN_ROUTES.some(route => currentPath.startsWith(route));
+    },
+    showChat() {
+      const currentPath = this.$route?.path || '';
+      return this.isLoggedIn && !HIDDEN_ROUTES.some(route => currentPath.startsWith(route));
+    },
+    // Panel del asistente abierto: en escritorio empuja el contenido.
+    chatDocked() {
+      return this.showChat && this.$store.state.aichat.isOpen;
+    },
+    chatWidth() {
+      return this.$store.state.aichat.width;
     },
   },
   methods: {
@@ -137,7 +155,14 @@ $primary-color: #17a2b8;
 
 .main-wrapper {
   min-height: 100vh;
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, margin-right 0.3s ease;
+
+  // Asistente IA acoplado a la derecha (solo escritorio; en móvil se superpone).
+  &.with-aichat {
+    @media (min-width: 992px) {
+      margin-right: var(--aichat-width, 440px);
+    }
+  }
 
   &.with-sidebar {
     @media (min-width: 992px) {
