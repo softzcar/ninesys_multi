@@ -14,35 +14,39 @@
         {{ environmentInfo.label }}
       </b-alert>
 
-      <!-- Navbar superior con buscador y WhatsApp -->
-      <b-navbar type="light" variant="light" class="shadow-sm mb-3">
-        <b-navbar-nav class="ml-auto">
+      <!-- Navbar superior con buscador y botones de acción -->
+      <b-navbar type="light" variant="light" class="shadow-sm mb-3 top-navbar px-3 py-2">
+        <div class="d-flex align-items-center justify-content-between w-100 flex-wrap">
           <!-- Buscador de órdenes -->
-          <b-nav-form v-if="currentComponent" class="mr-3">
+          <div v-if="currentComponent" class="search-nav-container my-1 mr-2">
             <buscar-BarraDeBusqueda />
-          </b-nav-form>
+          </div>
 
-          <!-- Búsqueda histórica -->
-          <b-nav-item v-if="currentComponent" class="mr-2">
-            <buscar-BusquedaHistoricoModal />
-          </b-nav-item>
+          <!-- Acciones de cabecera (WhatsApp, Conexión, Asistente IA) -->
+          <div class="header-actions-container d-flex align-items-center ml-auto my-1">
+            <!-- Búsqueda histórica (empresa 152) -->
+            <div v-if="currentComponent" class="mr-2">
+              <buscar-BusquedaHistoricoModal />
+            </div>
 
-          <!-- Botón WhatsApp (solo si no es Administración) -->
-          <b-nav-item v-if="$store.state.login.currentDepartament !== 'Administración'">
-            <admin-WsSendMsgCustomInterno />
-          </b-nav-item>
+            <!-- Botón WhatsApp (solo si no es Administración) -->
+            <div v-if="$store.state.login.currentDepartament !== 'Administración'" class="mr-2">
+              <admin-WsSendMsgCustomInterno />
+            </div>
 
-          <!-- Check Connection (solo para Administración) -->
-          <b-nav-item v-if="$store.state.login.currentDepartament === 'Administración'">
-            <checkConnection />
-          </b-nav-item>
+            <!-- Check Connection (solo para Administración) -->
+            <div v-if="$store.state.login.currentDepartament === 'Administración'" class="mr-2">
+              <checkConnection />
+            </div>
 
-          <!-- Asistente IA: abre/cierra el panel lateral derecho -->
-          <li class="nav-item d-flex align-items-center ml-2">
-            <AiChatToggle />
-          </li>
-        </b-navbar-nav>
+            <!-- Asistente IA: abre/cierra el panel lateral derecho -->
+            <div>
+              <AiChatToggle />
+            </div>
+          </div>
+        </div>
       </b-navbar>
+
 
       <!-- Alerta si no hay módulos asignados -->
       <b-row>
@@ -291,4 +295,21 @@ export default {
 .user-info {
   padding-top: 8px;
 }
+
+.top-navbar {
+  min-height: 54px;
+  border-radius: 8px;
+}
+
+.header-actions-container {
+  gap: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .top-navbar {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
 </style>
+

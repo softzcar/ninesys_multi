@@ -14,9 +14,10 @@
 
       <header class="aichat-header">
         <div class="d-flex align-items-center">
-          <b-icon icon="robot" class="mr-2" />
+          <b-icon icon="stars" class="mr-2" />
           <strong>Asistente IA</strong>
         </div>
+
         <div class="d-flex align-items-center">
           <b-button
             variant="link"
