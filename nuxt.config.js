@@ -27,6 +27,10 @@ export default {
     // dominio de Desarrollo; agregar TURNSTILE_SITE_KEY al exportar env vars
     // en deploy_frontend_prod.sh cuando se cree el widget de Producción.
     TURNSTILE_SITE_KEY: process.env.TURNSTILE_SITE_KEY || '0x4AAAAAAEwWWrceRu3yp9s4',
+    // Asistente IA: apagado salvo que el entorno lo encienda explícitamente
+    // (deploy_frontend_dev.sh lo enciende; en Producción queda oculto hasta
+    // que el agente IA esté desplegado allá).
+    AI_CHAT_ENABLED: process.env.AI_CHAT_ENABLED === 'true',
     HORARIO: {
       horaInicioManana: 8.5,  // 8:30 AM
       horaFinManana: 12,     // 12:00 PM

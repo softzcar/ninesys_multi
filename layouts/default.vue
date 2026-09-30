@@ -96,7 +96,7 @@ export default {
     },
     showChat() {
       const currentPath = this.$route?.path || '';
-      return this.isLoggedIn && !HIDDEN_ROUTES.some(route => currentPath.startsWith(route));
+      return this.$config.AI_CHAT_ENABLED && this.isLoggedIn && !HIDDEN_ROUTES.some(route => currentPath.startsWith(route));
     },
     // Panel del asistente abierto: en escritorio empuja el contenido.
     chatDocked() {

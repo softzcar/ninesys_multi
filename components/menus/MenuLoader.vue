@@ -39,8 +39,8 @@
               <checkConnection />
             </div>
 
-            <!-- Asistente IA: abre/cierra el panel lateral derecho -->
-            <div>
+            <!-- Asistente IA: abre/cierra el panel lateral derecho (solo si el entorno lo habilita) -->
+            <div v-if="$config.AI_CHAT_ENABLED">
               <AiChatToggle />
             </div>
           </div>
