@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** "despliega el frontend y vamos a arreglar los registros con problemas de mayusculas en la empresa 194 y 208 de produccion también"
+- **Fecha y Hora:** 2026-09-30 15:40:04
+- **Proyecto(s):** Frontend (app_multi) -- despliegue a Producción; datos de Producción
+- **Archivos Involucrados:** `.env` local (no versionado), `nuxt.config.js` (interruptor AI_CHAT_ENABLED, commit dd15614), `ninesys-hub/bin/deploy_frontend_prod.sh`
+- **Commits Relacionados:**
+    - Frontend: tag `v1.2.3` (dd15614)
+    - Backend: N/A
+- **Acción Realizada:** Despliegue de app_multi v1.2.3 a Producción con deploy_frontend_prod.sh (fix de borrado accidental de imágenes en Quill, interruptor del Asistente IA, barra superior, comisiones sin fallback legacy). El primer despliegue (15:30) quedó con AI_CHAT_ENABLED=true pese a que el script exporta "false": causa confirmada = la línea AI_CHAT_ENABLED=true agregada ese mismo día al .env local de app_multi; durante `nuxt generate` el valor del .env termina pisando al exportado (verificado: con la línea -> true, sin la línea -> false, mismas variables). Se quitó la línea del .env y se redesplegó (15:39). Registros con mayúsculas: las 4 órdenes 'Cancelada' de 194 ya se habían normalizado (v1.0.57, con respaldo); escaneo adicional de las 15 columnas de estado (status/estado/estatus) en api_emp_194, api_emp_208 y api_empresas de Producción y Desarrollo: ningún valor que difiera solo en mayúsculas.
+- **Inconvenientes y Desafíos:** Durante ~9 minutos Producción mostró el botón del Asistente IA (sin agente desplegado allí).
+- **Decisión Final y Justificación:** No usar el .env local para variables que cambian por entorno de despliegue; los scripts las exportan. Para ver el chat al programar en local: `AI_CHAT_ENABLED=true npm run dev`.
+- **Herramienta(s) Utilizada(s):** `deploy_frontend_prod.sh`, `nuxt generate --no-build` (diagnóstico), `psql` (escaneo de mayúsculas).
+- **Resultado:** Éxito.
+- **Verificación:** index.html de Producción (15:39): AI_CHAT_ENABLED:!1 (false), única API https://api.ninesys19.com, código del fix de Quill presente (_quillHtmlAnterior en 11 archivos), https://app.ninesys19.com/ responde 200. current_versions.json: app_multi prod = v1.2.3.
+- **Logro Conseguido:** Fix de imágenes en Producción con el asistente IA oculto hasta que se despliegue su agente.
+- **Referencias de Sesión (Contexto):**
+    - Sesión Claude Code: https://claude.ai/code/session_01DGUJFb8c9NYbAFUZLRQfLE
+- **Observaciones de Gemini:** N/A (tarea ejecutada por Claude Code).
+- **Respuesta de Gemini:** N/A.
