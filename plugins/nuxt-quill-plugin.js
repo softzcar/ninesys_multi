@@ -180,6 +180,12 @@ function extraerNombresImagenesOrden(html) {
 }
 
 export async function limpiarImagenesQuillHuerfanas(htmlAnterior, htmlNuevo, axiosInstance, apiBase) {
+    // Si no hay HTML previo o el nuevo está vacío (reseteo de formulario, cambio de tab, etc.),
+    // NUNCA disparar borrado de imágenes para evitar borrar archivos de órdenes recién guardadas.
+    if (!htmlAnterior || !htmlNuevo) return;
+    const cleanNuevo = htmlNuevo.replace(/<p><br><\/p>/g, '').trim();
+    if (cleanNuevo === '') return;
+
     const antes = new Set(extraerNombresImagenesOrden(htmlAnterior));
     const despues = new Set(extraerNombresImagenesOrden(htmlNuevo));
     const eliminadas = [...antes].filter((n) => !despues.has(n));

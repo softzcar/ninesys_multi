@@ -117,9 +117,15 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { MIN_WIDTH } from '~/store/aichat'
 
-// Solo se muestran imágenes https de los CDN del ecosistema (defensa en profundidad:
+// Solo se muestran imágenes https de los CDN y APIs del ecosistema (defensa en profundidad:
 // la API ya filtra; las URLs vienen de los datos de las tools, no del modelo).
-const HOSTS_PERMITIDOS = ['cdn.ninesys19.com', 'cdn.nineteengreen.com']
+const HOSTS_PERMITIDOS = [
+  'cdn.ninesys19.com',
+  'cdn.nineteengreen.com',
+  'api.ninesys19.com',
+  'api.nineteengreen.com',
+  'api.nineteencustom.com',
+]
 
 // Los enlaces del texto del asistente abren en pestaña nueva.
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {

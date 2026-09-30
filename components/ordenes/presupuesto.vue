@@ -2415,6 +2415,9 @@ export default {
       // Si no se pasa obj o es un evento, asumimos que se quiere una limpieza completa.
       const isFullClear = !obj || obj instanceof MouseEvent;
 
+      // Reset obligatorio: evitar que el reseteo de obs ("") dispare borrado de imágenes
+      this._quillHtmlAnterior = null;
+
       if (isFullClear || (obj && obj.form)) {
         this.form = { ...clean };
         console.log(`Limpiado form`);
