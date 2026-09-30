@@ -195,8 +195,9 @@
                           <b-badge v-if="el.empleado" variant="light" class="text-dark border text-truncate" style="font-size: 0.85em; font-weight: 600; max-width: 120px;" :title="el.empleado">
                             <b-icon icon="person-fill" class="mr-1"></b-icon>{{ el.empleado }}
                           </b-badge>
-                          <b-badge v-else variant="warning" style="font-size: 0.85em; font-weight: 600;">
-                            <b-icon icon="person-dash-fill" class="mr-1"></b-icon>Sin asignar
+                          <b-badge v-else variant="warning" style="font-size: 0.85em; font-weight: 600;"
+                            :title="`La reposición terminó su paso anterior y espera en ${el.nombre_departamento || 'el siguiente departamento'} a que se le asigne un empleado`">
+                            <b-icon icon="person-dash-fill" class="mr-1"></b-icon>Esperando asignación
                           </b-badge>
                           <b-badge variant="primary" style="font-size: 0.75em; font-weight: 500;">
                             <b-icon icon="building" class="mr-1"></b-icon>{{ el.nombre_departamento }}
