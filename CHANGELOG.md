@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), v
 
 Ver también `ninesys-hub/releases/` para el contexto de negocio detrás de cada cambio (qué problema resolvía, qué otros repos se tocaron junto con este).
 
+## [v1.2.3] - 2026-09-30
+- Fix de borrado accidental de imágenes en Quill, interruptor del Asistente IA por entorno, barra superior y comisiones sin fallback legacy
+
 ## [v1.2.2] - 2026-09-22
 - Carga masiva de comisiones por departamento con plantilla pre-llenada; revert de columnas Dept/Comision en carga masiva general
 
