@@ -1,5 +1,11 @@
 <template>
   <div class="wasim-draft">
+    <b-alert :show="showHelp" variant="info" dismissible class="py-2 small" @dismissed="hideHelp">
+      <strong>Cómo usarlo:</strong> edita el prompt o la base de conocimiento → escribe en el chat
+      o pulsa <b-icon icon="arrow-repeat" /> <em>Probar de nuevo</em> para repetir la última pregunta →
+      compara con la respuesta anterior → <em>Guardar</em>. Nada cambia en WhatsApp hasta que guardes.
+    </b-alert>
+
     <b-form-group label="Agente a probar" label-size="sm" class="mb-2">
       <b-form-select v-model="target" :options="targetOptions" size="sm" />
       <small class="text-muted">{{ targetHelp }}</small>
@@ -51,6 +57,16 @@
     </b-form-group>
 
     <div class="d-flex flex-wrap justify-content-end wasim-draft-actions">
+      <b-button
+        size="sm"
+        variant="success"
+        class="mr-auto"
+        :disabled="!canRepeat"
+        :title="canRepeat ? 'Repite el último mensaje del chat con la configuración actual' : 'Primero envía un mensaje en el chat'"
+        @click="$emit('repeat')"
+      >
+        <b-icon icon="arrow-repeat" /> Probar de nuevo
+      </b-button>
       <b-button size="sm" variant="outline-secondary" :disabled="!isDirty" @click="$bvModal.show(diffModalId)">
         <b-icon icon="file-diff" /> Ver cambios
       </b-button>
@@ -81,6 +97,7 @@ import { mapState } from 'vuex'
 import { lineDiff } from '~/utils/lineDiff'
 
 const DEFAULT_TARGET = 'default'
+const HELP_KEY = 'wa-sim:ayuda-editor'
 
 function kbToText(kb) {
   if (!kb) return ''
@@ -94,6 +111,7 @@ export default {
     agents: { type: Array, default: () => [] },
     settings: { type: Object, default: null },
     models: { type: Array, default: () => ['gemini-2.5-flash'] },
+    canRepeat: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -102,6 +120,7 @@ export default {
       form: { systemPrompt: '', knowledgeBaseText: '', model: '', temperature: 0.3, maxTokens: 1024 },
       saving: null,
       diffModalId: 'wasim-diff-modal',
+      showHelp: true,
     }
   },
   computed: {
@@ -184,7 +203,14 @@ export default {
       immediate: true,
     },
   },
+  mounted() {
+    try { this.showHelp = localStorage.getItem(HELP_KEY) !== 'oculta' } catch (_) { /* sin almacenamiento */ }
+  },
   methods: {
+    hideHelp() {
+      this.showHelp = false
+      try { localStorage.setItem(HELP_KEY, 'oculta') } catch (_) { /* sin almacenamiento */ }
+    },
     resetForm() {
       this.form = {
         systemPrompt: this.base.systemPrompt,

@@ -26,6 +26,16 @@
 
       <div v-for="(turn, ti) in turns" :key="ti" class="wasim-turn" :class="{ 'is-selected': ti === selectedIndex }">
         <div class="wasim-row is-out">
+          <b-button
+            v-if="canRepeat && ti === turns.length - 1"
+            size="sm"
+            variant="light"
+            class="wasim-repeat"
+            title="Repetir este mensaje con la configuración actual (borrador o guardado)"
+            @click="$emit('repeat')"
+          >
+            <b-icon icon="arrow-repeat" /> Repetir
+          </b-button>
           <div class="wasim-bubble is-out">
             <span class="wasim-text">{{ turn.userText }}</span>
             <span class="wasim-time">{{ timeOf(turn.at) }}</span>
@@ -51,8 +61,14 @@
               </template>
               <span v-else class="wasim-text" v-html="format(m.body)" />
               <span class="wasim-time">
+                <b-badge v-if="m.via === 'api'" variant="light" class="mr-1" title="Mensaje automático del sistema (no IA)">sistema</b-badge>
+                <b-badge
+                  v-else
+                  :variant="turn.draftUsed ? 'warning' : 'secondary'"
+                  class="mr-1 wasim-src"
+                  :title="turn.draftUsed ? 'Respondió con tu borrador (sin guardar)' : 'Respondió con la configuración guardada'"
+                >{{ turn.draftUsed ? 'borrador' : 'guardado' }}</b-badge>
                 {{ timeOf(turn.at) }}
-                <b-badge v-if="m.via === 'api'" variant="light" class="ml-1" title="Mensaje automático del sistema (no IA)">sistema</b-badge>
               </span>
             </div>
           </div>
@@ -60,6 +76,24 @@
 
         <div v-for="(a, ai) in visibleActions(turn)" :key="`a${ai}`" class="wasim-system" @click="$emit('select', ti)">
           <b-icon :icon="a.icon" /> {{ a.text }}
+        </div>
+
+        <!-- Respuestas anteriores al repetir el mensaje, para comparar -->
+        <div v-for="(p, pi) in turn.previous || []" :key="`p${pi}`" class="wasim-prev">
+          <div class="wasim-prev-title" @click="togglePrev(ti, pi)">
+            <b-icon :icon="isPrevOpen(ti, pi) ? 'chevron-down' : 'chevron-right'" />
+            Respuesta anterior{{ pi > 0 ? ` (${pi + 1})` : '' }}
+            <b-badge :variant="p.draftUsed ? 'warning' : 'secondary'">{{ p.draftUsed ? 'borrador' : 'guardado' }}</b-badge>
+          </div>
+          <div v-if="isPrevOpen(ti, pi)">
+            <div v-if="p.error" class="wasim-system is-error">{{ p.error }}</div>
+            <div v-for="(m, mi) in p.messages || []" :key="mi" class="wasim-row is-in">
+              <div class="wasim-bubble is-in is-prev">
+                <span v-if="m.type === 'image'" class="wasim-subtle">[imagen] {{ m.body }}</span>
+                <span v-else class="wasim-text" v-html="format(m.body)" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -125,12 +159,16 @@ export default {
     loading: { type: Boolean, default: false },
     selectedIndex: { type: Number, default: -1 },
     customerLabel: { type: String, default: 'Cliente anónimo' },
+    canRepeat: { type: Boolean, default: false },
   },
   data() {
-    return { draftText: '' }
+    return { draftText: '', openPrev: {} }
   },
   watch: {
-    turns() { this.scrollToBottom() },
+    turns() {
+      this.openPrev = {}
+      this.scrollToBottom()
+    },
     loading(val) {
       this.scrollToBottom()
       if (!val) this.$nextTick(() => this.$refs.input && this.$refs.input.focus())
@@ -170,6 +208,14 @@ export default {
       return (turn.actions || [])
         .filter((a) => ACTION_LABELS[a.type])
         .map((a) => ACTION_LABELS[a.type](a))
+    },
+    // La respuesta anterior más reciente se muestra abierta; las demás plegadas.
+    isPrevOpen(ti, pi) {
+      const key = `${ti}:${pi}`
+      return key in this.openPrev ? this.openPrev[key] : pi === 0
+    },
+    togglePrev(ti, pi) {
+      this.$set(this.openPrev, `${ti}:${pi}`, !this.isPrevOpen(ti, pi))
     },
     scrollToBottom() {
       this.$nextTick(() => {
@@ -312,6 +358,32 @@ $wa-bg: #efeae2;
 }
 
 .wasim-subtle { color: #667781; font-size: 0.8rem; }
+
+.wasim-repeat {
+  align-self: center;
+  margin-right: 6px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  opacity: 0.85;
+}
+
+.wasim-src { font-size: 0.62rem; font-weight: 500; }
+
+.wasim-prev {
+  margin: 4px 0 6px;
+  padding-left: 8px;
+  border-left: 3px dashed rgba(0, 0, 0, 0.15);
+}
+
+.wasim-prev-title {
+  font-size: 0.75rem;
+  color: #54656f;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wasim-bubble.is-prev { opacity: 0.7; }
 
 .wasim-typing {
   display: flex;

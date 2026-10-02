@@ -48,8 +48,10 @@
             :loading="loading"
             :selected-index="selectedIndex"
             :customer-label="customerLabel"
+            :can-repeat="canRepeat"
             @send="send"
-            @select="selectedIndex = $event"
+            @select="selectTurn"
+            @repeat="repeatLast"
             @reset="reset"
             @export="exportJson"
           />
@@ -57,27 +59,29 @@
       </b-col>
       <b-col lg="6" class="mb-3">
         <b-card class="wasim-pane border-0 shadow-sm" no-body :style="rightPaneStyle">
-          <b-tabs card small class="wasim-right" content-class="wasim-right-body">
-            <b-tab active>
-              <template #title>
-                <b-icon icon="search" /> Inspector
-                <small v-if="selectedTurn" class="text-muted">· turno {{ selectedIndex + 1 }}</small>
-              </template>
-              <WaSimInspector :turn="selectedTurn" />
-            </b-tab>
+          <b-tabs v-model="rightTab" card small class="wasim-right" content-class="wasim-right-body">
             <b-tab>
               <template #title>
-                <b-icon icon="pencil-square" /> Prompt y conocimiento
+                <b-icon icon="pencil-square" /> Editar bot
                 <b-badge v-if="draft" variant="warning" class="ml-1">borrador</b-badge>
               </template>
               <WaSimDraftEditor
                 :agents="agents"
                 :settings="settings"
                 :models="models"
+                :can-repeat="canRepeat"
                 @draft="draft = $event"
                 @agent="agentId = $event"
                 @saved="loadConfig"
+                @repeat="repeatLast"
               />
+            </b-tab>
+            <b-tab>
+              <template #title>
+                <b-icon icon="search" /> Qué pasó
+                <small v-if="selectedTurn" class="text-muted">· turno {{ selectedIndex + 1 }}</small>
+              </template>
+              <WaSimInspector :turn="selectedTurn" />
             </b-tab>
           </b-tabs>
         </b-card>
@@ -128,6 +132,7 @@ export default {
       // alto disponible para los paneles (desde su borde superior hasta el final de la ventana)
       paneHeight: null,
       isWide: true,
+      rightTab: 0, // 0 = Editar bot, 1 = Qué pasó
     }
   },
   computed: {
@@ -138,6 +143,13 @@ export default {
     },
     selectedTurn() {
       return this.turns[this.selectedIndex] || null
+    },
+    // Solo el último turno se puede repetir, y solo si guardó cómo estaba la
+    // conversación antes de enviarlo (los turnos restaurados de versiones
+    // anteriores no lo tienen).
+    canRepeat() {
+      const last = this.turns[this.turns.length - 1]
+      return !!(last && last.before && !this.loading)
     },
     asCustomer() {
       if (this.customerMode === 'customer' && this.selectedCustomer) return { customerId: this.selectedCustomer.id }
@@ -217,8 +229,32 @@ export default {
       }
     },
 
-    async send(text) {
+    selectTurn(index) {
+      this.selectedIndex = index
+      this.rightTab = 1
+    },
+
+    // Repite el último mensaje del cliente con la configuración actual (p.ej.
+    // tras editar el borrador): restaura la conversación a como estaba antes de
+    // ese turno y guarda la respuesta anterior para compararla.
+    async repeatLast() {
+      if (!this.canRepeat) return
+      const last = this.turns.pop()
+      this.history = last.before.history
+      this.convState = last.before.state
+      const previous = [
+        { at: last.at, messages: last.messages, actions: last.actions, draftUsed: last.draftUsed, error: last.error },
+        ...(last.previous || []),
+      ].slice(0, 3)
+      await this.send(last.userText, { previous })
+    },
+
+    async send(text, { previous = [] } = {}) {
       if (!this.turns.length) this.customerAtStart = this.asCustomer
+      // Cómo estaba la conversación antes de este turno (para poder repetirlo).
+      // Solo lo conserva el último turno.
+      const before = { history: this.history, state: this.convState }
+      for (const t of this.turns) if (t.before) this.$delete(t, 'before')
       this.loading = true
       try {
         const { data } = await this.$wsApi.post(`/ai/sandbox/${this.idEmpresa}/message`, {
@@ -233,12 +269,12 @@ export default {
         this.sessionId = data.sessionId
         this.history = data.history
         this.convState = data.state
-        this.turns.push({ ...data.turn, draftUsed: !!this.draft })
+        this.turns.push({ ...data.turn, draftUsed: !!this.draft, before, previous })
       } catch (e) {
         const msg = (e.response && e.response.data && e.response.data.message) ||
           (e.code === 'ECONNABORTED' ? 'El bot tardó demasiado en responder.' : e.message)
         // El turno fallido no entra al historial: se puede reintentar.
-        this.turns.push({ at: new Date().toISOString(), userText: text, messages: [], actions: [], error: msg })
+        this.turns.push({ at: new Date().toISOString(), userText: text, messages: [], actions: [], error: msg, before, previous })
       } finally {
         this.loading = false
         this.selectedIndex = this.turns.length - 1
