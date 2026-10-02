@@ -1,0 +1,18 @@
+- **Solicitud del Usuario:** (1) "la ventana es más larga que la pantalla, tengo que scrollear para encontrar el cuadro de texto"; (2) "explícame cómo utilizar el panel de lado derecho ... la funcionalidad principal es poder hacer cambios en el prompt y la base de conocimiento e ir probando el efecto de los cambios en el chat"; (3) "redactar un manual de uso de esta funcionalidad en html de una sola página para enviarlo por whatsapp".
+- **Fecha y Hora:** 2026-10-02
+- **Proyecto(s):** Frontend (app_multi) + documento suelto en la raíz de niesys
+- **Archivos Involucrados:**
+  - `components/whatsapp/simulador/WaSimulador.vue`, `WaSimChat.vue`, `WaSimDraftEditor.vue`
+  - `/home/developer/Escritorio/niesys/manual_simulador_bot_whatsapp.html` (fuera de repos, junto a guia_preguntas_asistente_ia.html)
+- **Commits Relacionados:**
+  - Frontend (app_multi, rama refactor/modular-routes): `993cc04` alto de paneles; `243cbfe` editar y probar
+- **Acción Realizada:**
+  1. Alto de paneles: el alto fijo `calc(100vh - 230px)` con mínimo 480px no coincidía con lo que hay encima (barra superior, título, barra "Simular como") y el cuadro de texto quedaba fuera de pantalla. Ahora `fitPanes()` mide la posición real de los paneles y les da el alto hasta el borde de la ventana; se recalcula al redimensionar y al aparecer avisos. En pantallas angostas el inspector va debajo con alto propio.
+  2. Editar → probar → comparar: pestaña "Editar bot" por defecto ("Inspector" pasa a "Qué pasó" y se abre al tocar una respuesta); botón "Repetir"/"Probar de nuevo" que reenvía el último mensaje con la configuración actual restaurando la conversación previa a ese turno (instantánea `{history, state}` solo en el último turno) y conserva hasta 3 respuestas anteriores plegadas; etiqueta borrador/guardado en cada respuesta; ayuda breve que se puede cerrar.
+  3. Manual HTML de una sola página (autocontenido, móvil, modo oscuro): qué es el sandbox, cómo entrar, la pantalla, el ciclo de mejora, cada control del editor, cómo leer etiquetas y avisos, sub-pestañas de "Qué pasó", qué hace y qué NO hace (no envía WhatsApp, no crea presupuestos ni clientes, no escala, no aplica BAJA/ALTA), 12 pruebas recomendadas, límites y preguntas frecuentes.
+- **Inconvenientes y Desafíos:** la extensión de Chrome no completó la navegación (la pestaña quedaba en chrome://newtab), así que la verificación visual la hizo el usuario ("ya quedó bien la interfaz").
+- **Herramienta(s) Utilizada(s):** Read, Edit, Write, `npx nuxt build`, `deploy_frontend_dev.sh` (sin cambio de versión), ssh/grep sobre el bundle publicado.
+- **Resultado:** Éxito (Dev).
+- **Verificación:** nuxt build OK; bundle publicado en app.nineteengreen.com contiene "Probar de nuevo" y ya no contiene el alto fijo de 230px; el usuario confirmó la interfaz.
+- **Logro Conseguido:** el simulador queda orientado a su uso principal (iterar prompt y base de conocimiento comparando la misma pregunta antes y después) y con un manual listo para compartir.
+- **Respuesta de Gemini:** N/A
