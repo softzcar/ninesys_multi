@@ -40,9 +40,9 @@
 
     <b-alert v-if="loadError" show variant="danger">{{ loadError }}</b-alert>
 
-    <b-row>
+    <b-row ref="panes">
       <b-col lg="6" class="mb-3">
-        <div class="wasim-pane">
+        <div class="wasim-pane" :style="chatPaneStyle">
           <WaSimChat
             :turns="turns"
             :loading="loading"
@@ -56,7 +56,7 @@
         </div>
       </b-col>
       <b-col lg="6" class="mb-3">
-        <b-card class="wasim-pane border-0 shadow-sm" no-body>
+        <b-card class="wasim-pane border-0 shadow-sm" no-body :style="rightPaneStyle">
           <b-tabs card small class="wasim-right" content-class="wasim-right-body">
             <b-tab active>
               <template #title>
@@ -125,6 +125,9 @@ export default {
       selectedCustomer: null,
       phone: '',
       customerAtStart: null,
+      // alto disponible para los paneles (desde su borde superior hasta el final de la ventana)
+      paneHeight: null,
+      isWide: true,
     }
   },
   computed: {
@@ -147,11 +150,21 @@ export default {
       if (this.customerMode === 'phone' && this.asCustomer) return `+${this.asCustomer.phone}`
       return 'Cliente anónimo'
     },
+    chatPaneStyle() {
+      return this.paneHeight ? { height: `${this.paneHeight}px` } : {}
+    },
+    // En pantallas angostas los paneles se apilan: el inspector va debajo con alto propio.
+    rightPaneStyle() {
+      return this.paneHeight && this.isWide ? { height: `${this.paneHeight}px` } : {}
+    },
     customerChangedMidChat() {
       return this.turns.length > 0 && JSON.stringify(this.asCustomer) !== JSON.stringify(this.customerAtStart)
     },
   },
   watch: {
+    // Lo que aparece/desaparece encima de los paneles cambia el espacio disponible.
+    customerChangedMidChat() { this.$nextTick(this.fitPanes) },
+    loadError() { this.$nextTick(this.fitPanes) },
     async customerQuery(q) {
       if (this.selectedCustomer && q === this.selectedCustomer.nombre) return
       this.selectedCustomer = null
@@ -167,8 +180,24 @@ export default {
   mounted() {
     this.restore()
     this.loadConfig()
+    window.addEventListener('resize', this.fitPanes)
+    this.$nextTick(this.fitPanes)
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.fitPanes)
   },
   methods: {
+    // Ajusta el alto de los paneles al espacio visible para que el cuadro de
+    // texto del chat quede siempre a la vista sin hacer scroll de la página.
+    fitPanes() {
+      const row = this.$refs.panes && this.$refs.panes.$el
+      if (!row) return
+      const top = row.getBoundingClientRect().top + window.scrollY
+      const BOTTOM_GAP = 16 // margen inferior (mb-3)
+      this.isWide = window.innerWidth >= 992
+      this.paneHeight = Math.max(360, Math.floor(window.innerHeight - top - BOTTOM_GAP))
+    },
+
     async loadConfig() {
       this.loadError = null
       try {
@@ -332,8 +361,8 @@ export default {
 .wasim-phone { width: 180px; }
 
 .wasim-pane {
-  height: calc(100vh - 230px);
-  min-height: 480px;
+  // El alto real lo calcula fitPanes(); esto es solo el valor inicial.
+  height: 70vh;
 }
 
 .wasim-right {
@@ -349,7 +378,4 @@ export default {
   ::v-deep .tab-pane { height: 100%; }
 }
 
-@media (max-width: 991.98px) {
-  .wasim-pane { height: 70vh; }
-}
 </style>
