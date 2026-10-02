@@ -84,6 +84,11 @@
                 </router-link>
               </li>
               <li v-if="isAdmin" class="nav-item">
+                <router-link class="nav-link" to="/whatsapp/simulador">
+                  Simulador del bot
+                </router-link>
+              </li>
+              <li v-if="isAdmin" class="nav-item">
                 <router-link class="nav-link" to="/whatsapp/conexion">
                   Estado de Conexión
                 </router-link>
